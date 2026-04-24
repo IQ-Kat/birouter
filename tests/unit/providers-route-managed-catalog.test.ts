@@ -39,6 +39,14 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "gitlab",
+      body: {
+        provider: "gitlab",
+        apiKey: "glpat-test",
+        name: "GitLab Duo PAT",
+      },
+    },
+    {
       provider: "cablyai",
       body: {
         provider: "cablyai",
@@ -60,6 +68,100 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         provider: "fenayai",
         apiKey: "fenay-key",
         name: "FenayAI Primary",
+      },
+    },
+    {
+      provider: "chutes",
+      body: {
+        provider: "chutes",
+        apiKey: "chutes-key",
+        name: "Chutes Primary",
+      },
+    },
+    {
+      provider: "datarobot",
+      body: {
+        provider: "datarobot",
+        apiKey: "datarobot-key",
+        name: "DataRobot Primary",
+      },
+    },
+    {
+      provider: "clarifai",
+      body: {
+        provider: "clarifai",
+        apiKey: "clarifai-pat",
+        name: "Clarifai Primary",
+      },
+    },
+    {
+      provider: "azure-ai",
+      body: {
+        provider: "azure-ai",
+        apiKey: "azure-ai-key",
+        name: "Azure AI Foundry Primary",
+      },
+    },
+    {
+      provider: "bedrock",
+      body: {
+        provider: "bedrock",
+        apiKey: "bedrock-key",
+        name: "Bedrock Mantle Primary",
+      },
+    },
+    {
+      provider: "watsonx",
+      body: {
+        provider: "watsonx",
+        apiKey: "watsonx-key",
+        name: "watsonx Gateway Primary",
+      },
+    },
+    {
+      provider: "oci",
+      body: {
+        provider: "oci",
+        apiKey: "oci-key",
+        name: "OCI GenAI Primary",
+      },
+    },
+    {
+      provider: "sap",
+      body: {
+        provider: "sap",
+        apiKey: "sap-key",
+        name: "SAP GenAI Primary",
+      },
+    },
+    {
+      provider: "modal",
+      body: {
+        provider: "modal",
+        apiKey: "modal-key",
+        name: "Modal Primary",
+        providerSpecificData: {
+          baseUrl: "https://alice--demo.modal.run/v1",
+        },
+      },
+    },
+    {
+      provider: "reka",
+      body: {
+        provider: "reka",
+        apiKey: "reka-key",
+        name: "Reka Primary",
+        providerSpecificData: {
+          baseUrl: "https://api.reka.ai/v1",
+        },
+      },
+    },
+    {
+      provider: "nlpcloud",
+      body: {
+        provider: "nlpcloud",
+        apiKey: "nlpc-key",
+        name: "NLP Cloud Primary",
       },
     },
     {
@@ -207,6 +309,14 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         providerSpecificData: {
           cx: "engine-id-123",
         },
+      },
+    },
+    {
+      provider: "youcom-search",
+      body: {
+        provider: "youcom-search",
+        apiKey: "you-key",
+        name: "You.com Search",
       },
     },
     {

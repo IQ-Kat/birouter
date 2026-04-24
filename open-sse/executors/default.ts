@@ -11,6 +11,12 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
+import { buildDataRobotChatUrl } from "../config/datarobot.ts";
+import { buildAzureAiChatUrl } from "../config/azureAi.ts";
+import { buildBedrockChatUrl } from "../config/bedrock.ts";
+import { buildWatsonxChatUrl } from "../config/watsonx.ts";
+import { buildOciChatUrl } from "../config/oci.ts";
+import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -32,6 +38,26 @@ function normalizeDatabricksChatUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl);
   if (normalized.endsWith("/chat/completions")) return normalized;
   return `${normalized}/chat/completions`;
+}
+
+function normalizeDataRobotChatUrl(baseUrl) {
+  return buildDataRobotChatUrl(baseUrl);
+}
+
+function normalizeAzureAiChatUrl(baseUrl, apiType = "chat") {
+  return buildAzureAiChatUrl(baseUrl, apiType);
+}
+
+function normalizeWatsonxChatUrl(baseUrl) {
+  return buildWatsonxChatUrl(baseUrl);
+}
+
+function normalizeOciChatUrl(baseUrl, apiType = "chat") {
+  return buildOciChatUrl(baseUrl, apiType);
+}
+
+function normalizeSapChatUrl(baseUrl) {
+  return buildSapChatUrl(baseUrl);
 }
 
 function normalizeXiaomiMimoChatUrl(baseUrl) {
@@ -110,6 +136,34 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeDatabricksChatUrl(baseUrl);
       }
+      case "datarobot": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeDataRobotChatUrl(baseUrl);
+      }
+      case "azure-ai": {
+        const apiType =
+          credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeAzureAiChatUrl(baseUrl, apiType);
+      }
+      case "bedrock": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return buildBedrockChatUrl(baseUrl);
+      }
+      case "watsonx": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeWatsonxChatUrl(baseUrl);
+      }
+      case "oci": {
+        const apiType =
+          credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeOciChatUrl(baseUrl, apiType);
+      }
+      case "sap": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeSapChatUrl(baseUrl);
+      }
       case "xiaomi-mimo": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeXiaomiMimoChatUrl(baseUrl);
@@ -123,6 +177,8 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeGigachatChatUrl(baseUrl);
       }
       case "lm-studio":
+      case "modal":
+      case "reka":
       case "vllm":
       case "llamafile":
       case "triton":
@@ -180,6 +236,49 @@ export class DefaultExecutor extends BaseExecutor {
       case "gigachat":
         headers["Authorization"] = `Bearer ${credentials.accessToken || effectiveKey}`;
         break;
+      case "clarifai": {
+        const clarifaiToken = effectiveKey || credentials.accessToken;
+        if (clarifaiToken) {
+          headers["Authorization"] = `Key ${clarifaiToken}`;
+        }
+        break;
+      }
+      case "azure-ai":
+        if (effectiveKey || credentials.accessToken) {
+          headers["api-key"] = effectiveKey || credentials.accessToken;
+        }
+        delete headers["Authorization"];
+        break;
+      case "oci": {
+        const bearerToken = effectiveKey || credentials.accessToken;
+        if (bearerToken) {
+          headers["Authorization"] = `Bearer ${bearerToken}`;
+        }
+        const projectId =
+          credentials.projectId ||
+          credentials?.providerSpecificData?.projectId ||
+          credentials?.providerSpecificData?.project;
+        if (projectId) {
+          headers["OpenAI-Project"] = projectId;
+        }
+        break;
+      }
+      case "sap": {
+        const bearerToken = effectiveKey || credentials.accessToken;
+        if (bearerToken) {
+          headers["Authorization"] = `Bearer ${bearerToken}`;
+        }
+        headers["AI-Resource-Group"] = getSapResourceGroup(credentials?.providerSpecificData);
+        break;
+      }
+      case "reka": {
+        const bearerToken = effectiveKey || credentials.accessToken;
+        if (bearerToken) {
+          headers["Authorization"] = `Bearer ${bearerToken}`;
+          headers["X-Api-Key"] = bearerToken;
+        }
+        break;
+      }
       case "claude":
       case "anthropic":
         effectiveKey

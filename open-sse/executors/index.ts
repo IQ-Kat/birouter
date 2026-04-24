@@ -17,6 +17,8 @@ import { GrokWebExecutor } from "./grok-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { GitlabExecutor } from "./gitlab.ts";
+import { NlpCloudExecutor } from "./nlpcloud.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -29,6 +31,9 @@ const executors = {
   cursor: new CursorExecutor(),
   cu: new CursorExecutor(), // Alias for cursor
   "azure-openai": new AzureOpenAIExecutor(),
+  gitlab: new GitlabExecutor(),
+  "gitlab-duo": new GitlabExecutor("gitlab-duo"),
+  nlpcloud: new NlpCloudExecutor(),
   pollinations: new PollinationsExecutor(),
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
@@ -82,3 +87,5 @@ export { GrokWebExecutor } from "./grok-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { GitlabExecutor } from "./gitlab.ts";
+export { NlpCloudExecutor } from "./nlpcloud.ts";

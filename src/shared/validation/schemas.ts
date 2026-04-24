@@ -1747,6 +1747,7 @@ export const v1SearchSchema = z
         "google-pse-search",
         "linkup-search",
         "searchapi-search",
+        "youcom-search",
         "searxng-search",
       ])
       .optional(),

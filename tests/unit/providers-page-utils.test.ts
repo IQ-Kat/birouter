@@ -219,9 +219,22 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const localProvider = providerPageUtils.resolveDashboardProviderInfo("sdwebui");
   const localChatProvider = providerPageUtils.resolveDashboardProviderInfo("lm-studio");
   const searchProvider = providerPageUtils.resolveDashboardProviderInfo("brave-search");
+  const youcomSearchProvider = providerPageUtils.resolveDashboardProviderInfo("youcom-search");
   const audioProvider = providerPageUtils.resolveDashboardProviderInfo("assemblyai");
   const webCookieProvider = providerPageUtils.resolveDashboardProviderInfo("grok-web");
   const apiKeyProvider = providerPageUtils.resolveDashboardProviderInfo("glhf");
+  const gitlabProvider = providerPageUtils.resolveDashboardProviderInfo("gitlab");
+  const gitlabDuoProvider = providerPageUtils.resolveDashboardProviderInfo("gitlab-duo");
+  const chutesProvider = providerPageUtils.resolveDashboardProviderInfo("chutes");
+  const datarobotProvider = providerPageUtils.resolveDashboardProviderInfo("datarobot");
+  const clarifaiProvider = providerPageUtils.resolveDashboardProviderInfo("clarifai");
+  const azureAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-ai");
+  const watsonxProvider = providerPageUtils.resolveDashboardProviderInfo("watsonx");
+  const ociProvider = providerPageUtils.resolveDashboardProviderInfo("oci");
+  const sapProvider = providerPageUtils.resolveDashboardProviderInfo("sap");
+  const modalProvider = providerPageUtils.resolveDashboardProviderInfo("modal");
+  const rekaProvider = providerPageUtils.resolveDashboardProviderInfo("reka");
+  const nlpCloudProvider = providerPageUtils.resolveDashboardProviderInfo("nlpcloud");
   const embeddingProvider = providerPageUtils.resolveDashboardProviderInfo("voyage-ai");
   const rerankProvider = providerPageUtils.resolveDashboardProviderInfo("jina-ai");
   const perplexityWebProvider = providerPageUtils.resolveDashboardProviderInfo("perplexity-web");
@@ -239,12 +252,38 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
 
   assert.equal(searchProvider?.category, "search");
   assert.equal(searchProvider?.name, providers.SEARCH_PROVIDERS["brave-search"].name);
+  assert.equal(youcomSearchProvider?.category, "search");
+  assert.equal(youcomSearchProvider?.name, providers.SEARCH_PROVIDERS["youcom-search"].name);
 
   assert.equal(audioProvider?.category, "audio");
   assert.equal(audioProvider?.name, providers.AUDIO_ONLY_PROVIDERS.assemblyai.name);
 
   assert.equal(apiKeyProvider?.category, "apikey");
   assert.equal(apiKeyProvider?.name, providers.APIKEY_PROVIDERS.glhf.name);
+  assert.equal(gitlabProvider?.category, "apikey");
+  assert.equal(gitlabProvider?.name, providers.APIKEY_PROVIDERS.gitlab.name);
+  assert.equal(gitlabDuoProvider?.category, "oauth");
+  assert.equal(gitlabDuoProvider?.name, providers.OAUTH_PROVIDERS["gitlab-duo"].name);
+  assert.equal(chutesProvider?.category, "apikey");
+  assert.equal(chutesProvider?.name, providers.APIKEY_PROVIDERS.chutes.name);
+  assert.equal(datarobotProvider?.category, "apikey");
+  assert.equal(datarobotProvider?.name, providers.APIKEY_PROVIDERS.datarobot.name);
+  assert.equal(clarifaiProvider?.category, "apikey");
+  assert.equal(clarifaiProvider?.name, providers.APIKEY_PROVIDERS.clarifai.name);
+  assert.equal(azureAiProvider?.category, "apikey");
+  assert.equal(azureAiProvider?.name, providers.APIKEY_PROVIDERS["azure-ai"].name);
+  assert.equal(watsonxProvider?.category, "apikey");
+  assert.equal(watsonxProvider?.name, providers.APIKEY_PROVIDERS.watsonx.name);
+  assert.equal(ociProvider?.category, "apikey");
+  assert.equal(ociProvider?.name, providers.APIKEY_PROVIDERS.oci.name);
+  assert.equal(sapProvider?.category, "apikey");
+  assert.equal(sapProvider?.name, providers.APIKEY_PROVIDERS.sap.name);
+  assert.equal(modalProvider?.category, "apikey");
+  assert.equal(modalProvider?.name, providers.APIKEY_PROVIDERS.modal.name);
+  assert.equal(rekaProvider?.category, "apikey");
+  assert.equal(rekaProvider?.name, providers.APIKEY_PROVIDERS.reka.name);
+  assert.equal(nlpCloudProvider?.category, "apikey");
+  assert.equal(nlpCloudProvider?.name, providers.APIKEY_PROVIDERS.nlpcloud.name);
 
   assert.equal(embeddingProvider?.category, "apikey");
   assert.equal(embeddingProvider?.name, providers.APIKEY_PROVIDERS["voyage-ai"].name);
@@ -274,9 +313,21 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
 test("managed provider connection ids include supported static categories and exclude upstream proxy", () => {
   assert.equal(providerCatalog.isManagedProviderConnectionId("qoder"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("glhf"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("gitlab"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cablyai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("thebai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("fenayai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("chutes"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("datarobot"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("clarifai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("azure-ai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("bedrock"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("watsonx"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("oci"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("sap"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("modal"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("reka"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("nlpcloud"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("voyage-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("jina-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("sdwebui"), true);
@@ -288,6 +339,7 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("blackbox-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("muse-spark-web"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("brave-search"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("youcom-search"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
   assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
 });
@@ -308,9 +360,22 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("muse-spark-web" in providers.APIKEY_PROVIDERS, false);
   assert.equal("muse-spark-web" in providers.WEB_COOKIE_PROVIDERS, true);
   assert.equal("glhf" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("gitlab" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("gitlab-duo" in providers.OAUTH_PROVIDERS, true);
   assert.equal("cablyai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("thebai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("fenayai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("chutes" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("datarobot" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("clarifai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("azure-ai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("bedrock" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("watsonx" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("oci" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("sap" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("modal" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("reka" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("nlpcloud" in providers.APIKEY_PROVIDERS, true);
   assert.equal("voyage-ai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("jina-ai" in providers.APIKEY_PROVIDERS, true);
 
@@ -349,6 +414,10 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
     true
   );
   assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "gitlab"),
+    true
+  );
+  assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "cablyai"),
     true
   );
@@ -358,6 +427,50 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "fenayai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "chutes"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "datarobot"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "clarifai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "azure-ai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "bedrock"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "watsonx"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "oci"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "sap"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "modal"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "reka"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "nlpcloud"),
     true
   );
   assert.equal(

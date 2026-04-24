@@ -55,6 +55,17 @@ export const OAUTH_PROVIDERS = {
   },
   codex: { id: "codex", alias: "cx", name: "OpenAI Codex", icon: "code", color: "#3B82F6" },
   github: { id: "github", alias: "gh", name: "GitHub Copilot", icon: "code", color: "#333333" },
+  "gitlab-duo": {
+    id: "gitlab-duo",
+    alias: "gitlab-duo",
+    name: "GitLab Duo",
+    icon: "hub",
+    color: "#FC6D26",
+    textIcon: "GL",
+    website: "https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/",
+    authHint:
+      "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
+  },
   cursor: { id: "cursor", alias: "cu", name: "Cursor IDE", icon: "edit_note", color: "#00D4AA" },
   "kimi-coding": {
     id: "kimi-coding",
@@ -251,6 +262,122 @@ export const APIKEY_PROVIDERS = {
     authHint:
       "Use your Azure OpenAI API key. Base URL should be your resource endpoint, for example https://my-resource.openai.azure.com.",
     passthroughModels: true,
+  },
+  "azure-ai": {
+    id: "azure-ai",
+    alias: "azure-ai",
+    name: "Azure AI Foundry",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "AF",
+    website: "https://learn.microsoft.com/azure/ai-foundry/",
+    authHint:
+      "Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/.",
+    apiHint:
+      "Foundry uses the OpenAI v1 surface with deployment names as models. OmniRoute normalizes root resource URLs to the v1 chat and /models endpoints.",
+    passthroughModels: true,
+  },
+  bedrock: {
+    id: "bedrock",
+    alias: "bedrock",
+    name: "Amazon Bedrock",
+    icon: "cloud",
+    color: "#FF9900",
+    textIcon: "BR",
+    website: "https://aws.amazon.com/bedrock/",
+    authHint:
+      "Use your Amazon Bedrock API key in Authorization: Bearer <key>. OmniRoute defaults to the OpenAI-compatible bedrock-mantle endpoint in us-east-1; set a regional base URL if your account uses another region or the bedrock-runtime /openai/v1 path.",
+    apiHint:
+      "This integration targets Amazon Bedrock's current OpenAI-compatible surface. bedrock-mantle is the default for /models and chat; advanced users can also point baseUrl to bedrock-runtime/.../openai/v1 for runtime-specific model IDs.",
+    passthroughModels: true,
+  },
+  watsonx: {
+    id: "watsonx",
+    alias: "watsonx",
+    name: "IBM watsonx.ai Gateway",
+    icon: "hub",
+    color: "#0F62FE",
+    textIcon: "WX",
+    website: "https://www.ibm.com/products/watsonx-ai",
+    authHint:
+      "Use your watsonx bearer token. Base URL can be https://<region>.ml.cloud.ibm.com/ml/gateway/v1/ or a self-managed /ml/gateway/v1 endpoint.",
+    apiHint:
+      "The watsonx model gateway exposes OpenAI-compatible /chat/completions and /models under /ml/gateway/v1.",
+    passthroughModels: true,
+  },
+  oci: {
+    id: "oci",
+    alias: "oci",
+    name: "OCI Generative AI",
+    icon: "cloud",
+    color: "#C74634",
+    textIcon: "OCI",
+    website: "https://www.oracle.com/artificial-intelligence/generative-ai/",
+    authHint:
+      "Use your OCI Generative AI API key or IAM bearer token. Base URL can be https://inference.generativeai.<region>.oci.oraclecloud.com/openai/v1/.",
+    apiHint:
+      "OCI exposes OpenAI-compatible chat and responses endpoints. Project ID is optional in OmniRoute but may be required for Responses and agentic workflows.",
+    passthroughModels: true,
+  },
+  sap: {
+    id: "sap",
+    alias: "sap",
+    name: "SAP Generative AI Hub",
+    icon: "business",
+    color: "#0FAAFF",
+    textIcon: "SAP",
+    website:
+      "https://help.sap.com/docs/sap-ai-core/sap-ai-core-service-guide/generative-ai-hub-in-sap-ai-core",
+    authHint:
+      "Use your SAP AI Core bearer token. Base URL can be your AI_API_URL root or a deploymentUrl from Generative AI Hub.",
+    apiHint:
+      "Model discovery uses /v2/lm/scenarios/foundation-models/models on AI_API_URL. Chat requests use deploymentUrl/chat/completions and require AI-Resource-Group.",
+    passthroughModels: true,
+  },
+  modal: {
+    id: "modal",
+    alias: "mdl",
+    name: "Modal",
+    icon: "cloud_queue",
+    color: "#7C3AED",
+    textIcon: "MDL",
+    website: "https://modal.com/docs",
+    authHint:
+      "Use the bearer token that protects your Modal deployment, if enabled. Base URL should point to your OpenAI-compatible Modal app, for example https://<workspace>--<app>.modal.run/v1.",
+    apiHint:
+      "Modal commonly serves user-hosted OpenAI-compatible apps on /v1. OmniRoute will probe /v1/models and route chat traffic to /v1/chat/completions.",
+    hasFree: true,
+    freeNote: "$30/month free credits for new accounts",
+    passthroughModels: true,
+  },
+  reka: {
+    id: "reka",
+    alias: "reka",
+    name: "Reka",
+    icon: "auto_awesome",
+    color: "#111827",
+    textIcon: "RK",
+    website: "https://docs.reka.ai/chat/overview",
+    authHint:
+      "Use your Reka API key. OmniRoute supports the OpenAI-compatible base URL https://api.reka.ai/v1 and sends both Authorization and X-Api-Key headers for compatibility.",
+    apiHint:
+      "Reka Chat is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions.",
+    passthroughModels: true,
+  },
+  nlpcloud: {
+    id: "nlpcloud",
+    alias: "nlpc",
+    name: "NLP Cloud",
+    icon: "psychology",
+    color: "#2196F3",
+    textIcon: "NLPC",
+    website: "https://docs.nlpcloud.com",
+    authHint:
+      "Use your NLP Cloud API key in Authorization: Token <key>. OmniRoute targets the chatbot endpoint on https://api.nlpcloud.io/v1/gpu/<model>/chatbot by default.",
+    apiHint:
+      "NLP Cloud uses a proprietary chatbot API instead of OpenAI chat/completions. OmniRoute adapts OpenAI messages to input/context/history and exposes a local catalog of supported chatbot models.",
+    hasFree: true,
+    freeNote: "Trial credits for new accounts",
   },
   anthropic: {
     id: "anthropic",
@@ -736,6 +863,34 @@ export const APIKEY_PROVIDERS = {
     textIcon: "DB",
     website: "https://www.databricks.com",
   },
+  datarobot: {
+    id: "datarobot",
+    alias: "datarobot",
+    name: "DataRobot",
+    icon: "precision_manufacturing",
+    color: "#6D28D9",
+    textIcon: "DR",
+    website: "https://docs.datarobot.com",
+    authHint:
+      "Use your DataRobot API token. Optional Base URL can be the account root (for LLM Gateway) or a deployment URL under /api/v2/deployments/<id>.",
+    apiHint:
+      "The default gateway catalogs active models from /genai/llmgw/catalog/. Deployment URLs are also supported for direct OpenAI-compatible chat requests.",
+    passthroughModels: true,
+  },
+  clarifai: {
+    id: "clarifai",
+    alias: "clarifai",
+    name: "Clarifai",
+    icon: "hub",
+    color: "#7C3AED",
+    textIcon: "CF",
+    website: "https://docs.clarifai.com",
+    authHint:
+      "Use your Clarifai PAT or app-specific API key. OmniRoute targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>.",
+    apiHint:
+      "Clarifai exposes OpenAI-compatible chat, responses and /models on /v2/ext/openai/v1. Public/community models typically require a PAT; app-scoped keys only work for resources inside that app.",
+    passthroughModels: true,
+  },
   snowflake: {
     id: "snowflake",
     alias: "snowflake",
@@ -957,6 +1112,28 @@ export const APIKEY_PROVIDERS = {
     textIcon: "FN",
     website: "https://fenayai.com",
     authHint: "Bearer API key for the FenayAI OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  gitlab: {
+    id: "gitlab",
+    alias: "gitlab",
+    name: "GitLab Duo PAT",
+    icon: "hub",
+    color: "#FC6D26",
+    textIcon: "GL",
+    website: "https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/",
+    authHint:
+      "GitLab personal access token for the public Code Suggestions API. Configure a self-hosted base URL when not using gitlab.com.",
+  },
+  chutes: {
+    id: "chutes",
+    alias: "chutes",
+    name: "Chutes.ai",
+    icon: "hub",
+    color: "#06B6D4",
+    textIcon: "CH",
+    website: "https://chutes.ai",
+    authHint: "Bearer API key for the Chutes OpenAI-compatible gateway.",
     passthroughModels: true,
   },
   "voyage-ai": {
@@ -1226,6 +1403,16 @@ export const SEARCH_PROVIDERS = {
     textIcon: "SA",
     website: "https://www.searchapi.io/docs",
     authHint: "API key from SearchAPI (query param or Bearer auth)",
+  },
+  "youcom-search": {
+    id: "youcom-search",
+    alias: "youcom-search",
+    name: "You.com Search",
+    icon: "travel_explore",
+    color: "#2563EB",
+    textIcon: "YOU",
+    website: "https://you.com/docs/search/overview",
+    authHint: "X-API-Key from the You.com platform dashboard",
   },
   "searxng-search": {
     id: "searxng-search",

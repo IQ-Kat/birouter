@@ -156,6 +156,25 @@ test("embedding and rerank specialty validators surface auth failures for Voyage
   assert.equal(jina.error, "Invalid API key");
 });
 
+test("gitlab specialty validator accepts PAT auth on the direct access endpoint", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://gitlab.com/api/v4/code_suggestions/direct_access");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer glpat-test");
+    return new Response(JSON.stringify({ token: "short-lived" }), { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({ provider: "gitlab", apiKey: "glpat-test" });
+  assert.equal(result.valid, true);
+});
+
+test("gitlab specialty validator treats 401 as invalid PAT", async () => {
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+
+  const result = await validateProviderApiKey({ provider: "gitlab", apiKey: "glpat-bad" });
+  assert.equal(result.error, "Invalid API key");
+});
+
 test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and Muse Spark session cookies", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -346,7 +365,7 @@ test("search provider validators cover success, client errors, server errors and
   assert.equal(calls[0].init.headers["User-Agent"], "SearchSuite/1.0");
 });
 
-test("extended search provider validators cover Google PSE, Linkup, SearchAPI and SearXNG", async () => {
+test("extended search provider validators cover Google PSE, Linkup, SearchAPI, You.com and SearXNG", async () => {
   const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
   process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
   const calls = [];
@@ -362,6 +381,9 @@ test("extended search provider validators cover Google PSE, Linkup, SearchAPI an
       }
       if (target.startsWith("https://www.searchapi.io/api/v1/search")) {
         return new Response(JSON.stringify({ organic_results: [] }), { status: 200 });
+      }
+      if (target.startsWith("https://ydc-index.io/v1/search")) {
+        return new Response(JSON.stringify({ results: { web: [] } }), { status: 200 });
       }
       if (target.startsWith("http://localhost:9999/search")) {
         return new Response(JSON.stringify({ results: [] }), { status: 200 });
@@ -382,6 +404,10 @@ test("extended search provider validators cover Google PSE, Linkup, SearchAPI an
       provider: "searchapi-search",
       apiKey: "searchapi-key",
     });
+    const youcom = await validateProviderApiKey({
+      provider: "youcom-search",
+      apiKey: "you-key",
+    });
     const searxng = await validateProviderApiKey({
       provider: "searxng-search",
       providerSpecificData: { baseUrl: "http://localhost:9999/search" },
@@ -390,10 +416,12 @@ test("extended search provider validators cover Google PSE, Linkup, SearchAPI an
     assert.equal(google.valid, true);
     assert.equal(linkup.valid, true);
     assert.equal(searchapi.valid, true);
+    assert.equal(youcom.valid, true);
     assert.equal(searxng.valid, true);
     assert.match(calls[0].url, /cx=engine-id/);
     assert.equal(calls[1].init.headers.Authorization, "Bearer linkup-key");
     assert.match(calls[2].url, /api_key=searchapi-key/);
+    assert.equal(calls[3].init.headers["X-API-Key"], "you-key");
   } finally {
     if (originalAllowPrivateProviderUrls === undefined) {
       delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -868,4 +896,431 @@ test("specialty validators surface missing base URLs and invalid auth for Heroku
   assert.equal(databricksInvalid.error, "Invalid API key");
   assert.equal(snowflakeInvalid.error, "Invalid API key");
   assert.equal(gigachatInvalid.error, "Invalid API key");
+});
+
+test("specialty validator accepts DataRobot gateway and deployment credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://app.datarobot.com/genai/llmgw/catalog/") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer dr-key");
+      return new Response(
+        JSON.stringify({
+          data: [{ model: "azure/gpt-5-mini-2025-08-07", isActive: true }],
+        }),
+        { status: 200 }
+      );
+    }
+
+    if (
+      target ===
+      "https://app.datarobot.com/api/v2/deployments/65f5b2b7c8f8c4b257e0d123/chat/completions"
+    ) {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer dr-deploy-key");
+      const body = JSON.parse(String(init.body));
+      assert.equal(body.model, "datarobot-deployed-llm");
+      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const gateway = await validateProviderApiKey({
+    provider: "datarobot",
+    apiKey: "dr-key",
+  });
+  const deployment = await validateProviderApiKey({
+    provider: "datarobot",
+    apiKey: "dr-deploy-key",
+    providerSpecificData: {
+      baseUrl: "https://app.datarobot.com/api/v2/deployments/65f5b2b7c8f8c4b257e0d123",
+    },
+  });
+
+  assert.equal(gateway.valid, true);
+  assert.equal(deployment.valid, true);
+});
+
+test("specialty validator rejects invalid DataRobot credentials", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+
+    if (target === "https://app.datarobot.com/genai/llmgw/catalog/") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    if (
+      target ===
+      "https://app.datarobot.com/api/v2/deployments/65f5b2b7c8f8c4b257e0d123/chat/completions"
+    ) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const gateway = await validateProviderApiKey({
+    provider: "datarobot",
+    apiKey: "dr-key",
+  });
+  const deployment = await validateProviderApiKey({
+    provider: "datarobot",
+    apiKey: "dr-deploy-key",
+    providerSpecificData: {
+      baseUrl: "https://app.datarobot.com/api/v2/deployments/65f5b2b7c8f8c4b257e0d123",
+    },
+  });
+
+  assert.equal(gateway.error, "Invalid API key");
+  assert.equal(deployment.error, "Invalid API key");
+});
+
+test("specialty validators accept watsonx, OCI and SAP enterprise gateways", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://ca-tor.ml.cloud.ibm.com/ml/gateway/v1/models") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer watsonx-key");
+      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    }
+
+    if (
+      target === "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com/openai/v1/models"
+    ) {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer oci-key");
+      assert.equal(headers["OpenAI-Project"], "ocid1.generativeaiproject.oc1.us-chicago-1.demo");
+      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    }
+
+    if (target === "https://sap.example.com/v2/lm/scenarios/foundation-models/models") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer sap-key");
+      assert.equal(headers["AI-Resource-Group"], "shared");
+      return new Response(JSON.stringify({ resources: [] }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const watsonx = await validateProviderApiKey({
+    provider: "watsonx",
+    apiKey: "watsonx-key",
+    providerSpecificData: { baseUrl: "https://ca-tor.ml.cloud.ibm.com" },
+  });
+  const oci = await validateProviderApiKey({
+    provider: "oci",
+    apiKey: "oci-key",
+    providerSpecificData: {
+      baseUrl: "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com",
+      projectId: "ocid1.generativeaiproject.oc1.us-chicago-1.demo",
+    },
+  });
+  const sap = await validateProviderApiKey({
+    provider: "sap",
+    apiKey: "sap-key",
+    providerSpecificData: {
+      baseUrl: "https://sap.example.com/v2/lm/deployments/demo-deployment",
+      resourceGroup: "shared",
+    },
+  });
+
+  assert.equal(watsonx.valid, true);
+  assert.equal(watsonx.method, "watsonx_models");
+  assert.equal(oci.valid, true);
+  assert.equal(oci.method, "oci_models");
+  assert.equal(sap.valid, true);
+  assert.equal(sap.method, "sap_models");
+});
+
+test("specialty validator accepts Bedrock mantle discovery and runtime chat fallback", async () => {
+  let runtimeChatProbed = false;
+
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://bedrock-mantle.us-east-1.api.aws/v1/models") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
+      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    }
+
+    if (target === "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/models") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer runtime-key");
+      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+    }
+
+    if (target === "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions") {
+      runtimeChatProbed = true;
+      const body = JSON.parse(String(init.body || "{}"));
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer runtime-key");
+      assert.equal(body.model, "openai.gpt-oss-120b-1:0");
+      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const mantle = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "bedrock-key",
+  });
+  const runtime = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "runtime-key",
+    providerSpecificData: {
+      baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
+    },
+  });
+
+  assert.equal(mantle.valid, true);
+  assert.equal(runtime.valid, true);
+  assert.equal(runtimeChatProbed, true);
+});
+
+test("specialty validator rejects invalid Bedrock credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://bedrock-mantle.us-east-1.api.aws/v1/models") {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const bedrock = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "bedrock-key",
+  });
+
+  assert.equal(bedrock.error, "Invalid API key");
+});
+
+test("specialty validators reject invalid watsonx, OCI and SAP credentials", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+
+    if (target === "https://ca-tor.ml.cloud.ibm.com/ml/gateway/v1/models") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    if (
+      target === "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com/openai/v1/models"
+    ) {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+
+    if (target === "https://sap.example.com/v2/lm/scenarios/foundation-models/models") {
+      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const watsonx = await validateProviderApiKey({
+    provider: "watsonx",
+    apiKey: "watsonx-key",
+    providerSpecificData: { baseUrl: "https://ca-tor.ml.cloud.ibm.com" },
+  });
+  const oci = await validateProviderApiKey({
+    provider: "oci",
+    apiKey: "oci-key",
+    providerSpecificData: {
+      baseUrl: "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com",
+    },
+  });
+  const sap = await validateProviderApiKey({
+    provider: "sap",
+    apiKey: "sap-key",
+    providerSpecificData: {
+      baseUrl: "https://sap.example.com/v2/lm/deployments/demo-deployment",
+    },
+  });
+
+  assert.equal(watsonx.error, "Invalid API key");
+  assert.equal(oci.error, "Invalid API key");
+  assert.equal(sap.error, "Invalid API key");
+});
+
+test("specialty validator accepts Modal OpenAI-compatible deployments", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://alice--demo.modal.run/v1/models") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer modal-key");
+      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const modal = await validateProviderApiKey({
+    provider: "modal",
+    apiKey: "modal-key",
+    providerSpecificData: {
+      baseUrl: "https://alice--demo.modal.run/v1",
+    },
+  });
+
+  assert.equal(modal.valid, true);
+});
+
+test("specialty validator rejects invalid Modal credentials", async () => {
+  globalThis.fetch = async (url) => {
+    const target = String(url);
+
+    if (target === "https://alice--demo.modal.run/v1/models") {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const modal = await validateProviderApiKey({
+    provider: "modal",
+    apiKey: "modal-key",
+    providerSpecificData: {
+      baseUrl: "https://alice--demo.modal.run/v1",
+    },
+  });
+
+  assert.equal(modal.error, "Invalid API key");
+});
+
+test("specialty validator accepts Clarifai credentials through the OpenAI-compatible models probe", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.clarifai.com/v2/ext/openai/v1/models") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Key clarifai-pat");
+      return new Response(
+        JSON.stringify({ data: [{ id: "openai/chat-completion/models/gpt-oss-120b" }] }),
+        { status: 200 }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const clarifai = await validateProviderApiKey({
+    provider: "clarifai",
+    apiKey: "clarifai-pat",
+  });
+
+  assert.equal(clarifai.valid, true);
+  assert.equal(clarifai.method, "clarifai_models");
+});
+
+test("specialty validator rejects invalid Clarifai credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.clarifai.com/v2/ext/openai/v1/models") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Key clarifai-bad");
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const clarifai = await validateProviderApiKey({
+    provider: "clarifai",
+    apiKey: "clarifai-bad",
+  });
+
+  assert.equal(clarifai.error, "Invalid API key");
+});
+
+test("specialty validator accepts Reka credentials through the models probe with dual auth headers", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.reka.ai/v1/models") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer reka-key");
+      assert.equal(headers["X-Api-Key"], "reka-key");
+      return new Response(JSON.stringify([{ id: "reka-core" }]), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const reka = await validateProviderApiKey({
+    provider: "reka",
+    apiKey: "reka-key",
+  });
+
+  assert.equal(reka.valid, true);
+  assert.equal(reka.method, "reka_models");
+});
+
+test("specialty validator rejects invalid Reka credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.reka.ai/v1/models") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer reka-bad");
+      assert.equal(headers["X-Api-Key"], "reka-bad");
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const reka = await validateProviderApiKey({
+    provider: "reka",
+    apiKey: "reka-bad",
+  });
+
+  assert.equal(reka.error, "Invalid API key");
+});
+
+test("specialty validator accepts NLP Cloud credentials on the chatbot endpoint", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.nlpcloud.io/v1/gpu/chatdolphin/chatbot") {
+      const headers = init.headers as Record<string, string>;
+      const body = JSON.parse(String(init.body));
+      assert.equal(headers.Authorization, "Token nlpc-key");
+      assert.equal(body.input, "test");
+      return new Response(JSON.stringify({ response: "ok" }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const nlpCloud = await validateProviderApiKey({
+    provider: "nlpcloud",
+    apiKey: "nlpc-key",
+  });
+
+  assert.equal(nlpCloud.valid, true);
+  assert.equal(nlpCloud.method, "nlpcloud_chatbot");
+});
+
+test("specialty validator rejects invalid NLP Cloud credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.nlpcloud.io/v1/gpu/chatdolphin/chatbot") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Token nlpc-bad");
+      return new Response(JSON.stringify({ detail: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const nlpCloud = await validateProviderApiKey({
+    provider: "nlpcloud",
+    apiKey: "nlpc-bad",
+  });
+
+  assert.equal(nlpCloud.error, "Invalid API key");
 });

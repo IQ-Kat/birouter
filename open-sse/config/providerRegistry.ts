@@ -24,6 +24,12 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
+import { DATAROBOT_DEFAULT_BASE_URL } from "./datarobot.ts";
+import { AZURE_AI_DEFAULT_BASE_URL } from "./azureAi.ts";
+import { BEDROCK_DEFAULT_BASE_URL } from "./bedrock.ts";
+import { WATSONX_DEFAULT_BASE_URL } from "./watsonx.ts";
+import { OCI_DEFAULT_BASE_URL } from "./oci.ts";
+import { SAP_DEFAULT_BASE_URL } from "./sap.ts";
 import {
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -138,6 +144,9 @@ const KIMI_CODING_SHARED = {
   ] as RegistryModel[],
 } as const;
 
+const GITLAB_DUO_BASE_URL =
+  process.env.GITLAB_DUO_BASE_URL || process.env.GITLAB_BASE_URL || "https://gitlab.com";
+
 const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
 
@@ -190,6 +199,14 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   cablyai: buildModels(["gpt-4o", "gpt-4o-mini", "deepseek-chat"]),
   thebai: buildModels(["gpt-4o", "claude-3.5-sonnet", "llama-3.3-70b"]),
   fenayai: buildModels(["gpt-4o", "claude-3.5-sonnet", "deepseek-chat"]),
+  gitlab: [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
+  "gitlab-duo": [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
+  chutes: buildModels([
+    "Qwen/Qwen3-32B-TEE",
+    "deepseek-ai/DeepSeek-V3.2-TEE",
+    "openai/gpt-oss-120b-TEE",
+    "moonshotai/Kimi-K2.6-TEE",
+  ]),
   moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
   "meta-llama": buildModels([
     "Llama-3.3-70B-Instruct",
@@ -208,6 +225,47 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "databricks-meta-llama-3-3-70b-instruct",
     "databricks-claude-sonnet-4",
     "databricks-gemini-2-5-pro",
+  ]),
+  datarobot: [
+    { id: "azure/gpt-5-mini-2025-08-07", name: "Azure GPT-5 Mini" },
+    { id: "azure/gpt-4o-mini", name: "Azure GPT-4o Mini" },
+  ],
+  clarifai: [
+    { id: "openai/chat-completion/models/gpt-oss-120b", name: "GPT-OSS 120B" },
+    { id: "openai/chat-completion/models/gpt-4o", name: "GPT-4o" },
+    { id: "openai/chat-completion/models/o4-mini", name: "o4-mini" },
+    { id: "anthropic/completion/models/claude-sonnet-4", name: "Claude Sonnet 4" },
+    {
+      id: "deepseek-ai/deepseek-chat/models/DeepSeek-R1-0528-Qwen3-8B",
+      name: "DeepSeek R1 Qwen3 8B",
+    },
+    { id: "gcp/generate/models/gemini-2_5-flash", name: "Gemini 2.5 Flash" },
+  ],
+  watsonx: buildModels([
+    "ibm/granite-3-3-8b-instruct",
+    "meta-llama/llama-3-3-70b-instruct",
+    "openai/gpt-4o",
+  ]),
+  oci: buildModels([
+    "openai.gpt-oss-20b",
+    "openai.gpt-oss-120b",
+    "google.gemini-2.5-pro",
+    "xai.grok-4",
+  ]),
+  sap: buildModels(["gpt-4o", "gpt-5-mini", "mistralai--mistral-medium-instruct"]),
+  modal: buildModels([
+    "Qwen/Qwen3-4B-Thinking-2507-FP8",
+    "google/gemma-4-26B-A4B-it",
+    "gpt-oss-20B",
+  ]),
+  reka: buildModels(["reka-core", "reka-flash", "reka-edge-2603"]),
+  nlpcloud: buildModels([
+    "gpt-oss-120b",
+    "llama-3-1-405b",
+    "finetuned-llama-3-70b",
+    "chatdolphin",
+    "dolphin-yi-34b",
+    "dolphin-mixtral-8x7b",
   ]),
   snowflake: buildModels(["llama3.1-70b", "llama3.3-70b", "deepseek-r1", "claude-3-5-sonnet"]),
   wandb: buildModels([
@@ -644,6 +702,42 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "api-key",
     defaultContextLength: 128000,
     models: [],
+    passthroughModels: true,
+  },
+
+  "azure-ai": {
+    id: "azure-ai",
+    alias: "azure-ai",
+    format: "openai",
+    executor: "default",
+    baseUrl: AZURE_AI_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "api-key",
+    models: [
+      { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
+      { id: "grok-4", name: "Grok 4" },
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+    ],
+    passthroughModels: true,
+  },
+
+  bedrock: {
+    id: "bedrock",
+    alias: "bedrock",
+    format: "openai",
+    executor: "default",
+    baseUrl: BEDROCK_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: buildModels([
+      "openai.gpt-oss-20b",
+      "openai.gpt-oss-120b",
+      "openai.gpt-oss-safeguard-20b",
+      "openai.gpt-oss-safeguard-120b",
+      "mistral.mistral-large-3-675b-instruct",
+    ]),
     passthroughModels: true,
   },
 
@@ -1960,6 +2054,50 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
   },
 
+  gitlab: {
+    id: "gitlab",
+    alias: "gitlab",
+    format: "openai",
+    executor: "gitlab",
+    baseUrl: "https://gitlab.com/api/v4/code_suggestions/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.gitlab,
+  },
+
+  "gitlab-duo": {
+    id: "gitlab-duo",
+    alias: "gitlab-duo",
+    format: "openai",
+    executor: "gitlab-duo",
+    baseUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/api/v4/code_suggestions/completions`,
+    authType: "oauth",
+    authHeader: "bearer",
+    oauth: {
+      clientIdEnv: "GITLAB_DUO_OAUTH_CLIENT_ID",
+      clientIdDefault: process.env.GITLAB_OAUTH_CLIENT_ID || "",
+      clientSecretEnv: "GITLAB_DUO_OAUTH_CLIENT_SECRET",
+      clientSecretDefault: process.env.GITLAB_OAUTH_CLIENT_SECRET || "",
+      tokenUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/oauth/token`,
+      refreshUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/oauth/token`,
+      authUrl: `${GITLAB_DUO_BASE_URL.replace(/\/$/, "")}/oauth/authorize`,
+    },
+    models: CHAT_OPENAI_COMPAT_MODELS["gitlab-duo"],
+  },
+
+  chutes: {
+    id: "chutes",
+    alias: "chutes",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://llm.chutes.ai/v1/chat/completions",
+    modelsUrl: "https://llm.chutes.ai/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.chutes,
+    passthroughModels: true,
+  },
+
   moonshot: {
     id: "moonshot",
     alias: "moonshot",
@@ -2068,6 +2206,103 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.databricks,
+  },
+
+  datarobot: {
+    id: "datarobot",
+    alias: "datarobot",
+    format: "openai",
+    executor: "default",
+    baseUrl: DATAROBOT_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.datarobot,
+    passthroughModels: true,
+  },
+
+  clarifai: {
+    id: "clarifai",
+    alias: "clarifai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.clarifai.com/v2/ext/openai/v1/chat/completions",
+    modelsUrl: "https://api.clarifai.com/v2/ext/openai/v1/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Key ",
+    models: CHAT_OPENAI_COMPAT_MODELS.clarifai,
+    passthroughModels: true,
+  },
+
+  watsonx: {
+    id: "watsonx",
+    alias: "watsonx",
+    format: "openai",
+    executor: "default",
+    baseUrl: WATSONX_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.watsonx,
+    passthroughModels: true,
+  },
+
+  oci: {
+    id: "oci",
+    alias: "oci",
+    format: "openai",
+    executor: "default",
+    baseUrl: OCI_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.oci,
+    passthroughModels: true,
+  },
+
+  sap: {
+    id: "sap",
+    alias: "sap",
+    format: "openai",
+    executor: "default",
+    baseUrl: SAP_DEFAULT_BASE_URL,
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.sap,
+    passthroughModels: true,
+  },
+
+  modal: {
+    id: "modal",
+    alias: "modal",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://example-user--example-app.modal.run/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.modal,
+    passthroughModels: true,
+  },
+
+  reka: {
+    id: "reka",
+    alias: "reka",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.reka.ai/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.reka,
+    passthroughModels: true,
+  },
+
+  nlpcloud: {
+    id: "nlpcloud",
+    alias: "nlpc",
+    format: "openai",
+    executor: "nlpcloud",
+    baseUrl: "https://api.nlpcloud.io/v1/gpu",
+    authType: "apikey",
+    authHeader: "token",
+    models: CHAT_OPENAI_COMPAT_MODELS.nlpcloud,
   },
 
   snowflake: {

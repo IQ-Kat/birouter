@@ -11,6 +11,7 @@ import {
 } from "../../open-sse/executors/base.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
+import { BEDROCK_DEFAULT_BASE_URL } from "../../open-sse/config/bedrock.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -161,6 +162,15 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
   const bailian = new DefaultExecutor("bailian-coding-plan");
   const heroku = new DefaultExecutor("heroku");
   const databricks = new DefaultExecutor("databricks");
+  const datarobot = new DefaultExecutor("datarobot");
+  const clarifai = new DefaultExecutor("clarifai");
+  const azureAi = new DefaultExecutor("azure-ai");
+  const bedrock = new DefaultExecutor("bedrock");
+  const watsonx = new DefaultExecutor("watsonx");
+  const oci = new DefaultExecutor("oci");
+  const sap = new DefaultExecutor("sap");
+  const modal = new DefaultExecutor("modal");
+  const reka = new DefaultExecutor("reka");
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");
 
@@ -187,6 +197,84 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
     "https://adb-1234567890123456.7.azuredatabricks.net/serving-endpoints/chat/completions"
   );
   assert.equal(
+    datarobot.buildUrl("azure/gpt-5-mini-2025-08-07", true, 0, {
+      providerSpecificData: { baseUrl: "https://app.datarobot.com" },
+    }),
+    "https://app.datarobot.com/api/v2/genai/llmgw/chat/completions/"
+  );
+  assert.equal(
+    datarobot.buildUrl("datarobot-deployed-llm", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://app.datarobot.com/api/v2/deployments/65f5b2b7c8f8c4b257e0d123",
+      },
+    }),
+    "https://app.datarobot.com/api/v2/deployments/65f5b2b7c8f8c4b257e0d123/chat/completions"
+  );
+  assert.equal(
+    clarifai.buildUrl("openai/chat-completion/models/gpt-oss-120b", true),
+    "https://api.clarifai.com/v2/ext/openai/v1/chat/completions"
+  );
+  assert.equal(
+    azureAi.buildUrl("DeepSeek-V3.1", true, 0, {
+      providerSpecificData: { baseUrl: "https://my-foundry.services.ai.azure.com" },
+    }),
+    "https://my-foundry.services.ai.azure.com/openai/v1/chat/completions"
+  );
+  assert.equal(
+    bedrock.buildUrl("openai.gpt-oss-120b", true, 0, {
+      providerSpecificData: { baseUrl: "https://bedrock-mantle.us-east-1.api.aws" },
+    }),
+    "https://bedrock-mantle.us-east-1.api.aws/v1/chat/completions"
+  );
+  assert.equal(
+    bedrock.buildUrl("openai.gpt-oss-120b-1:0", true, 0, {
+      providerSpecificData: { baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com" },
+    }),
+    "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions"
+  );
+  assert.equal(
+    bedrock.buildUrl("openai.gpt-oss-120b", true),
+    `${BEDROCK_DEFAULT_BASE_URL}/chat/completions`
+  );
+  assert.equal(
+    watsonx.buildUrl("ibm/granite-3-3-8b-instruct", true, 0, {
+      providerSpecificData: { baseUrl: "https://ca-tor.ml.cloud.ibm.com" },
+    }),
+    "https://ca-tor.ml.cloud.ibm.com/ml/gateway/v1/chat/completions"
+  );
+  assert.equal(
+    oci.buildUrl("openai.gpt-oss-20b", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://inference.generativeai.us-ashburn-1.oci.oraclecloud.com",
+      },
+    }),
+    "https://inference.generativeai.us-ashburn-1.oci.oraclecloud.com/openai/v1/chat/completions"
+  );
+  assert.equal(
+    sap.buildUrl("gpt-4o", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://sap.example.com/v2/lm/deployments/demo-deployment",
+      },
+    }),
+    "https://sap.example.com/v2/lm/deployments/demo-deployment/chat/completions"
+  );
+  assert.equal(
+    modal.buildUrl("Qwen/Qwen3-4B-Thinking-2507-FP8", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://alice--demo.modal.run/v1",
+      },
+    }),
+    "https://alice--demo.modal.run/v1/chat/completions"
+  );
+  assert.equal(
+    reka.buildUrl("reka-core", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://api.reka.ai/v1",
+      },
+    }),
+    "https://api.reka.ai/v1/chat/completions"
+  );
+  assert.equal(
     snowflake.buildUrl("llama3.3-70b", true, 0, {
       providerSpecificData: { baseUrl: "https://account.snowflakecomputing.com" },
     }),
@@ -209,11 +297,52 @@ test("DefaultExecutor.buildUrl falls back to OpenAI config for unknown providers
 test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");
+  const clarifai = new DefaultExecutor("clarifai");
+  const azureAi = new DefaultExecutor("azure-ai");
+  const oci = new DefaultExecutor("oci");
+  const sap = new DefaultExecutor("sap");
+  const modal = new DefaultExecutor("modal");
+  const reka = new DefaultExecutor("reka");
 
   const geminiApiKeyHeaders = gemini.buildHeaders({ apiKey: "gem-key" }, true);
   const geminiOAuthHeaders = gemini.buildHeaders({ accessToken: "gem-token" }, false);
   const claudeApiKeyHeaders = claude.buildHeaders({ apiKey: "claude-key" }, true);
   const claudeOAuthHeaders = claude.buildHeaders({ accessToken: "claude-token" }, false);
+  const azureAiHeaders = azureAi.buildHeaders({ apiKey: "azure-ai-key" }, true);
+  const ociHeaders = oci.buildHeaders(
+    {
+      apiKey: "oci-key",
+      projectId: "ocid1.generativeaiproject.oc1.us-chicago-1.example",
+    },
+    true
+  );
+  const sapHeaders = sap.buildHeaders(
+    {
+      apiKey: "sap-key",
+      providerSpecificData: {
+        resourceGroup: "shared",
+      },
+    },
+    true
+  );
+  const modalHeaders = modal.buildHeaders(
+    {
+      apiKey: "modal-key",
+    },
+    true
+  );
+  const rekaHeaders = reka.buildHeaders(
+    {
+      apiKey: "reka-key",
+    },
+    true
+  );
+  const clarifaiHeaders = clarifai.buildHeaders(
+    {
+      apiKey: "clarifai-pat",
+    },
+    true
+  );
 
   assert.equal(geminiApiKeyHeaders["x-goog-api-key"], "gem-key");
   assert.equal(geminiApiKeyHeaders.Accept, "text/event-stream");
@@ -223,6 +352,16 @@ test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => 
   assert.equal(claudeApiKeyHeaders.Accept, "text/event-stream");
   assert.equal(claudeOAuthHeaders.Authorization, "Bearer claude-token");
   assert.equal(claudeOAuthHeaders["x-api-key"], undefined);
+  assert.equal(azureAiHeaders["api-key"], "azure-ai-key");
+  assert.equal(azureAiHeaders.Authorization, undefined);
+  assert.equal(ociHeaders.Authorization, "Bearer oci-key");
+  assert.equal(ociHeaders["OpenAI-Project"], "ocid1.generativeaiproject.oc1.us-chicago-1.example");
+  assert.equal(sapHeaders.Authorization, "Bearer sap-key");
+  assert.equal(sapHeaders["AI-Resource-Group"], "shared");
+  assert.equal(modalHeaders.Authorization, "Bearer modal-key");
+  assert.equal(rekaHeaders.Authorization, "Bearer reka-key");
+  assert.equal(rekaHeaders["X-Api-Key"], "reka-key");
+  assert.equal(clarifaiHeaders.Authorization, "Key clarifai-pat");
 });
 
 test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compatible headers", () => {

@@ -25,6 +25,26 @@ import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 import {
+  AZURE_AI_DEFAULT_BASE_URL,
+  buildAzureAiModelsUrl,
+} from "@omniroute/open-sse/config/azureAi.ts";
+import { normalizeBedrockBaseUrl } from "@omniroute/open-sse/config/bedrock.ts";
+import {
+  DATAROBOT_DEFAULT_BASE_URL,
+  buildDataRobotCatalogUrl,
+  isDataRobotDeploymentUrl,
+} from "@omniroute/open-sse/config/datarobot.ts";
+import { OCI_DEFAULT_BASE_URL, buildOciModelsUrl } from "@omniroute/open-sse/config/oci.ts";
+import {
+  SAP_DEFAULT_BASE_URL,
+  buildSapModelsUrl,
+  getSapResourceGroup,
+} from "@omniroute/open-sse/config/sap.ts";
+import {
+  WATSONX_DEFAULT_BASE_URL,
+  buildWatsonxModelsUrl,
+} from "@omniroute/open-sse/config/watsonx.ts";
+import {
   ANTIGRAVITY_PUBLIC_MODELS,
   getClientVisibleAntigravityModelName,
   toClientAntigravityModelId,
@@ -59,11 +79,30 @@ function isLocalOpenAIStyleProvider(provider: string): boolean {
   return isSelfHostedChatProvider(provider);
 }
 
+const NAMED_OPENAI_STYLE_PROVIDERS = new Set(["bedrock", "modal", "reka"]);
+
+function isNamedOpenAIStyleProvider(provider: string): boolean {
+  return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
+}
+
 function buildOptionalBearerHeaders(token: string | null | undefined): Record<string, string> {
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+function buildNamedOpenAiStyleHeaders(
+  provider: string,
+  token: string | null | undefined
+): Record<string, string> {
+  const headers = buildOptionalBearerHeaders(token);
+
+  if (provider === "reka" && token) {
+    headers["X-Api-Key"] = token;
+  }
+
+  return headers;
 }
 
 function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; name: string }> {
@@ -116,6 +155,76 @@ function mapAntigravityModelForClient(model: { id: string; name: string }): {
     id: clientId,
     name: getClientVisibleAntigravityModelName(clientId, model.name),
   };
+}
+
+function normalizeDataRobotCatalogResponse(data: unknown): Array<{ id: string; name: string }> {
+  const items = Array.isArray(asRecord(data).data) ? (asRecord(data).data as unknown[]) : [];
+
+  return items
+    .map((value) => {
+      const item = asRecord(value);
+      const model =
+        toNonEmptyString(item.model) || toNonEmptyString(item.id) || toNonEmptyString(item.name);
+      if (!model) return null;
+      if (item.isActive === false) return null;
+      const name = toNonEmptyString(item.label) || toNonEmptyString(item.displayName) || model;
+      return { id: model, name };
+    })
+    .filter((value): value is { id: string; name: string } => Boolean(value));
+}
+
+function normalizeOpenAiLikeModelsResponse(
+  data: unknown,
+  fallbackOwner: string
+): Array<{ id: string; name: string; owned_by: string }> {
+  const payload = asRecord(data);
+  const items = Array.isArray(data)
+    ? data
+    : Array.isArray(payload.data)
+      ? (payload.data as unknown[])
+      : Array.isArray(payload.models)
+        ? (payload.models as unknown[])
+        : [];
+
+  return items
+    .map((value) => {
+      const item = asRecord(value);
+      const id =
+        toNonEmptyString(item.id) || toNonEmptyString(item.model) || toNonEmptyString(item.name);
+      if (!id) return null;
+      const name =
+        toNonEmptyString(item.display_name) ||
+        toNonEmptyString(item.displayName) ||
+        toNonEmptyString(item.name) ||
+        id;
+      const ownedBy =
+        toNonEmptyString(item.owned_by) || toNonEmptyString(item.provider) || fallbackOwner;
+      return { id, name, owned_by: ownedBy };
+    })
+    .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
+}
+
+function normalizeSapModelsResponse(
+  data: unknown
+): Array<{ id: string; name: string; owned_by: string }> {
+  const payload = asRecord(data);
+  const items = Array.isArray(payload.resources) ? (payload.resources as unknown[]) : [];
+
+  return items
+    .map((value) => {
+      const item = asRecord(value);
+      const id =
+        toNonEmptyString(item.model) || toNonEmptyString(item.id) || toNonEmptyString(item.name);
+      if (!id) return null;
+      const name =
+        toNonEmptyString(item.displayName) ||
+        toNonEmptyString(item.display_name) ||
+        toNonEmptyString(item.name) ||
+        id;
+      const ownedBy = toNonEmptyString(item.provider) || "sap";
+      return { id, name, owned_by: ownedBy };
+    })
+    .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
 }
 
 type ProviderModelsConfigEntry = {
@@ -181,6 +290,12 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "glm-4.7", name: "GLM 4.7" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
   ],
+  gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
+  nlpcloud: () =>
+    getModelsByProviderId("nlpcloud").map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    })),
   qoder: () => getStaticQoderModels(),
 };
 
@@ -352,6 +467,22 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
+  },
+  chutes: {
+    url: "https://llm.chutes.ai/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
+  clarifai: {
+    url: "https://api.clarifai.com/v2/ext/openai/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Key ",
+    parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "clarifai"),
   },
   kimi: {
     url: "https://api.moonshot.ai/v1/models",
@@ -676,19 +807,26 @@ export async function GET(
       });
     };
 
-    if (isOpenAICompatibleProvider(provider) || isLocalOpenAIStyleProvider(provider)) {
+    if (
+      isOpenAICompatibleProvider(provider) ||
+      isLocalOpenAIStyleProvider(provider) ||
+      isNamedOpenAIStyleProvider(provider)
+    ) {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const registryEntry = isLocalOpenAIStyleProvider(provider)
-        ? getRegistryEntry(provider)
-        : null;
-      const baseUrl =
+      const registryEntry =
+        isLocalOpenAIStyleProvider(provider) || isNamedOpenAIStyleProvider(provider)
+          ? getRegistryEntry(provider)
+          : null;
+      const rawBaseUrl =
         getProviderBaseUrl(connection.providerSpecificData) ||
         (typeof registryEntry?.baseUrl === "string" ? registryEntry.baseUrl : null);
+      const baseUrl =
+        provider === "bedrock" && rawBaseUrl ? normalizeBedrockBaseUrl(rawBaseUrl) : rawBaseUrl;
       if (!baseUrl) {
         const fallback = buildDiscoveryFallbackResponse({
           cacheWarning: "Base URL unavailable — using cached catalog",
@@ -699,7 +837,9 @@ export async function GET(
           {
             error: isOpenAICompatibleProvider(provider)
               ? "No base URL configured for OpenAI compatible provider"
-              : "No base URL configured for local provider",
+              : isLocalOpenAIStyleProvider(provider)
+                ? "No base URL configured for local provider"
+                : "No base URL configured for provider",
           },
           { status: 400 }
         );
@@ -734,12 +874,16 @@ export async function GET(
             guard: getProviderOutboundGuard(),
             proxyConfig: proxy,
             method: "GET",
-            headers: buildOptionalBearerHeaders(token),
+            headers: isNamedOpenAIStyleProvider(provider)
+              ? buildNamedOpenAiStyleHeaders(provider, token)
+              : buildOptionalBearerHeaders(token),
           });
 
           if (response.ok) {
             const data = await response.json();
-            models = data.data || data.models || [];
+            models = isNamedOpenAIStyleProvider(provider)
+              ? normalizeOpenAiLikeModelsResponse(data, provider)
+              : data.data || data.models || [];
             break; // Success!
           }
 
@@ -788,6 +932,363 @@ export async function GET(
         });
       }
       return buildApiDiscoveryResponse(models);
+    }
+
+    if (provider === "datarobot") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = accessToken || apiKey;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const configuredBaseUrl =
+        getProviderBaseUrl(connection.providerSpecificData) || DATAROBOT_DEFAULT_BASE_URL;
+
+      if (isDataRobotDeploymentUrl(configuredBaseUrl)) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Deployment URL does not expose catalog — using cached catalog",
+          localWarning: "Deployment URL does not expose catalog — using local catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: toLocalCatalogModels(),
+          source: "local_catalog",
+          warning: "Deployment URL does not expose catalog — using local catalog",
+        });
+      }
+
+      const catalogUrl = buildDataRobotCatalogUrl(configuredBaseUrl);
+      if (!catalogUrl) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Invalid DataRobot base URL — using cached catalog",
+          localWarning: "Invalid DataRobot base URL — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json({ error: "Invalid DataRobot base URL" }, { status: 400 });
+      }
+
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(catalogUrl, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: buildOptionalBearerHeaders(token),
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error, {
+          cacheWarning: "DataRobot catalog unavailable — using cached catalog",
+          localWarning: "DataRobot catalog unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        throw error;
+      }
+
+      if (!response.ok) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `Catalog probe failed (${response.status}) — using cached catalog`,
+          localWarning: `Catalog probe failed (${response.status}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch models: ${response.status}` },
+          { status: response.status }
+        );
+      }
+
+      const models = normalizeDataRobotCatalogResponse(await response.json());
+      return buildApiDiscoveryResponse(
+        models.map((model) => ({
+          ...model,
+          owned_by: "datarobot",
+        }))
+      );
+    }
+
+    if (provider === "azure-ai") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = accessToken || apiKey;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const baseUrl =
+        getProviderBaseUrl(connection.providerSpecificData) || AZURE_AI_DEFAULT_BASE_URL;
+      const modelsUrl = buildAzureAiModelsUrl(baseUrl);
+
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(modelsUrl, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "api-key": token,
+          },
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error, {
+          cacheWarning: "Azure AI models API unavailable — using cached catalog",
+          localWarning: "Azure AI models API unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        throw error;
+      }
+
+      if (!response.ok) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
+          localWarning: `Models probe failed (${response.status}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch models: ${response.status}` },
+          { status: response.status }
+        );
+      }
+
+      const data = await response.json();
+      const models = (data.data || data.models || []).map((model: Record<string, unknown>) => ({
+        id:
+          (typeof model.id === "string" && model.id) ||
+          (typeof model.name === "string" && model.name) ||
+          "",
+        name:
+          (typeof model.display_name === "string" && model.display_name) ||
+          (typeof model.name === "string" && model.name) ||
+          (typeof model.id === "string" && model.id) ||
+          "",
+        owned_by: "azure-ai",
+      }));
+
+      return buildApiDiscoveryResponse(models.filter((model) => model.id));
+    }
+
+    if (provider === "watsonx") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = accessToken || apiKey;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const baseUrl =
+        getProviderBaseUrl(connection.providerSpecificData) || WATSONX_DEFAULT_BASE_URL;
+
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(buildWatsonxModelsUrl(baseUrl), {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: buildOptionalBearerHeaders(token),
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error, {
+          cacheWarning: "watsonx models API unavailable — using cached catalog",
+          localWarning: "watsonx models API unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        throw error;
+      }
+
+      if (!response.ok) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
+          localWarning: `Models probe failed (${response.status}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch models: ${response.status}` },
+          { status: response.status }
+        );
+      }
+
+      return buildApiDiscoveryResponse(
+        normalizeOpenAiLikeModelsResponse(await response.json(), "watsonx")
+      );
+    }
+
+    if (provider === "oci") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = accessToken || apiKey;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const psd = asRecord(connection.providerSpecificData);
+      const baseUrl = getProviderBaseUrl(psd) || OCI_DEFAULT_BASE_URL;
+      const projectId =
+        connection.projectId || toNonEmptyString(psd.projectId) || toNonEmptyString(psd.project);
+
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(buildOciModelsUrl(baseUrl), {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: {
+            ...buildOptionalBearerHeaders(token),
+            ...(projectId ? { "OpenAI-Project": projectId } : {}),
+          },
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error, {
+          cacheWarning: "OCI models API unavailable — using cached catalog",
+          localWarning: "OCI models API unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        throw error;
+      }
+
+      if (!response.ok) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
+          localWarning: `Models probe failed (${response.status}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch models: ${response.status}` },
+          { status: response.status }
+        );
+      }
+
+      return buildApiDiscoveryResponse(
+        normalizeOpenAiLikeModelsResponse(await response.json(), "oci")
+      );
+    }
+
+    if (provider === "sap") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = accessToken || apiKey;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          {
+            error:
+              "No API key configured for this provider. Please add an API key in the provider settings.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const psd = asRecord(connection.providerSpecificData);
+      const baseUrl = getProviderBaseUrl(psd) || SAP_DEFAULT_BASE_URL;
+      const resourceGroup = getSapResourceGroup(psd);
+
+      let response: Response;
+      try {
+        response = await safeOutboundFetch(buildSapModelsUrl(baseUrl), {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "GET",
+          headers: {
+            ...buildOptionalBearerHeaders(token),
+            "AI-Resource-Group": resourceGroup,
+          },
+        });
+      } catch (error) {
+        const fallback = buildDiscoveryErrorFallbackResponse(error, {
+          cacheWarning: "SAP models API unavailable — using cached catalog",
+          localWarning: "SAP models API unavailable — using local catalog",
+        });
+        if (fallback) return fallback;
+        throw error;
+      }
+
+      if (!response.ok) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
+          localWarning: `Models probe failed (${response.status}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch models: ${response.status}` },
+          { status: response.status }
+        );
+      }
+
+      return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
     if (provider === "claude") {
