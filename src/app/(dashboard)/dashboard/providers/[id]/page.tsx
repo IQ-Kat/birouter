@@ -1051,7 +1051,7 @@ export default function ProviderDetailPage() {
         name: cm.name || cm.id,
         source: cm.source === "api-sync" ? "api-sync" : "custom",
       }));
-    return [...builtInModels, ...syncedExtras, ...customExtras];
+    return [...builtInModels, ...syncedExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
@@ -2680,11 +2680,7 @@ export default function ProviderDetailPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                icon="add"
-                onClick={() => setShowAddApiKeyModal(true)}
-              >
+              <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
                 {t("add")}
               </Button>
               <Button
@@ -3076,15 +3072,13 @@ export default function ProviderDetailPage() {
           {renderModelsSection()}
 
           {/* Custom Models — available for all providers */}
-          {!isManagedAvailableModelsProvider && (
-            <CustomModelsSection
-              providerId={providerId}
-              providerAlias={providerDisplayAlias}
-              copied={copied}
-              onCopy={copy}
-              onModelsChanged={fetchProviderModelMeta}
-            />
-          )}
+          <CustomModelsSection
+            providerId={providerId}
+            providerAlias={providerDisplayAlias}
+            copied={copied}
+            onCopy={copy}
+            onModelsChanged={fetchProviderModelMeta}
+          />
         </Card>
       )}
 
@@ -3875,6 +3869,7 @@ function CustomModelsSection({
   const [editingApiFormat, setEditingApiFormat] = useState("chat-completions");
   const [editingEndpoints, setEditingEndpoints] = useState<string[]>(["chat"]);
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
+  const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
 
   const customMap = useMemo(() => buildCompatMap(customModels), [customModels]);
   const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
@@ -3940,6 +3935,28 @@ function CustomModelsSection({
       onModelsChanged?.();
     } catch (e) {
       console.error("Failed to remove custom model:", e);
+    }
+  };
+
+  const handleToggleHidden = async (modelId: string, hidden: boolean) => {
+    setTogglingModelId(modelId);
+    try {
+      const res = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerId)}&modelId=${encodeURIComponent(modelId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isHidden: hidden }),
+        }
+      );
+      if (res.ok) {
+        await fetchCustomModels();
+        onModelsChanged?.();
+      }
+    } catch (e) {
+      console.error("Failed to toggle model visibility:", e);
+    } finally {
+      setTogglingModelId(null);
     }
   };
 
@@ -4311,6 +4328,16 @@ function CustomModelsSection({
                     showDeveloperToggle
                     disabled={savingModelId === model.id}
                   />
+                  <button
+                    onClick={() => handleToggleHidden(model.id, !model.isHidden)}
+                    disabled={togglingModelId === model.id}
+                    className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-50"
+                    title={model.isHidden ? t("unhideModel") : t("hideModel")}
+                  >
+                    <span className="material-symbols-outlined text-sm">
+                      {model.isHidden ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
                   <button
                     onClick={() => handleRemove(model.id)}
                     className="rounded p-1 text-red-500 hover:bg-red-50"

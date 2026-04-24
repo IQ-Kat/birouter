@@ -105,12 +105,7 @@ export async function POST(request: Request) {
       }
 
       const existingConnections = await getProviderConnections({ provider });
-      if (!allowMultipleCompatibleConnections && existingConnections.length > 0) {
-        return NextResponse.json(
-          { error: "Only one connection is allowed for this OpenAI Compatible node" },
-          { status: 400 }
-        );
-      }
+      // Allow multiple connections for compatible nodes exactly like first-party providers
 
       providerSpecificData = {
         ...(providerSpecificData || {}),
@@ -135,12 +130,7 @@ export async function POST(request: Request) {
       }
 
       const existingConnections = await getProviderConnections({ provider });
-      if (!allowMultipleCompatibleConnections && existingConnections.length > 0) {
-        return NextResponse.json(
-          { error: "Only one connection is allowed for this Anthropic Compatible node" },
-          { status: 400 }
-        );
-      }
+      // Allow multiple connections for compatible nodes exactly like first-party providers
 
       providerSpecificData = {
         ...(providerSpecificData || {}),

@@ -545,7 +545,15 @@ export default function ProxyRegistryManager() {
         title={editingId ? t("modalEditTitle") : t("modalCreateTitle")}
         maxWidth="lg"
       >
-        <div className="flex flex-col gap-3">
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+          autoComplete="off"
+          data-1p-ignore="true"
+        >
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-text-muted mb-1 block">{t("labelName")}</label>
@@ -643,7 +651,7 @@ export default function ProxyRegistryManager() {
               Save
             </Button>
           </div>
-        </div>
+        </form>
       </Modal>
 
       <Modal
