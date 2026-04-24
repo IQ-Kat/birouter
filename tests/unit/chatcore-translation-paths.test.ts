@@ -10,6 +10,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const auth = await import("../../src/sse/services/auth.ts");
 const upstreamProxyDb = await import("../../src/lib/db/upstreamProxy.ts");
 const { invalidateCacheControlSettingsCache } =
   await import("../../src/lib/cacheControlSettings.ts");
@@ -1496,7 +1497,7 @@ test("chatCore does not inject fallback user for Qwen API key requests", async (
   assert.equal("user" in call.body, false);
 });
 
-test("chatCore persists Codex quota headers and scope cooldown on 429 responses", async () => {
+test("chatCore preserves Codex dual-window scope cooldowns on 429 responses", async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "oauth",
@@ -1547,7 +1548,68 @@ test("chatCore persists Codex quota headers and scope cooldown on 429 responses"
     typeof (updated as any).providerSpecificData.codexScopeRateLimitedUntil.codex,
     "string"
   );
-  (assert as any).equal((updated.providerSpecificData as any).codexExhaustedWindow, "5h");
+  assert.equal((updated as any).providerSpecificData.codexExhaustedWindow, "5h");
+});
+
+test("chatCore 429 lets account fallback apply the configured resilience cooldown", async () => {
+  await settingsDb.updateSettings({
+    resilienceSettings: {
+      connectionCooldown: {
+        apikey: {
+          baseCooldownMs: 1000,
+          useUpstreamRetryHints: false,
+          maxBackoffSteps: 3,
+        },
+      },
+    },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "resilience-429",
+    apiKey: "sk-resilience-429",
+    isActive: true,
+    providerSpecificData: {},
+  });
+
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    connectionId: connection.id,
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "rate limit me" }],
+    },
+    responseFactory() {
+      return new Response(JSON.stringify({ error: { message: "too many requests" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+
+  const afterCore = await providersDb.getProviderConnectionById((connection as any).id);
+  assert.equal(result.success, false);
+  assert.equal(result.status, 429);
+  assert.equal((afterCore as any).rateLimitedUntil, undefined);
+
+  const fallback = await auth.markAccountUnavailable(
+    (connection as any).id,
+    result.status,
+    result.error,
+    "openai",
+    "gpt-4o-mini"
+  );
+  const afterFallback = await providersDb.getProviderConnectionById((connection as any).id);
+  const cooldownRemaining =
+    new Date((afterFallback as any).rateLimitedUntil).getTime() - Date.now();
+
+  assert.equal(fallback.shouldFallback, true);
+  assert.equal(fallback.cooldownMs, 1000);
+  assert.equal((afterFallback as any).testStatus, "unavailable");
+  assert.ok(cooldownRemaining > 0 && cooldownRemaining <= 2_000);
 });
 
 test("chatCore falls back to the next family model when the requested model is unavailable", async () => {
