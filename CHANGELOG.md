@@ -10,6 +10,7 @@
 
 ### ✨ New Features
 
+- **feat(codex):** support GPT-5.5 responses websocket (#1573)
 - **feat(sse):** Codex CLI image_generation + DALL-E-style image route (#1544)
 - **feat(dashboard):** Complete the reconciled v3.7.0 dashboard task set: MCP cache tools and count, video endpoint visibility, provider taxonomy, upstream proxy visibility, provider count badges, costs overview, eval suite management, Custom CLI builder, ACP-focused Agents copy, Translator stream transformer, logs convergence, learned rate-limit health cards, docs expansion, and active request payload inspection.
 - **feat(mcp):** Register `omniroute_cache_stats` and `omniroute_cache_flush` across MCP schemas, server registration, handlers, docs, and tests.
@@ -40,6 +41,8 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(vision-bridge):** force GPT-family image fallback (#1571)
+- **fix(claude):** skip adaptive thinking defaults for unsupported models (#1563)
 - **fix(claude):** preserve tool_result adjacency in native and CC-compatible paths (#1555)
 - **fix(reasoning):** Preserve OpenAI Chat Completions `reasoning_effort` through assistant-prefill requests and label OpenAI request protocols explicitly as `OpenAI-Chat` or `OpenAI-Responses`. (#1550)
 - **fix(codex):** Fix Codex auto-review model routing so review traffic resolves to the intended configured model. (#1551)
