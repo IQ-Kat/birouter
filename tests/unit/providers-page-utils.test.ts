@@ -228,6 +228,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const chutesProvider = providerPageUtils.resolveDashboardProviderInfo("chutes");
   const datarobotProvider = providerPageUtils.resolveDashboardProviderInfo("datarobot");
   const clarifaiProvider = providerPageUtils.resolveDashboardProviderInfo("clarifai");
+  const empowerProvider = providerPageUtils.resolveDashboardProviderInfo("empower");
+  const poeProvider = providerPageUtils.resolveDashboardProviderInfo("poe");
   const azureAiProvider = providerPageUtils.resolveDashboardProviderInfo("azure-ai");
   const watsonxProvider = providerPageUtils.resolveDashboardProviderInfo("watsonx");
   const ociProvider = providerPageUtils.resolveDashboardProviderInfo("oci");
@@ -271,6 +273,10 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(datarobotProvider?.name, providers.APIKEY_PROVIDERS.datarobot.name);
   assert.equal(clarifaiProvider?.category, "apikey");
   assert.equal(clarifaiProvider?.name, providers.APIKEY_PROVIDERS.clarifai.name);
+  assert.equal(empowerProvider?.category, "apikey");
+  assert.equal(empowerProvider?.name, providers.APIKEY_PROVIDERS.empower.name);
+  assert.equal(poeProvider?.category, "apikey");
+  assert.equal(poeProvider?.name, providers.APIKEY_PROVIDERS.poe.name);
   assert.equal(azureAiProvider?.category, "apikey");
   assert.equal(azureAiProvider?.name, providers.APIKEY_PROVIDERS["azure-ai"].name);
   assert.equal(watsonxProvider?.category, "apikey");
@@ -323,6 +329,8 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("chutes"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("datarobot"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("clarifai"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("empower"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("poe"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("azure-ai"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("bedrock"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("watsonx"), true);
@@ -372,6 +380,8 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   assert.equal("chutes" in providers.APIKEY_PROVIDERS, true);
   assert.equal("datarobot" in providers.APIKEY_PROVIDERS, true);
   assert.equal("clarifai" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("empower" in providers.APIKEY_PROVIDERS, true);
+  assert.equal("poe" in providers.APIKEY_PROVIDERS, true);
   assert.equal("azure-ai" in providers.APIKEY_PROVIDERS, true);
   assert.equal("bedrock" in providers.APIKEY_PROVIDERS, true);
   assert.equal("watsonx" in providers.APIKEY_PROVIDERS, true);
@@ -444,6 +454,14 @@ test("grok-web taxonomy stays web-cookie only and does not leak into api-key ent
   );
   assert.equal(
     apiKeyEntries.some((entry) => entry.providerId === "clarifai"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "empower"),
+    true
+  );
+  assert.equal(
+    apiKeyEntries.some((entry) => entry.providerId === "poe"),
     true
   );
   assert.equal(

@@ -336,6 +336,18 @@ test("provider models route fetches remote catalogs for new OpenAI-compatible ga
       model: { id: "deepseek-chat", name: "DeepSeek Chat via FenayAI" },
     },
     {
+      provider: "empower",
+      apiKey: "empower-key",
+      expectedUrl: "https://app.empower.dev/api/v1/models",
+      model: { id: "empower-functions", name: "Empower Functions", owned_by: "empower" },
+    },
+    {
+      provider: "poe",
+      apiKey: "poe-key",
+      expectedUrl: "https://api.poe.com/v1/models",
+      model: { id: "Claude-Sonnet-4.5", name: "Claude Sonnet 4.5", owned_by: "Anthropic" },
+    },
+    {
       provider: "chutes",
       apiKey: "chutes-key",
       expectedUrl: "https://llm.chutes.ai/v1/models",

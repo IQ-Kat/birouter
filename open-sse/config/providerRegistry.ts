@@ -199,6 +199,13 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   cablyai: buildModels(["gpt-4o", "gpt-4o-mini", "deepseek-chat"]),
   thebai: buildModels(["gpt-4o", "claude-3.5-sonnet", "llama-3.3-70b"]),
   fenayai: buildModels(["gpt-4o", "claude-3.5-sonnet", "deepseek-chat"]),
+  empower: buildModels([
+    "empower-functions",
+    "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "meta-llama/Meta-Llama-3-8B-Instruct",
+    "meta-llama/Meta-Llama-3-70B-Instruct",
+  ]),
+  poe: buildModels(["Claude-Sonnet-4.5", "GPT-5-Pro", "GPT-5-Codex", "Gemini-2.5-Pro"]),
   gitlab: [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   "gitlab-duo": [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   chutes: buildModels([
@@ -2051,6 +2058,32 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.fenayai,
+    passthroughModels: true,
+  },
+
+  empower: {
+    id: "empower",
+    alias: "empower",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://app.empower.dev/api/v1",
+    modelsUrl: "https://app.empower.dev/api/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.empower,
+    passthroughModels: true,
+  },
+
+  poe: {
+    id: "poe",
+    alias: "poe",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.poe.com/v1",
+    modelsUrl: "https://api.poe.com/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: CHAT_OPENAI_COMPAT_MODELS.poe,
     passthroughModels: true,
   },
 

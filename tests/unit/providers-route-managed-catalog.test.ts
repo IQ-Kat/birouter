@@ -95,6 +95,22 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "empower",
+      body: {
+        provider: "empower",
+        apiKey: "empower-key",
+        name: "Empower Primary",
+      },
+    },
+    {
+      provider: "poe",
+      body: {
+        provider: "poe",
+        apiKey: "poe-key",
+        name: "Poe Primary",
+      },
+    },
+    {
       provider: "azure-ai",
       body: {
         provider: "azure-ai",

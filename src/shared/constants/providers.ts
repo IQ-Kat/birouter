@@ -1127,6 +1127,32 @@ export const APIKEY_PROVIDERS = {
     authHint: "Bearer API key for the FenayAI OpenAI-compatible gateway.",
     passthroughModels: true,
   },
+  empower: {
+    id: "empower",
+    alias: "empower",
+    name: "Empower",
+    icon: "hub",
+    color: "#14B8A6",
+    textIcon: "EM",
+    website: "https://docs.empower.dev",
+    authHint: "Bearer API key for the Empower OpenAI-compatible endpoint.",
+    apiHint:
+      "Empower exposes OpenAI-compatible chat on https://app.empower.dev/api/v1 with tool-calling support on empower-functions.",
+    passthroughModels: true,
+  },
+  poe: {
+    id: "poe",
+    alias: "poe",
+    name: "Poe",
+    icon: "hub",
+    color: "#F97316",
+    textIcon: "PO",
+    website: "https://creator.poe.com/api-reference",
+    authHint: "Bearer API key for the Poe OpenAI-compatible API.",
+    apiHint:
+      "Poe exposes OpenAI-compatible chat and responses on https://api.poe.com/v1, with authenticated balance checks on /usage/current_balance.",
+    passthroughModels: true,
+  },
   gitlab: {
     id: "gitlab",
     alias: "gitlab",

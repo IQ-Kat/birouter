@@ -1189,6 +1189,49 @@ test("specialty validator rejects invalid Modal credentials", async () => {
   assert.equal(modal.error, "Invalid API key");
 });
 
+test("specialty validator accepts Poe credentials on the current balance endpoint", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.poe.com/usage/current_balance") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer poe-key");
+      return new Response(JSON.stringify({ current_point_balance: 123456 }), { status: 200 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const poe = await validateProviderApiKey({
+    provider: "poe",
+    apiKey: "poe-key",
+  });
+
+  assert.equal(poe.valid, true);
+  assert.equal(poe.method, "poe_current_balance");
+});
+
+test("specialty validator rejects invalid Poe credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (target === "https://api.poe.com/usage/current_balance") {
+      const headers = init.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer poe-bad");
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
+    throw new Error(`unexpected fetch: ${target}`);
+  };
+
+  const poe = await validateProviderApiKey({
+    provider: "poe",
+    apiKey: "poe-bad",
+  });
+
+  assert.equal(poe.error, "Invalid API key");
+});
+
 test("specialty validator accepts Clarifai credentials through the OpenAI-compatible models probe", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);

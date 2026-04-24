@@ -107,6 +107,16 @@ test("Clarifai registry exposes current OpenAI-compatible examples", () => {
   assert.ok(ids.has("gcp/generate/models/gemini-2_5-flash"));
 });
 
+test("Poe registry exposes current OpenAI-compatible examples", () => {
+  const poeModels = getProviderModels("poe");
+  const ids = new Set(poeModels.map((model) => model.id));
+
+  assert.ok(ids.has("Claude-Sonnet-4.5"));
+  assert.ok(ids.has("GPT-5-Pro"));
+  assert.ok(ids.has("GPT-5-Codex"));
+  assert.ok(ids.has("Gemini-2.5-Pro"));
+});
+
 test("Azure AI Foundry registry exposes fallback marketplace examples", () => {
   const azureAiModels = getProviderModels("azure-ai");
   const ids = new Set(azureAiModels.map((model) => model.id));

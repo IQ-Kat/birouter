@@ -1579,6 +1579,43 @@ async function validateRunwayProvider({ apiKey, providerSpecificData = {} }: any
   return { valid: false, error: "Connection failed while testing Runway" };
 }
 
+async function validatePoeProvider({ apiKey, providerSpecificData = {} }: any) {
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.poe.com/v1";
+  const balanceUrl = new URL("/usage/current_balance", baseUrl).toString();
+
+  try {
+    const response = await validationRead(balanceUrl, {
+      method: "GET",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null, method: "poe_current_balance" };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "poe_current_balance",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+
+  return { valid: false, error: "Connection failed while testing Poe" };
+}
+
 async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -2511,6 +2548,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
         modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
       }),
+    poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,
     nlpcloud: validateNlpCloudProvider,
