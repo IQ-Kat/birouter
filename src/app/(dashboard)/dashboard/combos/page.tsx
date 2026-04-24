@@ -1534,8 +1534,8 @@ function ComboCard({
         isDragged ? "opacity-60" : ""
       } ${isSelected ? "border-primary/30 bg-primary/[0.04]" : ""}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0">
+        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0 w-full">
           <button
             type="button"
             draggable={!dragDisabled}
@@ -1644,13 +1644,18 @@ function ComboCard({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          <Toggle
-            size="sm"
-            checked={!isDisabled}
-            onChange={onToggle}
-            title={isDisabled ? t("enableCombo") : t("disableCombo")}
-          />
+        <div className="flex items-center justify-between md:justify-end gap-1.5 shrink-0 ml-0 md:ml-2 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-black/5 dark:border-white/5 md:border-t-0">
+          <div className="flex items-center gap-2">
+            <Toggle
+              size="sm"
+              checked={!isDisabled}
+              onChange={onToggle}
+              title={isDisabled ? t("enableCombo") : t("disableCombo")}
+            />
+            <span className="text-[10px] text-text-muted md:hidden">
+              {isDisabled ? "Disabled" : "Active"}
+            </span>
+          </div>
           <div className="flex items-center gap-1 transition-opacity">
             <button
               onClick={onTest}
@@ -3195,31 +3200,29 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         </div>
                       )}
 
-                      {/* Priority arrows (priority mode) */}
-                      {strategy === "priority" && (
-                        <div className="flex items-center gap-0.5">
-                          <button
-                            onClick={() => handleMoveUp(index)}
-                            disabled={index === 0}
-                            className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                            title={t("moveUp")}
-                          >
-                            <span className="material-symbols-outlined text-[12px]">
-                              arrow_upward
-                            </span>
-                          </button>
-                          <button
-                            onClick={() => handleMoveDown(index)}
-                            disabled={index === models.length - 1}
-                            className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                            title={t("moveDown")}
-                          >
-                            <span className="material-symbols-outlined text-[12px]">
-                              arrow_downward
-                            </span>
-                          </button>
-                        </div>
-                      )}
+                      {/* Reorder arrows (Mobile friendly) */}
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          onClick={() => handleMoveUp(index)}
+                          disabled={index === 0}
+                          className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
+                          title={t("moveUp")}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">
+                            arrow_upward
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => handleMoveDown(index)}
+                          disabled={index === models.length - 1}
+                          className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
+                          title={t("moveDown")}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">
+                            arrow_downward
+                          </span>
+                        </button>
+                      </div>
 
                       {/* Remove */}
                       <button

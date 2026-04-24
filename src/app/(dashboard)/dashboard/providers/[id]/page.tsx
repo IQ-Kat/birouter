@@ -2684,7 +2684,6 @@ export default function ProviderDetailPage() {
                 size="sm"
                 icon="add"
                 onClick={() => setShowAddApiKeyModal(true)}
-                disabled={connections.length > 0}
               >
                 {t("add")}
               </Button>
@@ -2729,9 +2728,6 @@ export default function ProviderDetailPage() {
               </Button>
             </div>
           </div>
-          {connections.length > 0 && (
-            <p className="text-sm text-text-muted">{t("singleConnectionPerCompatible")}</p>
-          )}
         </Card>
       )}
 

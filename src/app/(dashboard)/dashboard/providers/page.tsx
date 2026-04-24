@@ -1106,16 +1106,16 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
         className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 pr-2">
             <div
-              className="size-8 rounded-lg flex items-center justify-center"
+              className="size-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${provider.color}15` }}
             >
               {/* (#529) ProviderIcon: Lobehub icons → PNG fallback → generic icon */}
               <ProviderIcon providerId={provider.id} size={28} type="color" />
             </div>
-            <div>
-              <h3 className="font-semibold flex items-center gap-1.5">
+            <div className="min-w-0">
+              <h3 className="font-semibold flex items-center gap-1.5 truncate">
                 {provider.name}
                 <span
                   className={`size-2 rounded-full ${dotColors[authType] || dotColors.oauth} shrink-0`}
@@ -1149,7 +1149,7 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {stats.total > 0 && (
               <div
                 onClick={(e) => {
@@ -1234,9 +1234,9 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
         className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""}`}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 pr-2">
             <div
-              className="size-8 rounded-lg flex items-center justify-center"
+              className="size-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${provider.color}15` }}
             >
               {/* (#529) ProviderIcon with static override for compatible providers */}
@@ -1253,8 +1253,8 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
                 <ProviderIcon providerId={provider.id} size={28} type="color" />
               )}
             </div>
-            <div>
-              <h3 className="font-semibold flex items-center gap-1.5">
+            <div className="min-w-0">
+              <h3 className="font-semibold flex items-center gap-1.5 truncate">
                 {provider.name}
                 <span
                   className={`size-2 rounded-full ${dotColors[authType] || dotColors.apikey} shrink-0`}
@@ -1303,7 +1303,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {stats.total > 0 && (
               <div
                 onClick={(e) => {

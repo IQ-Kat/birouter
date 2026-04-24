@@ -664,6 +664,14 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.models || data.data || [],
   },
+  "cloudflare-ai": {
+    url: "https://api.cloudflare.com/client/v4/accounts/{accountId}/ai/models/search",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.result || [],
+  },
   synthetic: {
     url: "https://api.synthetic.new/openai/v1/models",
     method: "GET",
@@ -1757,6 +1765,19 @@ export async function GET(
 
     // Build request URL
     let url = config.url;
+    if (provider === "cloudflare-ai") {
+      const pData = asRecord(connection.providerSpecificData);
+      const accountId =
+        (typeof pData.accountId === "string" && pData.accountId) ||
+        process.env.CLOUDFLARE_ACCOUNT_ID;
+      if (!accountId) {
+        return NextResponse.json(
+          { error: "Cloudflare Workers AI requires an Account ID in provider settings." },
+          { status: 400 }
+        );
+      }
+      url = url.replace("{accountId}", accountId);
+    }
     if (config.authQuery) {
       url += `${url.includes("?") ? "&" : "?"}${config.authQuery}=${token}`;
     }

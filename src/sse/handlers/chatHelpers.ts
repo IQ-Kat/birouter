@@ -284,6 +284,13 @@ export function safeLogEvents({
   tlsFingerprintUsed = false,
 }) {
   try {
+    const rawIp =
+      clientRawRequest?.headers?.["x-forwarded-for"] ||
+      clientRawRequest?.headers?.["x-real-ip"] ||
+      clientRawRequest?.headers?.["cf-connecting-ip"] ||
+      null;
+    const publicIp = rawIp ? rawIp.split(",")[0].trim() : null;
+
     logProxyEvent({
       status: result.success
         ? "success"
@@ -295,6 +302,7 @@ export function safeLogEvents({
       levelId: proxyInfo?.levelId || null,
       provider,
       targetUrl: `${provider}/${model}`,
+      publicIp,
       latencyMs: proxyLatency,
       error: result.success ? null : result.error || null,
       connectionId: credentials.connectionId,

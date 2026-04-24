@@ -236,7 +236,7 @@ export default function ProxyRegistryManager() {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.host.trim()) {
+    if (!(form.name || "").trim() || !(form.host || "").trim()) {
       setError(t("errorNameHostRequired"));
       return;
     }
@@ -244,17 +244,17 @@ export default function ProxyRegistryManager() {
     setSaving(true);
     setError(null);
 
-    const normalizedUsername = form.username.trim();
-    const normalizedPassword = form.password.trim();
+    const normalizedUsername = (form.username || "").trim();
+    const normalizedPassword = (form.password || "").trim();
 
     const payload: Record<string, unknown> = {
       ...(editingId ? { id: editingId } : {}),
-      name: form.name.trim(),
+      name: (form.name || "").trim(),
       type: form.type,
-      host: form.host.trim(),
+      host: (form.host || "").trim(),
       port: Number(form.port || 8080),
-      region: form.region.trim() || null,
-      notes: form.notes.trim() || null,
+      region: (form.region || "").trim() || null,
+      notes: (form.notes || "").trim() || null,
       status: form.status,
     };
     if (!editingId || normalizedUsername.length > 0) {
