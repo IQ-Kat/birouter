@@ -39,8 +39,8 @@ export const FREE_PROVIDERS = {
 
 export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
 
-export function supportsApiKeyOnFreeProvider(providerId) {
-  return FREE_APIKEY_PROVIDER_IDS.has(providerId);
+export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
+  return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
 }
 
 // OAuth Providers
@@ -1578,11 +1578,11 @@ export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";
 export const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";
 export const CLAUDE_CODE_COMPATIBLE_PREFIX = "anthropic-compatible-cc-";
 
-export function isOpenAICompatibleProvider(providerId) {
+export function isOpenAICompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(OPENAI_COMPATIBLE_PREFIX);
 }
 
-export function isAnthropicCompatibleProvider(providerId) {
+export function isAnthropicCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX);
 }
 
@@ -1604,11 +1604,11 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
 };
 
-export function isClaudeCodeCompatibleProvider(providerId) {
+export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
 
-export function isLocalProvider(providerId) {
+export function isLocalProvider(providerId: unknown): boolean {
   return (
     typeof providerId === "string" &&
     Object.prototype.hasOwnProperty.call(LOCAL_PROVIDERS, providerId)
@@ -1626,7 +1626,7 @@ export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
   "oobabooga",
 ]);
 
-export function isSelfHostedChatProvider(providerId) {
+export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
@@ -1642,6 +1642,9 @@ export const AI_PROVIDERS = {
   ...UPSTREAM_PROXY_PROVIDERS,
 };
 
+export type AiProviderId = keyof typeof AI_PROVIDERS;
+export type AiProviderDefinition = (typeof AI_PROVIDERS)[AiProviderId];
+
 // Auth methods
 export const AUTH_METHODS = {
   oauth: { id: "oauth", name: "OAuth", icon: "lock" },
@@ -1649,7 +1652,7 @@ export const AUTH_METHODS = {
 };
 
 // Helper: Get provider by alias
-export function getProviderByAlias(alias) {
+export function getProviderByAlias(alias: string): AiProviderDefinition | null {
   for (const provider of Object.values(AI_PROVIDERS)) {
     if (provider.alias === alias || provider.id === alias) {
       return provider;
@@ -1659,25 +1662,27 @@ export function getProviderByAlias(alias) {
 }
 
 // Helper: Get provider ID from alias
-export function resolveProviderId(aliasOrId) {
+export function resolveProviderId(aliasOrId: string): string {
   const provider = getProviderByAlias(aliasOrId);
   return provider?.id || aliasOrId;
 }
 
 // Helper: Get alias from provider ID
-export function getProviderAlias(providerId) {
-  const provider = AI_PROVIDERS[providerId];
+export function getProviderAlias(providerId: string): string {
+  const provider = Object.prototype.hasOwnProperty.call(AI_PROVIDERS, providerId)
+    ? AI_PROVIDERS[providerId as AiProviderId]
+    : undefined;
   return provider?.alias || providerId;
 }
 
 // Alias to ID mapping (for quick lookup)
-export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce((acc, p) => {
+export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
   if (p.alias) acc[p.alias] = p.id;
   return acc;
 }, {});
 
 // ID to Alias mapping
-export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
+export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce<Record<string, string>>((acc, p) => {
   acc[p.id] = p.alias || p.id;
   return acc;
 }, {});
