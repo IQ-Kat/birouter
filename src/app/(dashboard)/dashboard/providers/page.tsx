@@ -22,6 +22,7 @@ import {
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -131,6 +132,7 @@ function getConnectionErrorTag(connection) {
 }
 
 export default function ProvidersPage() {
+  const router = useRouter();
   const [connections, setConnections] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
@@ -1026,6 +1028,7 @@ export default function ProvidersPage() {
         onCreated={(node) => {
           setProviderNodes((prev) => [...prev, node]);
           setShowAddCompatibleModal(false);
+          router.push(`/dashboard/providers/${node.id}`);
         }}
       />
       <AddAnthropicCompatibleModal
@@ -1034,6 +1037,7 @@ export default function ProvidersPage() {
         onCreated={(node) => {
           setProviderNodes((prev) => [...prev, node]);
           setShowAddAnthropicCompatibleModal(false);
+          router.push(`/dashboard/providers/${node.id}`);
         }}
       />
       {ccCompatibleProviderEnabled && (
@@ -1045,6 +1049,7 @@ export default function ProvidersPage() {
           onCreated={(node) => {
             setProviderNodes((prev) => [...prev, node]);
             setShowAddCcCompatibleModal(false);
+            router.push(`/dashboard/providers/${node.id}`);
           }}
         />
       )}
