@@ -1025,6 +1025,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "chatgpt-web": {
+    id: "chatgpt-web",
+    alias: "cgpt-web",
+    format: "openai",
+    executor: "chatgpt-web",
+    baseUrl: "https://chatgpt.com/backend-api/conversation",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [{ id: "gpt-5.3-instant", name: "GPT-5.3 Instant (via ChatGPT Web)" }],
+  },
+
   "grok-web": {
     id: "grok-web",
     alias: "grok-web",

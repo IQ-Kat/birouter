@@ -133,6 +133,7 @@
     "react-dom": "19.2.5",
     "recharts": "^3.7.0",
     "selfsigned": "^5.5.0",
+    "tls-client-node": "^0.1.13",
     "tsx": "^4.21.0",
     "undici": "^8.1.0",
     "uuid": "^13.0.0",

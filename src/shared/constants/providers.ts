@@ -73,6 +73,16 @@ export const OAUTH_PROVIDERS = {
 
 // Web / Cookie Providers
 export const WEB_COOKIE_PROVIDERS = {
+  "chatgpt-web": {
+    id: "chatgpt-web",
+    alias: "cgpt-web",
+    name: "ChatGPT Web (Plus/Pro)",
+    icon: "auto_awesome",
+    color: "#10A37F",
+    textIcon: "CG",
+    website: "https://chatgpt.com",
+    authHint: "Paste your __Secure-next-auth.session-token cookie value from chatgpt.com",
+  },
   "grok-web": {
     id: "grok-web",
     alias: "gw",
