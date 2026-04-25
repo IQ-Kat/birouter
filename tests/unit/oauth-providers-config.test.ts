@@ -14,6 +14,7 @@ Object.assign(process.env, {
   GITLAB_DUO_OAUTH_CLIENT_ID: "gitlab-duo-client-id",
   QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
+  KIMI_CODING_DEVICE_ID: "test-kimi-device-id",
   ANTIGRAVITY_OAUTH_CLIENT_ID:
     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
   ANTIGRAVITY_OAUTH_CLIENT_SECRET: "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",
@@ -567,20 +568,40 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       id_token: qwenIdToken,
       resource_url: "https://chat.qwen.ai/resource",
     }),
-    jsonResponse({
-      device_code: "kimi-device",
-      user_code: "KIMI123",
-      verification_uri: "https://auth.kimi.com/activate",
-      expires_in: 600,
-      interval: 4,
-    }),
-    jsonResponse({
-      access_token: "kimi-access",
-      refresh_token: "kimi-refresh",
-      expires_in: 7200,
-      token_type: "Bearer",
-      scope: "profile",
-    }),
+    (url, init) => {
+      const params = init.body;
+      assert.equal(String(url), KIMI_CODING_CONFIG.deviceCodeUrl);
+      assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
+      assert.ok(init.headers["X-Msh-Os-Version"]);
+
+      return jsonResponse({
+        device_code: "kimi-device",
+        user_code: "KIMI123",
+        verification_uri: "https://www.kimi.com/code/authorize_device",
+        verification_uri_complete: "https://www.kimi.com/code/authorize_device?user_code=KIMI123",
+        expires_in: 600,
+        interval: 4,
+      });
+    },
+    (url, init) => {
+      const params = init.body;
+      assert.equal(String(url), KIMI_CODING_CONFIG.tokenUrl);
+      assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
+      assert.equal(params.get("device_code"), "kimi-device");
+      assert.equal(params.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
+
+      return jsonResponse({
+        access_token: "kimi-access",
+        refresh_token: "kimi-refresh",
+        expires_in: 7200,
+        token_type: "Bearer",
+        scope: "profile",
+      });
+    },
   ]);
 
   const qwenDevice = await PROVIDERS.qwen.requestDeviceCode(QWEN_CONFIG, "challenge-123");
@@ -599,6 +620,10 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
   assert.equal(qwenMapped.providerSpecificData.resourceUrl, "https://chat.qwen.ai/resource");
   assert.equal(kimiMapped.accessToken, "kimi-access");
   assert.equal(kimiMapped.tokenType, "Bearer");
+  assert.equal(
+    kimiDevice.verification_uri_complete,
+    "https://www.kimi.com/code/authorize_device?user_code=KIMI123"
+  );
 });
 
 test("GitHub executes mocked device-code and profile enrichment flows", async () => {
