@@ -718,6 +718,7 @@ async function handleSingleModelChat(
         comboStepId: runtimeOptions.comboStepId ?? null,
         comboExecutionKey: runtimeOptions.comboExecutionKey ?? runtimeOptions.comboStepId ?? null,
         extendedContext,
+        providerProfile,
       });
       if (telemetry) telemetry.endPhase();
 

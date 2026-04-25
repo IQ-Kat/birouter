@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { CodexExecutor } from "@omniroute/open-sse/executors/codex.ts";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws/handshake";
@@ -12,21 +12,23 @@ const executor = new CodexExecutor();
 
 type JsonRecord = Record<string, unknown>;
 
-const bridgePayloadSchema = z
-  .object({
-    action: z.string().optional(),
-    requestUrl: z.string().optional(),
-    headers: z.record(z.string(), z.unknown()).optional(),
-    response: z.record(z.string(), z.unknown()).optional(),
-  })
-  .passthrough();
-
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function getBridgeSecret(): string {
   return process.env.OMNIROUTE_WS_BRIDGE_SECRET || "";
+}
+
+function hashBridgeSecret(value: string): Buffer {
+  return createHash("sha256").update(value).digest();
+}
+
+export function bridgeSecretMatches(expectedSecret: string, receivedSecret: string): boolean {
+  if (!expectedSecret || !receivedSecret) return false;
+  const expectedHash = hashBridgeSecret(expectedSecret);
+  const receivedHash = hashBridgeSecret(receivedSecret);
+  return timingSafeEqual(expectedHash, receivedHash);
 }
 
 function getAuthRequest(body: JsonRecord): Request {
@@ -171,18 +173,14 @@ async function prepare(body: JsonRecord) {
 export async function POST(request: Request) {
   const expectedSecret = getBridgeSecret();
   const receivedSecret = request.headers.get("x-omniroute-ws-bridge-secret") || "";
-  if (!expectedSecret || receivedSecret !== expectedSecret) {
+  if (!bridgeSecretMatches(expectedSecret, receivedSecret)) {
     return jsonError(403, "internal_bridge_forbidden", "Forbidden");
   }
 
   let body: JsonRecord;
   try {
     const parsed = await request.json();
-    const validation = bridgePayloadSchema.safeParse(parsed);
-    if (!validation.success) {
-      return jsonError(400, "invalid_json", "Request body must be a JSON object");
-    }
-    body = validation.data;
+    body = isRecord(parsed) ? parsed : {};
   } catch {
     return jsonError(400, "invalid_json", "Request body must be JSON");
   }

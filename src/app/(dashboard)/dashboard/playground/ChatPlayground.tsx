@@ -204,10 +204,7 @@ export default function ChatPlayground({
               options={[
                 {
                   value: "",
-                  label:
-                    providerConnections.length > 0
-                      ? autoAccountsString
-                      : noAccountsString,
+                  label: providerConnections.length > 0 ? autoAccountsString : noAccountsString,
                 },
                 ...providerConnections.map((c) => ({
                   value: c.id,
@@ -224,9 +221,7 @@ export default function ChatPlayground({
         <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-text-muted">
-                chat
-              </span>
+              <span className="material-symbols-outlined text-[18px] text-text-muted">chat</span>
               <h3 className="text-sm font-semibold text-text-main">Conversational Chat</h3>
               {responseStatus !== null && (
                 <Badge variant={responseStatus < 400 ? "success" : "error"} size="sm">
@@ -264,8 +259,8 @@ export default function ChatPlayground({
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-tr-sm"
                         : msg.role === "system"
-                        ? "bg-black/5 dark:bg-white/5 border border-border text-text-muted w-full"
-                        : "bg-bg-alt border border-border text-text-main rounded-tl-sm"
+                          ? "bg-black/5 dark:bg-white/5 border border-border text-text-muted w-full"
+                          : "bg-bg-alt border border-border text-text-main rounded-tl-sm"
                     }`}
                   >
                     {msg.content}
@@ -274,9 +269,7 @@ export default function ChatPlayground({
               ))}
               {loading && messages[messages.length - 1]?.role === "user" && (
                 <div className="flex flex-col max-w-[85%] mr-auto items-start">
-                  <span className="text-[10px] text-text-muted uppercase mb-1 px-1">
-                    assistant
-                  </span>
+                  <span className="text-[10px] text-text-muted uppercase mb-1 px-1">assistant</span>
                   <div className="px-4 py-2 rounded-2xl text-sm bg-bg-alt border border-border rounded-tl-sm text-text-muted flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px] animate-spin">
                       progress_activity

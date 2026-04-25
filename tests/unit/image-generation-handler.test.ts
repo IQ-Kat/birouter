@@ -1474,9 +1474,7 @@ test("handleImageGeneration normalizes Imagen3 single-image payloads and non-ok 
 const { extractImageGenerationCalls } = await import("../../open-sse/handlers/imageGeneration.ts");
 
 function buildCodexSSE(items) {
-  const frames = items.map((item) =>
-    JSON.stringify({ type: "response.output_item.done", item })
-  );
+  const frames = items.map((item) => JSON.stringify({ type: "response.output_item.done", item }));
   return frames.map((frame) => `event: response.output_item.done\ndata: ${frame}\n`).join("\n");
 }
 

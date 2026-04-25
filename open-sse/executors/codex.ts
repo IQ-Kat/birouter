@@ -278,8 +278,6 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
- *
- * @deprecated This function will be removed in v4.0, Codex executor has updated processing logic
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   // Always strip previous_response_id — the /codex/responses endpoint does not
@@ -333,31 +331,6 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
-function hasImageGenerationTool(body: Record<string, unknown>): boolean {
-  if (!Array.isArray(body.tools)) return false;
-  return body.tools.some((tool) => {
-    if (!tool || typeof tool !== "object" || Array.isArray(tool)) return false;
-    return (tool as Record<string, unknown>).type === "image_generation";
-  });
-}
-
-// Responses-API hosted tool types that OpenAI executes server-side (e.g.
-// `image_generation` backed by gpt-image-1 under ChatGPT auth). These arrive shaped as
-// `{ type, ...params }` with no `function` object and no `name` — Codex CLI injects
-// `{ type: "image_generation", output_format: "png" }` when [features] image_generation = true.
-// Keep them through `normalizeCodexTools` so upstream can execute them.
-const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
-  "image_generation",
-  "web_search",
-  "web_search_preview",
-  "file_search",
-  "computer",
-  "computer_use_preview",
-  "code_interpreter",
-  "mcp",
-  "local_shell",
-]);
-
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -368,33 +341,7 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     }
 
     const tool = toolValue as Record<string, unknown>;
-    const toolType = typeof tool.type === "string" ? tool.type : "";
-
-    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
-    // Codex API supports them natively; register sub-tool names for tool_choice validation.
-    if (toolType === "namespace") {
-      if (Array.isArray(tool.tools)) {
-        for (const st of tool.tools as unknown[]) {
-          if (st && typeof st === "object" && !Array.isArray(st)) {
-            const subTool = st as Record<string, unknown>;
-            const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
-            if (name) validToolNames.add(name);
-          }
-        }
-      }
-      return true;
-    }
-
-    if (toolType !== "function") {
-      const hasFunctionObject = tool.function && typeof tool.function === "object";
-      const hasName = typeof tool.name === "string";
-      if (!toolType || hasFunctionObject || hasName) {
-        return false;
-      }
-      if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
-        return true;
-      }
-      console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
+    if (tool.type !== "function") {
       return false;
     }
 
@@ -503,31 +450,70 @@ function isCodexResponsesWebSocketRequired(model: string, credentials: unknown):
   return providerSpecificData?.codexTransport === "websocket";
 }
 
+function toStatusCode(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
+    return value;
+  }
+  if (typeof value === "string" && /^\d{3}$/.test(value.trim())) {
+    const parsed = Number(value.trim());
+    return parsed >= 400 && parsed <= 599 ? parsed : null;
+  }
+  return null;
+}
+
+function looksLikeQuotaOrRateLimit(code: string, type: string, message: string): boolean {
+  const haystack = `${code} ${type} ${message}`.toLowerCase();
+  return (
+    haystack.includes("usage_limit_reached") ||
+    haystack.includes("rate_limit") ||
+    haystack.includes("rate limit") ||
+    haystack.includes("quota") ||
+    haystack.includes("too many requests") ||
+    haystack.includes("limit has been reached") ||
+    haystack.includes("limit reached")
+  );
+}
+
 function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<string, unknown> {
+  const response =
+    parsed.response && typeof parsed.response === "object" && !Array.isArray(parsed.response)
+      ? (parsed.response as Record<string, unknown>)
+      : null;
   const upstreamError =
-    parsed.error && typeof parsed.error === "object" && !Array.isArray(parsed.error)
-      ? (parsed.error as Record<string, unknown>)
-      : parsed;
+    response?.error && typeof response.error === "object" && !Array.isArray(response.error)
+      ? (response.error as Record<string, unknown>)
+      : parsed.error && typeof parsed.error === "object" && !Array.isArray(parsed.error)
+        ? (parsed.error as Record<string, unknown>)
+        : parsed;
   const code =
     typeof upstreamError.code === "string"
       ? upstreamError.code
       : typeof upstreamError.type === "string"
         ? upstreamError.type
         : "upstream_error";
+  const type = typeof upstreamError.type === "string" ? upstreamError.type : "";
   const message =
     typeof upstreamError.message === "string" && upstreamError.message.trim()
       ? upstreamError.message
       : "Codex upstream error";
   const error: Record<string, unknown> = { code, message };
+  const explicitStatus =
+    toStatusCode(parsed.status_code) ??
+    toStatusCode(parsed.status) ??
+    toStatusCode(response?.status_code) ??
+    toStatusCode(response?.status) ??
+    toStatusCode(upstreamError.status_code) ??
+    toStatusCode(upstreamError.status);
+  const statusCode =
+    explicitStatus ?? (looksLikeQuotaOrRateLimit(code, type, message) ? 429 : null);
 
-  if (typeof upstreamError.type === "string") error.type = upstreamError.type;
-  if (typeof parsed.status_code === "number") error.status_code = parsed.status_code;
-  if (typeof parsed.status === "number") error.status_code = parsed.status;
+  if (type) error.type = type;
+  if (statusCode !== null) error.status_code = statusCode;
 
   return {
     type: "response.failed",
     response: {
-      id: null,
+      id: typeof response?.id === "string" ? response.id : null,
       status: "failed",
       error,
     },
@@ -543,7 +529,7 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed.type === "string" && parsed.type.trim()) {
       eventType = parsed.type.trim();
-      if (eventType === "error") {
+      if (eventType === "error" || eventType === "response.failed") {
         const failed = toCodexResponseFailedEvent(parsed as Record<string, unknown>);
         payload = JSON.stringify(failed);
         eventType = "response.failed";
@@ -618,51 +604,84 @@ export class CodexExecutor extends BaseExecutor {
       ...transformedBody,
     });
 
+    const encoder = new TextEncoder();
+    let closed = false;
+    let ws: Awaited<ReturnType<typeof websocket>> | null = null;
+    let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
+
+    const closeUpstream = (reason: string) => {
+      try {
+        ws?.close(1000, reason);
+      } catch {
+        // ignore close races
+      }
+    };
+
+    let abortHandler: (() => void) | null = null;
+    const removeAbortListener = () => {
+      if (!abortHandler) return;
+      input.signal?.removeEventListener("abort", abortHandler);
+      abortHandler = null;
+    };
+
+    const finishStream = ({
+      reason,
+      emitDone = true,
+      closeController = true,
+      closeSocket = true,
+    }: {
+      reason: string;
+      emitDone?: boolean;
+      closeController?: boolean;
+      closeSocket?: boolean;
+    }) => {
+      if (closed) return;
+      closed = true;
+      removeAbortListener();
+      if (closeSocket) closeUpstream(reason);
+
+      const controller = streamController;
+      if (!controller || !closeController) return;
+      if (emitDone) {
+        try {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } catch {
+          // The downstream may already have gone away.
+        }
+      }
+      try {
+        controller.close();
+      } catch {
+        // The controller may already be closed.
+      }
+    };
+
+    const failController = (code: string, message: string) => {
+      if (closed) return;
+      const controller = streamController;
+      const payload = JSON.stringify({
+        type: "response.failed",
+        response: {
+          id: null,
+          status: "failed",
+          error: { code, message },
+        },
+      });
+      try {
+        controller?.enqueue(encoder.encode(`event: response.failed\ndata: ${payload}\n\n`));
+      } catch {
+        // Downstream closed before the failure could be delivered.
+      }
+      finishStream({ reason: "upstream_failed" });
+    };
+
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
-        const encoder = new TextEncoder();
-        let closed = false;
-        let ws: Awaited<ReturnType<typeof websocket>> | null = null;
-
-        const closeController = () => {
-          if (closed) return;
-          closed = true;
-          try {
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          } catch {
-            // The downstream may already have gone away.
-          }
-          try {
-            controller.close();
-          } catch {
-            // The controller may already be closed.
-          }
+        streamController = controller;
+        abortHandler = () => {
+          finishStream({ reason: "client_aborted" });
         };
-
-        const failController = (code: string, message: string) => {
-          if (closed) return;
-          const payload = JSON.stringify({
-            type: "response.failed",
-            response: {
-              id: null,
-              status: "failed",
-              error: { code, message },
-            },
-          });
-          controller.enqueue(encoder.encode(`event: response.failed\ndata: ${payload}\n\n`));
-          closeController();
-        };
-
-        const abort = () => {
-          try {
-            ws?.close(1000, "client_aborted");
-          } catch {
-            // ignore abort races
-          }
-          closeController();
-        };
-
-        input.signal?.addEventListener("abort", abort, { once: true });
+        input.signal?.addEventListener("abort", abortHandler, { once: true });
 
         try {
           ws = await websocket(toWebSocketUrl(url), {
@@ -670,8 +689,9 @@ export class CodexExecutor extends BaseExecutor {
             os: "windows",
             headers,
           });
+          if (closed) return;
           if (input.signal?.aborted) {
-            abort();
+            finishStream({ reason: "client_aborted" });
             return;
           }
           ws.onmessage = (event) => {
@@ -681,9 +701,19 @@ export class CodexExecutor extends BaseExecutor {
                 ? event.data
                 : Buffer.from(event.data as Buffer).toString("utf8");
             const sseEvent = encodeResponseSseEvent(raw);
-            controller.enqueue(encoder.encode(sseEvent.sse));
+            if (closed) return;
+            try {
+              controller.enqueue(encoder.encode(sseEvent.sse));
+            } catch {
+              finishStream({
+                reason: "downstream_closed",
+                emitDone: false,
+                closeController: false,
+              });
+              return;
+            }
             if (sseEvent.terminal) {
-              closeController();
+              finishStream({ reason: "terminal_event" });
             }
           };
           ws.onerror = (event) => {
@@ -693,15 +723,20 @@ export class CodexExecutor extends BaseExecutor {
             );
           };
           ws.onclose = () => {
-            closeController();
+            finishStream({ reason: "upstream_closed", closeSocket: false });
           };
-          ws.send(bodyString);
+          if (!closed) {
+            ws.send(bodyString);
+          }
         } catch (error) {
           failController(
             "upstream_websocket_connect_failed",
             error instanceof Error ? error.message : String(error)
           );
         }
+      },
+      cancel() {
+        finishStream({ reason: "client_cancelled", emitDone: false, closeController: false });
       },
     });
 
@@ -874,8 +909,6 @@ export class CodexExecutor extends BaseExecutor {
     // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
     // which requires store=true so that response items are persisted.
     // If the client explicitly sets store, respect it. Otherwise default to true.
-    // Exception: when the request uses the image_generation hosted tool, the Codex
-    // backend rejects store=true ("Store must be set to false"), so default to false.
     const explicitStoreSetting =
       credentials?.providerSpecificData &&
       typeof credentials.providerSpecificData === "object" &&
@@ -885,7 +918,7 @@ export class CodexExecutor extends BaseExecutor {
     if (explicitStoreSetting === false) {
       body.store = false;
     } else if (body.store === undefined) {
-      body.store = hasImageGenerationTool(body) ? false : true;
+      body.store = true;
     }
 
     // Codex Responses only supports function tools with non-empty names.

@@ -12,6 +12,22 @@ const INTERNAL_ROUTE = "/api/internal/codex-responses-ws";
 const WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const WS_QUERY_TOKEN_KEYS = ["api_key", "token", "access_token"];
 const textDecoder = new TextDecoder();
+const DEFAULT_MAX_WS_BUFFER_BYTES = 16 * 1024 * 1024;
+const DEFAULT_MAX_WS_MESSAGE_BYTES = 16 * 1024 * 1024;
+
+class WebSocketInputTooLargeError extends Error {
+  constructor(message, reason = "message_too_large") {
+    super(message);
+    this.name = "WebSocketInputTooLargeError";
+    this.closeCode = 1009;
+    this.reason = reason;
+  }
+}
+
+function normalizePositiveInteger(value, fallback) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 function isText(value) {
   return typeof value === "string" && value.length > 0;
@@ -60,7 +76,10 @@ export function encodeWsFrame(opcode, payload = Buffer.alloc(0)) {
   return Buffer.concat([header, payloadBuffer]);
 }
 
-export function decodeClientFrames(buffer) {
+export function decodeClientFrames(
+  buffer,
+  { maxPayloadBytes = DEFAULT_MAX_WS_MESSAGE_BYTES } = {}
+) {
   const frames = [];
   let offset = 0;
 
@@ -85,10 +104,14 @@ export function decodeClientFrames(buffer) {
       if (buffer.length - offset < 10) break;
       const bigLength = buffer.readBigUInt64BE(offset + 2);
       if (bigLength > BigInt(Number.MAX_SAFE_INTEGER)) {
-        throw new Error("WebSocket payload too large");
+        throw new WebSocketInputTooLargeError("WebSocket payload too large");
       }
       payloadLength = Number(bigLength);
       headerLength = 10;
+    }
+
+    if (payloadLength > maxPayloadBytes) {
+      throw new WebSocketInputTooLargeError("WebSocket payload exceeds configured limit");
     }
 
     const totalLength = headerLength + 4 + payloadLength;
@@ -228,6 +251,8 @@ class ResponsesWsSession {
     wsFactory,
     pingIntervalMs,
     idleTimeoutMs,
+    maxBufferBytes,
+    maxMessageBytes,
   }) {
     this.baseUrl = baseUrl;
     this.bridgeSecret = bridgeSecret;
@@ -238,11 +263,15 @@ class ResponsesWsSession {
     this.wsFactory = wsFactory;
     this.pingIntervalMs = pingIntervalMs;
     this.idleTimeoutMs = idleTimeoutMs;
+    this.maxBufferBytes = normalizePositiveInteger(maxBufferBytes, DEFAULT_MAX_WS_BUFFER_BYTES);
+    this.maxMessageBytes = normalizePositiveInteger(maxMessageBytes, DEFAULT_MAX_WS_MESSAGE_BYTES);
     this.sessionId = randomUUID();
     this.closed = false;
     this.buffer = Buffer.alloc(0);
     this.fragmentOpcode = null;
     this.fragmentParts = [];
+    this.fragmentBytes = 0;
+    this.processing = Promise.resolve();
     this.upstream = null;
     this.upstreamReady = null;
     this.lastSeenAt = Date.now();
@@ -258,18 +287,35 @@ class ResponsesWsSession {
     }, this.pingIntervalMs);
 
     this.socket.setNoDelay(true);
-    this.socket.on("data", (chunk) => {
-      this.onData(chunk).catch((error) => {
-        this.sendFailure(
-          "frame_decode_failed",
-          error instanceof Error ? error.message : String(error)
-        );
-        this.close(1011, "frame_decode_failed");
-      });
-    });
+    this.socket.on("data", (chunk) => this.enqueueData(chunk));
     this.socket.on("close", () => this.dispose());
     this.socket.on("end", () => this.dispose());
     this.socket.on("error", () => this.dispose());
+  }
+
+  enqueueData(chunk) {
+    this.processing = this.processing
+      .then(() => this.onData(chunk))
+      .catch((error) => {
+        if (this.closed) return;
+        const isTooLarge =
+          error instanceof WebSocketInputTooLargeError || error?.closeCode === 1009;
+        this.sendFailure(
+          isTooLarge ? "message_too_large" : "frame_decode_failed",
+          error instanceof Error ? error.message : String(error)
+        );
+        this.close(
+          isTooLarge ? 1009 : 1011,
+          isTooLarge ? error.reason || "message_too_large" : "frame_decode_failed"
+        );
+      });
+  }
+
+  cleanupBuffers() {
+    this.buffer = Buffer.alloc(0);
+    this.fragmentOpcode = null;
+    this.fragmentParts = [];
+    this.fragmentBytes = 0;
   }
 
   sendFrame(opcode, payload) {
@@ -296,12 +342,21 @@ class ResponsesWsSession {
   }
 
   async onData(chunk) {
+    if (this.closed) return;
     this.lastSeenAt = Date.now();
+    if (this.buffer.length + chunk.length > this.maxBufferBytes) {
+      throw new WebSocketInputTooLargeError("WebSocket input buffer exceeds configured limit");
+    }
     this.buffer = Buffer.concat([this.buffer, chunk]);
-    const parsed = decodeClientFrames(this.buffer);
+    const parsed = decodeClientFrames(this.buffer, { maxPayloadBytes: this.maxMessageBytes });
     this.buffer = parsed.remaining;
 
+    if (this.buffer.length > this.maxBufferBytes) {
+      throw new WebSocketInputTooLargeError("WebSocket input buffer exceeds configured limit");
+    }
+
     for (const frame of parsed.frames) {
+      if (this.closed) return;
       await this.handleFrame(frame);
     }
   }
@@ -313,12 +368,19 @@ class ResponsesWsSession {
           this.sendFailure("unexpected_continuation", "Unexpected continuation frame");
           return;
         }
+        this.fragmentBytes += frame.payload.length;
+        if (this.fragmentBytes > this.maxMessageBytes) {
+          throw new WebSocketInputTooLargeError(
+            "Fragmented WebSocket message exceeds configured limit"
+          );
+        }
         this.fragmentParts.push(frame.payload);
         if (frame.fin) {
           const payload = Buffer.concat(this.fragmentParts);
           const opcode = this.fragmentOpcode;
           this.fragmentOpcode = null;
           this.fragmentParts = [];
+          this.fragmentBytes = 0;
           await this.handleDataFrame(opcode, payload);
         }
         return;
@@ -327,6 +389,12 @@ class ResponsesWsSession {
         if (!frame.fin) {
           this.fragmentOpcode = frame.opcode;
           this.fragmentParts = [frame.payload];
+          this.fragmentBytes = frame.payload.length;
+          if (this.fragmentBytes > this.maxMessageBytes) {
+            throw new WebSocketInputTooLargeError(
+              "Fragmented WebSocket message exceeds configured limit"
+            );
+          }
           return;
         }
         await this.handleDataFrame(frame.opcode, frame.payload);
@@ -346,6 +414,9 @@ class ResponsesWsSession {
   }
 
   async handleDataFrame(opcode, payload) {
+    if (payload.length > this.maxMessageBytes) {
+      throw new WebSocketInputTooLargeError("WebSocket message exceeds configured limit");
+    }
     if (opcode !== 0x1) {
       this.sendFailure("unsupported_payload", "Only UTF-8 text messages are supported");
       return;
@@ -452,6 +523,7 @@ class ResponsesWsSession {
     this.closed = true;
 
     clearInterval(this.pingTimer);
+    this.cleanupBuffers();
     try {
       this.upstream?.close?.(code, reason);
     } catch {
@@ -462,7 +534,9 @@ class ResponsesWsSession {
     const payload = Buffer.allocUnsafe(2 + reasonBuffer.length);
     payload.writeUInt16BE(code, 0);
     reasonBuffer.copy(payload, 2);
-    this.sendFrame(0x8, payload);
+    if (!this.socket.destroyed && this.socket.writable) {
+      this.socket.write(encodeWsFrame(0x8, payload));
+    }
     this.socket.end();
     setTimeout(() => {
       if (!this.socket.destroyed) {
@@ -475,6 +549,7 @@ class ResponsesWsSession {
     if (this.closed) return;
     this.closed = true;
     clearInterval(this.pingTimer);
+    this.cleanupBuffers();
     try {
       this.upstream?.close?.(1000, "downstream_closed");
     } catch {
@@ -490,6 +565,8 @@ export function createResponsesWsProxy({
   wsFactory = websocket,
   pingIntervalMs = 25000,
   idleTimeoutMs = 90000,
+  maxBufferBytes = DEFAULT_MAX_WS_BUFFER_BYTES,
+  maxMessageBytes = DEFAULT_MAX_WS_MESSAGE_BYTES,
 } = {}) {
   if (!isText(baseUrl)) {
     throw new Error("createResponsesWsProxy requires a baseUrl");
@@ -577,6 +654,8 @@ export function createResponsesWsProxy({
           wsFactory,
           pingIntervalMs,
           idleTimeoutMs,
+          maxBufferBytes,
+          maxMessageBytes,
         });
         return true;
       } catch (error) {

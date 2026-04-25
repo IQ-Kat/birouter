@@ -1399,7 +1399,8 @@ async function handleCodexImageGeneration({
     });
   }
 
-  const requestedCount = Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
+  const requestedCount =
+    Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
   if (log && requestedCount > 1) {
     log.warn(
       "IMAGE",
