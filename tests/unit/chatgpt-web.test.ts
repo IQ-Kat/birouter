@@ -326,7 +326,8 @@ test("Sentinel: chat-requirements token forwarded on conv request", async () => 
       signal: AbortSignal.timeout(10_000),
       log: null,
     });
-    const convHeaders = m.calls.headers[2];
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    const convHeaders = m.calls.headers[convIdx];
     assert.equal(convHeaders["openai-sentinel-chat-requirements-token"], "REQ-TOKEN-XYZ");
   } finally {
     m.restore();
@@ -354,7 +355,8 @@ test("PoW: when required, proof token is sent with valid prefix", async () => {
       signal: AbortSignal.timeout(15_000),
       log: null,
     });
-    const convHeaders = m.calls.headers[2];
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    const convHeaders = m.calls.headers[convIdx];
     const proof = convHeaders["openai-sentinel-proof-token"];
     assert.ok(proof, "proof token should be present");
     assert.match(proof, /^[gw]AAAAAB/);
@@ -797,7 +799,11 @@ test("Session continuity: each call starts a fresh conversation (Temporary Chat 
     });
 
     assert.equal(m.calls.conv, 2);
-    const secondBody = JSON.parse(m.calls.bodies[4]);
+    const convIndices = m.calls.urls
+      .map((u, i) => (u.endsWith("/backend-api/f/conversation") ? i : -1))
+      .filter((i) => i >= 0);
+    assert.equal(convIndices.length, 2);
+    const secondBody = JSON.parse(m.calls.bodies[convIndices[1]]);
     assert.equal(secondBody.conversation_id, null, "should start a fresh conversation");
     // The full history should be replayed in the messages array.
     const userMessages = secondBody.messages.filter((m) => m.author?.role === "user");
@@ -823,8 +829,9 @@ test("Request: conversation POST has correct browser-like headers", async () => 
       log: null,
     });
 
-    assert.equal(m.calls.urls[2], "https://chatgpt.com/backend-api/f/conversation");
-    const convHeaders = m.calls.headers[2];
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    assert.equal(m.calls.urls[convIdx], "https://chatgpt.com/backend-api/f/conversation");
+    const convHeaders = m.calls.headers[convIdx];
     assert.match(convHeaders["User-Agent"], /Mozilla/);
     assert.equal(convHeaders["Origin"], "https://chatgpt.com");
     assert.equal(convHeaders["Sec-Fetch-Site"], "same-origin");
@@ -852,7 +859,8 @@ test("Request: payload has correct ChatGPT shape", async () => {
       signal: AbortSignal.timeout(10_000),
       log: null,
     });
-    const body = JSON.parse(m.calls.bodies[2]);
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    const body = JSON.parse(m.calls.bodies[convIdx]);
     assert.equal(body.action, "next");
     assert.equal(body.model, "gpt-5-3");
     assert.equal(body.history_and_training_disabled, true);

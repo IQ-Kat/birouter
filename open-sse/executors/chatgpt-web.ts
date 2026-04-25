@@ -39,8 +39,30 @@ const CHATGPT_USER_AGENT =
 const OAI_CLIENT_VERSION = "prod-81e0c5cdf6140e8c5db714d613337f4aeab94029";
 const OAI_CLIENT_BUILD_NUMBER = "6128297";
 
-// Stable per-process device ID (matches the browser's persistent oai-did cookie behaviour).
-const DEVICE_ID = randomUUID();
+// Per-cookie device ID. The browser stores a persistent `oai-did` cookie that
+// uniquely identifies the device for OpenAI's risk model — we derive a stable
+// UUID from a hash of the session cookie so that each account/connection gets
+// its own device id, but it doesn't change between requests.
+const deviceIdCache = new Map<string, string>();
+function deviceIdFor(cookie: string): string {
+  const key = cookieKey(cookie);
+  let id = deviceIdCache.get(key);
+  if (!id) {
+    // Synthesize a UUID v4-shaped string from a SHA-256 of the cookie. Stable,
+    // deterministic per cookie, no PII (the cookie's already secret).
+    const h = createHash("sha256").update(cookie).digest("hex");
+    id =
+      `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-` +
+      `${((parseInt(h.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${h.slice(17, 20)}-` +
+      h.slice(20, 32);
+    if (deviceIdCache.size >= 200) {
+      const first = deviceIdCache.keys().next().value;
+      if (first) deviceIdCache.delete(first);
+    }
+    deviceIdCache.set(key, id);
+  }
+  return id;
+}
 
 // OmniRoute model ID → ChatGPT internal slug. ChatGPT's web routes use
 // dash-separated IDs (e.g. "gpt-5-3" not "gpt-5.3-instant").
@@ -67,10 +89,10 @@ function browserHeaders(): Record<string, string> {
 }
 
 /** Headers ChatGPT's web client sends on backend-api requests. */
-function oaiHeaders(sessionId: string): Record<string, string> {
+function oaiHeaders(sessionId: string, deviceId: string): Record<string, string> {
   return {
     "OAI-Language": "en-US",
-    "OAI-Device-Id": DEVICE_ID,
+    "OAI-Device-Id": deviceId,
     "OAI-Client-Version": OAI_CLIENT_VERSION,
     "OAI-Client-Build-Number": OAI_CLIENT_BUILD_NUMBER,
     "OAI-Session-Id": sessionId,
@@ -117,71 +139,11 @@ function tokenStore(cookie: string, entry: TokenEntry): void {
   }
 }
 
-// ─── Conversation continuity cache ──────────────────────────────────────────
-// Keyed by FNV hash of message history → { conversationId, lastMessageId }.
-// Same pattern as perplexity-web.ts:50-99.
-
-interface ConvEntry {
-  conversationId: string;
-  lastMessageId: string;
-  ts: number;
-}
-
-const CONV_TTL_MS = 60 * 60 * 1000;
-const CONV_MAX = 200;
-const convCache = new Map<string, ConvEntry>();
-
-function historyKey(history: Array<{ role: string; content: string }>): string {
-  const parts = history.map((h) => `${h.role}:${h.content}`).join("\n");
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < parts.length; i++) {
-    hash ^= parts.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, "0");
-}
-
-function convLookup(
-  history: Array<{ role: string; content: string }>
-): { conversationId: string; lastMessageId: string } | null {
-  if (history.length === 0) return null;
-  const key = historyKey(history);
-  const entry = convCache.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.ts > CONV_TTL_MS) {
-    convCache.delete(key);
-    return null;
-  }
-  return { conversationId: entry.conversationId, lastMessageId: entry.lastMessageId };
-}
-
-function convStore(
-  history: Array<{ role: string; content: string }>,
-  currentMsg: string,
-  responseText: string,
-  conversationId: string,
-  lastMessageId: string
-): void {
-  if (!conversationId || !lastMessageId) return;
-  const full = [
-    ...history,
-    { role: "user", content: currentMsg },
-    { role: "assistant", content: responseText },
-  ];
-  const key = historyKey(full);
-  convCache.set(key, { conversationId, lastMessageId, ts: Date.now() });
-  if (convCache.size > CONV_MAX) {
-    let oldestKey: string | null = null;
-    let oldestTs = Infinity;
-    for (const [k, v] of convCache) {
-      if (v.ts < oldestTs) {
-        oldestTs = v.ts;
-        oldestKey = k;
-      }
-    }
-    if (oldestKey) convCache.delete(oldestKey);
-  }
-}
+// Conversation continuity is intentionally not cached. The conversation body
+// sets `history_and_training_disabled: true` (Temporary Chat mode), and
+// chatgpt.com expires those conversation_ids quickly — re-using them returns
+// 404. Open WebUI and most OpenAI-API-style clients send the full history
+// each turn anyway, so each request just starts a fresh conversation.
 
 // ─── /api/auth/session — exchange cookie for JWT ────────────────────────────
 
@@ -305,11 +267,13 @@ interface ChatRequirements {
 
 const warmupCache = new Map<string, number>();
 const WARMUP_TTL_MS = 60_000;
+const WARMUP_CACHE_MAX = 200;
 
 async function runSessionWarmup(
   accessToken: string,
   accountId: string | null,
   sessionId: string,
+  deviceId: string,
   cookie: string,
   signal: AbortSignal | null | undefined,
   log: { debug?: (tag: string, msg: string) => void } | null | undefined
@@ -318,11 +282,17 @@ async function runSessionWarmup(
   const now = Date.now();
   const last = warmupCache.get(key);
   if (last && now - last < WARMUP_TTL_MS) return;
+  // Bound the cache: drop the oldest entry once we hit the cap. Map iteration
+  // order is insertion order, so the first key is the oldest.
+  if (warmupCache.size >= WARMUP_CACHE_MAX && !warmupCache.has(key)) {
+    const first = warmupCache.keys().next().value;
+    if (first) warmupCache.delete(first);
+  }
   warmupCache.set(key, now);
 
   const headers: Record<string, string> = {
     ...browserHeaders(),
-    ...oaiHeaders(sessionId),
+    ...oaiHeaders(sessionId, deviceId),
     Accept: "*/*",
     Authorization: `Bearer ${accessToken}`,
     Cookie: buildSessionCookieHeader(cookie),
@@ -358,16 +328,17 @@ async function prepareChatRequirements(
   accessToken: string,
   accountId: string | null,
   sessionId: string,
+  deviceId: string,
   cookie: string,
   dplInfo: { dpl: string; scriptSrc: string },
   signal: AbortSignal | null | undefined
 ): Promise<ChatRequirements> {
   const config = buildPrekeyConfig(CHATGPT_USER_AGENT, dplInfo.dpl, dplInfo.scriptSrc);
-  const prekey = buildPrepareToken(config);
+  const prekey = await buildPrepareToken(config);
 
   const headers: Record<string, string> = {
     ...browserHeaders(),
-    ...oaiHeaders(sessionId),
+    ...oaiHeaders(sessionId, deviceId),
     "Content-Type": "application/json",
     Authorization: `Bearer ${accessToken}`,
     Cookie: buildSessionCookieHeader(cookie),
@@ -567,10 +538,22 @@ function buildPrekeyConfig(userAgent: string, dpl: string, scriptSrc: string): u
  * (difficulty "0fffff") mutating config[3] to find a hash whose hex prefix
  * is ≤ the difficulty. Mirrors chat2api / openai-sentinel.
  */
-function buildPrepareToken(config: unknown[]): string {
+// PoW solvers run up to 100k–500k SHA3-512 hashes. To avoid blocking the
+// Node event loop on a busy server, we yield with `setImmediate` every
+// POW_YIELD_EVERY iterations — roughly every ~5ms of work — so concurrent
+// requests and I/O still get scheduled. Wall time is approximately the same
+// as the synchronous version; what changes is fairness, not throughput.
+const POW_YIELD_EVERY = 1000;
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+async function buildPrepareToken(config: unknown[]): Promise<string> {
   const target = "0fffff";
   const cfg = [...config];
   for (let i = 0; i < 100_000; i++) {
+    if (i > 0 && i % POW_YIELD_EVERY === 0) await yieldToEventLoop();
     cfg[3] = i;
     const json = JSON.stringify(cfg);
     const b64 = Buffer.from(json).toString("base64");
@@ -584,12 +567,17 @@ function buildPrepareToken(config: unknown[]): string {
   return `gAAAAAC${b64}`;
 }
 
-function solveProofOfWork(seed: string, difficulty: string, config: unknown[]): string {
+async function solveProofOfWork(
+  seed: string,
+  difficulty: string,
+  config: unknown[]
+): Promise<string> {
   const target = (difficulty || "").toLowerCase();
   const cfg = [...config];
   const maxIter = 500_000;
 
   for (let i = 0; i < maxIter; i++) {
+    if (i > 0 && i % POW_YIELD_EVERY === 0) await yieldToEventLoop();
     cfg[3] = i;
     const json = JSON.stringify(cfg);
     const b64 = Buffer.from(json).toString("base64");
@@ -972,10 +960,12 @@ function buildStreamingResponse(
           )
         );
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-
-        if (respConversationId && respMessageId) {
-          convStore(history, currentMsg, fullAnswer, respConversationId, respMessageId);
-        }
+        // Conversation continuity intentionally not persisted (Temporary Chat
+        // mode — see comment near the top of the file).
+        void respConversationId;
+        void respMessageId;
+        void history;
+        void currentMsg;
       } catch (err) {
         controller.enqueue(
           encoder.encode(
@@ -1037,9 +1027,10 @@ async function buildNonStreamingResponse(
     if (chunk.answer) fullAnswer = chunk.answer;
   }
 
-  if (respConversationId && respMessageId) {
-    convStore(history, currentMsg, fullAnswer, respConversationId, respMessageId);
-  }
+  // Conversation continuity intentionally not persisted (Temporary Chat mode).
+  void respConversationId;
+  void respMessageId;
+  void history;
 
   fullAnswer = cleanChatGptText(fullAnswer);
   const promptTokens = Math.ceil(currentMsg.length / 4);
@@ -1190,10 +1181,12 @@ export class ChatGptWebExecutor extends BaseExecutor {
     // browser does on page load. Failures here are non-fatal; the worst case
     // is Sentinel still escalates to Turnstile.
     const sessionId = randomUUID();
+    const deviceId = deviceIdFor(cookie);
     await runSessionWarmup(
       tokenEntry.accessToken,
       tokenEntry.accountId,
       sessionId,
+      deviceId,
       cookie,
       signal,
       log
@@ -1206,6 +1199,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
         tokenEntry.accessToken,
         tokenEntry.accountId,
         sessionId,
+        deviceId,
         cookie,
         dplInfo,
         signal
@@ -1258,7 +1252,11 @@ export class ChatGptWebExecutor extends BaseExecutor {
     let proofToken: string | null = null;
     if (reqs.proofofwork?.required && reqs.proofofwork.seed && reqs.proofofwork.difficulty) {
       const powConfig = buildPrekeyConfig(CHATGPT_USER_AGENT, dplInfo.dpl, dplInfo.scriptSrc);
-      proofToken = solveProofOfWork(reqs.proofofwork.seed, reqs.proofofwork.difficulty, powConfig);
+      proofToken = await solveProofOfWork(
+        reqs.proofofwork.seed,
+        reqs.proofofwork.difficulty,
+        powConfig
+      );
     }
 
     // 4. Build conversation request
@@ -1272,13 +1270,11 @@ export class ChatGptWebExecutor extends BaseExecutor {
       };
     }
 
-    // Conversation continuity is intentionally disabled here. The conversation
-    // body sets `history_and_training_disabled: true` (Temporary Chat mode),
-    // and chatgpt.com expires those conversation_ids quickly — re-using them
-    // returns 404. Open WebUI and most OpenAI-API clients send the full
-    // history each turn anyway, so we just always start a fresh conversation.
-    // (The convCache is kept around in case we re-enable persistent chats
-    // later, but lookups are skipped here.)
+    // Conversation continuity is intentionally disabled. The body sets
+    // `history_and_training_disabled: true` (Temporary Chat mode) and
+    // chatgpt.com expires those conversation_ids quickly — re-using them
+    // returns 404. Each request starts a fresh conversation; clients (Open
+    // WebUI, OpenAI-API-style) send the full history each turn anyway.
     const conversationId: string | null = null;
     const parentMessageId = randomUUID();
 
@@ -1287,7 +1283,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
 
     const headers: Record<string, string> = {
       ...browserHeaders(),
-      ...oaiHeaders(sessionId),
+      ...oaiHeaders(sessionId, deviceId),
       "Content-Type": "application/json",
       Accept: "text/event-stream",
       Authorization: `Bearer ${tokenEntry.accessToken}`,
@@ -1313,6 +1309,11 @@ export class ChatGptWebExecutor extends BaseExecutor {
         body: JSON.stringify(cgptBody),
         timeoutMs: 120_000, // generations can take a while
         signal,
+        // For real-time streaming, ask the TLS client to write the body to
+        // a temp file and surface it as a ReadableStream as it arrives —
+        // otherwise long generations buffer entirely before the client sees
+        // anything (and the downstream HTTP request can time out).
+        stream,
       });
     } catch (err) {
       log?.error?.("CGPT-WEB", `Fetch failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -1331,10 +1332,10 @@ export class ChatGptWebExecutor extends BaseExecutor {
 
     if (response.status >= 400) {
       const status = response.status;
-      // Always log the upstream body on 4xx/5xx — error responses are small
-      // and the upstream message is much more useful than our wrapper.
-       
-      console.log(`[CGPT-WEB] conv ${status}: ${(response.text || "").slice(0, 400)}`);
+      // Log the upstream body on 4xx/5xx — error responses are small and the
+      // upstream message is much more useful than our wrapper. Goes through
+      // the executor logger so it respects the application's log config.
+      log?.warn?.("CGPT-WEB", `conv ${status}: ${(response.text || "").slice(0, 400)}`);
       let errMsg = `ChatGPT returned HTTP ${status}`;
       if (status === 401 || status === 403) {
         errMsg =
@@ -1342,10 +1343,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
         tokenCache.delete(cookieKey(cookie));
       } else if (status === 404) {
         errMsg =
-          "ChatGPT returned 404 — usually a stale conversation_id or the model is no longer available on this account. The next request will start a fresh conversation.";
-        // Clear conv cache so any stale ids are dropped (defensive — we don't
-        // currently use the cache, but this also clears anything left over).
-        convCache.clear();
+          "ChatGPT returned 404 — usually the model is no longer available on this account or the chat-requirements-token expired. Retry will start a fresh conversation.";
       } else if (status === 429) {
         errMsg = "ChatGPT rate limited. Wait a moment and retry.";
       }
@@ -1358,9 +1356,16 @@ export class ChatGptWebExecutor extends BaseExecutor {
       };
     }
 
-    // The TLS client buffers the full response body for non-streaming requests.
-    // Wrap it in a ReadableStream so the existing SSE parser can consume it.
-    if (!response.text) {
+    // For streaming requests the TLS client returns a ReadableStream that
+    // tails the temp file as it's written. For non-streaming requests, it
+    // returns the full body as text — wrap that in a one-shot stream so the
+    // existing SSE parser can consume it uniformly.
+    let bodyStream: ReadableStream<Uint8Array>;
+    if (response.body) {
+      bodyStream = response.body;
+    } else if (response.text) {
+      bodyStream = stringToStream(response.text);
+    } else {
       return {
         response: errorResponse(502, "ChatGPT returned empty response body"),
         url: CONV_URL,
@@ -1368,8 +1373,6 @@ export class ChatGptWebExecutor extends BaseExecutor {
         transformedBody: cgptBody,
       };
     }
-
-    const bodyStream = stringToStream(response.text);
 
     const cid = `chatcmpl-cgpt-${crypto.randomUUID().slice(0, 12)}`;
     const created = Math.floor(Date.now() / 1000);
@@ -1433,5 +1436,7 @@ function stringToStream(text: string): ReadableStream<Uint8Array> {
 // Test-only: clear caches between tests
 export function __resetChatGptWebCachesForTesting(): void {
   tokenCache.clear();
-  convCache.clear();
+  warmupCache.clear();
+  deviceIdCache.clear();
+  dplCache = null;
 }

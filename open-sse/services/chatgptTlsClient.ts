@@ -61,14 +61,14 @@ async function getClient(): Promise<{
           request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
         };
         await client.start();
-         
+
         console.log("[CGPT-TLS] Native runtime ready (Firefox 148 fingerprint).");
         installExitHook();
         return client;
       } catch (err) {
         clientPromise = null;
         const msg = err instanceof Error ? err.message : String(err);
-         
+
         console.log(`[CGPT-TLS] FAILED to start: ${msg}`);
         throw new TlsClientUnavailableError(
           `TLS impersonation client failed to start: ${msg}. ` +
@@ -143,7 +143,18 @@ export async function tlsFetchChatGpt(
   options: TlsFetchOptions = {}
 ): Promise<TlsFetchResult> {
   if (testOverride) return testOverride(url, options);
+  // Honor abort signals up-front. tls-client-node's koffi binding doesn't
+  // accept an AbortSignal mid-flight (the binary call is opaque), so the best
+  // we can do is bail before issuing the call. We also re-check after — if
+  // the caller aborted while the upstream was running, throw rather than
+  // returning a stale response so the caller doesn't try to use it.
+  if (options.signal?.aborted) {
+    throw makeAbortError(options.signal);
+  }
   const client = await getClient();
+  if (options.signal?.aborted) {
+    throw makeAbortError(options.signal);
+  }
 
   const requestOptions: Record<string, unknown> = {
     method: options.method || "GET",
@@ -156,16 +167,33 @@ export async function tlsFetchChatGpt(
   };
 
   if (options.stream) {
-    return await tlsFetchStreaming(client, url, requestOptions, options.streamEofSymbol);
+    return await tlsFetchStreaming(
+      client,
+      url,
+      requestOptions,
+      options.streamEofSymbol,
+      options.signal ?? null
+    );
   }
 
   const tlsResponse = await client.request(url, requestOptions);
+  if (options.signal?.aborted) {
+    throw makeAbortError(options.signal);
+  }
   return {
     status: tlsResponse.status,
     headers: toHeaders(tlsResponse.headers),
     text: tlsResponse.body,
     body: null,
   };
+}
+
+function makeAbortError(signal: AbortSignal): Error {
+  const reason = signal.reason;
+  if (reason instanceof Error) return reason;
+  const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
+  err.name = "AbortError";
+  return err;
 }
 
 function toHeaders(raw: Record<string, string[]>): Headers {
@@ -185,7 +213,8 @@ async function tlsFetchStreaming(
   client: { request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike> },
   url: string,
   requestOptions: Record<string, unknown>,
-  eofSymbol = "[DONE]"
+  eofSymbol = "[DONE]",
+  signal: AbortSignal | null = null
 ): Promise<TlsFetchResult> {
   const dir = await mkdtemp(join(tmpdir(), "cgpt-stream-"));
   const path = join(dir, `${randomUUID()}.sse`);
@@ -197,14 +226,16 @@ async function tlsFetchStreaming(
     streamOutputEOFSymbol: eofSymbol,
   };
 
-  // Kick off the request in the background — we don't await it because
-  // tls-client returns headers eagerly but the body keeps writing to the file.
+  // Kick off the request without awaiting — tls-client writes the body to
+  // `path` chunk-by-chunk while the call runs. The Promise resolves when the
+  // request fully completes (full body written).
   const requestPromise = client.request(url, streamOpts);
 
-  // Wait for the file to exist, then build a tailing reader.
+  // Wait briefly for the file to appear so we can detect early errors.
   const ready = await waitForFile(path, 5_000);
   if (!ready) {
-    // If the file never appeared, the request likely errored out — surface that.
+    // File never appeared — request must have errored out before any body
+    // bytes. Wait for it to settle and surface as a non-streaming response.
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
@@ -216,29 +247,44 @@ async function tlsFetchStreaming(
     };
   }
 
-  // Tail the file. requestPromise resolves with status/headers once Cloudflare
-  // accepts and the body finishes streaming.
-  const stream = tailFile(
-    path,
-    eofSymbol,
-    requestPromise.then((r) => r)
-  );
-  // We don't have headers/status until the request resolves, so resolve
-  // asynchronously but expose a sentinel for callers that only care about body.
-  const meta = await Promise.race([
-    requestPromise,
-    new Promise<never>((_, rej) => setTimeout(() => rej(new Error("stream meta timeout")), 30_000)),
-  ]).catch((e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike);
+  // Peek the first bytes to distinguish a JSON error envelope from an SSE
+  // body. Errors typically come back as `{"detail":"..."}`; SSE bodies start
+  // with `data:` or empty lines. If it looks like an error, wait for the
+  // full body and return non-streaming so the executor can read response.text.
+  const peek = await readFirstBytes(path, 256);
+  const trimmedPeek = peek.replace(/^[\s\r\n]+/, "");
+  if (trimmedPeek.startsWith("{")) {
+    const r = await requestPromise.catch(
+      (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
+    );
+    return {
+      status: r.status,
+      headers: toHeaders(r.headers),
+      text: r.body,
+      body: null,
+    };
+  }
 
-  // Cleanup of the temp file/dir happens inside tailFile when EOF is reached.
-  void dir; // keep ref for type-checker
+  // Tail the file as a real-time stream. We assume HTTP 200 here — if the
+  // upstream errored, we'd have caught it via the JSON-peek above. The
+  // request promise is still tracked so cleanup can run after it settles.
+  const stream = tailFile(path, eofSymbol, requestPromise, signal);
+  const headers = new Headers({
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+  });
+  return { status: 200, headers, text: null, body: stream };
+}
 
-  return {
-    status: meta.status,
-    headers: toHeaders(meta.headers),
-    text: null,
-    body: stream,
-  };
+async function readFirstBytes(path: string, n: number): Promise<string> {
+  const fd = await open(path, "r");
+  try {
+    const buf = Buffer.alloc(n);
+    const { bytesRead } = await fd.read(buf, 0, n, 0);
+    return buf.subarray(0, bytesRead).toString("utf8");
+  } finally {
+    await fd.close().catch(() => {});
+  }
 }
 
 async function waitForFile(path: string, timeoutMs: number): Promise<boolean> {
@@ -257,7 +303,8 @@ async function waitForFile(path: string, timeoutMs: number): Promise<boolean> {
 function tailFile(
   path: string,
   eofSymbol: string,
-  done: Promise<TlsResponseLike>
+  done: Promise<TlsResponseLike>,
+  signal: AbortSignal | null = null
 ): ReadableStream<Uint8Array> {
   return new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -265,14 +312,24 @@ function tailFile(
       const buf = Buffer.alloc(64 * 1024);
       let offset = 0;
       let finished = false;
+      let aborted = false;
 
       // Mark when the request completes so we know to drain the rest.
       done.finally(() => {
         finished = true;
       });
 
+      // If the caller aborts, stop tailing immediately.
+      const onAbort = () => {
+        aborted = true;
+      };
+      if (signal) {
+        if (signal.aborted) aborted = true;
+        else signal.addEventListener("abort", onAbort, { once: true });
+      }
+
       try {
-        while (true) {
+        while (!aborted) {
           const { bytesRead } = await fd.read(buf, 0, buf.length, offset);
           if (bytesRead > 0) {
             const chunk = buf.subarray(0, bytesRead);
@@ -294,6 +351,7 @@ function tailFile(
       } catch (err) {
         controller.error(err);
       } finally {
+        if (signal) signal.removeEventListener("abort", onAbort);
         await fd.close().catch(() => {});
         await unlink(path).catch(() => {});
         const dir = path.substring(0, path.lastIndexOf("/"));
