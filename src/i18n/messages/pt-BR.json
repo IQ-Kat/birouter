@@ -139,7 +139,12 @@
     "http": "HTTP",
     "nothingHere": "Nothing here yet",
     "checkSystemStatus": "Check System Status",
-    "goToDashboard": "Go to Dashboard"
+    "goToDashboard": "Go to Dashboard",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "Início",
@@ -672,6 +677,7 @@
       "antigravity": "Use quando o tráfego Antigravity/Kiro deve ser interceptado através do MITM e roteado para OmniRoute.",
       "copilot": "Use quando desejar UX no estilo de bate-papo do Copilot enquanto impõe chaves OmniRoute e regras de roteamento.",
       "windsurf": "Use quando quiser uma IDE AI-first com modelos Codeium/Windsurf roteados pelo OmniRoute.",
+      "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
       "qwen": "Use quando precisar do Alibaba Qwen Code CLI para tarefas de programação.",
       "custom": "Use quando seu CLI ou SDK não estiver hardcoded no OmniRoute, mas ainda aceitar base URL, chave de API e model string compatíveis com OpenAI."
     },
@@ -691,6 +697,7 @@
       "windsurf": "Windsurf — Editor de Código com IA",
       "copilot": "GitHub Copilot — Assistente de IA",
       "qwen": "Alibaba Qwen Code CLI",
+      "amp": "Sourcegraph Amp coding assistant CLI",
       "custom": "Gerador genérico de configuração para CLI ou SDK OpenAI-compatible"
     },
     "guides": {

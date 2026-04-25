@@ -139,7 +139,12 @@
     "apikey": "API Key",
     "http": "HTTP",
     "goToDashboard": "Go to Dashboard",
-    "checkSystemStatus": "Check System Status"
+    "checkSystemStatus": "Check System Status",
+    "selectModel": "Select Model",
+    "combos": "Combos",
+    "noModelsFound": "No models found",
+    "clear": "Clear",
+    "done": "Done"
   },
   "sidebar": {
     "home": "Home",
@@ -649,8 +654,8 @@
       "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute.",
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules.",
-      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
       "amp": "Use when you want Amp shorthand workflows but still need OmniRoute alias and routing rules enforcement.",
+      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
       "hermes": "Use when you need a lightweight terminal-native AI assistant for quick tasks.",
       "custom": "Use for custom tool implementations or generic OpenAI-compatible configurations."
     },
