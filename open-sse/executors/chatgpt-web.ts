@@ -649,26 +649,35 @@ function buildConversationBody(
   conversationId: string | null,
   parentMessageId: string
 ): Record<string, unknown> {
-  const messages: ChatGptMessage[] = [];
+  // Critical: do NOT send prior turns as separate `assistant` and `user`
+  // messages in the `messages` array. ChatGPT's web API ("action: next")
+  // treats those as in-progress turns and the model will literally CONTINUE
+  // a prior assistant response in the new generation — observed as
+  // `[1] -> [12] -> [1123]` across three turns.
+  //
+  // Instead, fold all prior history into the system message and send only
+  // the current user message as a single new turn. The model then sees a
+  // single prompt with full context and responds fresh.
+  const systemParts: string[] = [];
+  if (parsed.systemMsg.trim()) {
+    systemParts.push(parsed.systemMsg.trim());
+  }
+  if (parsed.history.length > 0 && !conversationId) {
+    const formatted = parsed.history
+      .map((h) => `${h.role === "assistant" ? "Assistant" : "User"}: ${h.content}`)
+      .join("\n\n");
+    systemParts.push(
+      `Prior conversation (for context — answer only the new user message below):\n\n${formatted}`
+    );
+  }
 
-  if (parsed.systemMsg.trim() && !conversationId) {
+  const messages: ChatGptMessage[] = [];
+  if (systemParts.length > 0 && !conversationId) {
     messages.push({
       id: randomUUID(),
       author: { role: "system" },
-      content: { content_type: "text", parts: [parsed.systemMsg.trim()] },
+      content: { content_type: "text", parts: [systemParts.join("\n\n")] },
     });
-  }
-
-  // Replay history only on a brand-new conversation; ChatGPT remembers prior turns
-  // server-side once a conversation_id exists.
-  if (!conversationId) {
-    for (const h of parsed.history) {
-      messages.push({
-        id: randomUUID(),
-        author: { role: h.role },
-        content: { content_type: "text", parts: [h.content] },
-      });
-    }
   }
 
   messages.push({

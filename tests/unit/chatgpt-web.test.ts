@@ -805,9 +805,15 @@ test("Session continuity: each call starts a fresh conversation (Temporary Chat 
     assert.equal(convIndices.length, 2);
     const secondBody = JSON.parse(m.calls.bodies[convIndices[1]]);
     assert.equal(secondBody.conversation_id, null, "should start a fresh conversation");
-    // The full history should be replayed in the messages array.
+    // History is folded into the system message (so the model doesn't try to
+    // continue prior assistant turns); only the latest user message is sent.
     const userMessages = secondBody.messages.filter((m) => m.author?.role === "user");
-    assert.equal(userMessages.length, 2, "should include First question + Follow-up");
+    assert.equal(userMessages.length, 1, "only the latest user message is in the messages array");
+    assert.equal(userMessages[0].content.parts[0], "Follow-up");
+    const systemMsg = secondBody.messages.find((m) => m.author?.role === "system");
+    assert.ok(systemMsg, "history should be packaged in a system message");
+    assert.match(systemMsg.content.parts[0], /First question/);
+    assert.match(systemMsg.content.parts[0], /Hello, world!/);
   } finally {
     m.restore();
   }
@@ -864,9 +870,10 @@ test("Request: payload has correct ChatGPT shape", async () => {
     assert.equal(body.action, "next");
     assert.equal(body.model, "gpt-5-3");
     assert.equal(body.history_and_training_disabled, true);
-    // System + user in messages
+    // System message preserves the user-supplied system prompt; the user
+    // message is the latest query.
     assert.equal(body.messages[0].author.role, "system");
-    assert.equal(body.messages[0].content.parts[0], "Be concise");
+    assert.match(body.messages[0].content.parts[0], /Be concise/);
     assert.equal(body.messages[body.messages.length - 1].author.role, "user");
     assert.equal(body.messages[body.messages.length - 1].content.parts[0], "What is 2+2?");
   } finally {
