@@ -7,8 +7,8 @@ import { promisify } from "util";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-import { execWithPassword } from "@/mitm/dns/dnsConfig";
 import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
+import { execFileWithPassword } from "@/mitm/systemCommands";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 
 const execFileAsync = promisify(execFile);
@@ -442,7 +442,7 @@ async function runSudoShell(command: string, password: string) {
   if (!normalizedPassword) {
     throw new Error("Sudo password required");
   }
-  await execWithPassword(`sudo -S sh -c ${shellEscape(command)}`, normalizedPassword);
+  await execFileWithPassword("sudo", ["-S", "sh", "-c", command], normalizedPassword);
 }
 
 export async function startTailscaleDaemon({

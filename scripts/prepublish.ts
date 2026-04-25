@@ -331,10 +331,17 @@ if (existsSync(mitmSrc)) {
   // Write a temporary tsconfig.json targeting the mitm directory
   const mitmTsconfig = {
     compilerOptions: {
-      target: "ES2020",
-      module: "CommonJS",
+      target: "ES2022",
+      module: "NodeNext",
+      moduleResolution: "NodeNext",
       outDir: mitmDest,
       rootDir: mitmSrc,
+      strict: false,
+      noImplicitAny: false,
+      strictNullChecks: false,
+      noEmitOnError: true,
+      allowImportingTsExtensions: true,
+      rewriteRelativeImportExtensions: true,
       ignoreDeprecations: "6.0",
       resolveJsonModule: true,
       esModuleInterop: true,
@@ -352,6 +359,10 @@ if (existsSync(mitmSrc)) {
 
   try {
     execSync("npx tsc -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
+    const mitmServerSrc = join(mitmSrc, "server.cjs");
+    if (existsSync(mitmServerSrc)) {
+      cpSync(mitmServerSrc, join(mitmDest, "server.cjs"));
+    }
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
   } catch (err: any) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);
