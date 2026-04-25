@@ -39,7 +39,7 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
   assert.equal(nextConfig.images.unoptimized, true);
-  assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse"]);
+  assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse", "@lobehub/icons"]);
   assert.deepEqual(rewrites.slice(0, 4), [
     {
       source: "/chat/completions",
