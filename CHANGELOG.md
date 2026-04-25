@@ -24,6 +24,7 @@
 
 ### ✨ New Features
 
+- **feat(provider):** add Baidu Qianfan chat provider (#1582)
 - **feat(codex):** support GPT-5.5 responses websocket (#1573)
 - **feat(sse):** Codex CLI image_generation + DALL-E-style image route (#1544)
 - **feat(dashboard):** Complete the reconciled v3.7.0 dashboard task set: MCP cache tools and count, video endpoint visibility, provider taxonomy, upstream proxy visibility, provider count badges, costs overview, eval suite management, Custom CLI builder, ACP-focused Agents copy, Translator stream transformer, logs convergence, learned rate-limit health cards, docs expansion, and active request payload inspection.
@@ -55,6 +56,8 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(sse):** make Responses passthrough robust for size-sensitive clients (#1580)
+- **fix(codex):** update client version for gpt-5.5 (#1578)
 - **fix(vision-bridge):** force GPT-family image fallback (#1571)
 - **fix(claude):** skip adaptive thinking defaults for unsupported models (#1563)
 - **fix(claude):** preserve tool_result adjacency in native and CC-compatible paths (#1555)
