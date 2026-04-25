@@ -15,6 +15,12 @@ import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
 import { ChatGptWebExecutor } from "./chatgpt-web.ts";
+import { BlackboxWebExecutor } from "./blackbox-web.ts";
+import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
+import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { GitlabExecutor } from "./gitlab.ts";
+import { NlpCloudExecutor } from "./nlpcloud.ts";
+import { PetalsExecutor } from "./petals.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -22,9 +28,15 @@ const executors = {
   github: new GithubExecutor(),
   qoder: new QoderExecutor(),
   kiro: new KiroExecutor(),
+  "amazon-q": new KiroExecutor("amazon-q"),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
   cu: new CursorExecutor(), // Alias for cursor
+  "azure-openai": new AzureOpenAIExecutor(),
+  gitlab: new GitlabExecutor(),
+  "gitlab-duo": new GitlabExecutor("gitlab-duo"),
+  nlpcloud: new NlpCloudExecutor(),
+  petals: new PetalsExecutor(),
   pollinations: new PollinationsExecutor(),
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
@@ -34,6 +46,7 @@ const executors = {
   puter: new PuterExecutor(),
   pu: new PuterExecutor(), // Alias
   vertex: new VertexExecutor(),
+  "vertex-partner": new VertexExecutor(),
   cliproxyapi: new CliproxyapiExecutor(),
   cpa: new CliproxyapiExecutor(), // Alias
   "perplexity-web": new PerplexityWebExecutor(),
@@ -41,6 +54,10 @@ const executors = {
   "grok-web": new GrokWebExecutor(),
   "chatgpt-web": new ChatGptWebExecutor(),
   "cgpt-web": new ChatGptWebExecutor(), // Alias
+  "blackbox-web": new BlackboxWebExecutor(),
+  "bb-web": new BlackboxWebExecutor(), // Alias
+  "muse-spark-web": new MuseSparkWebExecutor(),
+  "ms-web": new MuseSparkWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -73,3 +90,9 @@ export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
 export { ChatGptWebExecutor } from "./chatgpt-web.ts";
+export { BlackboxWebExecutor } from "./blackbox-web.ts";
+export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
+export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { GitlabExecutor } from "./gitlab.ts";
+export { NlpCloudExecutor } from "./nlpcloud.ts";
+export { PetalsExecutor } from "./petals.ts";
