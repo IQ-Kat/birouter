@@ -59,6 +59,8 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(chatgpt-web):** Fix empty-file race in `tlsFetchStreaming` where `waitForFile` accepted zero-byte files, silently degrading streaming requests to buffered mode. Replaced with `waitForContent` requiring `file.size > 0` with early exit on request settlement. (#1597 — thanks @trader-payne)
+- **fix(chatgpt-web):** Fix stale NextAuth session-token cookies surviving rotation shape changes (unchunked↔chunked). `mergeRefreshedCookie` now drops all session-token family members via `SESSION_TOKEN_FAMILY_RE` before appending the refreshed set, preventing auth failures from dual cookie submission. (#1597 — thanks @trader-payne)
 - **fix(codex):** WebSocket memory retention and weekly limit handling (#1581)
 - **fix(providers):** Default models list logic (#1577)
 - **fix(ui):** Dashboard endpoint URL hydration respects `NEXT_PUBLIC_BASE_URL` when behind a reverse proxy (#1579)
