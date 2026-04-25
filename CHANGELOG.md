@@ -11,6 +11,13 @@
   pass per-account `maxConcurrent` caps into runtime credential selection.
 - **fix(files):** Avoid loading file content blobs for metadata-only file list, retrieve, delete,
   and ownership-check paths.
+- **fix(settings):** Repair OAuth env hydration failures in `/api/system/env/repair` by replacing dynamic imports (#1601).
+- **fix(cli):** Align OpenCode config preview and add multi-model selection support (#1602).
+- **fix(providers):** Navigate to node detail immediately after creating a compatible node to avoid orphaned nodes (#1603).
+
+### ✨ New Features
+
+- **feat(i18n):** Sync keys and complete translations for en and zh-CN locales (#1600).
 
 ### 🧪 Tests
 
