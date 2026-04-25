@@ -56,6 +56,8 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(ui):** Dashboard endpoint URL hydration respects `NEXT_PUBLIC_BASE_URL` when behind a reverse proxy (#1579)
+- **fix(providers):** Restore strict PascalCase header masquerading for Claude Code to resolve HTTP 429 upstream errors (#1556)
 - **fix(sse):** make Responses passthrough robust for size-sensitive clients (#1580)
 - **fix(codex):** update client version for gpt-5.5 (#1578)
 - **fix(vision-bridge):** force GPT-family image fallback (#1571)

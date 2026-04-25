@@ -135,8 +135,8 @@ const KIMI_CODING_SHARED = {
   baseUrl: "https://api.kimi.com/coding/v1/messages",
   authHeader: "x-api-key",
   headers: {
-    "anthropic-version": ANTHROPIC_VERSION_HEADER,
-    "anthropic-beta": ANTHROPIC_BETA_API_KEY,
+    "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.5", name: "Kimi K2.5" },
@@ -369,11 +369,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "anthropic-version": ANTHROPIC_VERSION_HEADER,
-      "anthropic-beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
-      "anthropic-dangerous-direct-browser-access": "true",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
+      "Anthropic-Dangerous-Direct-Browser-Access": "true",
       "User-Agent": CLAUDE_CLI_USER_AGENT,
-      "x-app": "cli",
+      "X-App": "cli",
       "X-Stainless-Helper-Method": "stream",
       "X-Stainless-Retry-Count": "0",
       "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
@@ -784,8 +784,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     defaultContextLength: 200000,
     headers: {
-      "anthropic-version": ANTHROPIC_VERSION_HEADER,
-      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
@@ -945,8 +945,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "anthropic-version": ANTHROPIC_VERSION_HEADER,
-      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
@@ -970,8 +970,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "x-api-key",
     headers: {
-      "anthropic-version": ANTHROPIC_VERSION_HEADER,
-      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5", name: "GLM 5" },
@@ -1102,8 +1102,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "anthropic-version": ANTHROPIC_VERSION_HEADER,
-      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -1126,8 +1126,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     headers: {
-      "anthropic-version": ANTHROPIC_VERSION_HEADER,
-      "anthropic-beta": ANTHROPIC_BETA_API_KEY,
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
