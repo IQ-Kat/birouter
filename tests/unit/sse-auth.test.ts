@@ -45,6 +45,7 @@ async function seedConnection(provider, overrides = {}) {
     lastErrorSource: overrides.lastErrorSource,
     errorCode: overrides.errorCode,
     backoffLevel: overrides.backoffLevel,
+    maxConcurrent: overrides.maxConcurrent,
     providerSpecificData: overrides.providerSpecificData || {},
     lastUsedAt: overrides.lastUsedAt,
     consecutiveUseCount: overrides.consecutiveUseCount,
@@ -176,6 +177,18 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
   const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
 
   assert.equal(selected.connectionId, healthy.id);
+});
+
+test("getProviderCredentials includes per-account maxConcurrent caps", async () => {
+  const connection = await seedConnection("openai", {
+    name: "openai-concurrency-cap",
+    maxConcurrent: 2,
+  });
+
+  const selected = await auth.getProviderCredentials("openai");
+
+  assert.equal(selected.connectionId, connection.id);
+  assert.equal(selected.maxConcurrent, 2);
 });
 
 test("getProviderCredentials skips connections that exclude the requested model and selects the next eligible account", async () => {

@@ -1065,7 +1065,7 @@ export default function ProviderDetailPage() {
         name: cm.name || cm.id,
         source: cm.source === "api-sync" ? "api-sync" : "custom",
       }));
-    return [...builtInModels, ...syncedExtras];
+    return [...builtInModels, ...syncedExtras, ...customExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
   const providerAlias = getProviderAlias(providerId);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";

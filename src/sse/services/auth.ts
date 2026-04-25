@@ -55,6 +55,7 @@ interface ProviderConnectionView {
   lastErrorSource: string | null;
   errorCode: string | number | null;
   backoffLevel: number;
+  maxConcurrent: number | null;
 }
 
 interface RecoverableConnectionState {
@@ -103,6 +104,12 @@ function toNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
+function toNullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = toNumber(value, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function toProviderConnection(value: unknown): ProviderConnectionView {
   const row = asRecord(value);
   return {
@@ -126,6 +133,7 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     errorCode:
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
+    maxConcurrent: toNullableNumber(row.maxConcurrent),
   };
 }
 
@@ -1057,6 +1065,7 @@ export async function getProviderCredentials(
       lastErrorSource: connection.lastErrorSource,
       errorCode: connection.errorCode,
       rateLimitedUntil: connection.rateLimitedUntil,
+      maxConcurrent: connection.maxConcurrent,
     };
   } finally {
     if (resolveMutex) resolveMutex();

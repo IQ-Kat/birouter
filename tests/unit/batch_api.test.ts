@@ -1119,6 +1119,30 @@ test("Retrieve file content spec compliance", async () => {
   assert.ok(unauthorized);
 });
 
+test("File metadata helpers do not load content blobs", async () => {
+  const apiKey = await createApiKey("File Metadata Test Key", "test-machine");
+  const content = Buffer.from("large-content-placeholder");
+
+  const record = createFile({
+    bytes: content.length,
+    filename: "metadata_only.jsonl",
+    purpose: "batch",
+    content,
+    mimeType: "application/jsonl",
+    apiKeyId: apiKey.id,
+  });
+
+  const file = getFile(record.id);
+  const files = listFiles({ apiKeyId: apiKey.id });
+  const listedFile = files.find((candidate) => candidate.id === record.id);
+
+  assert.ok(file !== null);
+  assert.ok(listedFile);
+  assert.equal("content" in file, false);
+  assert.equal("content" in listedFile, false);
+  assert.deepEqual(getFileContent(record.id), content);
+});
+
 test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () => {
   initBatchProcessor();
   try {

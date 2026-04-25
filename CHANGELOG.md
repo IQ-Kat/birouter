@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+- **fix(api):** Harden provider model health checks behind management auth, remove
+  forwarded-host self-fetches, and keep strict API-key mode working through trusted internal
+  handlers.
+- **fix(providers):** Keep manually added provider models visible on provider detail pages and
+  pass per-account `maxConcurrent` caps into runtime credential selection.
+- **fix(files):** Avoid loading file content blobs for metadata-only file list, retrieve, delete,
+  and ownership-check paths.
+
+### 🧪 Tests
+
+- **test(api):** Add coverage for model-test auth and forwarded-host hardening, runtime
+  max-concurrency credentials, and metadata-only file reads.
+
 ---
 
 ## [3.7.0] — 2026-04-24

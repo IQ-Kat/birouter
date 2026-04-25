@@ -15,6 +15,9 @@ export interface FileRecord {
   deletedAt?: number | null;
 }
 
+const FILE_METADATA_COLUMNS =
+  "id, bytes, created_at, filename, purpose, mime_type, api_key_id, status, expires_at, deleted_at";
+
 export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileRecord {
   const db = getDbInstance();
   const id = "file-" + uuidv4().replaceAll("-", "").substring(0, 24);
@@ -33,7 +36,9 @@ export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileReco
 
 export function getFile(id: string): FileRecord | null {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM files WHERE id = ? AND deleted_at IS NULL").get(id);
+  const row = db
+    .prepare(`SELECT ${FILE_METADATA_COLUMNS} FROM files WHERE id = ? AND deleted_at IS NULL`)
+    .get(id);
   return row ? (rowToCamel(row) as unknown as FileRecord) : null;
 }
 
@@ -57,7 +62,7 @@ export function listFiles(
   const db = getDbInstance();
   const { apiKeyId, purpose, limit = 20, after, order = "desc" } = options;
 
-  let query = "SELECT * FROM files WHERE deleted_at IS NULL";
+  let query = `SELECT ${FILE_METADATA_COLUMNS} FROM files WHERE deleted_at IS NULL`;
   const params: any[] = [];
 
   if (apiKeyId) {
