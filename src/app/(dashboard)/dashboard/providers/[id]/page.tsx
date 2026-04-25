@@ -3042,8 +3042,20 @@ export default function ProviderDetailPage() {
         <Card>
           <div className="flex flex-col gap-3">
             <div>
-              <h2 className="text-lg font-semibold">{t("upstreamProxyManagedTitle")}</h2>
-              <p className="text-sm text-text-muted mt-1">{t("upstreamProxyManagedDescription")}</p>
+              <h2 className="text-lg font-semibold">
+                {providerText(
+                  t,
+                  "upstreamProxyManagedTitle",
+                  "Managed via Upstream Proxy Settings"
+                )}
+              </h2>
+              <p className="text-sm text-text-muted mt-1">
+                {providerText(
+                  t,
+                  "upstreamProxyManagedDescription",
+                  "CLIProxyAPI is configured as an upstream proxy layer, not as a direct provider connection. Manage the binary/runtime in CLI Tools and enable proxy routing on each provider via the provider proxy controls."
+                )}
+              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link

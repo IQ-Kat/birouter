@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { CodexExecutor } from "@omniroute/open-sse/executors/codex.ts";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws/handshake";
@@ -10,6 +11,15 @@ const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
 
 type JsonRecord = Record<string, unknown>;
+
+const bridgePayloadSchema = z
+  .object({
+    action: z.string().optional(),
+    requestUrl: z.string().optional(),
+    headers: z.record(z.string(), z.unknown()).optional(),
+    response: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -168,7 +178,11 @@ export async function POST(request: Request) {
   let body: JsonRecord;
   try {
     const parsed = await request.json();
-    body = isRecord(parsed) ? parsed : {};
+    const validation = bridgePayloadSchema.safeParse(parsed);
+    if (!validation.success) {
+      return jsonError(400, "invalid_json", "Request body must be a JSON object");
+    }
+    body = validation.data;
   } catch {
     return jsonError(400, "invalid_json", "Request body must be JSON");
   }

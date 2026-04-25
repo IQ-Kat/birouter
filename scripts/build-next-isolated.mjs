@@ -23,6 +23,11 @@ export function getTransientBuildPaths(rootDir = projectRoot, env = process.env)
       sourcePath: path.join(rootDir, "app"),
       backupPath: path.join(backupRoot, "app"),
     },
+    {
+      label: "local Wine prefix",
+      sourcePath: path.join(rootDir, ".tmp", "wine32"),
+      backupPath: path.join(backupRoot, "wine32"),
+    },
   ];
 
   if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {

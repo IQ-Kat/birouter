@@ -46,7 +46,19 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const validated = v1BatchCreateSchema.parse(body);
+    const validation = v1BatchCreateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: {
+            message: validation.error.message,
+            type: "invalid_request_error",
+          },
+        },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+    const validated = validation.data;
 
     const inputFile = getFile(validated.input_file_id);
     if (!inputFile || (inputFile.apiKeyId !== null && inputFile.apiKeyId !== apiKeyId)) {
