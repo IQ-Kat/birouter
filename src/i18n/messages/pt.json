@@ -137,9 +137,9 @@
     "Failed to reset pricing": "Falha ao redefinir o preço",
     "apikey": "Chave de API",
     "http": "HTTP",
-    "checkSystemStatus": "Check System Status",
-    "goToDashboard": "Go to Dashboard",
-    "nothingHere": "Nothing here yet"
+    "checkSystemStatus": "Verificar Status do Sistema",
+    "goToDashboard": "Ir para o Painel",
+    "nothingHere": "Nada aqui ainda"
   },
   "sidebar": {
     "home": "Página inicial",
@@ -644,7 +644,7 @@
       "kiro": "Use ao integrar o Kiro e controlar o roteamento do modelo centralmente no OmniRoute.",
       "antigravity": "Use quando o tráfego Antigravity/Kiro deve ser interceptado através do MITM e roteado para OmniRoute.",
       "copilot": "Use quando desejar UX no estilo de bate-papo do Copilot enquanto impõe chaves OmniRoute e regras de roteamento.",
-      "windsurf": "Use when you want an AI-first IDE with Codeium/Windsurf models routed through OmniRoute."
+      "windsurf": "Use quando desejar um IDE AI-first com modelos Codeium/Windsurf roteados atrav
     },
     "toolDescriptions": {
       "antigravity": "IDE antigravidade do Google com MITM",
