@@ -949,6 +949,102 @@ test("Cookie rotation: full DevTools blob keeps cf_clearance/__cf_bm/_cfuvid", a
   }
 });
 
+test("Cookie rotation: unchunked → chunked drops stale unchunked variant", async () => {
+  // When the original was unchunked (< 4KB session token) and rotation
+  // returns chunked (.0/.1), the stale unchunked entry must NOT survive in
+  // the merged blob — otherwise both old and new session-token cookies are
+  // sent on the next request and depending on parser precedence the server
+  // could read the stale value.
+  reset();
+  const m = installMockFetch({
+    session: {
+      status: 200,
+      body: {
+        accessToken: "jwt-abc",
+        expires: new Date(Date.now() + 3600_000).toISOString(),
+        user: { id: "user-1" },
+      },
+      setCookie:
+        "__Secure-next-auth.session-token.0=NEW0; Path=/; HttpOnly, " +
+        "__Secure-next-auth.session-token.1=NEW1; Path=/; HttpOnly",
+    },
+  });
+  try {
+    let refreshed = null;
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey: "__Secure-next-auth.session-token=UNCHUNKED_OLD; cf_clearance=CFCLEAR",
+      },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+      onCredentialsRefreshed: (creds) => {
+        refreshed = creds;
+      },
+    });
+    assert.ok(refreshed);
+    // Stale unchunked variant must NOT appear (whole or in part).
+    assert.doesNotMatch(
+      refreshed.apiKey,
+      /__Secure-next-auth\.session-token=UNCHUNKED_OLD/,
+      "stale unchunked session-token must be dropped"
+    );
+    // Non-session-token cookies preserved.
+    assert.match(refreshed.apiKey, /cf_clearance=CFCLEAR/);
+    // New chunks present.
+    assert.match(refreshed.apiKey, /session-token\.0=NEW0/);
+    assert.match(refreshed.apiKey, /session-token\.1=NEW1/);
+  } finally {
+    m.restore();
+  }
+});
+
+test("Cookie rotation: chunked → unchunked drops stale chunks", async () => {
+  // Reverse case: original is chunked, rotation goes back to unchunked.
+  reset();
+  const m = installMockFetch({
+    session: {
+      status: 200,
+      body: {
+        accessToken: "jwt-abc",
+        expires: new Date(Date.now() + 3600_000).toISOString(),
+        user: { id: "user-1" },
+      },
+      setCookie: "__Secure-next-auth.session-token=NEW_UNCHUNKED; Path=/; HttpOnly",
+    },
+  });
+  try {
+    let refreshed = null;
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey:
+          "__Secure-next-auth.session-token.0=OLD0; " +
+          "__Secure-next-auth.session-token.1=OLD1; " +
+          "cf_clearance=CFCLEAR",
+      },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+      onCredentialsRefreshed: (creds) => {
+        refreshed = creds;
+      },
+    });
+    assert.ok(refreshed);
+    assert.doesNotMatch(refreshed.apiKey, /OLD0/, "stale chunk .0 dropped");
+    assert.doesNotMatch(refreshed.apiKey, /OLD1/, "stale chunk .1 dropped");
+    assert.match(refreshed.apiKey, /session-token=NEW_UNCHUNKED/);
+    assert.match(refreshed.apiKey, /cf_clearance=CFCLEAR/);
+  } finally {
+    m.restore();
+  }
+});
+
 test("Cookie rotation: returns null when Set-Cookie has no session-token", async () => {
   // When NextAuth doesn't rotate (Set-Cookie sets only unrelated cookies, or
   // returns the same session-token value), the callback shouldn't fire.

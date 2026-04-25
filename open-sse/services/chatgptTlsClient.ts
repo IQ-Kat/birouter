@@ -228,8 +228,16 @@ async function tlsFetchStreaming(
   // request fully completes (full body written).
   const requestPromise = client.request(url, streamOpts);
 
-  // Wait briefly for the file to appear so we can detect early errors.
-  const ready = await waitForFile(path, 5_000);
+  // Wait for the file to exist AND have at least one byte. tls-client-node
+  // creates the output file when the request starts, but the file can be
+  // empty for a brief window before the first body chunk lands — peeking
+  // during that window would return "" and misclassify the response as
+  // non-SSE, dropping us into the buffered-wait branch and silently turning
+  // a streaming request into a buffered one. Waiting for content avoids
+  // that race; if the request actually fails before producing any bytes,
+  // the timeout falls through to the requestPromise drain below (returning
+  // the real upstream status).
+  const ready = await waitForContent(path, 5_000, requestPromise);
   if (!ready) {
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
@@ -305,15 +313,39 @@ async function readFirstBytes(path: string, n: number): Promise<string> {
   }
 }
 
-async function waitForFile(path: string, timeoutMs: number): Promise<boolean> {
+/**
+ * Wait for the streaming output file to exist AND contain at least one byte.
+ * Returns false if the request settles before any bytes arrive (so the caller
+ * can drain `requestPromise` and surface the real upstream status). Returns
+ * true as soon as the file has data — even one byte is enough for the SSE
+ * heuristic to give a useful answer.
+ */
+async function waitForContent(
+  path: string,
+  timeoutMs: number,
+  requestPromise: Promise<TlsResponseLike>
+): Promise<boolean> {
+  let requestSettled = false;
+  requestPromise.then(
+    () => {
+      requestSettled = true;
+    },
+    () => {
+      requestSettled = true;
+    }
+  );
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      await stat(path);
-      return true;
+      const s = await stat(path);
+      if (s.size > 0) return true;
     } catch {
-      await sleep(25);
+      // file doesn't exist yet
     }
+    // If the request finished without producing any bytes, no point waiting
+    // out the rest of the timeout — let the caller drain it.
+    if (requestSettled) return false;
+    await sleep(25);
   }
   return false;
 }
