@@ -323,7 +323,7 @@ function fixToolPairs(messages: Record<string, unknown>[]) {
 
       if (Array.isArray(newMsg.tool_calls)) {
         const filteredToolCalls = newMsg.tool_calls.filter(
-          (tc: any) => !tc.id || toolResultIds.has(tc.id)
+          (tc: Record<string, unknown>) => !tc.id || toolResultIds.has(tc.id)
         );
         if (filteredToolCalls.length !== newMsg.tool_calls.length) {
           newMsg.tool_calls = filteredToolCalls;
@@ -333,7 +333,8 @@ function fixToolPairs(messages: Record<string, unknown>[]) {
 
       if (Array.isArray(newMsg.content)) {
         const filteredContent = newMsg.content.filter(
-          (block: any) => block.type !== "tool_use" || !block.id || toolResultIds.has(block.id)
+          (block: Record<string, unknown>) =>
+            block.type !== "tool_use" || !block.id || toolResultIds.has(block.id)
         );
         if (filteredContent.length !== newMsg.content.length) {
           newMsg.content = filteredContent;
@@ -374,7 +375,7 @@ function fixToolPairs(messages: Record<string, unknown>[]) {
 
       if (msg.role === "user" && Array.isArray(msg.content)) {
         const filteredContent = msg.content.filter(
-          (block: any) =>
+          (block: Record<string, unknown>) =>
             block.type !== "tool_result" || !block.tool_use_id || toolCallIds.has(block.tool_use_id)
         );
         if (filteredContent.length !== msg.content.length) {

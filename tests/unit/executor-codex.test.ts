@@ -403,3 +403,25 @@ test("Codex internal websocket bridge secret comparison handles mismatched lengt
   assert.equal(bridgeSecretMatches("bridge-secret", "bridge-secret-extra"), false);
   assert.equal(bridgeSecretMatches("bridge-secret", ""), false);
 });
+
+test("Codex internal websocket bridge rejects non-object JSON payloads", async () => {
+  await withEnv({ OMNIROUTE_WS_BRIDGE_SECRET: "bridge-secret" }, async () => {
+    const { POST } = await import("../../src/app/api/internal/codex-responses-ws/route.ts");
+
+    const response = await POST(
+      new Request("http://omniroute.local/api/internal/codex-responses-ws", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-omniroute-ws-bridge-secret": "bridge-secret",
+        },
+        body: JSON.stringify(["invalid"]),
+      })
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 400);
+    assert.equal(body.error.code, "invalid_json");
+    assert.match(body.error.message, /JSON object/);
+  });
+});

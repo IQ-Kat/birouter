@@ -45,6 +45,7 @@ export interface RegistryModel {
   supportsVision?: boolean;
   supportsXHighEffort?: boolean;
   targetFormat?: string;
+  strip?: readonly string[];
   unsupportedParams?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
