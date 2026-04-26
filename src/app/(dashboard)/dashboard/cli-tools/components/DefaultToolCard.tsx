@@ -249,7 +249,12 @@ export default function DefaultToolCard({
       if (res.ok) {
         setMessage({ type: "success", text: data.message || t("configurationSaved") });
       } else {
-        setMessage({ type: "error", text: data.error || t("failedToSave") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedToSave"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
