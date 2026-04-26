@@ -12,6 +12,11 @@ import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
+import {
+  lookupReasoning,
+  recordReplay,
+  requiresReasoningReplay,
+} from "../services/reasoningCache.ts";
 
 bootstrapTranslatorRegistry();
 export { register } from "./registry.ts";
@@ -209,22 +214,8 @@ export function translateRequest(
   // clients omit it from the conversation history. Without this, DeepSeek V4
   // returns 400: "The reasoning_content in the thinking mode must be passed
   // back to the API."
-  const isReasoner =
-    provider === "deepseek" ||
-    provider === "opencode-go" ||
-    (typeof model === "string" && /r1|reason|kimi-k2/i.test(model));
+  const isReasoner = requiresReasoningReplay(String(provider ?? ""), String(model ?? ""));
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
-    // Lazy-load to avoid circular dependency issues at module load
-    let lookupReasoning: ((id: string) => string | null) | null = null;
-    let recordReplay: (() => void) | null = null;
-    try {
-      const cache = require("../services/reasoningCache");
-      lookupReasoning = cache.lookupReasoning;
-      recordReplay = cache.recordReplay;
-    } catch {
-      // Cache module unavailable — fall through to legacy behavior
-    }
-
     for (const msg of result.messages) {
       if (msg.role === "assistant" && Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0) {
         // Skip if client already provided real reasoning_content
@@ -233,15 +224,13 @@ export function translateRequest(
         }
 
         // Try cache lookup using first tool_call ID
-        if (lookupReasoning) {
-          const firstToolId = msg.tool_calls[0]?.id;
-          if (firstToolId) {
-            const cached = lookupReasoning(firstToolId);
-            if (cached) {
-              msg.reasoning_content = cached;
-              if (recordReplay) recordReplay();
-              continue;
-            }
+        const firstToolId = msg.tool_calls[0]?.id;
+        if (firstToolId) {
+          const cached = lookupReasoning(firstToolId);
+          if (cached) {
+            msg.reasoning_content = cached;
+            recordReplay();
+            continue;
           }
         }
 

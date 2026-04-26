@@ -36,6 +36,36 @@ export interface ReasoningCacheStats {
 
 const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
+function toUnixEpochSeconds(dateMs: number): number {
+  return Math.floor(dateMs / 1000);
+}
+
+const EXPIRES_AT_EPOCH_SQL = `COALESCE(
+  CASE
+    WHEN typeof(expires_at) IN ('integer', 'real') THEN CAST(expires_at AS INTEGER)
+    WHEN typeof(expires_at) = 'text' AND expires_at <> '' AND expires_at NOT GLOB '*[^0-9]*'
+      THEN CAST(expires_at AS INTEGER)
+    ELSE unixepoch(expires_at)
+  END,
+  0
+)`;
+
+function epochSecondsToIso(value: number | string): string {
+  const text = String(value);
+  const seconds =
+    typeof value === "number" || (text !== "" && !/[^0-9]/.test(text))
+      ? Number.parseInt(text, 10)
+      : NaN;
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return new Date(seconds * 1000).toISOString();
+  }
+  const parsedMs = Date.parse(text);
+  if (Number.isFinite(parsedMs)) {
+    return new Date(parsedMs).toISOString();
+  }
+  return String(value);
+}
+
 // ──────────────── CRUD ────────────────
 
 /**
@@ -50,7 +80,7 @@ export function setReasoningCache(
   ttlMs: number = DEFAULT_TTL_MS
 ): void {
   const db = getDbInstance();
-  const expiresAt = new Date(Date.now() + ttlMs).toISOString();
+  const expiresAt = toUnixEpochSeconds(Date.now() + ttlMs);
   const charCount = reasoning.length;
 
   db.prepare(
@@ -71,7 +101,7 @@ export function getReasoningCache(
   const row = db
     .prepare(
       `SELECT reasoning, provider, model FROM reasoning_cache
-       WHERE tool_call_id = ? AND expires_at > datetime('now')`
+       WHERE tool_call_id = ? AND ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')`
     )
     .get(toolCallId) as { reasoning: string; provider: string; model: string } | undefined;
 
@@ -81,9 +111,10 @@ export function getReasoningCache(
 /**
  * Delete a specific reasoning cache entry.
  */
-export function deleteReasoningCache(toolCallId: string): void {
+export function deleteReasoningCache(toolCallId: string): number {
   const db = getDbInstance();
-  db.prepare(`DELETE FROM reasoning_cache WHERE tool_call_id = ?`).run(toolCallId);
+  const result = db.prepare(`DELETE FROM reasoning_cache WHERE tool_call_id = ?`).run(toolCallId);
+  return result.changes;
 }
 
 /**
@@ -92,7 +123,7 @@ export function deleteReasoningCache(toolCallId: string): void {
 export function cleanupExpiredReasoning(): number {
   const db = getDbInstance();
   const result = db
-    .prepare(`DELETE FROM reasoning_cache WHERE expires_at <= datetime('now')`)
+    .prepare(`DELETE FROM reasoning_cache WHERE ${EXPIRES_AT_EPOCH_SQL} <= unixepoch('now')`)
     .run();
   return result.changes;
 }
@@ -123,7 +154,7 @@ export function getReasoningCacheStats(): ReasoningCacheStats {
   const totals = db
     .prepare(
       `SELECT COUNT(*) as total_entries, COALESCE(SUM(char_count), 0) as total_chars
-       FROM reasoning_cache WHERE expires_at > datetime('now')`
+       FROM reasoning_cache WHERE ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')`
     )
     .get() as { total_entries: number; total_chars: number };
 
@@ -131,7 +162,7 @@ export function getReasoningCacheStats(): ReasoningCacheStats {
   const providerRows = db
     .prepare(
       `SELECT provider, COUNT(*) as entries, COALESCE(SUM(char_count), 0) as chars
-       FROM reasoning_cache WHERE expires_at > datetime('now')
+       FROM reasoning_cache WHERE ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')
        GROUP BY provider ORDER BY entries DESC`
     )
     .all() as { provider: string; entries: number; chars: number }[];
@@ -145,7 +176,7 @@ export function getReasoningCacheStats(): ReasoningCacheStats {
   const modelRows = db
     .prepare(
       `SELECT model, COUNT(*) as entries, COALESCE(SUM(char_count), 0) as chars
-       FROM reasoning_cache WHERE expires_at > datetime('now')
+       FROM reasoning_cache WHERE ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')
        GROUP BY model ORDER BY entries DESC`
     )
     .all() as { model: string; entries: number; chars: number }[];
@@ -159,14 +190,14 @@ export function getReasoningCacheStats(): ReasoningCacheStats {
   const oldest = db
     .prepare(
       `SELECT created_at FROM reasoning_cache
-       WHERE expires_at > datetime('now') ORDER BY created_at ASC LIMIT 1`
+       WHERE ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now') ORDER BY created_at ASC LIMIT 1`
     )
     .get() as { created_at: string } | undefined;
 
   const newest = db
     .prepare(
       `SELECT created_at FROM reasoning_cache
-       WHERE expires_at > datetime('now') ORDER BY created_at DESC LIMIT 1`
+       WHERE ${EXPIRES_AT_EPOCH_SQL} > unixepoch('now') ORDER BY created_at DESC LIMIT 1`
     )
     .get() as { created_at: string } | undefined;
 
@@ -197,7 +228,7 @@ export function getReasoningCacheEntries(
   const limit = Math.min(opts.limit ?? 50, 200);
   const offset = opts.offset ?? 0;
 
-  const conditions: string[] = ["expires_at > datetime('now')"];
+  const conditions: string[] = [`${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')`];
   const params: unknown[] = [];
 
   if (opts.provider) {
@@ -225,7 +256,7 @@ export function getReasoningCacheEntries(
     reasoning: string;
     char_count: number;
     created_at: string;
-    expires_at: string;
+    expires_at: number | string;
   }[];
 
   return rows.map((row) => ({
@@ -235,6 +266,6 @@ export function getReasoningCacheEntries(
     reasoning: row.reasoning,
     charCount: row.char_count,
     createdAt: row.created_at,
-    expiresAt: row.expires_at,
+    expiresAt: epochSecondsToIso(row.expires_at),
   }));
 }

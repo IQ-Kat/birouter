@@ -70,6 +70,7 @@ import {
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
+import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -3018,19 +3019,7 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
-      if (
-        msg?.role === "assistant" &&
-        Array.isArray(msg.tool_calls) &&
-        msg.tool_calls.length > 0 &&
-        typeof msg.reasoning_content === "string" &&
-        msg.reasoning_content.length > 0
-      ) {
-        const { cacheReasoningBatch } = require("../services/reasoningCache");
-        const toolIds = msg.tool_calls.map((tc: { id?: string }) => tc.id).filter(Boolean);
-        if (toolIds.length > 0) {
-          cacheReasoningBatch(toolIds, provider, model, msg.reasoning_content);
-        }
-      }
+      cacheReasoningFromAssistantMessage(msg, provider, model);
     } catch {
       // Cache capture is non-critical — never block the response
     }
@@ -3267,19 +3256,7 @@ export async function handleChatCore({
         const body = streamResponseBody as Record<string, unknown>;
         const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
-        if (
-          msg?.role === "assistant" &&
-          Array.isArray(msg.tool_calls) &&
-          msg.tool_calls.length > 0 &&
-          typeof msg.reasoning_content === "string" &&
-          (msg.reasoning_content as string).length > 0
-        ) {
-          const { cacheReasoningBatch } = require("../services/reasoningCache");
-          const toolIds = (msg.tool_calls as { id?: string }[]).map((tc) => tc.id).filter(Boolean);
-          if (toolIds.length > 0) {
-            cacheReasoningBatch(toolIds, provider, model, msg.reasoning_content as string);
-          }
-        }
+        cacheReasoningFromAssistantMessage(msg, provider, model);
       } catch {
         // Cache capture is non-critical — never block the stream
       }

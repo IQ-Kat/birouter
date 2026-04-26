@@ -7,11 +7,21 @@
  * "The reasoning_content in the thinking mode must be passed back to the API."
  *
  * Architecture:
- *   Write: memory + DB simultaneously (fire-and-forget DB write)
+ *   Write: memory + DB in the same process
  *   Read:  memory first → DB fallback → miss
  *
  * @see Issue #1628
  */
+
+import {
+  clearAllReasoningCache,
+  cleanupExpiredReasoning,
+  deleteReasoningCache,
+  getReasoningCache,
+  getReasoningCacheEntries,
+  getReasoningCacheStats,
+  setReasoningCache,
+} from "../../src/lib/db/reasoningCache.ts";
 
 // ──────────────── Provider/Model Detection ────────────────
 
@@ -40,8 +50,10 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
  * Check if a provider/model combination requires reasoning replay.
  */
 export function requiresReasoningReplay(provider: string, model: string): boolean {
-  if (REASONING_REPLAY_PROVIDERS.has(provider)) return true;
-  return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(model));
+  const normalizedProvider = provider.trim().toLowerCase();
+  const normalizedModel = model.trim();
+  if (REASONING_REPLAY_PROVIDERS.has(normalizedProvider)) return true;
+  return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(normalizedModel));
 }
 
 // ──────────────── In-Memory Cache ────────────────
@@ -53,6 +65,17 @@ interface MemoryCacheEntry {
   expiresAt: number;
   createdAt: number;
 }
+
+type AssistantMessageLike = {
+  role?: unknown;
+  tool_calls?: unknown;
+  reasoning_content?: unknown;
+  reasoning?: unknown;
+};
+
+type ToolCallLike = {
+  id?: unknown;
+};
 
 const memoryCache = new Map<string, MemoryCacheEntry>();
 const MAX_MEMORY_ENTRIES = 2000;
@@ -95,7 +118,7 @@ function purgeExpiredMemory(): void {
 
 /**
  * Cache a reasoning_content string for one or more tool_call IDs.
- * Writes to both memory and DB (DB write is fire-and-forget).
+ * Writes to memory and best-effort DB persistence.
  */
 export function cacheReasoning(
   toolCallId: string,
@@ -119,12 +142,10 @@ export function cacheReasoning(
     createdAt: now,
   });
 
-  // DB write (fire-and-forget — don't block the hot path)
   try {
-    const { setReasoningCache } = require("@/lib/db/reasoningCache");
     setReasoningCache(toolCallId, provider, model, reasoning, TTL_MS);
   } catch {
-    // DB write failure is non-fatal; memory cache still serves
+    // DB persistence failure is non-fatal; memory cache still serves the hot path.
   }
 }
 
@@ -140,6 +161,36 @@ export function cacheReasoningBatch(
   for (const id of toolCallIds) {
     if (id) cacheReasoning(id, provider, model, reasoning);
   }
+}
+
+/**
+ * Capture reasoning_content from an assistant message with tool calls.
+ * Returns the number of tool_call IDs cached.
+ */
+export function cacheReasoningFromAssistantMessage(
+  message: AssistantMessageLike | null | undefined,
+  provider: string,
+  model: string
+): number {
+  if (!message || message.role !== "assistant" || !Array.isArray(message.tool_calls)) {
+    return 0;
+  }
+
+  const reasoning =
+    typeof message.reasoning_content === "string" && message.reasoning_content.length > 0
+      ? message.reasoning_content
+      : typeof message.reasoning === "string" && message.reasoning.length > 0
+        ? message.reasoning
+        : "";
+  if (!reasoning) return 0;
+
+  const toolCallIds = (message.tool_calls as ToolCallLike[])
+    .map((toolCall) => (typeof toolCall.id === "string" ? toolCall.id : ""))
+    .filter((id) => id.length > 0);
+  if (toolCallIds.length === 0) return 0;
+
+  cacheReasoningBatch(toolCallIds, provider, model, reasoning);
+  return toolCallIds.length;
 }
 
 /**
@@ -164,23 +215,23 @@ export function lookupReasoning(toolCallId: string): string | null {
   }
 
   // 2. Fallback to DB
+  let dbResult: { reasoning: string; provider: string; model: string } | null = null;
   try {
-    const { getReasoningCache } = require("@/lib/db/reasoningCache");
-    const dbResult = getReasoningCache(toolCallId);
-    if (dbResult) {
-      hits++;
-      // Promote back to memory for fast subsequent lookups
-      memoryCache.set(toolCallId, {
-        reasoning: dbResult.reasoning,
-        provider: dbResult.provider,
-        model: dbResult.model,
-        expiresAt: Date.now() + TTL_MS,
-        createdAt: Date.now(),
-      });
-      return dbResult.reasoning;
-    }
+    dbResult = getReasoningCache(toolCallId);
   } catch {
-    // DB read failure is non-fatal
+    // DB lookup failure is non-fatal; treat it as a cache miss.
+  }
+  if (dbResult) {
+    hits++;
+    // Promote back to memory for fast subsequent lookups
+    memoryCache.set(toolCallId, {
+      reasoning: dbResult.reasoning,
+      provider: dbResult.provider,
+      model: dbResult.model,
+      expiresAt: Date.now() + TTL_MS,
+      createdAt: Date.now(),
+    });
+    return dbResult.reasoning;
   }
 
   // 3. Miss
@@ -225,12 +276,10 @@ export function getReasoningCacheServiceStats(): {
     oldestEntry: null as string | null,
     newestEntry: null as string | null,
   };
-
   try {
-    const { getReasoningCacheStats } = require("@/lib/db/reasoningCache");
     dbStats = getReasoningCacheStats();
   } catch {
-    // DB unavailable — return memory-only stats
+    // DB stats are unavailable; return memory counters with empty persisted stats.
   }
 
   const totalLookups = hits + misses;
@@ -264,7 +313,6 @@ export function getReasoningCacheServiceEntries(
   } = {}
 ): unknown[] {
   try {
-    const { getReasoningCacheEntries } = require("@/lib/db/reasoningCache");
     return getReasoningCacheEntries(opts);
   } catch {
     return [];
@@ -290,13 +338,26 @@ export function clearReasoningCacheAll(provider?: string): number {
   misses = 0;
   replays = 0;
 
-  // Clear DB
   try {
-    const { clearAllReasoningCache } = require("@/lib/db/reasoningCache");
     return clearAllReasoningCache(provider);
   } catch {
     return 0;
   }
+}
+
+/**
+ * Delete one reasoning cache entry by tool_call_id from memory + DB.
+ */
+export function deleteReasoningCacheEntry(toolCallId: string): number {
+  if (!toolCallId) return 0;
+  const existedInMemory = memoryCache.delete(toolCallId);
+  let deletedFromDb = 0;
+  try {
+    deletedFromDb = deleteReasoningCache(toolCallId);
+  } catch {
+    // Memory delete already happened; DB delete can be retried by a later cleanup.
+  }
+  return deletedFromDb + (existedInMemory && deletedFromDb === 0 ? 1 : 0);
 }
 
 /**
@@ -306,7 +367,6 @@ export function clearReasoningCacheAll(provider?: string): number {
 export function cleanupReasoningCache(): number {
   purgeExpiredMemory();
   try {
-    const { cleanupExpiredReasoning } = require("@/lib/db/reasoningCache");
     return cleanupExpiredReasoning();
   } catch {
     return 0;

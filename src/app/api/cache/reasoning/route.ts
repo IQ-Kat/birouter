@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  clearReasoningCacheAll,
+  deleteReasoningCacheEntry,
+  getReasoningCacheServiceEntries,
+  getReasoningCacheServiceStats,
+} from "@omniroute/open-sse/services/reasoningCache.ts";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -17,9 +23,6 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { getReasoningCacheServiceStats, getReasoningCacheServiceEntries } =
-      await import("@omniroute/open-sse/services/reasoningCache");
-
     const { searchParams } = new URL(req.url);
     const provider = searchParams.get("provider") || undefined;
     const model = searchParams.get("model") || undefined;
@@ -44,7 +47,7 @@ export async function GET(req: NextRequest) {
  * DELETE /api/cache/reasoning
  *
  * Clears reasoning cache entries.
- * Query params: ?provider=deepseek (filter by provider) or no params (clear all).
+ * Query params: ?toolCallId=call_abc (single entry), ?provider=deepseek, or no params.
  */
 export async function DELETE(req: NextRequest) {
   if (!(await isAuthenticated(req))) {
@@ -52,10 +55,19 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const { clearReasoningCacheAll } = await import("@omniroute/open-sse/services/reasoningCache");
-
     const { searchParams } = new URL(req.url);
+    const toolCallId = searchParams.get("toolCallId") || undefined;
     const provider = searchParams.get("provider") || undefined;
+
+    if (toolCallId) {
+      const cleared = deleteReasoningCacheEntry(toolCallId);
+      return NextResponse.json({
+        ok: true,
+        cleared,
+        scope: "toolCallId",
+        toolCallId,
+      });
+    }
 
     const cleared = clearReasoningCacheAll(provider);
 

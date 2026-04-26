@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS reasoning_cache (
   reasoning      TEXT NOT NULL,
   char_count     INTEGER NOT NULL DEFAULT 0,
   created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-  expires_at     TEXT NOT NULL
+  expires_at     INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_reasoning_cache_expires
