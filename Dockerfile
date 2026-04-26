@@ -9,7 +9,7 @@ COPY package*.json ./
 COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
 COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
 COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
-COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
 
 COPY . ./
