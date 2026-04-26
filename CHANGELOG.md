@@ -4,12 +4,14 @@
 
 ---
 
-## [3.7.0] — 2026-04-24
+## [3.7.0] — 2026-04-26
 
 ### ✨ New Features
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
+- **feat(providers):** Add CrofAI as a built-in API-key provider with quota/usage monitoring wired into the dashboard Limits page (#1604, #1606).
+- **feat(skills):** Add workspace-scoped built-in skills (`file_read`, `file_write`, `http_request`, `eval_code`, `execute_command`) with real sandbox execution via Docker, replacing stub responses. Browser skills now fail explicitly when runtime is not configured.
 
 - **feat(providers):** Integrate AgentRouter as a new OpenAI-compatible passthrough provider with $200 free credits via sign-up (Issue #1572).
 - **feat(ui):** Implement on-demand per-model testing in the provider dashboard, allowing single-token diagnostic checks without triggering rate-limits (Issue #1532).
@@ -110,6 +112,14 @@
 - **fix(combo):** Resolve context truncation bug in combo routing to prevent incomplete execution states. (#1517)
 - **fix(compression):** Implement bidirectional tool_pair cleaning for anthropic inputs (fixes #1592).
 - **fix:** Resolve v3.7.0 stabilization issues including dashboard navigation routing, ProxyRegistryManager component layout, and models API response merging (#1566, #1560, #1559).
+- **fix(cli):** Preserve TOML integer/boolean types in Codex config round-trip to prevent `tui.model_availability_nux` validation errors.
+- **fix(tailscale):** Support sudo auth prompts and live daemon socket detection for non-root tunnel management.
+- **fix(dashboard):** Stabilize usage tab loading and refresh behavior to prevent empty state flashes.
+- **fix(i18n):** Translate 519 untranslated pt-BR keys and add missing Windsurf/Cline/Kimi docs keys.
+- **fix(i18n):** Add missing dashboard message keys across all 30 locales.
+- **fix(cli):** Align OpenCode config preview and add multi-model selection (#1602).
+- **fix(security):** Harden management API auth and OpenAPI try-proxy endpoint.
+- **fix(security):** Resolve vulnerability scan findings for auth-guarded routes.
 
 ### ♻️ Refactoring
 
@@ -129,6 +139,7 @@
 - **test(security):** Update prompt injection test for fail-closed policy alignment.
 - **test(core):** Restore local test fixes for encryption and resilience modules.
 - **test(next):** Align transpile package expectations for the Next.js standalone build.
+- **test(ci):** Fix CI-only test failures from environment differences — clear `INITIAL_PASSWORD` and `JWT_SECRET` in integration tests, handle `XDG_CONFIG_HOME` for guide-settings tests.
 
 ### 📚 Documentation
 
