@@ -1,4 +1,4 @@
--- 022_compression_settings.sql
+-- 028_compression_settings.sql
 -- Insert default compression settings into key_value table (namespace='compression')
 -- Uses INSERT OR REPLACE for idempotency
 
