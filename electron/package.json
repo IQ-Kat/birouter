@@ -30,7 +30,8 @@
     "electron-builder": "^26.8.1"
   },
   "overrides": {
-    "@xmldom/xmldom": "^0.9.10"
+    "@xmldom/xmldom": "^0.9.10",
+    "plist": "^4.0.0"
   },
   "build": {
     "appId": "online.omniroute.desktop",
