@@ -4,6 +4,15 @@
 
 ---
 
+## [3.7.1] — 2026-04-26
+
+### 🐛 Bug Fixes
+
+- **fix(codex):** Make `wreq-js` native module import lazy and optional to prevent server crash on startup when the platform-specific binary is missing — affects pnpm installs, Docker Alpine, macOS ARM, and Windows (#1612, #1613, #1616).
+- **fix(i18n):** Add 14 missing translation keys (`logs.runningRequests`, `logs.model`, `logs.provider`, `logs.account`, `logs.elapsed`, `logs.count`, `logs.payloads`, etc.) for the Active Requests panel across all 30 locales.
+
+---
+
 ## [3.7.0] — 2026-04-26
 
 ### ✨ New Features
