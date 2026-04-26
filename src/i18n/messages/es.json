@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Restablezca todos los disyuntores al estado saludable",
     "resetting": "Restableciendo...",
     "resetAll": "Restablecer todo",
-    "until": "Hasta {time}"
+    "until": "Hasta {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Límites y cuotas",

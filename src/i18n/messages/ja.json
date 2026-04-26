@@ -2089,7 +2089,12 @@
     "resetAllTitle": "すべてのサーキットブレーカーを正常な状態にリセットします",
     "resetting": "リセット中...",
     "resetAll": "すべてリセット",
-    "until": "{time} まで"
+    "until": "{time} まで",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "制限と割り当て",

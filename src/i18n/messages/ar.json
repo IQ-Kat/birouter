@@ -2089,7 +2089,12 @@
     "resetAllTitle": "إعادة ضبط كافة قواطع الدائرة إلى الحالة الصحية",
     "resetting": "إعادة الضبط...",
     "resetAll": "إعادة ضبط الكل",
-    "until": "حتى {time}"
+    "until": "حتى {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "الحدود والحصص",

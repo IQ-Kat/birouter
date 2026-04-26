@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Нулирайте всички прекъсвачи в изправно състояние",
     "resetting": "Нулиране...",
     "resetAll": "Нулиране на всички",
-    "until": "До {time}"
+    "until": "До {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Ограничения и квоти",

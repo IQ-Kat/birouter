@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Tetapkan semula semua pemutus litar kepada keadaan sihat",
     "resetting": "Menetapkan semula...",
     "resetAll": "Tetapkan Semula Semua",
-    "until": "Sehingga {time}"
+    "until": "Sehingga {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Had & Kuota",

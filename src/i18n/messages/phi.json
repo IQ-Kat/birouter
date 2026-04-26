@@ -2089,7 +2089,12 @@
     "resetAllTitle": "I-reset ang lahat ng mga circuit breaker sa malusog na estado",
     "resetting": "Nire-reset...",
     "resetAll": "I-reset Lahat",
-    "until": "Hanggang {time}"
+    "until": "Hanggang {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Mga Limitasyon at Quota",

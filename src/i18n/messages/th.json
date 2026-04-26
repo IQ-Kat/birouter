@@ -2089,7 +2089,12 @@
     "resetAllTitle": "รีเซ็ตเบรกเกอร์วงจรทั้งหมดให้อยู่ในสถานะปกติ",
     "resetting": "กำลังรีเซ็ต...",
     "resetAll": "รีเซ็ตทั้งหมด",
-    "until": "จนถึง {time}"
+    "until": "จนถึง {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "ขีดจำกัดและโควต้า",

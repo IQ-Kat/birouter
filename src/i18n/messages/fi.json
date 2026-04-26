@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Palauta kaikki katkaisijat terveeseen tilaan",
     "resetting": "Nollataan...",
     "resetAll": "Nollaa kaikki",
-    "until": "{time} asti"
+    "until": "{time} asti",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Rajoitukset ja kiintiöt",

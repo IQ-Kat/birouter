@@ -2249,7 +2249,12 @@
     "resetAllTitle": "Reset all circuit breakers to healthy state",
     "resetting": "Resetting...",
     "resetAll": "Reset All",
-    "until": "Until {time}"
+    "until": "Until {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limits & Quotas",

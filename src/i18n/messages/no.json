@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Tilbakestill alle effektbrytere til sunn tilstand",
     "resetting": "Tilbakestiller...",
     "resetAll": "Tilbakestill alle",
-    "until": "Inntil {time}"
+    "until": "Inntil {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Grenser og kvoter",

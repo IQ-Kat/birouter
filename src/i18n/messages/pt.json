@@ -2144,7 +2144,12 @@
     "resetAllTitle": "Reinicialize todos os disjuntores para um estado saudável",
     "resetting": "Redefinindo...",
     "resetAll": "Redefinir tudo",
-    "until": "Até {time}"
+    "until": "Até {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limites e cotas",

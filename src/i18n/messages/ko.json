@@ -2089,7 +2089,12 @@
     "resetAllTitle": "모든 회로 차단기를 정상 상태로 재설정",
     "resetting": "재설정 중...",
     "resetAll": "모두 재설정",
-    "until": "{time}까지"
+    "until": "{time}까지",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "한도 및 할당량",

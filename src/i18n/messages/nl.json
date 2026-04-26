@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Reset alle stroomonderbrekers naar de gezonde status",
     "resetting": "Resetten...",
     "resetAll": "Alles resetten",
-    "until": "Tot {time}"
+    "until": "Tot {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limieten en quota's",

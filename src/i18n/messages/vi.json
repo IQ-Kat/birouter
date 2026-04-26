@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Đặt lại tất cả các bộ ngắt mạch về trạng thái khỏe mạnh",
     "resetting": "Đang đặt lại...",
     "resetAll": "Đặt lại tất cả",
-    "until": "Cho đến {time}"
+    "until": "Cho đến {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Giới hạn & hạn ngạch",

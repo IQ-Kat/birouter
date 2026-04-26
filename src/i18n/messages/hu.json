@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Állítsa vissza az összes megszakítót egészséges állapotba",
     "resetting": "Visszaállítás...",
     "resetAll": "Összes visszaállítása",
-    "until": "{time}-ig"
+    "until": "{time}-ig",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Korlátok és kvóták",

@@ -2089,7 +2089,12 @@
     "resetAllTitle": "सभी सर्किट ब्रेकरों को स्वस्थ स्थिति में रीसेट करें",
     "resetting": "रीसेट किया जा रहा है...",
     "resetAll": "सभी रीसेट करें",
-    "until": "{time} तक"
+    "until": "{time} तक",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "सीमाएँ और कोटा",

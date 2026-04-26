@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Tüm devre kesicileri sağlıklı duruma sıfırla",
     "resetting": "Sıfırlanıyor...",
     "resetAll": "Tümünü Sıfırla",
-    "until": "{time} saatine kadar"
+    "until": "{time} saatine kadar",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limitler ve Kotalar",

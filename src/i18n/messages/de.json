@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Setzen Sie alle Leistungsschalter in den fehlerfreien Zustand zurück",
     "resetting": "Zurücksetzen...",
     "resetAll": "Alles zurücksetzen",
-    "until": "Bis {time}"
+    "until": "Bis {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limits und Quoten",

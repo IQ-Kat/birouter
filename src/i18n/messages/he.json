@@ -2089,7 +2089,12 @@
     "resetAllTitle": "אפס את כל המפסקים למצב תקין",
     "resetting": "מאפס...",
     "resetAll": "אפס הכל",
-    "until": "עד {time}"
+    "until": "עד {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "מגבלות ומכסות",

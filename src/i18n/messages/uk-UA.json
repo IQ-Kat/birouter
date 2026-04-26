@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Скиньте всі автоматичні вимикачі в справний стан",
     "resetting": "Скидання...",
     "resetAll": "Скинути все",
-    "until": "До {time}"
+    "until": "До {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Ліміти та квоти",

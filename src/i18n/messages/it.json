@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Ripristinare tutti gli interruttori automatici allo stato integro",
     "resetting": "Reimpostazione...",
     "resetAll": "Reimposta tutto",
-    "until": "Fino al {time}"
+    "until": "Fino al {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limiti e quote",

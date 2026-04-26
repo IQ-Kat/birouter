@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Zresetuj wszystkie wyłączniki automatyczne do stanu prawidłowego",
     "resetting": "Resetuję...",
     "resetAll": "Zresetuj wszystko",
-    "until": "Do {time}"
+    "until": "Do {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Limity i kwoty",

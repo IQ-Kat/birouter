@@ -2187,7 +2187,12 @@
     "resetAllTitle": "将所有断路器重置为正常状态",
     "resetting": "正在重置...",
     "resetAll": "全部重置",
-    "until": "直到 {time}"
+    "until": "直到 {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "限制和配额",

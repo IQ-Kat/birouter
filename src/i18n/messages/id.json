@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Setel ulang semua pemutus sirkuit ke kondisi sehat",
     "resetting": "Menyetel ulang...",
     "resetAll": "Atur Ulang Semua",
-    "until": "Sampai {time}"
+    "until": "Sampai {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Batas & Kuota",

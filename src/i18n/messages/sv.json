@@ -2089,7 +2089,12 @@
     "resetAllTitle": "Återställ alla strömbrytare till friskt tillstånd",
     "resetting": "Återställer...",
     "resetAll": "Återställ alla",
-    "until": "Tills {time}"
+    "until": "Tills {time}",
+    "limitExhausted": "Exhausted",
+    "learnedFromHeaders": "Learned from headers",
+    "remainingOfLimit": "{remaining}/{limit} remaining",
+    "throttleStatus": "Throttle: {value}",
+    "lastHeaderUpdate": "Header update: {age}"
   },
   "limits": {
     "title": "Gränser och kvoter",
