@@ -204,21 +204,51 @@ export function translateRequest(
     result.tools = sanitizeToolDescriptions(result.tools);
   }
 
-  // Inject reasoning_content = "" for DeepSeek/Reasoning models assistant messages with tool_calls
-  // if omitted by the client, to avoid upstream 400 errors (e.g. "Messages with role 'assistant' that contain tool_calls must also include reasoning_content")
+  // Reasoning Replay Cache (#1628): Re-inject cached reasoning_content for
+  // thinking-mode models (DeepSeek V4, Kimi K2, Qwen-Thinking, etc.) when
+  // clients omit it from the conversation history. Without this, DeepSeek V4
+  // returns 400: "The reasoning_content in the thinking mode must be passed
+  // back to the API."
   const isReasoner =
     provider === "deepseek" ||
     provider === "opencode-go" ||
     (typeof model === "string" && /r1|reason|kimi-k2/i.test(model));
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
+    // Lazy-load to avoid circular dependency issues at module load
+    let lookupReasoning: ((id: string) => string | null) | null = null;
+    let recordReplay: (() => void) | null = null;
+    try {
+      const cache = require("../services/reasoningCache");
+      lookupReasoning = cache.lookupReasoning;
+      recordReplay = cache.recordReplay;
+    } catch {
+      // Cache module unavailable — fall through to legacy behavior
+    }
+
     for (const msg of result.messages) {
-      if (
-        msg.role === "assistant" &&
-        Array.isArray(msg.tool_calls) &&
-        msg.tool_calls.length > 0 &&
-        msg.reasoning_content === undefined
-      ) {
-        msg.reasoning_content = "";
+      if (msg.role === "assistant" && Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0) {
+        // Skip if client already provided real reasoning_content
+        if (typeof msg.reasoning_content === "string" && msg.reasoning_content.length > 0) {
+          continue;
+        }
+
+        // Try cache lookup using first tool_call ID
+        if (lookupReasoning) {
+          const firstToolId = msg.tool_calls[0]?.id;
+          if (firstToolId) {
+            const cached = lookupReasoning(firstToolId);
+            if (cached) {
+              msg.reasoning_content = cached;
+              if (recordReplay) recordReplay();
+              continue;
+            }
+          }
+        }
+
+        // Legacy fallback — empty string (works for older DeepSeek versions)
+        if (msg.reasoning_content === undefined) {
+          msg.reasoning_content = "";
+        }
       }
     }
   } else if (
