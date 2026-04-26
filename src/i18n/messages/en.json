@@ -1971,7 +1971,8 @@
     "tailscaleInstallIntro": "Installs Tailscale on this machine and prepares OmniRoute to enable Funnel.",
     "tailscaleInstallPasswordHint": "On macOS and Linux, sudo may be required for the package install and daemon start.",
     "tailscaleSudoPlaceholder": "Optional sudo password",
-    "tailscaleInstalling": "Installing"
+    "tailscaleInstalling": "Installing",
+    "tailscaleSudoLabel": "Sudo Password (required on macOS/Linux)"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
