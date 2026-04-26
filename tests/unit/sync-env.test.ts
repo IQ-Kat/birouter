@@ -4,13 +4,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { syncEnv } = await import("../../scripts/sync-env.mjs");
+const { syncEnv } = (await import("../../scripts/sync-env.mjs")) as {
+  syncEnv: (opts?: { rootDir?: string; quiet?: boolean; scope?: string }) => {
+    created: boolean;
+    added: number;
+  };
+};
 
-function createTempRoot() {
+function createTempRoot(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-sync-env-"));
 }
 
-function writeEnvExample(rootDir) {
+function writeEnvExample(rootDir: string) {
   fs.writeFileSync(
     path.join(rootDir, ".env.example"),
     [
@@ -27,7 +32,7 @@ function writeEnvExample(rootDir) {
   );
 }
 
-function writeOauthEnvExample(rootDir) {
+function writeOauthEnvExample(rootDir: string) {
   fs.writeFileSync(
     path.join(rootDir, ".env.example"),
     [
