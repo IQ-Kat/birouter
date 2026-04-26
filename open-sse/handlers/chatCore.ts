@@ -1221,6 +1221,36 @@ export async function handleChatCore({
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     const estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+
+    // --- Modular Compression Pipeline (Phase 1: Lite mode) ---
+    // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
+    try {
+      const { getCompressionSettings } = await import("../../src/lib/db/compression");
+      const { selectCompressionStrategy, applyCompression } =
+        await import("../services/compression/strategySelector");
+      const { trackCompressionStats } = await import("../services/compression/stats");
+      const config = await getCompressionSettings();
+      const mode = selectCompressionStrategy(config, comboName ?? null, estimatedTokens);
+      if (mode !== "off") {
+        const result = applyCompression(body, mode, { model: effectiveModel });
+        if (result.compressed && result.stats) {
+          body = result.body as typeof body;
+          trackCompressionStats(result.stats);
+          log?.info?.(
+            "COMPRESSION",
+            `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
+          );
+        }
+      }
+    } catch (err) {
+      log?.warn?.(
+        "COMPRESSION",
+        "Compression pipeline error (non-fatal): " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    }
+    // --- End Modular Compression Pipeline ---
+
     let contextLimit = getTokenLimit(provider, effectiveModel);
 
     if (isCombo && comboName) {
