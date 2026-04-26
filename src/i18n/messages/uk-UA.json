@@ -2142,7 +2142,21 @@
     "totalEntries": "Total Entries",
     "tab": "Tab",
     "auditModalSubtitle": "Audit Modal Subtitle",
-    "close": "Close"
+    "close": "Close",
+    "runningRequests": "Active Requests",
+    "runningRequestsDesc": "Real-time view of currently running upstream requests",
+    "model": "Model",
+    "provider": "Provider",
+    "account": "Account",
+    "elapsed": "Elapsed",
+    "count": "Count",
+    "payloads": "Payloads",
+    "viewPayloads": "View",
+    "activeCount": "{count} active",
+    "clientPayload": "Client Request Payload",
+    "upstreamPayload": "Upstream Provider Payload",
+    "upstreamNotSentYet": "Not sent to upstream yet",
+    "runningRequestDetailMeta": "Account: {account} — Elapsed: {elapsed}"
   },
   "onboarding": {
     "welcome": "Ласкаво просимо",
