@@ -49,9 +49,13 @@ function writeOauthEnvExample(rootDir) {
 test("syncEnv creates .env from .env.example and generates blank secrets", () => {
   const rootDir = createTempRoot();
 
+  // Temporarily override DATA_DIR so the encrypted-credentials guard doesn't
+  // find the user's real DB at ~/.omniroute/ during tests
+  const origDataDir = process.env.DATA_DIR;
   try {
     writeEnvExample(rootDir);
 
+    process.env.DATA_DIR = rootDir;
     const result = syncEnv({ rootDir, quiet: true });
     const envContent = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
 
@@ -64,6 +68,7 @@ test("syncEnv creates .env from .env.example and generates blank secrets", () =>
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
     assert.doesNotMatch(envContent, /^COMMENTED_KEY=/m);
   } finally {
+    process.env.DATA_DIR = origDataDir;
     fs.rmSync(rootDir, { recursive: true, force: true });
   }
 });
@@ -71,6 +76,7 @@ test("syncEnv creates .env from .env.example and generates blank secrets", () =>
 test("syncEnv appends only missing keys and preserves existing values", () => {
   const rootDir = createTempRoot();
 
+  const origDataDir = process.env.DATA_DIR;
   try {
     writeEnvExample(rootDir);
     fs.writeFileSync(
@@ -83,6 +89,7 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
       "utf8"
     );
 
+    process.env.DATA_DIR = rootDir;
     const result = syncEnv({ rootDir, quiet: true });
     const envContent = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
 
@@ -95,6 +102,7 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
     assert.match(envContent, /Auto-added by sync-env/);
   } finally {
+    process.env.DATA_DIR = origDataDir;
     fs.rmSync(rootDir, { recursive: true, force: true });
   }
 });
@@ -102,8 +110,10 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
 test("syncEnv is idempotent when .env is already complete", () => {
   const rootDir = createTempRoot();
 
+  const origDataDir = process.env.DATA_DIR;
   try {
     writeEnvExample(rootDir);
+    process.env.DATA_DIR = rootDir;
     syncEnv({ rootDir, quiet: true });
 
     const before = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
@@ -113,6 +123,7 @@ test("syncEnv is idempotent when .env is already complete", () => {
     assert.deepEqual(result, { created: false, added: 0 });
     assert.equal(after, before);
   } finally {
+    process.env.DATA_DIR = origDataDir;
     fs.rmSync(rootDir, { recursive: true, force: true });
   }
 });
