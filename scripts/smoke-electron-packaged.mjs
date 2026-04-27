@@ -323,12 +323,22 @@ export function buildSmokeEnv({
     smokeEnv.TMPDIR ||= join(dataDir, "tmp");
   }
 
-  return {
+  const baseEnv = {
     ...smokeEnv,
     DATA_DIR: dataDir,
     ELECTRON_ENABLE_LOGGING: "1",
     ELECTRON_ENABLE_STACK_DUMPING: "1",
   };
+
+  // CI environments need sandbox disabled (GitHub Actions runners
+  // cannot configure SUID chrome-sandbox on Linux, and Windows
+  // runners may exit silently without it).
+  if (parentEnv.CI) {
+    baseEnv.CI = parentEnv.CI;
+    baseEnv.ELECTRON_DISABLE_SANDBOX = "1";
+  }
+
+  return baseEnv;
 }
 
 function isInsideDir(parentDir, candidateDir) {
@@ -398,13 +408,25 @@ async function main() {
   await assertPortIsFree(smokeUrl);
   await ensureSmokeEnvDirs(smokeEnv, dataDir);
 
+  // ── CI sandbox workaround ──────────────────────────────────
+  // GitHub Actions runners cannot set SUID on chrome-sandbox (Linux)
+  // and Windows runners may fail silently without --no-sandbox.
+  const spawnArgs = [];
+  if (process.env.CI) {
+    spawnArgs.push("--no-sandbox", "--disable-gpu");
+    if (platform() === "linux") {
+      spawnArgs.push("--disable-dev-shm-usage");
+    }
+  }
+
   console.log(`[electron-smoke] launching ${appExecutable}`);
+  if (spawnArgs.length) console.log(`[electron-smoke] CI args: ${spawnArgs.join(" ")}`);
   console.log(`[electron-smoke] DATA_DIR=${dataDir}`);
   console.log(`[electron-smoke] waiting for ${smokeUrl}`);
 
   const logs = { value: "" };
   const streamLogs = process.env.ELECTRON_SMOKE_STREAM_LOGS === "1";
-  const child = spawn(appExecutable, [], {
+  const child = spawn(appExecutable, spawnArgs, {
     detached: platform() !== "win32",
     env: smokeEnv,
     stdio: ["ignore", "pipe", "pipe"],
