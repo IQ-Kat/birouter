@@ -1092,16 +1092,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   "grok-web": {
     id: "grok-web",
-    alias: "grok-web",
+    alias: "gw",
     format: "openai",
     executor: "grok-web",
     baseUrl: "https://grok.com/rest/app-chat/conversations/new",
     authType: "apikey",
     authHeader: "cookie",
+    passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok 4.1 Fast" },
-      { id: "expert", name: "Grok 4.20" },
-      { id: "heavy", name: "Grok 4.20 Heavy" },
+      { id: "auto", name: "Grok Auto" },
+      { id: "fast", name: "Grok Fast" },
+      { id: "expert", name: "Grok 4.20 Thinking" },
+      { id: "heavy", name: "Grok 4.20 Multi Agent" },
       { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)" },
     ],
   },
