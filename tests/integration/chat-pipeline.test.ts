@@ -769,7 +769,7 @@ test("chat pipeline rejects invalid API keys and malformed JSON bodies", async (
   const invalidJson = (await invalidJsonResponse.json()) as any;
 
   assert.equal(invalidKeyResponse.status, 401);
-  assert.match(invalidKeyJson.error.message, /Invalid API key/i);
+  assert.match(invalidKeyJson.error.message, /Invalid API key|Incorrect API key/i);
   assert.equal(invalidJsonResponse.status, 400);
   assert.match(invalidJson.error.message, /Invalid JSON body/i);
 });

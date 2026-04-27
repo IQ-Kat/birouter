@@ -299,7 +299,7 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
     "__Secure-authjs.session-token=bb-cookie"
   );
   assert.equal(museSparkCall?.init.headers.Cookie, "abra_sess=meta-cookie");
-  assert.equal(museSparkCall?.init.headers["X-FB-Friendly-Name"], "useAbraSendMessageMutation");
+  assert.equal(museSparkCall?.init.headers["X-FB-Friendly-Name"], "useEctoSendMessageSubscription");
 });
 
 test("web-cookie provider validators surface auth and subscription failures", async () => {

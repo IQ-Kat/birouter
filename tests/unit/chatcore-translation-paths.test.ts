@@ -424,7 +424,7 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
   assert.match(call.url, /\/responses$/);
   assert.equal(call.body.input, "ship it");
   assert.equal(call.body.instructions, "custom system prompt");
-  assert.equal(call.body.store, true);
+  assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });
   assert.equal("messages" in call.body, false);
 });
@@ -1451,7 +1451,11 @@ test("chatCore redirects background utility tasks to a cheaper mapped model", as
 test("chatCore retries Qwen quota 429 responses before succeeding", async () => {
   const originalSetTimeout = globalThis.setTimeout;
   try {
-    (globalThis as any).setTimeout = (callback: any, _ms: any, ...args: any[]) => {
+    (globalThis as any).setTimeout = (callback: any, ms: any, ...args: any[]) => {
+      // Only make Qwen retry delays (≤5s) synchronous; let longer timeouts (e.g. body read) use real setTimeout
+      if (typeof ms === "number" && ms > 5000) {
+        return originalSetTimeout(callback, ms, ...args);
+      }
       callback(...args);
       return 0 as any;
     };

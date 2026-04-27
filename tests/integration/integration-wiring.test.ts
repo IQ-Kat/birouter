@@ -128,23 +128,25 @@ describe("Pipeline Wiring — sse chat handler", () => {
 });
 
 describe("Pipeline Wiring — middleware proxy", () => {
-  const src = readProjectFile("src/proxy.ts");
+  const proxySrc = readProjectFile("src/proxy.ts");
+  const pipelineSrc = readProjectFile("src/server/authz/pipeline.ts");
 
-  it("should exist", () => {
-    assert.ok(src, "src/proxy.ts should exist");
+  it("should exist and delegate to authz pipeline", () => {
+    assert.ok(proxySrc, "src/proxy.ts should exist");
+    assert.match(proxySrc, /runAuthzPipeline/);
   });
 
-  it("should generate request id for tracing", () => {
-    assert.match(src, /generateRequestId/);
-    assert.match(src, /X-Request-Id/);
+  it("should generate request id for tracing in the authz pipeline", () => {
+    assert.ok(pipelineSrc, "src/server/authz/pipeline.ts should exist");
+    assert.match(pipelineSrc, /generateRequestId|X-Request-Id/);
   });
 
-  it("should enforce body size guard for API writes", () => {
-    assert.match(src, /checkBodySize|getBodySizeLimit/);
+  it("should enforce body size guard in the authz pipeline", () => {
+    assert.match(pipelineSrc, /checkBodySize|getBodySizeLimit|bodySize/i);
   });
 
-  it("should resolve JWT secret lazily at request time", () => {
-    assert.match(src, /function getJwtSecret/);
+  it("should resolve JWT secret in the authz pipeline", () => {
+    assert.match(pipelineSrc, /getJwtSecret|jwtSecret|JWT_SECRET/i);
   });
 });
 

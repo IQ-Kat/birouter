@@ -65,9 +65,32 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.equal(getCodexModelScope("gpt-5.5-xhigh"), "codex");
   assert.equal(getCodexUpstreamModel("gpt-5.5-xhigh"), "gpt-5.5");
   assert.equal(getCodexUpstreamModel("gpt-5.5-medium"), "gpt-5.5");
-  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {}), true);
-  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-medium", {}), true);
-  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-mini", {}), false);
+  // With mock WS transport + codexTransport=websocket, gpt-5.5 models require WS
+  __setCodexWebSocketTransportForTesting(
+    async () => ({ send() {}, close() {}, onmessage: null, onerror: null, onclose: null }) as any
+  );
+  assert.equal(
+    isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
+      providerSpecificData: { codexTransport: "websocket" },
+    }),
+    true
+  );
+  assert.equal(
+    isCodexResponsesWebSocketRequired("gpt-5.5-medium", {
+      providerSpecificData: { codexTransport: "websocket" },
+    }),
+    true
+  );
+  assert.equal(
+    isCodexResponsesWebSocketRequired("gpt-5.5-mini", {
+      providerSpecificData: { codexTransport: "websocket" },
+    }),
+    true
+  );
+  // Without codexTransport setting, defaults to HTTP (false)
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {}), false);
+  assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-medium", {}), false);
+  __setCodexWebSocketTransportForTesting(undefined);
   assert.equal(getCodexRateLimitKey("acct-1", "codex-spark-mini"), "acct-1:spark");
   assert.equal(quota.usage5h, 100);
   assert.equal(quota.limit7d, 5000);
@@ -165,7 +188,7 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   });
 
   assert.equal(result.stream, true);
-  assert.equal(result.store, true);
+  assert.equal(result.store, false);
   assert.equal(result.instructions.length > 0, true);
   assert.equal(result.reasoning.effort, "high");
   assert.equal(result.service_tier, "priority");
@@ -194,7 +217,7 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.stream, undefined);
   assert.equal(result.service_tier, "priority");
   assert.equal(result.reasoning.effort, "medium");
-  assert.equal(result.store, true);
+  assert.equal(result.store, false);
   assert.equal(result.instructions, "keep this");
 });
 
@@ -298,23 +321,35 @@ test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhig
   assert.equal(result.reasoning.effort, "xhigh");
 });
 
-test("CodexExecutor.execute returns 503 when gpt-5.5 websocket transport is unavailable", async () => {
+test("CodexExecutor.execute falls back to HTTP when websocket transport is unavailable", async () => {
   __setCodexWebSocketTransportForTesting(null);
   const executor = new CodexExecutor();
+  const originalFetch = globalThis.fetch;
 
-  const result = await executor.execute({
-    model: "gpt-5.5-xhigh",
-    body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
-    stream: true,
-    credentials: { accessToken: "codex-token" },
-  });
-  const body = await result.response.json();
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ id: "resp_http_fallback", object: "response" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
 
-  assert.equal(result.response.status, 503);
-  assert.equal(result.response.headers.get("Access-Control-Allow-Origin"), "*");
-  assert.equal(body.error.code, "wreq_unavailable");
-  assert.match(body.error.message, /WebSocket transport unavailable/);
-  assert.equal(result.transformedBody.model, "gpt-5.5");
+  try {
+    const result = await executor.execute({
+      model: "gpt-5.5-xhigh",
+      body: { model: "gpt-5.5-xhigh", input: [{ role: "user", content: "hello" }] },
+      stream: true,
+      credentials: {
+        accessToken: "codex-token",
+        providerSpecificData: { codexTransport: "websocket" },
+      },
+    });
+
+    // When WS transport is unavailable, isCodexResponsesWebSocketRequired returns false
+    // and the executor falls back to HTTP via super.execute()
+    assert.equal(result.response.status, 200);
+    assert.equal(result.transformedBody.model, "gpt-5.5");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {
