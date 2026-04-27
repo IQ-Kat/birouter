@@ -367,6 +367,15 @@ async function ensureSmokeEnvDirs(smokeEnv, dataDir) {
     ),
   ];
 
+  // On Windows, Electron derives its userData from APPDATA/<productName>.
+  // requestSingleInstanceLock() runs synchronously at module load and
+  // fails silently if the directory doesn't exist yet — causing exit(0).
+  if (platform() === "win32" && smokeEnv.APPDATA) {
+    for (const subdir of ["omniroute-desktop", "OmniRoute", "omniroute"]) {
+      dirs.push(join(smokeEnv.APPDATA, subdir));
+    }
+  }
+
   await Promise.all(dirs.map((dir) => mkdir(dir, { recursive: true })));
 }
 

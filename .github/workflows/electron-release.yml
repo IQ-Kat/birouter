@@ -137,12 +137,14 @@ jobs:
         if: matrix.platform != 'linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
+          ELECTRON_SMOKE_STREAM_LOGS: "1"
         run: npm run electron:smoke:packaged
 
       - name: Smoke packaged Electron app (Linux)
         if: matrix.platform == 'linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
+          ELECTRON_SMOKE_STREAM_LOGS: "1"
         run: xvfb-run -a npm run electron:smoke:packaged
 
       - name: Collect installers
