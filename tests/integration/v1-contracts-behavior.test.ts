@@ -44,8 +44,8 @@ test("contract: /api/v1 and /api/v1/models return consistent model IDs", async (
   assert.ok(Array.isArray(v1Body.data));
   assert.ok(Array.isArray(v1ModelsBody.data));
 
-  const v1Ids = [...new Set(v1Body.data.map((item) => item.id))].sort();
-  const v1ModelsIds = [...new Set(v1ModelsBody.data.map((item) => item.id))].sort();
+  const v1Ids = [...new Set(v1Body.data.map((item: any) => item.id))].sort();
+  const v1ModelsIds = [...new Set(v1ModelsBody.data.map((item: any) => item.id))].sort();
 
   assert.deepEqual(v1Ids, v1ModelsIds);
 });
