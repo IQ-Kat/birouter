@@ -106,6 +106,9 @@ import {
 } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import { compressContext, estimateTokens, getTokenLimit } from "../services/contextManager.ts";
+import { cavemanCompress } from "../services/compression/caveman.ts";
+import { getCompressionSettings } from "../../src/lib/db/compression.ts";
+import type { CavemanConfig } from "../services/compression/types.ts";
 import {
   getBackgroundTaskReason,
   getDegradedModel,
@@ -1261,6 +1264,23 @@ export async function handleChatCore({
       "CONTEXT",
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
+
+    // Caveman compression (Phase 2) — runs before context compression
+    try {
+      const compressionSettings = getCompressionSettings();
+      if (compressionSettings.cavemanConfig?.enabled) {
+        const cavemanResult = cavemanCompress(body, compressionSettings.cavemanConfig);
+        if (cavemanResult.compressed) {
+          body = cavemanResult.body as typeof body;
+          log?.info?.(
+            "CAVEMAN",
+            `Caveman compression: ${cavemanResult.stats.originalTokens} → ${cavemanResult.stats.compressedTokens} tokens (${cavemanResult.stats.savingsPercent}% savings, ${cavemanResult.stats.durationMs}ms, rules: ${cavemanResult.stats.rulesApplied?.join(", ")})`
+          );
+        }
+      }
+    } catch (err) {
+      log?.warn?.("CAVEMAN", "Caveman compression failed (non-fatal): " + err);
+    }
 
     if (estimatedTokens > threshold) {
       log?.info?.(

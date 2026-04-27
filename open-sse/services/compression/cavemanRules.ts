@@ -105,13 +105,14 @@ const CAVEMAN_RULES: CavemanRule[] = [
     pattern:
       /\b(?:Can you explain why|Could you show me how|Would you tell me|Can you tell me)\b\s*/gi,
     replacement: (match: string): string => {
+      const trimmed = match.trimEnd().toLowerCase();
       const map: Record<string, string> = {
         "can you explain why": "Explain why",
         "could you show me how": "Show how",
         "would you tell me": "Tell me",
         "can you tell me": "Tell me",
       };
-      return map[match.toLowerCase()] ?? match;
+      return map[trimmed] ?? match;
     },
     context: "user",
   },

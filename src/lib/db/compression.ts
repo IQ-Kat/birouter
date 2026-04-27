@@ -1,7 +1,7 @@
 import { getDbInstance } from "./core.ts";
 import { invalidateDbCache } from "./readCache.ts";
-import { DEFAULT_CAVEMAN_CONFIG } from "../../open-sse/services/compression/types.ts";
-import type { CavemanConfig } from "../../open-sse/services/compression/types.ts";
+import { DEFAULT_CAVEMAN_CONFIG } from "../../../open-sse/services/compression/types.ts";
+import type { CavemanConfig } from "../../../open-sse/services/compression/types.ts";
 
 const NAMESPACE = "compression";
 
