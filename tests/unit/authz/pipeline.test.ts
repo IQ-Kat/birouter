@@ -34,6 +34,15 @@ async function forceAuthRequired() {
   await settingsDb.updateSettings({ requireLogin: true });
 }
 
+async function dashboardCookie(expiresIn = "1h"): Promise<string> {
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+  const token = await new SignJWT({ authenticated: true })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime(expiresIn)
+    .sign(secret);
+  return `auth_token=${token}`;
+}
+
 function request(url: string, init?: RequestInit): NextRequest {
   return new NextRequest(url, init);
 }
@@ -109,6 +118,23 @@ test("runAuthzPipeline rejects oversized API bodies before auth", async () => {
   );
 });
 
+test("runAuthzPipeline rejects oversized rewritten alias API bodies before auth", async () => {
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "content-length": String(99 * 1024 * 1024),
+        origin: "https://app.example.com",
+      },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 413);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
+  assert.ok(response.headers.get("x-request-id"));
+});
+
 test("runAuthzPipeline rejects new API requests during shutdown drain", async () => {
   globalThis.__omnirouteShutdown = { init: true, shuttingDown: true, activeRequests: 0 };
 
@@ -119,6 +145,33 @@ test("runAuthzPipeline rejects new API requests during shutdown drain", async ()
 
   assert.equal(response.status, 503);
   assert.equal(body.error.code, "SERVICE_UNAVAILABLE");
+});
+
+test("runAuthzPipeline rejects rewritten API aliases during shutdown drain", async () => {
+  globalThis.__omnirouteShutdown = { init: true, shuttingDown: true, activeRequests: 0 };
+
+  const response = await pipeline.runAuthzPipeline(request("http://localhost/responses"), {
+    enforce: true,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
+  assert.equal(body.error.code, "SERVICE_UNAVAILABLE");
+});
+
+test("runAuthzPipeline allows dashboard sessions to read model catalog aliases", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/v1/models", {
+      headers: { cookie: await dashboardCookie() },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
 });
 
 test("runAuthzPipeline refreshes dashboard JWTs near expiry", async () => {

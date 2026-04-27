@@ -1,3 +1,4 @@
+import { isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
@@ -14,11 +15,26 @@ function maskKeyId(apiKey: string): string {
   return `key_${tail}`;
 }
 
+function isDashboardModelCatalogRead(ctx: PolicyContext): boolean {
+  const method = ctx.request.method.toUpperCase();
+  if (method !== "GET" && method !== "HEAD") return false;
+  return (
+    ctx.classification.normalizedPath === "/api/v1/models" ||
+    ctx.classification.normalizedPath === "/api/v1"
+  );
+}
+
 export const clientApiPolicy: RoutePolicy = {
   routeClass: "CLIENT_API",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
     const bearer = extractBearer(ctx.request.headers);
     if (!bearer) {
+      if (
+        isDashboardModelCatalogRead(ctx) &&
+        (await isDashboardSessionAuthenticated(ctx.request))
+      ) {
+        return allow({ kind: "dashboard_session", id: "dashboard" });
+      }
       return reject(401, "AUTH_002", "Authentication required");
     }
 

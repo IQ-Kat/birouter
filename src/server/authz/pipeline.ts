@@ -176,16 +176,17 @@ export async function runAuthzPipeline(
   }
 
   const classification = classifyRoute(pathname, method);
+  const guardedPathname = classification.normalizedPath;
 
-  if (pathname.startsWith("/api/") && isDraining()) {
+  if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
     stampRouteResponse(response, requestId, classification.routeClass);
     applyCorsHeaders(response, request);
     return response;
   }
 
-  if (pathname.startsWith("/api/") && method !== "GET" && method !== "OPTIONS") {
-    const bodySizeRejection = checkBodySize(request, getBodySizeLimit(pathname));
+  if (guardedPathname.startsWith("/api/") && method !== "GET" && method !== "OPTIONS") {
+    const bodySizeRejection = checkBodySize(request, getBodySizeLimit(guardedPathname));
     if (bodySizeRejection) {
       stampRouteResponse(bodySizeRejection, requestId, classification.routeClass);
       applyCorsHeaders(bodySizeRejection, request);

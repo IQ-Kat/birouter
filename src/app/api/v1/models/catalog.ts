@@ -24,6 +24,7 @@ import {
   enrichCatalogModelEntry,
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
+import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -78,6 +79,59 @@ function getVisionCapabilityFields(modelId: string) {
     input_modalities: ["text", "image"],
     output_modalities: ["text"],
   };
+}
+
+function extractBearer(headers: Headers): string | null {
+  const authHeader = headers.get("authorization") || headers.get("Authorization");
+  if (!authHeader?.trim().toLowerCase().startsWith("bearer ")) return null;
+  return authHeader.trim().slice(7).trim() || null;
+}
+
+async function validateCatalogBearer(apiKey: string): Promise<boolean> {
+  const { validateApiKey } = await import("@/lib/db/apiKeys");
+  return validateApiKey(apiKey);
+}
+
+async function getModelCatalogAuthRejection(
+  request: Request,
+  settings: Record<string, any>,
+  headers: Record<string, string>
+): Promise<Response | null> {
+  if (settings.requireAuthForModels !== true || !(await isAuthRequired())) return null;
+
+  const bearer = extractBearer(request.headers);
+  if (bearer) {
+    if (await validateCatalogBearer(bearer)) return null;
+    return Response.json(
+      {
+        error: {
+          message: "Invalid API key",
+          type: "invalid_api_key",
+          code: "invalid_api_key",
+        },
+      },
+      {
+        status: 401,
+        headers,
+      }
+    );
+  }
+
+  if (await isDashboardSessionAuthenticated(request)) return null;
+
+  return Response.json(
+    {
+      error: {
+        message: "Authentication required",
+        type: "invalid_api_key",
+        code: "invalid_api_key",
+      },
+    },
+    {
+      status: 401,
+      headers,
+    }
+  );
 }
 
 function buildAliasMaps() {
@@ -148,6 +202,12 @@ export async function getUnifiedModelsResponse(
     try {
       settings = await getSettings();
     } catch {}
+
+    const authRejection = await getModelCatalogAuthRejection(request, settings, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
 
@@ -679,10 +739,9 @@ export async function getUnifiedModelsResponse(
     }
 
     // Filter by API key permissions if requested
-    const authHeader = request.headers.get("authorization");
+    const apiKey = extractBearer(request.headers);
     let finalModels = models;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const apiKey = authHeader.slice(7);
+    if (apiKey) {
       const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
 
       const filtered = [];

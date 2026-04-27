@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
+import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -155,7 +156,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Combo has no models" }, { status: 400 });
     }
 
-    const baseInternalUrl = getBaseUrl(request);
+    const baseInternalUrl = getInternalBaseUrl();
     const internalApiKey = await getInternalApiKey();
     const results = await Promise.all(
       targets.map((target) => testComboTarget(target, baseInternalUrl, internalApiKey))
@@ -187,13 +188,7 @@ export async function POST(request) {
   }
 }
 
-/**
- * Get the base URL for internal requests (VPS-safe: respects reverse proxy headers)
- */
-function getBaseUrl(request) {
-  const fwdHost = request.headers.get("x-forwarded-host");
-  const fwdProto = request.headers.get("x-forwarded-proto") || "https";
-  if (fwdHost) return `${fwdProto}://${fwdHost}`;
-  const url = new URL(request.url);
-  return `${url.protocol}//${url.host}`;
+function getInternalBaseUrl(): string {
+  const { apiPort } = getRuntimePorts();
+  return `http://127.0.0.1:${apiPort}`;
 }

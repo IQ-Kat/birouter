@@ -377,6 +377,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
               config: relayConfig,
             }
           : undefined,
+      signal: request?.signal ?? null,
     });
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────

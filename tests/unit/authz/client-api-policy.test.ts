@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { SignJWT } from "jose";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-clientapi-policy-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -13,6 +14,7 @@ const core = await import("../../../src/lib/db/core.ts");
 
 const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
 const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
+const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 
 function resetStorage() {
   core.resetDbInstance();
@@ -21,6 +23,7 @@ function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   delete process.env.OMNIROUTE_API_KEY;
   delete process.env.ROUTER_API_KEY;
+  delete process.env.JWT_SECRET;
 }
 
 test.beforeEach(() => {
@@ -33,6 +36,8 @@ test.after(() => {
   else process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
   if (ORIGINAL_ROUTER_API_KEY === undefined) delete process.env.ROUTER_API_KEY;
   else process.env.ROUTER_API_KEY = ORIGINAL_ROUTER_API_KEY;
+  if (ORIGINAL_JWT_SECRET === undefined) delete process.env.JWT_SECRET;
+  else process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
 });
 
 async function loadPolicy() {
@@ -40,21 +45,57 @@ async function loadPolicy() {
   return mod.clientApiPolicy;
 }
 
-function ctx(headers: Headers) {
+function ctx(headers: Headers, method = "POST", normalizedPath = "/api/v1/chat/completions") {
   return {
-    request: { method: "POST", headers },
+    request: { method, headers, url: `http://localhost${normalizedPath}` },
     classification: {
       routeClass: "CLIENT_API" as const,
       reason: "client_api_v1" as const,
-      normalizedPath: "/api/v1/chat/completions",
+      normalizedPath,
     },
     requestId: "req_test",
   };
 }
 
+async function dashboardCookie(): Promise<string> {
+  process.env.JWT_SECRET = "client-api-dashboard-jwt-secret";
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+  const token = await new SignJWT({ authenticated: true })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1h")
+    .sign(secret);
+  return `auth_token=${token}`;
+}
+
 test("clientApiPolicy: missing bearer is rejected with 401", async () => {
   const policy = await loadPolicy();
   const out = await policy.evaluate(ctx(new Headers()));
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 401);
+    assert.equal(out.code, "AUTH_002");
+  }
+});
+
+test("clientApiPolicy: dashboard session can read the model catalog without bearer", async () => {
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(new Headers({ cookie: await dashboardCookie() }), "GET", "/api/v1/models")
+  );
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "dashboard_session");
+    assert.equal(out.subject.id, "dashboard");
+  }
+});
+
+test("clientApiPolicy: dashboard session does not bypass non-catalog client API auth", async () => {
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(new Headers({ cookie: await dashboardCookie() }), "POST", "/api/v1/chat/completions")
+  );
+
   assert.equal(out.allow, false);
   if (!out.allow) {
     assert.equal(out.status, 401);
