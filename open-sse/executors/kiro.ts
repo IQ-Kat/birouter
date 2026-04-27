@@ -37,6 +37,8 @@ type EventFrame = {
 
 // ── CRC32 lookup table (IEEE polynomial, no dependency) ──
 const CRC32_TABLE = new Uint32Array(256);
+const TEXT_ENCODER = new TextEncoder();
+const TEXT_DECODER = new TextDecoder();
 for (let i = 0; i < 256; i++) {
   let c = i;
   for (let j = 0; j < 8; j++) {
@@ -193,7 +195,7 @@ export class KiroExecutor extends BaseExecutor {
               ],
             };
             chunkIndex++;
-            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
           }
 
           // Handle codeEvent
@@ -212,7 +214,7 @@ export class KiroExecutor extends BaseExecutor {
               ],
             };
             chunkIndex++;
-            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
           }
 
           // Handle toolUseEvent
@@ -260,9 +262,7 @@ export class KiroExecutor extends BaseExecutor {
                   ],
                 };
                 chunkIndex++;
-                controller.enqueue(
-                  new TextEncoder().encode(`data: ${JSON.stringify(startChunk)}\n\n`)
-                );
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(startChunk)}\n\n`));
               } else {
                 toolIndex = state.seenToolIds.get(toolCallId);
               }
@@ -301,9 +301,7 @@ export class KiroExecutor extends BaseExecutor {
                   ],
                 };
                 chunkIndex++;
-                controller.enqueue(
-                  new TextEncoder().encode(`data: ${JSON.stringify(argsChunk)}\n\n`)
-                );
+                controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(argsChunk)}\n\n`));
               }
             }
           }
@@ -324,7 +322,7 @@ export class KiroExecutor extends BaseExecutor {
               ],
             };
             state.finishEmitted = true;
-            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
           }
 
           // Handle contextUsageEvent to extract contextUsagePercentage
@@ -429,9 +427,7 @@ export class KiroExecutor extends BaseExecutor {
               finishChunk.usage = state.usage;
             }
 
-            controller.enqueue(
-              new TextEncoder().encode(`data: ${JSON.stringify(finishChunk)}\n\n`)
-            );
+            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
           }
         }
 
@@ -457,11 +453,11 @@ export class KiroExecutor extends BaseExecutor {
               },
             ],
           };
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
+          controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
         }
 
         // Send final done message
-        controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+        controller.enqueue(TEXT_ENCODER.encode("data: [DONE]\n\n"));
       },
     });
 
@@ -538,7 +534,7 @@ function parseEventFrame(data: Uint8Array): EventFrame | null {
       offset++;
       if (offset + nameLen > data.length) break;
 
-      const name = new TextDecoder().decode(data.slice(offset, offset + nameLen));
+      const name = TEXT_DECODER.decode(data.subarray(offset, offset + nameLen));
       offset += nameLen;
 
       const headerType = data[offset];
@@ -550,7 +546,7 @@ function parseEventFrame(data: Uint8Array): EventFrame | null {
         offset += 2;
         if (offset + valueLen > data.length) break;
 
-        const value = new TextDecoder().decode(data.slice(offset, offset + valueLen));
+        const value = TEXT_DECODER.decode(data.subarray(offset, offset + valueLen));
         offset += valueLen;
         headers[name] = value;
       } else {
@@ -564,7 +560,7 @@ function parseEventFrame(data: Uint8Array): EventFrame | null {
 
     let payload: JsonRecord | null = null;
     if (payloadEnd > payloadStart) {
-      const payloadStr = new TextDecoder().decode(data.slice(payloadStart, payloadEnd));
+      const payloadStr = TEXT_DECODER.decode(data.subarray(payloadStart, payloadEnd));
 
       // Skip empty or whitespace-only payloads
       if (!payloadStr || !payloadStr.trim()) {

@@ -217,7 +217,12 @@ export class BaseExecutor {
     return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl;
   }
 
-  buildHeaders(credentials: ProviderCredentials, stream = true): Record<string, string> {
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null
+  ): Record<string, string> {
+    void clientHeaders;
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -404,7 +409,7 @@ export class BaseExecutor {
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
-      const headers = this.buildHeaders(activeCredentials, stream);
+      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders);
       applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
