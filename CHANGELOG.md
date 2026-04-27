@@ -12,12 +12,19 @@
 - **feat(logs):** configure call log pipeline artifacts (#1650)
 - **feat(network):** add guarded remote image fetch utility
 - **feat(codex):** enable native Codex websocket responses on beta-gated models (#1658)
+- **feat(muse-spark-web):** continue the same meta.ai conversation across turns (#1673)
 
 ### 🐛 Bug Fixes
 
 - **fix(responses):** sanitize empty string placeholders from tool-call optional arguments in stream delta accumulation to avoid breaking strict clients (#1674)
 - **fix(codex):** prevent unexpected protocol leakage and fabricated instructions on bare chat completion requests without tools (#1686)
 - **fix(executors):** truncate tools array to 128 items max in GitHub Copilot and OpenCode executors to mitigate 400 Bad Request errors from upstream (#1687)
+- **fix:** add body-read timeout to prevent stuck pending requests (#1680)
+- **fix:** combo retry loop stops immediately on client disconnect (499) (#1681)
+- **fix(search):** support optional bearer auth for SearXNG (#1683)
+- **fix(vision):** respect native GPT vision support — prevents VisionBridge from intercepting models that already handle images natively (#1678)
+- **fix(qwen):** use `security.auth` format instead of `modelProviders` for Qwen Code config generation (#1677)
+- **fix(codex):** remove stale websocket transport lookup that caused fallback errors (#1676)
 - **fix(chatgpt-web):** bound tls-client native deadlocks so requests never hang forever (#1664)
 - **fix(codex):** default gpt-5.5 to HTTP transport instead of WebSocket (#1660)
 - **fix(codex):** [urgent] fix gpt-5.5 websocket transport and model labels (#1656)
@@ -33,12 +40,27 @@
 - **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
 - **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
 - **fix(muse-spark-web):** update to Meta's Ecto-era persisted query — fixes 502 `Unknown type "RewriteOptionsInput"` after Meta retired the Abra mutation (#1668)
-- **fix(codex):** replace stale `getCorsOrigin` import with `CORS_HEADERS` export — fixes compile failure (#1669)
-- **fix(dev):** default `OMNIROUTE_USE_TURBOPACK=1` in `.env.example` to avoid Next 16.2.4 font compiler failure (#1669)
+- **fix(dev):** enable Turbopack by default and repair Codex CORS headers (#1669)
+- **fix(authz):** restore `REQUIRE_API_KEY` support in clientApi policy
+- **fix(auth):** align fallback API key format with test setup
 
 ### 🛠️ Maintenance
 
 - **build(prepublish):** make Next.js build bundler configurable (webpack/turbopack)
+- **ci:** align sonar analysis scope
+- **ci:** stabilize release branch checks
+- **ci:** remove expired advanced security scans job
+
+### 🧪 Tests
+
+- **test:** fix TypeScript configuration errors in plan3-p0.test.ts
+- **test:** fix implicit any types across test suites
+- **test:** disable type checking in flaky unit tests
+- **test:** fix failing tests due to recent refactors
+- **fix(tests):** align integration tests with authz pipeline refactor
+- **fix(tests):** align test assertions with v3.7.2 source code changes
+- **fix(tests):** CORS test now checks object body instead of entire file
+- **fix(e2e):** fix E2E flakiness and implicit any type errors
 
 ---
 
