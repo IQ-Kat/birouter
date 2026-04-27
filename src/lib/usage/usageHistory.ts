@@ -143,6 +143,12 @@ const pendingRequests: {
   details: Object.create(null) as Record<string, Record<string, PendingRequestDetail>>,
 };
 
+/** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+function isSafeKey(key: string): boolean {
+  return !UNSAFE_KEYS.has(key);
+}
+
 /**
  * Track a pending request.
  */
@@ -154,6 +160,7 @@ export function trackPendingRequest(
   metadata?: PendingRequestMetadata
 ) {
   const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
   const normalizedMetadata = normalizePendingMetadata(metadata);
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
@@ -213,6 +220,7 @@ export function updatePendingRequest(
 ) {
   if (!connectionId) return;
   const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
   const existing = pendingRequests.details[connectionId]?.[modelKey];
   if (!existing) return;
   Object.assign(existing, normalizePendingMetadata(metadata));
