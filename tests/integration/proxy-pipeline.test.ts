@@ -405,6 +405,9 @@ describe("CORS — centralized configuration", () => {
   it("should export CORS_HEADERS without a wildcard origin", () => {
     const src = readSrc("shared/utils/cors.ts");
     assert.match(src, /CORS_HEADERS/);
-    assert.doesNotMatch(src, /Access-Control-Allow-Origin/);
+    // Extract the CORS_HEADERS object body (between { and }) to avoid matching JSDoc comments
+    const objMatch = src.match(/CORS_HEADERS\s*=\s*\{([^}]+)\}/);
+    assert.ok(objMatch, "CORS_HEADERS object should be found");
+    assert.doesNotMatch(objMatch[1], /Access-Control-Allow-Origin/);
   });
 });
