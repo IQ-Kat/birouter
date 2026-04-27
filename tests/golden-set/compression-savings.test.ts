@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { cavemanCompress } from "../../open-sse/services/compression/caveman.ts";
-import { estimateTokensForStats } from "../../open-sse/services/compression/stats.ts";
+import { estimateCompressionTokens } from "../../open-sse/services/compression/stats.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -19,7 +19,7 @@ function compressText(text: string): {
   originalTokens: number;
   compressedTokens: number;
 } {
-  const originalTokens = estimateTokensForStats(text);
+  const originalTokens = estimateCompressionTokens(text);
   const result = cavemanCompress(
     { messages: [{ role: "user", content: text }] },
     { enabled: true, compressRoles: ["user"] }
@@ -29,7 +29,7 @@ function compressText(text: string): {
     const messages = (result.body as { messages?: { content?: string }[] }).messages;
     compressed = messages?.[0]?.content ?? text;
   }
-  const compressedTokens = estimateTokensForStats(compressed);
+  const compressedTokens = estimateCompressionTokens(compressed);
   return { compressed, originalTokens, compressedTokens };
 }
 

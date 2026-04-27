@@ -1,42 +1,59 @@
-import { type CompressionMode, type CompressionConfig, type CompressionResult } from "./types.ts";
-import { createCompressionStats } from "./stats.ts";
+import type { CompressionConfig, CompressionMode, CompressionResult } from "./types.ts";
+import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 
-export function selectCompressionStrategy(
-  config: CompressionConfig | null,
-  _body: unknown,
-  _tokenCount: number,
-  _provider: string
-): CompressionMode {
-  if (!config || !config.enabled) return "off";
-  return config.mode || "caveman";
+export function checkComboOverride(
+  config: CompressionConfig,
+  comboId: string | null
+): CompressionMode | null {
+  if (!comboId || !config.comboOverrides) return null;
+  return config.comboOverrides[comboId] ?? null;
 }
 
-export function applyCompression(
-  body: unknown,
-  mode: CompressionMode,
-  config: CompressionConfig | null
-): CompressionResult {
-  if (mode === "off" || !config?.enabled) {
-    return { body, compressed: false, stats: createCompressionStats(0, 0, "off") };
-  }
-  if (mode === "caveman" && config.cavemanConfig) {
-    return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], config.cavemanConfig);
-  }
-  return { body, compressed: false, stats: createCompressionStats(0, 0, mode) };
+export function shouldAutoTrigger(config: CompressionConfig, estimatedTokens: number): boolean {
+  return config.autoTriggerTokens > 0 && estimatedTokens >= config.autoTriggerTokens;
 }
 
 export function getEffectiveMode(
-  comboOverride: string | null,
-  _autoTrigger: boolean,
-  defaultMode: string
+  config: CompressionConfig,
+  comboId: string | null,
+  estimatedTokens: number
 ): CompressionMode {
-  if (comboOverride && ["off", "lite", "caveman", "aggressive", "ultra"].includes(comboOverride)) {
-    return comboOverride as CompressionMode;
+  if (!config.enabled) return "off";
+
+  const comboMode = checkComboOverride(config, comboId);
+  if (comboMode) return comboMode;
+
+  if (shouldAutoTrigger(config, estimatedTokens)) return "lite";
+
+  return config.defaultMode;
+}
+
+export function selectCompressionStrategy(
+  config: CompressionConfig,
+  comboId: string | null,
+  estimatedTokens: number
+): CompressionMode {
+  return getEffectiveMode(config, comboId, estimatedTokens);
+}
+
+export function applyCompression(
+  body: Record<string, unknown>,
+  mode: CompressionMode,
+  options?: { model?: string; config?: CompressionConfig }
+): CompressionResult {
+  if (mode === "off") {
+    return { body, compressed: false, stats: null };
   }
-  if (defaultMode === "standard") return "caveman";
-  if (["off", "lite", "caveman", "aggressive", "ultra"].includes(defaultMode)) {
-    return defaultMode as CompressionMode;
+  if (mode === "lite") {
+    return applyLiteCompression(body, options);
   }
-  return "off";
+  if (mode === "standard") {
+    const cavemanConfig = options?.config?.cavemanConfig;
+    if (cavemanConfig) {
+      return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
+    }
+    return { body, compressed: false, stats: null };
+  }
+  return { body, compressed: false, stats: null };
 }

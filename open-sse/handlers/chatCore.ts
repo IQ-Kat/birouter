@@ -106,9 +106,12 @@ import {
 } from "../services/modelFamilyFallback.ts";
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import { compressContext, estimateTokens, getTokenLimit } from "../services/contextManager.ts";
-import { cavemanCompress } from "../services/compression/caveman.ts";
+import {
+  selectCompressionStrategy,
+  applyCompression,
+} from "../services/compression/strategySelector.ts";
+import { estimateCompressionTokens } from "../services/compression/stats.ts";
 import { getCompressionSettings } from "../../src/lib/db/compression.ts";
-import type { CavemanConfig } from "../services/compression/types.ts";
 import {
   getBackgroundTaskReason,
   getDegradedModel,
@@ -1265,21 +1268,29 @@ export async function handleChatCore({
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
 
-    // Caveman compression (Phase 2) — runs before context compression
+    // Prompt compression pipeline — Phase 1 (lite) + Phase 2 (standard/caveman)
     try {
-      const compressionSettings = getCompressionSettings();
-      if (compressionSettings.cavemanConfig?.enabled) {
-        const cavemanResult = cavemanCompress(body, compressionSettings.cavemanConfig);
-        if (cavemanResult.compressed) {
-          body = cavemanResult.body as typeof body;
+      const compressionConfig = getCompressionSettings();
+      const estimatedTokens = estimateCompressionTokens(body);
+      const mode = selectCompressionStrategy(compressionConfig, comboName ?? null, estimatedTokens);
+      if (mode !== "off") {
+        const compressionResult = applyCompression(body as Record<string, unknown>, mode, {
+          model: effectiveModel,
+          config: compressionConfig,
+        });
+        if (compressionResult.compressed && compressionResult.stats) {
+          body = compressionResult.body as typeof body;
+          const s = compressionResult.stats;
           log?.info?.(
-            "CAVEMAN",
-            `Caveman compression: ${cavemanResult.stats.originalTokens} → ${cavemanResult.stats.compressedTokens} tokens (${cavemanResult.stats.savingsPercent}% savings, ${cavemanResult.stats.durationMs}ms, rules: ${cavemanResult.stats.rulesApplied?.join(", ")})`
+            "COMPRESSION",
+            `Prompt compression (${s.mode}): ${s.originalTokens} → ${s.compressedTokens} tokens (${s.savingsPercent}% savings, ${s.durationMs ?? 0}ms${
+              s.rulesApplied?.length ? `, rules: ${s.rulesApplied.join(", ")}` : ""
+            })`
           );
         }
       }
     } catch (err) {
-      log?.warn?.("CAVEMAN", "Caveman compression failed (non-fatal): " + err);
+      log?.warn?.("COMPRESSION", "Prompt compression failed (non-fatal): " + err);
     }
 
     if (estimatedTokens > threshold) {

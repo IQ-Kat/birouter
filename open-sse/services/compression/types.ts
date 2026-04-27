@@ -1,14 +1,15 @@
 /**
- * Compression Types — Phase 1 + Phase 2 (Caveman)
+ * Compression Pipeline Types — Phase 1 (Lite) + Phase 2 (Standard/Caveman)
  *
  * Shared type definitions for the compression pipeline.
- * No implementation logic — types only.
+ * Phase 1: 'off' and 'lite' modes.
+ * Phase 2: 'standard' mode (caveman engine).
  */
 
-/** Supported compression modes */
-export type CompressionMode = "off" | "lite" | "caveman" | "aggressive" | "ultra";
+/** Compression mode levels */
+export type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
 
-/** A single caveman compression rule */
+/** A single caveman compression rule (Phase 2) */
 export interface CavemanRule {
   name: string;
   pattern: RegExp;
@@ -17,7 +18,7 @@ export interface CavemanRule {
   preservePatterns?: RegExp[];
 }
 
-/** Configuration for the caveman compression engine */
+/** Configuration for the caveman compression engine (Phase 2) */
 export interface CavemanConfig {
   enabled: boolean;
   compressRoles: ("user" | "assistant" | "system")[];
@@ -26,31 +27,47 @@ export interface CavemanConfig {
   preservePatterns: string[];
 }
 
-/** Statistics for a single compression operation */
+/** Per-request compression statistics */
 export interface CompressionStats {
-  mode: string;
   originalTokens: number;
   compressedTokens: number;
   savingsPercent: number;
-  durationMs: number;
+  techniquesUsed: string[];
+  mode: CompressionMode;
+  timestamp: number;
   rulesApplied?: string[];
+  durationMs?: number;
 }
 
 /** Result of a compression operation */
 export interface CompressionResult {
-  body: unknown;
+  body: Record<string, unknown>;
   compressed: boolean;
-  stats: CompressionStats;
+  stats: CompressionStats | null;
 }
 
-/** Top-level compression configuration */
+/** Compression configuration stored in DB */
 export interface CompressionConfig {
-  mode: CompressionMode;
   enabled: boolean;
+  defaultMode: CompressionMode;
+  autoTriggerTokens: number;
+  cacheMinutes: number;
+  preserveSystemPrompt: boolean;
+  comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
 }
 
-/** Default caveman configuration */
+/** Default compression config values */
+export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
+  enabled: false,
+  defaultMode: "off",
+  autoTriggerTokens: 0,
+  cacheMinutes: 5,
+  preserveSystemPrompt: true,
+  comboOverrides: {},
+};
+
+/** Default caveman configuration (Phase 2) */
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
   enabled: true,
   compressRoles: ["user"],

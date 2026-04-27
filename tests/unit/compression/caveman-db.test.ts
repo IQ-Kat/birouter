@@ -9,31 +9,33 @@ import type { CavemanConfig } from "../../../open-sse/services/compression/types
 
 describe("compression DB module", () => {
   beforeEach(() => {
-    // Clean up compression namespace before each test
     const db = getDbInstance();
     db.prepare("DELETE FROM key_value WHERE namespace = ?").run("compression");
   });
 
-  it("should return default settings", () => {
-    const settings = getCompressionSettings();
-    assert.equal(settings.mode, "off");
-    assert.equal(settings.enabled, false);
-    assert.ok(settings.cavemanConfig);
-    assert.equal(settings.cavemanConfig.enabled, true);
-    assert.deepEqual(settings.cavemanConfig.compressRoles, ["user"]);
-    assert.equal(settings.cavemanConfig.minMessageLength, 50);
+  it("should return default config", () => {
+    const config = getCompressionSettings();
+    assert.equal(config.defaultMode, "off");
+    assert.equal(config.enabled, false);
+    assert.equal(config.autoTriggerTokens, 0);
+    assert.equal(config.cacheMinutes, 5);
+    assert.equal(config.preserveSystemPrompt, true);
+    assert.ok(config.cavemanConfig);
+    assert.equal(config.cavemanConfig.enabled, true);
+    assert.deepEqual(config.cavemanConfig.compressRoles, ["user"]);
+    assert.equal(config.cavemanConfig.minMessageLength, 50);
   });
 
   it("should update and retrieve settings", () => {
-    updateCompressionSettings({ enabled: true, mode: "caveman" });
-    const settings = getCompressionSettings();
-    assert.equal(settings.enabled, true);
-    assert.equal(settings.mode, "caveman");
+    updateCompressionSettings({ enabled: true, defaultMode: "standard" });
+    const config = getCompressionSettings();
+    assert.equal(config.enabled, true);
+    assert.equal(config.defaultMode, "standard");
 
-    updateCompressionSettings({ enabled: false, mode: "off" });
+    updateCompressionSettings({ enabled: false, defaultMode: "off" });
     const reset = getCompressionSettings();
     assert.equal(reset.enabled, false);
-    assert.equal(reset.mode, "off");
+    assert.equal(reset.defaultMode, "off");
   });
 
   it("should update cavemanConfig", () => {
@@ -43,8 +45,8 @@ describe("compression DB module", () => {
       minMessageLength: 100,
     };
     updateCompressionSettings({ cavemanConfig: customConfig });
-    const settings = getCompressionSettings();
-    assert.deepEqual(settings.cavemanConfig.compressRoles, ["user", "system"]);
-    assert.equal(settings.cavemanConfig.minMessageLength, 100);
+    const config = getCompressionSettings();
+    assert.deepEqual(config.cavemanConfig.compressRoles, ["user", "system"]);
+    assert.equal(config.cavemanConfig.minMessageLength, 100);
   });
 });

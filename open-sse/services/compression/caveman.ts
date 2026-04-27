@@ -1,10 +1,12 @@
-import type { CavemanConfig, CavemanRule, CompressionResult, CompressionStats } from "./types.ts";
+import type { CavemanConfig, CavemanRule, CompressionResult, CompressionMode } from "./types.ts";
 import { DEFAULT_CAVEMAN_CONFIG } from "./types.ts";
 import { CAVEMAN_RULES, getRulesForContext } from "./cavemanRules.ts";
 import { extractPreservedBlocks, restorePreservedBlocks } from "./preservation.ts";
-import { createCompressionStats, estimateTokensForStats, trackCompressionStats } from "./stats.ts";
-
-const CHARS_PER_TOKEN = 4;
+import {
+  createCompressionStats,
+  estimateCompressionTokens,
+  trackCompressionStats,
+} from "./stats.ts";
 
 interface ChatMessage {
   role: string;
@@ -25,13 +27,15 @@ export function applyRulesToText(
 
   for (const rule of rules) {
     const before = result;
-    if (typeof rule.replacement === "function") {
-      result = result.replace(rule.pattern, (...args) => {
+    const { pattern, replacement } = rule;
+    if (typeof replacement === "function") {
+      const fn = replacement;
+      result = result.replace(pattern, (...args) => {
         const match = args[0];
-        return rule.replacement(match, ...args.slice(1, -2));
+        return fn(match, ...args.slice(1, -2));
       });
     } else {
-      result = result.replace(rule.pattern, rule.replacement);
+      result = result.replace(pattern, replacement);
     }
     if (result !== before) {
       appliedRules.push(rule.name);
@@ -58,20 +62,23 @@ export function cavemanCompress(
   const startMs = performance.now();
   const config: CavemanConfig = { ...DEFAULT_CAVEMAN_CONFIG, ...options };
 
+  const emptyResult = (): CompressionResult => ({
+    body: body as unknown as Record<string, unknown>,
+    compressed: false,
+    stats: createCompressionStats(
+      body as unknown as Record<string, unknown>,
+      body as unknown as Record<string, unknown>,
+      "standard" as CompressionMode,
+      []
+    ),
+  });
+
   if (!config.enabled) {
-    return {
-      body,
-      compressed: false,
-      stats: createCompressionStats(0, 0, "caveman"),
-    };
+    return emptyResult();
   }
 
   if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
-    return {
-      body,
-      compressed: false,
-      stats: createCompressionStats(0, 0, "caveman"),
-    };
+    return emptyResult();
   }
 
   let totalOriginalTokens = 0;
@@ -89,35 +96,31 @@ export function cavemanCompress(
               .join("\n")
           : "";
 
-    totalOriginalTokens += estimateTokensForStats(contentStr);
+    totalOriginalTokens += estimateCompressionTokens(contentStr);
 
     if (!contentStr || contentStr.length < config.minMessageLength) {
-      totalCompressedTokens += estimateTokensForStats(contentStr);
+      totalCompressedTokens += estimateCompressionTokens(contentStr);
       return msg;
     }
 
     if (!config.compressRoles.includes(msg.role as "user" | "assistant" | "system")) {
-      totalCompressedTokens += estimateTokensForStats(contentStr);
+      totalCompressedTokens += estimateCompressionTokens(contentStr);
       return msg;
     }
 
-    // Step 1: Extract preserved blocks
     const { text: extractedText, blocks } = extractPreservedBlocks(contentStr);
 
-    // Step 2: Apply rules by context
     const rules = getRulesForContext(msg.role).filter(
       (rule) => !config.skipRules.includes(rule.name)
     );
     const { text: rulesApplied, appliedRules } = applyRulesToText(extractedText, rules);
     allAppliedRules.push(...appliedRules);
 
-    // Step 3: Restore preserved blocks
     const restored = restorePreservedBlocks(rulesApplied, blocks);
 
-    // Step 4: Cleanup artifacts
     const cleaned = cleanupArtifacts(restored);
 
-    totalCompressedTokens += estimateTokensForStats(cleaned);
+    totalCompressedTokens += estimateCompressionTokens(cleaned);
 
     const newContent =
       typeof msg.content === "string"
@@ -132,24 +135,20 @@ export function cavemanCompress(
   });
 
   const durationMs = performance.now() - startMs;
-  const savingsPercent =
-    totalOriginalTokens > 0
-      ? Math.round(((totalOriginalTokens - totalCompressedTokens) / totalOriginalTokens) * 100)
-      : 0;
-
-  const stats: CompressionStats = {
-    mode: "caveman",
-    originalTokens: totalOriginalTokens,
-    compressedTokens: totalCompressedTokens,
-    savingsPercent,
-    durationMs: Math.round(durationMs * 100) / 100,
-    rulesApplied: [...new Set(allAppliedRules)],
-  };
+  const uniqueRules = [...new Set(allAppliedRules)];
+  const stats = createCompressionStats(
+    body as unknown as Record<string, unknown>,
+    { ...body, messages: compressedMessages } as unknown as Record<string, unknown>,
+    "standard" as CompressionMode,
+    uniqueRules.length > 0 ? ["caveman-rules"] : [],
+    uniqueRules.length > 0 ? uniqueRules : undefined,
+    Math.round(durationMs * 100) / 100
+  );
 
   const compressed = totalCompressedTokens < totalOriginalTokens;
 
   const result: CompressionResult = {
-    body: { ...body, messages: compressedMessages },
+    body: { ...body, messages: compressedMessages } as unknown as Record<string, unknown>,
     compressed,
     stats,
   };
