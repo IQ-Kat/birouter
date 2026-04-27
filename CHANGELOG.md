@@ -30,6 +30,8 @@
 - **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
 - **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
 - **fix(muse-spark-web):** update to Meta's Ecto-era persisted query — fixes 502 `Unknown type "RewriteOptionsInput"` after Meta retired the Abra mutation (#1668)
+- **fix(codex):** replace stale `getCorsOrigin` import with `CORS_HEADERS` export — fixes compile failure (#1669)
+- **fix(dev):** default `OMNIROUTE_USE_TURBOPACK=1` in `.env.example` to avoid Next 16.2.4 font compiler failure (#1669)
 
 ### 🛠️ Maintenance
 
