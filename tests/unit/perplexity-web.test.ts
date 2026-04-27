@@ -743,7 +743,7 @@ test("Request: posts to correct Perplexity SSE endpoint", async () => {
 
     assert.equal(capturedUrl, "https://www.perplexity.ai/rest/sse/perplexity_ask");
     assert.equal(capturedHeaders["Origin"], "https://www.perplexity.ai");
-    assert.equal(capturedHeaders["X-App-ApiVersion"], "2.18");
+    assert.equal(capturedHeaders["X-App-ApiVersion"], "client-1.11.0");
     assert.equal(capturedHeaders["Accept"], "text/event-stream");
   } finally {
     globalThis.fetch = original;
