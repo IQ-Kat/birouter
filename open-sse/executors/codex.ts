@@ -879,7 +879,7 @@ export class CodexExecutor extends BaseExecutor {
     // session_id header — enables prompt cache affinity on the Codex backend.
     // The official Codex client sets this to conversation_id (a stable UUID per session).
     // Ref: openai/codex codex-api/src/requests/headers.rs build_conversation_headers()
-    const cacheSessionId = this.getPromptCacheSessionId(credentials);
+    const cacheSessionId = this.getPromptCacheSessionId(credentials, null);
     if (cacheSessionId) {
       headers["session_id"] = cacheSessionId;
     }
@@ -889,12 +889,19 @@ export class CodexExecutor extends BaseExecutor {
 
   /**
    * Derive a stable session ID for prompt cache affinity.
-   * Uses workspaceId (chatgpt account ID) as the cache partition key.
-   * This mirrors the official Codex client's use of conversation_id for
-   * prompt_cache_key and session_id header.
+   * Priority: per-conversation session_id/conversation_id from request body → workspaceId.
+   * The official Codex client uses conversation_id (a unique UUID per session), NOT
+   * the account-wide workspaceId. Using workspaceId caps cache hit-rate at ~49%
+   * because all conversations share the same cache partition. (#1643)
    * Ref: openai/codex core/src/client.rs line 853
    */
-  private getPromptCacheSessionId(credentials): string | null {
+  private getPromptCacheSessionId(credentials, body: Record<string, unknown> | null): string | null {
+    // Prefer per-session identifiers from the client request body
+    const sessionId = body?.session_id ?? body?.conversation_id;
+    if (typeof sessionId === "string" && sessionId.length > 0) {
+      return sessionId;
+    }
+    // Fall back to workspaceId (account-wide) — better than nothing
     return credentials?.providerSpecificData?.workspaceId || null;
   }
 
@@ -1065,8 +1072,9 @@ export class CodexExecutor extends BaseExecutor {
     // The official Codex client sets this to conversation_id (a stable UUID per session).
     // Ref: openai/codex core/src/client.rs line 853:
     //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
+    // IMPORTANT: Capture session/conversation IDs BEFORE deletion below (#1643).
     if (!body.prompt_cache_key) {
-      const cacheSessionId = this.getPromptCacheSessionId(credentials);
+      const cacheSessionId = this.getPromptCacheSessionId(credentials, body);
       if (cacheSessionId) {
         body.prompt_cache_key = cacheSessionId;
       }
