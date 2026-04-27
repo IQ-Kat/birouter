@@ -50,7 +50,11 @@ function parseOriginList(value: string | null | undefined): Set<string> {
 }
 
 function normalizeOrigin(origin: string): string {
-  return origin.toLowerCase().replace(/\/+$/, "");
+  let normalized = origin.toLowerCase();
+  while (normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 }
 
 function envAllowAll(): boolean {
