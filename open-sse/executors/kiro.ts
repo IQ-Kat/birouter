@@ -15,11 +15,14 @@ type UsageSummary = {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+  cache_read_input_tokens?: number;
+  cache_creation_input_tokens?: number;
 };
 
 type KiroStreamState = {
   endDetected: boolean;
   finishEmitted: boolean;
+  stopSeen: boolean;
   hasToolCalls: boolean;
   toolCallIndex: number;
   seenToolIds: Map<string, number>;
@@ -34,6 +37,66 @@ type EventFrame = {
   headers: Record<string, string>;
   payload: JsonRecord | null;
 };
+
+class ByteQueue {
+  private chunks: Uint8Array[] = [];
+  private headOffset = 0;
+  length = 0;
+
+  push(chunk: Uint8Array) {
+    if (!(chunk instanceof Uint8Array) || chunk.length === 0) return;
+    this.chunks.push(chunk);
+    this.length += chunk.length;
+  }
+
+  peekUint32BE(offset = 0): number | null {
+    if (this.length < offset + 4) return null;
+
+    let value = 0;
+    for (let i = 0; i < 4; i++) {
+      value = (value << 8) | this.byteAt(offset + i);
+    }
+    return value >>> 0;
+  }
+
+  read(length: number): Uint8Array | null {
+    if (length < 0 || this.length < length) return null;
+
+    const output = new Uint8Array(length);
+    let written = 0;
+
+    while (written < length) {
+      const head = this.chunks[0];
+      const available = head.length - this.headOffset;
+      const take = Math.min(available, length - written);
+      output.set(head.subarray(this.headOffset, this.headOffset + take), written);
+      written += take;
+      this.headOffset += take;
+      this.length -= take;
+
+      if (this.headOffset >= head.length) {
+        this.chunks.shift();
+        this.headOffset = 0;
+      }
+    }
+
+    return output;
+  }
+
+  private byteAt(offset: number): number {
+    let remaining = offset;
+    for (let i = 0; i < this.chunks.length; i++) {
+      const chunk = this.chunks[i];
+      const start = i === 0 ? this.headOffset : 0;
+      const available = chunk.length - start;
+      if (remaining < available) {
+        return chunk[start + remaining];
+      }
+      remaining -= available;
+    }
+    return 0;
+  }
+}
 
 // ── CRC32 lookup table (IEEE polynomial, no dependency) ──
 const CRC32_TABLE = new Uint32Array(256);
@@ -53,6 +116,56 @@ function crc32(buf: Uint8Array) {
     crc = CRC32_TABLE[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
   }
   return (crc ^ 0xffffffff) >>> 0;
+}
+
+function buildKiroFinishChunk(
+  state: KiroStreamState,
+  responseId: string,
+  created: number,
+  model: string,
+  includeUsage: boolean
+): JsonRecord {
+  const finishChunk: JsonRecord = {
+    id: responseId,
+    object: "chat.completion.chunk",
+    created,
+    model,
+    choices: [
+      {
+        index: 0,
+        delta: {},
+        finish_reason: state.hasToolCalls ? "tool_calls" : "stop",
+      },
+    ],
+  };
+
+  if (includeUsage && state.usage) {
+    finishChunk.usage = state.usage;
+  }
+
+  return finishChunk;
+}
+
+function ensureKiroUsage(state: KiroStreamState) {
+  if (state.usage) return;
+
+  const estimatedOutputTokens =
+    state.totalContentLength && state.totalContentLength > 0
+      ? Math.max(1, Math.floor(state.totalContentLength / 4))
+      : 0;
+
+  const estimatedInputTokens =
+    state.contextUsagePercentage && state.contextUsagePercentage > 0
+      ? Math.floor((state.contextUsagePercentage * 200000) / 100)
+      : 0;
+
+  if (estimatedInputTokens <= 0 && estimatedOutputTokens <= 0) return;
+
+  state.usage = {
+    prompt_tokens: estimatedInputTokens,
+    completion_tokens: estimatedOutputTokens,
+    total_tokens: estimatedInputTokens + estimatedOutputTokens,
+  };
 }
 
 /**
@@ -131,13 +244,14 @@ export class KiroExecutor extends BaseExecutor {
    * Using TransformStream instead of ReadableStream.pull() to avoid Workers timeout
    */
   transformEventStreamToSSE(response: Response, model: string) {
-    let buffer = new Uint8Array(0);
+    const buffer = new ByteQueue();
     let chunkIndex = 0;
     const responseId = `chatcmpl-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
     const state: KiroStreamState = {
       endDetected: false,
       finishEmitted: false,
+      stopSeen: false,
       hasToolCalls: false,
       toolCallIndex: 0,
       seenToolIds: new Map(),
@@ -145,24 +259,19 @@ export class KiroExecutor extends BaseExecutor {
 
     const transformStream = new TransformStream({
       async transform(chunk, controller) {
-        // Append to buffer
-        const newBuffer = new Uint8Array(buffer.length + chunk.length);
-        newBuffer.set(buffer);
-        newBuffer.set(chunk, buffer.length);
-        buffer = newBuffer;
+        buffer.push(chunk);
 
         // Parse events from buffer
         let iterations = 0;
         const maxIterations = 1000;
         while (buffer.length >= 16 && iterations < maxIterations) {
           iterations++;
-          const view = new DataView(buffer.buffer, buffer.byteOffset);
-          const totalLength = view.getUint32(0, false);
+          const totalLength = buffer.peekUint32BE(0);
 
-          if (totalLength < 16 || totalLength > buffer.length || buffer.length < totalLength) break;
+          if (!totalLength || totalLength < 16 || totalLength > buffer.length) break;
 
-          const eventData = buffer.slice(0, totalLength);
-          buffer = buffer.slice(totalLength);
+          const eventData = buffer.read(totalLength);
+          if (!eventData) break;
 
           const event = parseEventFrame(eventData);
           if (!event) continue;
@@ -308,21 +417,7 @@ export class KiroExecutor extends BaseExecutor {
 
           // Handle messageStopEvent
           if (eventType === "messageStopEvent") {
-            const chunk: JsonRecord = {
-              id: responseId,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [
-                {
-                  index: 0,
-                  delta: {},
-                  finish_reason: state.hasToolCalls ? "tool_calls" : "stop",
-                },
-              ],
-            };
-            state.finishEmitted = true;
-            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            state.stopSeen = true;
           }
 
           // Handle contextUsageEvent to extract contextUsagePercentage
@@ -381,54 +476,6 @@ export class KiroExecutor extends BaseExecutor {
               }
             }
           }
-
-          // Emit final chunk only after receiving BOTH meteringEvent AND contextUsageEvent
-          if (state.hasMeteringEvent && state.hasContextUsage && !state.finishEmitted) {
-            state.finishEmitted = true;
-
-            // Estimate tokens if not available from events
-            if (!state.usage) {
-              // Estimate output tokens from content length
-              const estimatedOutputTokens =
-                state.totalContentLength > 0
-                  ? Math.max(1, Math.floor(state.totalContentLength / 4))
-                  : 0;
-
-              // Estimate input tokens from contextUsagePercentage
-              // Kiro models typically have 200k context window
-              const estimatedInputTokens =
-                state.contextUsagePercentage > 0
-                  ? Math.floor((state.contextUsagePercentage * 200000) / 100)
-                  : 0;
-
-              state.usage = {
-                prompt_tokens: estimatedInputTokens,
-                completion_tokens: estimatedOutputTokens,
-                total_tokens: estimatedInputTokens + estimatedOutputTokens,
-              };
-            }
-
-            const finishChunk: JsonRecord = {
-              id: responseId,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [
-                {
-                  index: 0,
-                  delta: {},
-                  finish_reason: state.hasToolCalls ? "tool_calls" : "stop",
-                },
-              ],
-            };
-
-            // Include usage in final chunk if available
-            if (state.usage) {
-              finishChunk.usage = state.usage;
-            }
-
-            controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
-          }
         }
 
         if (iterations >= maxIterations) {
@@ -440,19 +487,8 @@ export class KiroExecutor extends BaseExecutor {
         // Emit finish chunk if not already sent
         if (!state.finishEmitted) {
           state.finishEmitted = true;
-          const finishChunk = {
-            id: responseId,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [
-              {
-                index: 0,
-                delta: {},
-                finish_reason: state.hasToolCalls ? "tool_calls" : "stop",
-              },
-            ],
-          };
+          ensureKiroUsage(state);
+          const finishChunk = buildKiroFinishChunk(state, responseId, created, model, true);
           controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
         }
 

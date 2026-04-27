@@ -474,7 +474,10 @@ export class BaseExecutor {
           // cache_create (vs 96% cache_read with a stable prefix). Using a per-day
           // hash keeps the billing header format while preserving cache affinity.
           const dayStamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-          const fp = createHash("sha256").update(`${dayStamp}${ccVersion}`).digest("hex").slice(0, 3);
+          const fp = createHash("sha256")
+            .update(`${dayStamp}${ccVersion}`)
+            .digest("hex")
+            .slice(0, 3);
           const billingLine = `x-anthropic-billing-header: cc_version=${ccVersion}.${fp}; cc_entrypoint=cli; cch=00000;`;
 
           if (Array.isArray(tb.system)) {

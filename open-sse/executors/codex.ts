@@ -895,7 +895,10 @@ export class CodexExecutor extends BaseExecutor {
    * because all conversations share the same cache partition. (#1643)
    * Ref: openai/codex core/src/client.rs line 853
    */
-  private getPromptCacheSessionId(credentials, body: Record<string, unknown> | null): string | null {
+  private getPromptCacheSessionId(
+    credentials,
+    body: Record<string, unknown> | null
+  ): string | null {
     // Prefer per-session identifiers from the client request body
     const sessionId = body?.session_id ?? body?.conversation_id;
     if (typeof sessionId === "string" && sessionId.length > 0) {
