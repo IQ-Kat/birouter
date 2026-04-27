@@ -995,12 +995,16 @@ export class CodexExecutor extends BaseExecutor {
       }
     } else {
       // Translated: use CODEX_DEFAULT_INSTRUCTIONS as fallback when no system
-      // prompt was provided by the client (safety net for bare requests).
+      // prompt was provided by the client, BUT only if tools are requested.
+      // Injecting tool instructions on bare requests causes Harmony leaks (#1686).
+      const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
       if (
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
       ) {
-        body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
+        body.instructions = hasTools
+          ? CODEX_DEFAULT_INSTRUCTIONS
+          : "You are a helpful AI assistant.";
       }
     }
 

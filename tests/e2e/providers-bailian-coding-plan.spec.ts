@@ -78,6 +78,7 @@ test.describe("Bailian Coding Plan Provider", () => {
         .isVisible({ timeout: 15000 })
         .catch(() => false)
     ) {
+      await expect(addKeyButton.first()).toBeEnabled({ timeout: 5000 });
       await addKeyButton.first().click();
     }
 
@@ -193,6 +194,7 @@ test.describe("Bailian Coding Plan Provider", () => {
         .isVisible({ timeout: 15000 })
         .catch(() => false)
     ) {
+      await expect(addKeyButton.first()).toBeEnabled({ timeout: 5000 });
       await addKeyButton.first().click();
     }
 

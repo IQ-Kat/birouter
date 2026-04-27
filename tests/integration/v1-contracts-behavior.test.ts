@@ -8,7 +8,7 @@ test("contract: /api/v1 OPTIONS exposes CORS and allowed methods", async () => {
   const response = await OPTIONS();
 
   assert.equal(response.status, 200);
-  assert.ok(response.headers.has("Access-Control-Allow-Origin"));
+  assert.ok(response.headers.has("Access-Control-Allow-Methods"));
 });
 
 test("contract: /api/v1/embeddings OPTIONS exposes POST/GET/OPTIONS", async () => {

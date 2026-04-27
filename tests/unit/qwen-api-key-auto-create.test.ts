@@ -22,8 +22,11 @@ async function createAuthCookie() {
   return `auth_token=${token}`;
 }
 
+const originalHomedir = os.homedir;
+
 test.beforeEach(async () => {
   process.env.DATA_DIR = DUMMY_HOME;
+  os.homedir = () => DUMMY_HOME;
   await fs.mkdir(DUMMY_HOME, { recursive: true }).catch(() => {});
   // Initialize DB
   getDbInstance();
@@ -31,6 +34,7 @@ test.beforeEach(async () => {
 
 test.afterEach(async () => {
   await fs.rm(DUMMY_HOME, { recursive: true, force: true }).catch(() => {});
+  os.homedir = originalHomedir;
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
   if (process.env.DATA_DIR?.includes("omniroute-qwen-key-test")) {

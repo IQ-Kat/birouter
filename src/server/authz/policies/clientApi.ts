@@ -35,6 +35,11 @@ export const clientApiPolicy: RoutePolicy = {
       ) {
         return allow({ kind: "dashboard_session", id: "dashboard" });
       }
+
+      if (process.env.REQUIRE_API_KEY !== "true") {
+        return allow({ kind: "anonymous", id: "local" });
+      }
+
       return reject(401, "AUTH_002", "Authentication required");
     }
 
