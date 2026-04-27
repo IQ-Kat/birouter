@@ -15,6 +15,9 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(responses):** sanitize empty string placeholders from tool-call optional arguments in stream delta accumulation to avoid breaking strict clients (#1674)
+- **fix(codex):** prevent unexpected protocol leakage and fabricated instructions on bare chat completion requests without tools (#1686)
+- **fix(executors):** truncate tools array to 128 items max in GitHub Copilot and OpenCode executors to mitigate 400 Bad Request errors from upstream (#1687)
 - **fix(chatgpt-web):** bound tls-client native deadlocks so requests never hang forever (#1664)
 - **fix(codex):** default gpt-5.5 to HTTP transport instead of WebSocket (#1660)
 - **fix(codex):** [urgent] fix gpt-5.5 websocket transport and model labels (#1656)

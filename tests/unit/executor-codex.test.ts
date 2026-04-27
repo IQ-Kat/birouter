@@ -174,6 +174,7 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   const body = {
     model: "gpt-5-mini",
     messages: [{ role: "user", content: "hello" }],
+    tools: [{ type: "function", function: { name: "test_tool" } }],
     prompt: "legacy",
     stream_options: { include_usage: true },
     instructions: "",
