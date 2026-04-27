@@ -201,7 +201,11 @@ export function trackPendingRequest(
           ...normalizedMetadata,
         };
       } else {
-        Object.assign(pendingRequests.details[connectionId][modelKey], normalizedMetadata);
+        const merged = {
+          ...pendingRequests.details[connectionId][modelKey],
+          ...normalizedMetadata,
+        };
+        pendingRequests.details[connectionId][modelKey] = merged;
       }
     } else if (!started && nextCount === 0) {
       delete pendingRequests.details[connectionId][modelKey];
@@ -223,7 +227,8 @@ export function updatePendingRequest(
   if (!isSafeKey(modelKey)) return;
   const existing = pendingRequests.details[connectionId]?.[modelKey];
   if (!existing) return;
-  Object.assign(existing, normalizePendingMetadata(metadata));
+  const merged = { ...existing, ...normalizePendingMetadata(metadata) };
+  pendingRequests.details[connectionId][modelKey] = merged;
 }
 
 /**
