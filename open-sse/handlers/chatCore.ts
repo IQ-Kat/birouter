@@ -6,6 +6,7 @@ import {
   createSSETransformStreamWithLogger,
   createPassthroughStreamWithLogger,
   COLORS,
+  withBodyTimeout,
 } from "../utils/stream.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
@@ -2174,7 +2175,7 @@ export async function handleChatCore({
         const status = rawResult.response.status;
         const statusText = rawResult.response.statusText;
         const headers = Array.from(rawResult.response.headers.entries()) as [string, string][];
-        const payload = await rawResult.response.text();
+        const payload = await withBodyTimeout<string>(rawResult.response.text());
         acquireAccountSemaphoreRelease();
 
         return {
@@ -2286,7 +2287,7 @@ export async function handleChatCore({
     const failureStatus =
       error.name === "AbortError"
         ? 499
-        : error.name === "TimeoutError"
+        : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
           ? HTTP_STATUS.GATEWAY_TIMEOUT
           : HTTP_STATUS.BAD_GATEWAY;
     const failureMessage =
@@ -2777,7 +2778,7 @@ export async function handleChatCore({
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
     let responsePayloadFormat = targetFormat;
-    const rawBody = await providerResponse.text();
+    const rawBody = await withBodyTimeout<string>(providerResponse.text());
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
       contentType.includes("text/event-stream") ||
@@ -2872,7 +2873,7 @@ export async function handleChatCore({
         try {
           const fallbackResult = await executeProviderRequest(nextModel, false);
           if (fallbackResult.response.ok) {
-            const fallbackRaw = await fallbackResult.response.text();
+            const fallbackRaw = await withBodyTimeout<string>(fallbackResult.response.text());
             try {
               responseBody = fallbackRaw ? JSON.parse(fallbackRaw) : {};
               providerUrl = fallbackResult.url;

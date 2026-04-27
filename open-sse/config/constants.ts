@@ -16,6 +16,11 @@ export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 // Extended-thinking models rarely pause >90s between chunks. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 
+// Timeout for reading the full response body after headers arrive (ms).
+// Prevents indefinite hangs when the upstream sends headers but stalls on the body.
+// Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
+export const FETCH_BODY_TIMEOUT_MS = upstreamTimeouts.fetchBodyTimeoutMs;
+
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.
 // Use provider-credentials.json or env vars to override in production.
