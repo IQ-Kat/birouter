@@ -1002,9 +1002,11 @@ export class CodexExecutor extends BaseExecutor {
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
       ) {
-        body.instructions = hasTools
-          ? CODEX_DEFAULT_INSTRUCTIONS
-          : "You are a helpful AI assistant.";
+        if (hasTools) {
+          body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
+        } else {
+          delete body.instructions;
+        }
       }
     }
 
