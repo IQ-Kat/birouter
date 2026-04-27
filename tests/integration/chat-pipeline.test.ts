@@ -30,7 +30,7 @@ const { clearProviderFailure } = await import("../../open-sse/services/accountFa
 const originalFetch = globalThis.fetch;
 const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
 
-function toPlainHeaders(headers) {
+function toPlainHeaders(headers: Headers | Record<string, unknown> | undefined | null) {
   if (!headers) return {};
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return Object.fromEntries(
@@ -43,8 +43,13 @@ function buildRequest({
   body,
   authKey = null,
   headers = {},
+}: {
+  url?: string;
+  body?: unknown;
+  authKey?: string | null;
+  headers?: Record<string, string>;
 } = {}) {
-  const requestHeaders = {
+  const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...headers,
   };

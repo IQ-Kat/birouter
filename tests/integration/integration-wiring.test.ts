@@ -14,19 +14,19 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 
-function readProjectFile(relPath) {
+function readProjectFile(relPath: string) {
   const full = join(ROOT, relPath);
   if (!existsSync(full)) return null;
   return readFileSync(full, "utf8");
 }
 
-function assertFileExists(relPath) {
+function assertFileExists(relPath: string) {
   const full = join(ROOT, relPath);
   assert.ok(existsSync(full), `${relPath} should exist`);
   return full;
 }
 
-function assertRouteMethods(relPath, methods) {
+function assertRouteMethods(relPath: string, methods: string[]) {
   const src = readProjectFile(relPath);
   assert.ok(src, `${relPath} should exist`);
   for (const method of methods) {
@@ -34,7 +34,7 @@ function assertRouteMethods(relPath, methods) {
   }
 }
 
-function listProjectFiles(relPath) {
+function listProjectFiles(relPath: string): string[] {
   const full = join(ROOT, relPath);
   if (!existsSync(full)) return [];
 

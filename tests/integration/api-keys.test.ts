@@ -38,7 +38,10 @@ async function createManagementKey() {
   return apiKeysDb.createApiKey("management", MACHINE_ID);
 }
 
-function makeRequest(url, { method = "GET", token, body } = {}) {
+function makeRequest(
+  url: string | URL,
+  { method = "GET", token, body }: { method?: string; token?: string; body?: unknown } = {}
+) {
   const headers = new Headers();
   if (token) {
     headers.set("authorization", `Bearer ${token}`);
