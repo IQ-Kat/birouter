@@ -30,6 +30,10 @@
 - **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
 - **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
 
+### 🛠️ Maintenance
+
+- **build(prepublish):** make Next.js build bundler configurable (webpack/turbopack)
+
 ---
 
 ## [3.7.1] — 2026-04-26
