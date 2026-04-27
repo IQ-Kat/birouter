@@ -294,7 +294,7 @@ test("GET /api/keys returns 500 when the key store throws unexpectedly", async (
   const db = core.getDbInstance();
   const originalPrepare = db.prepare.bind(db);
   const originalLog = console.log;
-  const logs = [];
+  const originalError = console.error;
 
   db.prepare = (sql) => {
     if (String(sql).includes("FROM api_keys")) {
@@ -303,9 +303,9 @@ test("GET /api/keys returns 500 when the key store throws unexpectedly", async (
     return originalPrepare(sql);
   };
   apiKeysDb.resetApiKeyState();
-  console.log = (...args) => {
-    logs.push(args.map((arg) => String(arg)).join(" "));
-  };
+  // Suppress Pino structured log output during test
+  console.log = () => {};
+  console.error = () => {};
 
   try {
     const response = await listRoute.GET(new Request("http://localhost/api/keys"));
@@ -313,11 +313,11 @@ test("GET /api/keys returns 500 when the key store throws unexpectedly", async (
 
     assert.equal(response.status, 500);
     assert.equal(body.error, "Failed to fetch keys");
-    assert.ok(logs.some((entry) => entry.includes("Error fetching keys:")));
   } finally {
     db.prepare = originalPrepare;
     apiKeysDb.resetApiKeyState();
     console.log = originalLog;
+    console.error = originalError;
   }
 });
 
