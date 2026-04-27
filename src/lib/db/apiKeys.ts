@@ -110,6 +110,24 @@ const MAX_CACHE_SIZE = 1000;
 // Compiled regex cache for wildcard patterns
 const _regexCache = new Map<string, RegExp>();
 
+const API_KEY_COLUMN_FALLBACKS = [
+  { name: "allowed_models", definition: "allowed_models TEXT" },
+  { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
+  { name: "allowed_connections", definition: "allowed_connections TEXT" },
+  { name: "auto_resolve", definition: "auto_resolve INTEGER NOT NULL DEFAULT 0" },
+  { name: "is_active", definition: "is_active INTEGER NOT NULL DEFAULT 1" },
+  { name: "access_schedule", definition: "access_schedule TEXT" },
+  { name: "max_requests_per_day", definition: "max_requests_per_day INTEGER" },
+  { name: "max_requests_per_minute", definition: "max_requests_per_minute INTEGER" },
+  { name: "max_sessions", definition: "max_sessions INTEGER NOT NULL DEFAULT 0" },
+  { name: "revoked_at", definition: "revoked_at TEXT" },
+  { name: "expires_at", definition: "expires_at TEXT" },
+  { name: "last_used_at", definition: "last_used_at TEXT" },
+  { name: "key_prefix", definition: "key_prefix TEXT" },
+  { name: "ip_allowlist", definition: "ip_allowlist TEXT" },
+  { name: "scopes", definition: "scopes TEXT" },
+] as const;
+
 // Cache for model permission checks
 const _modelPermissionCache = new Map<string, { allowed: boolean; timestamp: number }>();
 
@@ -186,6 +204,16 @@ function getWildcardRegex(pattern: string): RegExp {
   return regex;
 }
 
+function ensureApiKeyColumn(
+  db: ApiKeysDbLike,
+  columnNames: Set<string>,
+  column: (typeof API_KEY_COLUMN_FALLBACKS)[number]
+): void {
+  if (columnNames.has(column.name)) return;
+  db.exec(`ALTER TABLE api_keys ADD COLUMN ${column.definition}`);
+  console.log(`[DB] Added api_keys.${column.name} column`);
+}
+
 // Ensure api_keys extension columns exist (memoized)
 function ensureApiKeysColumns(db: ApiKeysDbLike) {
   if (_schemaChecked) return;
@@ -193,68 +221,8 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
   try {
     const columns = db.prepare<ApiKeyRow>("PRAGMA table_info(api_keys)").all();
     const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
-    if (!columnNames.has("allowed_models")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN allowed_models TEXT");
-      console.log("[DB] Added api_keys.allowed_models column");
-    }
-    if (!columnNames.has("no_log")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN no_log INTEGER NOT NULL DEFAULT 0");
-      console.log("[DB] Added api_keys.no_log column");
-    }
-    if (!columnNames.has("allowed_connections")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN allowed_connections TEXT");
-      console.log("[DB] Added api_keys.allowed_connections column");
-    }
-    if (!columnNames.has("auto_resolve")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN auto_resolve INTEGER NOT NULL DEFAULT 0");
-      console.log("[DB] Added api_keys.auto_resolve column");
-    }
-    if (!columnNames.has("is_active")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1");
-      console.log("[DB] Added api_keys.is_active column");
-    }
-    if (!columnNames.has("access_schedule")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN access_schedule TEXT");
-      console.log("[DB] Added api_keys.access_schedule column");
-    }
-    if (!columnNames.has("max_requests_per_day")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN max_requests_per_day INTEGER");
-      console.log("[DB] Added api_keys.max_requests_per_day column");
-    }
-    if (!columnNames.has("max_requests_per_minute")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN max_requests_per_minute INTEGER");
-      console.log("[DB] Added api_keys.max_requests_per_minute column");
-    }
-    // T08: max concurrent sticky sessions per key (0 = unlimited)
-    if (!columnNames.has("max_sessions")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN max_sessions INTEGER NOT NULL DEFAULT 0");
-      console.log("[DB] Added api_keys.max_sessions column");
-    }
-    // Phase 3: lifecycle / policy columns. Idempotent fallback for DBs whose
-    // migration 032_apikey_lifecycle.sql did not run yet.
-    if (!columnNames.has("revoked_at")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
-      console.log("[DB] Added api_keys.revoked_at column");
-    }
-    if (!columnNames.has("expires_at")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
-      console.log("[DB] Added api_keys.expires_at column");
-    }
-    if (!columnNames.has("last_used_at")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
-      console.log("[DB] Added api_keys.last_used_at column");
-    }
-    if (!columnNames.has("key_prefix")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN key_prefix TEXT");
-      console.log("[DB] Added api_keys.key_prefix column");
-    }
-    if (!columnNames.has("ip_allowlist")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN ip_allowlist TEXT");
-      console.log("[DB] Added api_keys.ip_allowlist column");
-    }
-    if (!columnNames.has("scopes")) {
-      db.exec("ALTER TABLE api_keys ADD COLUMN scopes TEXT");
-      console.log("[DB] Added api_keys.scopes column");
+    for (const column of API_KEY_COLUMN_FALLBACKS) {
+      ensureApiKeyColumn(db, columnNames, column);
     }
     _schemaChecked = true;
   } catch (error) {

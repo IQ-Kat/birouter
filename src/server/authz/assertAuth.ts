@@ -55,7 +55,7 @@ export function assertAuth(
   request: Request | { headers: HeaderSource },
   expected: RouteClass
 ): AuthSubject {
-  const headers = request instanceof Request ? request.headers : request.headers;
+  const headers = request.headers;
 
   if (!isHeaderSource(headers)) {
     throw new AuthzAssertionError("AUTHZ_INVALID_REQUEST", "Request headers are unavailable", 500);

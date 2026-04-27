@@ -352,8 +352,8 @@ export class DefaultExecutor extends BaseExecutor {
     if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
       if (this.provider?.startsWith?.("anthropic-compatible-")) {
         if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
-          const { stream_options, ...withoutStreamOptions } = withDefaults;
-          void stream_options;
+          const withoutStreamOptions = { ...withDefaults };
+          delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
       } else if (

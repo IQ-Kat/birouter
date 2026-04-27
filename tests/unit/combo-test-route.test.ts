@@ -412,7 +412,8 @@ test("combo test route rejects empty combos and ignores forwarded origins for in
   assert.equal(fetchCalls.length, 1);
   assert.equal(fetchCalls[0].url, expectedInternalUrl("/v1/chat/completions"));
   assert.equal(fetchCalls[0].init.headers.Authorization, `Bearer ${internalKey.key}`);
-  assert.equal(String(fetchCalls[0].url).includes("attacker.example.com"), false);
+  assert.equal(new URL(fetchCalls[0].url).hostname, "127.0.0.1");
+  assert.notEqual(new URL(fetchCalls[0].url).hostname, "attacker.example.com");
 });
 
 test("combo test route handles upstream timeouts and non-JSON error bodies", async () => {

@@ -63,6 +63,13 @@ function isDashboardPath(pathname: string): boolean {
   return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 }
 
+function isManagementDashboardRoute(
+  classification: RouteClassification,
+  pathname: string
+): boolean {
+  return classification.routeClass === "MANAGEMENT" && isDashboardPath(pathname);
+}
+
 function getCookieValue(request: NextRequest, name: string): string | null {
   const fromCookies = request.cookies.get(name)?.value;
   if (fromCookies) return fromCookies;
@@ -177,6 +184,7 @@ export async function runAuthzPipeline(
 
   const classification = classifyRoute(pathname, method);
   const guardedPathname = classification.normalizedPath;
+  const managementDashboardRoute = isManagementDashboardRoute(classification, pathname);
 
   if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
@@ -222,7 +230,7 @@ export async function runAuthzPipeline(
   const outcome = await policy.evaluate({ request, classification, requestId });
 
   if (!outcome.allow) {
-    if (classification.routeClass === "MANAGEMENT" && isDashboardPath(pathname)) {
+    if (managementDashboardRoute) {
       return dashboardLoginRedirect(request, requestId);
     }
 
@@ -237,7 +245,7 @@ export async function runAuthzPipeline(
   response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
   response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
   applyCorsHeaders(response, request);
-  if (classification.routeClass === "MANAGEMENT" && isDashboardPath(pathname)) {
+  if (managementDashboardRoute) {
     await refreshDashboardSessionIfNeeded(response, request);
   }
   return response;

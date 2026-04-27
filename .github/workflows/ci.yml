@@ -370,6 +370,7 @@ jobs:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
+      OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6

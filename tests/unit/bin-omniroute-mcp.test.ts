@@ -49,8 +49,7 @@ describe("bin/omniroute.mjs MCP path handling", () => {
 
     // Verify the URL is valid for import (we use a JSON file as a safe test)
     assert.ok(fileUrl.href.startsWith("file:///"), "URL should be valid for import");
-    assert.doesNotThrow(() => {
-      new URL(fileUrl.href);
-    }, "URL should be parseable");
+    const parsedUrl = new URL(fileUrl.href);
+    assert.equal(parsedUrl.protocol, "file:", "URL should be parseable");
   });
 });

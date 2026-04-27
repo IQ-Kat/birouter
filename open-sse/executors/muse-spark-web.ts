@@ -969,6 +969,203 @@ function buildMetaAiHeaders(cookieHeader: string): Record<string, string> {
   };
 }
 
+type MuseSparkExecuteResult = {
+  response: Response;
+  url: string;
+  headers: Record<string, string>;
+  transformedBody: unknown;
+};
+
+function resultWithResponse(
+  response: Response,
+  headers: Record<string, string>,
+  transformedBody: unknown
+): MuseSparkExecuteResult {
+  return {
+    response,
+    url: META_AI_GRAPHQL_API,
+    headers,
+    transformedBody,
+  };
+}
+
+function errorResult(
+  status: number,
+  message: string,
+  code: string,
+  headers: Record<string, string>,
+  transformedBody: unknown
+): MuseSparkExecuteResult {
+  return resultWithResponse(buildErrorResponse(status, message, code), headers, transformedBody);
+}
+
+function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null {
+  const messages = (body as Record<string, unknown>).messages;
+  if (!messages || !Array.isArray(messages) || messages.length === 0) return null;
+  return messages as Array<Record<string, unknown>>;
+}
+
+function getContinuationCacheKey(
+  parsedHistory: ParsedHistory,
+  credentials: ExecuteInput["credentials"],
+  model: string
+): string | null {
+  if (
+    parsedHistory.lastAssistantIndex < 0 ||
+    !credentials.connectionId ||
+    parsedHistory.latestUserContent.length === 0
+  ) {
+    return null;
+  }
+
+  return makeConversationCacheKey(
+    credentials.connectionId,
+    model,
+    parsedHistory.normalized.slice(0, parsedHistory.lastAssistantIndex + 1)
+  );
+}
+
+function getConversationContext(cached: CachedConversation | null): ConversationContext {
+  if (!cached) {
+    return {
+      conversationId: generateMetaConversationId(),
+      branchPath: META_AI_ROOT_BRANCH_PATH,
+      isNewConversation: true,
+    };
+  }
+
+  return {
+    conversationId: cached.conversationId,
+    branchPath: cached.branchPath,
+    isNewConversation: false,
+  };
+}
+
+function evictContinuationIfNeeded(
+  cached: CachedConversation | null,
+  cacheKey: string | null
+): void {
+  if (cached && cacheKey) {
+    conversationCache.delete(cacheKey);
+  }
+}
+
+async function postMetaAiRequest(
+  headers: Record<string, string>,
+  transformedBody: unknown,
+  signal: AbortSignal,
+  log: ExecuteInput["log"]
+): Promise<{ ok: true; response: Response } | { ok: false; result: MuseSparkExecuteResult }> {
+  try {
+    const response = await fetch(META_AI_GRAPHQL_API, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(transformedBody),
+      signal,
+    });
+    return { ok: true, response };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log?.error?.("MUSE-SPARK-WEB", `Fetch failed: ${message}`);
+    return {
+      ok: false,
+      result: errorResult(
+        502,
+        `Meta AI connection failed: ${message}`,
+        "meta_ai_fetch_failed",
+        headers,
+        transformedBody
+      ),
+    };
+  }
+}
+
+function buildHttpErrorResult(
+  upstreamResponse: Response,
+  headers: Record<string, string>,
+  transformedBody: unknown,
+  cached: CachedConversation | null,
+  cacheKey: string | null
+): MuseSparkExecuteResult {
+  evictContinuationIfNeeded(cached, cacheKey);
+
+  let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
+  if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
+    message = "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.";
+  } else if (upstreamResponse.status === 429) {
+    message = "Meta AI rate limited the session. Wait a moment and retry.";
+  }
+
+  return errorResult(
+    upstreamResponse.status,
+    message,
+    `HTTP_${upstreamResponse.status}`,
+    headers,
+    transformedBody
+  );
+}
+
+function buildParsedErrorResult(
+  parsed: ParsedMetaAiResponse,
+  headers: Record<string, string>,
+  transformedBody: unknown,
+  cached: CachedConversation | null,
+  cacheKey: string | null
+): MuseSparkExecuteResult {
+  evictContinuationIfNeeded(cached, cacheKey);
+  return errorResult(
+    parsed.status,
+    parsed.errorMessage || "Meta AI returned an unknown error",
+    parsed.errorCode || "meta_ai_unknown_error",
+    headers,
+    transformedBody
+  );
+}
+
+function rememberAssistantTurn(
+  parsed: ParsedMetaAiResponse,
+  credentials: ExecuteInput["credentials"],
+  model: string,
+  parsedHistory: ParsedHistory,
+  conversationContext: ConversationContext
+): void {
+  if (!parsed.content || !credentials.connectionId) return;
+
+  const writePrefix: NormalizedMessage[] = [
+    ...parsedHistory.normalized,
+    { role: "assistant", content: parsed.content },
+  ];
+  rememberConversation(makeConversationCacheKey(credentials.connectionId, model, writePrefix), {
+    conversationId: conversationContext.conversationId,
+    branchPath: conversationContext.branchPath,
+  });
+}
+
+function buildSuccessResult(
+  parsed: ParsedMetaAiResponse,
+  stream: boolean,
+  model: string,
+  headers: Record<string, string>,
+  transformedBody: unknown
+): MuseSparkExecuteResult {
+  const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
+  const created = Math.floor(Date.now() / 1000);
+  const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
+  const reasoningDeltas = parsed.reasoningDeltas;
+  const response = stream
+    ? new Response(buildStreamingResponse(deltas, reasoningDeltas, model, id, created), {
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "X-Accel-Buffering": "no",
+        },
+      })
+    : buildNonStreamingResponse(parsed.content, parsed.reasoningContent, model, id, created);
+
+  return resultWithResponse(response, headers, transformedBody);
+}
+
 export class MuseSparkWebExecutor extends BaseExecutor {
   constructor() {
     super("muse-spark-web", { id: "muse-spark-web", baseUrl: META_AI_GRAPHQL_API });
@@ -983,30 +1180,14 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    const messages = (body as Record<string, unknown>).messages as
-      | Array<Record<string, unknown>>
-      | undefined;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return {
-        response: buildErrorResponse(400, "Missing or empty messages array", "invalid_request"),
-        url: META_AI_GRAPHQL_API,
-        headers: {},
-        transformedBody: body,
-      };
+    const messages = getOpenAiMessages(body);
+    if (!messages) {
+      return errorResult(400, "Missing or empty messages array", "invalid_request", {}, body);
     }
 
     const parsedHistory = parseOpenAIMessages(messages);
     if (!parsedHistory.foldedPrompt) {
-      return {
-        response: buildErrorResponse(
-          400,
-          "Empty query after processing messages",
-          "invalid_request"
-        ),
-        url: META_AI_GRAPHQL_API,
-        headers: {},
-        transformedBody: body,
-      };
+      return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
     }
 
     // Look up a prior meta.ai conversation we created for this caller +
@@ -1022,30 +1203,9 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     // empty content with `isNewConversation: false`, an avoidable upstream
     // failure. Falling through to the fresh-conversation path uses the
     // folded history instead, which contains real content.
-    const canCacheLookup =
-      parsedHistory.lastAssistantIndex >= 0 &&
-      !!credentials.connectionId &&
-      parsedHistory.latestUserContent.length > 0;
-    const continuationCacheKey = canCacheLookup
-      ? makeConversationCacheKey(
-          credentials.connectionId as string,
-          model,
-          parsedHistory.normalized.slice(0, parsedHistory.lastAssistantIndex + 1)
-        )
-      : null;
+    const continuationCacheKey = getContinuationCacheKey(parsedHistory, credentials, model);
     const cached = continuationCacheKey ? lookupCachedConversation(continuationCacheKey) : null;
-
-    const conversationContext: ConversationContext = cached
-      ? {
-          conversationId: cached.conversationId,
-          branchPath: cached.branchPath,
-          isNewConversation: false,
-        }
-      : {
-          conversationId: generateMetaConversationId(),
-          branchPath: META_AI_ROOT_BRANCH_PATH,
-          isNewConversation: true,
-        };
+    const conversationContext = getConversationContext(cached);
 
     const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
 
@@ -1058,130 +1218,37 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 
-    let upstreamResponse: Response;
-    try {
-      upstreamResponse = await fetch(META_AI_GRAPHQL_API, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(transformedBody),
-        signal: combinedSignal,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      log?.error?.("MUSE-SPARK-WEB", `Fetch failed: ${message}`);
-      return {
-        response: buildErrorResponse(
-          502,
-          `Meta AI connection failed: ${message}`,
-          "meta_ai_fetch_failed"
-        ),
-        url: META_AI_GRAPHQL_API,
-        headers,
-        transformedBody,
-      };
-    }
+    const fetchResult = await postMetaAiRequest(headers, transformedBody, combinedSignal, log);
+    if (!fetchResult.ok) return fetchResult.result;
 
+    const upstreamResponse = fetchResult.response;
     if (!upstreamResponse.ok) {
-      // If we tried to continue a cached conversation and Meta rejected,
-      // evict the cache entry so the next retry falls back to a fresh
-      // conversationId instead of looping on the same dead one.
-      if (cached && continuationCacheKey) {
-        conversationCache.delete(continuationCacheKey);
-      }
-      let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
-      if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
-        message =
-          "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.";
-      } else if (upstreamResponse.status === 429) {
-        message = "Meta AI rate limited the session. Wait a moment and retry.";
-      }
-
-      return {
-        response: buildErrorResponse(
-          upstreamResponse.status,
-          message,
-          `HTTP_${upstreamResponse.status}`
-        ),
-        url: META_AI_GRAPHQL_API,
+      return buildHttpErrorResult(
+        upstreamResponse,
         headers,
         transformedBody,
-      };
+        cached,
+        continuationCacheKey
+      );
     }
 
     if (!upstreamResponse.body) {
-      return {
-        response: buildErrorResponse(
-          502,
-          "Meta AI returned an empty response body",
-          "meta_ai_empty_body"
-        ),
-        url: META_AI_GRAPHQL_API,
+      return errorResult(
+        502,
+        "Meta AI returned an empty response body",
+        "meta_ai_empty_body",
         headers,
-        transformedBody,
-      };
+        transformedBody
+      );
     }
 
     const responseText = await readTextResponse(upstreamResponse.body, signal);
     const parsed = parseMetaAiResponseText(responseText, modelInfo.isThinking);
     if (parsed.status !== 200 || parsed.errorMessage) {
-      // Same eviction rule as the HTTP-level branch above: if we attempted
-      // to continue and Meta returned a parsed error, drop the stale entry.
-      if (cached && continuationCacheKey) {
-        conversationCache.delete(continuationCacheKey);
-      }
-      return {
-        response: buildErrorResponse(
-          parsed.status,
-          parsed.errorMessage || "Meta AI returned an unknown error",
-          parsed.errorCode
-        ),
-        url: META_AI_GRAPHQL_API,
-        headers,
-        transformedBody,
-      };
+      return buildParsedErrorResult(parsed, headers, transformedBody, cached, continuationCacheKey);
     }
 
-    const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
-    const created = Math.floor(Date.now() / 1000);
-    const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
-    const reasoningDeltas = parsed.reasoningDeltas;
-
-    // Remember this turn's conversationId keyed by the normalized history
-    // ending at the response we're about to emit. The next request will
-    // arrive with that exact prefix (the response becomes the latest
-    // assistant message) and a new trailing user turn; slicing it back to
-    // the last assistant yields the same prefix, so the cache lookup hits.
-    // Hashing the *whole* prefix (not just the assistant text) ensures two
-    // parallel chats whose assistant responses coincidentally match cannot
-    // overwrite each other's entries.
-    if (parsed.content && credentials.connectionId) {
-      const writePrefix: NormalizedMessage[] = [
-        ...parsedHistory.normalized,
-        { role: "assistant", content: parsed.content },
-      ];
-      rememberConversation(makeConversationCacheKey(credentials.connectionId, model, writePrefix), {
-        conversationId: conversationContext.conversationId,
-        // Reuse the same branch path on every continuation. Linear chats
-        // don't fan out into a tree, and Meta's web UI just reflects the
-        // last reply regardless of the path value we send.
-        branchPath: conversationContext.branchPath,
-      });
-    }
-
-    return {
-      response: stream
-        ? new Response(buildStreamingResponse(deltas, reasoningDeltas, model, id, created), {
-            status: 200,
-            headers: {
-              "Content-Type": "text/event-stream",
-              "Cache-Control": "no-cache",
-              "X-Accel-Buffering": "no",
-            },
-          })
-        : buildNonStreamingResponse(parsed.content, parsed.reasoningContent, model, id, created),
-      url: META_AI_GRAPHQL_API,
-      headers,
-      transformedBody,
-    };
+    rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
+    return buildSuccessResult(parsed, stream, model, headers, transformedBody);
   }
 }
