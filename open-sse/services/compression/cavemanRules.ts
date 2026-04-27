@@ -245,12 +245,6 @@ const CAVEMAN_RULES: CavemanRule[] = [
     replacement: "Summary: ",
     context: "assistant",
   },
-  {
-    name: "turn_marker",
-    pattern: /^$/g,
-    replacement: "",
-    context: "assistant",
-  },
 ];
 
 export function getRulesForContext(context: string): CavemanRule[] {

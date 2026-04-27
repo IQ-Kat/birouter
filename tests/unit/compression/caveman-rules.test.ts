@@ -7,8 +7,8 @@ import {
 } from "../../../open-sse/services/compression/cavemanRules.ts";
 
 describe("cavemanRules", () => {
-  it("should have 30+ rules", () => {
-    assert.ok(CAVEMAN_RULES.length >= 30, `Expected 30+ rules, got ${CAVEMAN_RULES.length}`);
+  it("should have 29+ rules", () => {
+    assert.ok(CAVEMAN_RULES.length >= 29, `Expected 29+ rules, got ${CAVEMAN_RULES.length}`);
   });
 
   it("every rule should have a name, pattern, replacement, and context", () => {

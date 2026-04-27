@@ -61,11 +61,23 @@ describe("Compression Settings API Schema Validation", () => {
     assert.equal(typeof defaultConfig.cavemanConfig, "object");
   });
 
-  it("should validate all 30 caveman compression rules are defined", async () => {
+  it("should validate all caveman compression rules are defined", async () => {
     const { CAVEMAN_RULES } =
       await import("../../../../open-sse/services/compression/cavemanRules.ts");
     assert.ok(Array.isArray(CAVEMAN_RULES));
-    assert.ok(CAVEMAN_RULES.length >= 30, `Expected >= 30 rules, got ${CAVEMAN_RULES.length}`);
+    assert.ok(CAVEMAN_RULES.length >= 29, `Expected >= 29 rules, got ${CAVEMAN_RULES.length}`);
+    for (const rule of CAVEMAN_RULES) {
+      assert.ok(rule.name && typeof rule.name === "string", `Rule must have a name`);
+      assert.ok(rule.pattern instanceof RegExp, `Rule ${rule.name} must have a RegExp pattern`);
+      assert.ok(
+        typeof rule.replacement === "string" || typeof rule.replacement === "function",
+        `Rule ${rule.name} must have string or function replacement`
+      );
+      assert.ok(
+        rule.pattern.source !== "^$" || rule.replacement !== "",
+        `Rule ${rule.name} must not be a no-op (empty pattern + empty replacement)`
+      );
+    }
   });
 
   it("should validate compression modes cover all CavemanConfig roles", () => {

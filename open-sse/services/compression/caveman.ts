@@ -86,16 +86,21 @@ export function cavemanCompress(
   const allAppliedRules: string[] = [];
 
   const compressedMessages = body.messages.map((msg): ChatMessage => {
-    const contentStr =
-      typeof msg.content === "string"
+    // Only compress simple string content — multi-part messages (arrays)
+    // would duplicate compressed text across all text parts if naively handled
+    if (typeof msg.content !== "string") {
+      const contentStr = Array.isArray(msg.content)
         ? msg.content
-        : Array.isArray(msg.content)
-          ? msg.content
-              .map((part) => (part.type === "text" && part.text ? part.text : ""))
-              .filter(Boolean)
-              .join("\n")
-          : "";
+            .map((part) => (part.type === "text" && part.text ? part.text : ""))
+            .filter(Boolean)
+            .join("\n")
+        : "";
+      totalOriginalTokens += estimateCompressionTokens(contentStr);
+      totalCompressedTokens += estimateCompressionTokens(contentStr);
+      return msg;
+    }
 
+    const contentStr = msg.content;
     totalOriginalTokens += estimateCompressionTokens(contentStr);
 
     if (!contentStr || contentStr.length < config.minMessageLength) {
@@ -122,16 +127,7 @@ export function cavemanCompress(
 
     totalCompressedTokens += estimateCompressionTokens(cleaned);
 
-    const newContent =
-      typeof msg.content === "string"
-        ? cleaned
-        : Array.isArray(msg.content)
-          ? msg.content.map((part) =>
-              part.type === "text" && part.text ? { ...part, text: cleaned } : part
-            )
-          : msg.content;
-
-    return { ...msg, content: newContent };
+    return { ...msg, content: cleaned };
   });
 
   const durationMs = performance.now() - startMs;

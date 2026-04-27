@@ -43,7 +43,7 @@ export function extractPreservedBlocks(text: string): { text: string; blocks: Pr
 export function restorePreservedBlocks(text: string, blocks: PreservedBlock[]): string {
   let result = text;
   for (const block of blocks) {
-    result = result.replace(block.placeholder, block.content);
+    result = result.replace(block.placeholder, () => block.content);
   }
   return result;
 }
