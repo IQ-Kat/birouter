@@ -27,6 +27,8 @@
 - **fix(codex):** default `store` to `false` — Codex OAuth backend rejects `store=true` (#1635)
 - **fix(db):** add post-migration guards for missing `batches` table and `combos.sort_order` column on DB upgrades (#1648, #1657)
 - **fix(db):** renumber duplicate migration `032` to prevent collision
+- **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
+- **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
 
 ---
 
