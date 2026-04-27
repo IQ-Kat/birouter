@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   BaseExecutor,
   mergeAbortSignals,
@@ -89,8 +91,31 @@ function extractMessageText(content: unknown): string {
     .trim();
 }
 
-function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
-  const extracted: Array<{ role: string; content: string }> = [];
+type NormalizedMessage = { role: string; content: string };
+
+type ParsedHistory = {
+  /** Whole history folded into one string (used when starting a new conversation). */
+  foldedPrompt: string;
+  /** Just the last user turn — sent on its own when we're continuing a cached conversation. */
+  latestUserContent: string;
+  /**
+   * Index in `normalized` of the most recent assistant turn, or -1 if none.
+   * Used to slice the prefix that anchors the continuation cache key (so two
+   * separate chats with identical assistant responses but different
+   * preceding history don't collide).
+   */
+  lastAssistantIndex: number;
+  /**
+   * The role+content of every non-empty message after normalization, in
+   * order. The continuation-cache key hashes the prefix of this list ending
+   * at the last assistant message, so the key is unique to a specific
+   * (history → response) pair rather than just the response text alone.
+   */
+  normalized: NormalizedMessage[];
+};
+
+function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedHistory {
+  const extracted: NormalizedMessage[] = [];
 
   for (const message of messages) {
     let role = String(message.role || "user");
@@ -102,7 +127,12 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
   }
 
   if (extracted.length === 0) {
-    return "";
+    return {
+      foldedPrompt: "",
+      latestUserContent: "",
+      lastAssistantIndex: -1,
+      normalized: [],
+    };
   }
 
   let lastUserIndex = -1;
@@ -113,7 +143,15 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
     }
   }
 
-  return extracted
+  let lastAssistantIndex = -1;
+  for (let i = extracted.length - 1; i >= 0; i--) {
+    if (extracted[i].role === "assistant") {
+      lastAssistantIndex = i;
+      break;
+    }
+  }
+
+  const foldedPrompt = extracted
     .map((message, index) => {
       if (index === lastUserIndex) {
         return message.content;
@@ -122,6 +160,10 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): string {
     })
     .join("\n\n")
     .trim();
+
+  const latestUserContent = lastUserIndex >= 0 ? extracted[lastUserIndex].content : "";
+
+  return { foldedPrompt, latestUserContent, lastAssistantIndex, normalized: extracted };
 }
 
 function estimateTokens(text: string): number {
@@ -206,8 +248,101 @@ function getMuseSparkModelInfo(model: string): MuseSparkModelInfo {
   return MODEL_MAP[model] || MODEL_MAP["muse-spark"];
 }
 
-function buildMetaAiRequestBody(prompt: string, model: string) {
-  const conversationId = generateMetaConversationId();
+// ─── Conversation continuity cache ──────────────────────────────────────────
+// The default behavior of /v1/chat/completions is stateless: the caller passes
+// the full message history each turn. Without continuation, every turn would
+// open a brand-new meta.ai conversation containing the OpenAI history folded
+// into a single user prompt — three real chat turns become three separate
+// conversations in the user's meta.ai history, each polluted with the prior
+// turns rendered as "user: …" / "assistant: …" text.
+//
+// To present a clean single growing conversation in meta.ai, we cache the
+// conversationId we created on the previous turn keyed by a hash of the
+// (connectionId, model, normalized history through the last assistant turn).
+// On the next turn, if the incoming OpenAI history's prefix-up-to-the-last-
+// assistant-turn matches a cached entry, we reuse the cached conversationId,
+// set isNewConversation=false, and send only the latest user turn — Meta
+// appends to the existing conversation tree.
+//
+// Hashing the *full prefix* (not just the assistant text) is important: two
+// independent chats from the same connection that happen to land on identical
+// assistant text (e.g. a generic refusal or greeting) would otherwise collide
+// and route the next turn into the wrong meta.ai conversation, mixing chat
+// state across logical sessions. The differing preceding history makes the
+// hashes distinct.
+//
+// TTL is 30 minutes (Meta's web client also expires idle conversations on a
+// similar window). Cache cap is generous — entries are tiny (~250 B) so 5000
+// entries is ~1.25 MB, plenty of headroom for multi-user setups.
+
+type CachedConversation = {
+  conversationId: string;
+  branchPath: string;
+  expiresAt: number;
+};
+
+const MUSE_CONV_CACHE_MAX = 5000;
+const MUSE_CONV_CACHE_TTL_MS = 30 * 60 * 1000;
+const conversationCache = new Map<string, CachedConversation>();
+
+/**
+ * Canonical-stringify a normalized message list so the same logical history
+ * always produces the same hash. Uses ASCII Group Separator / Record
+ * Separator characters as field delimiters so they can't appear inside
+ * normal message content.
+ */
+function canonicalizeNormalizedHistory(messages: NormalizedMessage[]): string {
+  return messages.map((m) => `${m.role}\x1e${m.content}`).join("\x1f");
+}
+
+function makeConversationCacheKey(
+  connectionId: string,
+  model: string,
+  normalizedPrefix: NormalizedMessage[]
+): string {
+  return createHash("sha256")
+    .update(`${connectionId}\x1f${model}\x1f${canonicalizeNormalizedHistory(normalizedPrefix)}`)
+    .digest("hex");
+}
+
+function lookupCachedConversation(key: string): CachedConversation | null {
+  const entry = conversationCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    conversationCache.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function rememberConversation(
+  key: string,
+  context: { conversationId: string; branchPath: string }
+): void {
+  if (conversationCache.size >= MUSE_CONV_CACHE_MAX && !conversationCache.has(key)) {
+    // Map iteration is insertion order, so the first key is the oldest.
+    const oldest = conversationCache.keys().next().value;
+    if (oldest) conversationCache.delete(oldest);
+  }
+  conversationCache.set(key, {
+    conversationId: context.conversationId,
+    branchPath: context.branchPath,
+    expiresAt: Date.now() + MUSE_CONV_CACHE_TTL_MS,
+  });
+}
+
+/** Test hook — exported for unit tests; not wired to runtime callers. */
+export function __resetMuseSparkConversationCacheForTesting(): void {
+  conversationCache.clear();
+}
+
+type ConversationContext = {
+  conversationId: string;
+  branchPath: string;
+  isNewConversation: boolean;
+};
+
+function buildMetaAiRequestBody(prompt: string, model: string, conversation: ConversationContext) {
   const userUniqueMessageId = generateNumericMessageId();
 
   return {
@@ -221,14 +356,14 @@ function buildMetaAiRequestBody(prompt: string, model: string) {
         typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC",
       clippyIp: null,
       content: prompt,
-      conversationId,
+      conversationId: conversation.conversationId,
       conversationStarterId: null,
-      currentBranchPath: META_AI_ROOT_BRANCH_PATH,
+      currentBranchPath: conversation.branchPath,
       developerOverridesForMessage: null,
       devicePixelRatio: 1,
       entryPoint: META_AI_ENTRY_POINT,
       imagineOperationRequest: null,
-      isNewConversation: true,
+      isNewConversation: conversation.isNewConversation,
       mentions: null,
       mode: getMuseSparkModelInfo(model).mode,
       promptEditType: null,
@@ -243,7 +378,7 @@ function buildMetaAiRequestBody(prompt: string, model: string) {
       // input fields are nullable-by-omission by default.
       turnId: crypto.randomUUID(),
       userAgent: META_AI_USER_AGENT,
-      userEventId: generateMetaEventId(conversationId),
+      userEventId: generateMetaEventId(conversation.conversationId),
       userLocale: normalizeMetaLocale(),
       userMessageId: crypto.randomUUID(),
       userUniqueMessageId,
@@ -860,8 +995,8 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       };
     }
 
-    const prompt = parseOpenAIMessages(messages);
-    if (!prompt) {
+    const parsedHistory = parseOpenAIMessages(messages);
+    if (!parsedHistory.foldedPrompt) {
       return {
         response: buildErrorResponse(
           400,
@@ -874,8 +1009,48 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       };
     }
 
+    // Look up a prior meta.ai conversation we created for this caller +
+    // model + chat thread. The lookup key is the connection + model + the
+    // SHA-256 of the normalized history prefix ending at the last assistant
+    // turn — that prefix is exactly what we hashed when we cached on the
+    // previous turn, so a real continuation hits and two parallel chats
+    // with coincidentally-identical assistant text do not.
+    //
+    // We also require `latestUserContent` to be non-empty before using a
+    // cached entry: if the incoming history has no `user` role (e.g. an
+    // assistant-prefill payload), the cache-hit path would otherwise POST
+    // empty content with `isNewConversation: false`, an avoidable upstream
+    // failure. Falling through to the fresh-conversation path uses the
+    // folded history instead, which contains real content.
+    const canCacheLookup =
+      parsedHistory.lastAssistantIndex >= 0 &&
+      !!credentials.connectionId &&
+      parsedHistory.latestUserContent.length > 0;
+    const continuationCacheKey = canCacheLookup
+      ? makeConversationCacheKey(
+          credentials.connectionId as string,
+          model,
+          parsedHistory.normalized.slice(0, parsedHistory.lastAssistantIndex + 1)
+        )
+      : null;
+    const cached = continuationCacheKey ? lookupCachedConversation(continuationCacheKey) : null;
+
+    const conversationContext: ConversationContext = cached
+      ? {
+          conversationId: cached.conversationId,
+          branchPath: cached.branchPath,
+          isNewConversation: false,
+        }
+      : {
+          conversationId: generateMetaConversationId(),
+          branchPath: META_AI_ROOT_BRANCH_PATH,
+          isNewConversation: true,
+        };
+
+    const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
+
     const modelInfo = getMuseSparkModelInfo(model);
-    const transformedBody = buildMetaAiRequestBody(prompt, model);
+    const transformedBody = buildMetaAiRequestBody(prompt, model, conversationContext);
     const cookieHeader = selectMetaAiCookieHeader(credentials);
     const headers = buildMetaAiHeaders(cookieHeader);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
@@ -907,6 +1082,12 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     }
 
     if (!upstreamResponse.ok) {
+      // If we tried to continue a cached conversation and Meta rejected,
+      // evict the cache entry so the next retry falls back to a fresh
+      // conversationId instead of looping on the same dead one.
+      if (cached && continuationCacheKey) {
+        conversationCache.delete(continuationCacheKey);
+      }
       let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
       if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
         message =
@@ -943,6 +1124,11 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const responseText = await readTextResponse(upstreamResponse.body, signal);
     const parsed = parseMetaAiResponseText(responseText, modelInfo.isThinking);
     if (parsed.status !== 200 || parsed.errorMessage) {
+      // Same eviction rule as the HTTP-level branch above: if we attempted
+      // to continue and Meta returned a parsed error, drop the stale entry.
+      if (cached && continuationCacheKey) {
+        conversationCache.delete(continuationCacheKey);
+      }
       return {
         response: buildErrorResponse(
           parsed.status,
@@ -959,6 +1145,28 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const created = Math.floor(Date.now() / 1000);
     const deltas = parsed.deltas.length > 0 ? parsed.deltas : [parsed.content];
     const reasoningDeltas = parsed.reasoningDeltas;
+
+    // Remember this turn's conversationId keyed by the normalized history
+    // ending at the response we're about to emit. The next request will
+    // arrive with that exact prefix (the response becomes the latest
+    // assistant message) and a new trailing user turn; slicing it back to
+    // the last assistant yields the same prefix, so the cache lookup hits.
+    // Hashing the *whole* prefix (not just the assistant text) ensures two
+    // parallel chats whose assistant responses coincidentally match cannot
+    // overwrite each other's entries.
+    if (parsed.content && credentials.connectionId) {
+      const writePrefix: NormalizedMessage[] = [
+        ...parsedHistory.normalized,
+        { role: "assistant", content: parsed.content },
+      ];
+      rememberConversation(makeConversationCacheKey(credentials.connectionId, model, writePrefix), {
+        conversationId: conversationContext.conversationId,
+        // Reuse the same branch path on every continuation. Linear chats
+        // don't fan out into a tree, and Meta's web UI just reflects the
+        // last reply regardless of the path value we send.
+        branchPath: conversationContext.branchPath,
+      });
+    }
 
     return {
       response: stream
