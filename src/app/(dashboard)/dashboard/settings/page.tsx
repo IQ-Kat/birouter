@@ -21,6 +21,7 @@ import ModelsDevSyncTab from "./components/ModelsDevSyncTab";
 import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 import PayloadRulesTab from "./components/PayloadRulesTab";
+import CompressionSettingsTab from "./components/CompressionSettingsTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 
 const tabs = [
@@ -93,6 +94,7 @@ export default function SettingsPage() {
           {activeTab === "ai" && (
             <div className="flex flex-col gap-6">
               <ThinkingBudgetTab />
+              <CompressionSettingsTab />
               <SystemPromptTab />
               <CacheSettingsTab />
               <MemorySkillsTab />
