@@ -12,11 +12,22 @@ import {
 } from "@/lib/providers/webCookieAuth";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
-const META_AI_DEFAULT_COOKIE = "abra_sess";
-const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
+// Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
+// `abra_sess` was replaced by `ecto_1_sess`. `normalizeSessionCookieHeader`
+// only uses this constant when the user pastes a bare cookie value with no
+// `name=` prefix; full cookie lines (with any cookie names) pass through
+// untouched, so users who paste their entire DevTools cookie line still work.
+const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
+// Persisted-query id and friendly name for the current send-message
+// operation. The previous Abra mutation (doc_id 078dfdff...) was retired
+// when Meta removed the RewriteOptionsInput type from the schema; it now
+// fails server-side validation with `Unknown type "RewriteOptionsInput"`.
+// The new operation is a Subscription rather than a Mutation, but Meta's
+// GraphQL endpoint still accepts it over POST and streams the response.
+const META_AI_SEND_MESSAGE_DOC_ID = "29ae946c82d1f301196c6ca2226400b5";
 const META_AI_ROOT_BRANCH_PATH = "0";
 const META_AI_ENTRY_POINT = "KADABRA__CHAT__UNIFIED_INPUT_BAR";
-const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+const META_AI_FRIENDLY_NAME = "useEctoSendMessageSubscription";
 const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
 const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
@@ -225,7 +236,11 @@ function buildMetaAiRequestBody(prompt: string, model: string) {
       promptType: null,
       qplJoinId: null,
       requestedToolCall: null,
-      rewriteOptions: null,
+      // `rewriteOptions` was removed from Meta's GraphQL schema (the
+      // RewriteOptionsInput type is gone), so sending it — even as null —
+      // makes the server reject the persisted query with
+      // `Unknown type "RewriteOptionsInput"`. Omit it entirely; GraphQL
+      // input fields are nullable-by-omission by default.
       turnId: crypto.randomUUID(),
       userAgent: META_AI_USER_AGENT,
       userEventId: generateMetaEventId(conversationId),
@@ -894,7 +909,8 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     if (!upstreamResponse.ok) {
       let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
       if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
-        message = "Meta AI auth failed — your meta.ai abra_sess cookie may be missing or expired.";
+        message =
+          "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.";
       } else if (upstreamResponse.status === 429) {
         message = "Meta AI rate limited the session. Wait a moment and retry.";
       }

@@ -2211,8 +2211,13 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
   },
 };
 
-const META_AI_SEND_MESSAGE_DOC_ID = "078dfdff6fb0d420d8011b49073e6886";
-const META_AI_FRIENDLY_NAME = "useAbraSendMessageMutation";
+// See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
+// from the "Abra" mutation (doc_id 078dfdff…, type RewriteOptionsInput now
+// missing from schema) to the "Ecto" subscription. POST graphql still
+// streams the response; only the persisted-query identifier and operation
+// shape changed.
+const META_AI_SEND_MESSAGE_DOC_ID = "29ae946c82d1f301196c6ca2226400b5";
+const META_AI_FRIENDLY_NAME = "useEctoSendMessageSubscription";
 const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
 const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
@@ -2311,7 +2316,9 @@ function buildMetaAiValidationBody() {
       promptType: null,
       qplJoinId: null,
       requestedToolCall: null,
-      rewriteOptions: null,
+      // See muse-spark-web executor: RewriteOptionsInput was removed from
+      // Meta's schema; sending `rewriteOptions` (even null) breaks the
+      // persisted-query validation. Omit the field.
       turnId: crypto.randomUUID(),
       userAgent: META_AI_USER_AGENT,
       userEventId: generateMetaAiEventId(conversationId),
@@ -2618,7 +2625,7 @@ async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }
 
 async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
-    const cookieHeader = normalizeSessionCookieHeader(apiKey, "abra_sess");
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "ecto_1_sess");
     const response = await validationWrite("https://www.meta.ai/api/graphql", {
       method: "POST",
       headers: applyCustomUserAgent(
