@@ -29,6 +29,7 @@
 - **fix(db):** renumber duplicate migration `032` to prevent collision
 - **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
 - **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
+- **fix(muse-spark-web):** update to Meta's Ecto-era persisted query — fixes 502 `Unknown type "RewriteOptionsInput"` after Meta retired the Abra mutation (#1668)
 
 ### 🛠️ Maintenance
 
