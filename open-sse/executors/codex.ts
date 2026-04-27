@@ -526,7 +526,7 @@ export function isCodexResponsesWebSocketRequired(_model: string, credentials: u
     credentials && typeof credentials === "object"
       ? (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
       : null;
-  return !!(providerSpecificData?.codexTransport === "websocket" && getWreqWebsocket());
+  return !!(providerSpecificData?.codexTransport === "websocket" && getCodexWebSocketTransport());
 }
 
 function toStatusCode(value: unknown): number | null {
@@ -1004,20 +1004,21 @@ export class CodexExecutor extends BaseExecutor {
       }
     }
 
-    // Store: The Codex API defaults store to false when not specified.
-    // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
-    // which requires store=true so that response items are persisted.
-    // If the client explicitly sets store, respect it. Otherwise default to true.
+    // Store: The Codex OAuth backend rejects store=true with
+    // "Store must be set to false". Default to false unless the provider
+    // explicitly opts in (e.g. API-key accounts that support persistence).
+    // Ref: sub2api openai_codex_transform.go line 75-80
     const explicitStoreSetting =
       credentials?.providerSpecificData &&
       typeof credentials.providerSpecificData === "object" &&
       !Array.isArray(credentials.providerSpecificData)
         ? credentials.providerSpecificData.openaiStoreEnabled
         : undefined;
-    if (explicitStoreSetting === false) {
-      body.store = false;
-    } else if (body.store === undefined) {
+    if (explicitStoreSetting === true) {
       body.store = true;
+    } else {
+      // backend rejects store=true ("Store must be set to false"), so default to false.
+      body.store = false;
     }
 
     // Codex Responses only supports function tools with non-empty names.
