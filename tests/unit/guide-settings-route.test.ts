@@ -66,7 +66,7 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   const req = await buildRequest({
     baseUrl: "http://my-omni",
     apiKey: "sk-123",
-    model: "qwen-max",
+    model: "gemini-cli/gemini-3.1-pro-preview",
   });
   const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
   const data = (await response.json()) as any;
@@ -75,21 +75,11 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   assert.equal(data.success, true);
 
   const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
-  assert.ok(content.modelProviders.openai);
-
-  const omniProvider = content.modelProviders.openai.find(
-    (p: QwenProviderEntry) => p.baseUrl === "http://my-omni"
-  );
-  assert.ok(omniProvider);
-  assert.equal(omniProvider.id, "qwen-max");
-  assert.equal(omniProvider.baseUrl, "http://my-omni");
-  assert.equal(omniProvider.envKey, "OPENAI_API_KEY");
-  assert.equal(omniProvider.generationConfig?.contextWindowSize, 200000);
-
-  const envContent = await fs.readFile(QWEN_ENV_PATH, "utf-8");
-  assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
-  assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
-  assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
+  // Uses security.auth format (not modelProviders)
+  assert.equal(content.security?.auth?.selectedType, "openai");
+  assert.equal(content.security?.auth?.apiKey, "sk-123");
+  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.model?.name, "gemini-cli/gemini-3.1-pro-preview");
 });
 
 test("guide-settings POST merges into existing qwen settings.json", async () => {
@@ -97,38 +87,27 @@ test("guide-settings POST merges into existing qwen settings.json", async () => 
   await fs.writeFile(
     QWEN_CONFIG_PATH,
     JSON.stringify({
-      modelProviders: {
-        openai: [{ id: "other", baseUrl: "https://other" }],
-      },
+      permissions: { allow: ["Bash(*)"] },
     }),
     "utf-8"
   );
 
-  const req = await buildRequest({ baseUrl: "http://my-omni", apiKey: "sk-123", model: "auto" });
-  const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
+  const req = await buildRequest({
+    baseUrl: "http://my-omni",
+    apiKey: "sk-456",
+    model: "claude-sonnet-4-6",
+  });
+  const response = await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } });
   assert.equal(response.status, 200);
 
   const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
-  assert.equal(content.modelProviders.openai.length, 2);
-
-  const otherProvider = content.modelProviders.openai.find(
-    (p: QwenProviderEntry) => p.id === "other"
-  );
-  assert.ok(otherProvider);
-  assert.equal(otherProvider.baseUrl, "https://other");
-
-  const omniProvider = content.modelProviders.openai.find(
-    (p: QwenProviderEntry) => p.baseUrl === "http://my-omni"
-  );
-  assert.ok(omniProvider);
-  assert.equal(omniProvider.id, "auto");
-  assert.equal(omniProvider.envKey, "OPENAI_API_KEY");
-  assert.equal(omniProvider.generationConfig?.contextWindowSize, 200000);
-
-  const envContent = await fs.readFile(QWEN_ENV_PATH, "utf-8");
-  assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
-  assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
-  assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
+  // security.auth format
+  assert.equal(content.security?.auth?.selectedType, "openai");
+  assert.equal(content.security?.auth?.apiKey, "sk-456");
+  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.model?.name, "claude-sonnet-4-6");
+  // Preserves other settings
+  assert.deepEqual(content.permissions?.allow, ["Bash(*)"]);
 });
 
 test("guide-settings POST writes OpenCode config with current schema and multi-model selection", async () => {
