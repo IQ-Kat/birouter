@@ -51,6 +51,7 @@ test.beforeEach(async () => {
   // Force XDG_CONFIG_HOME so resolveOpencodeConfigPath resolves to our dummy dir
   // (CI runners often have XDG_CONFIG_HOME set, causing path mismatch)
   process.env.XDG_CONFIG_HOME = path.join(DUMMY_HOME, ".config");
+  process.env.API_KEY_SECRET = "test-secret";
   await fs.mkdir(path.dirname(QWEN_CONFIG_PATH), { recursive: true }).catch(() => {});
 });
 

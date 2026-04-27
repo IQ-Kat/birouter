@@ -39,6 +39,6 @@ export async function getOrCreateApiKey(apiKeyId?: string | null): Promise<strin
     return keyRecord.key as string;
   } catch {
     // Fallback: generate a deterministic key if DB write fails
-    return `sk_${machineId}_fallback_${Date.now()}`;
+    return `sk-${machineId}-fallback-${Date.now()}`;
   }
 }

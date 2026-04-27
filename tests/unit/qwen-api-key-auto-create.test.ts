@@ -26,6 +26,7 @@ const originalHomedir = os.homedir;
 
 test.beforeEach(async () => {
   process.env.DATA_DIR = DUMMY_HOME;
+  process.env.API_KEY_SECRET = "test-secret";
   os.homedir = () => DUMMY_HOME;
   await fs.mkdir(DUMMY_HOME, { recursive: true }).catch(() => {});
   // Initialize DB
