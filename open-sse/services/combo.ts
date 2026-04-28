@@ -20,6 +20,7 @@ import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuf
 import { parseModel } from "./model.ts";
 import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
 import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
+import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
@@ -68,16 +69,7 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /unsupported content part type/i,
   /tool(?:_call|_use)? .* not (?:available|found)/i,
   /third-party apps/i,
-  // Context overflow — model-specific, may succeed on a model with larger context window
-  /context overflow/i,
-  /context length exceeded/i,
-  /prompt too large/i,
-  /token limit/i,
-  /too many tokens/i,
-  /exceeds? context/i,
-  /maximum context/i,
-  /input too long/i,
-  /messages? exceed/i,
+  CONTEXT_OVERFLOW_REGEX,
   // Model not supported/found — permanent model-level error, try next combo target
   /no provider supported/i,
   /model not found/i,
