@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
-import { CORS_HEADERS } from "../utils/cors.ts";
+import { getCorsOrigin } from "../utils/cors.ts";
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 /**
  * Audio Speech Handler (TTS)
  *
@@ -102,7 +103,7 @@ function resolveAwsPollyRegion(providerSpecificData) {
 function resolveAwsPollyBaseUrl(providerSpecificData, region) {
   const configuredBaseUrl = getStringValue(providerSpecificData.baseUrl);
   const baseUrl = configuredBaseUrl || `https://polly.${region}.amazonaws.com`;
-  return baseUrl.replace(/\/v1\/speech\/?$/i, "").replace(/\/+$/, "");
+  return stripTrailingSlashes(baseUrl.replace(/\/v1\/speech\/?$/i, ""));
 }
 
 function normalizeAwsPollyEngine(modelId) {
