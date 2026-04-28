@@ -1226,7 +1226,7 @@ export async function handleChatCore({
   const allMessages =
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
-    const estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let contextLimit = getTokenLimit(provider, effectiveModel);
 
     if (isCombo && comboName) {
@@ -1271,7 +1271,7 @@ export async function handleChatCore({
     // Prompt compression pipeline — Phase 1 (lite) + Phase 2 (standard/caveman)
     try {
       const compressionConfig = getCompressionSettings();
-      const estimatedTokens = estimateCompressionTokens(body);
+      estimatedTokens = estimateCompressionTokens(body);
       const mode = selectCompressionStrategy(compressionConfig, comboName ?? null, estimatedTokens);
       if (mode !== "off") {
         const compressionResult = applyCompression(body as Record<string, unknown>, mode, {
@@ -1281,6 +1281,7 @@ export async function handleChatCore({
         if (compressionResult.compressed && compressionResult.stats) {
           body = compressionResult.body as typeof body;
           const s = compressionResult.stats;
+          estimatedTokens = s.compressedTokens;
           log?.info?.(
             "COMPRESSION",
             `Prompt compression (${s.mode}): ${s.originalTokens} → ${s.compressedTokens} tokens (${s.savingsPercent}% savings, ${s.durationMs ?? 0}ms${

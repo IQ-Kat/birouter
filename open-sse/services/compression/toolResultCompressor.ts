@@ -110,41 +110,63 @@ function compressErrorMessage(content: string): string | null {
   return result;
 }
 
-export function compressToolResult(content: string, opts: ToolStrategiesConfig): CompressionResult {
-  const originalLen = content.length;
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
 
+export function compressToolResult(content: string, opts: ToolStrategiesConfig): CompressionResult {
   if (opts.fileContent) {
     const result = compressFileContent(content);
     if (result !== null) {
-      return { compressed: result, strategy: "fileContent", saved: originalLen - result.length };
+      return {
+        compressed: result,
+        strategy: "fileContent",
+        saved: estimateTokens(content) - estimateTokens(result),
+      };
     }
   }
 
   if (opts.grepSearch) {
     const result = compressGrepSearch(content);
     if (result !== null) {
-      return { compressed: result, strategy: "grepSearch", saved: originalLen - result.length };
+      return {
+        compressed: result,
+        strategy: "grepSearch",
+        saved: estimateTokens(content) - estimateTokens(result),
+      };
     }
   }
 
   if (opts.shellOutput) {
     const result = compressShellOutput(content);
     if (result !== null) {
-      return { compressed: result, strategy: "shellOutput", saved: originalLen - result.length };
+      return {
+        compressed: result,
+        strategy: "shellOutput",
+        saved: estimateTokens(content) - estimateTokens(result),
+      };
     }
   }
 
   if (opts.json) {
     const result = compressJson(content);
     if (result !== null) {
-      return { compressed: result, strategy: "json", saved: originalLen - result.length };
+      return {
+        compressed: result,
+        strategy: "json",
+        saved: estimateTokens(content) - estimateTokens(result),
+      };
     }
   }
 
   if (opts.errorMessage) {
     const result = compressErrorMessage(content);
     if (result !== null) {
-      return { compressed: result, strategy: "errorMessage", saved: originalLen - result.length };
+      return {
+        compressed: result,
+        strategy: "errorMessage",
+        saved: estimateTokens(content) - estimateTokens(result),
+      };
     }
   }
 

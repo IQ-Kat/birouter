@@ -5,6 +5,10 @@ import { cavemanCompress } from "./caveman.ts";
 
 const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
 
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
 interface ChatMessage {
   role: string;
   content?: string | Array<{ type: string; text?: string }>;
@@ -73,7 +77,7 @@ export function applyAging(
             ? compressed.body.messages[0].content
             : extractText(compressed.body.messages[0].content);
         const tagged = `[COMPRESSED:aging:light] ${newContent}`;
-        saved += text.length - tagged.length;
+        saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else {
         result.push(msg);
@@ -86,7 +90,7 @@ export function applyAging(
             ? compressed.body.messages[0].content
             : extractText(compressed.body.messages[0].content);
         const tagged = `[COMPRESSED:aging:moderate] ${newContent}`;
-        saved += text.length - tagged.length;
+        saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else {
         result.push(msg);
@@ -95,12 +99,12 @@ export function applyAging(
       if (msg.role === "assistant") {
         const summary = sum.summarize([msg]);
         const tagged = `[COMPRESSED:aging:fullSummary] ${summary}`;
-        saved += text.length - tagged.length;
+        saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else if (msg.role === "user") {
         const firstLine = text.split("\n")[0]?.slice(0, 120) ?? "";
         const tagged = `[COMPRESSED:aging:fullSummary] ${firstLine}`;
-        saved += text.length - tagged.length;
+        saved += estimateTokens(text) - estimateTokens(tagged);
         result.push(setContent(msg, tagged));
       } else {
         result.push(msg);

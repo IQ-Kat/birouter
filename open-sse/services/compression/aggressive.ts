@@ -121,7 +121,7 @@ export function compressAggressive(
           preserveCode: true,
         });
         if (summary && summary.length < text.length) {
-          summarizerSavings += text.length - summary.length;
+          summarizerSavings += estimateTokens(text) - estimateTokens(summary);
           return setContent(msg, `[COMPRESSED:summary] ${summary}`);
         }
         return msg;
@@ -172,11 +172,11 @@ export function compressAggressive(
     }
   }
 
-  resultStats.techniquesUsed = [
+  resultStats.techniquesUsed.push(
     ...(toolResultSavings > 0 ? ["toolResult"] : []),
     ...(agingSavings > 0 ? ["aging"] : []),
-    ...(summarizerSavings > 0 ? ["summarizer"] : []),
-  ];
+    ...(summarizerSavings > 0 ? ["summarizer"] : [])
+  );
 
   resultStats.aggressive = {
     summarizerSavings,
