@@ -73,6 +73,7 @@ import {
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
+import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -1433,6 +1434,13 @@ export async function handleChatCore({
       const name = fn?.name ?? tool.name;
       return name && String(name).trim().length > 0;
     });
+
+    // Sanitize OpenAI-format function tool schemas before they reach strict
+    // upstream JSON Schema validators (e.g. Moonshot AI behind
+    // opencode-go/kimi-k2.6). See toolSchemaSanitizer.ts for the specific bug.
+    // sanitizeOpenAITool is safe to call on any input — it no-ops non-function
+    // tools (e.g. Responses API built-ins) and non-object values.
+    body.tools = body.tools.map((tool) => sanitizeOpenAITool(tool) as (typeof body.tools)[number]);
   }
 
   const memoryOwnerId = resolveMemoryOwnerId(apiKeyInfo as Record<string, unknown> | null);
