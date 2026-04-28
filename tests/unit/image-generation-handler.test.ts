@@ -54,10 +54,10 @@ test("handleImageGeneration routes OpenAI-compatible providers and forwards imag
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         prompt: "city skyline",
         n: 2,
-        size: "1024x1792",
+        size: "1024x1536",
         quality: "hd",
         response_format: "url",
         style: "vivid",
@@ -70,10 +70,10 @@ test("handleImageGeneration routes OpenAI-compatible providers and forwards imag
     assert.equal(captured.url, "https://api.openai.com/v1/images/generations");
     assert.equal(captured.headers.Authorization, "Bearer image-key");
     assert.deepEqual(captured.body, {
-      model: "dall-e-3",
+      model: "gpt-image-2",
       prompt: "city skyline",
       n: 2,
-      size: "1024x1792",
+      size: "1024x1536",
       quality: "hd",
       response_format: "url",
       style: "vivid",
@@ -250,32 +250,32 @@ test("handleImageGeneration treats unknown provider prefixes as invalid image mo
 
 test("image registry resolves flux aliases and exposes planned catalog aliases", () => {
   assert.deepEqual(parseImageModel("flux-kontext"), {
-    provider: "pollinations",
-    model: "flux-kontext",
+    provider: "black-forest-labs",
+    model: "flux-kontext-pro",
   });
   assert.deepEqual(parseImageModel("pollinations/kontext"), {
-    provider: "pollinations",
-    model: "flux-kontext",
+    provider: "black-forest-labs",
+    model: "flux-kontext-pro",
   });
-  assert.deepEqual(parseImageModel("flux-redux"), {
+  assert.deepEqual(parseImageModel("flux-2-dev"), {
     provider: "together",
-    model: "black-forest-labs/FLUX.1-redux",
+    model: "black-forest-labs/FLUX.2-dev",
   });
 
   const modelIds = new Set(getAllImageModels().map((model) => model.id));
-  const fluxRedux = getAllImageModels().find((model) => model.id === "flux-redux");
+  const flux2Dev = getAllImageModels().find((model) => model.id === "flux-2-dev");
   const fluxKontext = getAllImageModels().find((model) => model.id === "flux-kontext");
   for (const alias of [
     "flux-kontext",
     "flux-kontext-max",
-    "flux-redux",
-    "flux-depth",
-    "flux-canny",
-    "flux-dev-lora",
+    "flux-2-max",
+    "flux-2-pro",
+    "flux-2-flex",
+    "flux-2-dev",
   ]) {
     assert.equal(modelIds.has(alias), true, `Expected alias ${alias} in image catalog`);
   }
-  assert.deepEqual(fluxRedux?.inputModalities, ["text", "image"]);
+  assert.deepEqual(flux2Dev?.inputModalities, ["text", "image"]);
   assert.deepEqual(fluxKontext?.inputModalities, ["text", "image"]);
 });
 
@@ -1130,7 +1130,7 @@ test("handleImageGeneration logs OpenAI-compatible upstream failures and transpo
   try {
     const failed = await handleImageGeneration({
       body: {
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         prompt: "broken upstream",
       },
       credentials: { apiKey: "image-key" },
@@ -1151,7 +1151,7 @@ test("handleImageGeneration logs OpenAI-compatible upstream failures and transpo
   try {
     const errored = await handleImageGeneration({
       body: {
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         prompt: "transport issue",
       },
       credentials: { apiKey: "image-key" },

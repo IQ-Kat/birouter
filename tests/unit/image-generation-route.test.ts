@@ -101,7 +101,7 @@ test("v1 image generation POST still requires prompts for text-input models", as
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         image_url: "https://example.com/source.png",
       }),
     })
@@ -109,5 +109,5 @@ test("v1 image generation POST still requires prompts for text-input models", as
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 400);
-  assert.match(body.error.message, /Prompt is required for image model: openai\/dall-e-3/);
+  assert.match(body.error.message, /Prompt is required for image model: openai\/gpt-image-2/);
 });

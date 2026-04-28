@@ -32,24 +32,29 @@ import {
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 
 const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
-  "black-forest-labs/FLUX.1-redux",
-  "black-forest-labs/FLUX.1-depth",
-  "black-forest-labs/FLUX.1-canny",
-  "black-forest-labs/FLUX.1.1-pro",
-  "FLUX.1-redux",
-  "FLUX.1-depth",
-  "FLUX.1-canny",
-  "FLUX.1.1-pro",
+  "black-forest-labs/FLUX.2-max",
+  "black-forest-labs/FLUX.2-pro",
+  "black-forest-labs/FLUX.2-flex",
+  "black-forest-labs/FLUX.2-dev",
+  "openai/gpt-image-1.5",
+  "Wan-AI/Wan2.6-image",
+  "Qwen/Qwen-Image-2.0-Pro",
+  "Qwen/Qwen-Image-2.0",
+  "google/flash-image-3.1",
+  "google/gemini-3-pro-image",
   "flux-kontext-max",
   "flux-kontext",
   "flux-kontext-pro",
 ]);
 
 const BFL_MODEL_ENDPOINTS = {
+  "flux-2-max": "/v1/flux-2-max",
+  "flux-2-pro": "/v1/flux-2-pro",
+  "flux-2-flex": "/v1/flux-2-flex",
+  "flux-2-klein-9b": "/v1/flux-2-klein-9b",
+  "flux-2-klein-4b": "/v1/flux-2-klein-4b",
   "flux-kontext-pro": "/v1/flux-kontext-pro",
   "flux-kontext-max": "/v1/flux-kontext-max",
-  "flux-pro-1.0-fill": "/v1/flux-pro-1.0-fill",
-  "flux-pro-1.0-expand": "/v1/flux-pro-1.0-expand",
   "flux-pro-1.1": "/v1/flux-pro-1.1",
   "flux-pro-1.1-ultra": "/v1/flux-pro-1.1-ultra",
   "flux-dev": "/v1/flux-dev",
@@ -57,22 +62,20 @@ const BFL_MODEL_ENDPOINTS = {
 };
 
 const BFL_EDIT_MODELS = new Set([
+  "flux-2-max",
+  "flux-2-pro",
+  "flux-2-flex",
   "flux-kontext-pro",
   "flux-kontext-max",
-  "flux-pro-1.0-fill",
-  "flux-pro-1.0-expand",
 ]);
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
 
 const STABILITY_GENERATION_ENDPOINTS = {
-  sd3: "/v2beta/stable-image/generate/sd3",
-  "sd3-large": "/v2beta/stable-image/generate/sd3",
-  "sd3-large-turbo": "/v2beta/stable-image/generate/sd3",
-  "sd3-medium": "/v2beta/stable-image/generate/sd3",
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
   "sd3.5-large-turbo": "/v2beta/stable-image/generate/sd3",
   "sd3.5-medium": "/v2beta/stable-image/generate/sd3",
+  "sd3.5-flash": "/v2beta/stable-image/generate/sd3",
   "stable-image-ultra": "/v2beta/stable-image/generate/ultra",
   "stable-image-core": "/v2beta/stable-image/generate/core",
 };
@@ -1058,7 +1061,7 @@ async function handleStabilityAIImageGeneration({
 
   try {
     if (STABILITY_GENERATION_ENDPOINTS[model]) {
-      if (model.startsWith("sd3") && model !== "sd3") {
+      if (model.startsWith("sd3.5")) {
         upstreamBody.model = model;
       }
 
@@ -1070,7 +1073,7 @@ async function handleStabilityAIImageGeneration({
         upstreamBody.mode = "text-to-image";
       }
 
-      if (!model.startsWith("sd3") || !imageUrl) {
+      if (!model.startsWith("sd3.5") || !imageUrl) {
         upstreamBody.aspect_ratio = body.aspect_ratio || mapImageSize(body.size);
       }
 
