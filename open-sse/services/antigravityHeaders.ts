@@ -97,8 +97,8 @@ export function getAntigravityHeaders(
       return withOptionalBearerAuth(
         {
           "Content-Type": "application/json",
-          "User-Agent": LOAD_CODE_ASSIST_USER_AGENT,
-          "X-Goog-Api-Client": LOAD_CODE_ASSIST_API_CLIENT,
+          "User-Agent": ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
+          "X-Goog-Api-Client": ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
           "Client-Metadata": getAntigravityLoadCodeAssistClientMetadata(),
         },
         accessToken
@@ -135,6 +135,4 @@ export function googApiClientHeader(): string {
 
 export {
   ANTIGRAVITY_VERSION,
-  LOAD_CODE_ASSIST_USER_AGENT as ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-  LOAD_CODE_ASSIST_API_CLIENT as ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
 };
