@@ -324,7 +324,7 @@ async function invokeChatCore({
       return responseFactory(captured, calls);
     }
 
-    const upstreamStream = String(headers.accept || "")
+    const upstreamStream = String(headers.Accept || headers.accept || "")
       .toLowerCase()
       .includes("text/event-stream");
     if (responseFormat === "claude") return buildClaudeResponse(upstreamStream);
