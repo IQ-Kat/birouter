@@ -541,11 +541,16 @@ Automatic model pricing data synchronization from external sources.
 | `CLOUDFLARED_BIN`                         | auto-detect        | `src/lib/cloudflaredTunnel.ts`             | Custom path to `cloudflared` binary.                                                  |
 | `SEARCH_CACHE_TTL_MS`                     | `300000` (5 min)   | `open-sse/services/searchCache.ts`         | TTL for search API (Perplexity, Brave, etc.) response caching.                        |
 | `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | `false`            | `src/app/api/providers/route.ts`           | Allow multiple simultaneous connections per OpenAI-compatible provider.               |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`         | Enable experimental Claude Code compatible provider endpoint.                         |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`         | Reveal the experimental CC-compatible provider UI for Claude Code-only relays.        |
 | `CLIPROXYAPI_HOST`                        | `127.0.0.1`        | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge host (legacy integration).                                         |
 | `CLIPROXYAPI_PORT`                        | `5544`             | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge port.                                                              |
 | `CLIPROXYAPI_CONFIG_DIR`                  | `~/.cli-proxy-api` | `src/lib/versionManager/processManager.ts` | CLIProxyAPI config directory.                                                         |
 | `LOCAL_HOSTNAMES`                         | _(empty)_          | `open-sse/config/providerRegistry.ts`      | Comma-separated additional hostnames treated as "local" (Docker service names, etc.). |
+
+`ENABLE_CC_COMPATIBLE_PROVIDER` is only for third-party relays that accept Claude Code clients
+exclusively. OmniRoute rewrites requests so those relays accept them. If you only want to use
+Claude Code CLI, or you are not sure what these relays are, keep this disabled and add a regular
+Anthropic-compatible provider instead.
 
 ---
 

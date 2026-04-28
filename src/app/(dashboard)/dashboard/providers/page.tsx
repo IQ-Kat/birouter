@@ -1044,7 +1044,6 @@ export default function ProvidersPage() {
         <AddCcCompatibleModal
           isOpen={showAddCcCompatibleModal}
           addLabel={addCcCompatibleLabel}
-          compatibleLabel={ccCompatibleLabel}
           onClose={() => setShowAddCcCompatibleModal(false)}
           onCreated={(node) => {
             setProviderNodes((prev) => [...prev, node]);
@@ -1752,12 +1751,12 @@ AddAnthropicCompatibleModal.propTypes = {
   onCreated: PropTypes.func.isRequired,
 };
 
-function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCreated }) {
+function AddCcCompatibleModal({ isOpen, addLabel, onClose, onCreated }) {
   const t = useTranslations("providers");
   const [formData, setFormData] = useState({
     name: "",
     prefix: "",
-    baseUrl: "https://api.anthropic.com",
+    baseUrl: "",
     chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -1765,6 +1764,10 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const hasRequiredFields = Boolean(
+    formData.name.trim() && formData.prefix.trim() && formData.baseUrl.trim()
+  );
+  const canValidate = Boolean(checkKey.trim() && formData.baseUrl.trim());
 
   useEffect(() => {
     if (isOpen) {
@@ -1774,7 +1777,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
   }, [isOpen]);
 
   const handleSubmit = async () => {
-    if (!formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim()) return;
+    if (!hasRequiredFields) return;
     setSubmitting(true);
     try {
       const res = await fetch("/api/provider-nodes", {
@@ -1795,7 +1798,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
         setFormData({
           name: "",
           prefix: "",
-          baseUrl: "https://api.anthropic.com",
+          baseUrl: "",
           chatPath: CC_COMPATIBLE_DEFAULT_CHAT_PATH,
         });
         setCheckKey("");
@@ -1835,26 +1838,34 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
   return (
     <Modal isOpen={isOpen} title={addLabel} onClose={onClose}>
       <div className="flex flex-col gap-4">
+        <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
+          <div className="flex items-start gap-2">
+            <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+              warning
+            </span>
+            <p>{t("ccCompatibleValidationHint")}</p>
+          </div>
+        </div>
         <Input
           label={t("nameLabel")}
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={t("compatibleProdPlaceholder", { type: compatibleLabel })}
-          hint={t("nameHint")}
+          placeholder={t("ccCompatibleNamePlaceholder")}
+          hint={t("ccCompatibleNameHint")}
         />
         <Input
           label={t("prefixLabel")}
           value={formData.prefix}
           onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
-          placeholder="cc-prod"
-          hint={t("prefixHint")}
+          placeholder={t("ccCompatiblePrefixPlaceholder")}
+          hint={t("ccCompatiblePrefixHint")}
         />
         <Input
           label={t("baseUrlLabel")}
           value={formData.baseUrl}
           onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-          placeholder="https://api.anthropic.com"
-          hint={t("compatibleBaseUrlHint", { type: compatibleLabel })}
+          placeholder={t("ccCompatibleBaseUrlPlaceholder")}
+          hint={t("ccCompatibleBaseUrlHint")}
         />
         <button
           type="button"
@@ -1881,7 +1892,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
               value={formData.chatPath}
               onChange={(e) => setFormData({ ...formData, chatPath: e.target.value })}
               placeholder={CC_COMPATIBLE_DEFAULT_CHAT_PATH}
-              hint={t("chatPathHint")}
+              hint={t("ccCompatibleChatPathHint")}
             />
           </div>
         )}
@@ -1896,7 +1907,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
           <div className="pt-6">
             <Button
               onClick={handleValidate}
-              disabled={!checkKey || validating || !formData.baseUrl.trim()}
+              disabled={!canValidate || validating}
               variant="secondary"
             >
               {validating ? t("checking") : t("check")}
@@ -1909,16 +1920,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
           </Badge>
         )}
         <div className="flex gap-2">
-          <Button
-            onClick={handleSubmit}
-            fullWidth
-            disabled={
-              !formData.name.trim() ||
-              !formData.prefix.trim() ||
-              !formData.baseUrl.trim() ||
-              submitting
-            }
-          >
+          <Button onClick={handleSubmit} fullWidth disabled={!hasRequiredFields || submitting}>
             {submitting ? t("creating") : t("add")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
@@ -1933,7 +1935,6 @@ function AddCcCompatibleModal({ isOpen, addLabel, compatibleLabel, onClose, onCr
 AddCcCompatibleModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   addLabel: PropTypes.string.isRequired,
-  compatibleLabel: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
   onCreated: PropTypes.func.isRequired,
 };

@@ -92,6 +92,12 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "029",
     toName: "provider_connection_max_concurrent",
   },
+  {
+    fromVersion: "032",
+    fromName: "create_reasoning_cache",
+    toVersion: "033",
+    toName: "create_reasoning_cache",
+  },
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [
@@ -209,6 +215,20 @@ function applyApiKeyLifecycleMigration(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_api_keys_revoked_at ON api_keys(revoked_at);
     CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at);
   `);
+}
+
+function isSearchRequestTypeMigration(migration: { version: string; name: string }): boolean {
+  return migration.version === "007";
+}
+
+function applySearchRequestTypeMigration(db: Database.Database): void {
+  ensureColumn(
+    db,
+    "call_logs",
+    "request_type",
+    "ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL"
+  );
+  db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);");
 }
 
 function inferPhysicalSchemaBaseline(db: Database.Database): {
@@ -477,6 +497,8 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
     const applyMigration = db.transaction(() => {
       if (isApiKeyLifecycleMigration(migration)) {
         applyApiKeyLifecycleMigration(db);
+      } else if (isSearchRequestTypeMigration(migration)) {
+        applySearchRequestTypeMigration(db);
       } else {
         const sql = fs.readFileSync(migration.path, "utf-8");
         db.exec(sql);
