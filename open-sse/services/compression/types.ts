@@ -1,10 +1,11 @@
 /**
- * Compression Pipeline Types — Phase 1 (Lite) + Phase 2 (Standard/Caveman) + Phase 3 (Aggressive)
+ * Compression Pipeline Types — Phase 1 (Lite) + Phase 2 (Standard/Caveman) + Phase 3 (Aggressive) + Phase 4 (Ultra)
  *
  * Shared type definitions for the compression pipeline.
  * Phase 1: 'off' and 'lite' modes.
  * Phase 2: 'standard' mode (caveman engine).
  * Phase 3: 'aggressive' mode (summarization + tool compression + aging).
+ * Phase 4: 'ultra' mode (heuristic token pruning + optional SLM tier).
  */
 
 /** Compression mode levels */
@@ -62,6 +63,7 @@ export interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
   aggressive?: AggressiveConfig;
+  ultra?: UltraConfig;
 }
 
 /** Default compression config values */
@@ -133,4 +135,44 @@ export const DEFAULT_AGGRESSIVE_CONFIG: AggressiveConfig = {
   summarizerEnabled: true,
   maxTokensPerMessage: 2048,
   minSavingsThreshold: 0.05,
+};
+
+// ─── Phase 4: Ultra Compression ──────────────────────────────────────────────
+
+export interface UltraConfig {
+  /** Enable ultra compression (disabled by default). */
+  enabled: boolean;
+  /**
+   * Fraction of tokens to keep after heuristic pruning (0–1).
+   * Default 0.5 = keep 50 % of scored tokens.
+   */
+  compressionRate: number;
+  /**
+   * Minimum score threshold below which a token is eligible for pruning.
+   * Tokens scoring below this value are candidates for removal.
+   */
+  minScoreThreshold: number;
+  /**
+   * When true, fall back to aggressive mode if SLM tier is requested but
+   * no modelPath is configured.
+   */
+  slmFallbackToAggressive: boolean;
+  /**
+   * Optional path to a local SLM ONNX model file.
+   * When absent, only the heuristic (Tier A) is used.
+   */
+  modelPath?: string;
+  /**
+   * Maximum tokens per message before ultra compression is applied.
+   * 0 = always apply when mode is "ultra".
+   */
+  maxTokensPerMessage: number;
+}
+
+export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
+  enabled: false,
+  compressionRate: 0.5,
+  minScoreThreshold: 0.3,
+  slmFallbackToAggressive: true,
+  maxTokensPerMessage: 0,
 };

@@ -2,6 +2,7 @@ import type { CompressionConfig, CompressionMode, CompressionResult } from "./ty
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
+import { ultraCompress } from "./ultra.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -38,11 +39,11 @@ export function selectCompressionStrategy(
   return getEffectiveMode(config, comboId, estimatedTokens);
 }
 
-export function applyCompression(
+export async function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
   options?: { model?: string; config?: CompressionConfig }
-): CompressionResult {
+): Promise<CompressionResult> {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
   }
@@ -67,6 +68,23 @@ export function applyCompression(
     }
     const aggressiveConfig = options?.config?.aggressive;
     const result = compressAggressive(messages, aggressiveConfig);
+    return {
+      body: { ...body, messages: result.messages },
+      compressed: result.stats.savingsPercent > 0,
+      stats: result.stats,
+    };
+  }
+  if (mode === "ultra") {
+    const messages = (body.messages ?? []) as Array<{
+      role: string;
+      content?: string | unknown[];
+      [key: string]: unknown;
+    }>;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return { body, compressed: false, stats: null };
+    }
+    const ultraConfig = options?.config?.ultra;
+    const result = await ultraCompress(messages, ultraConfig ?? {});
     return {
       body: { ...body, messages: result.messages },
       compressed: result.stats.savingsPercent > 0,

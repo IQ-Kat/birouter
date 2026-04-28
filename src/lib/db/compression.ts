@@ -4,12 +4,14 @@ import {
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
   DEFAULT_AGGRESSIVE_CONFIG,
+  DEFAULT_ULTRA_CONFIG,
 } from "../../../open-sse/services/compression/types.ts";
 import type {
   CompressionConfig,
   CavemanConfig,
   CompressionMode,
   AggressiveConfig,
+  UltraConfig,
 } from "../../../open-sse/services/compression/types.ts";
 
 const NAMESPACE = "compression";
@@ -97,6 +99,14 @@ export function getCompressionSettings(): CompressionConfig {
           };
         }
         break;
+      case "ultraConfig":
+        if (typeof parsed === "object" && parsed !== null) {
+          config.ultra = {
+            ...DEFAULT_ULTRA_CONFIG,
+            ...(parsed as Partial<UltraConfig>),
+          };
+        }
+        break;
     }
   }
 
@@ -125,4 +135,8 @@ export function getDefaultAggressiveConfig(): AggressiveConfig {
     thresholds: { ...DEFAULT_AGGRESSIVE_CONFIG.thresholds },
     toolStrategies: { ...DEFAULT_AGGRESSIVE_CONFIG.toolStrategies },
   };
+}
+
+export function getDefaultUltraConfig(): UltraConfig {
+  return { ...DEFAULT_ULTRA_CONFIG };
 }
