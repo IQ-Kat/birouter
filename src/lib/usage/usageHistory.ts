@@ -239,6 +239,19 @@ export function getPendingRequests() {
   return pendingRequests;
 }
 
+/**
+ * Clear all pending request counts.
+ * Used for admin reset when counts leak due to uncaught timeouts or process-level errors.
+ */
+export function clearPendingRequests() {
+  pendingRequests.byModel = Object.create(null) as Record<string, number>;
+  pendingRequests.byAccount = Object.create(null) as Record<string, Record<string, number>>;
+  pendingRequests.details = Object.create(null) as Record<
+    string,
+    Record<string, PendingRequestDetail>
+  >;
+}
+
 // ──────────────── getUsageDb Shim (backward compat) ────────────────
 
 /**

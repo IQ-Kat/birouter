@@ -4,6 +4,72 @@
 
 ---
 
+## [3.7.2] — 2026-04-27
+
+### ✨ New Features
+
+- **feat(authz):** introduce centralized proxy-based authz pipeline and lifecycle policy (#1632)
+- **feat(logs):** configure call log pipeline artifacts (#1650)
+- **feat(network):** add guarded remote image fetch utility
+- **feat(codex):** enable native Codex websocket responses on beta-gated models (#1658)
+- **feat(muse-spark-web):** continue the same meta.ai conversation across turns (#1673)
+
+### 🐛 Bug Fixes
+
+- **fix(responses):** sanitize empty string placeholders from tool-call optional arguments in stream delta accumulation to avoid breaking strict clients (#1674)
+- **fix(codex):** prevent unexpected protocol leakage and fabricated instructions on bare chat completion requests without tools (#1686)
+- **fix(executors):** truncate tools array to 128 items max in GitHub Copilot and OpenCode executors to mitigate 400 Bad Request errors from upstream (#1687)
+- **fix:** add body-read timeout to prevent stuck pending requests (#1680)
+- **fix(rate-limit):** replace unsupported Bottleneck `maxWait` option with job-level `expiration` to prevent indefinite queue stalls (#1694)
+- **fix(sse):** sanitize OpenAI tool schemas for strict upstream validators — strips null from enum arrays, normalizes tuple items, filters invalid required keys (#1692)
+- **fix(stream):** fail zombie SSE streams before accepting response — returns 504 instead of hanging indefinitely, enables combo fallback (#1693)
+- **fix(combo):** complete context truncation hotfix — cache getCombos() with 10s TTL, pass allCombosData to resolveComboTargets() for nested combo resolution, consolidate duplicated context overflow regex patterns (#1685)
+- **fix(codex):** raise default quota threshold from 90% to 99% to avoid premature account blocking when usable quota remains (#1697)
+- **fix(combo):** trigger fallback on Anthropic `Invalid signature in thinking block` errors instead of returning 400 directly (#1696)
+- **fix:** combo retry loop stops immediately on client disconnect (499) (#1681)
+- **fix(search):** support optional bearer auth for SearXNG (#1683)
+- **fix(vision):** respect native GPT vision support — prevents VisionBridge from intercepting models that already handle images natively (#1678)
+- **fix(qwen):** use `security.auth` format instead of `modelProviders` for Qwen Code config generation (#1677)
+- **fix(codex):** remove stale websocket transport lookup that caused fallback errors (#1676)
+- **fix(chatgpt-web):** bound tls-client native deadlocks so requests never hang forever (#1664)
+- **fix(codex):** default gpt-5.5 to HTTP transport instead of WebSocket (#1660)
+- **fix(codex):** [urgent] fix gpt-5.5 websocket transport and model labels (#1656)
+- **fix(grokweb):** update Request and Response Specifications (#1655)
+- **fix(blackbox-web):** set isPremium flag to true to enable premium model access (#1661)
+- **fix(core):** avoid OpenAI stream options for Anthropic-compatible providers (#1654)
+- **fix(electron):** resolve MCP server start failure on Windows (#1662)
+- **fix(electron):** make Windows smoke test non-blocking (continue-on-error), pre-create userData dir for Windows + stream logs in CI, and add --no-sandbox and sandbox env for CI smoke tests
+- **fix(codex):** fix `getWreqWebsocket` ReferenceError causing 502 on all Codex requests (#1652, #1653)
+- **fix(codex):** default `store` to `false` — Codex OAuth backend rejects `store=true` (#1635)
+- **fix(db):** add post-migration guards for missing `batches` table and `combos.sort_order` column on DB upgrades (#1648, #1657)
+- **fix(db):** renumber duplicate migration `032` to prevent collision
+- **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
+- **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
+- **fix(muse-spark-web):** update to Meta's Ecto-era persisted query — fixes 502 `Unknown type "RewriteOptionsInput"` after Meta retired the Abra mutation (#1668)
+- **fix(dev):** enable Turbopack by default and repair Codex CORS headers (#1669)
+- **fix(authz):** restore `REQUIRE_API_KEY` support in clientApi policy
+- **fix(auth):** align fallback API key format with test setup
+
+### 🛠️ Maintenance
+
+- **build(prepublish):** make Next.js build bundler configurable (webpack/turbopack)
+- **ci:** align sonar analysis scope
+- **ci:** stabilize release branch checks
+- **ci:** remove expired advanced security scans job
+
+### 🧪 Tests
+
+- **test:** fix TypeScript configuration errors in plan3-p0.test.ts
+- **test:** fix implicit any types across test suites
+- **test:** disable type checking in flaky unit tests
+- **test:** fix failing tests due to recent refactors
+- **fix(tests):** align integration tests with authz pipeline refactor
+- **fix(tests):** align test assertions with v3.7.2 source code changes
+- **fix(tests):** CORS test now checks object body instead of entire file
+- **fix(e2e):** fix E2E flakiness and implicit any type errors
+
+---
+
 ## [3.7.1] — 2026-04-26
 
 ### ✨ New Features

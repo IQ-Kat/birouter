@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
 import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 /**
  * Audio Speech Handler (TTS)
@@ -50,7 +50,7 @@ function upstreamErrorResponse(res, errText) {
     { error: { message: errorMessage, code: res.status } },
     {
       status: res.status,
-      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+      headers: { ...CORS_HEADERS },
     }
   );
 }
@@ -63,8 +63,8 @@ function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
   return new Response(res.body, {
     status: 200,
     headers: {
+      ...CORS_HEADERS,
       "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
       "Transfer-Encoding": "chunked",
     },
   });
@@ -175,7 +175,6 @@ async function handleHyperbolicSpeech(providerConfig, body, token) {
     status: 200,
     headers: {
       "Content-Type": "audio/mpeg",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -321,7 +320,6 @@ async function handleInworldSpeech(providerConfig, body, modelId, token) {
     status: 200,
     headers: {
       "Content-Type": mimeType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -492,7 +490,6 @@ async function handleCoquiSpeech(providerConfig, body) {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -520,7 +517,6 @@ async function handleTortoiseSpeech(providerConfig, body) {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }

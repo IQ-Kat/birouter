@@ -16,11 +16,11 @@ import {
 type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
 
 const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
-const GEMINI_CLI_VERSION = "0.31.0";
-const GEMINI_SDK_VERSION = "1.41.0";
-const NODE_VERSION = "v22.19.0";
-const LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/9.15.1";
-const LOAD_CODE_ASSIST_API_CLIENT = "google-cloud-sdk vscode_cloudshelleditor/0.1";
+export const GEMINI_CLI_VERSION = "0.39.1";
+export const GEMINI_SDK_VERSION = "1.30.0";
+export const NODE_VERSION = "v22.21.1";
+export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/10.3.0";
+export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "google-cloud-sdk vscode_cloudshelleditor/0.1";
 const LOAD_CODE_ASSIST_METADATA = Object.freeze({
   ideType: "IDE_UNSPECIFIED",
   platform: "PLATFORM_UNSPECIFIED",
@@ -42,6 +42,8 @@ function getPlatform(): string {
   switch (p) {
     case "win32":
       return "windows";
+    case "darwin":
+      return "macos";
     default:
       return p; // "linux", etc.
   }
@@ -125,7 +127,7 @@ export function geminiCLIUserAgent(model: string): string {
 
 /**
  * X-Goog-Api-Client header value matching the real Gemini SDK.
- * Example: "google-genai-sdk/1.41.0 gl-node/v22.19.0"
+ * Example: "google-genai-sdk/1.30.0 gl-node/v22.21.1"
  */
 export function googApiClientHeader(): string {
   return `google-genai-sdk/${GEMINI_SDK_VERSION} gl-node/${NODE_VERSION}`;

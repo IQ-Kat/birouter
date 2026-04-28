@@ -3,7 +3,6 @@ import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
   extractApiKey,
-  isValidApiKey,
 } from "../services/auth";
 import {
   getRuntimeProviderProfile,
@@ -180,26 +179,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     log.debug("AUTH", "No API key provided (local mode)");
   }
 
-  // Optional strict API key mode for /v1 endpoints (require key on every request).
   const isComboLiveTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
-  if (process.env.REQUIRE_API_KEY === "true" && !isComboLiveTest) {
-    if (!apiKey) {
-      log.warn("AUTH", "Missing API key while REQUIRE_API_KEY=true");
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    }
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      log.warn("AUTH", "Invalid API key while REQUIRE_API_KEY=true");
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  } else if (apiKey && !isComboLiveTest) {
-    // Client sent a Bearer key — it must exist in DB (otherwise reject to avoid "key ignored" confusion).
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      log.warn("AUTH", "API key not found or invalid (must be created in API Manager)");
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  }
 
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
@@ -397,6 +377,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
               config: relayConfig,
             }
           : undefined,
+      signal: request?.signal ?? null,
     });
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────
@@ -763,6 +744,12 @@ async function handleSingleModelChat(
         }
         if (telemetry) telemetry.startPhase("finalize");
         if (telemetry) telemetry.endPhase();
+        return result.response;
+      }
+
+      if (result.errorType === "stream_readiness_timeout") {
+        // Stream readiness timeout is an upstream stall, not an account/quota failure.
+        // Do NOT mark the account as unavailable or trip the circuit breaker.
         return result.response;
       }
 

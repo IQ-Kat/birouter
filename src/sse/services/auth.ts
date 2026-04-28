@@ -6,7 +6,12 @@ import {
   getSettings,
   getCachedSettings,
 } from "@/lib/localDb";
-import { getQuotaCache, getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
+import {
+  DEFAULT_QUOTA_THRESHOLD_PERCENT,
+  getQuotaCache,
+  getQuotaWindowStatus,
+  isAccountQuotaExhausted,
+} from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -82,7 +87,6 @@ interface CooldownInspectionState {
   retryableModelCooldownMs: number | null;
 }
 
-const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
 const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
@@ -168,7 +172,10 @@ interface QuotaCacheView {
   >;
 }
 
-function normalizeQuotaThreshold(value: unknown, fallback = CODEX_QUOTA_THRESHOLD_PERCENT): number {
+function normalizeQuotaThreshold(
+  value: unknown,
+  fallback = DEFAULT_QUOTA_THRESHOLD_PERCENT
+): number {
   const parsed = toNumber(value, fallback);
   return Math.min(MAX_QUOTA_THRESHOLD_PERCENT, Math.max(MIN_QUOTA_THRESHOLD_PERCENT, parsed));
 }
@@ -1277,6 +1284,30 @@ export async function markAccountUnavailable(
     const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
     const providerErrorType = classifyProviderError(status, errorText, provider);
+
+    if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "forbidden",
+        status,
+        effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.unavailable,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "forbidden",
+        lastError: `Mode ${model} forbidden for this Grok account`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Mode-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
     const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 

@@ -504,29 +504,17 @@ amp --model "{{model}}"
     ],
     codeBlock: {
       language: "json",
-      code: `# ~/.qwen/settings.json — OmniRoute as multi-provider
+      code: `# ~/.qwen/settings.json — OmniRoute via security.auth
 {
-  "modelProviders": {
-    "openai": [{
-      "id": "{{model}}",
-      "name": "OmniRoute",
-      "envKey": "OPENAI_API_KEY",
-      "baseUrl": "{{baseUrl}}",
-      "generationConfig": { "contextWindowSize": 200000 }
-    }],
-    "anthropic": [{
-      "id": "claude-sonnet-4-6",
-      "name": "Claude Sonnet 4.6",
-      "envKey": "ANTHROPIC_API_KEY",
-      "baseUrl": "{{baseUrl}}",
-      "generationConfig": { "contextWindowSize": 200000 }
-    }],
-    "gemini": [{
-      "id": "gemini-3-flash",
-      "name": "Gemini 3 Flash",
-      "envKey": "GEMINI_API_KEY",
+  "security": {
+    "auth": {
+      "selectedType": "openai",
+      "apiKey": "{{apiKey}}",
       "baseUrl": "{{baseUrl}}"
-    }]
+    }
+  },
+  "model": {
+    "name": "{{model}}"
   }
 }`,
     },
