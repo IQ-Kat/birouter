@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
 import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 /**
  * Audio Speech Handler (TTS)
