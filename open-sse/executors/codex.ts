@@ -5,7 +5,10 @@ import {
   setUserAgentHeader,
   type ExecuteInput,
 } from "./base.ts";
-import { CODEX_DEFAULT_INSTRUCTIONS } from "../config/codexInstructions.ts";
+import {
+  CODEX_CHAT_DEFAULT_INSTRUCTIONS,
+  CODEX_DEFAULT_INSTRUCTIONS,
+} from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
@@ -1037,9 +1040,9 @@ export class CodexExecutor extends BaseExecutor {
         body.instructions = "Follow the developer instructions in the conversation.";
       }
     } else {
-      // Translated: use CODEX_DEFAULT_INSTRUCTIONS as fallback when no system
-      // prompt was provided by the client, BUT only if tools are requested.
-      // Injecting tool instructions on bare requests causes Harmony leaks (#1686).
+      // Translated: keep the full Codex tool instructions only for tool-capable
+      // requests. Bare chat requests still need a neutral instructions value
+      // because the Codex Responses backend rejects requests without it.
       const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
       if (
         !body.instructions ||
@@ -1048,7 +1051,7 @@ export class CodexExecutor extends BaseExecutor {
         if (hasTools) {
           body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
         } else {
-          delete body.instructions;
+          body.instructions = CODEX_CHAT_DEFAULT_INSTRUCTIONS;
         }
       }
     }
