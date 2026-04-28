@@ -4,7 +4,7 @@
 
 ---
 
-## [3.7.2] — 2026-04-27
+## [3.7.2] — 2026-04-28
 
 ### ✨ New Features
 
@@ -25,6 +25,9 @@
 - **fix(stream):** fail zombie SSE streams before accepting response — returns 504 instead of hanging indefinitely, enables combo fallback (#1693)
 - **fix(combo):** complete context truncation hotfix — cache getCombos() with 10s TTL, pass allCombosData to resolveComboTargets() for nested combo resolution, consolidate duplicated context overflow regex patterns (#1685)
 - **fix(codex):** raise default quota threshold from 90% to 99% to avoid premature account blocking when usable quota remains (#1697)
+- **fix(memory):** use `user` role for GLM/ZAI/Qianfan providers — providers with strict role constraints (no `system` role) now correctly receive memory context as a `user` message instead of a `system` message, preventing 422 validation errors (#1701)
+- **fix(oauth):** target specific connection by ID on re-auth token exchange — prevents duplicate account creation when re-authenticating an existing OAuth connection (#1702 — thanks @namhhitvn)
+- **feat(email-privacy):** integrate email visibility toggle in RequestLoggerV2 — log detail modal now respects global email privacy state, hiding email addresses by default (#1700 — thanks @namhhitvn)
 - **fix(combo):** trigger fallback on Anthropic `Invalid signature in thinking block` errors instead of returning 400 directly (#1696)
 - **fix:** combo retry loop stops immediately on client disconnect (499) (#1681)
 - **fix(search):** support optional bearer auth for SearXNG (#1683)
