@@ -101,6 +101,8 @@ const COMBO_BAD_REQUEST_FALLBACK_PATTERNS = [
   /\bfunction'?s? name (?:can't|can not|is|has) (?:blank|empty|missing)/i,
   /function.*name.*(?:blank|empty|missing)/i,
   /tool_call.*name.*(?:blank|empty|missing)/i,
+  // Anthropic thinking block signature errors — stale/expired signatures cannot be retried (#1696)
+  /invalid.*signature.*thinking/i,
 ];
 
 // Patterns that signal all accounts for a provider are rate-limited / exhausted.
