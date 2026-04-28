@@ -3,6 +3,7 @@ import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress } from "./ultra.ts";
+import { createCompressionStats } from "./stats.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -68,10 +69,18 @@ export async function applyCompression(
     }
     const aggressiveConfig = options?.config?.aggressive;
     const result = compressAggressive(messages, aggressiveConfig);
+    const compressedBody = { ...body, messages: result.messages };
     return {
-      body: { ...body, messages: result.messages },
+      body: compressedBody,
       compressed: result.stats.savingsPercent > 0,
-      stats: result.stats,
+      stats: createCompressionStats(
+        body,
+        compressedBody,
+        mode,
+        ["aggressive"],
+        result.stats.rulesApplied,
+        result.stats.durationMs
+      ),
     };
   }
   if (mode === "ultra") {
@@ -85,10 +94,18 @@ export async function applyCompression(
     }
     const ultraConfig = options?.config?.ultra;
     const result = await ultraCompress(messages, ultraConfig ?? {});
+    const compressedBody = { ...body, messages: result.messages };
     return {
-      body: { ...body, messages: result.messages },
+      body: compressedBody,
       compressed: result.stats.savingsPercent > 0,
-      stats: result.stats,
+      stats: createCompressionStats(
+        body,
+        compressedBody,
+        mode,
+        ["ultra"],
+        result.stats.rulesApplied,
+        result.stats.durationMs
+      ),
     };
   }
   return { body, compressed: false, stats: null };

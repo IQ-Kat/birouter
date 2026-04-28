@@ -18,6 +18,9 @@ const NAMESPACE = "compression";
 
 type JsonRecord = Record<string, unknown>;
 
+// TTL cache for compression settings (5s)
+let compressionSettingsCache: { value: CompressionConfig; expiresAt: number } | null = null;
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
 }
@@ -32,6 +35,11 @@ function parseJsonSafe(raw: string | null): unknown {
 }
 
 export function getCompressionSettings(): CompressionConfig {
+  // Check TTL cache
+  if (compressionSettingsCache && Date.now() < compressionSettingsCache.expiresAt) {
+    return compressionSettingsCache.value;
+  }
+
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(NAMESPACE);
 
@@ -110,6 +118,12 @@ export function getCompressionSettings(): CompressionConfig {
     }
   }
 
+  // Store in TTL cache (5s expiry)
+  compressionSettingsCache = {
+    value: config,
+    expiresAt: Date.now() + 5000,
+  };
+
   return config;
 }
 
@@ -126,6 +140,8 @@ export function updateCompressionSettings(settings: Record<string, unknown>): vo
   });
 
   transaction();
+  // Clear TTL cache on update
+  compressionSettingsCache = null;
   invalidateDbCache();
 }
 

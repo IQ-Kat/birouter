@@ -47,9 +47,7 @@ export function trackCompressionStats(stats: CompressionStats): void {
   if (stats.originalTokens <= 0) return;
   const rulesInfo = stats.rulesApplied?.length ? ` rules=${stats.rulesApplied.join(",")}` : "";
   const durationInfo = stats.durationMs !== undefined ? ` ${stats.durationMs}ms` : "";
-  console.log(
-    `[COMPRESSION] mode=${stats.mode} tokens=${stats.originalTokens}->${stats.compressedTokens} savings=${stats.savingsPercent}% techniques=${stats.techniquesUsed.join(",")}${rulesInfo}${durationInfo}`
-  );
+  // Compression stats tracking — no-op in production (use structured logging if needed)
 }
 
 export function getDefaultCompressionConfig(): CompressionConfig {
