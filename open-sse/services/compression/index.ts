@@ -5,9 +5,18 @@ export type {
   CompressionResult,
   CavemanConfig,
   CavemanRule,
+  AggressiveConfig,
+  AgingThresholds,
+  ToolStrategiesConfig,
+  SummarizerOpts,
+  Summarizer,
 } from "./types.ts";
 
-export { DEFAULT_COMPRESSION_CONFIG, DEFAULT_CAVEMAN_CONFIG } from "./types.ts";
+export {
+  DEFAULT_COMPRESSION_CONFIG,
+  DEFAULT_CAVEMAN_CONFIG,
+  DEFAULT_AGGRESSIVE_CONFIG,
+} from "./types.ts";
 
 export { cavemanCompress, applyRulesToText } from "./caveman.ts";
 
@@ -31,3 +40,12 @@ export {
 } from "./strategySelector.ts";
 
 export { applyLiteCompression } from "./lite.ts";
+
+export { RuleBasedSummarizer, createSummarizer } from "./summarizer.ts";
+
+export { compressToolResult } from "./toolResultCompressor.ts";
+export type { CompressionResult as ToolCompressionResult } from "./toolResultCompressor.ts";
+
+export { applyAging } from "./progressiveAging.ts";
+
+export { compressAggressive } from "./aggressive.ts";

@@ -13,6 +13,31 @@ const cavemanConfigSchema = z.object({
   preservePatterns: z.array(z.string()).optional(),
 });
 
+const aggressiveConfigSchema = z
+  .object({
+    thresholds: z
+      .object({
+        fullSummary: z.number().int().min(1).max(100).optional(),
+        moderate: z.number().int().min(1).max(100).optional(),
+        light: z.number().int().min(1).max(100).optional(),
+        verbatim: z.number().int().min(1).max(100).optional(),
+      })
+      .optional(),
+    toolStrategies: z
+      .object({
+        fileContent: z.boolean().optional(),
+        grepSearch: z.boolean().optional(),
+        shellOutput: z.boolean().optional(),
+        json: z.boolean().optional(),
+        errorMessage: z.boolean().optional(),
+      })
+      .optional(),
+    summarizerEnabled: z.boolean().optional(),
+    maxTokensPerMessage: z.number().int().min(256).max(32768).optional(),
+    minSavingsThreshold: z.number().min(0).max(1).optional(),
+  })
+  .optional();
+
 const updateCompressionSchema = z.object({
   enabled: z.boolean().optional(),
   defaultMode: z.enum(compressionModeValues).optional(),
@@ -21,6 +46,7 @@ const updateCompressionSchema = z.object({
   preserveSystemPrompt: z.boolean().optional(),
   comboOverrides: z.record(z.string(), z.enum(compressionModeValues)).optional(),
   cavemanConfig: cavemanConfigSchema.optional(),
+  aggressive: aggressiveConfigSchema,
 });
 
 export async function GET() {

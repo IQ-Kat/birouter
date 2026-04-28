@@ -14,6 +14,25 @@ interface CavemanConfig {
   preservePatterns: string[];
 }
 
+interface AggressiveConfig {
+  thresholds: {
+    fullSummary: number;
+    moderate: number;
+    light: number;
+    verbatim: number;
+  };
+  toolStrategies: {
+    fileContent: boolean;
+    grepSearch: boolean;
+    shellOutput: boolean;
+    json: boolean;
+    errorMessage: boolean;
+  };
+  summarizerEnabled: boolean;
+  maxTokensPerMessage: number;
+  minSavingsThreshold: number;
+}
+
 interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
@@ -22,6 +41,7 @@ interface CompressionConfig {
   preserveSystemPrompt: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
+  aggressive?: AggressiveConfig;
 }
 
 const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: string }[] = [
@@ -42,6 +62,12 @@ const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: 
     labelKey: "compressionModeStandard",
     descKey: "compressionModeStandardDesc",
     icon: "speed",
+  },
+  {
+    value: "aggressive",
+    labelKey: "compressionModeAggressive",
+    descKey: "compressionModeAggressiveDesc",
+    icon: "bolt",
   },
 ];
 
@@ -98,6 +124,19 @@ export default function CompressionSettingsTab() {
       skipRules: [],
       minMessageLength: 50,
       preservePatterns: [],
+    },
+    aggressive: {
+      thresholds: { fullSummary: 5, moderate: 3, light: 2, verbatim: 2 },
+      toolStrategies: {
+        fileContent: true,
+        grepSearch: true,
+        shellOutput: true,
+        json: true,
+        errorMessage: true,
+      },
+      summarizerEnabled: true,
+      maxTokensPerMessage: 2048,
+      minSavingsThreshold: 0.05,
     },
   });
   const [saving, setSaving] = useState(false);
@@ -419,6 +458,158 @@ export default function CompressionSettingsTab() {
               )}
             </div>
           )}
+
+        {config.enabled && config.defaultMode === "aggressive" && config.aggressive && (
+          <div className="space-y-3 pt-4 border-t border-border/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium text-text-main">
+                  {t("compressionAggressiveConfig")}
+                </h4>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {t("compressionAggressiveConfigDesc")}
+                </p>
+              </div>
+            </div>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionSummarizerEnabled")}</span>
+              <button
+                onClick={() =>
+                  save({
+                    aggressive: {
+                      ...config.aggressive!,
+                      summarizerEnabled: !config.aggressive!.summarizerEnabled,
+                    },
+                  })
+                }
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  config.aggressive.summarizerEnabled ? "bg-green-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    config.aggressive.summarizerEnabled ? "left-5" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionMaxTokensPerMessage")}</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={256}
+                  max={32768}
+                  value={config.aggressive.maxTokensPerMessage}
+                  onChange={(e) =>
+                    save({
+                      aggressive: {
+                        ...config.aggressive!,
+                        maxTokensPerMessage: parseInt(e.target.value) || 2048,
+                      },
+                    })
+                  }
+                  className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                />
+                <span className="text-xs text-text-muted">{t("tokens")}</span>
+              </div>
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionMinSavings")}</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={config.aggressive.minSavingsThreshold}
+                  onChange={(e) =>
+                    save({
+                      aggressive: {
+                        ...config.aggressive!,
+                        minSavingsThreshold: parseFloat(e.target.value) || 0.05,
+                      },
+                    })
+                  }
+                  className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                />
+                <span className="text-xs text-text-muted">%</span>
+              </div>
+            </label>
+
+            <div className="space-y-2 pt-2">
+              <p className="text-sm font-medium text-text-main">
+                {t("compressionAgingThresholds")}
+              </p>
+              <p className="text-xs text-text-muted">{t("compressionAgingThresholdsDesc")}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(["fullSummary", "moderate", "light", "verbatim"] as const).map((tier) => (
+                  <label
+                    key={tier}
+                    className="flex items-center justify-between p-2 rounded border border-border/50"
+                  >
+                    <span className="text-xs text-text-muted capitalize">
+                      {tier.replace(/([A-Z])/g, " $1").trim()}
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={config.aggressive!.thresholds[tier]}
+                      onChange={(e) =>
+                        save({
+                          aggressive: {
+                            ...config.aggressive!,
+                            thresholds: {
+                              ...config.aggressive!.thresholds,
+                              [tier]: parseInt(e.target.value) || 2,
+                            },
+                          },
+                        })
+                      }
+                      className="w-16 px-2 py-1 text-xs rounded border border-border bg-surface text-text-main"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <p className="text-sm font-medium text-text-main">{t("compressionToolStrategies")}</p>
+              <p className="text-xs text-text-muted">{t("compressionToolStrategiesDesc")}</p>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  ["fileContent", "grepSearch", "shellOutput", "json", "errorMessage"] as const
+                ).map((strategy) => (
+                  <button
+                    key={strategy}
+                    onClick={() =>
+                      save({
+                        aggressive: {
+                          ...config.aggressive!,
+                          toolStrategies: {
+                            ...config.aggressive!.toolStrategies,
+                            [strategy]: !config.aggressive!.toolStrategies[strategy],
+                          },
+                        },
+                      })
+                    }
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      config.aggressive!.toolStrategies[strategy]
+                        ? "border-blue-500/50 bg-blue-500/10 text-blue-400"
+                        : "border-border/50 text-text-muted hover:border-border"
+                    }`}
+                  >
+                    {strategy.replace(/([A-Z])/g, " $1").trim()}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );
