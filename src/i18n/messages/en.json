@@ -283,7 +283,9 @@
     "utilization": "Utilization",
     "utilizationDescription": "Provider quota usage trends and rate limit tracking",
     "comboHealth": "Combo Health",
-    "comboHealthDescription": "Combo-level quota, usage distribution, and performance metrics"
+    "comboHealthDescription": "Combo-level quota, usage distribution, and performance metrics",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "API Keys",
@@ -2476,6 +2478,8 @@
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
     "compressionModeAggressive": "Aggressive",
     "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionAggressiveConfig": "Aggressive Engine Configuration",
     "compressionAggressiveConfigDesc": "Fine-tune summarization, tool compression, and aging thresholds",
     "compressionSummarizerEnabled": "Enable Summarizer",
