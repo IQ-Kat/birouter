@@ -9,6 +9,15 @@ import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
+interface CompressionPreviewResult {
+  originalTokens: number;
+  compressedTokens: number;
+  tokensSaved: number;
+  savingsPct: number;
+  techniquesUsed: string[];
+  durationMs: number;
+}
+
 export default function PlaygroundMode() {
   const t = useTranslations("translator");
   const tc = useTranslations("common");
@@ -20,6 +29,14 @@ export default function PlaygroundMode() {
   const [translating, setTranslating] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState(null);
+
+  // Compression preview state
+  const [compressionMode, setCompressionMode] = useState<string>("standard");
+  const [compressionResult, setCompressionResult] = useState<CompressionPreviewResult | null>(null);
+  const [compressionLoading, setCompressionLoading] = useState(false);
+  const [compressionError, setCompressionError] = useState<string | null>(null);
+  const [showCompressionPanel, setShowCompressionPanel] = useState(false);
+
   const templates = useMemo(() => getExampleTemplates(t), [t]);
 
   // Auto-detect format when input changes
@@ -106,6 +123,33 @@ export default function PlaygroundMode() {
     setInputContent(outputContent);
     setOutputContent("");
     setDetectedFormat(null);
+  };
+
+  const handleCompressionPreview = async () => {
+    if (!inputContent.trim()) return;
+    let messages;
+    try {
+      const parsed = JSON.parse(inputContent);
+      messages = parsed.messages ?? [{ role: "user", content: inputContent }];
+    } catch {
+      messages = [{ role: "user", content: inputContent }];
+    }
+    setCompressionLoading(true);
+    setCompressionError(null);
+    try {
+      const res = await fetch("/api/compression/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages, mode: compressionMode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Preview failed");
+      setCompressionResult(data);
+    } catch (e: unknown) {
+      setCompressionError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCompressionLoading(false);
+    }
   };
 
   const srcMeta = FORMAT_META[sourceFormat] || FORMAT_META.openai;
@@ -346,6 +390,85 @@ export default function PlaygroundMode() {
             </div>
           )}
         </div>
+      </Card>
+
+      {/* Compression Preview Panel */}
+      <Card>
+        <button
+          className="flex items-center gap-2 w-full text-left p-4 font-medium text-text"
+          onClick={() => setShowCompressionPanel((v) => !v)}
+        >
+          <span className="material-symbols-outlined text-primary text-[20px]">compress</span>
+          Compression Preview
+          <span className="material-symbols-outlined ml-auto text-text-muted text-[18px]">
+            {showCompressionPanel ? "expand_less" : "expand_more"}
+          </span>
+        </button>
+
+        {showCompressionPanel && (
+          <div className="p-4 space-y-4 border-t border-border">
+            <div className="flex items-center gap-3">
+              <Select
+                value={compressionMode}
+                onChange={(e) => setCompressionMode(e.target.value)}
+                options={[
+                  { value: "off", label: "Off" },
+                  { value: "lite", label: "Lite" },
+                  { value: "standard", label: "Standard" },
+                  { value: "aggressive", label: "Aggressive" },
+                  { value: "ultra", label: "Ultra" },
+                ]}
+                className="text-sm"
+              />
+              <Button
+                icon="play_arrow"
+                onClick={handleCompressionPreview}
+                loading={compressionLoading}
+                disabled={compressionLoading || !inputContent.trim()}
+                className="text-sm"
+              >
+                {compressionLoading ? "Previewing…" : "Preview Compression"}
+              </Button>
+            </div>
+
+            {compressionError && <div className="text-sm text-red-500">{compressionError}</div>}
+
+            {compressionResult && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="card p-3 text-center bg-black/5 dark:bg-white/5 rounded-lg border border-border">
+                    <div className="text-xs text-text-muted">Original</div>
+                    <div className="text-lg font-bold">{compressionResult.originalTokens}</div>
+                    <div className="text-xs text-text-muted">tokens</div>
+                  </div>
+                  <div className="card p-3 text-center bg-black/5 dark:bg-white/5 rounded-lg border border-border">
+                    <div className="text-xs text-text-muted">Compressed</div>
+                    <div className="text-lg font-bold">{compressionResult.compressedTokens}</div>
+                    <div className="text-xs text-text-muted">tokens</div>
+                  </div>
+                  <div className="card p-3 text-center bg-black/5 dark:bg-white/5 rounded-lg border border-border">
+                    <div className="text-xs text-text-muted">Saved</div>
+                    <div className="text-lg font-bold text-green-500">
+                      {compressionResult.tokensSaved}
+                    </div>
+                    <div className="text-xs text-text-muted">{compressionResult.savingsPct}%</div>
+                  </div>
+                  <div className="card p-3 text-center bg-black/5 dark:bg-white/5 rounded-lg border border-border">
+                    <div className="text-xs text-text-muted">Duration</div>
+                    <div className="text-lg font-bold">{compressionResult.durationMs}</div>
+                    <div className="text-xs text-text-muted">ms</div>
+                  </div>
+                </div>
+                {compressionResult.techniquesUsed.length > 0 && (
+                  <div className="text-xs text-text-muted">
+                    <span className="font-semibold">Techniques:</span>{" "}
+                    {compressionResult.techniquesUsed.join(", ")}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </Card>
     </div>
   );

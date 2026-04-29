@@ -1495,6 +1495,29 @@ function ComboCard({
   const tc = useTranslations("common");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const strategyDescription = getStrategyDescription(t, strategy);
+  const [compressionOverride, setCompressionOverride] = useState(combo.compressionOverride || "");
+  const [isSavingCompression, setIsSavingCompression] = useState(false);
+
+  const handleCompressionOverrideChange = async (value) => {
+    setCompressionOverride(value);
+    setIsSavingCompression(true);
+    try {
+      const response = await fetch(`/api/combos/${combo.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ compressionOverride: value || undefined }),
+      });
+      if (!response.ok) {
+        console.error("Failed to update compression override");
+        setCompressionOverride(combo.compressionOverride || "");
+      }
+    } catch (error) {
+      console.error("Error updating compression override:", error);
+      setCompressionOverride(combo.compressionOverride || "");
+    } finally {
+      setIsSavingCompression(false);
+    }
+  };
 
   return (
     <Card
@@ -1622,6 +1645,20 @@ function ComboCard({
             onChange={onToggle}
             title={isDisabled ? t("enableCombo") : t("disableCombo")}
           />
+          <select
+            value={compressionOverride}
+            onChange={(e) => handleCompressionOverrideChange(e.target.value)}
+            disabled={isSavingCompression}
+            className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50"
+            title="Compression Override"
+          >
+            <option value="">Default (Global)</option>
+            <option value="off">Off</option>
+            <option value="lite">Lite</option>
+            <option value="standard">Standard</option>
+            <option value="aggressive">Aggressive</option>
+            <option value="ultra">Ultra</option>
+          </select>
           <div className="flex items-center gap-1 transition-opacity">
             <button
               onClick={onTest}

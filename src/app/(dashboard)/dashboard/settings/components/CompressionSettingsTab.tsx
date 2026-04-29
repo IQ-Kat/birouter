@@ -69,6 +69,12 @@ const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: 
     descKey: "compressionModeAggressiveDesc",
     icon: "bolt",
   },
+  {
+    value: "ultra",
+    labelKey: "compressionModeUltra",
+    descKey: "compressionModeUltraDesc",
+    icon: "rocket_launch",
+  },
 ];
 
 const ROLE_OPTIONS: { value: "user" | "assistant" | "system"; labelKey: string }[] = [

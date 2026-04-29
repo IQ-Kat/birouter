@@ -273,3 +273,13 @@ export {
   getAllPersistedCreditBalances,
   persistCreditBalance,
 } from "./db/creditBalance";
+
+export {
+  insertCompressionAnalyticsRow,
+  getCompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export type {
+  CompressionAnalyticsRow,
+  CompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
