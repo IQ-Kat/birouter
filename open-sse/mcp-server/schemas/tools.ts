@@ -991,6 +991,87 @@ export const cacheFlushTool: McpToolDefinition<typeof cacheFlushInput, typeof ca
   sourceEndpoints: ["/api/cache"],
 };
 
+// ============ Compression Tools ============
+
+export const compressionStatusInput = z.object({}).describe("No parameters required");
+
+export const compressionStatusOutput = z.object({
+  enabled: z.boolean(),
+  strategy: z.string(),
+  settings: z.object({
+    maxTokens: z.number(),
+    targetRatio: z.number(),
+    aggressiveness: z.string(),
+  }),
+  analytics: z.object({
+    totalRequests: z.number(),
+    compressedRequests: z.number(),
+    tokensSaved: z.number(),
+    avgCompressionRatio: z.number(),
+  }),
+  cacheStats: z
+    .object({
+      hits: z.number(),
+      misses: z.number(),
+      hitRate: z.string(),
+      tokensSaved: z.number(),
+    })
+    .nullable(),
+});
+
+export const compressionStatusTool: McpToolDefinition<
+  typeof compressionStatusInput,
+  typeof compressionStatusOutput
+> = {
+  name: "omniroute_compression_status",
+  description:
+    "Returns current compression configuration, strategy, analytics summary (requests compressed, tokens saved, avg ratio), and provider-aware cache statistics.",
+  inputSchema: compressionStatusInput,
+  outputSchema: compressionStatusOutput,
+  scopes: ["compression:read"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/compression/status"],
+};
+
+export const compressionConfigureInput = z.object({
+  enabled: z.boolean().optional(),
+  strategy: z
+    .string()
+    .optional()
+    .describe("Compression strategy: 'none' | 'standard' | 'aggressive' | 'ultra'"),
+  maxTokens: z.number().optional().describe("Maximum tokens before compression triggers"),
+  targetRatio: z.number().optional().describe("Target compression ratio (0.0–1.0)"),
+  aggressiveness: z.string().optional().describe("Aggressiveness level: 'low' | 'medium' | 'high'"),
+});
+
+export const compressionConfigureOutput = z.object({
+  success: z.boolean(),
+  updated: z.record(z.string(), z.unknown()),
+  settings: z.object({
+    enabled: z.boolean(),
+    strategy: z.string(),
+    maxTokens: z.number(),
+    targetRatio: z.number(),
+    aggressiveness: z.string(),
+  }),
+});
+
+export const compressionConfigureTool: McpToolDefinition<
+  typeof compressionConfigureInput,
+  typeof compressionConfigureOutput
+> = {
+  name: "omniroute_compression_configure",
+  description:
+    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (none/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, and aggressiveness level.",
+  inputSchema: compressionConfigureInput,
+  outputSchema: compressionConfigureOutput,
+  scopes: ["compression:write"],
+  auditLevel: "full",
+  phase: 2,
+  sourceEndpoints: ["/api/compression/configure"],
+};
+
 // ============ Tool Registry ============
 
 /** All MCP tool definitions, ordered by phase then name */
@@ -1017,6 +1098,8 @@ export const MCP_TOOLS = [
   syncPricingTool,
   cacheStatsTool,
   cacheFlushTool,
+  compressionStatusTool,
+  compressionConfigureTool,
 ] as const;
 
 /** Essential tools only (Phase 1) */

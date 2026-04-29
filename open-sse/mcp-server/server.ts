@@ -65,6 +65,7 @@ import {
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
+import { compressionTools } from "./tools/compressionTools.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 
@@ -828,6 +829,29 @@ export function createMcpServer(): McpServer {
 
   // ── Skill Tools ──────────────────────────────
   Object.values(skillTools).forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          // @ts-ignore: handler expected specific object
+          const result = await toolDef.handler(parsedArgs);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      })
+    );
+  });
+
+  // ── Compression Tools ─────────────────────────
+  Object.values(compressionTools).forEach((toolDef) => {
     server.registerTool(
       toolDef.name,
       {
