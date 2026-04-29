@@ -1272,7 +1272,12 @@ export async function handleChatCore({
     try {
       const compressionConfig = getCompressionSettings();
       estimatedTokens = estimateCompressionTokens(body);
-      const mode = selectCompressionStrategy(compressionConfig, comboName ?? null, estimatedTokens);
+      const mode = selectCompressionStrategy(
+        compressionConfig,
+        comboName ?? null,
+        estimatedTokens,
+        body as Record<string, unknown>
+      );
       if (mode !== "off") {
         const compressionResult = applyCompression(body as Record<string, unknown>, mode, {
           model: effectiveModel,

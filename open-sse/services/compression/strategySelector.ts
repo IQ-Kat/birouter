@@ -4,6 +4,7 @@ import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
+import { detectCachingContext, getCacheAwareStrategy } from "./cachingAware.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -35,9 +36,19 @@ export function getEffectiveMode(
 export function selectCompressionStrategy(
   config: CompressionConfig,
   comboId: string | null,
-  estimatedTokens: number
+  estimatedTokens: number,
+  body?: Record<string, unknown>
 ): CompressionMode {
-  return getEffectiveMode(config, comboId, estimatedTokens);
+  const selectedMode = getEffectiveMode(config, comboId, estimatedTokens);
+
+  // Apply caching-aware adjustments if body is provided
+  if (body) {
+    const ctx = detectCachingContext(body);
+    const cacheAware = getCacheAwareStrategy(selectedMode, ctx);
+    return cacheAware.strategy as CompressionMode;
+  }
+
+  return selectedMode;
 }
 
 export async function applyCompression(

@@ -79,6 +79,8 @@ export {
   deleteCombo,
 } from "./db/combos";
 
+export * from "./db/compressionCacheStats";
+
 export {
   // API Keys
   getApiKeys,
