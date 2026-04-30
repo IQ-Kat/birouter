@@ -15,6 +15,8 @@
 
 ### 🐛 Bug Fixes
 
+- **Combo Routing:** Fixed an issue where Gemini `-preview` models were incorrectly normalized to their canonical names, causing 404 errors during combo routing (#1834)
+- **Codex Native Passthrough:** Added support for Cursor 5.5 sending `messages` arrays to the `responses/compact` endpoint, preventing upstream rejections with empty requests (#1832)
 - **Rate-limit Watchdog:** Implemented a new rate-limit watchdog with environment override capabilities and Stage Tracing to prevent and diagnose silent wedges (#1828)
 - **Encryption Resiliency:** Prevent sending encrypted tokens to providers by returning null on decryption failure (#763d353)
 - **i18n & Locales:** Fixed OpenCode baseUrl locale placeholders and added compression keys across 32 languages
