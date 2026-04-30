@@ -4,6 +4,22 @@
 
 ---
 
+## [3.7.7] — 2026-04-30
+
+### ✨ New Features
+
+- **Analytics Custom Filters:** Added custom date range selection, API key filtering, and NULL key analytics backfilling to the Costs Dashboard (#1830)
+
+### 🐛 Bug Fixes
+
+- **Rate-limit Watchdog:** Implemented a new rate-limit watchdog with environment override capabilities and Stage Tracing to prevent and diagnose silent wedges (#1828)
+
+### 🛠️ Maintenance
+
+- **Workflow:** Fixed the changelog extraction logic to accurately capture GitHub release descriptions
+
+---
+
 ## [3.7.6] — 2026-04-30
 
 ### ✨ New Features
