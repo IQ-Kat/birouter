@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getCompressionSettings, updateCompressionSettings } from "@/lib/db/compression";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getCompressionSettings, updateCompressionSettings } from "@/lib/db/compression";
 
 const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
+
+const cavemanConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    compressRoles: z.array(z.enum(["user", "assistant", "system"])).optional(),
+    skipRules: z.array(z.string()).optional(),
+    minMessageLength: z.number().int().min(0).optional(),
+    preservePatterns: z.array(z.string()).optional(),
+  })
+  .strict();
 
 const compressionSettingsUpdateSchema = z
   .object({
@@ -14,6 +24,7 @@ const compressionSettingsUpdateSchema = z
     cacheMinutes: z.number().int().min(1).max(60).optional(),
     preserveSystemPrompt: z.boolean().optional(),
     comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
+    cavemanConfig: cavemanConfigSchema.optional(),
   })
   .strict();
 

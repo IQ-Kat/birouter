@@ -1,5 +1,6 @@
-import type { CompressionConfig, CompressionMode, CompressionResult } from "./types";
-import { applyLiteCompression } from "./lite";
+import type { CompressionConfig, CompressionMode, CompressionResult } from "./types.ts";
+import { applyLiteCompression } from "./lite.ts";
+import { cavemanCompress } from "./caveman.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -39,13 +40,19 @@ export function selectCompressionStrategy(
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
-  options?: { model?: string }
+  options?: { model?: string; config?: CompressionConfig }
 ): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
   }
   if (mode === "lite") {
     return applyLiteCompression(body, options);
+  }
+  if (mode === "standard") {
+    return cavemanCompress(
+      body as Parameters<typeof cavemanCompress>[0],
+      options?.config?.cavemanConfig
+    );
   }
   return { body, compressed: false, stats: null };
 }

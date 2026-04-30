@@ -127,6 +127,12 @@ import {
 import { computeRequestHash, deduplicate, shouldDeduplicate } from "../services/requestDedup.ts";
 import { compressContext, estimateTokens, getTokenLimit } from "../services/contextManager.ts";
 import {
+  selectCompressionStrategy,
+  applyCompression,
+} from "../services/compression/strategySelector.ts";
+import { estimateCompressionTokens } from "../services/compression/stats.ts";
+import { getCompressionSettings } from "../../src/lib/db/compression.ts";
+import {
   getBackgroundTaskReason,
   getDegradedModel,
   getBackgroundDegradationConfig,
@@ -1562,7 +1568,7 @@ export async function handleChatCore({
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
 
-    // --- Modular Compression Pipeline (Phase 1: Lite mode) ---
+    // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
       const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
@@ -1572,7 +1578,7 @@ export async function handleChatCore({
       const config = await getCompressionSettings();
       const mode = selectCompressionStrategy(config, comboName ?? null, estimatedTokens);
       if (mode !== "off") {
-        const result = applyCompression(body, mode, { model: effectiveModel });
+        const result = applyCompression(body, mode, { model: effectiveModel, config });
         if (result.compressed && result.stats) {
           body = result.body as typeof body;
           estimatedTokens = result.stats.compressedTokens;
@@ -1635,6 +1641,31 @@ export async function handleChatCore({
       "CONTEXT",
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
+
+    // Prompt compression pipeline — Phase 1 (lite) + Phase 2 (standard/caveman)
+    try {
+      const compressionConfig = getCompressionSettings();
+      const estimatedTokens = estimateCompressionTokens(body);
+      const mode = selectCompressionStrategy(compressionConfig, comboName ?? null, estimatedTokens);
+      if (mode !== "off") {
+        const compressionResult = applyCompression(body as Record<string, unknown>, mode, {
+          model: effectiveModel,
+          config: compressionConfig,
+        });
+        if (compressionResult.compressed && compressionResult.stats) {
+          body = compressionResult.body as typeof body;
+          const s = compressionResult.stats;
+          log?.info?.(
+            "COMPRESSION",
+            `Prompt compression (${s.mode}): ${s.originalTokens} → ${s.compressedTokens} tokens (${s.savingsPercent}% savings, ${s.durationMs ?? 0}ms${
+              s.rulesApplied?.length ? `, rules: ${s.rulesApplied.join(", ")}` : ""
+            })`
+          );
+        }
+      }
+    } catch (err) {
+      log?.warn?.("COMPRESSION", "Prompt compression failed (non-fatal): " + err);
+    }
 
     if (estimatedTokens > threshold) {
       log?.info?.(

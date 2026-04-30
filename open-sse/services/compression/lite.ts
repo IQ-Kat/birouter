@@ -1,5 +1,5 @@
-import type { CompressionResult, CompressionMode } from "./types";
-import { createCompressionStats } from "./stats";
+import type { CompressionResult, CompressionMode } from "./types.ts";
+import { createCompressionStats } from "./stats.ts";
 
 interface Message {
   role: string;
@@ -157,7 +157,7 @@ export function applyLiteCompression(
     ? createCompressionStats(
         originalBody,
         current as Record<string, unknown>,
-        "lite",
+        "lite" as CompressionMode,
         techniquesApplied
       )
     : null;

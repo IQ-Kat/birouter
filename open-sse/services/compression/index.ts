@@ -1,20 +1,14 @@
-/**
- * Compression Pipeline — Phase 1 (Lite mode)
- *
- * Modular prompt compression that runs BEFORE the existing reactive context manager.
- * Lite mode: 5 techniques, ~10-15% token savings, <1ms latency.
- */
-
-// Types
 export type {
   CompressionMode,
   CompressionConfig,
   CompressionStats,
   CompressionResult,
-} from "./types";
-export { DEFAULT_COMPRESSION_CONFIG } from "./types";
+  CavemanConfig,
+  CavemanRule,
+} from "./types.ts";
 
-// Lite compression techniques
+export { DEFAULT_COMPRESSION_CONFIG, DEFAULT_CAVEMAN_CONFIG } from "./types.ts";
+
 export {
   applyLiteCompression,
   collapseWhitespace,
@@ -22,10 +16,23 @@ export {
   compressToolResults,
   removeRedundantContent,
   replaceImageUrls,
-} from "./lite";
+} from "./lite.ts";
 
-// Strategy selector
-export { selectCompressionStrategy, getEffectiveMode, applyCompression } from "./strategySelector";
+export { cavemanCompress, applyRulesToText } from "./caveman.ts";
+export { getRulesForContext, CAVEMAN_RULES } from "./cavemanRules.ts";
+export { extractPreservedBlocks, restorePreservedBlocks } from "./preservation.ts";
 
-// Stats tracking
-export { estimateCompressionTokens, createCompressionStats, trackCompressionStats } from "./stats";
+export {
+  estimateCompressionTokens,
+  createCompressionStats,
+  trackCompressionStats,
+  getDefaultCompressionConfig,
+} from "./stats.ts";
+
+export {
+  selectCompressionStrategy,
+  getEffectiveMode,
+  applyCompression,
+  checkComboOverride,
+  shouldAutoTrigger,
+} from "./strategySelector.ts";

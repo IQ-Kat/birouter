@@ -1,13 +1,27 @@
 /**
- * Compression Pipeline Types — Phase 1 (Lite mode)
+ * Compression Pipeline Types — Phase 1 (Lite) + Phase 2 (Standard/Caveman)
  *
- * Modular prompt compression that runs BEFORE the existing reactive context manager.
+ * Shared type definitions for the compression pipeline.
  */
 
-/** Compression mode levels (only 'off' and 'lite' are active in Phase 1) */
 export type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
 
-/** Compression configuration stored in DB */
+export interface CavemanRule {
+  name: string;
+  pattern: RegExp;
+  replacement: string | ((match: string, ...groups: string[]) => string);
+  context: "all" | "user" | "system" | "assistant";
+  preservePatterns?: RegExp[];
+}
+
+export interface CavemanConfig {
+  enabled: boolean;
+  compressRoles: ("user" | "assistant" | "system")[];
+  skipRules: string[];
+  minMessageLength: number;
+  preservePatterns: string[];
+}
+
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
@@ -15,9 +29,9 @@ export interface CompressionConfig {
   cacheMinutes: number;
   preserveSystemPrompt: boolean;
   comboOverrides: Record<string, CompressionMode>;
+  cavemanConfig?: CavemanConfig;
 }
 
-/** Per-request compression statistics */
 export interface CompressionStats {
   originalTokens: number;
   compressedTokens: number;
@@ -25,16 +39,16 @@ export interface CompressionStats {
   techniquesUsed: string[];
   mode: CompressionMode;
   timestamp: number;
+  rulesApplied?: string[];
+  durationMs?: number;
 }
 
-/** Result of a compression operation */
 export interface CompressionResult {
   body: Record<string, unknown>;
   compressed: boolean;
   stats: CompressionStats | null;
 }
 
-/** Default compression config values */
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   enabled: false,
   defaultMode: "off",
@@ -42,4 +56,12 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   cacheMinutes: 5,
   preserveSystemPrompt: true,
   comboOverrides: {},
+};
+
+export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
+  enabled: true,
+  compressRoles: ["user"],
+  skipRules: [],
+  minMessageLength: 50,
+  preservePatterns: [],
 };

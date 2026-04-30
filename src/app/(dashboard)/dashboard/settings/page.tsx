@@ -21,6 +21,7 @@ import ModelsDevSyncTab from "./components/ModelsDevSyncTab";
 import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 import PayloadRulesTab from "./components/PayloadRulesTab";
+import CompressionSettingsTab from "./components/CompressionSettingsTab";
 import VisionBridgeSettingsTab from "./components/VisionBridgeSettingsTab";
 import MitmProxyTab from "./components/MitmProxyTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
@@ -96,6 +97,7 @@ export default function SettingsPage() {
           {activeTab === "ai" && (
             <div className="flex flex-col gap-6">
               <ThinkingBudgetTab />
+              <CompressionSettingsTab />
               <VisionBridgeSettingsTab />
               <SystemPromptTab />
               <CacheSettingsTab />
