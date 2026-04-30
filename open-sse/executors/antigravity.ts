@@ -1,5 +1,6 @@
 import crypto, { randomUUID } from "crypto";
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
+import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
@@ -15,6 +16,7 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
+import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
@@ -25,6 +27,38 @@ const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
+
+function cloneAntigravityRequestBody(body: unknown): unknown {
+  if (!body || typeof body !== "object") {
+    return body;
+  }
+
+  try {
+    return structuredClone(body);
+  } catch {
+    return JSON.parse(JSON.stringify(body));
+  }
+}
+
+function serializeAntigravityRequest(
+  provider: string,
+  headers: Record<string, string>,
+  body: unknown
+): { headers: Record<string, string>; bodyString: string } {
+  const serializedBody = cloneAntigravityRequestBody(body);
+
+  if (!isCliCompatEnabled(provider)) {
+    return { headers, bodyString: JSON.stringify(serializedBody) };
+  }
+  return applyFingerprint(provider, { ...headers }, serializedBody);
+}
+
+type AntigravityCollectedStream = {
+  textContent: string;
+  finishReason: string;
+  usage: Record<string, unknown> | null;
+  remainingCredits: Array<{ creditType: string; creditAmount: string }> | null;
+};
 
 /**
  * Per-account GOOGLE_ONE_AI credits-exhausted tracker.
@@ -90,6 +124,72 @@ function markCreditsExhausted(accountId: string): void {
   creditsExhaustedUntil.set(accountId, Date.now() + CREDITS_EXHAUSTED_TTL_MS);
 }
 
+function processAntigravitySSEPayload(
+  payload: string,
+  collected: AntigravityCollectedStream,
+  log?: { debug?: (scope: string, message: string) => void }
+) {
+  if (!payload || payload === "[DONE]") return;
+  try {
+    const parsed = JSON.parse(payload);
+    const candidate = parsed?.response?.candidates?.[0];
+    if (candidate?.content?.parts) {
+      for (const part of candidate.content.parts) {
+        if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
+          collected.textContent += part.text;
+        }
+      }
+    }
+    if (candidate?.finishReason) {
+      collected.finishReason =
+        candidate.finishReason.toLowerCase() === "stop"
+          ? "stop"
+          : candidate.finishReason.toLowerCase();
+    }
+    if (parsed?.response?.usageMetadata) {
+      const um = parsed.response.usageMetadata;
+      collected.usage = {
+        prompt_tokens: um.promptTokenCount || 0,
+        completion_tokens: um.candidatesTokenCount || 0,
+        total_tokens: um.totalTokenCount || 0,
+      };
+    }
+    if (Array.isArray(parsed?.remainingCredits)) {
+      collected.remainingCredits = parsed.remainingCredits;
+    }
+  } catch {
+    log?.debug?.("SSE_PARSE", `Skipping malformed SSE line: ${payload.slice(0, 80)}`);
+  }
+}
+
+function processAntigravitySSEText(
+  text: string,
+  partialLine: { value: string },
+  collected: AntigravityCollectedStream,
+  log?: { debug?: (scope: string, message: string) => void }
+) {
+  partialLine.value += text;
+  const lines = partialLine.value.split("\n");
+  partialLine.value = lines.pop() || "";
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    processAntigravitySSEPayload(trimmed.slice(5).trim(), collected, log);
+  }
+}
+
+function flushAntigravitySSEText(
+  partialLine: { value: string },
+  collected: AntigravityCollectedStream,
+  log?: { debug?: (scope: string, message: string) => void }
+) {
+  const trimmed = partialLine.value.trim();
+  partialLine.value = "";
+  if (!trimmed.startsWith("data:")) return;
+  processAntigravitySSEPayload(trimmed.slice(5).trim(), collected, log);
+}
+
 /**
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
  * Ensures the model name sent to the upstream API never contains a routing prefix.
@@ -104,6 +204,21 @@ function cleanModelName(model: string): string {
     clean = `${clean}-low`;
   }
   return clean;
+}
+
+function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | null): T {
+  if (!toolNameMap?.size || !payload || typeof payload !== "object") {
+    return payload;
+  }
+
+  const copy = Array.isArray(payload) ? ([...payload] as T) : ({ ...(payload as object) } as T);
+  Object.defineProperty(copy, "_toolNameMap", {
+    value: toolNameMap,
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
+  return copy;
 }
 
 export class AntigravityExecutor extends BaseExecutor {
@@ -351,7 +466,13 @@ export class AntigravityExecutor extends BaseExecutor {
     const SSE_COLLECT_TIMEOUT_MS = 120_000;
 
     const collect = async () => {
-      const chunks: string[] = [];
+      const collected: AntigravityCollectedStream = {
+        textContent: "",
+        finishReason: "stop",
+        usage: null,
+        remainingCredits: null,
+      };
+      const partialLine = { value: "" };
       let timedOut = false;
       const timeout = AbortSignal.timeout(SSE_COLLECT_TIMEOUT_MS);
       try {
@@ -368,7 +489,12 @@ export class AntigravityExecutor extends BaseExecutor {
             ),
           ]);
           if (done) break;
-          chunks.push(decoder.decode(value, { stream: true }));
+          processAntigravitySSEText(
+            decoder.decode(value, { stream: true }),
+            partialLine,
+            collected,
+            log
+          );
         }
       } catch (err) {
         const msg = err?.message || String(err);
@@ -376,51 +502,8 @@ export class AntigravityExecutor extends BaseExecutor {
         log?.warn?.("SSE_COLLECT", `Error collecting SSE stream: ${msg}`);
         // Fall through — return whatever was collected so far
       }
-      const rawSSE = chunks.join("");
-
-      // Parse Gemini SSE: each line is "data: {json}"
-      let textContent = "";
-      let finishReason = "stop";
-      let usage: Record<string, unknown> | null = null;
-      let remainingCredits: Array<{ creditType: string; creditAmount: string }> | null = null;
-      const lines = rawSSE.split("\n");
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith("data:")) continue;
-        const payload = trimmed.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
-        try {
-          const parsed = JSON.parse(payload);
-          const candidate = parsed?.response?.candidates?.[0];
-          if (candidate?.content?.parts) {
-            for (const part of candidate.content.parts) {
-              if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
-                textContent += part.text;
-              }
-            }
-          }
-          if (candidate?.finishReason) {
-            finishReason =
-              candidate.finishReason.toLowerCase() === "stop"
-                ? "stop"
-                : candidate.finishReason.toLowerCase();
-          }
-          if (parsed?.response?.usageMetadata) {
-            const um = parsed.response.usageMetadata;
-            usage = {
-              prompt_tokens: um.promptTokenCount || 0,
-              completion_tokens: um.candidatesTokenCount || 0,
-              total_tokens: um.totalTokenCount || 0,
-            };
-          }
-          // Credit balance — arrives in the final chunk alongside consumedCredits
-          if (Array.isArray(parsed?.remainingCredits)) {
-            remainingCredits = parsed.remainingCredits;
-          }
-        } catch (e) {
-          log?.debug?.("SSE_PARSE", `Skipping malformed SSE line: ${payload.slice(0, 80)}`);
-        }
-      }
+      processAntigravitySSEText(decoder.decode(), partialLine, collected, log);
+      flushAntigravitySSEText(partialLine, collected, log);
 
       const result = {
         id: `chatcmpl-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
@@ -430,13 +513,13 @@ export class AntigravityExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content: textContent },
-            finish_reason: timedOut ? "length" : finishReason,
+            message: { role: "assistant", content: collected.textContent },
+            finish_reason: timedOut ? "length" : collected.finishReason,
           },
         ],
-        ...(usage && { usage }),
+        ...(collected.usage && { usage: collected.usage }),
         // Expose credit balance for upstream consumers (usage service, dashboard)
-        ...(remainingCredits && { _remainingCredits: remainingCredits }),
+        ...(collected.remainingCredits && { _remainingCredits: collected.remainingCredits }),
       };
 
       const syntheticStatus = timedOut ? 504 : response.status;
@@ -490,6 +573,17 @@ export class AntigravityExecutor extends BaseExecutor {
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
       let transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
+      let requestToolNameMap: Map<string, string> | null = null;
+
+      if (transformedBody instanceof Response) {
+        return { response: transformedBody, url, headers, transformedBody: body };
+      }
+
+      if (transformedBody && typeof transformedBody === "object") {
+        const cloaked = cloakAntigravityToolPayload(transformedBody as Record<string, unknown>);
+        transformedBody = cloaked.body;
+        requestToolNameMap = cloaked.toolNameMap;
+      }
 
       // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
       // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
@@ -505,10 +599,17 @@ export class AntigravityExecutor extends BaseExecutor {
       }
 
       try {
+        const serializedRequest = serializeAntigravityRequest(
+          this.provider,
+          headers,
+          transformedBody
+        );
+        const finalHeaders = serializedRequest.headers;
+
         const response = await fetch(url, {
           method: "POST",
-          headers,
-          body: JSON.stringify(transformedBody),
+          headers: finalHeaders,
+          body: serializedRequest.bodyString,
           signal,
         });
 
@@ -558,11 +659,17 @@ export class AntigravityExecutor extends BaseExecutor {
               ) {
                 log?.info?.("AG_CREDITS", "Retrying with Google One AI credits");
                 const creditsBody = injectCreditsField(transformedBody);
+                const serializedCreditsRequest = serializeAntigravityRequest(
+                  this.provider,
+                  headers,
+                  creditsBody
+                );
+                const finalCreditsHeaders = serializedCreditsRequest.headers;
                 try {
                   const creditsResp = await fetch(url, {
                     method: "POST",
-                    headers,
-                    body: JSON.stringify(creditsBody),
+                    headers: finalCreditsHeaders,
+                    body: serializedCreditsRequest.bodyString,
                     signal,
                   });
                   if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
@@ -572,7 +679,7 @@ export class AntigravityExecutor extends BaseExecutor {
                         creditsResp,
                         model,
                         url,
-                        headers,
+                        finalCreditsHeaders,
                         creditsBody,
                         log,
                         signal
@@ -592,9 +699,17 @@ export class AntigravityExecutor extends BaseExecutor {
                       } catch {
                         /**/
                       }
-                      return collected;
+                      return {
+                        ...collected,
+                        transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+                      };
                     }
-                    return { response: creditsResp, url, headers, transformedBody: creditsBody };
+                    return {
+                      response: creditsResp,
+                      url,
+                      headers: finalCreditsHeaders,
+                      transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+                    };
                   }
 
                   // Credit retry also 429'd
@@ -690,7 +805,12 @@ export class AntigravityExecutor extends BaseExecutor {
               status: response.status,
               headers: response.headers,
             });
-            return { response: modifiedResponse, url, headers, transformedBody };
+            return {
+              response: modifiedResponse,
+              url,
+              headers: finalHeaders,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
           } catch (err) {
             log?.warn?.("RETRY", `Failed to embed retryAfterMs: ${err}`);
             // Fall back to original response
@@ -704,7 +824,7 @@ export class AntigravityExecutor extends BaseExecutor {
             response,
             model,
             url,
-            headers,
+            finalHeaders,
             transformedBody,
             log,
             signal
@@ -727,7 +847,10 @@ export class AntigravityExecutor extends BaseExecutor {
           } catch {
             /* balance cache is best-effort */
           }
-          return collected;
+          return {
+            ...collected,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
         }
 
         // Streaming path: wrap the response body in a pass-through TransformStream
@@ -735,18 +858,45 @@ export class AntigravityExecutor extends BaseExecutor {
         // consuming the stream. The client receives the unmodified SSE data.
         if (response.body) {
           let sseBuffer = "";
+          const decoder = new TextDecoder(); // Singleton for correct streaming decode
+          const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
+
           const passThrough = new TransformStream({
             transform(chunk, controller) {
               controller.enqueue(chunk);
               // Accumulate text to scan for remainingCredits
               try {
-                const text = new TextDecoder().decode(chunk, { stream: true });
+                const text = decoder.decode(chunk, { stream: true });
                 sseBuffer += text;
+                // Limit buffer size to prevent unbounded growth
+                // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
+                if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                  const lastNewline = sseBuffer.lastIndexOf(
+                    "\n",
+                    sseBuffer.length - MAX_BUFFER_SIZE
+                  );
+                  if (lastNewline !== -1) {
+                    sseBuffer = sseBuffer.slice(lastNewline + 1);
+                  } else {
+                    // No newline found in discard region — buffer contains an incomplete SSE line.
+                    // Discard it entirely to avoid returning malformed data; the remainingCredits
+                    // parser won't find valid data in a truncated line anyway.
+                    sseBuffer = "";
+                  }
+                }
               } catch {
                 /* decoding best-effort */
               }
             },
             flush() {
+              // Final decode for any remaining bytes
+              try {
+                const text = decoder.decode(); // Flush pending bytes
+                sseBuffer += text;
+              } catch {
+                /* decoding best-effort */
+              }
+
               // Parse the accumulated SSE data for remainingCredits
               try {
                 const lines = sseBuffer.split("\n");
@@ -784,10 +934,20 @@ export class AntigravityExecutor extends BaseExecutor {
             statusText: response.statusText,
             headers: response.headers,
           });
-          return { response: tappedResponse, url, headers, transformedBody };
+          return {
+            response: tappedResponse,
+            url,
+            headers: finalHeaders,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
         }
 
-        return { response, url, headers, transformedBody };
+        return {
+          response,
+          url,
+          headers: finalHeaders,
+          transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+        };
       } catch (error) {
         lastError = error;
         if (urlIndex + 1 < fallbackCount) {

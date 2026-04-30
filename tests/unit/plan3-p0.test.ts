@@ -28,19 +28,55 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
-test("getModelInfoCore resolves gpt-5.4 to codex", async () => {
-  const info = await getModelInfoCore("gpt-5.4", {});
+test("getModelInfoCore resolves codex-auto-review to codex", async () => {
+  const info = await getModelInfoCore("codex-auto-review", {});
   assert.equal(info.provider, "codex");
-  assert.equal(info.model, "gpt-5.4");
+  assert.equal(info.model, "codex-auto-review");
+});
+
+test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+  const info = await getModelInfoCore("gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
+test("getModelInfoCore keeps explicit gpt-5.5-medium separate from gpt-5.5", async () => {
+  const info = await getModelInfoCore("gpt-5.5-medium", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5-medium");
+});
+
+test("getModelInfoCore resolves explicit gpt-5.5 Codex model", async () => {
+  const info = await getModelInfoCore("cx/gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
+test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+  const info = await getModelInfoCore("gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
+test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
+  const info = await getModelInfoCore("gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
+});
+
+test("getModelInfoCore resolves explicit gpt-5.5 Codex model", async () => {
+  const info = await getModelInfoCore("cx/gpt-5.5", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5");
 });
 
 test("getModelInfoCore returns explicit ambiguity metadata for ambiguous unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4.5", {});
   assert.equal(info.provider, null);
-  assert.equal(info.errorType, "ambiguous_model");
-  assert.match(info.errorMessage, /Ambiguous model/i);
-  assert.ok(Array.isArray(info.candidateProviders));
-  assert.ok(info.candidateProviders.length >= 2);
+  assert.equal((info as any).errorType, "ambiguous_model");
+  assert.match((info as any).errorMessage, /Ambiguous model/i);
+  assert.ok(Array.isArray((info as any).candidateProviders));
+  assert.ok((info as any).candidateProviders.length >= 2);
 });
 
 test("getModelInfoCore canonicalizes github legacy alias with explicit provider prefix", async () => {
@@ -51,7 +87,7 @@ test("getModelInfoCore canonicalizes github legacy alias with explicit provider 
 
 test("GithubExecutor routes codex-family model to /responses", () => {
   const executor = new GithubExecutor();
-  const url = executor.buildUrl("gpt-5.1-codex", true);
+  const url = executor.buildUrl("gpt-5.3-codex", true);
   assert.match(url, /\/responses$/);
 });
 
@@ -65,8 +101,8 @@ test("DefaultExecutor uses x-api-key for kimi-coding-apikey", () => {
   const executor = new DefaultExecutor("kimi-coding-apikey");
   const headers = executor.buildHeaders({ apiKey: "sk-kimi-test" }, true);
 
-  assert.equal(headers["x-api-key"], "sk-kimi-test");
-  assert.equal(headers.Authorization, undefined);
+  assert.equal((headers as any)["x-api-key"], "sk-kimi-test");
+  assert.equal((headers as any).Authorization, undefined);
 });
 
 test("DefaultExecutor execute honors connection-level custom User-Agent", async () => {
@@ -75,7 +111,7 @@ test("DefaultExecutor execute honors connection-level custom User-Agent", async 
   let capturedHeaders = null;
 
   globalThis.fetch = async (_url, init = {}) => {
-    capturedHeaders = init.headers || null;
+    capturedHeaders = (init as any).headers || null;
     return new Response(JSON.stringify({ id: "chatcmpl-test" }), { status: 200 });
   };
 
@@ -108,7 +144,8 @@ test("CodexExecutor forces stream=true for upstream compatibility", () => {
   const transformed = executor.transformRequest(
     "gpt-5.1-codex",
     { model: "gpt-5.1-codex", input: [], stream: false },
-    false
+    false,
+    {}
   );
   assert.equal(transformed.stream, true);
 });
@@ -157,7 +194,8 @@ test("CodexExecutor maps fast service tier to priority", () => {
   const transformed = executor.transformRequest(
     "gpt-5.1-codex",
     { model: "gpt-5.1-codex", input: [], service_tier: "fast" },
-    true
+    true,
+    {}
   );
   assert.equal(transformed.service_tier, "priority");
 });
@@ -266,13 +304,14 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
       _nativeCodexPassthrough: true,
       stream: false,
     },
-    false
+    false,
+    {}
   );
 
   assert.equal(transformed.stream, true);
   assert.equal(transformed.service_tier, "priority");
   assert.equal(transformed.instructions, "custom system prompt");
-  assert.equal(transformed.store, true);
+  assert.equal(transformed.store, false);
   assert.deepEqual(transformed.metadata, { source: "codex-client" });
   assert.equal(transformed.reasoning.effort, "high");
   assert.equal(transformed.reasoning_effort, undefined);
@@ -346,15 +385,18 @@ test("translateNonStreamingResponse converts Responses API payload to OpenAI cha
     FORMATS.OPENAI
   );
 
-  assert.equal(translated.object, "chat.completion");
-  assert.equal(translated.model, "gpt-5.1-codex");
-  assert.equal(translated.choices[0].message.role, "assistant");
-  assert.equal(translated.choices[0].message.content, "Hello from responses API.");
-  assert.equal(translated.choices[0].finish_reason, "tool_calls");
-  assert.equal(translated.choices[0].message.tool_calls.length, 1);
-  assert.equal(translated.usage.prompt_tokens, 11);
-  assert.equal(translated.usage.completion_tokens, 7);
-  assert.equal(translated.usage.total_tokens, 18);
+  assert.equal((translated as any).object, "chat.completion");
+  assert.equal((translated as any).model, "gpt-5.1-codex");
+  (assert as any).equal((translated as any).choices[0].message.role, "assistant");
+  (assert as any).equal(
+    (translated as any).choices[0].message.content,
+    "Hello from responses API."
+  );
+  assert.equal((translated as any).choices[0].finish_reason, "tool_calls");
+  assert.equal(((translated as any).choices[0].message.tool_calls as any).length, 1);
+  assert.equal(((translated as any).usage as any).prompt_tokens, 11);
+  assert.equal((translated as any).usage.completion_tokens, 7);
+  assert.equal((translated as any).usage.total_tokens, 18);
 });
 
 test("extractUsageFromResponse reads usage from Responses API payload", () => {
@@ -393,12 +435,13 @@ test("detectFormat identifies OpenAI Responses by max_output_tokens without inpu
   assert.equal(format, FORMATS.OPENAI_RESPONSES);
 });
 
-test("detectFormatFromEndpoint forces OpenAI for /v1/chat/completions", () => {
+test("detectFormatFromEndpoint uses chat completions endpoint for OpenAI chat protocol", () => {
   const format = detectFormatFromEndpoint(
     {
-      model: "cc/claude-opus-4-6",
+      model: "test-model",
       messages: [{ role: "user", content: "hi" }],
-      max_tokens: 16,
+      input: "ignored for endpoint protocol detection",
+      max_output_tokens: 16,
       stream: false,
     },
     "/v1/chat/completions"

@@ -37,6 +37,55 @@ test("toJsonErrorPayload: wraps plain objects under error key", () => {
   });
 });
 
+test("toJsonErrorPayload: extracts provider errors arrays into message strings", () => {
+  assert.deepEqual(
+    toJsonErrorPayload({
+      errors: ["content-type must be multipart/form-data"],
+      name: "bad request",
+    }),
+    {
+      error: {
+        message: "content-type must be multipart/form-data",
+        type: "upstream_error",
+        code: "upstream_error",
+        details: {
+          errors: ["content-type must be multipart/form-data"],
+          name: "bad request",
+        },
+      },
+    }
+  );
+});
+
+test("toJsonErrorPayload: normalizes object entries in provider errors arrays", () => {
+  assert.deepEqual(
+    toJsonErrorPayload({
+      errors: [
+        { message: "first provider error" },
+        { detail: "second provider error" },
+        { code: "invalid_request", field: "prompt" },
+      ],
+      name: "bad request",
+    }),
+    {
+      error: {
+        message:
+          'first provider error, second provider error, {"code":"invalid_request","field":"prompt"}',
+        type: "upstream_error",
+        code: "upstream_error",
+        details: {
+          errors: [
+            { message: "first provider error" },
+            { detail: "second provider error" },
+            { code: "invalid_request", field: "prompt" },
+          ],
+          name: "bad request",
+        },
+      },
+    }
+  );
+});
+
 test("toJsonErrorPayload: parses JSON strings recursively", () => {
   const raw = JSON.stringify({ error: { message: "nested json", code: "bad_request" } });
   assert.deepEqual(toJsonErrorPayload(raw), {
@@ -76,7 +125,7 @@ test("createErrorResponse: infers error types from status and preserves details"
     message: "Conflict detected",
     details: { field: "name" },
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 409);
   assert.equal(body.error.message, "Conflict detected");
@@ -91,7 +140,7 @@ test("createErrorResponse: uses explicit type when provided", async () => {
     message: "teapot",
     type: "not_found",
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.error.type, "not_found");
 });
@@ -103,7 +152,7 @@ test("createErrorResponseFromUnknown: normalizes typed errors", async () => {
     type: "server_error",
     details: { retryable: true },
   });
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 503);
   assert.equal(body.error.message, "db exploded");
@@ -113,7 +162,7 @@ test("createErrorResponseFromUnknown: normalizes typed errors", async () => {
 
 test("createErrorResponseFromUnknown: falls back for non-object errors", async () => {
   const response = createErrorResponseFromUnknown("boom", "fallback message");
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 500);
   assert.equal(body.error.message, "fallback message");

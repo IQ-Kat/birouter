@@ -1,66 +1,69 @@
-import { NextResponse } from "next/server";
-import { getCompressionSettings, updateCompressionSettings } from "@/lib/db/compression";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getCompressionSettings, updateCompressionSettings } from "@/lib/db/compression";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const compressionModeValues = ["off", "lite", "standard", "aggressive", "ultra"] as const;
+const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
 
-const cavemanConfigSchema = z.object({
-  enabled: z.boolean().optional(),
-  compressRoles: z.array(z.enum(["user", "assistant", "system"])).optional(),
-  skipRules: z.array(z.string()).optional(),
-  minMessageLength: z.number().min(0).optional(),
-  preservePatterns: z.array(z.string()).optional(),
-});
+const cavemanConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    compressRoles: z.array(z.enum(["user", "assistant", "system"])).optional(),
+    skipRules: z.array(z.string()).optional(),
+    minMessageLength: z.number().int().min(0).optional(),
+    preservePatterns: z.array(z.string()).optional(),
+  })
+  .strict();
 
-const updateCompressionSchema = z.object({
-  enabled: z.boolean().optional(),
-  defaultMode: z.enum(compressionModeValues).optional(),
-  autoTriggerTokens: z.number().min(0).optional(),
-  cacheMinutes: z.number().min(0).optional(),
-  preserveSystemPrompt: z.boolean().optional(),
-  comboOverrides: z.record(z.string(), z.enum(compressionModeValues)).optional(),
-  cavemanConfig: cavemanConfigSchema.optional(),
-});
+const compressionSettingsUpdateSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    defaultMode: compressionModeSchema.optional(),
+    autoTriggerTokens: z.number().int().min(0).optional(),
+    cacheMinutes: z.number().int().min(1).max(60).optional(),
+    preserveSystemPrompt: z.boolean().optional(),
+    comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
+    cavemanConfig: cavemanConfigSchema.optional(),
+  })
+  .strict();
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const config = getCompressionSettings();
-    return NextResponse.json(config);
+    const settings = await getCompressionSettings();
+    return NextResponse.json(settings);
   } catch (error) {
-    console.error("Error reading compression config:", error);
-    return NextResponse.json({ error: "Failed to read compression config" }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
-export async function PUT(request: Request) {
-  let rawBody: unknown;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
+export async function PUT(request: NextRequest) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const validation = validateBody(updateCompressionSchema, rawBody);
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const validation = validateBody(compressionSettingsUpdateSchema, rawBody);
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const body = validation.data;
 
-    updateCompressionSettings(body as unknown as Record<string, unknown>);
-    const config = getCompressionSettings();
-    return NextResponse.json(config);
+    const settings = await updateCompressionSettings(
+      validation.data as Parameters<typeof updateCompressionSettings>[0]
+    );
+    return NextResponse.json(settings);
   } catch (error) {
-    console.error("Error updating compression config:", error);
-    return NextResponse.json({ error: "Failed to update compression config" }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

@@ -9,8 +9,18 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
-import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import {
+  getOpenAICompatibleType,
+  getTargetFormat,
+  isClaudeCodeCompatible,
+} from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
+import { buildDataRobotChatUrl } from "../config/datarobot.ts";
+import { buildAzureAiChatUrl } from "../config/azureAi.ts";
+import { buildBedrockChatUrl } from "../config/bedrock.ts";
+import { buildWatsonxChatUrl } from "../config/watsonx.ts";
+import { buildOciChatUrl } from "../config/oci.ts";
+import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -34,6 +44,26 @@ function normalizeDatabricksChatUrl(baseUrl) {
   return `${normalized}/chat/completions`;
 }
 
+function normalizeDataRobotChatUrl(baseUrl) {
+  return buildDataRobotChatUrl(baseUrl);
+}
+
+function normalizeAzureAiChatUrl(baseUrl, apiType = "chat") {
+  return buildAzureAiChatUrl(baseUrl, apiType);
+}
+
+function normalizeWatsonxChatUrl(baseUrl) {
+  return buildWatsonxChatUrl(baseUrl);
+}
+
+function normalizeOciChatUrl(baseUrl, apiType = "chat") {
+  return buildOciChatUrl(baseUrl, apiType);
+}
+
+function normalizeSapChatUrl(baseUrl) {
+  return buildSapChatUrl(baseUrl);
+}
+
 function normalizeXiaomiMimoChatUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
   return `${normalized}/chat/completions`;
@@ -49,6 +79,18 @@ function normalizeSnowflakeChatUrl(baseUrl) {
 function normalizeGigachatChatUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
   return `${normalized}/chat/completions`;
+}
+
+function normalizeOpenAIChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (
+    normalized.endsWith("/chat/completions") ||
+    normalized.endsWith("/responses") ||
+    normalized.endsWith("/chat")
+  ) {
+    return normalized;
+  }
+  return normalized.endsWith("/v1") ? `${normalized}/chat/completions` : normalized;
 }
 
 export class DefaultExecutor extends BaseExecutor {
@@ -98,6 +140,34 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeDatabricksChatUrl(baseUrl);
       }
+      case "datarobot": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeDataRobotChatUrl(baseUrl);
+      }
+      case "azure-ai": {
+        const apiType =
+          credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeAzureAiChatUrl(baseUrl, apiType);
+      }
+      case "bedrock": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return buildBedrockChatUrl(baseUrl);
+      }
+      case "watsonx": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeWatsonxChatUrl(baseUrl);
+      }
+      case "oci": {
+        const apiType =
+          credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeOciChatUrl(baseUrl, apiType);
+      }
+      case "sap": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeSapChatUrl(baseUrl);
+      }
       case "xiaomi-mimo": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeXiaomiMimoChatUrl(baseUrl);
@@ -109,6 +179,19 @@ export class DefaultExecutor extends BaseExecutor {
       case "gigachat": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeGigachatChatUrl(baseUrl);
+      }
+      case "lm-studio":
+      case "modal":
+      case "reka":
+      case "vllm":
+      case "lemonade":
+      case "llamafile":
+      case "triton":
+      case "docker-model-runner":
+      case "xinference":
+      case "oobabooga": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeOpenAIChatUrl(baseUrl);
       }
       case "claude":
       case "glm":
@@ -158,6 +241,49 @@ export class DefaultExecutor extends BaseExecutor {
       case "gigachat":
         headers["Authorization"] = `Bearer ${credentials.accessToken || effectiveKey}`;
         break;
+      case "clarifai": {
+        const clarifaiToken = effectiveKey || credentials.accessToken;
+        if (clarifaiToken) {
+          headers["Authorization"] = `Key ${clarifaiToken}`;
+        }
+        break;
+      }
+      case "azure-ai":
+        if (effectiveKey || credentials.accessToken) {
+          headers["api-key"] = effectiveKey || credentials.accessToken;
+        }
+        delete headers["Authorization"];
+        break;
+      case "oci": {
+        const bearerToken = effectiveKey || credentials.accessToken;
+        if (bearerToken) {
+          headers["Authorization"] = `Bearer ${bearerToken}`;
+        }
+        const projectId =
+          credentials.projectId ||
+          credentials?.providerSpecificData?.projectId ||
+          credentials?.providerSpecificData?.project;
+        if (projectId) {
+          headers["OpenAI-Project"] = projectId;
+        }
+        break;
+      }
+      case "sap": {
+        const bearerToken = effectiveKey || credentials.accessToken;
+        if (bearerToken) {
+          headers["Authorization"] = `Bearer ${bearerToken}`;
+        }
+        headers["AI-Resource-Group"] = getSapResourceGroup(credentials?.providerSpecificData);
+        break;
+      }
+      case "reka": {
+        const bearerToken = effectiveKey || credentials.accessToken;
+        if (bearerToken) {
+          headers["Authorization"] = `Bearer ${bearerToken}`;
+          headers["X-Api-Key"] = bearerToken;
+        }
+        break;
+      }
       case "claude":
       case "anthropic":
         effectiveKey
@@ -189,7 +315,10 @@ export class DefaultExecutor extends BaseExecutor {
             headers["anthropic-version"] = "2023-06-01";
           }
         } else {
-          headers["Authorization"] = `Bearer ${effectiveKey || credentials.accessToken}`;
+          const bearerToken = effectiveKey || credentials.accessToken;
+          if (bearerToken) {
+            headers["Authorization"] = `Bearer ${bearerToken}`;
+          }
         }
     }
 
@@ -218,10 +347,31 @@ export class DefaultExecutor extends BaseExecutor {
    */
   transformRequest(model, body, stream, credentials) {
     void model;
-    void stream;
-    void credentials;
-    const withDefaults = applyProviderRequestDefaults(body, this.config.requestDefaults);
-    if (this.provider === "qwen" && typeof body === "object" && body !== null) {
+    const cleanedBody = super.transformRequest(model, body, stream, credentials);
+    let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
+
+    if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
+      if (this.provider?.startsWith?.("anthropic-compatible-")) {
+        if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
+          const withoutStreamOptions = { ...withDefaults };
+          delete withoutStreamOptions.stream_options;
+          withDefaults = withoutStreamOptions;
+        }
+      } else if (
+        stream &&
+        getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai"
+      ) {
+        withDefaults = {
+          ...withDefaults,
+          stream_options: {
+            ...(withDefaults.stream_options || {}),
+            include_usage: true,
+          },
+        };
+      }
+    }
+
+    if (this.provider === "qwen" && typeof withDefaults === "object" && withDefaults !== null) {
       return sanitizeQwenThinkingToolChoice(withDefaults, "QwenExecutor");
     }
     return withDefaults;

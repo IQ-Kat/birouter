@@ -23,16 +23,89 @@ import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,
 } from "./streamPayloadCollector.ts";
-import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
+import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 import {
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
+import {
+  rememberResponseConversationState,
+  rememberResponseFunctionCalls,
+} from "../services/responsesToolCallState.ts";
 import { buildErrorBody } from "./error.ts";
+
+/**
+ * Race a response body read against a timeout.
+ * Prevents indefinite hangs when the upstream sends headers but stalls on the body.
+ */
+export function withBodyTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = FETCH_BODY_TIMEOUT_MS
+): Promise<T> {
+  if (timeoutMs <= 0) return promise;
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(`Response body read timeout after ${timeoutMs}ms`);
+      err.name = "BodyTimeoutError";
+      reject(err);
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
 
 export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
+
+const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+
+function markPendingRequestCleared(error: Error): Error {
+  (error as Error & Record<string, unknown>)[PENDING_REQUEST_CLEARED_MARKER] = true;
+  return error;
+}
+
+function buildResponsesOutputItemKey(item: unknown): string | null {
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return null;
+  }
+
+  const record = item as JsonRecord;
+  const type = typeof record.type === "string" ? record.type : "";
+  const id = typeof record.id === "string" ? record.id : "";
+  const callId = typeof record.call_id === "string" ? record.call_id : "";
+  const outputIndex = typeof record.output_index === "number" ? record.output_index : "";
+  const name = typeof record.name === "string" ? record.name : "";
+
+  if (!type && !id && !callId) {
+    return null;
+  }
+
+  return `${type}:${id}:${callId}:${outputIndex}:${name}`;
+}
+
+function pushUniqueResponsesOutputItems(target: unknown[], items: readonly unknown[]) {
+  const seen = new Set<string>();
+
+  for (const existingItem of target) {
+    const key = buildResponsesOutputItemKey(existingItem);
+    if (key) {
+      seen.add(key);
+    }
+  }
+
+  for (const item of items) {
+    const key = buildResponsesOutputItemKey(item);
+    if (key && seen.has(key)) {
+      continue;
+    }
+
+    target.push(item);
+    if (key) {
+      seen.add(key);
+    }
+  }
+}
 
 type StreamLogger = {
   appendProviderChunk?: (value: string) => void;
@@ -49,10 +122,18 @@ type StreamCompletePayload = {
   clientPayload?: unknown;
 };
 
+type StreamFailurePayload = {
+  status: number;
+  message: string;
+  code?: string;
+  type?: string;
+};
+
 type StreamOptions = {
   mode?: string;
   targetFormat?: string;
   sourceFormat?: string;
+  clientResponseFormat?: string | null;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -61,6 +142,7 @@ type StreamOptions = {
   apiKeyInfo?: unknown;
   body?: unknown;
   onComplete?: ((payload: StreamCompletePayload) => void) | null;
+  onFailure?: ((payload: StreamFailurePayload) => void | Promise<void>) | null;
 };
 
 type TranslateState = ReturnType<typeof initState> & {
@@ -86,6 +168,76 @@ type ToolCall = {
 };
 
 type UsageTokenRecord = Record<string, number>;
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
+
+function appendBoundedText(current: string, next: string): string {
+  if (!next) return current;
+  const combined = current + next;
+  if (combined.length <= STREAM_SUMMARY_TEXT_LIMIT) return combined;
+  return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
+}
+
+function toStreamFailureStatus(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
+    return value;
+  }
+  if (typeof value === "string" && /^\d{3}$/.test(value.trim())) {
+    const parsed = Number(value.trim());
+    return parsed >= 400 && parsed <= 599 ? parsed : null;
+  }
+  return null;
+}
+
+function looksLikeStreamRateLimit(code: string, type: string, message: string): boolean {
+  const haystack = `${code} ${type} ${message}`.toLowerCase();
+  return (
+    haystack.includes("usage_limit_reached") ||
+    haystack.includes("rate_limit") ||
+    haystack.includes("rate limit") ||
+    haystack.includes("quota") ||
+    haystack.includes("too many requests") ||
+    haystack.includes("limit reached") ||
+    haystack.includes("limit has been reached")
+  );
+}
+
+function normalizeStreamFailurePayload(payload: unknown): StreamFailurePayload | null {
+  const record = payload && typeof payload === "object" ? (payload as JsonRecord) : {};
+  const response = asRecord(record.response);
+  const error = Object.keys(asRecord(response.error)).length
+    ? asRecord(response.error)
+    : Object.keys(asRecord(record.error)).length
+      ? asRecord(record.error)
+      : record;
+  const code = typeof error.code === "string" ? error.code : "upstream_error";
+  const type = typeof error.type === "string" ? error.type : undefined;
+  const message =
+    typeof error.message === "string" && error.message.trim()
+      ? error.message
+      : typeof record.message === "string" && record.message.trim()
+        ? record.message
+        : "Upstream failure";
+  const status =
+    toStreamFailureStatus(error.status_code) ??
+    toStreamFailureStatus(error.status) ??
+    toStreamFailureStatus(response.status_code) ??
+    toStreamFailureStatus(response.status) ??
+    toStreamFailureStatus(record.status_code) ??
+    toStreamFailureStatus(record.status) ??
+    (looksLikeStreamRateLimit(code, type || "", message) ? 429 : 502);
+
+  return {
+    status,
+    message,
+    code,
+    ...(type ? { type } : {}),
+  };
+}
 
 type ClaudeEmptyResponseLifecycle = {
   hasMessageStart: boolean;
@@ -283,6 +435,80 @@ const STREAM_MODE = {
 };
 
 /**
+ * Lifecycle event types in OpenAI Responses API streams whose `response`
+ * payload is a snapshot of the request (echoes back `instructions` + `tools`).
+ */
+const RESPONSES_LIFECYCLE_EVENT_TYPES = new Set([
+  "response.created",
+  "response.in_progress",
+  "response.completed",
+]);
+
+/**
+ * Backfill `parsed.response.output` on a `response.completed` event from the
+ * snapshots accumulated as the stream progressed (`response.output_item.done`).
+ *
+ * Why: when the upstream request runs with `store: false`, OpenAI's Responses
+ * API leaves `response.output` empty in the final `response.completed`
+ * snapshot — clients that rebuild assistant messages from that snapshot
+ * (notably the GitHub Copilot CLI 1.0.36) end up with `choices: []` and never
+ * trigger tool execution. Codex CLI and others that consume per-item events
+ * are unaffected; backfilling the array makes both styles work.
+ *
+ * Returns true when `parsed.response.output` was empty and got replaced, so
+ * the caller can re-serialize.
+ */
+export function backfillResponsesCompletedOutput(
+  parsed: unknown,
+  collectedItems: readonly unknown[]
+): boolean {
+  if (!collectedItems.length) return false;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const obj = parsed as Record<string, unknown>;
+  if (obj.type !== "response.completed") return false;
+  const resp = obj.response;
+  if (!resp || typeof resp !== "object" || Array.isArray(resp)) return false;
+  const r = resp as Record<string, unknown>;
+  const existing = r.output;
+  if (Array.isArray(existing) && existing.length > 0) return false;
+  r.output = collectedItems.slice();
+  return true;
+}
+
+/**
+ * Strip the request echo (`instructions`, `tools`) from `parsed.response`
+ * on Responses API lifecycle events.
+ *
+ * Why: those fields can balloon the SSE message past 100 KB when the request
+ * carries large tool definitions / instructions. Some clients (notably the
+ * GitHub Copilot CLI) cannot process oversized SSE events and stop rendering
+ * mid-stream. The fields are pure echo of the original request — clients
+ * already hold the original locally — so removing them is observably safe.
+ *
+ * Returns true when the payload was modified and must be re-serialized.
+ */
+export function stripResponsesLifecycleEcho(parsed: unknown): boolean {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const obj = parsed as Record<string, unknown>;
+  if (typeof obj.type !== "string" || !RESPONSES_LIFECYCLE_EVENT_TYPES.has(obj.type)) {
+    return false;
+  }
+  const resp = obj.response;
+  if (!resp || typeof resp !== "object" || Array.isArray(resp)) return false;
+  const r = resp as Record<string, unknown>;
+  let changed = false;
+  if ("instructions" in r) {
+    delete r.instructions;
+    changed = true;
+  }
+  if ("tools" in r) {
+    delete r.tools;
+    changed = true;
+  }
+  return changed;
+}
+
+/**
  * Create unified SSE transform stream with idle timeout protection.
  * If the upstream provider stops sending data for STREAM_IDLE_TIMEOUT_MS,
  * the stream emits an error event and closes to prevent indefinite hanging.
@@ -304,6 +530,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     mode = STREAM_MODE.TRANSLATE,
     targetFormat,
     sourceFormat,
+    clientResponseFormat = null,
     provider = null,
     reqLogger = null,
     toolNameMap = null,
@@ -312,7 +539,13 @@ export function createSSEStream(options: StreamOptions = {}) {
     apiKeyInfo = null,
     body = null,
     onComplete = null,
+    onFailure = null,
   } = options;
+
+  const clientExpectsResponsesStream =
+    (mode === STREAM_MODE.PASSTHROUGH
+      ? clientResponseFormat === FORMATS.OPENAI_RESPONSES
+      : sourceFormat === FORMATS.OPENAI_RESPONSES) === true;
 
   let buffer = "";
   let usage: UsageTokenRecord | null = null;
@@ -339,6 +572,14 @@ export function createSSEStream(options: StreamOptions = {}) {
   // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
   let passthroughAccumulatedReasoning = "";
+  // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
+  // used to backfill `response.completed.response.output` when upstream returns it
+  // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
+  const passthroughResponsesOutputItems: unknown[] = [];
+  const passthroughResponsesPendingFunctionCalls = new Map<string, JsonRecord>();
+  let passthroughResponsesId: string | null = null;
+  let passthroughResponsesCurrentFunctionCallKey: string | null = null;
+  const passthroughResponsesReasoningSummarySeen = new Set<string>();
   const streamStartedAt = Date.now();
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
@@ -361,6 +602,13 @@ export function createSSEStream(options: StreamOptions = {}) {
   const claudeEmptyResponseLifecycle = createClaudeEmptyResponseLifecycle();
   let pendingPassthroughEventLine: string | null = null;
   let pendingPassthroughEventEmitted = false;
+
+  const clearIdleTimer = () => {
+    if (idleTimer) {
+      clearInterval(idleTimer);
+      idleTimer = null;
+    }
+  };
 
   const clearPendingPassthroughEvent = () => {
     pendingPassthroughEventLine = null;
@@ -499,6 +747,101 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller.enqueue(encoder.encode(comment));
   };
 
+  const getResponsesReasoningKey = (payload: Record<string, unknown>): string | null => {
+    if (typeof payload.item_id === "string" && payload.item_id) {
+      return payload.item_id;
+    }
+
+    const item =
+      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
+        ? (payload.item as Record<string, unknown>)
+        : null;
+    if (item && typeof item.id === "string" && item.id) {
+      return item.id;
+    }
+
+    const responseId =
+      typeof payload.response_id === "string" && payload.response_id
+        ? payload.response_id
+        : passthroughResponsesId;
+    const outputIndex =
+      typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
+        ? payload.output_index
+        : null;
+
+    return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
+  };
+
+  const emitSyntheticResponsesReasoningSummary = (
+    controller: TransformStreamDefaultController,
+    payload: Record<string, unknown>
+  ) => {
+    const item =
+      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
+        ? (payload.item as Record<string, unknown>)
+        : null;
+    if (!item || item.type !== "reasoning" || !Array.isArray(item.summary)) {
+      return;
+    }
+
+    const summaryText = item.summary
+      .map((part) => {
+        if (!part || typeof part !== "object" || Array.isArray(part)) {
+          return "";
+        }
+        return typeof (part as Record<string, unknown>).text === "string"
+          ? ((part as Record<string, unknown>).text as string)
+          : "";
+      })
+      .join("");
+
+    if (!summaryText) {
+      return;
+    }
+
+    const reasoningKey = getResponsesReasoningKey(payload);
+    if (!reasoningKey || passthroughResponsesReasoningSummarySeen.has(reasoningKey)) {
+      return;
+    }
+    passthroughResponsesReasoningSummarySeen.add(reasoningKey);
+
+    const itemId = typeof item.id === "string" && item.id ? item.id : reasoningKey;
+    const outputIndex =
+      typeof payload.output_index === "number" && Number.isInteger(payload.output_index)
+        ? payload.output_index
+        : 0;
+
+    const syntheticEvents = [
+      {
+        event: "response.reasoning_summary_text.delta",
+        body: {
+          type: "response.reasoning_summary_text.delta",
+          item_id: itemId,
+          output_index: outputIndex,
+          summary_index: 0,
+          delta: summaryText,
+        },
+      },
+      {
+        event: "response.reasoning_summary_part.done",
+        body: {
+          type: "response.reasoning_summary_part.done",
+          item_id: itemId,
+          output_index: outputIndex,
+          summary_index: 0,
+          part: { type: "summary_text", text: summaryText },
+        },
+      },
+    ];
+
+    for (const syntheticEvent of syntheticEvents) {
+      clientPayloadCollector.push(syntheticEvent.body);
+      const output = `event: ${syntheticEvent.event}\ndata: ${JSON.stringify(syntheticEvent.body)}\n\n`;
+      reqLogger?.appendConvertedChunk?.(output);
+      controller.enqueue(encoder.encode(output));
+    }
+  };
+
   return new TransformStream(
     {
       start(controller) {
@@ -507,8 +850,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           idleTimer = setInterval(() => {
             if (!streamTimedOut && Date.now() - lastChunkTime > STREAM_IDLE_TIMEOUT_MS) {
               streamTimedOut = true;
-              clearInterval(idleTimer);
-              idleTimer = null;
+              clearIdleTimer();
               const timeoutMsg = `[STREAM] Idle timeout: no data from ${provider || "provider"} for ${STREAM_IDLE_TIMEOUT_MS}ms (model: ${model || "unknown"})`;
               console.warn(timeoutMsg);
               trackPendingRequest(model, provider, connectionId, false);
@@ -520,7 +862,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               }).catch(() => {});
               const timeoutError = new Error(timeoutMsg);
               timeoutError.name = "StreamIdleTimeoutError";
-              controller.error(timeoutError);
+              controller.error(markPendingRequestCleared(timeoutError));
             }
           }, 10_000);
         }
@@ -544,6 +886,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             let output;
             let injectedUsage = false;
             let clientPayload: unknown = null;
+            let failurePayload: StreamFailurePayload | null = null;
 
             if (skipPassthroughEvent) {
               if (!trimmed) {
@@ -625,6 +968,15 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
+                  const responseId =
+                    typeof parsed.response?.id === "string"
+                      ? parsed.response.id
+                      : typeof parsed.response_id === "string"
+                        ? parsed.response_id
+                        : null;
+                  if (responseId) {
+                    passthroughResponsesId = responseId;
+                  }
                   // Responses SSE: only extract usage, forward payload as-is
                   const extracted = extractUsage(parsed);
                   if (extracted) {
@@ -633,7 +985,132 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // Track content length and accumulate for call log
                   if (parsed.delta && typeof parsed.delta === "string") {
                     totalContentLength += parsed.delta.length;
-                    passthroughAccumulatedContent += parsed.delta;
+                    passthroughAccumulatedContent = appendBoundedText(
+                      passthroughAccumulatedContent,
+                      parsed.delta
+                    );
+                  }
+                  if (parsed.type === "response.failed") {
+                    failurePayload = normalizeStreamFailurePayload(parsed);
+                  }
+                  if (
+                    parsed.type === "response.reasoning_summary_text.delta" ||
+                    parsed.type === "response.reasoning_summary_text.done" ||
+                    parsed.type === "response.reasoning_summary_part.done"
+                  ) {
+                    const reasoningKey = getResponsesReasoningKey(parsed);
+                    if (reasoningKey) {
+                      passthroughResponsesReasoningSummarySeen.add(reasoningKey);
+                    }
+                  }
+                  if (
+                    parsed.type === "response.output_item.added" &&
+                    parsed.item?.type === "function_call"
+                  ) {
+                    const item =
+                      parsed.item && typeof parsed.item === "object" && !Array.isArray(parsed.item)
+                        ? { ...(parsed.item as JsonRecord) }
+                        : null;
+                    const pendingKey =
+                      item && typeof item.id === "string"
+                        ? item.id
+                        : item && typeof item.call_id === "string"
+                          ? item.call_id
+                          : null;
+                    if (item && pendingKey) {
+                      if (typeof item.arguments !== "string") {
+                        item.arguments = "";
+                      }
+                      passthroughResponsesPendingFunctionCalls.set(pendingKey, item);
+                      passthroughResponsesCurrentFunctionCallKey = pendingKey;
+                    }
+                  }
+                  if (parsed.type === "response.function_call_arguments.delta") {
+                    const pendingKey =
+                      typeof parsed.item_id === "string"
+                        ? parsed.item_id
+                        : passthroughResponsesCurrentFunctionCallKey;
+                    const pending = pendingKey
+                      ? passthroughResponsesPendingFunctionCalls.get(pendingKey)
+                      : undefined;
+                    if (pending && typeof parsed.delta === "string") {
+                      const previousArgs =
+                        typeof pending.arguments === "string" ? pending.arguments : "";
+                      pending.arguments = previousArgs + parsed.delta;
+                    }
+                  }
+                  if (parsed.type === "response.function_call_arguments.done") {
+                    const pendingKey =
+                      typeof parsed.item_id === "string"
+                        ? parsed.item_id
+                        : passthroughResponsesCurrentFunctionCallKey;
+                    const pending = pendingKey
+                      ? passthroughResponsesPendingFunctionCalls.get(pendingKey)
+                      : undefined;
+                    if (pending) {
+                      if (typeof parsed.arguments === "string") {
+                        pending.arguments = parsed.arguments;
+                      }
+                      pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [pending]);
+                    }
+                  }
+                  // Capture each completed output item so the final
+                  // response.completed snapshot can be backfilled when upstream
+                  // returns an empty `output` (happens with store: false).
+                  if (parsed.type === "response.output_item.done" && parsed.item) {
+                    emitSyntheticResponsesReasoningSummary(controller, parsed);
+                    pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
+                    if (parsed.item?.type === "function_call") {
+                      const pendingKey =
+                        typeof parsed.item.id === "string"
+                          ? parsed.item.id
+                          : typeof parsed.item.call_id === "string"
+                            ? parsed.item.call_id
+                            : null;
+                      if (pendingKey) {
+                        passthroughResponsesPendingFunctionCalls.delete(pendingKey);
+                        if (passthroughResponsesCurrentFunctionCallKey === pendingKey) {
+                          passthroughResponsesCurrentFunctionCallKey = null;
+                        }
+                      }
+                    }
+                  }
+                  if (
+                    parsed.type === "response.completed" &&
+                    Array.isArray(parsed.response?.output) &&
+                    parsed.response.output.length > 0
+                  ) {
+                    pushUniqueResponsesOutputItems(
+                      passthroughResponsesOutputItems,
+                      parsed.response.output
+                    );
+                  }
+                  if (
+                    parsed.type === "response.completed" &&
+                    passthroughResponsesPendingFunctionCalls.size > 0
+                  ) {
+                    pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [
+                      ...passthroughResponsesPendingFunctionCalls.values(),
+                    ]);
+                    passthroughResponsesPendingFunctionCalls.clear();
+                    passthroughResponsesCurrentFunctionCallKey = null;
+                  }
+                  // Two transport-level fixes for Responses passthrough:
+                  //   1) Strip echoed `instructions` + `tools` from lifecycle
+                  //      events — they can balloon a single SSE event past
+                  //      100 KB and break parsers (e.g. GitHub Copilot CLI).
+                  //   2) Backfill `response.completed.response.output` when
+                  //      upstream sent it empty (store: false) — some clients
+                  //      build their tool-call list from that snapshot rather
+                  //      than from per-item events.
+                  const stripped = stripResponsesLifecycleEcho(parsed);
+                  const backfilled = backfillResponsesCompletedOutput(
+                    parsed,
+                    passthroughResponsesOutputItems
+                  );
+                  if (stripped || backfilled) {
+                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    injectedUsage = true;
                   }
                 } else if (isClaudeSSE) {
                   // Claude SSE: extract usage, track content, forward as-is
@@ -671,11 +1148,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // Track content length and accumulate from Claude format
                   if (parsed.delta?.text) {
                     totalContentLength += parsed.delta.text.length;
-                    passthroughAccumulatedContent += parsed.delta.text;
+                    passthroughAccumulatedContent = appendBoundedText(
+                      passthroughAccumulatedContent,
+                      parsed.delta.text
+                    );
                   }
                   if (parsed.delta?.thinking) {
                     totalContentLength += parsed.delta.thinking.length;
-                    passthroughAccumulatedContent += parsed.delta.thinking;
+                    passthroughAccumulatedContent = appendBoundedText(
+                      passthroughAccumulatedContent,
+                      parsed.delta.thinking
+                    );
                   }
                   if (restoredToolName) {
                     output = `data: ${JSON.stringify(parsed)}
@@ -722,7 +1205,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                     reasoningChunk.choices[0].finish_reason = null;
                     delete reasoningChunk.usage;
                     const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n`;
-                    passthroughAccumulatedReasoning += delta.reasoning_content;
+                    passthroughAccumulatedReasoning = appendBoundedText(
+                      passthroughAccumulatedReasoning,
+                      delta.reasoning_content
+                    );
                     totalContentLength += delta.reasoning_content.length;
                     clientPayloadCollector.push(reasoningChunk);
                     reqLogger?.appendConvertedChunk?.(rOutput);
@@ -776,9 +1262,15 @@ export function createSSEStream(options: StreamOptions = {}) {
                     totalContentLength += content.length;
                   }
                   if (typeof delta?.content === "string")
-                    passthroughAccumulatedContent += delta.content;
+                    passthroughAccumulatedContent = appendBoundedText(
+                      passthroughAccumulatedContent,
+                      delta.content
+                    );
                   if (typeof delta?.reasoning_content === "string")
-                    passthroughAccumulatedReasoning += delta.reasoning_content;
+                    passthroughAccumulatedReasoning = appendBoundedText(
+                      passthroughAccumulatedReasoning,
+                      delta.reasoning_content
+                    );
 
                   const extracted = extractUsage(parsed);
                   if (extracted) {
@@ -842,6 +1334,19 @@ export function createSSEStream(options: StreamOptions = {}) {
 
             reqLogger?.appendConvertedChunk?.(output);
             controller.enqueue(encoder.encode(output));
+            if (failurePayload) {
+              if (onFailure) {
+                try {
+                  void onFailure(failurePayload);
+                } catch {}
+              }
+              clearIdleTimer();
+              trackPendingRequest(model, provider, connectionId, false);
+              controller.error(
+                markPendingRequestCleared(new Error(failurePayload.message || "Upstream failure"))
+              );
+              return;
+            }
             if (!trimmed) {
               clearPendingPassthroughEvent();
             }
@@ -871,13 +1376,13 @@ export function createSSEStream(options: StreamOptions = {}) {
             const t = parsed.delta.text;
             totalContentLength += t.length;
             if (state?.accumulatedContent !== undefined && typeof t === "string")
-              state.accumulatedContent += t;
+              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
           }
           if (parsed.delta?.thinking) {
             const t = parsed.delta.thinking;
             totalContentLength += t.length;
             if (state?.accumulatedContent !== undefined && typeof t === "string")
-              state.accumulatedContent += t;
+              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
           }
 
           // OpenAI format
@@ -885,13 +1390,17 @@ export function createSSEStream(options: StreamOptions = {}) {
             const c = parsed.choices[0].delta.content;
             if (typeof c === "string") {
               totalContentLength += c.length;
-              if (state?.accumulatedContent !== undefined) state.accumulatedContent += c;
+              if (state?.accumulatedContent !== undefined)
+                state.accumulatedContent = appendBoundedText(state.accumulatedContent, c);
             } else if (Array.isArray(c)) {
               for (const part of c) {
                 if (part?.text && typeof part.text === "string") {
                   totalContentLength += part.text.length;
                   if (state?.accumulatedContent !== undefined)
-                    state.accumulatedContent += part.text;
+                    state.accumulatedContent = appendBoundedText(
+                      state.accumulatedContent,
+                      part.text
+                    );
                 }
               }
             }
@@ -900,7 +1409,8 @@ export function createSSEStream(options: StreamOptions = {}) {
             const r = parsed.choices[0].delta.reasoning_content;
             if (typeof r === "string") {
               totalContentLength += r.length;
-              if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
+              if (state?.accumulatedContent !== undefined)
+                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
             }
           }
           // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
@@ -913,7 +1423,8 @@ export function createSSEStream(options: StreamOptions = {}) {
               parsed.choices[0].delta.reasoning_content = r;
               delete parsed.choices[0].delta.reasoning;
               totalContentLength += r.length;
-              if (state?.accumulatedContent !== undefined) state.accumulatedContent += r;
+              if (state?.accumulatedContent !== undefined)
+                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
             }
           }
 
@@ -929,7 +1440,8 @@ export function createSSEStream(options: StreamOptions = {}) {
             for (const part of geminiChunk.candidates[0].content.parts) {
               if (part.text && typeof part.text === "string") {
                 totalContentLength += part.text.length;
-                if (state?.accumulatedContent !== undefined) state.accumulatedContent += part.text;
+                if (state?.accumulatedContent !== undefined)
+                  state.accumulatedContent = appendBoundedText(state.accumulatedContent, part.text);
               }
             }
           }
@@ -938,17 +1450,17 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (state?.accumulatedContent !== undefined) {
             if (typeof (parsed as JsonRecord).delta === "string") {
               const d = (parsed as JsonRecord).delta as string;
-              state.accumulatedContent += d;
+              state.accumulatedContent = appendBoundedText(state.accumulatedContent, d);
               totalContentLength += d.length;
             }
             if (typeof (parsed as JsonRecord).content === "string") {
               const c = (parsed as JsonRecord).content as string;
-              state.accumulatedContent += c;
+              state.accumulatedContent = appendBoundedText(state.accumulatedContent, c);
               totalContentLength += c.length;
             }
             if (typeof (parsed as JsonRecord).text === "string") {
               const t = (parsed as JsonRecord).text as string;
-              state.accumulatedContent += t;
+              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
               totalContentLength += t.length;
             }
           }
@@ -977,8 +1489,7 @@ export function createSSEStream(options: StreamOptions = {}) {
       async flush(controller) {
         // Clean up idle watchdog timer
         if (idleTimer) {
-          clearInterval(idleTimer);
-          idleTimer = null;
+          clearIdleTimer();
         }
         if (streamTimedOut) {
           return;
@@ -1044,6 +1555,25 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
             clearPendingPassthroughEvent();
 
+            if (passthroughResponsesId) {
+              const requestInput =
+                body && typeof body === "object" && Array.isArray((body as JsonRecord).input)
+                  ? ((body as JsonRecord).input as unknown[])
+                  : [];
+              rememberResponseConversationState(
+                passthroughResponsesId,
+                requestInput,
+                passthroughResponsesOutputItems
+              );
+            }
+
+            if (passthroughResponsesId && passthroughResponsesOutputItems.length > 0) {
+              rememberResponseFunctionCalls(
+                passthroughResponsesId,
+                passthroughResponsesOutputItems
+              );
+            }
+
             // Estimate usage if provider didn't return valid usage
             if (!hasValidUsage(usage) && totalContentLength > 0) {
               usage = estimateUsage(body, totalContentLength, sourceFormat || FORMATS.OPENAI);
@@ -1063,10 +1593,12 @@ export function createSSEStream(options: StreamOptions = {}) {
             if (!doneSent) {
               await emitFinalSseMetadata(controller, usage);
               doneSent = true;
-              clientPayloadCollector.push({ done: true });
-              const doneOutput = "data: [DONE]\n\n";
-              reqLogger?.appendConvertedChunk?.(doneOutput);
-              controller.enqueue(encoder.encode(doneOutput));
+              if (!clientExpectsResponsesStream) {
+                clientPayloadCollector.push({ done: true });
+                const doneOutput = "data: [DONE]\n\n";
+                reqLogger?.appendConvertedChunk?.(doneOutput);
+                controller.enqueue(encoder.encode(doneOutput));
+              }
             }
             // Notify caller for call log persistence (include full response body with accumulated content)
             if (onComplete) {
@@ -1172,6 +1704,16 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (state?.upstreamError) {
             const err = state.upstreamError;
             trackPendingRequest(model, provider, connectionId, false);
+            if (onFailure) {
+              try {
+                void onFailure({
+                  status: err.status,
+                  message: err.message,
+                  code: err.code,
+                  type: err.type,
+                });
+              } catch {}
+            }
 
             const errorBody = buildErrorBody(err.status, err.message);
             if (onComplete) {
@@ -1195,7 +1737,10 @@ export function createSSEStream(options: StreamOptions = {}) {
               } catch {}
             }
 
-            controller.error(new Error(err.message || "Upstream failure"));
+            clearIdleTimer();
+            controller.error(
+              markPendingRequestCleared(new Error(err.message || "Upstream failure"))
+            );
             return;
           }
 
@@ -1244,10 +1789,12 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (!doneSent) {
             await emitFinalSseMetadata(controller, state?.usage as Record<string, unknown> | null);
             doneSent = true;
-            clientPayloadCollector.push({ done: true });
-            const doneOutput = "data: [DONE]\n\n";
-            reqLogger?.appendConvertedChunk?.(doneOutput);
-            controller.enqueue(encoder.encode(doneOutput));
+            if (!clientExpectsResponsesStream) {
+              clientPayloadCollector.push({ done: true });
+              const doneOutput = "data: [DONE]\n\n";
+              reqLogger?.appendConvertedChunk?.(doneOutput);
+              controller.enqueue(encoder.encode(doneOutput));
+            }
           }
 
           // Estimate usage if provider didn't return valid usage (for translate mode)
@@ -1349,7 +1896,8 @@ export function createSSETransformStreamWithLogger(
   connectionId: string | null = null,
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
-  apiKeyInfo: unknown = null
+  apiKeyInfo: unknown = null,
+  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -1363,6 +1911,7 @@ export function createSSETransformStreamWithLogger(
     apiKeyInfo,
     body,
     onComplete,
+    onFailure,
   });
 }
 
@@ -1374,7 +1923,9 @@ export function createPassthroughStreamWithLogger(
   connectionId: string | null = null,
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
-  apiKeyInfo: unknown = null
+  apiKeyInfo: unknown = null,
+  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  clientResponseFormat: string | null = null
 ) {
   return createSSEStream({
     mode: STREAM_MODE.PASSTHROUGH,
@@ -1386,5 +1937,7 @@ export function createPassthroughStreamWithLogger(
     apiKeyInfo,
     body,
     onComplete,
+    onFailure,
+    clientResponseFormat,
   });
 }

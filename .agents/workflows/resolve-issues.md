@@ -10,6 +10,8 @@ This workflow fetches all open issues from the project's GitHub repository, clas
 
 > **BRANCH RULE**: All work MUST happen on the current `release/vX.Y.Z` branch. Never create separate `fix/` branches. If no release branch exists yet, create one first using `/generate-release` Phase 1 steps 1–5.
 
+> **⛔ PR PROHIBITION**: If a fix is associated with a contributor's PR, you MUST merge their PR — NEVER close it and re-implement the fix yourself. See `/review-prs` workflow for the full policy. The `gh pr close` command is FORBIDDEN unless the repository owner explicitly requests it.
+
 ## Steps
 
 ### 1. Identify the GitHub Repository
@@ -114,7 +116,8 @@ Before coding, perform deep source analysis to formulate a plan:
 3. **Read the full source file** — don't rely on grep snippets; understand the surrounding logic
 4. **Verify the root cause** — confirm the bug is reproducible based on the code, not just a user misconfiguration
 5. **Formulate a proposed solution** — detail the exact files and lines you will change and how you will solve it.
-6. **DO NOT modify the codebase yet** — wait for user approval on your report first.
+6. **Create an Implementation Plan file** — write your proposed solution to `_tasks/features-vX.Y.Z/<ISSUE_NUMBER>-<short-description>.plan.md` (e.g. `_tasks/features-v3.7.6/1810-auto-restore-probe-failed-db.plan.md`) where `vX.Y.Z` is the current branch version. The plan should contain an Overview, Pre-Implementation Checklist, and detailed Implementation Steps (Files, Changes).
+7. **DO NOT modify the codebase yet** — wait for user approval on your report and plan first.
 
 #### 5e. For "RESPOND" Issues
 

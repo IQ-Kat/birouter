@@ -1,16 +1,22 @@
-import { getDbInstance } from "./core.ts";
-import { invalidateDbCache } from "./readCache.ts";
+import { backupDbFile } from "./backup";
+import { getDbInstance } from "./core";
+import { invalidateDbCache } from "./readCache";
 import {
-  DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
-} from "../../../open-sse/services/compression/types.ts";
-import type {
-  CompressionConfig,
-  CavemanConfig,
-  CompressionMode,
-} from "../../../open-sse/services/compression/types.ts";
+  DEFAULT_COMPRESSION_CONFIG,
+  type CavemanConfig,
+  type CompressionConfig,
+  type CompressionMode,
+} from "@omniroute/open-sse/services/compression/types.ts";
 
 const NAMESPACE = "compression";
+const COMPRESSION_MODES = new Set<CompressionMode>([
+  "off",
+  "lite",
+  "standard",
+  "aggressive",
+  "ultra",
+]);
 
 type JsonRecord = Record<string, unknown>;
 
@@ -27,7 +33,31 @@ function parseJsonSafe(raw: string | null): unknown {
   }
 }
 
-export function getCompressionSettings(): CompressionConfig {
+function normalizeCavemanConfig(value: unknown): CavemanConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_CAVEMAN_CONFIG,
+    ...record,
+    compressRoles: Array.isArray(record.compressRoles)
+      ? record.compressRoles.filter(
+          (role): role is "user" | "assistant" | "system" =>
+            role === "user" || role === "assistant" || role === "system"
+        )
+      : DEFAULT_CAVEMAN_CONFIG.compressRoles,
+    skipRules: Array.isArray(record.skipRules)
+      ? record.skipRules.filter((rule): rule is string => typeof rule === "string")
+      : DEFAULT_CAVEMAN_CONFIG.skipRules,
+    minMessageLength:
+      typeof record.minMessageLength === "number" && Number.isFinite(record.minMessageLength)
+        ? Math.max(0, Math.floor(record.minMessageLength))
+        : DEFAULT_CAVEMAN_CONFIG.minMessageLength,
+    preservePatterns: Array.isArray(record.preservePatterns)
+      ? record.preservePatterns.filter((pattern): pattern is string => typeof pattern === "string")
+      : DEFAULT_CAVEMAN_CONFIG.preservePatterns,
+  };
+}
+
+export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(NAMESPACE);
 
@@ -40,40 +70,47 @@ export function getCompressionSettings(): CompressionConfig {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || !rawValue) continue;
+    if (!key || rawValue === null) continue;
     const parsed = parseJsonSafe(rawValue);
     if (parsed === undefined) continue;
 
     switch (key) {
       case "enabled":
-        config.enabled = !!parsed;
+        config.enabled = parsed === true;
         break;
       case "defaultMode":
-        if (["off", "lite", "standard", "aggressive", "ultra"].includes(parsed as string)) {
+        if (typeof parsed === "string" && COMPRESSION_MODES.has(parsed as CompressionMode)) {
           config.defaultMode = parsed as CompressionMode;
         }
         break;
       case "autoTriggerTokens":
-        config.autoTriggerTokens = typeof parsed === "number" ? parsed : 0;
+        config.autoTriggerTokens =
+          typeof parsed === "number" && Number.isFinite(parsed)
+            ? Math.max(0, Math.floor(parsed))
+            : 0;
         break;
       case "cacheMinutes":
-        config.cacheMinutes = typeof parsed === "number" ? parsed : 5;
+        config.cacheMinutes =
+          typeof parsed === "number" && Number.isFinite(parsed)
+            ? Math.max(1, Math.floor(parsed))
+            : DEFAULT_COMPRESSION_CONFIG.cacheMinutes;
         break;
       case "preserveSystemPrompt":
-        config.preserveSystemPrompt = !!parsed;
+        config.preserveSystemPrompt = parsed !== false;
         break;
       case "comboOverrides":
-        if (typeof parsed === "object" && parsed !== null) {
-          config.comboOverrides = parsed as Record<string, CompressionMode>;
+        if (parsed && typeof parsed === "object") {
+          const overrides: Record<string, CompressionMode> = {};
+          for (const [comboId, mode] of Object.entries(parsed as Record<string, unknown>)) {
+            if (typeof mode === "string" && COMPRESSION_MODES.has(mode as CompressionMode)) {
+              overrides[comboId] = mode as CompressionMode;
+            }
+          }
+          config.comboOverrides = overrides;
         }
         break;
       case "cavemanConfig":
-        if (typeof parsed === "object" && parsed !== null) {
-          config.cavemanConfig = {
-            ...DEFAULT_CAVEMAN_CONFIG,
-            ...(parsed as Partial<CavemanConfig>),
-          };
-        }
+        config.cavemanConfig = normalizeCavemanConfig(parsed);
         break;
     }
   }
@@ -81,18 +118,23 @@ export function getCompressionSettings(): CompressionConfig {
   return config;
 }
 
-export function updateCompressionSettings(settings: Record<string, unknown>): void {
+export async function updateCompressionSettings(
+  updates: Partial<CompressionConfig>
+): Promise<CompressionConfig> {
   const db = getDbInstance();
-  const upsert = db.prepare(
-    "INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?) ON CONFLICT(namespace, key) DO UPDATE SET value = excluded.value"
+  const insert = db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
   );
 
-  const transaction = db.transaction(() => {
-    for (const [key, value] of Object.entries(settings)) {
-      upsert.run(NAMESPACE, key, JSON.stringify(value));
+  const tx = db.transaction(() => {
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === undefined) continue;
+      insert.run(NAMESPACE, key, JSON.stringify(value));
     }
   });
 
-  transaction();
+  tx();
+  backupDbFile("pre-write");
   invalidateDbCache();
+  return getCompressionSettings();
 }

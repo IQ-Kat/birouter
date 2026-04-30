@@ -2,11 +2,7 @@ import type { CavemanConfig, CavemanRule, CompressionResult, CompressionMode } f
 import { DEFAULT_CAVEMAN_CONFIG } from "./types.ts";
 import { CAVEMAN_RULES, getRulesForContext } from "./cavemanRules.ts";
 import { extractPreservedBlocks, restorePreservedBlocks } from "./preservation.ts";
-import {
-  createCompressionStats,
-  estimateCompressionTokens,
-  trackCompressionStats,
-} from "./stats.ts";
+import { createCompressionStats, estimateCompressionTokens } from "./stats.ts";
 
 interface ChatMessage {
   role: string;
@@ -148,8 +144,6 @@ export function cavemanCompress(
     compressed,
     stats,
   };
-
-  trackCompressionStats(stats);
 
   return result;
 }
