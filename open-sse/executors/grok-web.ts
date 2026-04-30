@@ -19,6 +19,7 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { extractCookieValue } from "@/lib/providers/webCookieAuth";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -36,14 +37,13 @@ interface GrokModelInfo {
 }
 
 const MODEL_MAP: Record<string, GrokModelInfo> = {
-  auto: { modeId: "auto", isThinking: false },
   fast: { modeId: "fast", isThinking: false },
   expert: { modeId: "expert", isThinking: true },
   heavy: { modeId: "heavy", isThinking: true },
   "grok-420-computer-use-sa": { modeId: "grok-420-computer-use-sa", isThinking: true },
 
   // Legacy aliases retained for manually-entered model IDs.
-  "grok-4": { modeId: "auto", isThinking: false },
+  "grok-4": { modeId: "fast", isThinking: false },
   "grok-4.1-fast": { modeId: "fast", isThinking: false },
   "grok-4.1-expert": { modeId: "expert", isThinking: true },
   "grok-4-heavy": { modeId: "heavy", isThinking: true },
@@ -516,9 +516,9 @@ export class GrokWebExecutor extends BaseExecutor {
     // Resolve model → Grok Web mode
     const modelInfo = MODEL_MAP[model];
     if (!modelInfo) {
-      log?.info?.("GROK-WEB", `Unmapped model ${model}, defaulting to auto mode`);
+      log?.info?.("GROK-WEB", `Unmapped model ${model}, defaulting to fast mode`);
     }
-    const { modeId, isThinking } = modelInfo || MODEL_MAP.auto;
+    const { modeId, isThinking } = modelInfo || MODEL_MAP.fast;
 
     // Parse OpenAI messages → single Grok message string
     const message = parseOpenAIMessages(messages);
@@ -592,11 +592,11 @@ export class GrokWebExecutor extends BaseExecutor {
       traceparent: `00-${traceId}-${spanId}-00`,
     };
 
-    // Cookie auth — strip "sso=" prefix if user included it
+    // Cookie auth — accepts a bare value, "sso=<value>", or a full
+    // DevTools cookie blob; we extract the sso pair and ignore the rest.
     if (credentials.apiKey) {
-      let token = credentials.apiKey;
-      if (token.startsWith("sso=")) token = token.slice(4);
-      headers["Cookie"] = `sso=${token}`;
+      const token = extractCookieValue(credentials.apiKey, "sso");
+      if (token) headers["Cookie"] = `sso=${token}`;
     }
 
     // Apply upstream extra headers

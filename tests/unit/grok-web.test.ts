@@ -355,9 +355,9 @@ test("Provider registry: grok-web has correct models", async () => {
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const models = PROVIDER_MODELS["gw"];
   assert.ok(models, "gw should be in PROVIDER_MODELS");
-  assert.equal(models.length, 5, `Expected 5 models, got ${models.length}`);
+  assert.equal(models.length, 4, `Expected 4 models, got ${models.length}`);
   const ids = models.map((m: any) => m.id);
-  assert.ok(ids.includes("auto"));
+  assert.ok(!ids.includes("auto"), "auto modeId no longer accepted by grok.com");
   assert.ok(ids.includes("fast"));
   assert.ok(ids.includes("expert"));
   assert.ok(ids.includes("heavy"));

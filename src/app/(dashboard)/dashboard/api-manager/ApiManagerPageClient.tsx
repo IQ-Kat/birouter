@@ -6,7 +6,7 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 
 // Constants for validation
-const MAX_KEY_NAME_LENGTH = 100;
+const MAX_KEY_NAME_LENGTH = 200;
 const MAX_SELECTED_MODELS = 500;
 
 // Debounce hook for search optimization
@@ -232,14 +232,13 @@ export default function ApiManagerPageClient() {
   const clearError = useCallback(() => setError(null), []);
 
   const handleCreateKey = async () => {
-    // Validate and sanitize input
-    const sanitizedName = sanitizeInput(newKeyName);
-    const validation = validateKeyName(sanitizedName, t);
-
+    // Validate raw input first, then sanitize
+    const validation = validateKeyName(newKeyName, t);
     if (!validation.valid) {
       setError(validation.error || t("invalidKeyName"));
       return;
     }
+    const sanitizedName = sanitizeInput(newKeyName);
 
     setIsSubmitting(true);
     clearError();
@@ -322,6 +321,7 @@ export default function ApiManagerPageClient() {
   };
 
   const handleUpdatePermissions = async (
+    name: string,
     allowedModels: string[],
     noLog: boolean,
     allowedConnections: string[],
@@ -331,6 +331,14 @@ export default function ApiManagerPageClient() {
     accessSchedule: AccessSchedule | null
   ) => {
     if (!editingKey || !editingKey.id) return;
+
+    // Validate raw input first, then sanitize
+    const nameValidation = validateKeyName(name, t);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || t("invalidKeyName"));
+      return;
+    }
+    const sanitizedName = sanitizeInput(name);
 
     // Validate models array
     if (!Array.isArray(allowedModels)) {
@@ -366,6 +374,7 @@ export default function ApiManagerPageClient() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: sanitizedName,
           allowedModels: validModels,
           allowedConnections: validConnections,
           noLog,
@@ -764,6 +773,7 @@ export default function ApiManagerPageClient() {
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
               placeholder={t("keyNamePlaceholder")}
+              maxLength={MAX_KEY_NAME_LENGTH}
               autoFocus
             />
             <p className="text-xs text-text-muted mt-1.5">{t("keyNameDesc")}</p>
@@ -862,6 +872,7 @@ const PermissionsModal = memo(function PermissionsModal({
   searchModel: string;
   onSearchChange: (v: string) => void;
   onSave: (
+    name: string,
     models: string[],
     noLog: boolean,
     connections: string[],
@@ -879,6 +890,7 @@ const PermissionsModal = memo(function PermissionsModal({
   const initialConnections = Array.isArray(apiKey?.allowedConnections)
     ? apiKey.allowedConnections
     : [];
+  const [keyName, setKeyName] = useState(apiKey?.name ?? "");
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
   const [allowAll, setAllowAll] = useState(initialModels.length === 0);
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
@@ -993,6 +1005,7 @@ const PermissionsModal = memo(function PermissionsModal({
         }
       : null;
     onSave(
+      keyName,
       allowAll ? [] : selectedModels,
       noLogEnabled,
       allowAllConnections ? [] : selectedConnections,
@@ -1003,6 +1016,7 @@ const PermissionsModal = memo(function PermissionsModal({
     );
   }, [
     onSave,
+    keyName,
     allowAll,
     selectedModels,
     noLogEnabled,
@@ -1028,6 +1042,22 @@ const PermissionsModal = memo(function PermissionsModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {/* Key Name */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("keyName")}</p>
+            <p className="text-xs text-text-muted">{t("keyNameDesc")}</p>
+          </div>
+          <div className="w-48 shrink-0">
+            <Input
+              value={keyName}
+              onChange={(e) => setKeyName(e.target.value)}
+              placeholder={t("keyNamePlaceholder")}
+              maxLength={MAX_KEY_NAME_LENGTH}
+            />
+          </div>
+        </div>
+
         {/* Access Mode Toggle */}
         <div className="flex gap-2 p-1 bg-surface rounded-lg">
           <button

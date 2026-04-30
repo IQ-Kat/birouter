@@ -438,6 +438,47 @@ test("PATCH /api/keys/[id] updates permissions and rejects invalid payloads", as
   assert.equal(missingKeyBody.error, "Key not found");
 });
 
+test("PATCH /api/keys/[id] renames a key and rejects invalid names", async () => {
+  await enableManagementAuth();
+  await createManagementKey();
+  const created = await apiKeysDb.createApiKey("Original Name", MACHINE_ID);
+
+  // Valid rename
+  const renameResponse = await keyRoute.PATCH(
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}`, {
+      method: "PATCH",
+      body: { name: "Renamed Key" },
+    }),
+    { params: Promise.resolve({ id: created.id }) }
+  );
+  const renameBody = (await renameResponse.json()) as any;
+  const renamed = await apiKeysDb.getApiKeyById(created.id);
+
+  assert.equal(renameResponse.status, 200);
+  assert.equal(renameBody.name, "Renamed Key");
+  assert.equal(renamed?.name, "Renamed Key");
+
+  // Empty name should be rejected by Zod schema (min(1))
+  const emptyNameResponse = await keyRoute.PATCH(
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}`, {
+      method: "PATCH",
+      body: { name: "   " },
+    }),
+    { params: Promise.resolve({ id: created.id }) }
+  );
+  assert.equal(emptyNameResponse.status, 400);
+
+  // Name too long should be rejected (max 200)
+  const longNameResponse = await keyRoute.PATCH(
+    await makeManagementSessionRequest(`http://localhost/api/keys/${created.id}`, {
+      method: "PATCH",
+      body: { name: "x".repeat(201) },
+    }),
+    { params: Promise.resolve({ id: created.id }) }
+  );
+  assert.equal(longNameResponse.status, 400);
+});
+
 test("DELETE /api/keys/[id] removes keys and reports missing resources", async () => {
   await enableManagementAuth();
   await createManagementKey();

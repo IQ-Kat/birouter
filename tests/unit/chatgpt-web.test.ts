@@ -199,8 +199,8 @@ function installMockFetch({
         };
       }
       const tinyPng = Buffer.from([
-        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-        0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44,
+        0x52,
       ]);
       return {
         status: cfg.status,
@@ -1040,7 +1040,7 @@ test("Request: payload has correct ChatGPT shape", async () => {
     const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
     const body = JSON.parse(m.calls.bodies[convIdx]);
     assert.equal(body.action, "next");
-    assert.equal(body.model, "gpt-5-3");
+    assert.equal(body.model, "gpt-5-3-instant");
     // Plain text request → Temporary Chat stays ON. We disable it only for
     // image-gen prompts (see "Image gen: image-intent prompts" tests below).
     assert.equal(body.history_and_training_disabled, true);
@@ -1057,14 +1057,67 @@ test("Request: payload has correct ChatGPT shape", async () => {
 
 // ─── Provider registry ──────────────────────────────────────────────────────
 
-test("Provider registry: chatgpt-web is registered with gpt-5.3-instant model", async () => {
+test("Provider registry: chatgpt-web exposes the full ChatGPT Plus model catalog", async () => {
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const entry = getRegistryEntry("chatgpt-web");
   assert.ok(entry, "chatgpt-web should be in the registry");
   assert.equal(entry.executor, "chatgpt-web");
   assert.equal(entry.format, "openai");
   assert.equal(entry.authHeader, "cookie");
-  assert.ok(entry.models.find((m) => m.id === "gpt-5.3-instant"));
+
+  const ids = (entry.models || []).map((m) => m.id);
+  // Mirrors /backend-api/models for a Plus account (no "research" or
+  // "agent-mode" — those are specialty surfaces, not chat models).
+  for (const id of [
+    "gpt-5.3-instant",
+    "gpt-5.3",
+    "gpt-5.3-mini",
+    "gpt-5.5-thinking",
+    "gpt-5.4-thinking",
+    "gpt-5.4-thinking-mini",
+    "gpt-5.2-instant",
+    "gpt-5.2",
+    "gpt-5.2-thinking",
+    "gpt-5.1",
+    "gpt-5",
+    "gpt-5-mini",
+    "o3",
+  ]) {
+    assert.ok(ids.includes(id), `registry should list ${id}`);
+  }
+});
+
+test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT slugs", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const cases: Array<[string, string]> = [
+      ["gpt-5.3-instant", "gpt-5-3-instant"],
+      ["gpt-5.3", "gpt-5-3"],
+      ["gpt-5.5-thinking", "gpt-5-5-thinking"],
+      ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
+      ["gpt-5.2-thinking", "gpt-5-2-thinking"],
+      ["o3", "o3"],
+    ];
+    for (const [omniId, expectedSlug] of cases) {
+      m.calls.urls.length = 0;
+      m.calls.bodies.length = 0;
+      const executor = new ChatGptWebExecutor();
+      await executor.execute({
+        model: omniId,
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "test" },
+        signal: AbortSignal.timeout(10_000),
+        log: null,
+      });
+      const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+      const body = JSON.parse(m.calls.bodies[convIdx]);
+      assert.equal(body.model, expectedSlug, `${omniId} should map to ${expectedSlug}`);
+    }
+  } finally {
+    m.restore();
+  }
 });
 
 test("Image registry: cgpt-web/gpt-5.3-instant routes to ChatGPT Web image handler", async () => {
@@ -1647,7 +1700,11 @@ test("Image gen: sediment:// pointer prefers /files/<id>/download over /attachme
     // round-trip); the /attachment endpoint is a fallback for when the
     // primary 404s. The mock /files/ response also doubles as the image
     // bytes that are cached behind the emitted OmniRoute image URL.
-    assert.match(content, /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/, "image rendered");
+    assert.match(
+      content,
+      /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/,
+      "image rendered"
+    );
     assert.doesNotMatch(content, /files\.oaiusercontent\.com/);
     assert.equal(m.calls.fileDownload, 1, "tried /files/ endpoint first");
     assert.equal(m.calls.attachmentDownload, 0, "did not need /attachment fallback");
@@ -2188,7 +2245,11 @@ test("Image gen: bytes-fetch failure drops markdown (no signed-URL fallback)", a
     const json = await result.response.json();
     const content = json.choices[0].message.content;
     assert.doesNotMatch(content, /!\[image\]/, "no markdown for failed bytes fetch");
-    assert.doesNotMatch(content, /files\.oaiusercontent\.com/, "signed URL is never leaked to client");
+    assert.doesNotMatch(
+      content,
+      /files\.oaiusercontent\.com/,
+      "signed URL is never leaked to client"
+    );
     assert.equal(m.calls.fileDownload, 1, "download URL was attempted");
     assert.equal(m.calls.signedDownload, 1, "signed-bytes fetch was attempted and failed");
   } finally {
@@ -2257,9 +2318,17 @@ test("Image edit: file_0000XXXX (chatgpt-web edit result) falls back to /convers
     assert.equal(result.response.status, 200);
     const json = await result.response.json();
     const content = json.choices[0].message.content;
-    assert.match(content, /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/, "image rendered via fallback");
+    assert.match(
+      content,
+      /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/,
+      "image rendered via fallback"
+    );
     assert.equal(m.calls.fileDownload, 1, "tried /files/ first");
-    assert.equal(m.calls.attachmentDownload, 1, "fell back to /conversation/.../attachment/.../download");
+    assert.equal(
+      m.calls.attachmentDownload,
+      1,
+      "fell back to /conversation/.../attachment/.../download"
+    );
     assert.equal(m.calls.signedDownload, 1, "fetched signed bytes once");
   } finally {
     m.restore();
@@ -2342,12 +2411,13 @@ test("Image edit handler: bytes-hash match drives executor with cached conversat
   const m = installMockFetch({
     // Conv response must include an image pointer so the handler sees
     // markdown in the assistant message and treats the edit as successful.
-    conv: { status: 200, events: imageGenEvents({ pointer: "file-service://file-edited-day", text: "Done:" }) },
+    conv: {
+      status: 200,
+      events: imageGenEvents({ pointer: "file-service://file-edited-day", text: "Done:" }),
+    },
   });
   try {
-    const { handleImageEdit } = await import(
-      "../../open-sse/handlers/imageGeneration.ts"
-    );
+    const { handleImageEdit } = await import("../../open-sse/handlers/imageGeneration.ts");
     const result = await handleImageEdit({
       provider: "chatgpt-web",
       model: "gpt-5.3-instant",
@@ -2363,10 +2433,7 @@ test("Image edit handler: bytes-hash match drives executor with cached conversat
     assert.equal(sentBody.conversation_id, "conv-edit-handler");
     assert.equal(sentBody.parent_message_id, "msg-edit-handler");
     assert.equal(sentBody.history_and_training_disabled, false);
-    assert.match(
-      sentBody.messages[sentBody.messages.length - 1].content.parts[0],
-      /day time/
-    );
+    assert.match(sentBody.messages[sentBody.messages.length - 1].content.parts[0], /day time/);
   } finally {
     m.restore();
   }
@@ -2383,9 +2450,7 @@ test("Image edit handler: no cached match returns 400 (does not silently generat
 
   const m = installMockFetch();
   try {
-    const { handleImageEdit } = await import(
-      "../../open-sse/handlers/imageGeneration.ts"
-    );
+    const { handleImageEdit } = await import("../../open-sse/handlers/imageGeneration.ts");
     const foreignBytes = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0xde, 0xad, 0xbe, 0xef]);
     const result = await handleImageEdit({
       provider: "chatgpt-web",
@@ -2413,9 +2478,7 @@ test("Image gen handler: n>4 is rejected before any upstream call", async () => 
   reset();
   const m = installMockFetch();
   try {
-    const { handleImageGeneration } = await import(
-      "../../open-sse/handlers/imageGeneration.ts"
-    );
+    const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
     const result = await handleImageGeneration({
       body: { prompt: "draw a kitten", n: 5, model: "cgpt-web/gpt-5.3-instant" },
       credentials: { apiKey: "test" },
@@ -2443,5 +2506,9 @@ test("Image cache: deleting an entry decrements the byte counter", async () => {
   // Wait past the 10 ms TTL, then trigger eviction by reading.
   await new Promise((r) => setTimeout(r, 25));
   assert.equal(cacheMod.getChatGptImage(id), null, "entry expired");
-  assert.equal(cacheMod.__getChatGptImageCacheBytesForTesting(), 0, "bytes credited back on TTL evict");
+  assert.equal(
+    cacheMod.__getChatGptImageCacheBytesForTesting(),
+    0,
+    "bytes credited back on TTL evict"
+  );
 });

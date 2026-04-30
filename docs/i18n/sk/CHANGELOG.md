@@ -6,13 +6,129 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat:** ongoing development
+
+---
+
+## [3.7.5] — 2026-04-29
+
+### ✨ New Features
+
+- **feat(tunnels):** integrate native ngrok tunnel support with dashboard UI parity (#1753)
+- **feat(api-keys):** add rename support in the permissions modal — editable key name field with validation (#1796)
+
+### 🐛 Bug Fixes
+
+- **fix(dashboard):** add manual 'Clear All' button to terminate stalled long-running requests in Active Requests panel (#1799)
+- **fix(schema):** remove empty string values from optional tool parameters to prevent upstream validation errors (#1674)
+- **fix(providers):** ensure proper streaming cleanup and semaphore release to prevent stalls with nanoGPT (#1781)
+- **fix(db):** wrap quota_snapshots access in try/catch to gracefully handle pending database migrations (#1784)
+- **feat(providers):** add support for glm-cn (BigModel) provider (#1770)
+- **fix(grok-web):** fix Grok validator and cookie parsing (#1793)
+- **fix(antigravity):** scrub internal OmniRoute headers (#1794)
+- **fix(chatgpt-web):** restore validator + expand model catalog to ChatGPT Plus tier (#1792)
+- **fix(codex):** stabilize Copilot responses replay state (#1791)
+- **fix(antigravity):** cap Claude bridge output tokens (#1785)
+- **fix(schema):** strip `default` properties from tool-call JSON schemas during egress to prevent injection errors (#1782)
+- **fix(db):** add `quota_snapshots` table to core DB schema initialization to prevent startup failures on fresh installs
+- **fix(models):** apply blocked providers filter to non-chat catalog models (image, embedding, audio, etc.) (#1752)
+- **fix(antigravity):** stabilize streaming payload parsing and deduplicate usage/model metadata refreshes (#1748)
+- **fix(antigravity):** normalize Gemini bridge payloads — sanitize tool names, cap output tokens, and fix thinking budget (#1769)
+- **fix(sse):** propagate AbortSignal to pre-fetch semaphore and rate-limit awaits to prevent memory leaks (#1771)
+- **fix(models):** fix model sync import handling — separate synced models from custom models to prevent data loss (#1755)
+- **fix(codex):** improve VS Code Copilot /responses reasoning and tool follow-ups (#1750)
+- **fix(memory):** resolve build issues and implement memory UPSERT logic to prevent duplicate entries (#1763)
+- **fix(kiro):** support organization IDC OAuth with regional endpoints and refresh (#1754)
+- **fix(combo):** include 429 in provider circuit breaker to stop infinite retry loops on exhausted quotas (#1767)
+- **fix(claude):** respect client-set thinking/effort params — only inject adaptive thinking and high effort when the client hasn't explicitly set them, preventing forced quota drain on Claude Max accounts (#1761)
+- **fix(blackbox-web):** correct cookie name and populate session/subscription fields (#1776)
+- **fix(codex):** align client identity metadata (#1778)
+- **fix(claude):** fix support for claude-cli using Gemini provider (#1779)
+- **test(reasoning-cache):** isolate DB state using mkdtempSync to prevent 401 middleware errors
+
+### 🛠️ Maintenance
+
+- **chore(docs):** add MseeP.ai security assessment badge to README (#1727)
+- **chore(xiaomi):** update Xiaomi provider model list (#1759)
+- **chore(db):** move DB health endpoint to management API (#1757)
+- **chore(ui):** speed up endpoint initial render with background task loading (#1760)
+- **chore(workflows):** add strict PR contributor credit policy to prevent future merge credit loss
+
+### 🏆 Community Contributors Acknowledgment
+
+We identified that **37 community PRs** across past releases (v3.4.0 → v3.7.4) were manually integrated into release branches but closed instead of properly merged through GitHub, preventing contributors from receiving merge credit on their profiles. We sincerely apologize for this oversight and have since updated our workflows to ensure this never happens again.
+
+**The following contributors had their code and ideas integrated across multiple releases without proper merge credit. Thank you for your invaluable contributions to OmniRoute:**
+
+| Contributor                                            | Contributions (PRs)                                                      |
+| :----------------------------------------------------- | :----------------------------------------------------------------------- |
+| [@rdself](https://github.com/rdself)                   | #1742, #1357, #1356, #1089, #1069, #904, #880, #875, #853, #851, #974    |
+| [@oyi77](https://github.com/oyi77)                     | #1411, #1021, #990, #926, #908, #883, #881, #868, #862, #859, #850, #983 |
+| [@benzntech](https://github.com/benzntech)             | #1677, #1444, #1440, #1437, #1435                                        |
+| [@clousky2020](https://github.com/clousky2020)         | #1644, #1408                                                             |
+| [@christopher-s](https://github.com/christopher-s)     | #885, #868, #992                                                         |
+| [@kang-heewon](https://github.com/kang-heewon)         | #1235, #884                                                              |
+| [@backryun](https://github.com/backryun)               | #1627, #1358, #1722                                                      |
+| [@tombii](https://github.com/tombii)                   | #900, #856                                                               |
+| [@slewis3600](https://github.com/slewis3600)           | #1624                                                                    |
+| [@dhaern](https://github.com/dhaern)                   | #1647                                                                    |
+| [@JasonLandbridge](https://github.com/JasonLandbridge) | #1626                                                                    |
+| [@hartmark](https://github.com/hartmark)               | #1500                                                                    |
+| [@herjarsa](https://github.com/herjarsa)               | #1480                                                                    |
+| [@andruwa13](https://github.com/andruwa13)             | #1457                                                                    |
+| [@i1hwan](https://github.com/i1hwan)                   | #1386                                                                    |
+| [@xandr0s](https://github.com/xandr0s)                 | #1376                                                                    |
+| [@RaviTharuma](https://github.com/RaviTharuma)         | #1188                                                                    |
+| [@wlfonseca](https://github.com/wlfonseca)             | #1016                                                                    |
+| [@only4copilot](https://github.com/only4copilot)       | #1039, #855                                                              |
+| [@AndrewDragonIV](https://github.com/AndrewDragonIV)   | #898                                                                     |
+| [@dt418](https://github.com/dt418)                     | #896                                                                     |
+| [@willbnu](https://github.com/willbnu)                 | #882                                                                     |
+| [@defhouse](https://github.com/defhouse)               | #906                                                                     |
+| [@mercs2910](https://github.com/mercs2910)             | #1001                                                                    |
+| [@zen0bit](https://github.com/zen0bit)                 | #912                                                                     |
+| [@razllivan](https://github.com/razllivan)             | #987                                                                     |
+| [@foxy1402](https://github.com/foxy1402)               | #934                                                                     |
+| [@knopki](https://github.com/knopki)                   | #1434                                                                    |
+| [@dail45](https://github.com/dail45)                   | #1413                                                                    |
+
 ---
 
 ## [3.7.4] — 2026-04-28
 
+### ✨ New Features
+
+- **feat(ui):** add endpoint tunnel visibility settings (#1743)
+- **feat(cli):** refresh CLI fingerprint provider profiles (#1746)
+- **feat(proxy):** implement bulk proxy import via pipe-delimited parser with update-or-create (upsert) logic and real-time preview table
+- **feat(pwa):** add fullscreen installable PWA with manifest, service worker, and cross-platform app icons (#1728)
+
+### Bezpečnosť
+
+- **security:** replace insecure `Math.random` with `crypto.getRandomValues` for fallback UUID generation to resolve CodeQL CWE-338 finding (#182)
+
 ### 🐛 Bug Fixes
 
+- **fix(cc-compatible):** fix CC-compatible relay format and UI copy (#1742)
+- **fix(codex):** normalize max reasoning effort for Codex routing (#1744)
+- **fix(claude-code):** fix Claude Code gateway config helper (#1745)
+- **fix(db):** reconcile legacy `create_reasoning_cache` migration tracking to prevent version shadowing on `032` and resolve startup warnings (#1734)
+- **fix(db):** intercept `007` migration to use idempotent `IF NOT EXISTS` logic via `PRAGMA table_info`, preventing syntax crashes on fresh installs (#1733)
+- **fix(cc-compatible):** preserve Claude Code system skeleton to prevent request rejection by strict compatible upstream providers (#1740)
+
+- **fix(providers):** add API key validation for image-only providers and fix Stability AI requests to use `multipart/form-data` instead of JSON (#1726)
+- **fix(codex):** preserve `previous_response_id` and `conversation_id` fields when input array is empty to prevent schema validation errors (#1729)
+- **fix(searxng):** bypass UI validation block when `apiKeyOptional` is true and fix typing errors in provider dashboard to allow saving search providers without credentials (#1721)
+- **fix(proxy):** disable HTTP keep-alive and pipelining in Undici proxy dispatcher to prevent "Socket hang up" rotation failures
 - **stream:** correctly identify `thought` and `error` blocks in Antigravity/Gemini SSE streams to prevent premature 502 timeouts (#1725, #1705)
+
+### 🛠️ Maintenance
+
+- **workflow:** add phase 4 release monitoring instructions to `/generate-release` workflow
+- **test:** fix typescript compilation errors in unit tests to keep CI typecheck pipeline fully green
+- **test:** update responses store expectations for empty input arrays
 
 ---
 

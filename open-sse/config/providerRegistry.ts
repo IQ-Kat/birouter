@@ -228,7 +228,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
   maritalk: buildModels(["sabia-3", "sabia-3-small"]),
-  "xiaomi-mimo": buildModels(["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]),
+  "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",
@@ -735,6 +735,27 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [...GLM_SHARED_MODELS],
   },
 
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glm-cn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "glm-4-plus", name: "GLM-4 Plus" },
+      { id: "glm-4-0520", name: "GLM-4 0520" },
+      { id: "glm-4-air", name: "GLM-4 Air" },
+      { id: "glm-4-airx", name: "GLM-4 AirX" },
+      { id: "glm-4-long", name: "GLM-4 Long", contextLength: 1000000 },
+      { id: "glm-4-flashx", name: "GLM-4 FlashX" },
+      { id: "glm-4-flash", name: "GLM-4 Flash" },
+    ],
+    passthroughModels: true,
+  },
+
   glmt: {
     id: "glmt",
     alias: "glmt",
@@ -1087,7 +1108,21 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://chatgpt.com/backend-api/conversation",
     authType: "apikey",
     authHeader: "cookie",
-    models: [{ id: "gpt-5.3-instant", name: "GPT-5.3 Instant (via ChatGPT Web)" }],
+    models: [
+      { id: "gpt-5.3-instant", name: "GPT-5.3 Instant" },
+      { id: "gpt-5.3", name: "GPT-5.3" },
+      { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" },
+      { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" },
+      { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" },
+      { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" },
+      { id: "gpt-5.2-instant", name: "GPT-5.2 Instant" },
+      { id: "gpt-5.2", name: "GPT-5.2" },
+      { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" },
+      { id: "gpt-5.1", name: "GPT-5.1" },
+      { id: "gpt-5", name: "GPT-5" },
+      { id: "gpt-5-mini", name: "GPT-5 Mini" },
+      { id: "o3", name: "o3" },
+    ],
   },
 
   "grok-web": {
@@ -1100,7 +1135,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "auto", name: "Grok Auto" },
       { id: "fast", name: "Grok Fast" },
       { id: "expert", name: "Grok 4.20 Thinking" },
       { id: "heavy", name: "Grok 4.20 Multi Agent" },

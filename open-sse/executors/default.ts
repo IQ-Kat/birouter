@@ -347,7 +347,8 @@ export class DefaultExecutor extends BaseExecutor {
    */
   transformRequest(model, body, stream, credentials) {
     void model;
-    let withDefaults = applyProviderRequestDefaults(body, this.config.requestDefaults);
+    const cleanedBody = super.transformRequest(model, body, stream, credentials);
+    let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
 
     if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
       if (this.provider?.startsWith?.("anthropic-compatible-")) {
