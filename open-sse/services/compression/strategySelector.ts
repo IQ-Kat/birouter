@@ -50,11 +50,10 @@ export function applyCompression(
     return applyLiteCompression(body, options);
   }
   if (mode === "standard") {
-    const cavemanConfig = options?.config?.cavemanConfig;
-    if (cavemanConfig) {
-      return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
-    }
-    return { body, compressed: false, stats: null };
+    return cavemanCompress(
+      body as Parameters<typeof cavemanCompress>[0],
+      options?.config?.cavemanConfig
+    );
   }
   if (mode === "aggressive") {
     const messages = (body.messages ?? []) as Array<{
