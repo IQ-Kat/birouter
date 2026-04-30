@@ -375,7 +375,10 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
 
   // T13: Try wildcard alias (glob patterns like "claude-sonnet-*" → "anthropic/claude-sonnet-4-...")
   if (aliases && typeof aliases === "object") {
-    const aliasEntries = Object.entries(aliases).map(([pattern, target]) => ({ pattern, target }));
+    const aliasEntries = Object.entries(aliases).map(([pattern, target]) => ({
+      pattern,
+      target: target as string,
+    }));
     const wildcardMatch = resolveWildcardAlias(parsed.model, aliasEntries);
     if (wildcardMatch) {
       const target = wildcardMatch.target as string;

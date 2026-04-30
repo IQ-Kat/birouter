@@ -71,7 +71,7 @@ function installMockFetch({
   onFileDownload,
   onAttachmentDownload,
   onUserConfig,
-} = {}) {
+}: any = {}) {
   const calls = {
     session: 0,
     dpl: 0,
@@ -2724,8 +2724,8 @@ test("Image edit handler: no cached match returns 400 (does not silently generat
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal(result.status, 400);
-    assert.match(String(result.error), /generated through this OmniRoute instance/);
+    assert.equal((result as any).status, 400);
+    assert.match(String((result as any).error), /generated through this OmniRoute instance/);
     assert.equal(m.calls.session, 0, "no upstream calls were attempted");
     assert.equal(m.calls.conv, 0, "no chat-completion was attempted");
   } finally {
@@ -2748,8 +2748,8 @@ test("Image gen handler: n>4 is rejected before any upstream call", async () => 
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal(result.status, 400);
-    assert.match(String(result.error), /n=1\.\.4/);
+    assert.equal((result as any).status, 400);
+    assert.match(String((result as any).error), /n=1\.\.4/);
     assert.equal(m.calls.session, 0, "no session exchange was attempted");
     assert.equal(m.calls.conv, 0, "no conversation request was attempted");
   } finally {
