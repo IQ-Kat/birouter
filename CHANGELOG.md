@@ -8,14 +8,21 @@
 
 ### ✨ New Features
 
+- **Prompt Compression Pipeline:** Implemented a multi-phase prompt compression engine including `lite` (whitespace/duplication collapse), `aggressive` (summarization, tool compression), and `ultra` modes (heuristic pruning and SLM stub) (#1633, #1738, #1739, #1741)
+- **Compression Dashboard & Analytics:** Added a compression settings UI, real-time log viewer, pipeline statistics tracking, and interactive playground preview (#1756)
+- **Compression Caching & MCP:** Added caching-aware strategy adjustments to the compression pipeline, alongside new MCP tools for status and configuration (#1758)
 - **Analytics Custom Filters:** Added custom date range selection, API key filtering, and NULL key analytics backfilling to the Costs Dashboard (#1830)
 
 ### 🐛 Bug Fixes
 
 - **Rate-limit Watchdog:** Implemented a new rate-limit watchdog with environment override capabilities and Stage Tracing to prevent and diagnose silent wedges (#1828)
+- **Encryption Resiliency:** Prevent sending encrypted tokens to providers by returning null on decryption failure (#763d353)
+- **i18n & Locales:** Fixed OpenCode baseUrl locale placeholders and added compression keys across 32 languages
+- **Startup Stability:** Hardened resilience integration server startup logic (#9aa89b17)
 
 ### 🛠️ Maintenance
 
+- **Tests & Docs:** Expanded the test suite with 61 unit/integration tests for the compression pipeline and updated `AGENTS.md`
 - **Workflow:** Fixed the changelog extraction logic to accurately capture GitHub release descriptions
 
 ---
