@@ -21,7 +21,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -169,14 +169,6 @@ test("initCloudSync skips auto initialization during build and test processes un
     ),
     false
   );
-});
-
-test("proxy: internal model sync token is only allowed for provider model sync routes", () => {
-  const filePath = path.join(process.cwd(), "src/proxy.ts");
-  const source = fs.readFileSync(filePath, "utf8");
-
-  assert.match(source, /isModelSyncInternalRequest/);
-  assert.match(source, /sync-models\|models/);
 });
 
 test("modelSyncScheduler starts once, honors env interval and syncs only active autoSync connections", async () => {

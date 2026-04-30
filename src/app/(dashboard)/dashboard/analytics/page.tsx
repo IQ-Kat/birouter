@@ -20,7 +20,7 @@ export default function AnalyticsPage() {
     search: "Search request analytics — provider breakdown, cache hit rate, and cost tracking.",
     utilization: t("utilizationDescription"),
     comboHealth: t("comboHealthDescription"),
-    compression: "Compression analytics — token savings, mode breakdown, and provider stats.",
+    compression: t("compressionAnalyticsDescription"),
   };
 
   return (
@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
           { value: "search", label: "Search" },
           { value: "utilization", label: t("utilization") },
           { value: "comboHealth", label: t("comboHealth") },
-          { value: "compression", label: "Compression" },
+          { value: "compression", label: t("compressionAnalyticsTitle") },
         ]}
         value={activeTab}
         onChange={setActiveTab}

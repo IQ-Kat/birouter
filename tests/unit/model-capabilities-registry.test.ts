@@ -102,4 +102,27 @@ test("canonical model capability resolver merges models.dev data and keeps stati
     modelCapabilities.capThinkingBudget("antigravity/gemini-3.1-pro-high", 40000),
     32768
   );
+
+  const codexGpt55 = modelCapabilities.getResolvedModelCapabilities("codex/gpt-5.5");
+  assert.equal(codexGpt55.contextWindow, 1050000);
+  assert.equal(codexGpt55.maxOutputTokens, 128000);
+  assert.equal(codexGpt55.supportsThinking, true);
+  assert.equal(codexGpt55.supportsVision, true);
+});
+
+test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
+  // GPT OSS models should not be blocked by the heuristic
+  assert.equal(modelCapabilities.supportsToolCalling("fake-provider/gpt-oss-120b"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("gpt-oss-120b"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("nvidia/openai/gpt-oss-20b"), false); // in registry
+
+  // DeepSeek Reasoner supports tool calling
+  assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("deepseek/deepseek-r1"), true);
+
+  // Full capability resolution
+  const gptOss = modelCapabilities.getResolvedModelCapabilities("fake-provider/gpt-oss-120b");
+  assert.equal(gptOss.toolCalling, true);
+  const deepseek = modelCapabilities.getResolvedModelCapabilities("deepseek/deepseek-reasoner");
+  assert.equal(deepseek.toolCalling, true);
 });

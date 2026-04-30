@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
@@ -13,10 +12,11 @@ const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
 type OAuthModalProps = {
   isOpen: boolean;
   provider?: string;
-  providerInfo?: { name: string } | null;
+  providerInfo?: { name?: string } | null;
   onSuccess?: () => void;
   onClose: () => void;
   idcConfig?: unknown;
+  reauthConnection?: null | { id?: string };
 };
 
 /**
@@ -31,6 +31,7 @@ export default function OAuthModal({
   onSuccess,
   onClose,
   idcConfig,
+  reauthConnection,
 }: OAuthModalProps) {
   const t = useTranslations("oauthModal");
   const [step, setStep] = useState("waiting"); // waiting | input | success | error
@@ -42,33 +43,38 @@ export default function OAuthModal({
   const [polling, setPolling] = useState(false);
   const popupRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
+  const deviceVerificationUrl =
+    deviceData?.verification_uri_complete || deviceData?.verification_uri || "";
 
-  // State for client-only values to avoid hydration mismatch
-  const [isLocalhost, setIsLocalhost] = useState(false);
-  const [placeholderUrl, setPlaceholderUrl] = useState("/callback?code=...");
+  // Client-only runtime values
+  const runtimeLocation = useMemo(() => {
+    if (typeof window === "undefined") {
+      return {
+        isLocalhost: false,
+        isTrueLocalhost: false,
+        placeholderUrl: "/callback?code=...",
+      };
+    }
+
+    const hostname = window.location.hostname;
+    const isLocal =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+    const isTrulyLocal = hostname === "localhost" || hostname === "127.0.0.1";
+
+    return {
+      isLocalhost: isLocal,
+      isTrueLocalhost: isTrulyLocal,
+      placeholderUrl: `${window.location.origin}/callback?code=...`,
+    };
+  }, []);
+
+  const { isLocalhost, isTrueLocalhost, placeholderUrl } = runtimeLocation;
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
-
-  // Detect if running on true localhost vs LAN IP (client-side only)
-  // - True localhost (127.0.0.1/localhost): popup auto-callback works
-  // - LAN IPs (192.168.x, 10.x, 172.x): redirect URI uses localhost but callback
-  //   won't resolve back to the VPS, so use manual paste mode
-  const [isTrueLocalhost, setIsTrueLocalhost] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      const isLocal =
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname.startsWith("192.168.") ||
-        hostname.startsWith("10.") ||
-        /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
-      const isTrulyLocal = hostname === "localhost" || hostname === "127.0.0.1";
-      setIsLocalhost(isLocal);
-      setIsTrueLocalhost(isTrulyLocal);
-      setPlaceholderUrl(`${window.location.origin}/callback?code=...`);
-    }
-  }, []);
 
   // Define all useCallback hooks BEFORE the useEffects that reference them
 
@@ -91,6 +97,7 @@ export default function OAuthModal({
           body: JSON.stringify({
             code,
             redirectUri: authData.redirectUri,
+            connectionId: reauthConnection?.id,
             codeVerifier: authData.codeVerifier,
             ...(normalizedState ? { state: normalizedState } : {}),
           }),
@@ -139,7 +146,7 @@ export default function OAuthModal({
         setStep("error");
       }
     },
-    [authData, provider, onSuccess]
+    [authData, provider, onSuccess, reauthConnection]
   );
 
   // Poll for device code token
@@ -155,7 +162,12 @@ export default function OAuthModal({
           const res = await fetch(`/api/oauth/${provider}/poll`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deviceCode, codeVerifier, extraData }),
+            body: JSON.stringify({
+              deviceCode,
+              connectionId: reauthConnection?.id,
+              codeVerifier,
+              extraData,
+            }),
           });
 
           const data = await res.json();
@@ -186,7 +198,7 @@ export default function OAuthModal({
       setStep("error");
       setPolling(false);
     },
-    [provider, onSuccess]
+    [provider, onSuccess, reauthConnection]
   );
 
   // Start OAuth flow
@@ -200,13 +212,29 @@ export default function OAuthModal({
         provider === "github" ||
         provider === "qwen" ||
         provider === "kiro" ||
+        provider === "amazon-q" ||
         provider === "kimi-coding" ||
         provider === "kilocode"
       ) {
         setIsDeviceCode(true);
         setStep("waiting");
 
-        const res = await fetch(`/api/oauth/${provider}/device-code`);
+        const deviceCodeUrl = new URL(`/api/oauth/${provider}/device-code`, window.location.origin);
+        if (
+          (provider === "kiro" || provider === "amazon-q") &&
+          idcConfig &&
+          typeof idcConfig === "object"
+        ) {
+          const idc = idcConfig as { startUrl?: string; region?: string };
+          if (typeof idc.startUrl === "string" && idc.startUrl.trim()) {
+            deviceCodeUrl.searchParams.set("startUrl", idc.startUrl.trim());
+          }
+          if (typeof idc.region === "string" && idc.region.trim()) {
+            deviceCodeUrl.searchParams.set("region", idc.region.trim());
+          }
+        }
+
+        const res = await fetch(deviceCodeUrl.toString());
         const data = await res.json();
         if (!res.ok) {
           const errMsg =
@@ -225,8 +253,12 @@ export default function OAuthModal({
 
         // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
         const extraData =
-          provider === "kiro"
-            ? { _clientId: data._clientId, _clientSecret: data._clientSecret }
+          provider === "kiro" || provider === "amazon-q"
+            ? {
+                _clientId: data._clientId,
+                _clientSecret: data._clientSecret,
+                _region: data._region,
+              }
             : null;
         startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
         return;
@@ -268,7 +300,7 @@ export default function OAuthModal({
               const pollRes = await fetch(`/api/oauth/codex/poll-callback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
+                body: JSON.stringify({ connectionId: reauthConnection?.id }),
               });
               const pollData = await pollRes.json();
 
@@ -368,7 +400,15 @@ export default function OAuthModal({
       setError(err.message);
       setStep("error");
     }
-  }, [provider, isLocalhost, isTrueLocalhost, startPolling, onSuccess]);
+  }, [
+    provider,
+    isLocalhost,
+    isTrueLocalhost,
+    startPolling,
+    onSuccess,
+    reauthConnection,
+    idcConfig,
+  ]);
 
   // Reset guard when modal closes
   useEffect(() => {
@@ -603,12 +643,12 @@ export default function OAuthModal({
               <div className="bg-sidebar p-4 rounded-lg mb-4">
                 <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm break-all">{deviceData.verification_uri}</code>
+                  <code className="flex-1 text-sm break-all">{deviceVerificationUrl}</code>
                   <Button
                     size="sm"
                     variant="ghost"
                     icon={copied === "verify_url" ? "check" : "content_copy"}
-                    onClick={() => copy(deviceData.verification_uri, "verify_url")}
+                    onClick={() => copy(deviceVerificationUrl, "verify_url")}
                   />
                 </div>
               </div>
@@ -759,13 +799,3 @@ export default function OAuthModal({
     </Modal>
   );
 }
-
-OAuthModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  provider: PropTypes.string,
-  providerInfo: PropTypes.shape({
-    name: PropTypes.string,
-  }),
-  onSuccess: PropTypes.func,
-  onClose: PropTypes.func.isRequired,
-};

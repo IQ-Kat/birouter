@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { useTranslations } from "next-intl";
+import TelemetryCard from "./TelemetryCard";
 
 function formatUptime(seconds) {
   const d = Math.floor(seconds / 86400);
@@ -30,6 +31,18 @@ function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatRelativeTime(timestamp) {
+  if (!timestamp || !Number.isFinite(timestamp)) return null;
+  const diffMs = Math.max(0, Date.now() - timestamp);
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "<1m";
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d`;
 }
 
 const CB_STYLES = {
@@ -47,7 +60,6 @@ export default function HealthPage() {
   const [dbHealthError, setDbHealthError] = useState(null);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [telemetry, setTelemetry] = useState(null);
   const [cache, setCache] = useState(null);
   const [signatureCache, setSignatureCache] = useState(null);
   const [degradation, setDegradation] = useState(null);
@@ -69,7 +81,7 @@ export default function HealthPage() {
 
   const fetchDbHealth = useCallback(async () => {
     try {
-      const res = await fetch("/api/v1/db/health");
+      const res = await fetch("/api/db/health");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setDbHealth(json);
@@ -79,20 +91,18 @@ export default function HealthPage() {
     }
   }, []);
 
-  // Fetch telemetry, cache, and signature cache stats
+  // Fetch cache, signature cache, and degradation stats.
   const fetchExtras = useCallback(async () => {
     const results = await Promise.allSettled([
-      fetch("/api/telemetry/summary").then((r) => r.json()),
       fetch("/api/cache/stats").then((r) => r.json()),
       fetch("/api/rate-limits").then((r) => r.json()),
       fetch("/api/health/degradation").then((r) => r.json()),
     ]);
-    if (results[0].status === "fulfilled") setTelemetry(results[0].value);
-    if (results[1].status === "fulfilled") setCache(results[1].value);
-    if (results[2].status === "fulfilled" && results[2].value.cacheStats) {
-      setSignatureCache(results[2].value.cacheStats);
+    if (results[0].status === "fulfilled") setCache(results[0].value);
+    if (results[1].status === "fulfilled" && results[1].value.cacheStats) {
+      setSignatureCache(results[1].value.cacheStats);
     }
-    if (results[3].status === "fulfilled") setDegradation(results[3].value);
+    if (results[2].status === "fulfilled") setDegradation(results[2].value);
   }, []);
 
   useEffect(() => {
@@ -126,7 +136,7 @@ export default function HealthPage() {
   const handleRepairDb = async () => {
     setRepairingDb(true);
     try {
-      const res = await fetch("/api/v1/db/health", { method: "POST" });
+      const res = await fetch("/api/db/health", { method: "POST" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setDbHealth(json);
@@ -177,6 +187,7 @@ export default function HealthPage() {
     providerHealth,
     providerSummary,
     rateLimitStatus,
+    learnedLimits,
     lockouts,
     sessions,
     quotaMonitor,
@@ -233,6 +244,8 @@ export default function HealthPage() {
           {data.status === "healthy" ? t("allOperational") : t("issuesDetected")}
         </span>
       </div>
+
+      <TelemetryCard />
 
       <Card className="p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -604,38 +617,8 @@ export default function HealthPage() {
         </Card>
       )}
 
-      {/* Telemetry Cards — Latency & Prompt Cache */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Latency Card */}
-        <Card className="p-4">
-          <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">speed</span>
-            {t("latency")}
-          </h3>
-          {telemetry ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t("latencyP50")}</span>
-                <span className="font-mono">{fmtMs(telemetry.p50)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t("latencyP95")}</span>
-                <span className="font-mono">{fmtMs(telemetry.p95)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t("latencyP99")}</span>
-                <span className="font-mono">{fmtMs(telemetry.p99)}</span>
-              </div>
-              <div className="flex justify-between border-t border-border pt-2 mt-2">
-                <span className="text-text-muted">{t("totalRequests")}</span>
-                <span className="font-mono">{telemetry.totalRequests ?? 0}</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-text-muted">{t("noDataYet")}</p>
-          )}
-        </Card>
-
+      {/* Cache Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Prompt Cache Card */}
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
@@ -809,6 +792,9 @@ export default function HealthPage() {
                               {cb.failures === 1
                                 ? t("failures", { count: cb.failures })
                                 : t("failuresPlural", { count: cb.failures })}
+                              {Number(cb.retryAfterMs) > 0 && (
+                                <span className="ml-2">· retry in {fmtMs(cb.retryAfterMs)}</span>
+                              )}
                               {cb.lastFailure && (
                                 <span className="ml-2">
                                   · {t("lastFailure")}:{" "}
@@ -926,17 +912,41 @@ export default function HealthPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {entries.map(
                   ({ key, displayName, providerInfo, connectionId, model, status }: any) => {
+                    const learned = learnedLimits?.[key] || null;
                     const isActive = (status.queued || 0) + (status.running || 0) > 0;
                     const isQueued = (status.queued || 0) > 0;
+                    const learnedLimit =
+                      typeof learned?.limit === "number" && learned.limit > 0
+                        ? learned.limit
+                        : null;
+                    const learnedRemaining =
+                      typeof learned?.remaining === "number" ? learned.remaining : null;
+                    const learnedMinTime =
+                      typeof learned?.minTime === "number" && learned.minTime > 0
+                        ? learned.minTime
+                        : null;
+                    const learnedLastUpdated =
+                      typeof learned?.lastUpdated === "number" ? learned.lastUpdated : null;
+                    const lowRemaining =
+                      learnedLimit != null &&
+                      learnedRemaining != null &&
+                      learnedRemaining / learnedLimit <= 0.1;
+                    const exhausted = learnedRemaining != null && learnedRemaining <= 0;
+                    const quotaProgress =
+                      learnedLimit != null && learnedRemaining != null
+                        ? Math.max(0, Math.min(100, (learnedRemaining / learnedLimit) * 100))
+                        : null;
                     return (
                       <div
                         key={key}
                         className={`rounded-lg p-3 border transition-colors ${
-                          isQueued
-                            ? "bg-amber-500/5 border-amber-500/20"
-                            : isActive
-                              ? "bg-blue-500/5 border-blue-500/15"
-                              : "bg-surface/30 border-white/5"
+                          exhausted
+                            ? "bg-red-500/5 border-red-500/20"
+                            : isQueued || lowRemaining
+                              ? "bg-amber-500/5 border-amber-500/20"
+                              : isActive
+                                ? "bg-blue-500/5 border-blue-500/15"
+                                : "bg-surface/30 border-white/5"
                         }`}
                         title={key}
                       >
@@ -967,16 +977,49 @@ export default function HealthPage() {
                           </div>
                           <span
                             className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                              isQueued
-                                ? "bg-amber-500/15 text-amber-400"
-                                : isActive
-                                  ? "bg-blue-500/15 text-blue-400"
-                                  : "bg-green-500/10 text-green-400"
+                              exhausted
+                                ? "bg-red-500/15 text-red-400"
+                                : isQueued || lowRemaining
+                                  ? "bg-amber-500/15 text-amber-400"
+                                  : isActive
+                                    ? "bg-blue-500/15 text-blue-400"
+                                    : "bg-green-500/10 text-green-400"
                             }`}
                           >
-                            {isQueued ? t("queued") : isActive ? tc("active") : t("ok")}
+                            {exhausted
+                              ? t("limitExhausted")
+                              : isQueued || lowRemaining
+                                ? t("queued")
+                                : isActive
+                                  ? tc("active")
+                                  : t("ok")}
                           </span>
                         </div>
+                        {quotaProgress != null && (
+                          <div className="mb-3">
+                            <div className="mb-1 flex items-center justify-between text-[11px] text-text-muted">
+                              <span>{t("learnedFromHeaders")}</span>
+                              <span>
+                                {t("remainingOfLimit", {
+                                  remaining: learnedRemaining,
+                                  limit: learnedLimit,
+                                })}
+                              </span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-surface/70">
+                              <div
+                                className={`h-full rounded-full ${
+                                  exhausted
+                                    ? "bg-red-500"
+                                    : lowRemaining
+                                      ? "bg-amber-500"
+                                      : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${quotaProgress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-center gap-3 text-[11px] text-text-muted">
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[12px]">schedule</span>
@@ -989,6 +1032,20 @@ export default function HealthPage() {
                             {t("runningCount", { count: status.running || 0 })}
                           </span>
                         </div>
+                        {(learnedMinTime != null || learnedLastUpdated != null) && (
+                          <div className="mt-3 space-y-1 text-[11px] text-text-muted">
+                            {learnedMinTime != null && (
+                              <p>{t("throttleStatus", { value: `${learnedMinTime}ms/req` })}</p>
+                            )}
+                            {learnedLastUpdated != null && (
+                              <p>
+                                {t("lastHeaderUpdate", {
+                                  age: formatRelativeTime(learnedLastUpdated) || t("notAvailable"),
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   }

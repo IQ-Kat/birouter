@@ -40,11 +40,11 @@ export function selectCompressionStrategy(
   return getEffectiveMode(config, comboId, estimatedTokens);
 }
 
-export async function applyCompression(
+export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
   options?: { model?: string; config?: CompressionConfig }
-): Promise<CompressionResult> {
+): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
   }
@@ -52,11 +52,10 @@ export async function applyCompression(
     return applyLiteCompression(body, options);
   }
   if (mode === "standard") {
-    const cavemanConfig = options?.config?.cavemanConfig;
-    if (cavemanConfig) {
-      return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
-    }
-    return { body, compressed: false, stats: null };
+    return cavemanCompress(
+      body as Parameters<typeof cavemanCompress>[0],
+      options?.config?.cavemanConfig
+    );
   }
   if (mode === "aggressive") {
     const messages = (body.messages ?? []) as Array<{
@@ -93,7 +92,7 @@ export async function applyCompression(
       return { body, compressed: false, stats: null };
     }
     const ultraConfig = options?.config?.ultra;
-    const result = await ultraCompress(messages, ultraConfig ?? {});
+    const result = ultraCompress(messages, ultraConfig ?? {});
     const compressedBody = { ...body, messages: result.messages };
     return {
       body: compressedBody,

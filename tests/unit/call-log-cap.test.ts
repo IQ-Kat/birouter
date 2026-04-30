@@ -9,6 +9,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.CALL_LOG_RETENTION_DAYS = "3650";
 process.env.CALL_LOG_MAX_ENTRIES = "100";
 
+const ORIGINAL_CALL_LOG_PIPELINE_MAX_SIZE_KB = process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB;
+
 const core = await import("../../src/lib/db/core.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const detailedLogs = await import("../../src/lib/db/detailedLogs.ts");
@@ -17,6 +19,14 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+function restorePipelineEnv() {
+  if (ORIGINAL_CALL_LOG_PIPELINE_MAX_SIZE_KB === undefined) {
+    delete process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB;
+  } else {
+    process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = ORIGINAL_CALL_LOG_PIPELINE_MAX_SIZE_KB;
+  }
 }
 
 function insertCallLog(row) {
@@ -66,11 +76,13 @@ function insertCallLog(row) {
 }
 
 test.beforeEach(async () => {
+  restorePipelineEnv();
   process.env.CALL_LOG_RETENTION_DAYS = "3650";
   await resetStorage();
 });
 
 test.after(() => {
+  restorePipelineEnv();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -117,9 +129,9 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   assert.equal(detail?.comboStepId, "step-openai-a");
   assert.equal(detail?.comboExecutionKey, "combo-a:0:step-openai-a");
   assert.equal(detail?.pipelinePayloads?.clientRawRequest?.body?.raw, true);
-  assert.equal(detail?.pipelinePayloads?.providerRequest?.body?.translated, true);
-  assert.equal(detail?.pipelinePayloads?.providerResponse?.body?.upstream, true);
-  assert.equal(detail?.pipelinePayloads?.clientResponse?.body?.final, true);
+  assert.equal((detail?.pipelinePayloads?.providerRequest as any).body?.translated, true);
+  assert.equal((detail?.pipelinePayloads as any).providerResponse?.body?.upstream, true);
+  assert.equal((detail?.pipelinePayloads as any).clientResponse?.body?.final, true);
   assert.match(
     detail?.artifactRelPath || "",
     /^2026-03-30\/2026-03-30T12-34-56\.789Z_req_artifact_1\.json$/
@@ -129,7 +141,7 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   const columns = db
     .prepare("SELECT name FROM pragma_table_info('call_logs') ORDER BY cid")
     .all()
-    .map((row) => row.name);
+    .map((row) => (row as any).name);
   assert.equal(columns.includes("request_body"), false);
   assert.equal(columns.includes("response_body"), false);
   assert.equal(columns.includes("error"), false);
@@ -142,12 +154,12 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
     `
     )
     .get(logId);
-  assert.equal(summaryRow.detail_state, "ready");
-  assert.equal(summaryRow.cache_source, "semantic");
-  assert.equal(summaryRow.has_request_body, 1);
-  assert.equal(summaryRow.has_response_body, 1);
-  assert.equal(summaryRow.has_pipeline_details, 1);
-  assert.equal(typeof summaryRow.artifact_relpath, "string");
+  (assert as any).equal((summaryRow as any).detail_state, "ready");
+  assert.equal((summaryRow as any).cache_source, "semantic");
+  assert.equal((summaryRow as any).has_request_body, 1);
+  assert.equal((summaryRow as any).has_response_body, 1);
+  assert.equal((summaryRow as any).has_pipeline_details, 1);
+  assert.equal(typeof (summaryRow as any).artifact_relpath, "string");
 
   const artifactPath = path.join(TEST_DATA_DIR, "call_logs", detail.artifactRelPath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
@@ -192,12 +204,14 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
     .getDbInstance()
     .prepare("SELECT artifact_relpath FROM call_logs WHERE id = ?")
     .get("fresh-log");
-  const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", freshRow.artifact_relpath);
+  const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", (freshRow as any).artifact_relpath);
   assert.equal(
-    core
-      .getDbInstance()
-      .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
-      .get("expired-log").cnt,
+    (
+      core
+        .getDbInstance()
+        .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
+        .get("expired-log") as any
+    ).cnt,
     0
   );
   assert.equal(fs.existsSync(oldAbsPath), false);
@@ -207,7 +221,7 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
 
   const db = core.getDbInstance();
   assert.equal(
-    db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("fresh-log").cnt,
+    (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("fresh-log") as any).cnt,
     1
   );
   assert.equal(fs.existsSync(freshAbsPath), true);
@@ -365,9 +379,18 @@ test("getCallLogById falls back to legacy inline rows and request_detail_logs", 
   assert.deepEqual(detail?.responseBody, { recovered: "response" });
   assert.deepEqual(detail?.error, { message: "legacy-error" });
   assert.equal(detail?.pipelinePayloads?.clientRequest?.body?.from, "detail-client");
-  assert.equal(detail?.pipelinePayloads?.providerRequest?.body?.from, "detail-provider-request");
-  assert.equal(detail?.pipelinePayloads?.providerResponse?.body?.from, "detail-provider-response");
-  assert.equal(detail?.pipelinePayloads?.clientResponse?.body?.from, "detail-client-response");
+  assert.equal(
+    (detail?.pipelinePayloads?.providerRequest as any).body?.from,
+    "detail-provider-request"
+  );
+  (assert as any).equal(
+    (detail?.pipelinePayloads?.providerResponse as any).body?.from,
+    "detail-provider-response"
+  );
+  assert.equal(
+    (detail?.pipelinePayloads?.clientResponse as any).body?.from,
+    "detail-client-response"
+  );
   assert.equal(detail?.hasPipelineDetails, true);
 });
 
@@ -394,8 +417,8 @@ test("getCallLogById marks missing artifacts explicitly and clears stale DB poin
   const row = db
     .prepare("SELECT artifact_relpath, detail_state FROM call_logs WHERE id = ?")
     .get("missing-artifact");
-  assert.equal(row.artifact_relpath, null);
-  assert.equal(row.detail_state, "missing");
+  assert.equal((row as any).artifact_relpath, null);
+  assert.equal((row as any).detail_state, "missing");
 });
 
 test("saveCallLog keeps large payloads out of SQLite while preserving explicit detail export", async () => {
@@ -424,12 +447,12 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
     `
     )
     .get("artifact-only-large-payload");
-  assert.equal(row.detail_state, "ready");
-  assert.equal(row.has_request_body, 1);
-  assert.equal(typeof row.artifact_relpath, "string");
-  assert.equal(row.error_summary, "upstream unavailable");
+  assert.equal((row as any).detail_state, "ready");
+  assert.equal((row as any).has_request_body, 1);
+  (assert as any).equal(typeof (row as any).artifact_relpath, "string");
+  assert.equal((row as any).error_summary, "upstream unavailable");
 
-  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", row.artifact_relpath);
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.equal(artifact.requestBody.payload.length, requestBody.payload.length);
 
@@ -438,7 +461,212 @@ test("saveCallLog keeps large payloads out of SQLite while preserving explicit d
 
   const exported = await callLogs.exportCallLogsSince("2026-03-31T00:00:00.000Z");
   assert.equal(exported.length, 1);
-  assert.equal(exported[0].requestBody.payload.length, requestBody.payload.length);
+  assert.equal((exported[0] as any).requestBody.payload.length, requestBody.payload.length);
+});
+
+test("saveCallLog truncates oversized call log artifacts for storage", async () => {
+  const hugeChunk = "x".repeat(600 * 1024);
+
+  await callLogs.saveCallLog({
+    id: "truncated-artifact",
+    timestamp: "2026-03-31T10:05:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    pipelinePayloads: {
+      streamChunks: {
+        provider: [hugeChunk],
+        openai: [hugeChunk],
+        client: [hugeChunk],
+      },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("truncated-artifact");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes <= 512 * 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.deepEqual(artifact.requestBody, { payload: "request" });
+  assert.deepEqual(artifact.responseBody, { output: "response" });
+  assert.equal(artifact.error, null);
+  assert.deepEqual(artifact.pipeline.streamChunks, {
+    provider: ["[stream chunks omitted: call log artifact size limit exceeded]"],
+    openai: ["[stream chunks omitted: call log artifact size limit exceeded]"],
+    client: ["[stream chunks omitted: call log artifact size limit exceeded]"],
+  });
+});
+
+test("saveCallLog omits oversized non-stream pipeline payloads to enforce artifact cap", async () => {
+  const hugePayload = "x".repeat(600 * 1024);
+
+  await callLogs.saveCallLog({
+    id: "truncated-pipeline-artifact",
+    timestamp: "2026-03-31T10:06:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    pipelinePayloads: {
+      providerRequest: { body: hugePayload },
+      providerResponse: { body: hugePayload },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("truncated-pipeline-artifact");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes <= 512 * 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.deepEqual(artifact.requestBody, { payload: "request" });
+  assert.deepEqual(artifact.responseBody, { output: "response" });
+  assert.deepEqual(artifact.pipeline, {
+    error: {
+      _omniroute_truncated: true,
+      reason: "call_log_artifact_size_limit_exceeded",
+    },
+  });
+});
+
+test("saveCallLog honors CALL_LOG_PIPELINE_MAX_SIZE_KB for pipeline artifacts", async () => {
+  process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = "8";
+  const hugePayload = "x".repeat(32 * 1024);
+
+  await callLogs.saveCallLog({
+    id: "configured-pipeline-artifact-cap",
+    timestamp: "2026-03-31T10:07:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    pipelinePayloads: {
+      providerRequest: { body: hugePayload },
+      providerResponse: { body: hugePayload },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("configured-pipeline-artifact-cap");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes <= 8 * 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.deepEqual(artifact.pipeline, {
+    error: {
+      _omniroute_truncated: true,
+      reason: "call_log_artifact_size_limit_exceeded",
+    },
+  });
+});
+
+test("saveCallLog falls back to a compact sentinel when the configured cap is very small", async () => {
+  process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = "1";
+  const hugePayload = "x".repeat(32 * 1024);
+
+  await callLogs.saveCallLog({
+    id: "tiny-pipeline-artifact-cap",
+    timestamp: "2026-03-31T10:07:30.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: `openai/${"gpt".repeat(512)}`,
+    provider: "openai",
+    requestBody: { payload: "request" },
+    responseBody: { output: "response" },
+    pipelinePayloads: {
+      providerRequest: { body: hugePayload },
+      providerResponse: { body: hugePayload },
+    },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("tiny-pipeline-artifact-cap");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes <= 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.deepEqual(artifact, {
+    schemaVersion: 4,
+    _omniroute_truncated: true,
+    reason: "call_log_artifact_size_limit_exceeded",
+  });
+});
+
+test("CALL_LOG_PIPELINE_MAX_SIZE_KB does not cap artifacts without pipeline details", async () => {
+  process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = "8";
+  const requestBody = { payload: "x".repeat(16 * 1024) };
+
+  await callLogs.saveCallLog({
+    id: "non-pipeline-artifact-ignores-pipeline-cap",
+    timestamp: "2026-03-31T10:08:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4.1",
+    provider: "openai",
+    requestBody,
+    responseBody: { output: "response" },
+  });
+
+  const db = core.getDbInstance();
+  const row = db
+    .prepare(
+      `
+      SELECT artifact_relpath, artifact_size_bytes, detail_state
+      FROM call_logs WHERE id = ?
+    `
+    )
+    .get("non-pipeline-artifact-ignores-pipeline-cap");
+  assert.equal((row as any).detail_state, "ready");
+  assert.ok((row as any).artifact_size_bytes > 8 * 1024);
+
+  const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+  assert.equal(artifact.requestBody.payload.length, requestBody.payload.length);
 });
 
 test("saveCallLog logs and returns when sqlite persistence throws unexpectedly", async () => {

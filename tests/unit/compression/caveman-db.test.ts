@@ -1,20 +1,41 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, afterEach, after } from "node:test";
 import assert from "node:assert/strict";
-import { getDbInstance } from "../../../src/lib/db/core.ts";
-import {
-  getCompressionSettings,
-  updateCompressionSettings,
-} from "../../../src/lib/db/compression.ts";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import type { CavemanConfig } from "../../../open-sse/services/compression/types.ts";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-caveman-db-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../../src/lib/db/core.ts");
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../../src/lib/db/compression.ts");
 
 describe("compression DB module", () => {
   beforeEach(() => {
-    const db = getDbInstance();
-    db.prepare("DELETE FROM key_value WHERE namespace = ?").run("compression");
+    core.resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   });
 
-  it("should return default config", () => {
-    const config = getCompressionSettings();
+  afterEach(() => {
+    core.resetDbInstance();
+  });
+
+  after(() => {
+    core.resetDbInstance();
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    if (ORIGINAL_DATA_DIR === undefined) {
+      delete process.env.DATA_DIR;
+    } else {
+      process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+    }
+  });
+
+  it("should return default config", async () => {
+    const config = await getCompressionSettings();
     assert.equal(config.defaultMode, "off");
     assert.equal(config.enabled, false);
     assert.equal(config.autoTriggerTokens, 0);
@@ -26,27 +47,27 @@ describe("compression DB module", () => {
     assert.equal(config.cavemanConfig.minMessageLength, 50);
   });
 
-  it("should update and retrieve settings", () => {
-    updateCompressionSettings({ enabled: true, defaultMode: "standard" });
-    const config = getCompressionSettings();
+  it("should update and retrieve settings", async () => {
+    await updateCompressionSettings({ enabled: true, defaultMode: "standard" });
+    const config = await getCompressionSettings();
     assert.equal(config.enabled, true);
     assert.equal(config.defaultMode, "standard");
 
-    updateCompressionSettings({ enabled: false, defaultMode: "off" });
-    const reset = getCompressionSettings();
+    await updateCompressionSettings({ enabled: false, defaultMode: "off" });
+    const reset = await getCompressionSettings();
     assert.equal(reset.enabled, false);
     assert.equal(reset.defaultMode, "off");
   });
 
-  it("should update cavemanConfig", () => {
+  it("should update cavemanConfig", async () => {
     const customConfig: Partial<CavemanConfig> = {
       enabled: true,
       compressRoles: ["user", "system"],
       minMessageLength: 100,
     };
-    updateCompressionSettings({ cavemanConfig: customConfig });
-    const config = getCompressionSettings();
-    assert.deepEqual(config.cavemanConfig.compressRoles, ["user", "system"]);
-    assert.equal(config.cavemanConfig.minMessageLength, 100);
+    await updateCompressionSettings({ cavemanConfig: customConfig as CavemanConfig });
+    const config = await getCompressionSettings();
+    assert.deepEqual(config.cavemanConfig?.compressRoles, ["user", "system"]);
+    assert.equal(config.cavemanConfig?.minMessageLength, 100);
   });
 });

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import PropTypes from "prop-types";
 import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
@@ -36,12 +35,100 @@ type CloudflaredTunnelStatus = {
   logPath: string;
 };
 
+type TailscaleTunnelPhase =
+  | "unsupported"
+  | "not_installed"
+  | "needs_login"
+  | "stopped"
+  | "running"
+  | "error";
+
+type TailscaleTunnelStatus = {
+  supported: boolean;
+  installed: boolean;
+  managedInstall: boolean;
+  installSource: string | null;
+  binaryPath: string | null;
+  loggedIn: boolean;
+  daemonRunning: boolean;
+  running: boolean;
+  enabled: boolean;
+  tunnelUrl: string | null;
+  apiUrl: string | null;
+  phase: TailscaleTunnelPhase;
+  platform: string;
+  brewAvailable: boolean;
+  lastError: string | null;
+  pid: number | null;
+};
+
+type NgrokTunnelPhase =
+  | "unsupported"
+  | "not_installed"
+  | "stopped"
+  | "needs_auth"
+  | "starting"
+  | "running"
+  | "error";
+
+type NgrokTunnelStatus = {
+  supported: boolean;
+  installed: boolean;
+  running: boolean;
+  publicUrl: string | null;
+  apiUrl: string | null;
+  targetUrl: string;
+  phase: NgrokTunnelPhase;
+  lastError: string | null;
+};
+
 type TunnelNotice = {
   type: "success" | "error" | "info";
   message: string;
 };
 
-export default function APIPageClient({ machineId }) {
+type APIPageClientProps = {
+  machineId: string;
+};
+
+type EndpointProviderSummary = {
+  id: string;
+  provider: {
+    name: string;
+    alias?: string;
+  };
+};
+
+type EndpointModelSummary = {
+  id: string;
+  owned_by?: string;
+  parent?: string;
+  type?: string;
+  custom?: boolean;
+  root?: string;
+};
+
+type CopyHandler = (text: string, key?: string) => void | Promise<void>;
+
+type EndpointTunnelVisibility = {
+  showCloudflaredTunnel: boolean;
+  showTailscaleFunnel: boolean;
+  showNgrokTunnel: boolean;
+};
+
+const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
+  showCloudflaredTunnel: true,
+  showTailscaleFunnel: true,
+  showNgrokTunnel: true,
+};
+
+function runEndpointBackgroundTask(taskName: string, task: () => Promise<unknown>) {
+  void task().catch((error) => {
+    console.log(`Error running endpoint background task (${taskName}):`, error);
+  });
+}
+
+export default function APIPageClient({ machineId }: APIPageClientProps) {
   const [resolvedMachineId, setResolvedMachineId] = useState(machineId || "");
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
@@ -49,6 +136,7 @@ export default function APIPageClient({ machineId }) {
 
   // Endpoints / models state
   const [allModels, setAllModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [expandedEndpoint, setExpandedEndpoint] = useState(null);
 
   // Cloud sync state
@@ -69,6 +157,20 @@ export default function APIPageClient({ machineId }) {
   const [cloudflaredStatus, setCloudflaredStatus] = useState<CloudflaredTunnelStatus | null>(null);
   const [cloudflaredBusy, setCloudflaredBusy] = useState(false);
   const [cloudflaredNotice, setCloudflaredNotice] = useState<TunnelNotice | null>(null);
+  const [tailscaleStatus, setTailscaleStatus] = useState<TailscaleTunnelStatus | null>(null);
+  const [tailscaleBusy, setTailscaleBusy] = useState(false);
+  const [tailscaleNotice, setTailscaleNotice] = useState<TunnelNotice | null>(null);
+  const [showTailscaleInstallModal, setShowTailscaleInstallModal] = useState(false);
+  const [tailscaleInstallBusy, setTailscaleInstallBusy] = useState(false);
+  const [tailscaleInstallLog, setTailscaleInstallLog] = useState<string[]>([]);
+  const [tailscalePassword, setTailscalePassword] = useState("");
+  const [showCloudflaredTunnel, setShowCloudflaredTunnel] = useState(true);
+  const [showTailscaleFunnel, setShowTailscaleFunnel] = useState(true);
+  const [ngrokStatus, setNgrokStatus] = useState<NgrokTunnelStatus | null>(null);
+  const [ngrokBusy, setNgrokBusy] = useState(false);
+  const [ngrokNotice, setNgrokNotice] = useState<TunnelNotice | null>(null);
+  const [ngrokToken, setNgrokToken] = useState("");
+  const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -135,19 +237,98 @@ export default function APIPageClient({ machineId }) {
     [translateOrFallback]
   );
 
+  const fetchTailscaleStatus = useCallback(
+    async (silent = false) => {
+      try {
+        const res = await fetch("/api/tunnels/tailscale", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              translateOrFallback("tailscaleRequestFailed", "Failed to load Tailscale status")
+          );
+        }
+
+        setTailscaleStatus(data);
+        return data as TailscaleTunnelStatus;
+      } catch (error) {
+        if (!silent) {
+          setTailscaleNotice({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : translateOrFallback("tailscaleRequestFailed", "Failed to load Tailscale status"),
+          });
+        }
+        return null;
+      }
+    },
+    [translateOrFallback]
+  );
+
+  const fetchNgrokStatus = useCallback(
+    async (silent = false) => {
+      try {
+        const res = await fetch("/api/tunnels/ngrok", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            data?.error || translateOrFallback("ngrokRequestFailed", "Failed to load ngrok status")
+          );
+        }
+
+        setNgrokStatus(data);
+        return data as NgrokTunnelStatus;
+      } catch (error) {
+        if (!silent) {
+          setNgrokNotice({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : translateOrFallback("ngrokRequestFailed", "Failed to load ngrok status"),
+          });
+        }
+        return null;
+      }
+    },
+    [translateOrFallback]
+  );
+
   useEffect(() => {
-    Promise.allSettled([
-      loadCloudSettings(),
-      fetchModels(),
-      fetchProtocolStatus(),
-      fetchSearchProviders(),
-      fetchCloudflaredStatus(true),
-    ]).finally(() => {
+    let mounted = true;
+
+    const loadPage = async () => {
+      const tunnelVisibility = await loadCloudSettings(() => mounted);
+
+      if (!mounted) return;
       setLoading(false);
-    });
-  }, [fetchCloudflaredStatus]);
+
+      runEndpointBackgroundTask("models", fetchModels);
+      runEndpointBackgroundTask("protocol-status", fetchProtocolStatus);
+      runEndpointBackgroundTask("search-providers", fetchSearchProviders);
+
+      if (tunnelVisibility.showCloudflaredTunnel) {
+        runEndpointBackgroundTask("cloudflared-status", () => fetchCloudflaredStatus(true));
+      }
+      if (tunnelVisibility.showTailscaleFunnel) {
+        runEndpointBackgroundTask("tailscale-status", () => fetchTailscaleStatus(true));
+      }
+      if (tunnelVisibility.showNgrokTunnel) {
+        runEndpointBackgroundTask("ngrok-status", () => fetchNgrokStatus(true));
+      }
+    };
+
+    void loadPage();
+
+    return () => {
+      mounted = false;
+    };
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus, fetchNgrokStatus]);
 
   const fetchModels = async () => {
+    setModelsLoading(true);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
@@ -156,6 +337,8 @@ export default function APIPageClient({ machineId }) {
       }
     } catch (e) {
       console.log("Error fetching models:", e);
+    } finally {
+      setModelsLoading(false);
     }
   };
 
@@ -183,6 +366,7 @@ export default function APIPageClient({ machineId }) {
     const chat = allModels.filter((m) => !m.type && !m.parent);
     const embeddings = allModels.filter((m) => m.type === "embedding" && !m.parent);
     const images = allModels.filter((m) => m.type === "image" && !m.parent);
+    const video = allModels.filter((m) => m.type === "video" && !m.parent);
     const rerank = allModels.filter((m) => m.type === "rerank" && !m.parent);
     const audioTranscription = allModels.filter(
       (m) => m.type === "audio" && m.subtype === "transcription" && !m.parent
@@ -192,8 +376,28 @@ export default function APIPageClient({ machineId }) {
     );
     const moderation = allModels.filter((m) => m.type === "moderation" && !m.parent);
     const music = allModels.filter((m) => m.type === "music" && !m.parent);
-    return { chat, embeddings, images, rerank, audioTranscription, audioSpeech, moderation, music };
+    return {
+      chat,
+      embeddings,
+      images,
+      video,
+      rerank,
+      audioTranscription,
+      audioSpeech,
+      moderation,
+      music,
+    };
   }, [allModels]);
+
+  const totalEndpointModelCount = useMemo(
+    () => Object.values(endpointData).reduce((acc, models) => acc + models.length, 0),
+    [endpointData]
+  );
+
+  const availableEndpointCount = useMemo(
+    () => Object.values(endpointData).filter((models) => models.length > 0).length + 2,
+    [endpointData]
+  );
 
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
     const controller = new AbortController();
@@ -217,11 +421,23 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
-  const loadCloudSettings = async () => {
+  const loadCloudSettings = async (
+    shouldApplyState: () => boolean = () => true
+  ): Promise<EndpointTunnelVisibility> => {
     try {
       const res = await fetch("/api/settings");
       if (res.ok) {
         const data = await res.json();
+        const tunnelVisibility = {
+          showCloudflaredTunnel: data.hideEndpointCloudflaredTunnel !== true,
+          showTailscaleFunnel: data.hideEndpointTailscaleFunnel !== true,
+          showNgrokTunnel: data.hideEndpointNgrokTunnel !== true,
+        };
+
+        if (!shouldApplyState()) {
+          return tunnelVisibility;
+        }
+
         setCloudEnabled(data.cloudEnabled || false);
         if (typeof data.cloudConfigured === "boolean") {
           setCloudConfigured(data.cloudConfigured);
@@ -232,10 +448,30 @@ export default function APIPageClient({ machineId }) {
         if (data.machineId) {
           setResolvedMachineId(data.machineId);
         }
+        setShowCloudflaredTunnel(tunnelVisibility.showCloudflaredTunnel);
+        setShowTailscaleFunnel(tunnelVisibility.showTailscaleFunnel);
+        setShowNgrokTunnel(tunnelVisibility.showNgrokTunnel);
+
+        if (!tunnelVisibility.showCloudflaredTunnel) {
+          setCloudflaredStatus(null);
+          setCloudflaredNotice(null);
+        }
+        if (!tunnelVisibility.showTailscaleFunnel) {
+          setTailscaleStatus(null);
+          setTailscaleNotice(null);
+        }
+        if (!tunnelVisibility.showNgrokTunnel) {
+          setNgrokStatus(null);
+          setNgrokNotice(null);
+        }
+
+        return tunnelVisibility;
       }
     } catch (error) {
       console.log("Error loading cloud settings:", error);
     }
+
+    return DEFAULT_TUNNEL_VISIBILITY;
   };
 
   const handleCloudToggle = (checked) => {
@@ -269,12 +505,41 @@ export default function APIPageClient({ machineId }) {
   }, [cloudflaredNotice]);
 
   useEffect(() => {
+    if (tailscaleNotice) {
+      const timer = setTimeout(() => setTailscaleNotice(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [tailscaleNotice]);
+
+  useEffect(() => {
+    if (ngrokNotice) {
+      const timer = setTimeout(() => setNgrokNotice(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [ngrokNotice]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       void fetchProtocolStatus();
-      void fetchCloudflaredStatus(true);
+      if (showCloudflaredTunnel) {
+        void fetchCloudflaredStatus(true);
+      }
+      if (showTailscaleFunnel) {
+        void fetchTailscaleStatus(true);
+      }
+      if (showNgrokTunnel) {
+        void fetchNgrokStatus(true);
+      }
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchCloudflaredStatus]);
+  }, [
+    fetchCloudflaredStatus,
+    fetchNgrokStatus,
+    fetchTailscaleStatus,
+    showCloudflaredTunnel,
+    showNgrokTunnel,
+    showTailscaleFunnel,
+  ]);
 
   const dispatchCloudChange = () => {
     globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -414,6 +679,334 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
+  const handleNgrokAction = async (action: "enable" | "disable") => {
+    setNgrokBusy(true);
+    setNgrokNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/ngrok", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, authToken: action === "enable" ? ngrokToken : undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error || translateOrFallback("ngrokRequestFailed", "Failed to update ngrok tunnel")
+        );
+      }
+
+      if (data?.status) {
+        setNgrokStatus(data.status);
+      }
+
+      setNgrokNotice({
+        type: "success",
+        message:
+          action === "enable"
+            ? translateOrFallback("ngrokStarted", "ngrok tunnel started")
+            : translateOrFallback("ngrokStopped", "ngrok tunnel stopped"),
+      });
+      if (action === "enable") {
+        setNgrokToken("");
+      }
+    } catch (error) {
+      setNgrokNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("ngrokRequestFailed", "Failed to update ngrok tunnel"),
+      });
+    } finally {
+      setNgrokBusy(false);
+      await fetchNgrokStatus(true);
+    }
+  };
+
+  const waitForTailscale = useCallback(
+    async (
+      predicate: (status: TailscaleTunnelStatus) => boolean,
+      attempts = 40,
+      delayMs = 3000
+    ) => {
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        const status = await fetchTailscaleStatus(true);
+        if (status && predicate(status)) {
+          return status;
+        }
+      }
+      return null;
+    },
+    [fetchTailscaleStatus]
+  );
+
+  const requestTailscaleEnable = useCallback(async (payload: Record<string, unknown> = {}) => {
+    const res = await fetch("/api/tunnels/tailscale/enable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { res, data };
+  }, []);
+
+  const handleTailscaleEnable = useCallback(async () => {
+    setTailscaleBusy(true);
+    setTailscaleNotice(null);
+
+    try {
+      let { res, data } = await requestTailscaleEnable({
+        sudoPassword: tailscalePassword || undefined,
+      });
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+        );
+      }
+
+      if (data?.needsLogin && data?.authUrl) {
+        window.open(data.authUrl, "tailscale_auth", "width=680,height=780");
+        setTailscaleNotice({
+          type: "info",
+          message: translateOrFallback(
+            "tailscaleWaitingForLogin",
+            "Complete the Tailscale login in the opened browser tab. OmniRoute will retry automatically."
+          ),
+        });
+
+        const loggedIn = await waitForTailscale((status) => status.loggedIn);
+        if (!loggedIn) {
+          throw new Error(
+            translateOrFallback("tailscaleLoginTimedOut", "Timed out waiting for Tailscale login")
+          );
+        }
+
+        ({ res, data } = await requestTailscaleEnable({
+          sudoPassword: tailscalePassword || undefined,
+        }));
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+          );
+        }
+      }
+
+      if (data?.funnelNotEnabled && data?.enableUrl) {
+        window.open(data.enableUrl, "tailscale_funnel", "width=680,height=780");
+        setTailscaleNotice({
+          type: "info",
+          message: translateOrFallback(
+            "tailscaleWaitingForFunnel",
+            "Enable Funnel for this device in the opened browser tab. OmniRoute will keep polling."
+          ),
+        });
+
+        let enabled = null;
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          const next = await requestTailscaleEnable({
+            sudoPassword: tailscalePassword || undefined,
+          });
+          if (!next.res.ok) {
+            throw new Error(
+              next.data?.error ||
+                translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+            );
+          }
+          if (next.data?.success) {
+            enabled = next;
+            break;
+          }
+          if (!next.data?.funnelNotEnabled) {
+            enabled = next;
+            break;
+          }
+        }
+
+        if (!enabled?.data?.success) {
+          throw new Error(
+            translateOrFallback(
+              "tailscaleFunnelTimedOut",
+              "Timed out waiting for Tailscale Funnel to be enabled"
+            )
+          );
+        }
+
+        data = enabled.data;
+      }
+
+      if (!data?.success) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel")
+        );
+      }
+
+      if (data?.status) {
+        setTailscaleStatus(data.status);
+      }
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleStarted", "Tailscale Funnel enabled"),
+      });
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleEnableFailed", "Failed to enable Tailscale Funnel"),
+      });
+    } finally {
+      setTailscaleBusy(false);
+      await fetchTailscaleStatus(true);
+    }
+  }, [
+    fetchTailscaleStatus,
+    requestTailscaleEnable,
+    tailscalePassword,
+    translateOrFallback,
+    waitForTailscale,
+  ]);
+
+  const handleTailscaleDisable = useCallback(async () => {
+    setTailscaleBusy(true);
+    setTailscaleNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/tailscale/disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sudoPassword: tailscalePassword || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            translateOrFallback("tailscaleDisableFailed", "Failed to disable Tailscale Funnel")
+        );
+      }
+
+      if (data?.status) {
+        setTailscaleStatus(data.status);
+      }
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleStopped", "Tailscale Funnel disabled"),
+      });
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleDisableFailed", "Failed to disable Tailscale Funnel"),
+      });
+    } finally {
+      setTailscaleBusy(false);
+      await fetchTailscaleStatus(true);
+    }
+  }, [fetchTailscaleStatus, tailscalePassword, translateOrFallback]);
+
+  const handleTailscaleInstall = useCallback(async () => {
+    setTailscaleInstallBusy(true);
+    setTailscaleInstallLog([]);
+    setTailscaleNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/tailscale/install", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sudoPassword: tailscalePassword || undefined }),
+      });
+
+      if (!res.body) {
+        throw new Error(
+          translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+        );
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let installSucceeded = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+          const lines = part.split("\n");
+          let eventName = "progress";
+          let payload: Record<string, unknown> | null = null;
+
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              eventName = line.slice(7).trim();
+            } else if (line.startsWith("data: ")) {
+              payload = JSON.parse(line.slice(6));
+            }
+          }
+
+          if (!payload) continue;
+
+          if (eventName === "progress") {
+            const message =
+              typeof payload.message === "string"
+                ? payload.message
+                : translateOrFallback("tailscaleInstallProgress", "Working...");
+            setTailscaleInstallLog((current) => [...current.slice(-79), message]);
+          } else if (eventName === "done") {
+            installSucceeded = true;
+            if (payload.status) {
+              setTailscaleStatus(payload.status as TailscaleTunnelStatus);
+            }
+          } else if (eventName === "error") {
+            throw new Error(
+              typeof payload.error === "string"
+                ? payload.error
+                : translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+            );
+          }
+        }
+      }
+
+      if (!installSucceeded) {
+        throw new Error(
+          translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale")
+        );
+      }
+
+      setShowTailscaleInstallModal(false);
+      setTailscalePassword("");
+      setTailscaleNotice({
+        type: "success",
+        message: translateOrFallback("tailscaleInstalled", "Tailscale installed successfully"),
+      });
+      await fetchTailscaleStatus(true);
+      await handleTailscaleEnable();
+    } catch (error) {
+      setTailscaleNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("tailscaleInstallFailed", "Failed to install Tailscale"),
+      });
+    } finally {
+      setTailscaleInstallBusy(false);
+    }
+  }, [fetchTailscaleStatus, handleTailscaleEnable, tailscalePassword, translateOrFallback]);
+
   const [baseUrl, setBaseUrl] = useState("/v1");
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
@@ -425,7 +1018,8 @@ export default function APIPageClient({ machineId }) {
   // Hydration fix: Only access window on client side
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setBaseUrl(`${window.location.origin}/v1`);
+      const defaultOrigin = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+      setBaseUrl(`${defaultOrigin}/v1`);
     }
   }, []);
 
@@ -481,6 +1075,80 @@ export default function APIPageClient({ machineId }) {
     "cloudflaredUrlNotice",
     "Creates a temporary Cloudflare Quick Tunnel. The URL changes after every restart."
   );
+  const tailscalePhase = tailscaleStatus?.phase || "not_installed";
+  const tailscalePhaseMeta: Record<TailscaleTunnelPhase, { label: string; className: string }> = {
+    running: {
+      label: translateOrFallback("tailscaleRunning", "Running"),
+      className: "bg-green-500/10 border-green-500/30 text-green-400",
+    },
+    needs_login: {
+      label: translateOrFallback("tailscaleNeedsLogin", "Needs Login"),
+      className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+    },
+    stopped: {
+      label: translateOrFallback("tailscaleStoppedState", "Stopped"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    not_installed: {
+      label: translateOrFallback("tailscaleNotInstalled", "Not installed"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    unsupported: {
+      label: translateOrFallback("tailscaleUnsupported", "Unsupported"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    error: {
+      label: translateOrFallback("tailscaleError", "Error"),
+      className: "bg-red-500/10 border-red-500/30 text-red-400",
+    },
+  };
+  const tailscaleActionLabel = tailscaleStatus?.running
+    ? translateOrFallback("tailscaleDisable", "Stop Funnel")
+    : !tailscaleStatus?.installed
+      ? translateOrFallback("tailscaleInstallAndEnable", "Install & Enable")
+      : !tailscaleStatus?.loggedIn
+        ? translateOrFallback("tailscaleLoginAndEnable", "Login & Enable")
+        : translateOrFallback("tailscaleEnable", "Enable Funnel");
+  const tailscaleUrlNotice = translateOrFallback(
+    "tailscaleUrlNotice",
+    "Uses your Tailscale .ts.net address. Login and Funnel approval may be required on first use."
+  );
+
+  const ngrokPhase = ngrokStatus?.phase || "not_installed";
+  const ngrokPhaseMeta: Record<NgrokTunnelPhase, { label: string; className: string }> = {
+    running: {
+      label: translateOrFallback("ngrokRunning", "Running"),
+      className: "bg-green-500/10 border-green-500/30 text-green-400",
+    },
+    starting: {
+      label: translateOrFallback("ngrokStarting", "Starting"),
+      className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+    },
+    stopped: {
+      label: translateOrFallback("ngrokStoppedState", "Stopped"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    needs_auth: {
+      label: translateOrFallback("ngrokNeedsAuth", "Needs Auth"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    not_installed: {
+      label: translateOrFallback("ngrokNotInstalled", "Not installed"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    unsupported: {
+      label: translateOrFallback("ngrokUnsupported", "Unsupported"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    error: {
+      label: translateOrFallback("ngrokError", "Error"),
+      className: "bg-red-500/10 border-red-500/30 text-red-400",
+    },
+  };
+  const ngrokActionLabel = ngrokStatus?.running
+    ? translateOrFallback("ngrokDisable", "Stop Tunnel")
+    : translateOrFallback("ngrokEnable", "Enable Tunnel");
+  const ngrokUrlNotice = translateOrFallback("ngrokUrlNotice", "Creates a public ngrok tunnel.");
 
   return (
     <div className="flex flex-col gap-8">
@@ -584,98 +1252,356 @@ export default function APIPageClient({ machineId }) {
           </Button>
         </div>
 
-        <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold">
-                    {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
-                  </h3>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
-                  >
-                    {cloudflaredPhaseMeta[cloudflaredPhase].label}
-                  </span>
+        {showCloudflaredTunnel && (
+          <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
+                    >
+                      {cloudflaredPhaseMeta[cloudflaredPhase].label}
+                    </span>
+                  </div>
                 </div>
+
+                {cloudflaredStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={cloudflaredStatus?.running ? "secondary" : "primary"}
+                    icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
+                    onClick={() =>
+                      handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
+                    }
+                    loading={cloudflaredBusy}
+                    className={
+                      cloudflaredStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
+                    }
+                  >
+                    {cloudflaredActionLabel}
+                  </Button>
+                )}
               </div>
 
-              {cloudflaredStatus?.supported !== false && (
-                <Button
-                  size="sm"
-                  variant={cloudflaredStatus?.running ? "secondary" : "primary"}
-                  icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
-                  onClick={() =>
-                    handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
-                  }
-                  loading={cloudflaredBusy}
-                  className={
-                    cloudflaredStatus?.running
-                      ? "border-border/70! text-text-muted! hover:text-text!"
-                      : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
-                  }
+              {cloudflaredNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    cloudflaredNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : cloudflaredNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
                 >
-                  {cloudflaredActionLabel}
+                  <span className="material-symbols-outlined text-[18px]">
+                    {cloudflaredNotice.type === "success"
+                      ? "check_circle"
+                      : cloudflaredNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{cloudflaredNotice.message}</span>
+                  <button
+                    onClick={() => setCloudflaredNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={cloudflaredStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://*.trycloudflare.com/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "cloudflared_url" ? "check" : "content_copy"}
+                  onClick={() =>
+                    cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
+                  }
+                  disabled={!cloudflaredStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
                 </Button>
+              </div>
+              {cloudflaredStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
+                    error: cloudflaredStatus.lastError,
+                  })}
+                </p>
               )}
             </div>
-
-            {cloudflaredNotice && (
-              <div
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                  cloudflaredNotice.type === "success"
-                    ? "border-green-500/30 bg-green-500/10 text-green-400"
-                    : cloudflaredNotice.type === "info"
-                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                      : "border-red-500/30 bg-red-500/10 text-red-400"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  {cloudflaredNotice.type === "success"
-                    ? "check_circle"
-                    : cloudflaredNotice.type === "info"
-                      ? "info"
-                      : "error"}
-                </span>
-                <span className="flex-1">{cloudflaredNotice.message}</span>
-                <button
-                  onClick={() => setCloudflaredNotice(null)}
-                  className="rounded p-0.5 transition-colors hover:bg-white/10"
-                >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
-              </div>
-            )}
-
-            <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={cloudflaredStatus?.apiUrl || ""}
-                readOnly
-                placeholder="https://*.trycloudflare.com/v1"
-                className="flex-1 min-w-0 font-mono text-sm"
-              />
-              <Button
-                variant="secondary"
-                icon={copied === "cloudflared_url" ? "check" : "content_copy"}
-                onClick={() =>
-                  cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
-                }
-                disabled={!cloudflaredStatus?.apiUrl}
-                className="shrink-0 self-start sm:self-auto"
-              >
-                {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
-              </Button>
-            </div>
-            {cloudflaredStatus?.lastError && (
-              <p className="text-xs text-red-400">
-                {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
-                  error: cloudflaredStatus.lastError,
-                })}
-              </p>
-            )}
           </div>
-        </div>
+        )}
+
+        {showTailscaleFunnel && (
+          <div
+            className={`${showCloudflaredTunnel ? "mt-4 " : ""}rounded-xl border border-border/70 bg-surface/40 p-4`}
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${tailscalePhaseMeta[tailscalePhase].className}`}
+                    >
+                      {tailscalePhaseMeta[tailscalePhase].label}
+                    </span>
+                  </div>
+                </div>
+
+                {tailscaleStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={tailscaleStatus?.running ? "secondary" : "primary"}
+                    icon={tailscaleStatus?.running ? "vpn_lock_off" : "vpn_lock"}
+                    onClick={() => {
+                      if (tailscaleStatus?.running) {
+                        void handleTailscaleDisable();
+                      } else if (!tailscaleStatus?.installed) {
+                        setShowTailscaleInstallModal(true);
+                      } else {
+                        void handleTailscaleEnable();
+                      }
+                    }}
+                    loading={tailscaleBusy}
+                    className={
+                      tailscaleStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
+                    }
+                  >
+                    {tailscaleActionLabel}
+                  </Button>
+                )}
+              </div>
+
+              {tailscaleNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    tailscaleNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : tailscaleNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {tailscaleNotice.type === "success"
+                      ? "check_circle"
+                      : tailscaleNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{tailscaleNotice.message}</span>
+                  <button
+                    onClick={() => setTailscaleNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
+              {tailscaleStatus?.phase === "needs_login" && (
+                <p className="text-xs text-blue-400">
+                  {translateOrFallback(
+                    "tailscaleNeedsLoginHint",
+                    "Authenticate this machine with Tailscale, then enable Funnel."
+                  )}
+                </p>
+              )}
+              {/* Sudo password input — shown when Tailscale is installed but not running (needs sudo to start daemon) */}
+              {tailscaleStatus?.installed &&
+                !tailscaleStatus?.running &&
+                tailscaleStatus?.platform !== "win32" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-text-muted">
+                      {translateOrFallback(
+                        "tailscaleSudoLabel",
+                        "Sudo Password (required on macOS/Linux)"
+                      )}
+                    </label>
+                    <Input
+                      type="password"
+                      value={tailscalePassword}
+                      onChange={(event) => setTailscalePassword(event.target.value)}
+                      placeholder={translateOrFallback(
+                        "tailscaleSudoPlaceholder",
+                        "Enter sudo password"
+                      )}
+                      disabled={tailscaleBusy}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={tailscaleStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://your-device.tailnet.ts.net/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "tailscale_url" ? "check" : "content_copy"}
+                  onClick={() =>
+                    tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
+                  }
+                  disabled={!tailscaleStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "tailscale_url" ? tc("copied") : tc("copy")}
+                </Button>
+              </div>
+              {tailscaleStatus?.binaryPath && (
+                <p className="text-xs text-text-muted">
+                  {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
+                    path: tailscaleStatus.binaryPath,
+                  })}
+                </p>
+              )}
+              {tailscaleStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("tailscaleLastError", "Last error: {error}", {
+                    error: tailscaleStatus.lastError,
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showNgrokTunnel && (
+          <div
+            className={`${showCloudflaredTunnel || showTailscaleFunnel ? "mt-4 " : ""}rounded-xl border border-border/70 bg-surface/40 p-4`}
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("ngrokTitle", "ngrok Tunnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${ngrokPhaseMeta[ngrokPhase].className}`}
+                    >
+                      {ngrokPhaseMeta[ngrokPhase].label}
+                    </span>
+                  </div>
+                </div>
+
+                {ngrokStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={ngrokStatus?.running ? "secondary" : "primary"}
+                    icon={ngrokStatus?.running ? "public_off" : "public"}
+                    onClick={() => handleNgrokAction(ngrokStatus?.running ? "disable" : "enable")}
+                    loading={ngrokBusy}
+                    className={
+                      ngrokStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
+                    }
+                  >
+                    {ngrokActionLabel}
+                  </Button>
+                )}
+              </div>
+
+              {ngrokNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    ngrokNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : ngrokNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {ngrokNotice.type === "success"
+                      ? "check_circle"
+                      : ngrokNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{ngrokNotice.message}</span>
+                  <button
+                    onClick={() => setNgrokNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{ngrokUrlNotice}</p>
+              {ngrokStatus?.phase === "needs_auth" && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-text-muted">
+                    {translateOrFallback(
+                      "ngrokAuthTokenLabel",
+                      "Authtoken (Required if NGROK_AUTHTOKEN not set)"
+                    )}
+                  </label>
+                  <Input
+                    type="password"
+                    value={ngrokToken}
+                    onChange={(event) => setNgrokToken(event.target.value)}
+                    placeholder={translateOrFallback(
+                      "ngrokAuthTokenPlaceholder",
+                      "Enter your ngrok authtoken"
+                    )}
+                    disabled={ngrokBusy}
+                    className="font-mono text-sm"
+                  />
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={ngrokStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://your-tunnel.ngrok-free.app/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "ngrok_url" ? "check" : "content_copy"}
+                  onClick={() => ngrokStatus?.apiUrl && copy(ngrokStatus.apiUrl, "ngrok_url")}
+                  disabled={!ngrokStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "ngrok_url" ? tc("copied") : tc("copy")}
+                </Button>
+              </div>
+              {ngrokStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("ngrokLastError", "Last error: {error}", {
+                    error: ngrokStatus.lastError,
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card>
@@ -705,23 +1631,12 @@ export default function APIPageClient({ machineId }) {
             <div>
               <h2 className="text-lg font-semibold">{t("available")}</h2>
               <p className="text-sm text-text-muted">
-                {t("modelsAcrossEndpoints", {
-                  models: Object.values(endpointData).reduce(
-                    (acc, models) => acc + models.length,
-                    0
-                  ),
-                  endpoints:
-                    [
-                      endpointData.chat,
-                      endpointData.embeddings,
-                      endpointData.images,
-                      endpointData.rerank,
-                      endpointData.audioTranscription,
-                      endpointData.audioSpeech,
-                      endpointData.moderation,
-                      endpointData.music,
-                    ].filter((a) => a.length > 0).length + 2,
-                })}
+                {modelsLoading
+                  ? translateOrFallback("loadingModels", "Loading available models...")
+                  : t("modelsAcrossEndpoints", {
+                      models: totalEndpointModelCount,
+                      endpoints: availableEndpointCount,
+                    })}
               </p>
             </div>
           </div>
@@ -750,6 +1665,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Responses API */}
@@ -771,6 +1687,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Legacy Completions */}
@@ -792,6 +1709,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
             </div>
           </div>
@@ -822,6 +1740,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Image Generation */}
@@ -840,6 +1759,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Audio Transcription */}
@@ -860,6 +1780,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Audio Speech (TTS) */}
@@ -878,6 +1799,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Music Generation */}
@@ -897,6 +1819,27 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
+              />
+
+              {/* Video Generation */}
+              <EndpointSection
+                icon="videocam"
+                iconColor="text-red-500"
+                iconBg="bg-red-500/10"
+                title={t("videoGeneration") || "Video Generation"}
+                path="/v1/videos/generations"
+                description={
+                  t("videoDesc") ||
+                  "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
+                }
+                models={endpointData.video}
+                expanded={expandedEndpoint === "video"}
+                onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
+                copy={copy}
+                copied={copied}
+                baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
             </div>
           </div>
@@ -968,6 +1911,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Moderations */}
@@ -986,6 +1930,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* List Models */}
@@ -1046,7 +1991,7 @@ export default function APIPageClient({ machineId }) {
                 <div className="mt-3 text-xs text-text-muted space-y-1">
                   <p>
                     {t("protocolToolsLabel") || "Tools"}:{" "}
-                    <span className="text-text-main font-semibold">{mcpToolCount || 16}</span>
+                    <span className="text-text-main font-semibold">{mcpToolCount || 29}</span>
                   </p>
                   <p>
                     {t("protocolLastActivity") || "Last activity"}:{" "}
@@ -1320,6 +2265,72 @@ export default function APIPageClient({ machineId }) {
           </div>
         </div>
       </Modal>
+
+      <Modal
+        isOpen={showTailscaleInstallModal}
+        title={translateOrFallback("tailscaleInstallTitle", "Install Tailscale")}
+        onClose={() => !tailscaleInstallBusy && setShowTailscaleInstallModal(false)}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+            <p className="text-sm font-medium text-blue-300">
+              {translateOrFallback(
+                "tailscaleInstallIntro",
+                "Installs Tailscale on this machine and prepares OmniRoute to enable Funnel."
+              )}
+            </p>
+            <p className="mt-2 text-sm text-blue-200/80">
+              {translateOrFallback(
+                "tailscaleInstallPasswordHint",
+                "On macOS and Linux, sudo may be required for the package install and daemon start."
+              )}
+            </p>
+          </div>
+
+          <Input
+            type="password"
+            value={tailscalePassword}
+            onChange={(event) => setTailscalePassword(event.target.value)}
+            placeholder={translateOrFallback("tailscaleSudoPlaceholder", "Optional sudo password")}
+            disabled={tailscaleInstallBusy}
+          />
+
+          {tailscaleInstallLog.length > 0 && (
+            <div className="max-h-48 overflow-auto rounded-lg border border-border/70 bg-surface/60 p-3">
+              <pre className="whitespace-pre-wrap text-xs text-text-muted">
+                {tailscaleInstallLog.join("\n")}
+              </pre>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button
+              onClick={() => void handleTailscaleInstall()}
+              fullWidth
+              disabled={tailscaleInstallBusy}
+            >
+              {tailscaleInstallBusy ? (
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined animate-spin text-sm">
+                    progress_activity
+                  </span>
+                  {translateOrFallback("tailscaleInstalling", "Installing")}
+                </span>
+              ) : (
+                translateOrFallback("tailscaleInstallAndEnable", "Install & Enable")
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowTailscaleInstallModal(false)}
+              variant="ghost"
+              fullWidth
+              disabled={tailscaleInstallBusy}
+            >
+              {tc("cancel")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
       {/* Provider Models Popup */}
       {selectedProvider && (
         <ProviderModelsModal
@@ -1334,13 +2345,21 @@ export default function APIPageClient({ machineId }) {
   );
 }
 
-APIPageClient.propTypes = {
-  machineId: PropTypes.string.isRequired,
-};
-
 // -- Sub-component: Provider Models Modal ------------------------------------------
 
-function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
+function ProviderModelsModal({
+  provider,
+  models,
+  copy,
+  copied,
+  onClose,
+}: {
+  provider: EndpointProviderSummary;
+  models: EndpointModelSummary[];
+  copy: CopyHandler;
+  copied?: string | null;
+  onClose: () => void;
+}) {
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
   // Get provider alias for matching models
@@ -1416,14 +2435,6 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
   );
 }
 
-ProviderModelsModal.propTypes = {
-  provider: PropTypes.object.isRequired,
-  models: PropTypes.array.isRequired,
-  copy: PropTypes.func.isRequired,
-  copied: PropTypes.string,
-  onClose: PropTypes.func.isRequired,
-};
-
 // -- Sub-component: Endpoint Section ------------------------------------------
 
 function EndpointSection({
@@ -1439,6 +2450,21 @@ function EndpointSection({
   copy,
   copied,
   baseUrl,
+  modelsLoading = false,
+}: {
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+  title: string;
+  path: string;
+  description: string;
+  models: EndpointModelSummary[];
+  expanded: boolean;
+  onToggle: () => void;
+  copy: CopyHandler;
+  copied?: string | null;
+  baseUrl: string;
+  modelsLoading?: boolean;
 }) {
   const t = useTranslations("endpoint");
   const grouped = useMemo(() => {
@@ -1472,7 +2498,7 @@ function EndpointSection({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{title}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
-              {t("modelsCount", { count: models.length })}
+              {modelsLoading ? "..." : t("modelsCount", { count: models.length })}
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">{description}</p>
@@ -1504,52 +2530,46 @@ function EndpointSection({
           </div>
 
           {/* Models grouped by provider */}
-          <div className="flex flex-col gap-2">
-            {grouped.map(([providerId, providerModels]) => (
-              <div key={providerId}>
-                <div className="flex items-center gap-2 mb-1">
-                  <div
-                    className="size-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: providerColor(providerId) }}
-                  />
-                  <span className="text-xs font-semibold text-text-main">
-                    {providerName(providerId)}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    ({(providerModels as any).length})
-                  </span>
-                </div>
-                <div className="ml-5 flex flex-wrap gap-1.5">
-                  {(providerModels as any).map((m) => (
-                    <span
-                      key={m.id}
-                      className="text-xs px-2 py-0.5 rounded-md bg-surface/80 text-text-muted font-mono"
-                      title={m.id}
-                    >
-                      {m.root || m.id.split("/").pop()}
+          {modelsLoading ? (
+            <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-surface/40 px-3 py-2 text-xs text-text-muted">
+              <span className="material-symbols-outlined animate-spin text-sm">
+                progress_activity
+              </span>
+              <span>{t("loadingModels")}</span>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {grouped.map(([providerId, providerModels]) => (
+                <div key={providerId}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div
+                      className="size-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: providerColor(providerId) }}
+                    />
+                    <span className="text-xs font-semibold text-text-main">
+                      {providerName(providerId)}
                     </span>
-                  ))}
+                    <span className="text-xs text-text-muted">
+                      ({(providerModels as any).length})
+                    </span>
+                  </div>
+                  <div className="ml-5 flex flex-wrap gap-1.5">
+                    {(providerModels as any).map((m) => (
+                      <span
+                        key={m.id}
+                        className="text-xs px-2 py-0.5 rounded-md bg-surface/80 text-text-muted font-mono"
+                        title={m.id}
+                      >
+                        {m.root || m.id.split("/").pop()}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
-
-EndpointSection.propTypes = {
-  icon: PropTypes.string.isRequired,
-  iconColor: PropTypes.string.isRequired,
-  iconBg: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  path: PropTypes.string.isRequired,
-  description: PropTypes.string.isRequired,
-  models: PropTypes.array.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
-  copy: PropTypes.func.isRequired,
-  copied: PropTypes.string,
-  baseUrl: PropTypes.string.isRequired,
-};

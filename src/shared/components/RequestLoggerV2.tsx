@@ -6,9 +6,9 @@ import Card from "./Card";
 import RequestLoggerDetail from "./RequestLoggerDetail";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import {
-  PROTOCOL_COLORS,
   PROVIDER_COLORS,
   getHttpStatusStyle as getStatusStyle,
+  getProtocolColor,
 } from "@/shared/constants/colors";
 import {
   formatTime,
@@ -17,33 +17,7 @@ import {
   maskAccount,
   formatApiKeyLabel,
 } from "@/shared/utils/formatting";
-
-// Quick filter categories - status-based only (providers are dynamic from data)
-const STATUS_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "error", label: "Errors", icon: "error" },
-  { key: "ok", label: "Success", icon: "check_circle" },
-  { key: "combo", label: "Combo", icon: "hub" },
-];
-
-// Column definitions for visibility toggles
-const COLUMNS = [
-  { key: "status", label: "Status" },
-  { key: "cacheSource", label: "Cache Source" },
-  { key: "model", label: "Model" },
-  { key: "requestedModel", label: "Requested" },
-  { key: "provider", label: "Provider" },
-  { key: "protocol", label: "Req Protocol" },
-  { key: "account", label: "Account" },
-  { key: "apiKey", label: "API Key" },
-  { key: "combo", label: "Combo" },
-  { key: "tokens", label: "Tokens" },
-  { key: "tps", label: "TPS" },
-  { key: "duration", label: "Duration" },
-  { key: "time", label: "Time" },
-];
-
-// Default visible columns will be generated dynamically with translations
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 
 /**
  * Get a friendly display label for compatible providers.
@@ -98,22 +72,21 @@ function formatTps(tps: number): string {
 function getCacheSourceMeta(cacheSource: unknown) {
   if (cacheSource === "semantic") {
     return {
-      label: "SEM",
-      title: "Semantic cache hit (served by OmniRoute)",
+      key: "semantic",
       className:
         "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30",
     };
   }
 
   return {
-    label: "UP",
-    title: "Upstream provider response",
+    key: "upstream",
     className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30",
   };
 }
 
 export default function RequestLoggerV2() {
   const t = useTranslations("requestLogger");
+  const { emailsVisible } = useEmailPrivacyStore();
 
   // Get translated status filters
   const statusFilters = useMemo(
@@ -333,7 +306,7 @@ export default function RequestLoggerV2() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: nextEnabled }),
       });
-      if (!res.ok) throw new Error("Failed to update pipeline logging");
+      if (!res.ok) throw new Error(t("updatePipelineFailed"));
       setDetailLoggingEnabled(nextEnabled);
     } catch (error) {
       console.error("Failed to toggle pipeline logging:", error);
@@ -389,7 +362,7 @@ export default function RequestLoggerV2() {
               ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300"
               : "bg-bg-subtle border-border text-text-muted"
           }`}
-          title="Capture pipeline payloads for new requests"
+          title={t("capturePipeline")}
         >
           <span
             className={`w-2 h-2 rounded-full ${detailLoggingEnabled ? "bg-amber-500" : "bg-text-muted"}`}
@@ -512,7 +485,7 @@ export default function RequestLoggerV2() {
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="px-3 py-2 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary focus:outline-none focus:border-primary appearance-none cursor-pointer min-w-[150px]"
-          title="Sort logs"
+          title={t("sortLogs")}
         >
           <option value="newest">{t("sortNewest")}</option>
           <option value="oldest">{t("sortOldest")}</option>
@@ -530,7 +503,7 @@ export default function RequestLoggerV2() {
         <button
           onClick={() => fetchLogs(false)}
           className="p-2 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-          title="Refresh"
+          title={t("refresh")}
         >
           <span className="material-symbols-outlined text-[18px]">refresh</span>
         </button>
@@ -595,7 +568,9 @@ export default function RequestLoggerV2() {
 
       {/* Column Visibility Toggles */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[10px] text-text-muted uppercase tracking-wider mr-1">Columns</span>
+        <span className="text-[10px] text-text-muted uppercase tracking-wider mr-1">
+          {t("columnsLabel")}
+        </span>
         {columns.map((col) => (
           <button
             key={col.key}
@@ -706,12 +681,7 @@ export default function RequestLoggerV2() {
                 {sortedLogs.map((log) => {
                   const statusStyle = getStatusStyle(log.status);
                   const protocolKey = log.sourceFormat || log.provider;
-                  const protocol = PROTOCOL_COLORS[protocolKey] ||
-                    PROTOCOL_COLORS[log.provider] || {
-                      bg: "#6B7280",
-                      text: "#fff",
-                      label: (protocolKey || log.provider || "-").toUpperCase(),
-                    };
+                  const protocol = getProtocolColor(protocolKey, log.provider);
                   const compatLabel = getProviderDisplayLabel(log.provider, providerNodes);
                   const providerColor = PROVIDER_COLORS[log.provider] || {
                     bg: "#374151",
@@ -721,6 +691,7 @@ export default function RequestLoggerV2() {
                   const providerLabel = compatLabel || providerColor.label;
                   const isError = log.status >= 400;
                   const cacheSourceMeta = getCacheSourceMeta(log.cacheSource);
+                  const isSemanticCache = cacheSourceMeta.key === "semantic";
 
                   return (
                     <tr
@@ -742,9 +713,9 @@ export default function RequestLoggerV2() {
                         <td className="px-3 py-2">
                           <span
                             className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${cacheSourceMeta.className}`}
-                            title={cacheSourceMeta.title}
+                            title={isSemanticCache ? t("semanticCacheHit") : t("upstreamResponse")}
                           >
-                            {cacheSourceMeta.label === "SEM" ? "Semantic" : "Upstream"}
+                            {isSemanticCache ? t("semantic") : t("upstream")}
                           </span>
                         </td>
                       )}
@@ -764,7 +735,10 @@ export default function RequestLoggerV2() {
                               }
                               title={
                                 log.requestedModel !== log.model
-                                  ? `Requested ${log.requestedModel}, routed as ${log.model}`
+                                  ? t("requestedRoutedTitle", {
+                                      requested: log.requestedModel,
+                                      routed: log.model,
+                                    })
                                   : log.requestedModel
                               }
                             >
@@ -800,13 +774,13 @@ export default function RequestLoggerV2() {
                           className="px-3 py-2 text-text-muted truncate max-w-[120px]"
                           title={log.account}
                         >
-                          {maskAccount(log.account)}
+                          {maskAccount(log.account, emailsVisible)}
                         </td>
                       )}
                       {visibleColumns.apiKey && (
                         <td
                           className="px-3 py-2 text-text-muted truncate max-w-[140px]"
-                          title={log.apiKeyName || log.apiKeyId || "No API key"}
+                          title={log.apiKeyName || log.apiKeyId || t("noApiKey")}
                         >
                           {formatApiKeyLabel(log.apiKeyName, log.apiKeyId)}
                         </td>
@@ -888,6 +862,7 @@ export default function RequestLoggerV2() {
           log={selectedLog}
           detail={detailData}
           loading={detailLoading}
+          debugEnabled={detailLoggingEnabled}
           onClose={closeDetail}
           onCopy={copyToClipboard}
         />
