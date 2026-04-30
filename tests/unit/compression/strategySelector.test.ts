@@ -98,6 +98,27 @@ describe("selectCompressionStrategy", () => {
   it("returns effective mode", () => {
     assert.equal(selectCompressionStrategy(baseConfig, null, 100), "lite");
   });
+
+  it("downgrades aggressive cache-control requests for caching-aware providers", () => {
+    const config = { ...baseConfig, defaultMode: "aggressive" as const };
+    const body = {
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "cached", cache_control: { type: "ephemeral" } }],
+        },
+      ],
+    };
+
+    assert.equal(
+      selectCompressionStrategy(config, null, 100, body, {
+        provider: "anthropic",
+        targetFormat: "claude",
+        model: "claude-3-5-sonnet",
+      }),
+      "standard"
+    );
+  });
 });
 
 describe("applyCompression", () => {

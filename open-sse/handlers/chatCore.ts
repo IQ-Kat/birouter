@@ -1613,9 +1613,19 @@ export async function handleChatCore({
           );
         }
       }
-      const mode = selectCompressionStrategy(config, compressionComboKey, estimatedTokens);
+      const compressionInputBody = body as Record<string, unknown>;
+      const mode = selectCompressionStrategy(
+        config,
+        compressionComboKey,
+        estimatedTokens,
+        compressionInputBody,
+        { provider, targetFormat, model: effectiveModel }
+      );
       if (mode !== "off") {
-        const result = applyCompression(body, mode, { model: effectiveModel, config });
+        const result = applyCompression(compressionInputBody, mode, {
+          model: effectiveModel,
+          config,
+        });
         if (result.compressed && result.stats) {
           body = result.body as typeof body;
           estimatedTokens = result.stats.compressedTokens;
@@ -1642,6 +1652,39 @@ export async function handleChatCore({
               log?.debug?.(
                 "COMPRESSION",
                 "Compression analytics write skipped: " +
+                  (err instanceof Error ? err.message : String(err))
+              );
+            }
+          })();
+          void (async () => {
+            try {
+              const { detectCachingContext } =
+                await import("../services/compression/cachingAware.ts");
+              const { recordCacheStats } =
+                await import("../../src/lib/db/compressionCacheStats.ts");
+              const cacheContext = detectCachingContext(compressionInputBody, {
+                provider,
+                targetFormat,
+                model: effectiveModel,
+              });
+              const tokensSavedCompression = Math.max(
+                0,
+                result.stats.originalTokens - result.stats.compressedTokens
+              );
+              recordCacheStats({
+                provider: cacheContext.provider ?? provider ?? "unknown",
+                model: effectiveModel ?? "",
+                compressionMode: mode,
+                cacheControlPresent: cacheContext.hasCacheControl,
+                estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
+                tokensSavedCompression,
+                tokensSavedCaching: 0,
+                netSavings: tokensSavedCompression,
+              });
+            } catch (err) {
+              log?.debug?.(
+                "COMPRESSION",
+                "Compression cache stats write skipped: " +
                   (err instanceof Error ? err.message : String(err))
               );
             }
