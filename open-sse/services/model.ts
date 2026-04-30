@@ -26,12 +26,12 @@ const PROVIDER_MODEL_ALIASES = {
     "raptor-mini": "oswe-vscode-prime",
   },
   gemini: {
-    "gemini-3.1-pro-preview": "gemini-3.1-pro",
-    "gemini-3-1-pro": "gemini-3.1-pro",
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",
+    "gemini-3-1-pro": "gemini-3.1-pro-preview",
   },
   "gemini-cli": {
-    "gemini-3.1-pro-preview": "gemini-3.1-pro",
-    "gemini-3-1-pro": "gemini-3.1-pro",
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",
+    "gemini-3-1-pro": "gemini-3.1-pro-preview",
   },
   nvidia: {
     "gpt-oss-120b": "openai/gpt-oss-120b",
