@@ -148,16 +148,10 @@ function reconcileEnabledConnections(
       nextEnabledConnections.add(connectionId);
       autoCount++;
 
-      const key = `${provider}:${connectionId}`;
-      if (!limiters.has(key)) {
-        limiters.set(
-          key,
-          new Bottleneck({
-            ...buildLimiterDefaults(),
-            id: key,
-          })
-        );
-      }
+      // Route through getLimiter so the `queued`/`executing` listeners and
+      // lastDispatchAt heartbeat are wired up — otherwise the watchdog sees
+      // `stalledMs = now - 0` and falsely flags healthy idle limiters as wedged.
+      getLimiter(provider, connectionId);
     }
   }
 
@@ -183,7 +177,13 @@ function watchdogTick() {
     const counts = limiter.counts();
     if (counts.QUEUED === 0) continue;
     if (counts.RUNNING > 0 || counts.EXECUTING > 0) continue;
-    const lastDispatch = lastDispatchAt.get(key) ?? 0;
+    const lastDispatch = lastDispatchAt.get(key);
+    // No heartbeat yet → seed it and skip this tick. Prevents false wedge
+    // detection on a brand-new limiter or one created outside getLimiter.
+    if (lastDispatch === undefined) {
+      lastDispatchAt.set(key, now);
+      continue;
+    }
     const stalledMs = now - lastDispatch;
     if (stalledMs < WEDGE_THRESHOLD_MS) continue;
 
