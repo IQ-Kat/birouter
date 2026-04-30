@@ -3,7 +3,9 @@ import { getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import {
   DEFAULT_CAVEMAN_CONFIG,
+  DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
+  type AggressiveConfig,
   type CavemanConfig,
   type CompressionConfig,
   type CompressionMode,
@@ -57,6 +59,85 @@ function normalizeCavemanConfig(value: unknown): CavemanConfig {
   };
 }
 
+function boundedInt(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(value)));
+}
+
+function boundedNumber(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeAggressiveConfig(value: unknown): AggressiveConfig {
+  const record = toRecord(value);
+  const thresholds = toRecord(record.thresholds);
+  const toolStrategies = toRecord(record.toolStrategies);
+
+  return {
+    ...DEFAULT_AGGRESSIVE_CONFIG,
+    thresholds: {
+      fullSummary: boundedInt(
+        thresholds.fullSummary,
+        DEFAULT_AGGRESSIVE_CONFIG.thresholds.fullSummary,
+        1,
+        100
+      ),
+      moderate: boundedInt(
+        thresholds.moderate,
+        DEFAULT_AGGRESSIVE_CONFIG.thresholds.moderate,
+        1,
+        100
+      ),
+      light: boundedInt(thresholds.light, DEFAULT_AGGRESSIVE_CONFIG.thresholds.light, 1, 100),
+      verbatim: boundedInt(
+        thresholds.verbatim,
+        DEFAULT_AGGRESSIVE_CONFIG.thresholds.verbatim,
+        1,
+        100
+      ),
+    },
+    toolStrategies: {
+      fileContent:
+        typeof toolStrategies.fileContent === "boolean"
+          ? toolStrategies.fileContent
+          : DEFAULT_AGGRESSIVE_CONFIG.toolStrategies.fileContent,
+      grepSearch:
+        typeof toolStrategies.grepSearch === "boolean"
+          ? toolStrategies.grepSearch
+          : DEFAULT_AGGRESSIVE_CONFIG.toolStrategies.grepSearch,
+      shellOutput:
+        typeof toolStrategies.shellOutput === "boolean"
+          ? toolStrategies.shellOutput
+          : DEFAULT_AGGRESSIVE_CONFIG.toolStrategies.shellOutput,
+      json:
+        typeof toolStrategies.json === "boolean"
+          ? toolStrategies.json
+          : DEFAULT_AGGRESSIVE_CONFIG.toolStrategies.json,
+      errorMessage:
+        typeof toolStrategies.errorMessage === "boolean"
+          ? toolStrategies.errorMessage
+          : DEFAULT_AGGRESSIVE_CONFIG.toolStrategies.errorMessage,
+    },
+    summarizerEnabled:
+      typeof record.summarizerEnabled === "boolean"
+        ? record.summarizerEnabled
+        : DEFAULT_AGGRESSIVE_CONFIG.summarizerEnabled,
+    maxTokensPerMessage: boundedInt(
+      record.maxTokensPerMessage,
+      DEFAULT_AGGRESSIVE_CONFIG.maxTokensPerMessage,
+      256,
+      32768
+    ),
+    minSavingsThreshold: boundedNumber(
+      record.minSavingsThreshold,
+      DEFAULT_AGGRESSIVE_CONFIG.minSavingsThreshold,
+      0,
+      1
+    ),
+  };
+}
+
 export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(NAMESPACE);
@@ -64,6 +145,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   const config: CompressionConfig = {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
+    aggressive: normalizeAggressiveConfig(undefined),
   };
 
   for (const row of rows) {
@@ -112,6 +194,10 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "cavemanConfig":
         config.cavemanConfig = normalizeCavemanConfig(parsed);
         break;
+      case "aggressive":
+      case "aggressiveConfig":
+        config.aggressive = normalizeAggressiveConfig(parsed);
+        break;
     }
   }
 
@@ -137,4 +223,12 @@ export async function updateCompressionSettings(
   backupDbFile("pre-write");
   invalidateDbCache();
   return getCompressionSettings();
+}
+
+export function getDefaultAggressiveConfig(): AggressiveConfig {
+  return {
+    ...DEFAULT_AGGRESSIVE_CONFIG,
+    thresholds: { ...DEFAULT_AGGRESSIVE_CONFIG.thresholds },
+    toolStrategies: { ...DEFAULT_AGGRESSIVE_CONFIG.toolStrategies },
+  };
 }

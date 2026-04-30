@@ -1,6 +1,7 @@
 import type { CompressionConfig, CompressionMode, CompressionResult } from "./types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
+import { compressAggressive } from "./aggressive.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -53,6 +54,23 @@ export function applyCompression(
       body as Parameters<typeof cavemanCompress>[0],
       options?.config?.cavemanConfig
     );
+  }
+  if (mode === "aggressive") {
+    const messages = (body.messages ?? []) as Array<{
+      role: string;
+      content?: string | Array<{ type: string; text?: string }>;
+      [key: string]: unknown;
+    }>;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return { body, compressed: false, stats: null };
+    }
+    const aggressiveConfig = options?.config?.aggressive;
+    const result = compressAggressive(messages, aggressiveConfig);
+    return {
+      body: { ...body, messages: result.messages },
+      compressed: result.stats.savingsPercent > 0,
+      stats: result.stats,
+    };
   }
   return { body, compressed: false, stats: null };
 }
