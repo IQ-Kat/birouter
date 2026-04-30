@@ -50,7 +50,7 @@ test.afterEach(() => {
   restoreEnv();
 
   for (const dir of tempDirs) {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir as any, { recursive: true, force: true });
   }
   tempDirs.clear();
 });
@@ -226,7 +226,7 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
   const suspiciousStatus = await cliRuntime.getCliRuntimeStatus("qoder");
 
   assert.equal(suspiciousStatus.installed, false);
-  assert.equal(suspiciousStatus.reason, "not_found");
+  assert.equal(suspiciousStatus.reason, "suspicious_size");
 
   if (process.platform !== "win32") {
     const escapePrefix = createTempDir("omniroute-cli-escape-");
@@ -246,7 +246,7 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
     const escapedStatus = await escapedRuntime.getCliRuntimeStatus("qoder");
 
     assert.equal(escapedStatus.installed, false);
-    assert.equal(escapedStatus.reason, "not_found");
+    assert.equal(escapedStatus.reason, "symlink_escape");
   }
 });
 

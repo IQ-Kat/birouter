@@ -200,6 +200,21 @@ const CAVEMAN_RULES: CavemanRule[] = [
     replacement: "",
     context: "all",
   },
+  {
+    name: "passive_voice",
+    pattern: /\b(?:is being used|is being called|was created|was generated|was implemented)\b/gi,
+    replacement: (match: string): string => {
+      const map: Record<string, string> = {
+        "is being used": "uses",
+        "is being called": "calls",
+        "was created": "created",
+        "was generated": "generated",
+        "was implemented": "implemented",
+      };
+      return map[match.toLowerCase()] ?? match;
+    },
+    context: "all",
+  },
 
   // ── Category 4: Multi-Turn Dedup (5+ rules) ─────────────────────────
 

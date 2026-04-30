@@ -3,7 +3,7 @@
  *
  * Tests the proxy pipeline wiring: format detection, credential retry loop,
  * circuit breaker integration, and the new Phase 2 modules (DI container,
- * prompt versioning, plugin architecture, eval scheduler).
+ * prompt versioning, plugin architecture, eval cleanup).
  *
  * @module tests/integration/proxy-pipeline.test.ts
  */
@@ -88,25 +88,25 @@ describe("Chat Pipeline — combo fallback support", () => {
     assert.match(src, /handleSingleModel.*handleSingleModelChat/s);
   });
 
-  it("should check model availability before attempting combo models", () => {
-    assert.match(src, /isModelAvailable/);
+  it("should preflight provider credentials before attempting combo models", () => {
+    assert.match(src, /getProviderCredentialsWithQuotaPreflight/);
   });
 });
 
 describe("Chat Pipeline — circuit breaker integration", () => {
   const helpersSrc = readSrc("sse/handlers/chatHelpers.ts");
 
-  it("should import CircuitBreakerOpenError", () => {
+  it("should import providerCircuitOpenResponse", () => {
     assert.ok(helpersSrc, "chatHelpers.ts should exist");
-    assert.match(helpersSrc, /CircuitBreakerOpenError/);
+    assert.match(helpersSrc, /providerCircuitOpenResponse/);
   });
 
-  it("should handle CircuitBreakerOpenError with retry-after", () => {
+  it("should handle circuit-open responses with retry-after", () => {
     assert.match(helpersSrc, /retryAfterMs/);
   });
 
-  it("should reject requests when circuit is open", () => {
-    assert.match(helpersSrc, /circuit breaker is open/i);
+  it("should reject requests when circuit is open via structured provider breaker response", () => {
+    assert.match(helpersSrc, /providerCircuitOpenResponse\(provider,\s*retryAfterSec\)/);
   });
 });
 
@@ -336,36 +336,13 @@ describe("Prompt Template Versioning — prompts.ts module existence", () => {
 });
 
 // ═══════════════════════════════════════════════════
-// 5. Eval Scheduler (L-7)
+// 5. Eval cleanup (Task 28)
 // ═══════════════════════════════════════════════════
 
-describe("Eval Scheduler — scheduler.ts module existence", () => {
-  it("scheduler.ts should exist", () => {
+describe("Eval cleanup — orphaned scheduler module", () => {
+  it("scheduler.ts should remain deleted", () => {
     const full = join(ROOT, "src", "lib", "evals", "scheduler.ts");
-    assert.ok(existsSync(full), "scheduler.ts should exist");
-  });
-
-  it("should export scheduling functions", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "evals", "scheduler.ts"), "utf8");
-    assert.match(src, /export function schedule/);
-    assert.match(src, /export function unschedule/);
-    assert.match(src, /export function pause/);
-    assert.match(src, /export function resume/);
-    assert.match(src, /export\s+(async\s+)?function\s+runNow/);
-    assert.match(src, /export function getSchedules/);
-    assert.match(src, /export function getHistory/);
-    assert.match(src, /export function stopAll/);
-  });
-
-  it("should define ScheduledEval and EvalRunResult types", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "evals", "scheduler.ts"), "utf8");
-    assert.match(src, /export interface ScheduledEval/);
-    assert.match(src, /export interface EvalRunResult/);
-  });
-
-  it("should have pluggable output provider", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "evals", "scheduler.ts"), "utf8");
-    assert.match(src, /export function setOutputProvider/);
+    assert.equal(existsSync(full), false, "scheduler.ts should stay removed");
   });
 });
 
@@ -402,9 +379,12 @@ describe("CORS — centralized configuration", () => {
     assert.ok(existsSync(full), "shared/utils/cors.ts should exist");
   });
 
-  it("should export CORS_HEADERS and CORS_ORIGIN", () => {
+  it("should export CORS_HEADERS without a wildcard origin", () => {
     const src = readSrc("shared/utils/cors.ts");
     assert.match(src, /CORS_HEADERS/);
-    assert.match(src, /CORS_ORIGIN/);
+    // Extract the CORS_HEADERS object body (between { and }) to avoid matching JSDoc comments
+    const objMatch = src.match(/CORS_HEADERS\s*=\s*\{([^}]+)\}/);
+    assert.ok(objMatch, "CORS_HEADERS object should be found");
+    assert.doesNotMatch(objMatch[1], /Access-Control-Allow-Origin/);
   });
 });

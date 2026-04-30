@@ -9,6 +9,7 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
  * OAuth Configuration Constants
@@ -188,6 +189,21 @@ export const GITHUB_CONFIG = {
   editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
 };
 
+const GITLAB_DUO_ENDPOINTS = buildGitLabOAuthEndpoints(GITLAB_DUO_DEFAULT_BASE_URL);
+
+export const GITLAB_DUO_CONFIG = {
+  baseUrl: GITLAB_DUO_ENDPOINTS.root,
+  clientId: process.env.GITLAB_DUO_OAUTH_CLIENT_ID || process.env.GITLAB_OAUTH_CLIENT_ID || "",
+  clientSecret:
+    process.env.GITLAB_DUO_OAUTH_CLIENT_SECRET || process.env.GITLAB_OAUTH_CLIENT_SECRET || "",
+  authorizeUrl: GITLAB_DUO_ENDPOINTS.authorizeUrl,
+  tokenUrl: GITLAB_DUO_ENDPOINTS.tokenUrl,
+  userInfoUrl: GITLAB_DUO_ENDPOINTS.userUrl,
+  directAccessUrl: GITLAB_DUO_ENDPOINTS.directAccessUrl,
+  scope: "ai_features read_user",
+  codeChallengeMethod: "S256",
+};
+
 // Kiro OAuth Configuration
 // Supports multiple auth methods:
 // 1. AWS Builder ID (Device Code Flow)
@@ -230,7 +246,7 @@ export const CURSOR_CONFIG = {
   agentEndpoint: "https://agent.api5.cursor.sh", // Privacy mode
   agentNonPrivacyEndpoint: "https://agentn.api5.cursor.sh", // Non-privacy mode
   // Client metadata
-  clientVersion: "3.1.15",
+  clientVersion: "3.2.14",
   clientType: "ide",
   // Token storage locations (for user reference)
   tokenStoragePaths: {
@@ -259,7 +275,9 @@ export const PROVIDERS = {
   KIMI_CODING: "kimi-coding",
   OPENAI: "openai",
   GITHUB: "github",
+  GITLAB_DUO: "gitlab-duo",
   KIRO: "kiro",
+  AMAZON_Q: "amazon-q",
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",

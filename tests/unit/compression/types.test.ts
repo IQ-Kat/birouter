@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
+  DEFAULT_ULTRA_CONFIG,
 } from "../../../open-sse/services/compression/types.ts";
 import type {
   AggressiveConfig,
@@ -13,6 +14,7 @@ import type {
   CompressionMode,
   CompressionStats,
   CompressionConfig,
+  UltraConfig,
 } from "../../../open-sse/services/compression/types.ts";
 
 describe("Phase 3 — AggressiveConfig types", () => {
@@ -59,6 +61,26 @@ describe("Phase 3 — AggressiveConfig types", () => {
   it("CompressionConfig.aggressive is optional", () => {
     const config: CompressionConfig = { ...DEFAULT_COMPRESSION_CONFIG };
     assert.equal(config.aggressive, undefined);
+  });
+
+  it("DEFAULT_ULTRA_CONFIG has correct defaults", () => {
+    assert.equal(DEFAULT_ULTRA_CONFIG.enabled, false);
+    assert.equal(DEFAULT_ULTRA_CONFIG.compressionRate, 0.5);
+    assert.equal(DEFAULT_ULTRA_CONFIG.minScoreThreshold, 0.3);
+    assert.equal(DEFAULT_ULTRA_CONFIG.slmFallbackToAggressive, true);
+    assert.equal(DEFAULT_ULTRA_CONFIG.maxTokensPerMessage, 0);
+  });
+
+  it("CompressionConfig accepts ultra field", () => {
+    const ultra: UltraConfig = {
+      ...DEFAULT_ULTRA_CONFIG,
+      enabled: true,
+    };
+    const config: CompressionConfig = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      ultra,
+    };
+    assert.deepEqual(config.ultra, ultra);
   });
 
   it("CompressionStats accepts aggressive breakdown", () => {

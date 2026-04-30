@@ -141,6 +141,7 @@ const SCHEMA_SQL = `
     rate_limit_protection INTEGER DEFAULT 0,
     last_used_at TEXT,
     "group" TEXT,
+    max_concurrent INTEGER,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -344,6 +345,22 @@ const SCHEMA_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_sc_sig ON semantic_cache(signature);
   CREATE INDEX IF NOT EXISTS idx_sc_model ON semantic_cache(model);
+
+  CREATE TABLE IF NOT EXISTS quota_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    connection_id TEXT NOT NULL,
+    window_key TEXT NOT NULL,
+    remaining_percentage REAL,
+    is_exhausted INTEGER DEFAULT 0,
+    next_reset_at TEXT,
+    window_duration_ms INTEGER,
+    raw_data TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_quota_snapshots_provider_time ON quota_snapshots(provider, created_at);
+  CREATE INDEX IF NOT EXISTS idx_quota_snapshots_connection_time ON quota_snapshots(connection_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_quota_snapshots_created_at ON quota_snapshots(created_at);
 `;
 
 // ──────────────── Column Mapping ────────────────
@@ -441,6 +458,13 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       db.exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
       console.log('[DB] Added provider_connections."group" column');
     }
+    if (!columnNames.has("max_concurrent")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
+      console.log("[DB] Added provider_connections.max_concurrent column");
+    }
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify provider_connections schema:", message);
@@ -603,17 +627,22 @@ function summarizeSkippedTables(tables: SkippedTableSnapshot[]): string {
 function listProbeFailureBackups(sqliteFile: string): string[] {
   const directory = path.dirname(sqliteFile);
   const baseName = path.basename(sqliteFile);
+  const prefix = `${baseName}.probe-failed-`;
   if (!fs.existsSync(directory)) return [];
 
   return fs
     .readdirSync(directory)
-    .filter((name) => name.startsWith(`${baseName}.probe-failed-`))
-    .map((name) => path.join(directory, name))
+    .filter((name) => name.startsWith(prefix))
+    .map((name) => ({
+      path: path.join(directory, name),
+      timestamp: Number(name.slice(prefix.length)),
+    }))
     .sort((left, right) => {
-      const leftMtime = fs.statSync(left).mtimeMs;
-      const rightMtime = fs.statSync(right).mtimeMs;
-      return rightMtime - leftMtime;
-    });
+      const leftTimestamp = Number.isFinite(left.timestamp) ? left.timestamp : 0;
+      const rightTimestamp = Number.isFinite(right.timestamp) ? right.timestamp : 0;
+      return rightTimestamp - leftTimestamp || right.path.localeCompare(left.path);
+    })
+    .map((backup) => backup.path);
 }
 
 function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
@@ -996,11 +1025,20 @@ export function getDbInstance(): SqliteDatabase {
   const jsonDbFile = JSON_DB_FILE;
   const probeFailureBackups = listProbeFailureBackups(sqliteFile);
   if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
-    throw new Error(
-      `[DB] Manual recovery required before startup. ` +
-        `Detected preserved database from a previous probe failure: ${probeFailureBackups[0]}. ` +
-        `Restore the preserved file or another backup to ${sqliteFile} before restarting.`
-    );
+    const latestBackup = probeFailureBackups[0];
+    try {
+      fs.renameSync(latestBackup, sqliteFile);
+      console.log(
+        `[DB] Auto-restored preserved database from previous probe failure: ${path.basename(latestBackup)}`
+      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `[DB] Manual recovery required before startup. ` +
+          `Failed to auto-restore preserved database ${latestBackup}: ${msg}. ` +
+          `Restore the preserved file or another backup to ${sqliteFile} before restarting.`
+      );
+    }
   }
 
   let preservedCriticalState: PreservedCriticalDbState = {
@@ -1165,6 +1203,12 @@ export function getDbInstance(): SqliteDatabase {
       "combo_sort_order"
     );
   }
+  if (hasColumn(db, "provider_connections", "max_concurrent")) {
+    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      "029",
+      "provider_connection_max_concurrent"
+    );
+  }
   if (hasColumn(db, "call_logs", "request_type")) {
     db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
       "007",
@@ -1236,6 +1280,101 @@ export function getDbInstance(): SqliteDatabase {
     );
   }
   runMigrations(db, { isNewDb });
+
+  // ── Post-migration safety guards ──────────────────────────────────────────
+  // The heuristic seeding above can mark migration versions as "applied" based
+  // on column detection, causing the migration runner to skip newer migrations
+  // whose tables/columns don't have heuristic detectors yet.
+  // These guards ensure critical schema elements exist regardless of migration
+  // state, fixing upgrade failures reported in #1648 and #1657.
+
+  // Guard: combos.sort_order (migration 020)
+  if (hasTable(db, "combos") && !hasColumn(db, "combos", "sort_order")) {
+    try {
+      db.exec(`
+        ALTER TABLE combos ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;
+        WITH ordered_combos AS (
+          SELECT id, ROW_NUMBER() OVER (
+            ORDER BY created_at ASC, updated_at ASC, name COLLATE NOCASE ASC
+          ) AS next_sort_order
+          FROM combos
+        )
+        UPDATE combos SET sort_order = (
+          SELECT next_sort_order FROM ordered_combos
+          WHERE ordered_combos.id = combos.id
+        );
+      `);
+      console.log("[DB] Post-migration guard: added missing combos.sort_order column (#1657)");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!msg.includes("duplicate column")) {
+        console.warn("[DB] Post-migration guard: combos.sort_order failed:", msg);
+      }
+    }
+  }
+
+  // Guard: batches table (migration 028)
+  if (!hasTable(db, "batches")) {
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS files (
+          id TEXT PRIMARY KEY,
+          bytes INTEGER NOT NULL,
+          created_at INTEGER NOT NULL,
+          filename TEXT NOT NULL,
+          purpose TEXT NOT NULL,
+          content BLOB,
+          mime_type TEXT,
+          api_key_id TEXT,
+          deleted_at INTEGER,
+          status TEXT DEFAULT 'validating',
+          expires_at INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_files_api_key ON files(api_key_id);
+
+        CREATE TABLE IF NOT EXISTS batches (
+          id TEXT PRIMARY KEY,
+          endpoint TEXT NOT NULL,
+          completion_window TEXT NOT NULL,
+          status TEXT NOT NULL,
+          input_file_id TEXT NOT NULL,
+          output_file_id TEXT,
+          error_file_id TEXT,
+          created_at INTEGER NOT NULL,
+          in_progress_at INTEGER,
+          expires_at INTEGER,
+          finalizing_at INTEGER,
+          completed_at INTEGER,
+          failed_at INTEGER,
+          expired_at INTEGER,
+          cancelling_at INTEGER,
+          cancelled_at INTEGER,
+          request_counts_total INTEGER DEFAULT 0,
+          request_counts_completed INTEGER DEFAULT 0,
+          request_counts_failed INTEGER DEFAULT 0,
+          metadata TEXT,
+          api_key_id TEXT,
+          errors TEXT,
+          model TEXT,
+          usage TEXT,
+          output_expires_after_seconds INTEGER,
+          output_expires_after_anchor TEXT,
+          FOREIGN KEY(input_file_id) REFERENCES files(id),
+          FOREIGN KEY(output_file_id) REFERENCES files(id),
+          FOREIGN KEY(error_file_id) REFERENCES files(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_batches_api_key ON batches(api_key_id);
+        CREATE INDEX IF NOT EXISTS idx_batches_status ON batches(status);
+      `);
+      console.log("[DB] Post-migration guard: created missing batches/files tables (#1648)");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!msg.includes("already exists")) {
+        console.warn("[DB] Post-migration guard: batches/files creation failed:", msg);
+      }
+    }
+  }
+
   offloadLegacyCallLogDetails(db);
 
   // Auto-migrate from db.json if exists

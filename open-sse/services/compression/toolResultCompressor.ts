@@ -63,7 +63,7 @@ function compressShellOutput(content: string): string | null {
 }
 
 function compressJson(content: string): string | null {
-  if (content.length <= 5000) return null;
+  if (content.length <= 2000) return null;
   if (!JSON_PREFIX_RE.test(content)) return null;
   let parsed: unknown;
   try {

@@ -5,11 +5,18 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
 import { getSettings } from "@/lib/db/settings";
+import type { Viewport } from "next";
+import { PwaRegister } from "@/shared/components/PwaRegister";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#0b0f1a",
+  viewportFit: "cover",
+};
 
 export async function generateMetadata() {
   const settings = await getSettings();
@@ -20,9 +27,25 @@ export async function generateMetadata() {
     title: `${instanceName} — AI Gateway for Multi-Provider LLMs`,
     description:
       "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
+    manifest: "/manifest.webmanifest",
+    applicationName: instanceName,
+    appleWebApp: {
+      capable: true,
+      title: instanceName,
+      statusBarStyle: "black-translucent",
+    },
+    other: {
+      "mobile-web-app-capable": "yes",
+    },
     icons: {
-      icon: customFaviconUrl ? "/api/settings/favicon" : "/favicon.svg",
-      apple: "/apple-touch-icon.svg",
+      icon: customFaviconUrl
+        ? "/api/settings/favicon"
+        : [
+            { url: "/favicon.ico", sizes: "any" },
+            { url: "/favicon.svg", type: "image/svg+xml" },
+            { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+          ],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     },
   };
 }
@@ -42,6 +65,22 @@ export default async function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const stored = localStorage.getItem('theme');
+                const parsed = stored ? JSON.parse(stored) : null;
+                const theme = parsed?.state?.theme || 'system';
+                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
         <a
@@ -51,6 +90,7 @@ export default async function RootLayout({ children }) {
           Skip to content
         </a>
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <PwaRegister />
           <ThemeProvider>{children}</ThemeProvider>
         </NextIntlClientProvider>
       </body>

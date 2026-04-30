@@ -33,12 +33,33 @@ function resolveMigrationsDir(): string {
   try {
     return path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
   } catch {
-    // Fall through to a more defensive URL parse below.
+    // Fall through to more defensive URL parsing below.
   }
 
+  // Fix #1704: On Windows with global npm installs, import.meta.url may contain
+  // CI build-time paths (e.g., /home/runner/work/...) that are not valid file://
+  // URLs on Windows. Extract the path portion directly and normalize it.
   const metaUrl = import.meta.url;
   if (typeof metaUrl === "string" && metaUrl.startsWith("file://")) {
-    return path.join(path.dirname(fileURLToPath(metaUrl)), "migrations");
+    try {
+      // Strip the file:// prefix and decode, then normalize for the platform
+      const rawPath = decodeURIComponent(
+        metaUrl.replace(/^file:\/\/\//, "/").replace(/^file:\/\//, "")
+      );
+      return path.join(path.dirname(path.resolve(rawPath)), "migrations");
+    } catch {
+      // Fall through to process.cwd fallback
+    }
+  }
+
+  // Last resort: use process.cwd to find migrations relative to the app root
+  const cwdFallback = path.join(process.cwd(), "src", "lib", "db", "migrations");
+  if (fs.existsSync(cwdFallback)) {
+    return cwdFallback;
+  }
+  const appFallback = path.join(process.cwd(), "app", "src", "lib", "db", "migrations");
+  if (fs.existsSync(appFallback)) {
+    return appFallback;
   }
 
   throw new Error(
@@ -65,9 +86,31 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "025",
     toName: "call_logs_summary_storage",
   },
+  {
+    fromVersion: "028",
+    fromName: "provider_connection_max_concurrent",
+    toVersion: "029",
+    toName: "provider_connection_max_concurrent",
+  },
+  {
+    fromVersion: "032",
+    fromName: "create_reasoning_cache",
+    toVersion: "033",
+    toName: "create_reasoning_cache",
+  },
+] as const;
+
+const LEGACY_VERSION_SLOT_MIGRATIONS = [
+  { version: "028", name: "evals_tables" },
+  { version: "029", name: "webhooks_templates" },
+  { version: "030", name: "mcp_scopes_api_keys" },
+  { version: "031", name: "api_keys_expires" },
+  { version: "032", name: "detailed_logs_warnings" },
+  { version: "033", name: "provider_connections_block_extra_usage" },
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [
+  { version: "028", tableName: "batches", description: "batches table" },
   { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
   { version: "022", tableName: "memory_fts", description: "memory_fts virtual table" },
   { version: "019", tableName: "context_handoffs", description: "context_handoffs table" },
@@ -147,6 +190,73 @@ function hasTable(db: Database.Database, tableName: string): boolean {
     .prepare("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?")
     .get(tableName) as { name?: string } | undefined;
   return Boolean(row?.name);
+}
+
+function hasColumn(db: Database.Database, tableName: string, columnName: string): boolean {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
+  return columns.some((column) => column.name === columnName);
+}
+
+function ensureColumn(
+  db: Database.Database,
+  tableName: string,
+  columnName: string,
+  ddl: string
+): void {
+  if (!hasColumn(db, tableName, columnName)) {
+    db.exec(ddl);
+  }
+}
+
+function isProviderConnectionMaxConcurrentMigration(migration: {
+  version: string;
+  name: string;
+}): boolean {
+  return migration.version === "029";
+}
+
+function applyProviderConnectionMaxConcurrentMigration(db: Database.Database): void {
+  ensureColumn(
+    db,
+    "provider_connections",
+    "max_concurrent",
+    "ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER"
+  );
+  db.exec(
+    "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
+  );
+}
+
+function isApiKeyLifecycleMigration(migration: { version: string; name: string }): boolean {
+  return migration.version === "032";
+}
+
+function applyApiKeyLifecycleMigration(db: Database.Database): void {
+  ensureColumn(db, "api_keys", "revoked_at", "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
+  ensureColumn(db, "api_keys", "expires_at", "ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
+  ensureColumn(db, "api_keys", "last_used_at", "ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
+  ensureColumn(db, "api_keys", "key_prefix", "ALTER TABLE api_keys ADD COLUMN key_prefix TEXT");
+  ensureColumn(db, "api_keys", "ip_allowlist", "ALTER TABLE api_keys ADD COLUMN ip_allowlist TEXT");
+  ensureColumn(db, "api_keys", "scopes", "ALTER TABLE api_keys ADD COLUMN scopes TEXT");
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_api_keys_revoked_at ON api_keys(revoked_at);
+    CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at);
+  `);
+}
+
+function isSearchRequestTypeMigration(migration: { version: string; name: string }): boolean {
+  return migration.version === "007";
+}
+
+function applySearchRequestTypeMigration(db: Database.Database): void {
+  ensureColumn(
+    db,
+    "call_logs",
+    "request_type",
+    "ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL"
+  );
+  db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);");
 }
 
 function inferPhysicalSchemaBaseline(db: Database.Database): {
@@ -262,6 +372,77 @@ function reconcileRenumberedMigrations(
       `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
         `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
     );
+
+    // After the compat rewrite, verify the old version slot is now free.
+    // A residual row (from a failed prior run, manual intervention, or edge-case
+    // UPDATE conflict) at the old version would shadow a NEW migration file
+    // placed at that version number — e.g. 028_create_files_and_batches.sql
+    // would be skipped because getAppliedVersions() still sees version "028".
+    const residualRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+      .get(compatibility.fromVersion) as { version: string; name: string } | undefined;
+    if (residualRow) {
+      console.warn(
+        `[Migration] ⚠️  Residual row at version ${compatibility.fromVersion} ` +
+          `(name: "${residualRow.name}") still present after compat rewrite — ` +
+          `removing to unblock new migration at this version slot.`
+      );
+      db.prepare("DELETE FROM _omniroute_migrations WHERE version = ?").run(
+        compatibility.fromVersion
+      );
+    }
+  }
+
+  return repaired;
+}
+
+function rehomeLegacyVersionSlotMigrations(
+  db: Database.Database,
+  files: Array<{ version: string; name: string; path: string }>
+): boolean {
+  let repaired = false;
+  const diskNamesByVersion = new Map(files.map((file) => [file.version, file.name]));
+
+  for (const legacy of LEGACY_VERSION_SLOT_MIGRATIONS) {
+    const diskName = diskNamesByVersion.get(legacy.version);
+    if (!diskName || diskName === legacy.name) {
+      continue;
+    }
+
+    const legacyRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get(legacy.version, legacy.name) as { version: string; name: string } | undefined;
+    if (!legacyRow) {
+      continue;
+    }
+
+    const legacyVersion = `legacy-${legacy.version}-${legacy.name}`;
+    const applyRepair = db.transaction(() => {
+      const existingLegacyRow = db
+        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+        .get(legacyVersion) as { version: string } | undefined;
+
+      if (existingLegacyRow) {
+        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
+          legacy.version,
+          legacy.name
+        );
+        return;
+      }
+
+      db.prepare("UPDATE _omniroute_migrations SET version = ? WHERE version = ? AND name = ?").run(
+        legacyVersion,
+        legacy.version,
+        legacy.name
+      );
+    });
+
+    applyRepair();
+    repaired = true;
+    console.warn(
+      `[Migration] Rehomed legacy migration ${legacy.version}_${legacy.name} ` +
+        `to ${legacyVersion} so current ${legacy.version}_${diskName} can apply.`
+    );
   }
 
   return repaired;
@@ -309,6 +490,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   ensureMigrationsTable(db);
 
   const files = getMigrationFiles();
+  rehomeLegacyVersionSlotMigrations(db, files);
   reconcileRenumberedMigrations(db, files);
   const applied = getAppliedVersions(db);
   const appliedRecords = getAppliedRecords(db);
@@ -393,10 +575,17 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   let count = 0;
 
   for (const migration of pending) {
-    const sql = fs.readFileSync(migration.path, "utf-8");
-
     const applyMigration = db.transaction(() => {
-      db.exec(sql);
+      if (isProviderConnectionMaxConcurrentMigration(migration)) {
+        applyProviderConnectionMaxConcurrentMigration(db);
+      } else if (isApiKeyLifecycleMigration(migration)) {
+        applyApiKeyLifecycleMigration(db);
+      } else if (isSearchRequestTypeMigration(migration)) {
+        applySearchRequestTypeMigration(db);
+      } else {
+        const sql = fs.readFileSync(migration.path, "utf-8");
+        db.exec(sql);
+      }
       db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
         migration.version,
         migration.name

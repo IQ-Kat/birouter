@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import {
@@ -9,7 +8,6 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
@@ -18,7 +16,7 @@ import { getAllModerationModels } from "@omniroute/open-sse/config/moderationReg
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getAllSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
@@ -26,6 +24,7 @@ import {
   enrichCatalogModelEntry,
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
+import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -80,6 +79,59 @@ function getVisionCapabilityFields(modelId: string) {
     input_modalities: ["text", "image"],
     output_modalities: ["text"],
   };
+}
+
+function extractBearer(headers: Headers): string | null {
+  const authHeader = headers.get("authorization") || headers.get("Authorization");
+  if (!authHeader?.trim().toLowerCase().startsWith("bearer ")) return null;
+  return authHeader.trim().slice(7).trim() || null;
+}
+
+async function validateCatalogBearer(apiKey: string): Promise<boolean> {
+  const { validateApiKey } = await import("@/lib/db/apiKeys");
+  return validateApiKey(apiKey);
+}
+
+async function getModelCatalogAuthRejection(
+  request: Request,
+  settings: Record<string, any>,
+  headers: Record<string, string>
+): Promise<Response | null> {
+  if (settings.requireAuthForModels !== true || !(await isAuthRequired())) return null;
+
+  const bearer = extractBearer(request.headers);
+  if (bearer) {
+    if (await validateCatalogBearer(bearer)) return null;
+    return Response.json(
+      {
+        error: {
+          message: "Invalid API key",
+          type: "invalid_api_key",
+          code: "invalid_api_key",
+        },
+      },
+      {
+        status: 401,
+        headers,
+      }
+    );
+  }
+
+  if (await isDashboardSessionAuthenticated(request)) return null;
+
+  return Response.json(
+    {
+      error: {
+        message: "Authentication required",
+        type: "invalid_api_key",
+        code: "invalid_api_key",
+      },
+    },
+    {
+      status: 401,
+      headers,
+    }
+  );
 }
 
 function buildAliasMaps() {
@@ -142,39 +194,20 @@ function buildAliasMaps() {
  */
 export async function getUnifiedModelsResponse(
   request: Request,
-  corsHeaders: Record<string, string> = {
-    "Access-Control-Allow-Origin": CORS_ORIGIN,
-  }
+  corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
-    // Issue #100: Optionally require authentication for /models (security hardening)
-    // When enabled, unauthenticated requests get 401 with proper error response.
-    // Supports API key (Bearer token) for external clients and JWT cookie for dashboard.
     let settings: Record<string, any> = {};
     try {
       settings = await getSettings();
     } catch {}
-    if (settings.requireAuthForModels === true) {
-      if (!(await isAuthenticated(request))) {
-        return Response.json(
-          {
-            error: {
-              message: "Authentication required",
-              type: "invalid_request_error",
-              code: "invalid_api_key",
-            },
-          },
-          {
-            status: 401,
-            headers: {
-              ...corsHeaders,
-              ...diagnosticHeaders,
-            },
-          }
-        );
-      }
-    }
+
+    const authRejection = await getModelCatalogAuthRejection(request, settings, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
 
@@ -346,45 +379,68 @@ export async function getUnifiedModelsResponse(
       }
     }
 
-    // Gemini: synced API models exclusively (outside PROVIDER_MODELS loop since registry is empty)
-    if (activeAliases.has("gemini") && !blockedProviders.has("gemini")) {
-      try {
-        const syncedModels = await getSyncedAvailableModels("gemini");
-        for (const sm of syncedModels) {
-          if (!providerSupportsModel("gemini", sm.id)) continue;
-          const aliasId = `gemini/${sm.id}`;
-          if (getModelIsHidden("gemini", sm.id)) continue;
+    try {
+      const syncedModelsByProvider = await getAllSyncedAvailableModels();
+      for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
+        if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
+        if (blockedProviders.has(providerId)) continue;
 
-          // Convert supportedEndpoints to type/subtype for endpoint categorization
+        const prefix = providerIdToPrefix[providerId];
+        const alias = prefix || providerIdToAlias[providerId] || providerId;
+        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const parentProviderType = nodeIdToProviderType[providerId];
+
+        if (
+          !activeAliases.has(alias) &&
+          !activeAliases.has(canonicalProviderId) &&
+          !activeAliases.has(providerId) &&
+          !(parentProviderType && activeAliases.has(parentProviderType))
+        ) {
+          continue;
+        }
+
+        for (const sm of syncedModels) {
+          if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
+          if (getModelIsHidden(providerId, sm.id)) continue;
+
+          const aliasId = `${alias}/${sm.id}`;
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
-
-          models.push({
-            id: aliasId,
-            object: "model",
-            created: timestamp,
-            owned_by: "gemini",
-            permission: [],
-            root: sm.id,
-            parent: null,
+          const syncedFields = {
             ...(modelType ? { type: modelType } : {}),
             ...(modelType === "audio" ? { subtype: "transcription" } : {}),
             ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
+          };
+
+          const existingAliasModel = models.find((model) => model.id === aliasId);
+          if (existingAliasModel) {
+            Object.assign(existingAliasModel, syncedFields);
+            continue;
+          }
+
+          models.push({
+            id: aliasId,
+            object: "model",
+            created: timestamp,
+            owned_by: canonicalProviderId,
+            permission: [],
+            root: sm.id,
+            parent: null,
+            ...syncedFields,
           });
 
-          // For audio models, also add a speech variant so they appear in both sections
           if (modelType === "audio") {
             models.push({
               id: aliasId,
               object: "model",
               created: timestamp,
-              owned_by: "gemini",
+              owned_by: canonicalProviderId,
               permission: [],
               root: sm.id,
               parent: null,
@@ -396,16 +452,43 @@ export async function getUnifiedModelsResponse(
                 : {}),
             });
           }
+
+          if (canonicalProviderId !== alias && !prefix) {
+            const providerPrefixedId = `${canonicalProviderId}/${sm.id}`;
+            if (!models.some((model) => model.id === providerPrefixedId)) {
+              models.push({
+                id: providerPrefixedId,
+                object: "model",
+                created: timestamp,
+                owned_by: canonicalProviderId,
+                permission: [],
+                root: sm.id,
+                parent: aliasId,
+                ...syncedFields,
+              });
+            }
+          }
         }
-      } catch (err) {
-        console.error("[catalog] Error fetching synced Gemini models:", err);
       }
+    } catch (err) {
+      console.error("[catalog] Error fetching synced provider models:", err);
     }
 
     // Helper: check if a provider is active (by provider id or alias)
     const isProviderActive = (provider: string) => {
       if (activeAliases.size === 0) return false; // No active connections = show nothing
       const alias = providerIdToAlias[provider] || provider;
+      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || provider;
+
+      // FIX #1752: Ensure blocked providers are not returned for non-chat models
+      if (
+        blockedProviders.has(alias) ||
+        blockedProviders.has(canonicalProviderId) ||
+        blockedProviders.has(provider)
+      ) {
+        return false;
+      }
+
       return activeAliases.has(alias) || activeAliases.has(provider);
     };
 
@@ -667,10 +750,9 @@ export async function getUnifiedModelsResponse(
     }
 
     // Filter by API key permissions if requested
-    const authHeader = request.headers.get("authorization");
+    const apiKey = extractBearer(request.headers);
     let finalModels = models;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const apiKey = authHeader.slice(7);
+    if (apiKey) {
       const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
 
       const filtered = [];

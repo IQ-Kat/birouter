@@ -6,15 +6,19 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-test-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-test-route-secret";
 
 const core = await import("../../src/lib/db/core.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const runtimePorts = await import("../../src/lib/runtime/ports.ts");
 const route = await import("../../src/app/api/combos/test/route.ts");
 
 const originalFetch = globalThis.fetch;
 
 async function resetStorage() {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -33,6 +37,10 @@ function makeRequest(comboName = "strict-live-test") {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ comboName }),
   });
+}
+
+function expectedInternalUrl(pathname: string): string {
+  return `http://127.0.0.1:${runtimePorts.getRuntimePorts().apiPort}${pathname}`;
 }
 
 test.beforeEach(async () => {
@@ -74,12 +82,12 @@ test("combo test route validates request payloads and combo existence", async ()
       body: JSON.stringify({ comboName: "" }),
     })
   );
-  const invalidBody = await invalidBodyResponse.json();
+  const invalidBody = (await invalidBodyResponse.json()) as any;
   assert.equal(invalidBodyResponse.status, 400);
   assert.equal(invalidBody.error.message, "Invalid request");
 
   const missingResponse = await route.POST(makeRequest("missing-combo"));
-  const missingBody = await missingResponse.json();
+  const missingBody = (await missingResponse.json()) as any;
   assert.equal(missingResponse.status, 404);
   assert.equal(missingBody.error, "Combo not found");
 });
@@ -120,12 +128,12 @@ test("combo test route marks a model healthy only when it returns assistant text
   } finally {
     Math.random = originalRandom;
   }
-  const body = await response.json();
+  const body = (await response.json()) as any;
   const forwardedBody = JSON.parse(fetchCalls[0].init.body);
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 1);
-  assert.equal(fetchCalls[0].url, "http://localhost/v1/chat/completions");
+  assert.equal(fetchCalls[0].url, expectedInternalUrl("/v1/chat/completions"));
   assert.equal(fetchCalls[0].init.headers["X-Internal-Test"], "combo-health-check");
   assert.equal(fetchCalls[0].init.headers["X-OmniRoute-No-Cache"], "true");
   assert.match(fetchCalls[0].init.headers["X-Request-Id"], /^combo-test-/);
@@ -163,7 +171,7 @@ test("combo test route treats empty successful responses as failures", async () 
     );
 
   const response = await route.POST(makeRequest());
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -203,7 +211,7 @@ test("combo test route accepts reasoning-only completions as healthy smoke-test 
     );
 
   const response = await route.POST(makeRequest());
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
@@ -228,7 +236,7 @@ test("combo test route surfaces provider errors instead of downgrading them to r
     );
 
   const response = await route.POST(makeRequest());
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);
@@ -284,7 +292,7 @@ test("combo test route launches model probes concurrently while preserving combo
   );
 
   const response = await responsePromise;
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, "provider/first");
@@ -343,7 +351,7 @@ test("combo test route preserves structured step metadata for repeated model/acc
   };
 
   const response = await route.POST(makeRequest());
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(fetchCalls.length, 2);
@@ -362,16 +370,17 @@ test("combo test route preserves structured step metadata for repeated model/acc
   assert.equal(body.resolvedByTarget.connectionId, "conn-openai-a");
 });
 
-test("combo test route rejects empty combos and respects forwarded base URLs", async () => {
+test("combo test route rejects empty combos and ignores forwarded origins for internal probes", async () => {
   await createTestCombo([]);
 
   const emptyResponse = await route.POST(makeRequest());
-  const emptyBody = await emptyResponse.json();
+  const emptyBody = (await emptyResponse.json()) as any;
   assert.equal(emptyResponse.status, 400);
   assert.equal(emptyBody.error, "Combo has no models");
 
   await resetStorage();
   await createTestCombo(["provider/forwarded"]);
+  const internalKey = await apiKeysDb.createApiKey("combo-internal", "machine-combo-internal");
 
   const fetchCalls = [];
   globalThis.fetch = async (url, init = {}) => {
@@ -392,7 +401,7 @@ test("combo test route rejects empty combos and respects forwarded base URLs", a
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-forwarded-host": "router.example.com",
+        "x-forwarded-host": "attacker.example.com",
         "x-forwarded-proto": "https",
       },
       body: JSON.stringify({ comboName: "strict-live-test" }),
@@ -401,7 +410,10 @@ test("combo test route rejects empty combos and respects forwarded base URLs", a
 
   assert.equal(forwardedResponse.status, 200);
   assert.equal(fetchCalls.length, 1);
-  assert.equal(fetchCalls[0].url, "https://router.example.com/v1/chat/completions");
+  assert.equal(fetchCalls[0].url, expectedInternalUrl("/v1/chat/completions"));
+  assert.equal(fetchCalls[0].init.headers.Authorization, `Bearer ${internalKey.key}`);
+  assert.equal(new URL(fetchCalls[0].url).hostname, "127.0.0.1");
+  assert.notEqual(new URL(fetchCalls[0].url).hostname, "attacker.example.com");
 });
 
 test("combo test route handles upstream timeouts and non-JSON error bodies", async () => {
@@ -422,7 +434,7 @@ test("combo test route handles upstream timeouts and non-JSON error bodies", asy
   };
 
   const response = await route.POST(makeRequest());
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.resolvedBy, null);

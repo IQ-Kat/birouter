@@ -18,10 +18,17 @@ export {
   DEFAULT_AGGRESSIVE_CONFIG,
 } from "./types.ts";
 
+export {
+  applyLiteCompression,
+  collapseWhitespace,
+  dedupSystemPrompt,
+  compressToolResults,
+  removeRedundantContent,
+  replaceImageUrls,
+} from "./lite.ts";
+
 export { cavemanCompress, applyRulesToText } from "./caveman.ts";
-
 export { getRulesForContext, CAVEMAN_RULES } from "./cavemanRules.ts";
-
 export { extractPreservedBlocks, restorePreservedBlocks } from "./preservation.ts";
 
 export {
@@ -33,13 +40,11 @@ export {
 
 export {
   selectCompressionStrategy,
-  applyCompression,
   getEffectiveMode,
+  applyCompression,
   checkComboOverride,
   shouldAutoTrigger,
 } from "./strategySelector.ts";
-
-export { applyLiteCompression } from "./lite.ts";
 
 export { RuleBasedSummarizer, createSummarizer } from "./summarizer.ts";
 

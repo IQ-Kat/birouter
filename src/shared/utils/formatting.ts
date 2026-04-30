@@ -10,8 +10,9 @@
  * @param {string} isoString - ISO 8601 date string
  * @returns {string}
  */
-export function formatTime(isoString) {
+export function formatTime(isoString: string | null | undefined) {
   try {
+    if (!isoString) return "-";
     const d = new Date(isoString);
     return d.toLocaleTimeString("en-US", {
       hour12: false,
@@ -29,7 +30,7 @@ export function formatTime(isoString) {
  * @param {number} ms - Duration in milliseconds
  * @returns {string} e.g., "42ms", "1.2s", "-"
  */
-export function formatDuration(ms) {
+export function formatDuration(ms: number | null | undefined) {
   if (!ms) return "-";
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
@@ -40,8 +41,9 @@ export function formatDuration(ms) {
  * @param {string} iso - ISO 8601 date string
  * @returns {string}
  */
-export function formatDateTime(iso) {
+export function formatDateTime(iso: string | null | undefined) {
   try {
+    if (!iso) return "-";
     const d = new Date(iso);
     return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false });
   } catch {
@@ -56,7 +58,7 @@ export function formatDateTime(iso) {
  * @param {number} end - Number of characters to show at end (default: 2)
  * @returns {string}
  */
-export function maskSegment(value, start = 2, end = 2) {
+export function maskSegment(value: string | null | undefined, start = 2, end = 2) {
   if (!value) return "";
   if (value.length <= start + end) return `${value.slice(0, 1)}***`;
   return `${value.slice(0, start)}***${value.slice(-end)}`;
@@ -65,12 +67,14 @@ export function maskSegment(value, start = 2, end = 2) {
 /**
  * Mask an email or account string for display.
  * @param {string} account - Account identifier (email or username)
+ * @param {boolean} emailsVisible - Whether to show full email (true) or mask it (false)
  * @returns {string}
  */
-export function maskAccount(account) {
+export function maskAccount(account: string | null | undefined, emailsVisible: boolean) {
   if (!account || account === "-") return "-";
   const atIdx = account.indexOf("@");
   if (atIdx > 3) {
+    if (emailsVisible) return account;
     return account.slice(0, 3) + "***" + account.slice(atIdx);
   }
   if (account.length > 8) {
@@ -85,7 +89,10 @@ export function maskAccount(account) {
  * @param {string} apiKeyId - Unique ID of the key
  * @returns {string}
  */
-export function formatApiKeyLabel(apiKeyName, apiKeyId) {
+export function formatApiKeyLabel(
+  apiKeyName: string | null | undefined,
+  apiKeyId: string | null | undefined
+) {
   if (!apiKeyName && !apiKeyId) return "—";
   const displayName = apiKeyName || "key";
   if (!apiKeyId) return displayName;
@@ -97,7 +104,7 @@ export function formatApiKeyLabel(apiKeyName, apiKeyId) {
  * @param {string} key - API key or token to mask
  * @returns {string}
  */
-export function maskKey(key) {
+export function maskKey(key: string | null | undefined) {
   if (!key || key.length < 8) return "***";
   return `${key.slice(0, 4)}...${key.slice(-4)}`;
 }
@@ -107,10 +114,10 @@ export function maskKey(key) {
  * @param {number} n - Number to format
  * @returns {string}
  */
-export function fmtCompact(n) {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+export function fmtCompact(n: number | null | undefined) {
+  if (n && n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
+  if (n && n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n && n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return new Intl.NumberFormat().format(n || 0);
 }
 
@@ -119,18 +126,25 @@ export function fmtCompact(n) {
  * @param {number} n - Number to format
  * @returns {string}
  */
-export function fmtFull(n) {
+export function fmtFull(n: number | null | undefined) {
   return new Intl.NumberFormat().format(n || 0);
 }
 
 /**
- * Format a cost value with dollar sign.
- * @param {number} n - Cost value
+ * Format a USD cost for display.
+ * Sub-cent values show additional precision.
+ * @param {number} usd - Cost in USD
  * @returns {string}
  */
-export function fmtCost(n) {
-  return `$${(n || 0).toFixed(2)}`;
+export function formatCost(usd: number | null | undefined): string {
+  const value = Number(usd || 0);
+  if (!Number.isFinite(value) || value === 0) return "$0.00";
+  if (value < 0.01) return `$${value.toFixed(6)}`;
+  if (value < 1) return `$${value.toFixed(4)}`;
+  return `$${value.toFixed(2)}`;
 }
+
+export const fmtCost = formatCost;
 
 /**
  * Truncate a URL for compact display.
@@ -138,7 +152,7 @@ export function fmtCost(n) {
  * @param {number} max - Maximum characters (default: 50)
  * @returns {string}
  */
-export function truncateUrl(url, max = 50) {
+export function truncateUrl(url: string | null | undefined, max = 50) {
   if (!url) return "-";
   try {
     const parsed = new URL(url);
