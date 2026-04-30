@@ -4,8 +4,12 @@ import {
   getStats as getSemaphoreStats,
   resetAll as resetAllSemaphores,
 } from "@omniroute/open-sse/services/accountSemaphore.ts";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   return NextResponse.json({
     timestamp: new Date().toISOString(),
     rateLimits: getAllRateLimitStatus(),
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   const url = new URL(request.url);
   const action = url.searchParams.get("action");
   if (action === "reset-semaphores") {

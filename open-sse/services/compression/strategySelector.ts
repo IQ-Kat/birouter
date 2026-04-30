@@ -59,7 +59,7 @@ export function selectCompressionStrategy(
 export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
-  options?: { model?: string; config?: CompressionConfig }
+  options?: { model?: string; supportsVision?: boolean | null; config?: CompressionConfig }
 ): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };

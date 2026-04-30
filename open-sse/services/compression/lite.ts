@@ -12,6 +12,11 @@ interface ChatBody {
   [key: string]: unknown;
 }
 
+interface LiteCompressionOptions {
+  model?: string;
+  supportsVision?: boolean | null;
+}
+
 export function collapseWhitespace(body: ChatBody): {
   body: ChatBody;
   applied: boolean;
@@ -92,11 +97,13 @@ export function removeRedundantContent(body: ChatBody): {
 
 export function replaceImageUrls(
   body: ChatBody,
-  model?: string
+  options?: LiteCompressionOptions | string
 ): { body: ChatBody; applied: boolean } {
   if (!body.messages) return { body, applied: false };
-  const isVisionModel = model && /\b(vision|gpt-4o|claude-3|gemini-1\.5|gemini-2)\b/i.test(model);
-  if (isVisionModel) return { body, applied: false };
+  const supportsVision =
+    typeof options === "object" && options !== null ? options.supportsVision : undefined;
+  if (supportsVision !== false) return { body, applied: false };
+
   let applied = false;
   const messages = body.messages.map((msg) => {
     if (!Array.isArray(msg.content)) return msg;
@@ -126,7 +133,7 @@ export function replaceImageUrls(
 
 export function applyLiteCompression(
   body: Record<string, unknown>,
-  options?: { model?: string }
+  options?: LiteCompressionOptions
 ): CompressionResult {
   const originalBody = body;
   let current = body as ChatBody;
@@ -148,7 +155,7 @@ export function applyLiteCompression(
   current = r4.body;
   if (r4.applied) techniquesApplied.push("redundant-remove");
 
-  const r5 = replaceImageUrls(current, options?.model);
+  const r5 = replaceImageUrls(current, options);
   current = r5.body;
   if (r5.applied) techniquesApplied.push("image-placeholder");
 

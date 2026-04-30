@@ -5,7 +5,10 @@ import {
   getEffectiveMode,
   applyCompression,
 } from "../../open-sse/services/compression/strategySelector.ts";
-import { applyLiteCompression } from "../../open-sse/services/compression/lite.ts";
+import {
+  applyLiteCompression,
+  replaceImageUrls,
+} from "../../open-sse/services/compression/lite.ts";
 import {
   createCompressionStats,
   estimateCompressionTokens,
@@ -106,6 +109,31 @@ describe("Full Compression Pipeline", () => {
     assert.ok(result.stats);
     assert.ok(result.stats.savingsPercent > 0);
     assert.ok(result.stats.techniquesUsed.length >= 1);
+  });
+
+  it("lite compression preserves multimodal image payloads unless non-vision is explicit", () => {
+    const dataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
+    const body = {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this image" },
+            { type: "image_url", image_url: { url: dataUrl } },
+          ],
+        },
+      ],
+    };
+
+    const preserved = applyLiteCompression(body, { model: "openai/gpt-4.1" });
+    assert.equal(preserved.compressed, false);
+    assert.deepEqual(preserved.body, body);
+
+    const placeholder = replaceImageUrls(body, { model: "text-only-model", supportsVision: false });
+    assert.equal(placeholder.applied, true);
+    const content = placeholder.body.messages?.[0]?.content;
+    assert.ok(Array.isArray(content));
+    assert.deepEqual(content[1], { type: "text", text: "[image: png]" });
   });
 
   it("token estimation is consistent", () => {

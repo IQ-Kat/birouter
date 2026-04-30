@@ -7,11 +7,11 @@ import { join } from "node:path";
 const tmpDir = mkdtempSync(join(tmpdir(), "omniroute-test-"));
 process.env.DATA_DIR = tmpDir;
 
-import {
-  insertCompressionAnalyticsRow,
-  getCompressionAnalyticsSummary,
-} from "../../../src/lib/db/compressionAnalytics.js";
-import { getDbInstance } from "../../../src/lib/db/core.js";
+const core = await import("../../../src/lib/db/core.ts");
+core.resetDbInstance();
+const { insertCompressionAnalyticsRow, getCompressionAnalyticsSummary } =
+  await import("../../../src/lib/db/compressionAnalytics.ts");
+const { getDbInstance } = core;
 
 describe("compressionAnalytics", () => {
   before(() => {
@@ -39,6 +39,7 @@ describe("compressionAnalytics", () => {
   });
 
   after(() => {
+    core.closeDbInstance();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 

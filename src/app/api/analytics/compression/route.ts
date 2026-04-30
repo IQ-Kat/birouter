@@ -6,12 +6,12 @@
  */
 
 import { NextResponse } from "next/server";
-import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { getCompressionAnalyticsSummary } from "@/lib/db/compressionAnalytics";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(req: Request) {
-  const policy = await enforceApiKeyPolicy(req, "analytics");
-  if (policy.rejection) return policy.rejection;
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
 
   try {
     const url = new URL(req.url);

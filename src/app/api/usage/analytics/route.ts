@@ -137,112 +137,6 @@ export async function GET(request: Request) {
 
     const db = getDbInstance();
 
-    // ── Enrich entries with missing apiKeyName ──────────────────────────
-    try {
-      // Only run enrichment if there are actually NULL entries
-      const hasNull = db
-        .prepare(
-          "SELECT 1 FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL LIMIT 1"
-        )
-        .get();
-      if (hasNull) {
-        // Step 1: dominant key per connectionId from existing usage data
-        db.prepare(
-          `
-          UPDATE usage_history
-          SET
-            api_key_name = (
-              SELECT uh2.api_key_name
-              FROM usage_history AS uh2
-              WHERE uh2.connection_id = usage_history.connection_id
-                AND uh2.api_key_name IS NOT NULL AND uh2.api_key_name != ''
-              GROUP BY uh2.api_key_name
-              ORDER BY COUNT(*) DESC
-              LIMIT 1
-            ),
-            api_key_id = COALESCE(api_key_id, (
-              SELECT uh2.api_key_id
-              FROM usage_history AS uh2
-              WHERE uh2.connection_id = usage_history.connection_id
-                AND uh2.api_key_name IS NOT NULL AND uh2.api_key_name != ''
-              GROUP BY uh2.api_key_name
-              ORDER BY COUNT(*) DESC
-              LIMIT 1
-            ))
-          WHERE (api_key_name IS NULL OR api_key_name = '')
-            AND connection_id IS NOT NULL
-            AND EXISTS (
-                SELECT 1 FROM usage_history AS uh3
-                WHERE uh3.connection_id = usage_history.connection_id
-                  AND uh3.api_key_name IS NOT NULL AND uh3.api_key_name != ''
-            )
-        `
-        ).run();
-
-        // Step 2 & 3: For still unresolved connections, check apiKeys config
-        const stillNull = db
-          .prepare(
-            "SELECT DISTINCT connection_id FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL"
-          )
-          .all();
-        if (stillNull.length > 0) {
-          const { getApiKeys } = await import("@/lib/localDb");
-          const apiKeys = (await getApiKeys()) as any[];
-
-          const updateStmt = db.prepare(
-            "UPDATE usage_history SET api_key_name = ?, api_key_id = ? WHERE connection_id = ? AND (api_key_name IS NULL OR api_key_name = '')"
-          );
-          const updateMany = db.transaction((updates: any[]) => {
-            for (const u of updates) updateStmt.run(u.name, u.id, u.cid);
-          });
-
-          const updates = [];
-          const orphanIds = new Set(stillNull.map((r: any) => r.connection_id));
-
-          for (const ak of apiKeys) {
-            const allowed = Array.isArray(ak.allowedConnections) ? ak.allowedConnections : [];
-            const keyName = ak.name || ak.id;
-            const keyId = ak.id || null;
-            for (const cid of allowed) {
-              if (typeof cid === "string" && orphanIds.has(cid)) {
-                updates.push({ name: keyName, id: keyId, cid });
-                orphanIds.delete(cid);
-              }
-            }
-          }
-
-          if (orphanIds.size > 0) {
-            const unrestrictedKeys = apiKeys.filter(
-              (ak: any) =>
-                !Array.isArray(ak.allowedConnections) || ak.allowedConnections.length === 0
-            );
-            if (unrestrictedKeys.length > 0) {
-              let bestKey = unrestrictedKeys[0];
-              let bestCount = -1;
-              for (const uk of unrestrictedKeys) {
-                const countRow = db
-                  .prepare("SELECT COUNT(*) as c FROM usage_history WHERE api_key_name = ?")
-                  .get(uk.name || uk.id) as any;
-                if (countRow.c > bestCount) {
-                  bestCount = countRow.c;
-                  bestKey = uk;
-                }
-              }
-              const fallbackName = bestKey.name || bestKey.id;
-              const fallbackId = bestKey.id || null;
-              for (const cid of orphanIds) {
-                updates.push({ name: fallbackName, id: fallbackId, cid });
-              }
-            }
-          }
-
-          if (updates.length > 0) updateMany(updates);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to backfill missing api_key_name:", e);
-    }
-
     const conditions = [];
     const params: Record<string, string> = {};
 
@@ -466,10 +360,7 @@ export async function GET(request: Request) {
       )
       .all(params) as Array<Record<string, unknown>>;
 
-    const apiKeyWhereClause = appendWhereCondition(
-      whereClause,
-      "(api_key_id IS NOT NULL AND api_key_id != '') OR (api_key_name IS NOT NULL AND api_key_name != '')"
-    );
+    const apiKeyWhereClause = whereClause;
     const apiKeyRows = db
       .prepare(
         `
