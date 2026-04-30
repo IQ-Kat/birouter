@@ -65,7 +65,10 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
-const antigravityDiscoveryInflight = new Map<string, Promise<Array<{ id: string; name: string }>>>();
+const antigravityDiscoveryInflight = new Map<
+  string,
+  Promise<Array<{ id: string; name: string }>>
+>();
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -1636,7 +1639,11 @@ export async function GET(
         });
       }
 
-      const remoteModels = await fetchAntigravityDiscoveryModelsCached(accessToken, connectionId, proxy);
+      const remoteModels = await fetchAntigravityDiscoveryModelsCached(
+        accessToken,
+        connectionId,
+        proxy
+      );
       if (remoteModels.length > 0) {
         return buildApiDiscoveryResponse(remoteModels);
       }

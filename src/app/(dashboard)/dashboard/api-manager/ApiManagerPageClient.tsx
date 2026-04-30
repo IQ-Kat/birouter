@@ -183,15 +183,12 @@ export default function ApiManagerPageClient() {
 
       for (const key of apiKeys) {
         // Match analytics entry by key name (reliable across both systems)
-        const analyticsMatch = byApiKey.find(
-          (entry: any) => entry.apiKeyName === key.name
-        );
+        const analyticsMatch = byApiKey.find((entry: any) => entry.apiKeyName === key.name);
 
         // The call-logs endpoint returns entries sorted by timestamp DESC,
         // so the first match is the most recent one.
-        const lastUsed = (logs || []).find(
-          (log: any) => log.apiKeyName === key.name
-        )?.timestamp || null;
+        const lastUsed =
+          (logs || []).find((log: any) => log.apiKeyName === key.name)?.timestamp || null;
 
         stats[key.id] = {
           totalRequests: analyticsMatch?.requests ?? 0,

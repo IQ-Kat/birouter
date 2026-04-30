@@ -140,10 +140,15 @@ export async function GET(request: Request) {
     // ── Enrich entries with missing apiKeyName ──────────────────────────
     try {
       // Only run enrichment if there are actually NULL entries
-      const hasNull = db.prepare("SELECT 1 FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL LIMIT 1").get();
+      const hasNull = db
+        .prepare(
+          "SELECT 1 FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL LIMIT 1"
+        )
+        .get();
       if (hasNull) {
         // Step 1: dominant key per connectionId from existing usage data
-        db.prepare(`
+        db.prepare(
+          `
           UPDATE usage_history
           SET 
             api_key_name = (
@@ -171,22 +176,29 @@ export async function GET(request: Request) {
                 WHERE uh3.connection_id = usage_history.connection_id
                   AND uh3.api_key_name IS NOT NULL AND uh3.api_key_name != ''
             )
-        `).run();
+        `
+        ).run();
 
         // Step 2 & 3: For still unresolved connections, check apiKeys config
-        const stillNull = db.prepare("SELECT DISTINCT connection_id FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL").all();
+        const stillNull = db
+          .prepare(
+            "SELECT DISTINCT connection_id FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL"
+          )
+          .all();
         if (stillNull.length > 0) {
           const { getApiKeys } = await import("@/lib/localDb");
           const apiKeys = (await getApiKeys()) as any[];
-          
-          const updateStmt = db.prepare("UPDATE usage_history SET api_key_name = ?, api_key_id = ? WHERE connection_id = ? AND (api_key_name IS NULL OR api_key_name = '')");
+
+          const updateStmt = db.prepare(
+            "UPDATE usage_history SET api_key_name = ?, api_key_id = ? WHERE connection_id = ? AND (api_key_name IS NULL OR api_key_name = '')"
+          );
           const updateMany = db.transaction((updates: any[]) => {
             for (const u of updates) updateStmt.run(u.name, u.id, u.cid);
           });
-          
+
           const updates = [];
           const orphanIds = new Set(stillNull.map((r: any) => r.connection_id));
-          
+
           for (const ak of apiKeys) {
             const allowed = Array.isArray(ak.allowedConnections) ? ak.allowedConnections : [];
             const keyName = ak.name || ak.id;
@@ -198,17 +210,23 @@ export async function GET(request: Request) {
               }
             }
           }
-          
+
           if (orphanIds.size > 0) {
             const unrestrictedKeys = apiKeys.filter(
-              (ak: any) => !Array.isArray(ak.allowedConnections) || ak.allowedConnections.length === 0
+              (ak: any) =>
+                !Array.isArray(ak.allowedConnections) || ak.allowedConnections.length === 0
             );
             if (unrestrictedKeys.length > 0) {
               let bestKey = unrestrictedKeys[0];
               let bestCount = -1;
               for (const uk of unrestrictedKeys) {
-                const countRow = db.prepare("SELECT COUNT(*) as c FROM usage_history WHERE api_key_name = ?").get(uk.name || uk.id) as any;
-                if (countRow.c > bestCount) { bestCount = countRow.c; bestKey = uk; }
+                const countRow = db
+                  .prepare("SELECT COUNT(*) as c FROM usage_history WHERE api_key_name = ?")
+                  .get(uk.name || uk.id) as any;
+                if (countRow.c > bestCount) {
+                  bestCount = countRow.c;
+                  bestKey = uk;
+                }
               }
               const fallbackName = bestKey.name || bestKey.id;
               const fallbackId = bestKey.id || null;
@@ -217,11 +235,11 @@ export async function GET(request: Request) {
               }
             }
           }
-          
+
           if (updates.length > 0) updateMany(updates);
         }
       }
-    } catch(e) {
+    } catch (e) {
       console.error("Failed to backfill missing api_key_name:", e);
     }
 
@@ -322,13 +340,15 @@ export async function GET(request: Request) {
         heatmapStart.setTime(customStart.getTime());
       }
     }
-    
+
     // Heatmap needs its own whereClause if api keys are filtered
     const heatmapConditions = ["timestamp >= @heatmapStart"];
     if (apiKeyWhere) heatmapConditions.push(apiKeyWhere);
     const heatmapParams: Record<string, string> = { heatmapStart: heatmapStart.toISOString() };
     if (apiKeyIds.length > 0) {
-      apiKeyIds.forEach((key, i) => { heatmapParams[`apiKey${i}`] = key; });
+      apiKeyIds.forEach((key, i) => {
+        heatmapParams[`apiKey${i}`] = key;
+      });
     }
 
     const heatmapRows = db
@@ -535,7 +555,7 @@ export async function GET(request: Request) {
             )
           : 0,
       avgLatencyMs: Math.round(Number(summaryRow?.avgLatencyMs || 0)),
-      totalCost: 0, 
+      totalCost: 0,
       firstRequest: summaryRow?.firstRequest || "",
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
@@ -772,10 +792,17 @@ export async function GET(request: Request) {
         const presetSinceIso = getRangeStartIso(presetRange);
         const presetConditions = [];
         const presetParams: Record<string, string> = {};
-        if (presetSinceIso) { presetConditions.push("timestamp >= @presetSince"); presetParams.presetSince = presetSinceIso; }
-        if (apiKeyWhere) { presetConditions.push(apiKeyWhere); Object.assign(presetParams, params); }
+        if (presetSinceIso) {
+          presetConditions.push("timestamp >= @presetSince");
+          presetParams.presetSince = presetSinceIso;
+        }
+        if (apiKeyWhere) {
+          presetConditions.push(apiKeyWhere);
+          Object.assign(presetParams, params);
+        }
 
-        const presetWhere = presetConditions.length > 0 ? `WHERE ${presetConditions.join(" AND ")}` : "";
+        const presetWhere =
+          presetConditions.length > 0 ? `WHERE ${presetConditions.join(" AND ")}` : "";
 
         const presetModelRows = db
           .prepare(

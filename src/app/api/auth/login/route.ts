@@ -10,11 +10,7 @@ import {
 } from "@/lib/auth/managementPassword";
 import { loginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import {
-  checkLoginGuard,
-  clearLoginAttempts,
-  recordLoginFailure,
-} from "@/server/auth/loginGuard";
+import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
 
 // SECURITY: No hardcoded fallback — JWT_SECRET must be configured.
 if (!process.env.JWT_SECRET) {

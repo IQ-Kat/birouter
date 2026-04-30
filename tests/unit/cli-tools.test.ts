@@ -8,12 +8,10 @@ const {
   CLI_COMPAT_TOGGLE_IDS,
   IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS,
   normalizeCliCompatProviderId,
-} =
-  await import("../../src/shared/constants/cliCompatProviders.ts");
+} = await import("../../src/shared/constants/cliCompatProviders.ts");
 const { CLI_TOOL_IDS } = await import("../../src/shared/services/cliRuntime.ts");
-const { applyFingerprint, isCliCompatEnabled, setCliCompatProviders } = await import(
-  "../../open-sse/config/cliFingerprints.ts"
-);
+const { applyFingerprint, isCliCompatEnabled, setCliCompatProviders } =
+  await import("../../open-sse/config/cliFingerprints.ts");
 
 test("Amp CLI is registered as a guide-based CLI tool with shorthand mapping guidance", () => {
   const amp = CLI_TOOLS.amp;

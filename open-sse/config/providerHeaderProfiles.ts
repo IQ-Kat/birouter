@@ -53,7 +53,9 @@ function getRuntimePlatform(): string {
 }
 
 function getRuntimeArch(): string {
-  return typeof process !== "undefined" && typeof process.arch === "string" ? process.arch : "unknown";
+  return typeof process !== "undefined" && typeof process.arch === "string"
+    ? process.arch
+    : "unknown";
 }
 
 function getRuntimeVersion(): string {
