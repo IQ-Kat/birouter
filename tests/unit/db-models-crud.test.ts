@@ -19,7 +19,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -97,7 +97,7 @@ test("custom models can be added once and queried by provider", async () => {
   assert.equal(duplicate.id, created.id);
   assert.equal(providerModels.length, 1);
   assert.deepEqual(providerModels[0], created);
-  assert.equal(allModels.openrouter.length, 1);
+  assert.equal((allModels.openrouter as any).length, 1);
 });
 
 test("replaceCustomModels preserves compat fields and respects the empty-list guard", async () => {
@@ -115,7 +115,7 @@ test("replaceCustomModels preserves compat fields and respects the empty-list gu
     {
       id: "gpt-4.1",
       name: "GPT-4.1 Refreshed",
-      source: "api-sync",
+      source: "imported",
       supportsThinking: true,
     },
   ]);
@@ -147,12 +147,12 @@ test("removing a custom model also removes its compat override", async () => {
 
 test("synced available models are unioned across connections and cleaned per connection", async () => {
   await modelsDb.replaceSyncedAvailableModelsForConnection("openai", "conn-a", [
-    { id: "gpt-4.1", name: "GPT-4.1", source: "api-sync" },
-    { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", source: "api-sync" },
+    { id: "gpt-4.1", name: "GPT-4.1", source: "imported" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", source: "imported" },
   ]);
   const union = await modelsDb.replaceSyncedAvailableModelsForConnection("openai", "conn-b", [
-    { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", source: "api-sync" },
-    { id: "o3-mini", name: "o3-mini", source: "api-sync" },
+    { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", source: "imported" },
+    { id: "o3-mini", name: "o3-mini", source: "imported" },
   ]);
   const remaining = await modelsDb.deleteSyncedAvailableModelsForConnection("openai", "conn-a");
   const allProviders = await modelsDb.getAllSyncedAvailableModels();

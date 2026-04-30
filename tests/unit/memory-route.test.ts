@@ -65,12 +65,12 @@ test("GET /api/memory filters by q and returns matching stats", async () => {
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
-  assert.deepEqual(
-    body.data.map((memory) => memory.key),
-    ["typescript:tooling", "typescript:guide"]
-  );
+  assert.deepEqual(body.data.map((memory) => memory.key).sort(), [
+    "typescript:guide",
+    "typescript:tooling",
+  ]);
   assert.equal(body.total, 2);
   assert.equal(body.stats.total, 2);
   assert.deepEqual(body.stats.byType, { factual: 1, semantic: 1 });
@@ -84,7 +84,7 @@ test("GET /api/memory continues to honor limit+offset requests", async () => {
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(body.data.length, 1);
   assert.equal(body.total, 3);

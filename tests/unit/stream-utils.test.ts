@@ -16,6 +16,7 @@ const {
   createStructuredSSECollector,
 } = await import("../../open-sse/utils/streamPayloadCollector.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
 const textEncoder = new TextEncoder();
 const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
@@ -281,11 +282,11 @@ test("buildStreamSummaryFromEvents falls back to response.output_text.delta when
     "gpt-5.4"
   );
 
-  assert.equal(summary.object, "response");
-  assert.equal(summary.output[0].type, "message");
-  assert.equal(summary.output[0].content[0].type, "output_text");
-  assert.equal(summary.output[0].content[0].text, "Hello world");
-  assert.equal(summary.usage.output_tokens, 2);
+  assert.equal((summary as any).object, "response");
+  assert.equal((summary as any).output[0].type, "message");
+  assert.equal((summary as any).output[0].content[0].type, "output_text");
+  assert.equal((summary as any).output[0].content[0].text, "Hello world");
+  assert.equal((summary as any).usage.output_tokens, 2);
 });
 
 test("createSSEStream translate mode aborts on Responses failure with rate limit error", async () => {
@@ -678,10 +679,10 @@ test("buildStreamSummaryFromEvents compacts Responses API deltas into a syntheti
     "gpt-4.1-mini"
   );
 
-  assert.equal(summary.object, "response");
-  assert.equal(summary.model, "gpt-4.1-mini");
-  assert.equal(summary.output[0].content[0].text, "Hello world");
-  assert.deepEqual(summary.usage, { input_tokens: 2, output_tokens: 3, total_tokens: 5 });
+  assert.equal((summary as any).object, "response");
+  assert.equal((summary as any).model, "gpt-4.1-mini");
+  assert.equal((summary as any).output[0].content[0].text, "Hello world");
+  assert.deepEqual((summary as any).usage, { input_tokens: 2, output_tokens: 3, total_tokens: 5 });
 });
 
 test("buildStreamSummaryFromEvents preserves Gemini thought parts and function calls", () => {
@@ -731,13 +732,13 @@ test("buildStreamSummaryFromEvents preserves Gemini thought parts and function c
     "gemini-2.5-pro"
   );
 
-  assert.equal(summary.modelVersion, "gemini-2.5-pro");
-  assert.equal(summary.candidates[0].content.parts[0].text, "Thinking aloud");
-  assert.equal(summary.candidates[0].content.parts[0].thought, true);
-  assert.deepEqual(summary.candidates[0].content.parts[2], {
+  assert.equal((summary as any).modelVersion, "gemini-2.5-pro");
+  assert.equal((summary as any).candidates[0].content.parts[0].text, "Thinking aloud");
+  assert.equal((summary as any).candidates[0].content.parts[0].thought, true);
+  assert.deepEqual((summary as any).candidates[0].content.parts[2], {
     functionCall: { name: "read_file", args: { path: "/tmp/a" } },
   });
-  assert.deepEqual(summary.usageMetadata, {
+  assert.deepEqual((summary as any).usageMetadata, {
     promptTokenCount: 4,
     candidatesTokenCount: 5,
     totalTokenCount: 9,
@@ -796,7 +797,7 @@ test("createSSETransformStreamWithLogger flushes Responses API terminal events o
 
   assert.match(text, /response\.created/);
   assert.match(text, /response\.completed/);
-  assert.match(text, /\[DONE\]/);
+  assert.doesNotMatch(text, /\[DONE\]/);
 });
 
 test("createPassthroughStreamWithLogger reuses passthrough mode helpers", async () => {
@@ -889,4 +890,145 @@ test("createSSEStream passthrough drops keepalive event blocks without losing Re
   assert.match(text, /response\.output_text\.delta/);
   assert.match(text, /Hello keepalive-safe/);
   assert.match(text, /data: \[DONE\]/);
+});
+
+test("createSSEStream passthrough aborts on Responses usage-limit failures and reports 429", async () => {
+  let failurePayload = null;
+
+  await assert.rejects(
+    readTransformed(
+      [
+        `data: ${JSON.stringify({
+          type: "response.failed",
+          response: {
+            id: "resp_usage_limit",
+            object: "response",
+            model: "gpt-5.5",
+            status: "failed",
+            error: {
+              code: "usage_limit_reached",
+              message: "Your weekly usage limit has been reached",
+            },
+          },
+        })}\n\n`,
+      ],
+      {
+        mode: "passthrough",
+        sourceFormat: FORMATS.OPENAI_RESPONSES,
+        provider: "codex",
+        model: "gpt-5.5",
+        body: { input: "hello" },
+        onFailure(payload) {
+          failurePayload = payload;
+        },
+      }
+    ),
+    /weekly usage limit|Upstream failure/
+  );
+
+  assert.ok(failurePayload, "should report the stream failure before aborting");
+  assert.equal(failurePayload.status, 429);
+  assert.equal(failurePayload.code, "usage_limit_reached");
+});
+
+test("createRequestLogger skips disabled logs and caps retained stream chunk bytes", async () => {
+  const disabled = await createRequestLogger("openai", "openai", "gpt-test", {
+    enabled: false,
+  });
+  disabled.logClientRawRequest("/v1/chat/completions", { prompt: "hello" });
+  disabled.appendProviderChunk("x".repeat(32));
+  assert.equal(disabled.getPipelinePayloads(), null);
+
+  const logger = await createRequestLogger("openai", "openai", "gpt-test", {
+    enabled: true,
+    captureStreamChunks: true,
+    maxStreamChunkBytes: 5,
+  });
+  logger.appendProviderChunk("abcdef");
+  logger.appendProviderChunk("ghijkl");
+  const payloads = logger.getPipelinePayloads();
+
+  assert.deepEqual(payloads.streamChunks.provider, [
+    "abcde",
+    "[stream chunk log truncated after 5 bytes]",
+  ]);
+});
+
+test("createRequestLogger caps retained stream chunk item count", async () => {
+  const logger = await createRequestLogger("openai", "openai", "gpt-test", {
+    enabled: true,
+    captureStreamChunks: true,
+    maxStreamChunkBytes: 1024,
+    maxStreamChunkItems: 2,
+  });
+
+  logger.appendProviderChunk("one");
+  logger.appendProviderChunk("two");
+  logger.appendProviderChunk("three");
+
+  const payloads = logger.getPipelinePayloads();
+  assert.deepEqual(payloads.streamChunks.provider, [
+    "one",
+    "[stream chunk log truncated after 2 chunks]",
+  ]);
+});
+
+// T-VERIFY: passthrough mode failure decrements pending requests
+// Regression test for missing trackPendingRequest(false) on passthrough failure
+import { getPendingRequests, clearPendingRequests } from "../../src/lib/usage/usageHistory.ts";
+
+test("createSSEStream passthrough mode decrements pending requests on failure", async () => {
+  // Clear any existing pending requests first
+  clearPendingRequests();
+  const initial = getPendingRequests();
+  assert.equal(Object.keys(initial.byModel).length, 0, "should start with no pending requests");
+
+  let failurePayload = null;
+  const testProvider = "openai-compatible-test-failure";
+  const testModel = "gpt-test";
+  const testConnectionId = "test-conn-123";
+
+  await assert.rejects(
+    readTransformed(
+      [
+        `data: ${JSON.stringify({
+          type: "response.failed",
+          response: {
+            id: "resp_failed_test",
+            object: "response",
+            model: testModel,
+            status: "failed",
+            error: {
+              code: "test_failure",
+              message: "Test failure for pending request tracking",
+            },
+          },
+        })}\n\n`,
+      ],
+      {
+        mode: "passthrough",
+        sourceFormat: FORMATS.OPENAI_RESPONSES,
+        provider: testProvider,
+        model: testModel,
+        connectionId: testConnectionId,
+        body: { input: "hello" },
+        onFailure(payload) {
+          failurePayload = payload;
+        },
+      }
+    ),
+    /Test failure|Upstream failure/
+  );
+
+  assert.ok(failurePayload, "should report the stream failure");
+
+  // Verify pending requests are properly decremented after failure
+  const pending = getPendingRequests();
+  const modelKey = `${testModel} (${testProvider})`;
+  const count = pending.byModel[modelKey] || 0;
+  assert.equal(
+    count,
+    0,
+    `pending request count for ${modelKey} should be 0 after failure, got ${count}`
+  );
 });

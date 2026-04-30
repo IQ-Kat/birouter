@@ -4,6 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { updateSettings } from "../../src/lib/db/settings";
+
 const TEST_LOG_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-console-log-levels-"));
 const TEST_LOG_PATH = path.join(TEST_LOG_DIR, "app.log");
 
@@ -12,7 +14,12 @@ process.env.APP_LOG_FILE_PATH = TEST_LOG_PATH;
 
 const route = await import("../../src/app/api/logs/console/route.ts");
 
-test.after(() => {
+test.before(async () => {
+  await updateSettings({ requireLogin: false });
+});
+
+test.after(async () => {
+  await updateSettings({ requireLogin: true });
   if (originalLogFilePath === undefined) {
     delete process.env.APP_LOG_FILE_PATH;
   } else {
@@ -44,7 +51,7 @@ test("console log API normalizes numeric pino levels correctly", async () => {
   const response = await route.GET(
     new Request("http://localhost/api/logs/console?level=info&limit=10")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.deepEqual(
@@ -89,7 +96,7 @@ test("console log API filters by component, time window, and result limit", asyn
   const response = await route.GET(
     new Request("http://localhost/api/logs/console?level=warn&component=router&limit=1")
   );
-  const body = await response.json();
+  const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
   assert.equal(body.length, 1);
@@ -111,7 +118,7 @@ test("console log API returns an empty list for a missing file and surfaces read
   try {
     const brokenResponse = await route.GET(new Request("http://localhost/api/logs/console"));
     assert.equal(brokenResponse.status, 500);
-    const payload = await brokenResponse.json();
+    const payload = (await brokenResponse.json()) as any;
     assert.equal(typeof payload.error, "string");
     assert.equal(payload.error.length > 0, true);
   } finally {

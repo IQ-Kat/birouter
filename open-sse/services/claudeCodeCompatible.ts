@@ -33,8 +33,8 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
   "interleaved-thinking-2025-05-14",
   "effort-2025-11-24",
 ].join(",");
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.113";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.113 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.121";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.121 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
@@ -231,19 +231,24 @@ export function buildClaudeCodeCompatibleRequest({
   const preparedClaudeBody = claudeBody
     ? prepareClaudeCodeCompatibleBody(claudeBody, preserveCacheControl)
     : null;
-  const messages = preparedClaudeBody
+  const normalizedMessages = Array.isArray(normalized.messages)
+    ? (normalized.messages as MessageLike[])
+    : [];
+  const extractedClaudeBody =
+    !preparedClaudeBody && sourceBody
+      ? extractClaudeBodyFromSource(sourceBody, preserveCacheControl)
+      : null;
+  const effectiveClaudeBody = preparedClaudeBody || extractedClaudeBody;
+  const messages = effectiveClaudeBody
     ? buildClaudeCodeCompatibleMessagesFromClaude(
-        preparedClaudeBody.messages as MessageLike[],
+        effectiveClaudeBody.messages as MessageLike[],
         preserveCacheControl
       )
-    : Array.isArray(normalized.messages)
-      ? buildClaudeCodeCompatibleMessages(normalized.messages as MessageLike[])
-      : [];
+    : buildClaudeCodeCompatibleMessages(normalizedMessages);
   const system = buildClaudeCodeCompatibleSystemBlocks({
-    messages: normalized.messages as MessageLike[],
-    systemBlocks: preparedClaudeBody?.system as Record<string, unknown>[] | undefined,
+    messages: normalizedMessages,
+    systemBlocks: effectiveClaudeBody?.system as Record<string, unknown>[] | undefined,
     preserveCacheControl,
-    injectDefaultSkeleton: !preparedClaudeBody,
   });
   const resolvedSessionId = sessionId || randomUUID();
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
@@ -483,17 +488,34 @@ function buildClaudeCodeCompatibleMessagesFromClaude(
     : [];
 
   const merged: Array<{ role: "user" | "assistant"; content: Array<Record<string, unknown>> }> = [];
+  let previousAssistantHadToolUse = false;
 
   for (const message of converted) {
+    const hasToolUse = message.content.some((block) => block.type === "tool_use");
+    const hasToolResult = message.content.some((block) => block.type === "tool_result");
     const last = merged[merged.length - 1];
-    if (last && last.role === message.role) {
+    const shouldKeepSeparate =
+      hasToolUse ||
+      hasToolResult ||
+      previousAssistantHadToolUse ||
+      last?.content?.some((block) => block.type === "tool_use") ||
+      last?.content?.some((block) => block.type === "tool_result");
+
+    if (last && last.role === message.role && !shouldKeepSeparate) {
       last.content.push(...message.content);
-      continue;
+    } else {
+      merged.push({ role: message.role, content: [...message.content] });
     }
-    merged.push({ role: message.role, content: [...message.content] });
+
+    previousAssistantHadToolUse = message.role === "assistant" && hasToolUse;
   }
 
-  while (merged.length > 0 && merged[merged.length - 1].role === "assistant") {
+  while (merged.length > 0) {
+    const last = merged[merged.length - 1];
+    const hasToolUse = last.content.some((block) => block.type === "tool_use");
+    if (last.role !== "assistant" || hasToolUse) {
+      break;
+    }
     merged.pop();
   }
 
@@ -527,12 +549,10 @@ function buildClaudeCodeCompatibleSystemBlocks({
   messages,
   systemBlocks,
   preserveCacheControl,
-  injectDefaultSkeleton,
 }: {
   messages: MessageLike[] | undefined;
   systemBlocks?: Array<Record<string, unknown>> | undefined;
   preserveCacheControl: boolean;
-  injectDefaultSkeleton: boolean;
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
@@ -547,14 +567,29 @@ function buildClaudeCodeCompatibleSystemBlocks({
     return preparedBlock;
   });
 
-  if (!injectDefaultSkeleton) {
-    return preparedCustomSystemBlocks;
-  }
+  const hasDefaultSystemBlock = containsDefaultSystemSkeleton(preparedCustomSystemBlocks);
+
+  if (hasDefaultSystemBlock) return preparedCustomSystemBlocks;
 
   return [
     ...CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS.map((block) => ({ ...block })),
     ...preparedCustomSystemBlocks,
   ];
+}
+
+function containsDefaultSystemSkeleton(blocks: Array<Record<string, unknown>>) {
+  const skeleton = CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS;
+  if (skeleton.length === 0) return true;
+  if (blocks.length < skeleton.length) return false;
+
+  return blocks.some((_, startIndex) =>
+    skeleton.every((defaultBlock, offset) => {
+      const candidateBlock = blocks[startIndex + offset];
+      if (!candidateBlock) return false;
+
+      return Object.entries(defaultBlock).every(([key, value]) => candidateBlock[key] === value);
+    })
+  );
 }
 
 function convertClaudeCodeCompatibleMessage(message: MessageLike | null | undefined) {
@@ -686,6 +721,40 @@ function prepareClaudeCodeCompatibleBody(
   );
 
   return readRecord(prepared);
+}
+
+function extractClaudeBodyFromSource(
+  sourceBody: Record<string, unknown>,
+  preserveCacheControl: boolean
+): Record<string, unknown> | null {
+  const rawMessages = Array.isArray(sourceBody.messages)
+    ? (sourceBody.messages as MessageLike[])
+    : [];
+  const hasSystemRoleMessages = rawMessages.some((message) => {
+    const role = String(message?.role || "").toLowerCase();
+    return role === "system" || role === "developer";
+  });
+  const hasClaudeSystem =
+    typeof sourceBody.system === "string" ||
+    (Array.isArray(sourceBody.system) && sourceBody.system.length > 0);
+
+  if (!hasClaudeSystem && !hasSystemRoleMessages) {
+    return null;
+  }
+
+  const normalizedMessages = rawMessages.filter((message) => {
+    const role = String(message?.role || "").toLowerCase();
+    return role !== "system" && role !== "developer";
+  });
+
+  return prepareClaudeCodeCompatibleBody(
+    {
+      ...sourceBody,
+      ...(hasClaudeSystem ? {} : { system: extractCustomSystemBlocks(rawMessages) }),
+      messages: normalizedMessages,
+    },
+    preserveCacheControl
+  );
 }
 
 function normalizeClaudeSystemInput(system: unknown) {

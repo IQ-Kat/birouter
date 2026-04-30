@@ -1,8 +1,8 @@
 /**
- * MCP Tool Schemas — Contracts for all 16 OmniRoute MCP tools.
+ * MCP Tool Schemas — Contracts for all 22 core and advanced OmniRoute MCP tools.
  *
  * Defines input/output Zod schemas, descriptions, scopes, and audit levels
- * for both essential (Phase 1) and advanced (Phase 3) MCP tools.
+ * for both essential (Phase 1) and advanced (Phase 2) MCP tools.
  *
  * Each tool wraps existing OmniRoute API endpoints and exposes them through
  * the Model Context Protocol, enabling AI agents in IDEs (VS Code, Cursor,
@@ -882,7 +882,7 @@ export const dbHealthCheckTool: McpToolDefinition<
   scopes: ["read:health", "write:resilience"],
   auditLevel: "full",
   phase: 2,
-  sourceEndpoints: ["/api/v1/db/health"],
+  sourceEndpoints: ["/api/db/health"],
 };
 
 // --- Tool 19: omniroute_sync_pricing ---

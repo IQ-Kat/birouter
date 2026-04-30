@@ -1,4 +1,5 @@
 import type { HideableSidebarItemId } from "@/shared/constants/sidebarVisibility";
+import type { ResilienceSettings } from "@/lib/resilience/settings";
 
 /**
  * Application settings stored in SQLite key-value pairs.
@@ -18,17 +19,21 @@ export interface Settings {
   requestRetry: number;
   maxRetryIntervalSec: number;
   jwtSecret?: string;
+  mcpEnabled?: boolean;
+  mcpTransport?: "stdio" | "sse" | "streamable-http";
+  a2aEnabled?: boolean;
   hideHealthCheckLogs?: boolean;
+  hideEndpointCloudflaredTunnel?: boolean;
+  hideEndpointTailscaleFunnel?: boolean;
+  hideEndpointNgrokTunnel?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
+  resilienceSettings?: ResilienceSettings;
 }
 
 export interface ComboDefaults {
   strategy: "priority" | "weighted" | "round-robin" | "context-relay";
   maxRetries: number;
   retryDelayMs: number;
-  timeoutMs: number;
-  healthCheckEnabled: boolean;
-  healthCheckTimeoutMs: number;
   maxComboDepth: number;
   trackMetrics: boolean;
   concurrencyPerModel?: number;

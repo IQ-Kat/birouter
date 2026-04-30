@@ -14,6 +14,7 @@
 :root {
   --desktop-safe-top: 0px;
   --desktop-safe-bottom: 0px;
+  color-scheme: light;
 
   /* Primary - Coral Red (OpenClaw) */
   --color-primary: #e54d5e;
@@ -40,6 +41,7 @@
   --color-bg-primary: #f9f9fb;
   --color-bg-subtle: #f0f0f5;
   --color-surface: #ffffff;
+  --color-card: #ffffff;
   --color-sidebar: #f5f5fa;
   --color-border: rgba(0, 0, 0, 0.08);
   --color-text-main: #1a1a2e;
@@ -54,11 +56,13 @@
 
 .dark {
   /* Dark theme (ClawHub deep) */
+  color-scheme: dark;
   --color-bg: #0b0e14;
   --color-bg-alt: #111520;
   --color-bg-primary: #0b0e14;
   --color-bg-subtle: #111520;
   --color-surface: #161b22;
+  --color-card: #161b22;
   --color-sidebar: #10141e;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-text-main: #e6e6ef;
@@ -91,6 +95,7 @@
   --color-bg-primary: var(--color-bg-primary);
   --color-bg-subtle: var(--color-bg-subtle);
   --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
   --color-sidebar: var(--color-sidebar);
   --color-border: var(--color-border);
   --color-text-main: var(--color-text-main);
@@ -355,4 +360,10 @@ button .material-symbols-outlined,
   .ant-table {
     min-width: 600px; /* Prevent columns from crushing together */
   }
+}
+
+/* Fix for native dropdown options visibility in dark mode */
+select option {
+  background-color: var(--color-surface);
+  color: var(--color-text-main);
 }

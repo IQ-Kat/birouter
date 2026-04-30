@@ -121,8 +121,10 @@ test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
   const runnerSource = fs.readFileSync(path.resolve("src/lib/db/migrationRunner.ts"), "utf8");
   const dataPathsSource = fs.readFileSync(path.resolve("src/lib/dataPaths.ts"), "utf8");
 
-  assert.doesNotMatch(runnerSource, /process\.cwd\(\)/);
+  // dataPaths must never use process.cwd() — it resolves via import.meta.url
   assert.doesNotMatch(dataPathsSource, /process\.cwd\(\)/);
+  // migrationRunner uses import.meta.url as the primary strategy (process.cwd is
+  // only a last-resort fallback for Windows/CI-built bundles with leaked paths)
   assert.match(runnerSource, /fileURLToPath\(import\.meta\.url\)/);
 });
 
@@ -202,6 +204,90 @@ test("runMigrations skips versions that are already tracked as applied", serial,
     db.close();
   }
 });
+
+test(
+  "runMigrations applies api key lifecycle migration idempotently when columns already exist",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL,
+        revoked_at TEXT
+      );
+    `);
+
+      const appliedCount = withMockedMigrationFs(
+        {
+          "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT;",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(appliedCount, 1);
+      const columns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{ name: string }>;
+      const names = new Set(columns.map((column) => column.name));
+      for (const expected of [
+        "revoked_at",
+        "expires_at",
+        "last_used_at",
+        "key_prefix",
+        "ip_allowlist",
+        "scopes",
+      ]) {
+        assert.equal(names.has(expected), true, `${expected} should exist`);
+      }
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        { version: "032", name: "apikey_lifecycle" }
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations applies api key lifecycle hardening by version even if filename suffix changes",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL
+      );
+    `);
+
+      const appliedCount = withMockedMigrationFs(
+        {
+          "032_renamed_lifecycle_patch.sql": "ALTER TABLE api_keys ADD COLUMN should_not_run TEXT;",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(appliedCount, 1);
+      const columns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{ name: string }>;
+      const names = new Set(columns.map((column) => column.name));
+      assert.equal(names.has("revoked_at"), true);
+      assert.equal(names.has("expires_at"), true);
+      assert.equal(names.has("should_not_run"), false);
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        { version: "032", name: "renamed_lifecycle_patch" }
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
 
 test("getMigrationStatus reports applied and pending migrations", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
@@ -525,6 +611,184 @@ test(
           .get("call_log_summary_shadow_dupe"),
         undefined
       );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations rehomes legacy reasoning cache tracking so api key lifecycle can apply",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL
+      );
+    `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "032",
+        "create_reasoning_cache"
+      );
+
+      const count = withMockedMigrationFs(
+        {
+          "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN should_not_run TEXT;",
+          "033_create_reasoning_cache.sql": "CREATE TABLE reasoning_cache_shadow (id INTEGER);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 1);
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+        [
+          { version: "032", name: "apikey_lifecycle" },
+          { version: "033", name: "create_reasoning_cache" },
+        ]
+      );
+
+      const columns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{ name: string }>;
+      const names = new Set(columns.map((column) => column.name));
+      assert.equal(names.has("revoked_at"), true);
+      assert.equal(names.has("expires_at"), true);
+      assert.equal(names.has("should_not_run"), false);
+      assert.equal(
+        db
+          .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+          .get("reasoning_cache_shadow"),
+        undefined
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations rehomes legacy 028-033 version slots before applying current migrations",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE provider_connections (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL
+      );
+
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL
+      );
+    `);
+
+      const legacyRows = [
+        ["028", "evals_tables"],
+        ["029", "webhooks_templates"],
+        ["030", "mcp_scopes_api_keys"],
+        ["031", "api_keys_expires"],
+        ["032", "detailed_logs_warnings"],
+        ["033", "provider_connections_block_extra_usage"],
+      ];
+      for (const row of legacyRows) {
+        db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+          row[0],
+          row[1]
+        );
+      }
+
+      const count = withMockedMigrationFs(
+        {
+          "028_create_files_and_batches.sql": `
+            CREATE TABLE files (id TEXT PRIMARY KEY);
+            CREATE TABLE batches (id TEXT PRIMARY KEY);
+          `,
+          "029_provider_connection_max_concurrent.sql":
+            "ALTER TABLE provider_connections ADD COLUMN should_not_run INTEGER;",
+          "030_create_eval_runs.sql": "CREATE TABLE eval_runs (id TEXT PRIMARY KEY);",
+          "031_create_eval_suites.sql": `
+            CREATE TABLE eval_suites (id TEXT PRIMARY KEY);
+            CREATE TABLE eval_cases (id TEXT PRIMARY KEY);
+          `,
+          "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN should_not_run TEXT;",
+          "033_create_reasoning_cache.sql": "CREATE TABLE reasoning_cache (id TEXT PRIMARY KEY);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 6);
+      const rows = db.prepare("SELECT version, name FROM _omniroute_migrations").all() as Array<{
+        version: string;
+        name: string;
+      }>;
+      const byVersion = new Map(rows.map((row) => [row.version, row.name]));
+
+      assert.equal(byVersion.get("028"), "create_files_and_batches");
+      assert.equal(byVersion.get("029"), "provider_connection_max_concurrent");
+      assert.equal(byVersion.get("030"), "create_eval_runs");
+      assert.equal(byVersion.get("031"), "create_eval_suites");
+      assert.equal(byVersion.get("032"), "apikey_lifecycle");
+      assert.equal(byVersion.get("033"), "create_reasoning_cache");
+      for (const [version, name] of legacyRows) {
+        assert.equal(byVersion.get(`legacy-${version}-${name}`), name);
+      }
+
+      for (const table of [
+        "files",
+        "batches",
+        "eval_runs",
+        "eval_suites",
+        "eval_cases",
+        "reasoning_cache",
+      ]) {
+        assert.ok(
+          db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table),
+          `${table} should exist`
+        );
+      }
+
+      const providerColumns = db.prepare("PRAGMA table_info(provider_connections)").all() as Array<{
+        name: string;
+      }>;
+      const providerColumnNames = new Set(providerColumns.map((column) => column.name));
+      assert.equal(providerColumnNames.has("max_concurrent"), true);
+      assert.equal(providerColumnNames.has("should_not_run"), false);
+
+      const apiKeyColumns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{
+        name: string;
+      }>;
+      const apiKeyColumnNames = new Set(apiKeyColumns.map((column) => column.name));
+      for (const expected of [
+        "revoked_at",
+        "expires_at",
+        "last_used_at",
+        "key_prefix",
+        "ip_allowlist",
+        "scopes",
+      ]) {
+        assert.equal(apiKeyColumnNames.has(expected), true, `${expected} should exist`);
+      }
+      assert.equal(apiKeyColumnNames.has("should_not_run"), false);
     } finally {
       db.close();
     }
