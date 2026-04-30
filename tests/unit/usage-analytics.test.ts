@@ -15,11 +15,8 @@ const usageStats = await import("../../src/lib/usage/usageStats.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
 
-function clearPendingRequests() {
-  const pending = usageHistory.getPendingRequests();
-  for (const key of Object.keys(pending.byModel)) delete pending.byModel[key];
-  for (const key of Object.keys(pending.byAccount)) delete pending.byAccount[key];
-}
+// Use the official clearPendingRequests export instead of manual cleanup
+const clearPendingRequests = usageHistory.clearPendingRequests;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -224,9 +221,24 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
     timestamp: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
   });
 
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, true);
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, true);
-  usageHistory.trackPendingRequest("pricing-model", "pricing-provider", connection.id, false);
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider",
+    (connection as any).id,
+    true
+  );
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider" as any,
+    (connection as any).id,
+    true
+  );
+  usageHistory.trackPendingRequest(
+    "pricing-model",
+    "pricing-provider" as any,
+    (connection as any).id,
+    false
+  );
 
   const stats = await usageStats.getUsageStats();
   const expectedCost =
@@ -294,4 +306,67 @@ test("recent request summaries are generated from SQLite call logs", async () =>
   assert.match(recent[0], /LOG-PROVIDER/);
   assert.match(recent[0], /Named Account/);
   assert.match(recent[0], /205 \| 206 \| 200$/);
+});
+
+test("pending request metadata stores sanitized payload previews and clears after completion", async () => {
+  usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", true, {
+    clientEndpoint: "/v1/chat/completions",
+    clientRequest: {
+      token: "super-secret-token",
+      messages: [{ role: "user", content: "hello" }],
+    },
+  });
+
+  usageHistory.updatePendingRequest("gpt-test", "openai", "conn-preview", {
+    providerUrl: "https://api.example.com/v1/chat/completions",
+    providerRequest: {
+      authorization: "Bearer super-secret-token",
+      messages: [{ role: "user", content: "hello" }],
+    },
+  });
+
+  const pending = usageHistory.getPendingRequests();
+  const detail = pending.details["conn-preview"]["gpt-test (openai)"];
+  const clientRequestPreview = detail.clientRequest as Record<string, unknown>;
+  const providerRequestPreview = detail.providerRequest as Record<string, unknown>;
+
+  assert.equal(detail.clientEndpoint, "/v1/chat/completions");
+  assert.equal(clientRequestPreview.token, "[REDACTED]");
+  assert.equal(providerRequestPreview.authorization, "[REDACTED]");
+  assert.equal(detail.providerUrl, "https://api.example.com/v1/chat/completions");
+
+  usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", false);
+  assert.equal(pending.details["conn-preview"], undefined);
+});
+
+test("clearPendingRequests resets all pending counts and details", () => {
+  // Simulate leaked pending counts (increment without matching decrement)
+  usageHistory.trackPendingRequest("model-a", "provider-x", "conn-1", true);
+  usageHistory.trackPendingRequest("model-a", "provider-x", "conn-1", true);
+  usageHistory.trackPendingRequest("model-b", "provider-y", "conn-2", true);
+
+  const before = usageHistory.getPendingRequests();
+  assert.equal(before.byModel["model-a (provider-x)"], 2);
+  assert.equal(before.byModel["model-b (provider-y)"], 1);
+  assert.ok(before.details["conn-1"]);
+  assert.ok(before.details["conn-2"]);
+
+  // Clear all pending
+  usageHistory.clearPendingRequests();
+
+  const after = usageHistory.getPendingRequests();
+  assert.equal(Object.keys(after.byModel).length, 0);
+  assert.equal(Object.keys(after.byAccount).length, 0);
+  assert.equal(Object.keys(after.details).length, 0);
+});
+
+test("clearPendingRequests allows fresh tracking after clearing", () => {
+  usageHistory.trackPendingRequest("model-c", "provider-z", "conn-3", true);
+  usageHistory.clearPendingRequests();
+
+  // Tracking should work normally after clearing
+  usageHistory.trackPendingRequest("model-d", "provider-w", "conn-4", true);
+  const pending = usageHistory.getPendingRequests();
+  assert.equal(pending.byModel["model-d (provider-w)"], 1);
+  assert.ok(pending.details["conn-4"]);
 });

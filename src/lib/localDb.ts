@@ -96,6 +96,27 @@ export {
 } from "./db/apiKeys";
 
 export {
+  // Evals
+  saveEvalRun,
+  listEvalRuns,
+  getEvalScorecard,
+  listCustomEvalSuites,
+  getCustomEvalSuite,
+  saveCustomEvalSuite,
+  deleteCustomEvalSuite,
+  serializeEvalTargetKey,
+} from "./db/evals";
+
+export type {
+  EvalCaseRecord,
+  EvalSuiteRecord,
+  EvalTargetType,
+  EvalTargetDescriptor,
+  EvalRunSummary,
+  PersistedEvalRun,
+} from "./db/evals";
+
+export {
   // Settings
   getSettings,
   updateSettings,
@@ -107,6 +128,7 @@ export {
 
   // Pricing
   getPricing,
+  getPricingWithSources,
   getPricingForModel,
   updatePricing,
   resetPricing,
@@ -121,12 +143,15 @@ export {
   setProxyConfig,
 } from "./db/settings";
 
+export type { PricingSource, PricingSourceMap } from "./db/settings";
+
 export {
   // Proxy Registry
   listProxies,
   getProxyById,
   createProxy,
   updateProxy,
+  upsertProxy,
   deleteProxyById,
   getProxyAssignments,
   getProxyWhereUsed,
@@ -161,7 +186,7 @@ export {
 } from "./db/backup";
 
 export {
-  // Read Cache (cached wrappers for hot read paths)
+  // Read Cache (cached wrappers for hot-read paths)
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
@@ -203,6 +228,30 @@ export {
   deleteModelComboMapping,
   resolveComboForModel,
 } from "./db/modelComboMappings";
+
+export {
+  // Files
+  createFile,
+  getFile,
+  getFileContent,
+  listFiles,
+  updateFileStatus,
+  formatFileResponse,
+  deleteFile,
+} from "./db/files";
+
+export {
+  // Batches
+  createBatch,
+  getBatch,
+  updateBatch,
+  listBatches,
+  getPendingBatches,
+  getTerminalBatches,
+} from "./db/batches";
+
+export type { FileRecord } from "./db/files";
+export type { BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
 
@@ -285,3 +334,16 @@ export type {
   CompressionAnalyticsRow,
   CompressionAnalyticsSummary,
 } from "./db/compressionAnalytics";
+
+export {
+  // Reasoning Replay Cache (#1628)
+  setReasoningCache,
+  getReasoningCache,
+  deleteReasoningCache,
+  cleanupExpiredReasoning,
+  getReasoningCacheStats,
+  getReasoningCacheEntries,
+  clearAllReasoningCache,
+} from "./db/reasoningCache";
+
+export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";

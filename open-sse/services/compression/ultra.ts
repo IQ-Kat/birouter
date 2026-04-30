@@ -1,4 +1,5 @@
 import { pruneByScore } from "./ultraHeuristic.ts";
+import { DEFAULT_ULTRA_CONFIG } from "./types.ts";
 import type { UltraConfig, CompressionStats, CompressionMode } from "./types.ts";
 
 const COMPRESSED_PREFIX = "[COMPRESSED:";
@@ -41,32 +42,37 @@ function applyTextToContent(
   );
 }
 
-export async function ultraCompress(
+export function ultraCompress(
   messages: Message[],
-  config: UltraConfig
-): Promise<UltraCompressResult> {
+  config: Partial<UltraConfig> = {}
+): UltraCompressResult {
   const start = Date.now();
-  const { compressionRate, minScoreThreshold } = config;
+  const effectiveConfig: UltraConfig = {
+    ...DEFAULT_ULTRA_CONFIG,
+    ...config,
+  };
+  const { compressionRate, minScoreThreshold, maxTokensPerMessage } = effectiveConfig;
 
   let originalChars = 0;
   let compressedChars = 0;
 
-  const compressed = await Promise.all(
-    messages.map(async (msg) => {
-      const text = extractText(msg.content);
-      if (!text) return msg;
-      if (text.startsWith(COMPRESSED_PREFIX)) return msg;
+  const compressed = messages.map((msg) => {
+    const text = extractText(msg.content);
+    if (!text) return msg;
+    if (text.startsWith(COMPRESSED_PREFIX)) return msg;
+    if (maxTokensPerMessage > 0 && Math.ceil(text.length / 4) <= maxTokensPerMessage) {
+      return msg;
+    }
 
-      originalChars += text.length;
-      const pruned = pruneByScore(text, compressionRate, minScoreThreshold);
-      compressedChars += pruned.length;
+    originalChars += text.length;
+    const pruned = pruneByScore(text, compressionRate, minScoreThreshold);
+    compressedChars += pruned.length;
 
-      return {
-        ...msg,
-        content: applyTextToContent(msg.content, pruned),
-      };
-    })
-  );
+    return {
+      ...msg,
+      content: applyTextToContent(msg.content, pruned),
+    };
+  });
 
   const originalTokens = Math.ceil(originalChars / 4);
   const compressedTokens = Math.ceil(compressedChars / 4);

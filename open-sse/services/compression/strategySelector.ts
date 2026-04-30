@@ -4,7 +4,11 @@ import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
-import { detectCachingContext, getCacheAwareStrategy } from "./cachingAware.ts";
+import {
+  detectCachingContext,
+  getCacheAwareStrategy,
+  type CachingDetectionContext,
+} from "./cachingAware.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -37,13 +41,14 @@ export function selectCompressionStrategy(
   config: CompressionConfig,
   comboId: string | null,
   estimatedTokens: number,
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
+  context?: CachingDetectionContext
 ): CompressionMode {
   const selectedMode = getEffectiveMode(config, comboId, estimatedTokens);
 
   // Apply caching-aware adjustments if body is provided
   if (body) {
-    const ctx = detectCachingContext(body);
+    const ctx = detectCachingContext(body, context);
     const cacheAware = getCacheAwareStrategy(selectedMode, ctx);
     return cacheAware.strategy as CompressionMode;
   }
@@ -51,11 +56,11 @@ export function selectCompressionStrategy(
   return selectedMode;
 }
 
-export async function applyCompression(
+export function applyCompression(
   body: Record<string, unknown>,
   mode: CompressionMode,
   options?: { model?: string; config?: CompressionConfig }
-): Promise<CompressionResult> {
+): CompressionResult {
   if (mode === "off") {
     return { body, compressed: false, stats: null };
   }
@@ -63,11 +68,10 @@ export async function applyCompression(
     return applyLiteCompression(body, options);
   }
   if (mode === "standard") {
-    const cavemanConfig = options?.config?.cavemanConfig;
-    if (cavemanConfig) {
-      return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
-    }
-    return { body, compressed: false, stats: null };
+    return cavemanCompress(
+      body as Parameters<typeof cavemanCompress>[0],
+      options?.config?.cavemanConfig
+    );
   }
   if (mode === "aggressive") {
     const messages = (body.messages ?? []) as Array<{
@@ -104,7 +108,7 @@ export async function applyCompression(
       return { body, compressed: false, stats: null };
     }
     const ultraConfig = options?.config?.ultra;
-    const result = await ultraCompress(messages, ultraConfig ?? {});
+    const result = ultraCompress(messages, ultraConfig ?? {});
     const compressedBody = { ...body, messages: result.messages };
     return {
       body: compressedBody,

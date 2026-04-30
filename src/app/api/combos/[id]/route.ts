@@ -14,9 +14,13 @@ import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/combos/[id] - Get combo by ID
 export async function GET(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const combo = await getComboById(id);
@@ -34,6 +38,9 @@ export async function GET(request, { params }) {
 
 // PUT /api/combos/[id] - Update combo
 export async function PUT(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -62,15 +69,33 @@ export async function PUT(request, { params }) {
     const allCombos = await getCombos();
 
     const comboName = validation.data.name || currentCombo.name;
-    const body = validation.data.models
+    const normalizedUpdate = { ...validation.data };
+    if (normalizedUpdate.compressionOverride !== undefined) {
+      const legacyCompressionOverride = normalizedUpdate.compressionOverride;
+      const nextConfig =
+        currentCombo.config &&
+        typeof currentCombo.config === "object" &&
+        !Array.isArray(currentCombo.config)
+          ? { ...currentCombo.config }
+          : {};
+      if (legacyCompressionOverride) {
+        nextConfig.compressionMode = legacyCompressionOverride;
+      } else {
+        delete nextConfig.compressionMode;
+      }
+      normalizedUpdate.config = nextConfig;
+      delete normalizedUpdate.compressionOverride;
+    }
+
+    const body = normalizedUpdate.models
       ? {
-          ...validation.data,
-          models: normalizeComboModels(validation.data.models, {
+          ...normalizedUpdate,
+          models: normalizeComboModels(normalizedUpdate.models, {
             comboName,
             allCombos,
           }),
         }
-      : validation.data;
+      : normalizedUpdate;
     const nextComboState = {
       ...currentCombo,
       ...body,
@@ -116,6 +141,9 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/combos/[id] - Delete combo
 export async function DELETE(request, { params }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const success = await deleteCombo(id);

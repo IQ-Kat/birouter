@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/shared/components";
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
+import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
 import AuditLogTab from "./AuditLogTab";
 import { useTranslations } from "next-intl";
 
@@ -21,11 +23,21 @@ const TAB_TO_LOG_TYPE: Record<string, string> = {
 };
 
 export default function LogsPage() {
-  const [activeTab, setActiveTab] = useState("request-logs");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    requestedTab && TAB_TO_LOG_TYPE[requestedTab] ? requestedTab : "request-logs"
+  );
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("logs");
+
+  useEffect(() => {
+    if (requestedTab && TAB_TO_LOG_TYPE[requestedTab] && requestedTab !== activeTab) {
+      setActiveTab(requestedTab);
+    }
+  }, [activeTab, requestedTab]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -43,7 +55,7 @@ export default function LogsPage() {
     try {
       const logType = TAB_TO_LOG_TYPE[activeTab] || "call-logs";
       const res = await fetch(`/api/logs/export?hours=${hours}&type=${logType}`);
-      if (!res.ok) throw new Error("Export failed");
+      if (!res.ok) throw new Error(t("exportFailed"));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -54,7 +66,7 @@ export default function LogsPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Export failed:", err);
+      console.error(t("exportFailed"), err);
     } finally {
       setExporting(false);
     }
@@ -99,7 +111,7 @@ export default function LogsPage() {
                 strokeLinejoin="round"
               />
             </svg>
-            {exporting ? "Exporting..." : "Export"}
+            {exporting ? t("exporting") : t("export")}
           </button>
 
           {showExport && (
@@ -109,7 +121,7 @@ export default function LogsPage() {
                 shadow-xl overflow-hidden animate-in fade-in"
             >
               <div className="px-3 py-2 text-xs text-[var(--text-muted,#666)] border-b border-[var(--border,#333)] font-medium">
-                Time Range
+                {t("timeRange")}
               </div>
               {TIME_RANGES.map((range) => (
                 <button
@@ -120,9 +132,9 @@ export default function LogsPage() {
                     text-[var(--text-secondary,#aaa)] hover:text-[var(--text-primary,#fff)]
                     transition-colors flex items-center justify-between"
                 >
-                  <span>Last {range.label}</span>
+                  <span>{t("lastNHours", { hours: range.label })}</span>
                   <span className="text-xs text-[var(--text-muted,#666)]">
-                    {range.hours === 24 ? "default" : ""}
+                    {range.hours === 24 ? t("defaultRange") : ""}
                   </span>
                 </button>
               ))}
@@ -132,7 +144,12 @@ export default function LogsPage() {
       </div>
 
       {/* Content */}
-      {activeTab === "request-logs" && <RequestLoggerV2 />}
+      {activeTab === "request-logs" && (
+        <div className="flex flex-col gap-6">
+          <ActiveRequestsPanel />
+          <RequestLoggerV2 />
+        </div>
+      )}
       {activeTab === "proxy-logs" && <ProxyLogger />}
       {activeTab === "audit-logs" && <AuditLogTab />}
       {activeTab === "console" && <ConsoleLogViewer />}

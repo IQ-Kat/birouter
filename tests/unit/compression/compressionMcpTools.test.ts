@@ -7,10 +7,17 @@ import { join } from "node:path";
 const tmpDir = mkdtempSync(join(tmpdir(), "omniroute-mcp-test-"));
 process.env.DATA_DIR = tmpDir;
 
-import {
-  handleCompressionStatus,
-  handleCompressionConfigure,
-} from "../../../open-sse/mcp-server/tools/compressionTools.ts";
+const { handleCompressionStatus, handleCompressionConfigure } =
+  await import("../../../open-sse/mcp-server/tools/compressionTools.ts");
+const { compressionConfigureTool, compressionStatusTool } =
+  await import("../../../open-sse/mcp-server/schemas/tools.ts");
+
+describe("compression MCP tool schemas", () => {
+  it("uses canonical read/write compression scopes", () => {
+    assert.deepEqual(compressionStatusTool.scopes, ["read:compression"]);
+    assert.deepEqual(compressionConfigureTool.scopes, ["write:compression"]);
+  });
+});
 
 describe("handleCompressionStatus", () => {
   it("returns an object with enabled field", async () => {

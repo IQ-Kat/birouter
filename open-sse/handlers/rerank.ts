@@ -1,4 +1,4 @@
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
 /**
  * Rerank Handler
  *
@@ -6,7 +6,7 @@ import { getCorsOrigin } from "../utils/cors.ts";
  * Routes to the appropriate provider based on the model prefix or lookup.
  */
 
-import { getRerankProvider, parseRerankModel } from "../config/rerankRegistry.ts";
+import { getRerankProvider, parseRerankModel, RERANK_PROVIDERS } from "../config/rerankRegistry.ts";
 import { errorResponse } from "../utils/error.ts";
 
 /**
@@ -89,9 +89,10 @@ export async function handleRerank({
   const providerConfig = providerId ? getRerankProvider(providerId) : null;
 
   if (!providerConfig) {
+    const availableProviders = Object.keys(RERANK_PROVIDERS).join(", ");
     return errorResponse(
       400,
-      `No rerank provider found for model "${model}". Available: cohere, together, nvidia, fireworks`
+      `No rerank provider found for model "${model}". Available: ${availableProviders}`
     );
   }
 
@@ -130,7 +131,7 @@ export async function handleRerank({
     const result = transformResponseFromProvider(providerConfig, data);
 
     return Response.json(result, {
-      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+      headers: { ...CORS_HEADERS },
     });
   } catch (err) {
     return errorResponse(500, `Rerank request failed: ${err.message}`);

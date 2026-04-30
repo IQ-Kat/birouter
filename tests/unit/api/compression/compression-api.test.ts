@@ -50,6 +50,13 @@ describe("Compression Settings API Schema Validation", () => {
         minMessageLength: 50,
         preservePatterns: [],
       },
+      ultra: {
+        enabled: false,
+        compressionRate: 0.5,
+        minScoreThreshold: 0.3,
+        slmFallbackToAggressive: true,
+        maxTokensPerMessage: 0,
+      },
     };
 
     assert.equal(defaultConfig.enabled, false);
@@ -59,6 +66,8 @@ describe("Compression Settings API Schema Validation", () => {
     assert.equal(typeof defaultConfig.preserveSystemPrompt, "boolean");
     assert.equal(typeof defaultConfig.comboOverrides, "object");
     assert.equal(typeof defaultConfig.cavemanConfig, "object");
+    assert.equal(typeof defaultConfig.ultra, "object");
+    assert.equal(defaultConfig.ultra.compressionRate, 0.5);
   });
 
   it("should validate all caveman compression rules are defined", async () => {

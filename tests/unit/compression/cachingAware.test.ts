@@ -29,19 +29,19 @@ describe("detectCachingContext", () => {
   it("extracts openai provider from model string", () => {
     const ctx = detectCachingContext({ model: "openai/gpt-4o" });
     assert.equal(ctx.provider, "openai");
-    assert.equal(ctx.isCachingProvider, true);
+    assert.equal(ctx.isCachingProvider, false);
   });
 
   it("extracts google provider from model string", () => {
     const ctx = detectCachingContext({ model: "google/gemini-pro" });
     assert.equal(ctx.provider, "google");
-    assert.equal(ctx.isCachingProvider, true);
+    assert.equal(ctx.isCachingProvider, false);
   });
 
-  it("returns null provider for unknown provider prefix", () => {
+  it("keeps provider prefix and applies the shared caching policy", () => {
     const ctx = detectCachingContext({ model: "deepseek/deepseek-chat" });
-    assert.equal(ctx.provider, null);
-    assert.equal(ctx.isCachingProvider, false);
+    assert.equal(ctx.provider, "deepseek");
+    assert.equal(ctx.isCachingProvider, true);
   });
 
   it("handles null/undefined body gracefully", () => {
@@ -56,6 +56,47 @@ describe("detectCachingContext", () => {
     assert.equal(ctx.hasCacheControl, false);
     assert.equal(ctx.provider, null);
     assert.equal(ctx.isCachingProvider, false);
+  });
+
+  it("detects cache_control in Claude message content blocks", () => {
+    const ctx = detectCachingContext(
+      {
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "cached", cache_control: { type: "ephemeral" } }],
+          },
+        ],
+      },
+      { provider: "anthropic", targetFormat: "claude" }
+    );
+
+    assert.equal(ctx.hasCacheControl, true);
+    assert.equal(ctx.provider, "anthropic");
+    assert.equal(ctx.targetFormat, "claude");
+    assert.equal(ctx.isCachingProvider, true);
+  });
+
+  it("detects cache_control in Claude tools", () => {
+    const ctx = detectCachingContext(
+      {
+        tools: [{ name: "lookup", cache_control: { type: "ephemeral" } }],
+      },
+      { provider: "qwen", targetFormat: "claude" }
+    );
+
+    assert.equal(ctx.hasCacheControl, true);
+    assert.equal(ctx.isCachingProvider, true);
+  });
+
+  it("prefers explicit provider context over the body model prefix", () => {
+    const ctx = detectCachingContext(
+      { model: "openai/gpt-4o", cache_control: { type: "ephemeral" } },
+      { provider: "anthropic", targetFormat: "claude", model: "claude-3-5-sonnet" }
+    );
+
+    assert.equal(ctx.provider, "anthropic");
+    assert.equal(ctx.isCachingProvider, true);
   });
 });
 

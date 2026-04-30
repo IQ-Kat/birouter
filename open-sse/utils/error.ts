@@ -1,5 +1,5 @@
-import { getCorsOrigin } from "./cors.ts";
-import { ERROR_TYPES, DEFAULT_ERROR_MESSAGES } from "../config/constants.ts";
+import { CORS_HEADERS } from "./cors.ts";
+import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
@@ -10,15 +10,11 @@ import type { ModelCooldownErrorPayload } from "@/types";
  * @returns {object} Error response object
  */
 export function buildErrorBody(statusCode, message) {
-  const errorInfo =
-    ERROR_TYPES[statusCode] ||
-    (statusCode >= 500
-      ? { type: "server_error", code: "internal_server_error" }
-      : { type: "invalid_request_error", code: "" });
+  const errorInfo = getErrorInfo(statusCode);
 
   return {
     error: {
-      message: message || DEFAULT_ERROR_MESSAGES[statusCode] || "An error occurred",
+      message: message || getDefaultErrorMessage(statusCode),
       type: errorInfo.type,
       code: errorInfo.code,
     },
@@ -36,7 +32,6 @@ export function errorResponse(statusCode, message) {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -177,11 +172,16 @@ export async function parseUpstreamError(response, provider = null) {
     retryAfterMs = MAX_RETRY_MS;
   }
 
+  const responseHeaders: Record<string, string> | null = response.headers
+    ? Object.fromEntries(response.headers.entries())
+    : null;
+
   return {
     statusCode: response.status,
     message: messageStr,
     retryAfterMs,
     responseBody,
+    responseHeaders,
   };
 }
 
@@ -243,6 +243,32 @@ export function unavailableResponse(
   });
 }
 
+export function providerCircuitOpenResponse(
+  provider: string,
+  retryAfter?: string | number | Date | null
+) {
+  const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: `Provider ${provider} circuit breaker is open`,
+        type: "server_error",
+        code: "provider_circuit_open",
+        provider,
+        retry_after: retryAfterSec,
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        "Retry-After": String(retryAfterSec),
+        "X-OmniRoute-Provider-Breaker": "open",
+      },
+    }
+  );
+}
+
 export function buildModelCooldownBody({
   model,
   retryAfterSec,
@@ -284,7 +310,6 @@ export function modelCooldownResponse({
       status: 429,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
         "Retry-After": String(retryAfterSec),
       },
     }

@@ -14,7 +14,7 @@ export function estimateCompressionTokens(text: string | object | null | undefin
   return Math.ceil(str.length / CHARS_PER_TOKEN);
 }
 
-/** @deprecated Use estimateCompressionTokens instead */
+/** @deprecated Use estimateCompressionTokens instead. */
 export const estimateTokensForStats = estimateCompressionTokens;
 
 export function createCompressionStats(

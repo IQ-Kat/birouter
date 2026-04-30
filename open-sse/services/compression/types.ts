@@ -8,10 +8,8 @@
  * Phase 4: 'ultra' mode (heuristic token pruning + optional SLM tier).
  */
 
-/** Compression mode levels */
 export type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
 
-/** A single caveman compression rule (Phase 2) */
 export interface CavemanRule {
   name: string;
   pattern: RegExp;
@@ -20,7 +18,6 @@ export interface CavemanRule {
   preservePatterns?: RegExp[];
 }
 
-/** Configuration for the caveman compression engine (Phase 2) */
 export interface CavemanConfig {
   enabled: boolean;
   compressRoles: ("user" | "assistant" | "system")[];
@@ -29,7 +26,18 @@ export interface CavemanConfig {
   preservePatterns: string[];
 }
 
-/** Per-request compression statistics */
+export interface CompressionConfig {
+  enabled: boolean;
+  defaultMode: CompressionMode;
+  autoTriggerTokens: number;
+  cacheMinutes: number;
+  preserveSystemPrompt: boolean;
+  comboOverrides: Record<string, CompressionMode>;
+  cavemanConfig?: CavemanConfig;
+  aggressive?: AggressiveConfig;
+  ultra?: UltraConfig;
+}
+
 export interface CompressionStats {
   originalTokens: number;
   compressedTokens: number;
@@ -46,27 +54,12 @@ export interface CompressionStats {
   };
 }
 
-/** Result of a compression operation */
 export interface CompressionResult {
   body: Record<string, unknown>;
   compressed: boolean;
   stats: CompressionStats | null;
 }
 
-/** Compression configuration stored in DB */
-export interface CompressionConfig {
-  enabled: boolean;
-  defaultMode: CompressionMode;
-  autoTriggerTokens: number;
-  cacheMinutes: number;
-  preserveSystemPrompt: boolean;
-  comboOverrides: Record<string, CompressionMode>;
-  cavemanConfig?: CavemanConfig;
-  aggressive?: AggressiveConfig;
-  ultra?: UltraConfig;
-}
-
-/** Default compression config values */
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   enabled: false,
   defaultMode: "off",
@@ -76,7 +69,6 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   comboOverrides: {},
 };
 
-/** Default caveman configuration (Phase 2) */
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
   enabled: true,
   compressRoles: ["user"],

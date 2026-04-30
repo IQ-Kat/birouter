@@ -33,6 +33,15 @@ interface AggressiveConfig {
   minSavingsThreshold: number;
 }
 
+interface UltraConfig {
+  enabled: boolean;
+  compressionRate: number;
+  minScoreThreshold: number;
+  slmFallbackToAggressive: boolean;
+  modelPath?: string;
+  maxTokensPerMessage: number;
+}
+
 interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
@@ -42,6 +51,7 @@ interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
   aggressive?: AggressiveConfig;
+  ultra?: UltraConfig;
 }
 
 const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: string }[] = [
@@ -73,7 +83,7 @@ const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: 
     value: "ultra",
     labelKey: "compressionModeUltra",
     descKey: "compressionModeUltraDesc",
-    icon: "rocket_launch",
+    icon: "filter_alt",
   },
 ];
 
@@ -143,6 +153,13 @@ export default function CompressionSettingsTab() {
       summarizerEnabled: true,
       maxTokensPerMessage: 2048,
       minSavingsThreshold: 0.05,
+    },
+    ultra: {
+      enabled: false,
+      compressionRate: 0.5,
+      minScoreThreshold: 0.3,
+      slmFallbackToAggressive: true,
+      maxTokensPerMessage: 0,
     },
   });
   const [saving, setSaving] = useState(false);
@@ -255,7 +272,7 @@ export default function CompressionSettingsTab() {
         {config.enabled && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-text-main">{t("compressionMode")}</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2">
               {MODES.map((m) => (
                 <button
                   key={m.value}
@@ -614,6 +631,141 @@ export default function CompressionSettingsTab() {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {config.enabled && config.defaultMode === "ultra" && config.ultra && (
+          <div className="space-y-3 pt-4 border-t border-border/30">
+            <div>
+              <h4 className="text-sm font-medium text-text-main">{t("compressionUltraConfig")}</h4>
+              <p className="text-xs text-text-muted mt-0.5">{t("compressionUltraConfigDesc")}</p>
+            </div>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("enabled")}</span>
+              <button
+                onClick={() =>
+                  save({
+                    ultra: {
+                      ...config.ultra!,
+                      enabled: !config.ultra!.enabled,
+                    },
+                  })
+                }
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  config.ultra.enabled ? "bg-green-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    config.ultra.enabled ? "left-5" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionUltraRate")}</span>
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                value={config.ultra.compressionRate}
+                onChange={(e) =>
+                  save({
+                    ultra: {
+                      ...config.ultra!,
+                      compressionRate: parseFloat(e.target.value) || 0,
+                    },
+                  })
+                }
+                className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+              />
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionUltraMinScore")}</span>
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                value={config.ultra.minScoreThreshold}
+                onChange={(e) =>
+                  save({
+                    ultra: {
+                      ...config.ultra!,
+                      minScoreThreshold: parseFloat(e.target.value) || 0,
+                    },
+                  })
+                }
+                className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+              />
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionMaxTokensPerMessage")}</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={32768}
+                  value={config.ultra.maxTokensPerMessage}
+                  onChange={(e) =>
+                    save({
+                      ultra: {
+                        ...config.ultra!,
+                        maxTokensPerMessage: parseInt(e.target.value) || 0,
+                      },
+                    })
+                  }
+                  className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                />
+                <span className="text-xs text-text-muted">{t("tokens")}</span>
+              </div>
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">{t("compressionUltraSlmFallback")}</span>
+              <button
+                onClick={() =>
+                  save({
+                    ultra: {
+                      ...config.ultra!,
+                      slmFallbackToAggressive: !config.ultra!.slmFallbackToAggressive,
+                    },
+                  })
+                }
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  config.ultra.slmFallbackToAggressive ? "bg-green-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    config.ultra.slmFallbackToAggressive ? "left-5" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-sm text-text-muted">{t("compressionUltraModelPath")}</span>
+              <input
+                type="text"
+                value={config.ultra.modelPath ?? ""}
+                onChange={(e) =>
+                  save({
+                    ultra: {
+                      ...config.ultra!,
+                      modelPath: e.target.value.trim() || undefined,
+                    },
+                  })
+                }
+                placeholder="/path/to/model.onnx"
+                className="w-full px-2 py-1 text-sm rounded border border-border bg-surface text-text-main font-mono"
+              />
+            </label>
           </div>
         )}
       </div>

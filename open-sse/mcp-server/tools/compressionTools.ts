@@ -44,7 +44,7 @@ export async function handleCompressionStatus(
 }> {
   const start = Date.now();
   try {
-    const settings = getCompressionSettings();
+    const settings = await getCompressionSettings();
     const analyticsSummary = getCompressionAnalyticsSummary();
     const cacheStats = getCacheStatsSummary();
 
@@ -131,8 +131,7 @@ export async function handleCompressionConfigure(
       updates.defaultMode = args.aggressiveness;
     }
 
-    updateCompressionSettings(updates);
-    const settings = getCompressionSettings();
+    const settings = await updateCompressionSettings(updates);
 
     const result = {
       success: true,

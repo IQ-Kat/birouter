@@ -8,6 +8,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { protectPayloadForLog } from "../logPayloads";
 import { shouldPersistToDisk } from "./migrations";
 import {
   getLoggedInputTokens,
@@ -18,6 +19,22 @@ import {
 } from "./tokenAccounting";
 
 type JsonRecord = Record<string, unknown>;
+type PendingRequestMetadata = {
+  clientEndpoint?: string | null;
+  clientRequest?: unknown;
+  providerRequest?: unknown;
+  providerUrl?: string | null;
+};
+type PendingRequestDetail = {
+  model: string;
+  provider: string;
+  connectionId: string | null;
+  startedAt: number;
+  clientEndpoint?: string | null;
+  clientRequest?: unknown;
+  providerRequest?: unknown;
+  providerUrl?: string | null;
+};
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -50,15 +67,87 @@ function stdDev(values: number[], avg: number): number {
   return Math.sqrt(Math.max(0, variance));
 }
 
+const MAX_PREVIEW_DEPTH = 6;
+const MAX_PREVIEW_STRING = 1200;
+const MAX_PREVIEW_ARRAY_ITEMS = 12;
+const MAX_PREVIEW_OBJECT_KEYS = 24;
+
+function truncatePendingPreview(value: unknown, depth = 0): unknown {
+  if (depth >= MAX_PREVIEW_DEPTH) {
+    return "[TRUNCATED_DEPTH]";
+  }
+
+  if (typeof value === "string") {
+    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
+  }
+
+  if (Array.isArray(value)) {
+    const preview = value
+      .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
+      .map((item) => truncatePendingPreview(item, depth + 1));
+    if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
+      preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
+    }
+    return preview;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const entries = Object.entries(value as JsonRecord);
+  const truncatedEntries = entries
+    .slice(0, MAX_PREVIEW_OBJECT_KEYS)
+    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
+  const preview = Object.fromEntries(truncatedEntries);
+
+  if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
+    preview._truncatedKeys = entries.length - MAX_PREVIEW_OBJECT_KEYS;
+  }
+
+  return preview;
+}
+
+function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
+  if (!metadata) return {};
+
+  const normalized: PendingRequestMetadata = {};
+
+  if (metadata.clientEndpoint !== undefined) {
+    normalized.clientEndpoint = toStringOrNull(metadata.clientEndpoint) || null;
+  }
+  if (metadata.providerUrl !== undefined) {
+    normalized.providerUrl = toStringOrNull(metadata.providerUrl) || null;
+  }
+  if (metadata.clientRequest !== undefined) {
+    normalized.clientRequest = truncatePendingPreview(protectPayloadForLog(metadata.clientRequest));
+  }
+  if (metadata.providerRequest !== undefined) {
+    normalized.providerRequest = truncatePendingPreview(
+      protectPayloadForLog(metadata.providerRequest)
+    );
+  }
+
+  return normalized;
+}
+
 // ──────────────── Pending Requests (in-memory) ────────────────
 
 const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
+  details: Record<string, Record<string, PendingRequestDetail>>;
 } = {
   byModel: Object.create(null) as Record<string, number>,
   byAccount: Object.create(null) as Record<string, Record<string, number>>,
+  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail>>,
 };
+
+/** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+function isSafeKey(key: string): boolean {
+  return !UNSAFE_KEYS.has(key);
+}
 
 /**
  * Track a pending request.
@@ -67,9 +156,12 @@ export function trackPendingRequest(
   model: string,
   provider: string,
   connectionId: string | null,
-  started: boolean
+  started: boolean,
+  metadata?: PendingRequestMetadata
 ) {
   const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const normalizedMetadata = normalizePendingMetadata(metadata);
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
   if (!Object.prototype.hasOwnProperty.call(pendingRequests.byModel, modelKey)) {
@@ -84,6 +176,12 @@ export function trackPendingRequest(
     if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount, connectionId)) {
       pendingRequests.byAccount[connectionId] = Object.create(null) as Record<string, number>;
     }
+    if (!Object.prototype.hasOwnProperty.call(pendingRequests.details, connectionId)) {
+      pendingRequests.details[connectionId] = Object.create(null) as Record<
+        string,
+        PendingRequestDetail
+      >;
+    }
     if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount[connectionId], modelKey)) {
       pendingRequests.byAccount[connectionId][modelKey] = 0;
     }
@@ -91,7 +189,46 @@ export function trackPendingRequest(
       0,
       pendingRequests.byAccount[connectionId][modelKey] + (started ? 1 : -1)
     );
+
+    const nextCount = pendingRequests.byAccount[connectionId][modelKey];
+    if (started && nextCount > 0) {
+      if (!pendingRequests.details[connectionId][modelKey]) {
+        pendingRequests.details[connectionId][modelKey] = {
+          model,
+          provider,
+          connectionId,
+          startedAt: Date.now(),
+          ...normalizedMetadata,
+        };
+      } else {
+        const merged = {
+          ...pendingRequests.details[connectionId][modelKey],
+          ...normalizedMetadata,
+        };
+        pendingRequests.details[connectionId][modelKey] = merged;
+      }
+    } else if (!started && nextCount === 0) {
+      delete pendingRequests.details[connectionId][modelKey];
+      if (Object.keys(pendingRequests.details[connectionId]).length === 0) {
+        delete pendingRequests.details[connectionId];
+      }
+    }
   }
+}
+
+export function updatePendingRequest(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  metadata: PendingRequestMetadata
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const existing = pendingRequests.details[connectionId]?.[modelKey];
+  if (!existing) return;
+  const merged = { ...existing, ...normalizePendingMetadata(metadata) };
+  pendingRequests.details[connectionId][modelKey] = merged;
 }
 
 /**
@@ -102,19 +239,57 @@ export function getPendingRequests() {
   return pendingRequests;
 }
 
+/**
+ * Clear all pending request counts.
+ * Used for admin reset when counts leak due to uncaught timeouts or process-level errors.
+ */
+export function clearPendingRequests() {
+  pendingRequests.byModel = Object.create(null) as Record<string, number>;
+  pendingRequests.byAccount = Object.create(null) as Record<string, Record<string, number>>;
+  pendingRequests.details = Object.create(null) as Record<
+    string,
+    Record<string, PendingRequestDetail>
+  >;
+}
+
 // ──────────────── getUsageDb Shim (backward compat) ────────────────
+
+const MAX_ROWS = 10000;
 
 /**
  * Returns an object compatible with the old LowDB interface.
  * Only `api/usage/analytics/route.js` uses this — it reads `db.data.history`.
+ *
+ * @param sinceIso - ISO timestamp to filter from (inclusive)
+ * @param limit - Max rows to return (default 10,000)
+ * @param cursor - Timestamp cursor for pagination (exclusive, for next page)
  */
-export async function getUsageDb(sinceIso?: string | null) {
+export async function getUsageDb(sinceIso?: string | null, limit?: number, cursor?: string | null) {
   const db = getDbInstance();
-  const rows = sinceIso
-    ? db
-        .prepare("SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC")
-        .all(sinceIso)
-    : db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all();
+  const maxRows = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : MAX_ROWS;
+
+  let rows;
+  if (cursor) {
+    // Cursor-based pagination (next page after cursor)
+    // Use > cursor to get rows after the last timestamp of previous page (ASC order)
+    rows = sinceIso
+      ? db
+          .prepare(
+            `SELECT * FROM usage_history WHERE timestamp >= ? AND timestamp > ? ORDER BY timestamp ASC LIMIT ?`
+          )
+          .all(sinceIso, cursor, maxRows)
+      : db
+          .prepare(`SELECT * FROM usage_history WHERE timestamp > ? ORDER BY timestamp ASC LIMIT ?`)
+          .all(cursor, maxRows);
+  } else if (sinceIso) {
+    // Initial query with date filter
+    rows = db
+      .prepare(`SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC LIMIT ?`)
+      .all(sinceIso, maxRows);
+  } else {
+    // No filter - get all (with limit)
+    rows = db.prepare(`SELECT * FROM usage_history ORDER BY timestamp ASC LIMIT ?`).all(maxRows);
+  }
 
   const history = rows.map((row) => {
     const r = asRecord(row);
@@ -140,7 +315,10 @@ export async function getUsageDb(sinceIso?: string | null) {
     };
   });
 
-  return { data: { history } };
+  // Provide next cursor if we hit the limit (more rows exist)
+  const nextCursor = rows.length === maxRows ? (rows[rows.length - 1] as any)?.timestamp : null;
+
+  return { data: { history, nextCursor } };
 }
 
 // ──────────────── Save Request Usage ────────────────

@@ -7,6 +7,11 @@ import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
 import { cn } from "@/shared/utils/cn";
 import { useTranslations } from "next-intl";
 import {
+  COMBO_CONFIG_MODE_SETTING_KEY,
+  normalizeComboConfigMode,
+  type ComboConfigMode,
+} from "@/shared/constants/comboConfigMode";
+import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SECTIONS,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
@@ -30,6 +35,10 @@ export default function AppearanceTab() {
     settings[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
   );
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const comboConfigMode = normalizeComboConfigMode(settings[COMBO_CONFIG_MODE_SETTING_KEY]);
+  const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
+  const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
+  const showNgrokTunnel = settings.hideEndpointNgrokTunnel !== true;
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -105,6 +114,32 @@ export default function AppearanceTab() {
     { id: "violet", color: COLOR_THEMES.violet, label: t("themeViolet") },
     { id: "orange", color: COLOR_THEMES.orange, label: t("themeOrange") },
     { id: "cyan", color: COLOR_THEMES.cyan, label: t("themeCyan") },
+  ];
+
+  const comboConfigModeOptions: Array<{
+    id: ComboConfigMode;
+    icon: string;
+    title: string;
+    description: string;
+  }> = [
+    {
+      id: "guided",
+      icon: "route",
+      title: getSettingsLabel("comboConfigModeGuided", "Guided"),
+      description: getSettingsLabel(
+        "comboConfigModeGuidedDesc",
+        "Use the current step-by-step combo builder."
+      ),
+    },
+    {
+      id: "expert",
+      icon: "tune",
+      title: getSettingsLabel("comboConfigModeExpert", "Expert"),
+      description: getSettingsLabel(
+        "comboConfigModeExpertDesc",
+        "Show every combo option on one page and enable direct model entry."
+      ),
+    },
   ];
 
   const showDebug = settings.debugMode === true;
@@ -220,6 +255,132 @@ export default function AppearanceTab() {
             <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>
               {t("themeCreate")}
             </Button>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("endpointTunnelVisibility", "Endpoint tunnel visibility")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "endpointTunnelVisibilityDesc",
+                "Hide tunnel controls from the Endpoint page without changing tunnel state."
+              )}
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface/40 divide-y divide-border/70">
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("showCloudflareTunnel", "Cloudflare Quick Tunnel")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showCloudflareTunnelDesc",
+                    "Show Cloudflare Quick Tunnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showCloudflaredTunnel}
+                onChange={(checked) => updateSetting("hideEndpointCloudflaredTunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("showTailscaleFunnel", "Tailscale Funnel")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showTailscaleFunnelDesc",
+                    "Show Tailscale Funnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showTailscaleFunnel}
+                onChange={(checked) => updateSetting("hideEndpointTailscaleFunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">{getSettingsLabel("showNgrokTunnel", "ngrok Tunnel")}</p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showNgrokTunnelDesc",
+                    "Show ngrok Tunnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showNgrokTunnel}
+                onChange={(checked) => updateSetting("hideEndpointNgrokTunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("comboConfigMode", "Combo configuration mode")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "comboConfigModeDesc",
+                "Choose how the combo create and edit dialog is organized."
+              )}
+            </p>
+          </div>
+
+          <div
+            role="radiogroup"
+            aria-label={getSettingsLabel("comboConfigMode", "Combo configuration mode")}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+          >
+            {comboConfigModeOptions.map((option) => {
+              const active = comboConfigMode === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  disabled={loading}
+                  onClick={() => updateSetting(COMBO_CONFIG_MODE_SETTING_KEY, option.id)}
+                  className={cn(
+                    "flex items-start gap-3 rounded-lg border p-3 text-left transition-colors disabled:opacity-60",
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-surface/40 text-text-main hover:border-primary/40"
+                  )}
+                >
+                  <span className="material-symbols-outlined mt-0.5 text-[20px]" aria-hidden="true">
+                    {option.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{option.title}</span>
+                    <span
+                      className={cn(
+                        "mt-0.5 block text-xs",
+                        active ? "text-primary/80" : "text-text-muted"
+                      )}
+                    >
+                      {option.description}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

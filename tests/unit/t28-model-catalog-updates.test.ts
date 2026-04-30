@@ -25,6 +25,9 @@ test("T28: antigravity static catalog exposes client-visible Gemini preview IDs"
   assert.ok(staticIds.includes("gemini-3-flash-preview"));
   assert.ok(!staticIds.includes("gemini-3-pro-high"));
   assert.ok(!staticIds.includes("gemini-3.1-pro-high"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5"));
+  assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
+  assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
 test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {
@@ -57,9 +60,9 @@ test("T28: vertex catalog includes partner models when vertex executor is availa
 });
 
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
-  const minimax = await getModelInfoCore("minimax/minimax-m2.7", {});
+  const minimax = await getModelInfoCore("minimax/MiniMax-M2.7", {});
   assert.equal(minimax.provider, "minimax");
-  assert.equal(minimax.model, "minimax-m2.7");
+  assert.equal(minimax.model, "MiniMax-M2.7");
 
   const flashLite = await getModelInfoCore("gemini/gemini-3.1-flash-lite-preview", {});
   assert.equal(flashLite.provider, "gemini");
