@@ -945,6 +945,14 @@ export async function handleChatCore({
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const startTime = Date.now();
+  // Per-request trace id + checkpoint helper. Lets us see exactly which await
+  // a hung request was sitting on in `[STAGE_TRACE]` log lines.
+  const traceId = Math.random().toString(36).slice(2, 8);
+  const trace = (label: string, extra?: Record<string, unknown>) => {
+    const elapsed = Date.now() - startTime;
+    const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
+    log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
+  };
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
       provider: provider || "unknown",
@@ -1543,6 +1551,8 @@ export async function handleChatCore({
     }
   }
 
+  trace("post_injection", { provider, model });
+
   // Translate request (pass reqLogger for intermediate logging)
   // ── Proactive Context Compression (Phase 4) ──
   // Check if context exceeds 70% of limit and compress proactively before sending to provider.
@@ -1976,6 +1986,8 @@ export async function handleChatCore({
     return createErrorResult(statusCode, message);
   }
 
+  trace("post_translation");
+
   // Extract toolNameMap for response translation (Claude OAuth)
   const translatedToolNameMap = translatedBody._toolNameMap;
   const nativeClaudeToolNameMap = isClaudePassthrough
@@ -2222,6 +2234,10 @@ export async function handleChatCore({
         }
       }
 
+      trace("pre_semaphore", {
+        semaphoreKey: accountSemaphoreKey,
+        max: accountSemaphoreMaxConcurrency,
+      });
       const acquireAccountSemaphoreRelease =
         accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
           ? await acquireAccountSemaphore(accountSemaphoreKey, {
@@ -2229,17 +2245,21 @@ export async function handleChatCore({
               signal: streamController.signal,
             })
           : () => {};
+      trace("post_semaphore");
 
       try {
+        trace("pre_rate_limit");
         const rawResult = await withRateLimit(
           provider,
           connectionId,
           modelToCall,
           async () => {
+            trace("inside_rate_limit");
             let attempts = 0;
             const maxAttempts = provider === "qwen" ? 3 : 1;
 
             while (attempts < maxAttempts) {
+              trace("pre_executor", { attempt: attempts });
               const res = await executor.execute({
                 model: modelToCall,
                 body: bodyToSend,
@@ -2252,6 +2272,7 @@ export async function handleChatCore({
                 clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
                 onCredentialsRefreshed,
               });
+              trace("post_executor", { status: res?.response?.status });
 
               // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
               if (
