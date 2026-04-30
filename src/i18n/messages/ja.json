@@ -822,7 +822,9 @@
     "utilization": "活用率",
     "utilizationDescription": "プロバイダーのクォータ使用傾向とレート制限の追跡",
     "comboHealth": "コンボ健全性",
-    "comboHealthDescription": "コンボレベルのクォータ、使用分布、パフォーマンスメトリクス"
+    "comboHealthDescription": "コンボレベルのクォータ、使用分布、パフォーマンスメトリクス",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "APIキー",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

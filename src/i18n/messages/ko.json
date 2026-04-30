@@ -822,7 +822,9 @@
     "utilization": "활용률",
     "utilizationDescription": "공급자 할당량 사용 추세 및 속도 제한 추적",
     "comboHealth": "콤보 건강 상태",
-    "comboHealthDescription": "콤보 수준 할당량, 사용 분포 및 성능 메트릭"
+    "comboHealthDescription": "콤보 수준 할당량, 사용 분포 및 성능 메트릭",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "API 키",
@@ -3261,6 +3263,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

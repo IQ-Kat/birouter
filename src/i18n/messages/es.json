@@ -822,7 +822,9 @@
     "utilization": "Utilización",
     "utilizationDescription": "Tendencias de uso de cuota del proveedor y seguimiento de límites de tasa",
     "comboHealth": "Salud del combo",
-    "comboHealthDescription": "Cuota a nivel de combo, distribución de uso y métricas de rendimiento"
+    "comboHealthDescription": "Cuota a nivel de combo, distribución de uso y métricas de rendimiento",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "Claves API",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

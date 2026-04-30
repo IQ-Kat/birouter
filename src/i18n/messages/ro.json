@@ -822,7 +822,9 @@
     "utilization": "Utilizare",
     "utilizationDescription": "Tendințe de utilizare a cotelor furnizorului și urmărirea limitelor de rată",
     "comboHealth": "Sănătatea Combo-ului",
-    "comboHealthDescription": "Cotă la nivel de combo, distribuția utilizării și metricile de performanță"
+    "comboHealthDescription": "Cotă la nivel de combo, distribuția utilizării și metricile de performanță",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "Chei API",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

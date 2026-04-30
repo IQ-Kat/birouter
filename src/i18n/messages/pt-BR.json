@@ -822,7 +822,9 @@
     "utilization": "Utilização",
     "utilizationDescription": "Tendências de uso de cota do provedor e rastreamento de limites de taxa",
     "comboHealth": "Saúde do Combo",
-    "comboHealthDescription": "Cota em nível de combo, distribuição de uso e métricas de desempenho"
+    "comboHealthDescription": "Cota em nível de combo, distribuição de uso e métricas de desempenho",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "Chaves de API",

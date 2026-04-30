@@ -924,7 +924,9 @@
     "modelStatusUnavailable": "Unavailable",
     "modelStatusError": "Error",
     "comboHealth": "Combo Health",
-    "comboHealthDescription": "Combo-level quota, usage distribution, and performance metrics"
+    "comboHealthDescription": "Combo-level quota, usage distribution, and performance metrics",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "API Keys",

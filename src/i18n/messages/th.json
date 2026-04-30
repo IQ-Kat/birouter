@@ -822,7 +822,9 @@
     "utilization": "การใช้งาน",
     "utilizationDescription": "แนวโน้มการใช้โควต้าของผู้ให้บริการและการติดตามขีดจำกัดอัตรา",
     "comboHealth": "สุขภาพคอมโบ",
-    "comboHealthDescription": "โควต้าระดับคอมโบ การกระจายการใช้งาน และตัวชั่งวัดประสิทธิภาพ"
+    "comboHealthDescription": "โควต้าระดับคอมโบ การกระจายการใช้งาน และตัวชั่งวัดประสิทธิภาพ",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "คีย์ API",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

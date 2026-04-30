@@ -1569,14 +1569,83 @@ export async function handleChatCore({
       const { selectCompressionStrategy, applyCompression } =
         await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
-      const config = await getCompressionSettings();
-      const mode = selectCompressionStrategy(config, comboName ?? null, estimatedTokens);
+      let config = await getCompressionSettings();
+      let compressionComboKey = comboName ?? null;
+      if (isCombo && comboName) {
+        try {
+          const { getComboByName } = await import("../../src/lib/localDb");
+          let comboConfig = await getComboByName(comboName);
+          if (!comboConfig && comboName.startsWith("combo/")) {
+            comboConfig = await getComboByName(comboName.substring(6));
+          }
+          const comboRuntimeConfig =
+            comboConfig?.config && typeof comboConfig.config === "object"
+              ? (comboConfig.config as Record<string, unknown>)
+              : {};
+          const comboMode =
+            typeof comboRuntimeConfig.compressionMode === "string"
+              ? comboRuntimeConfig.compressionMode
+              : typeof comboConfig?.compressionOverride === "string"
+                ? comboConfig.compressionOverride
+                : null;
+          if (
+            comboMode === "off" ||
+            comboMode === "lite" ||
+            comboMode === "standard" ||
+            comboMode === "aggressive" ||
+            comboMode === "ultra"
+          ) {
+            config = {
+              ...config,
+              comboOverrides: {
+                ...(config.comboOverrides ?? {}),
+                ...(comboName ? { [comboName]: comboMode } : {}),
+                ...(comboConfig?.id ? { [comboConfig.id]: comboMode } : {}),
+              },
+            };
+            compressionComboKey = comboName;
+          }
+        } catch (err) {
+          log?.debug?.(
+            "COMPRESSION",
+            "Combo compression override lookup skipped: " +
+              (err instanceof Error ? err.message : String(err))
+          );
+        }
+      }
+      const mode = selectCompressionStrategy(config, compressionComboKey, estimatedTokens);
       if (mode !== "off") {
         const result = applyCompression(body, mode, { model: effectiveModel, config });
         if (result.compressed && result.stats) {
           body = result.body as typeof body;
           estimatedTokens = result.stats.compressedTokens;
           trackCompressionStats(result.stats);
+          void (async () => {
+            try {
+              const { insertCompressionAnalyticsRow } =
+                await import("../../src/lib/db/compressionAnalytics.ts");
+              insertCompressionAnalyticsRow({
+                timestamp: new Date().toISOString(),
+                combo_id: comboName ?? null,
+                provider: provider ?? null,
+                mode,
+                original_tokens: result.stats.originalTokens,
+                compressed_tokens: result.stats.compressedTokens,
+                tokens_saved: Math.max(
+                  0,
+                  result.stats.originalTokens - result.stats.compressedTokens
+                ),
+                duration_ms: result.stats.durationMs ?? null,
+                request_id: skillRequestId,
+              });
+            } catch (err) {
+              log?.debug?.(
+                "COMPRESSION",
+                "Compression analytics write skipped: " +
+                  (err instanceof Error ? err.message : String(err))
+              );
+            }
+          })();
           log?.info?.(
             "COMPRESSION",
             `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`

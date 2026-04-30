@@ -822,7 +822,9 @@
     "utilization": "Pemanfaatan",
     "utilizationDescription": "Tren penggunaan kuota pembekal dan penjejakan had kadar",
     "comboHealth": "Kesihatan Combo",
-    "comboHealthDescription": "Kuota peringkat combo, pengagihan penggunaan dan metrik prestasi"
+    "comboHealthDescription": "Kuota peringkat combo, pengagihan penggunaan dan metrik prestasi",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "Kunci API",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

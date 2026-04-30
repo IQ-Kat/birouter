@@ -822,7 +822,9 @@
     "utilization": "Wykorzystanie",
     "utilizationDescription": "Trendy wykorzystania kwoty dostawcy i śledzenie limitów szybkości",
     "comboHealth": "Zdrowie Kombinacji",
-    "comboHealthDescription": "Kwota na poziomie kombinacji, dystrybucja użycia i metryki wydajności"
+    "comboHealthDescription": "Kwota na poziomie kombinacji, dystrybucja użycia i metryki wydajności",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "Klucze API",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

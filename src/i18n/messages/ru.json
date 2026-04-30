@@ -822,7 +822,9 @@
     "utilization": "Использование",
     "utilizationDescription": "Тенденции использования квоты поставщика и отслеживание ограничений скорости",
     "comboHealth": "Здоровье комбо",
-    "comboHealthDescription": "Квота на уровне комбо, распределение использования и метрики производительности"
+    "comboHealthDescription": "Квота на уровне комбо, распределение использования и метрики производительности",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "API-ключи",
@@ -3283,6 +3285,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

@@ -822,7 +822,9 @@
     "utilization": "Användning",
     "utilizationDescription": "Leverantörskvotanvändningstrender och hastighetsgränsuppföljning",
     "comboHealth": "Kombohälsa",
-    "comboHealthDescription": "Kombonivåkvot, användningsfördelning och prestandamått"
+    "comboHealthDescription": "Kombonivåkvot, användningsfördelning och prestandamått",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "API-nycklar",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",

@@ -324,6 +324,16 @@ export {
 } from "./db/creditBalance";
 
 export {
+  insertCompressionAnalyticsRow,
+  getCompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export type {
+  CompressionAnalyticsRow,
+  CompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export {
   // Reasoning Replay Cache (#1628)
   setReasoningCache,
   getReasoningCache,

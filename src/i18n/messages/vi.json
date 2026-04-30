@@ -822,7 +822,9 @@
     "utilization": "Tỷ lệ sử dụng",
     "utilizationDescription": "Xu hướng sử dụng hạn ngạch nhà cung cấp và theo dõi giới hạn tốc độ",
     "comboHealth": "Sức khỏe Combo",
-    "comboHealthDescription": "Hạn ngạch cấp combo, phân phối sử dụng và số liệu hiệu suất"
+    "comboHealthDescription": "Hạn ngạch cấp combo, phân phối sử dụng và số liệu hiệu suất",
+    "compressionAnalyticsTitle": "Compression Analytics",
+    "compressionAnalyticsDescription": "Compression analytics — token savings, mode breakdown, and provider stats."
   },
   "apiManager": {
     "title": "Khóa API",
@@ -3259,6 +3261,10 @@
     "compressionModeLiteDesc": "Whitespace and blank line reduction",
     "compressionModeStandard": "Standard (Caveman)",
     "compressionModeStandardDesc": "Rule-based compression with 30+ patterns, preserves code blocks and URLs",
+    "compressionModeAggressive": "Aggressive",
+    "compressionModeAggressiveDesc": "Summarization + tool result compression + progressive aging for maximum savings",
+    "compressionModeUltra": "Ultra",
+    "compressionModeUltraDesc": "Maximum compression with all techniques including semantic deduplication",
     "compressionGeneral": "General Settings",
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",
