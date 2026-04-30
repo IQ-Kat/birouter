@@ -116,7 +116,8 @@ Before coding, perform deep source analysis to formulate a plan:
 3. **Read the full source file** — don't rely on grep snippets; understand the surrounding logic
 4. **Verify the root cause** — confirm the bug is reproducible based on the code, not just a user misconfiguration
 5. **Formulate a proposed solution** — detail the exact files and lines you will change and how you will solve it.
-6. **DO NOT modify the codebase yet** — wait for user approval on your report first.
+6. **Create an Implementation Plan file** — write your proposed solution to `_tasks/features-vX.Y.Z/<ISSUE_NUMBER>-<short-description>.plan.md` (e.g. `_tasks/features-v3.7.6/1810-auto-restore-probe-failed-db.plan.md`) where `vX.Y.Z` is the current branch version. The plan should contain an Overview, Pre-Implementation Checklist, and detailed Implementation Steps (Files, Changes).
+7. **DO NOT modify the codebase yet** — wait for user approval on your report and plan first.
 
 #### 5e. For "RESPOND" Issues
 
