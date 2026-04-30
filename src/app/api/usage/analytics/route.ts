@@ -150,7 +150,7 @@ export async function GET(request: Request) {
         db.prepare(
           `
           UPDATE usage_history
-          SET 
+          SET
             api_key_name = (
               SELECT uh2.api_key_name
               FROM usage_history AS uh2

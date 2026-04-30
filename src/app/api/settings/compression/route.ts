@@ -41,6 +41,17 @@ const aggressiveConfigSchema = z
   })
   .strict();
 
+const ultraConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    compressionRate: z.number().min(0).max(1).optional(),
+    minScoreThreshold: z.number().min(0).max(1).optional(),
+    slmFallbackToAggressive: z.boolean().optional(),
+    modelPath: z.string().trim().min(1).optional(),
+    maxTokensPerMessage: z.number().int().min(0).max(32768).optional(),
+  })
+  .strict();
+
 const compressionSettingsUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -51,6 +62,7 @@ const compressionSettingsUpdateSchema = z
     comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
     cavemanConfig: cavemanConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
+    ultra: ultraConfigSchema.optional(),
   })
   .strict();
 

@@ -2,13 +2,15 @@ import { backupDbFile } from "./backup";
 import { getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import {
-  DEFAULT_CAVEMAN_CONFIG,
   DEFAULT_AGGRESSIVE_CONFIG,
+  DEFAULT_CAVEMAN_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
+  DEFAULT_ULTRA_CONFIG,
   type AggressiveConfig,
   type CavemanConfig,
   type CompressionConfig,
   type CompressionMode,
+  type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
 
 const NAMESPACE = "compression";
@@ -21,6 +23,14 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
 ]);
 
 type JsonRecord = Record<string, unknown>;
+type DbInstance = ReturnType<typeof getDbInstance>;
+
+// TTL cache for compression settings (5s)
+let compressionSettingsCache: {
+  value: CompressionConfig;
+  expiresAt: number;
+  db: DbInstance;
+} | null = null;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
@@ -138,14 +148,56 @@ function normalizeAggressiveConfig(value: unknown): AggressiveConfig {
   };
 }
 
+function normalizeUltraConfig(value: unknown): UltraConfig {
+  const record = toRecord(value);
+  const modelPath = typeof record.modelPath === "string" ? record.modelPath.trim() : "";
+
+  return {
+    ...DEFAULT_ULTRA_CONFIG,
+    enabled: typeof record.enabled === "boolean" ? record.enabled : DEFAULT_ULTRA_CONFIG.enabled,
+    compressionRate: boundedNumber(
+      record.compressionRate,
+      DEFAULT_ULTRA_CONFIG.compressionRate,
+      0,
+      1
+    ),
+    minScoreThreshold: boundedNumber(
+      record.minScoreThreshold,
+      DEFAULT_ULTRA_CONFIG.minScoreThreshold,
+      0,
+      1
+    ),
+    slmFallbackToAggressive:
+      typeof record.slmFallbackToAggressive === "boolean"
+        ? record.slmFallbackToAggressive
+        : DEFAULT_ULTRA_CONFIG.slmFallbackToAggressive,
+    ...(modelPath ? { modelPath } : {}),
+    maxTokensPerMessage: boundedInt(
+      record.maxTokensPerMessage,
+      DEFAULT_ULTRA_CONFIG.maxTokensPerMessage,
+      0,
+      32768
+    ),
+  };
+}
+
 export async function getCompressionSettings(): Promise<CompressionConfig> {
   const db = getDbInstance();
+  if (
+    compressionSettingsCache &&
+    compressionSettingsCache.db === db &&
+    Date.now() < compressionSettingsCache.expiresAt
+  ) {
+    return compressionSettingsCache.value;
+  }
+
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(NAMESPACE);
 
   const config: CompressionConfig = {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
     aggressive: normalizeAggressiveConfig(undefined),
+    ultra: normalizeUltraConfig(undefined),
   };
 
   for (const row of rows) {
@@ -198,8 +250,19 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "aggressiveConfig":
         config.aggressive = normalizeAggressiveConfig(parsed);
         break;
+      case "ultra":
+      case "ultraConfig":
+        config.ultra = normalizeUltraConfig(parsed);
+        break;
     }
   }
+
+  // Store in TTL cache (5s expiry)
+  compressionSettingsCache = {
+    value: config,
+    expiresAt: Date.now() + 5000,
+    db,
+  };
 
   return config;
 }
@@ -221,6 +284,7 @@ export async function updateCompressionSettings(
 
   tx();
   backupDbFile("pre-write");
+  compressionSettingsCache = null;
   invalidateDbCache();
   return getCompressionSettings();
 }
@@ -231,4 +295,8 @@ export function getDefaultAggressiveConfig(): AggressiveConfig {
     thresholds: { ...DEFAULT_AGGRESSIVE_CONFIG.thresholds },
     toolStrategies: { ...DEFAULT_AGGRESSIVE_CONFIG.toolStrategies },
   };
+}
+
+export function getDefaultUltraConfig(): UltraConfig {
+  return { ...DEFAULT_ULTRA_CONFIG };
 }

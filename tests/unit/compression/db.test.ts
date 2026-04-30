@@ -41,6 +41,7 @@ describe("getCompressionSettings", () => {
     assert.equal(typeof settings.cacheMinutes, "number");
     assert.equal(typeof settings.preserveSystemPrompt, "boolean");
     assert.equal(typeof settings.comboOverrides, "object");
+    assert.equal(typeof settings.ultra, "object");
   });
 
   it("has correct default values", async () => {
@@ -51,6 +52,11 @@ describe("getCompressionSettings", () => {
     assert.equal(settings.cacheMinutes, 5);
     assert.equal(settings.preserveSystemPrompt, true);
     assert.deepEqual(settings.comboOverrides, {});
+    assert.equal(settings.ultra?.enabled, false);
+    assert.equal(settings.ultra?.compressionRate, 0.5);
+    assert.equal(settings.ultra?.minScoreThreshold, 0.3);
+    assert.equal(settings.ultra?.slmFallbackToAggressive, true);
+    assert.equal(settings.ultra?.maxTokensPerMessage, 0);
   });
 });
 
@@ -109,5 +115,28 @@ describe("updateCompressionSettings", () => {
     assert.equal(after.cacheMinutes, before.cacheMinutes);
     // Reset
     await updateCompressionSettings({ enabled: false } as any);
+  });
+
+  it("updates and normalizes ultra config", async () => {
+    await updateCompressionSettings({
+      defaultMode: "ultra",
+      ultra: {
+        enabled: true,
+        compressionRate: 0.25,
+        minScoreThreshold: 0.4,
+        slmFallbackToAggressive: false,
+        modelPath: "  /tmp/model.onnx  ",
+        maxTokensPerMessage: 512,
+      },
+    } as any);
+
+    const settings = await getCompressionSettings();
+    assert.equal(settings.defaultMode, "ultra");
+    assert.equal(settings.ultra?.enabled, true);
+    assert.equal(settings.ultra?.compressionRate, 0.25);
+    assert.equal(settings.ultra?.minScoreThreshold, 0.4);
+    assert.equal(settings.ultra?.slmFallbackToAggressive, false);
+    assert.equal(settings.ultra?.modelPath, "/tmp/model.onnx");
+    assert.equal(settings.ultra?.maxTokensPerMessage, 512);
   });
 });

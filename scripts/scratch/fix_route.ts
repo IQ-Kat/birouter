@@ -29,7 +29,7 @@ const newGetFn = `export async function GET(request: Request) {
         // Step 1: dominant key per connectionId from existing usage data
         db.prepare(\`
           UPDATE usage_history
-          SET 
+          SET
             api_key_name = (
               SELECT uh2.api_key_name
               FROM usage_history AS uh2
@@ -62,15 +62,15 @@ const newGetFn = `export async function GET(request: Request) {
         if (stillNull.length > 0) {
           const { getApiKeys } = await import("@/lib/localDb");
           const apiKeys = (await getApiKeys()) as any[];
-          
+
           const updateStmt = db.prepare("UPDATE usage_history SET api_key_name = ?, api_key_id = ? WHERE connection_id = ? AND (api_key_name IS NULL OR api_key_name = '')");
           const updateMany = db.transaction((updates: any[]) => {
             for (const u of updates) updateStmt.run(u.name, u.id, u.cid);
           });
-          
+
           const updates = [];
           const orphanIds = new Set(stillNull.map((r: any) => r.connection_id));
-          
+
           for (const ak of apiKeys) {
             const allowed = Array.isArray(ak.allowedConnections) ? ak.allowedConnections : [];
             const keyName = ak.name || ak.id;
@@ -82,7 +82,7 @@ const newGetFn = `export async function GET(request: Request) {
               }
             }
           }
-          
+
           if (orphanIds.size > 0) {
             const unrestrictedKeys = apiKeys.filter(
               (ak: any) => !Array.isArray(ak.allowedConnections) || ak.allowedConnections.length === 0
@@ -101,7 +101,7 @@ const newGetFn = `export async function GET(request: Request) {
               }
             }
           }
-          
+
           if (updates.length > 0) updateMany(updates);
         }
       }
@@ -206,7 +206,7 @@ const newGetFn = `export async function GET(request: Request) {
         heatmapStart.setTime(customStart.getTime());
       }
     }
-    
+
     // Heatmap needs its own whereClause if api keys are filtered
     const heatmapConditions = ["timestamp >= @heatmapStart"];
     if (apiKeyWhere) heatmapConditions.push(apiKeyWhere);
@@ -419,7 +419,7 @@ const newGetFn = `export async function GET(request: Request) {
             )
           : 0,
       avgLatencyMs: Math.round(Number(summaryRow?.avgLatencyMs || 0)),
-      totalCost: 0, 
+      totalCost: 0,
       firstRequest: summaryRow?.firstRequest || "",
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),

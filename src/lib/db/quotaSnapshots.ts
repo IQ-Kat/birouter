@@ -21,9 +21,9 @@ export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "creat
 
   try {
     db.prepare(
-      `INSERT INTO quota_snapshots 
-       (provider, connection_id, window_key, remaining_percentage, is_exhausted, 
-        next_reset_at, window_duration_ms, raw_data, created_at) 
+      `INSERT INTO quota_snapshots
+       (provider, connection_id, window_key, remaining_percentage, is_exhausted,
+        next_reset_at, window_duration_ms, raw_data, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       snapshot.provider,
@@ -119,13 +119,13 @@ export function getAggregatedSnapshots(opts: {
 
   try {
     const sql = `
-      SELECT 
+      SELECT
         datetime((strftime('%s', created_at) / ${bucketSeconds}) * ${bucketSeconds}, 'unixepoch') as bucket,
         ${selectKey},
         AVG(remaining_percentage) as remainingPct,
         MAX(is_exhausted) as isExhausted,
         window_key
-      FROM quota_snapshots 
+      FROM quota_snapshots
       WHERE ${conditions.join(" AND ")}
       GROUP BY ${groupFields}
       ORDER BY bucket ASC
