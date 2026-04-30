@@ -122,7 +122,7 @@ function computeActivityStreak(activityMap: Record<string, number>): number {
   return streak;
 }
 
-export async function GET(request) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";

@@ -1231,9 +1231,9 @@ test("thinking_effort: bare chatgpt.com slug (e.g. gpt-5-4-t-mini) passed as mod
         1,
         `bare slug ${bareSlug} must trigger thinking_effort PATCH`
       );
-      assert.match(
-        m.calls.userConfigUrls[0],
-        new RegExp(`model_slug=${bareSlug.replace(/\./g, "\\.")}`)
+      assert.ok(
+        m.calls.userConfigUrls[0].includes(`model_slug=${bareSlug}`),
+        `URL should contain model_slug=${bareSlug}`
       );
     } finally {
       m.restore();
