@@ -74,7 +74,12 @@ let currentRequestQueueSettings: RequestQueueSettings = DEFAULT_RESILIENCE_SETTI
 const lastDispatchAt = new Map<string, number>();
 let watchdogInterval: ReturnType<typeof setInterval> | null = null;
 const WATCHDOG_INTERVAL_MS = 30_000;
-const WEDGE_THRESHOLD_MS = 5_000;
+// Threshold has to exceed any *legitimate* gap between dispatches:
+//  - default reservoirRefreshInterval is 60s
+//  - adaptive minTime can climb to ~60s for 1-RPM providers (see updateFromHeaders)
+// 120s gives a 2× margin against both, while still catching the actual wedge
+// case we observed (queue stalled for 3+ minutes with no progress).
+const WEDGE_THRESHOLD_MS = 120_000;
 
 /**
  * Env-var override for the auto-enable safety net. Highest priority — wins
