@@ -126,12 +126,128 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
-    const sinceIso = getRangeStartIso(range);
+    const startDate = searchParams.get("startDate") || undefined;
+    const endDate = searchParams.get("endDate") || undefined;
+    const apiKeyIdsParam = searchParams.get("apiKeyIds") || "";
+    const apiKeyIds = apiKeyIdsParam ? apiKeyIdsParam.split(",").filter(Boolean) : [];
+
+    const sinceIso = startDate || getRangeStartIso(range);
+    const untilIso = endDate || null;
     const presetsParam = searchParams.get("presets");
 
     const db = getDbInstance();
-    const whereClause = sinceIso ? "WHERE timestamp >= @since" : "";
-    const params = sinceIso ? { since: sinceIso } : {};
+
+    // ── Enrich entries with missing apiKeyName ──────────────────────────
+    try {
+      // Only run enrichment if there are actually NULL entries
+      const hasNull = db.prepare("SELECT 1 FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL LIMIT 1").get();
+      if (hasNull) {
+        // Step 1: dominant key per connectionId from existing usage data
+        db.prepare(`
+          UPDATE usage_history
+          SET 
+            api_key_name = (
+              SELECT uh2.api_key_name
+              FROM usage_history AS uh2
+              WHERE uh2.connection_id = usage_history.connection_id
+                AND uh2.api_key_name IS NOT NULL AND uh2.api_key_name != ''
+              GROUP BY uh2.api_key_name
+              ORDER BY COUNT(*) DESC
+              LIMIT 1
+            ),
+            api_key_id = COALESCE(api_key_id, (
+              SELECT uh2.api_key_id
+              FROM usage_history AS uh2
+              WHERE uh2.connection_id = usage_history.connection_id
+                AND uh2.api_key_name IS NOT NULL AND uh2.api_key_name != ''
+              GROUP BY uh2.api_key_name
+              ORDER BY COUNT(*) DESC
+              LIMIT 1
+            ))
+          WHERE (api_key_name IS NULL OR api_key_name = '')
+            AND connection_id IS NOT NULL
+            AND EXISTS (
+                SELECT 1 FROM usage_history AS uh3
+                WHERE uh3.connection_id = usage_history.connection_id
+                  AND uh3.api_key_name IS NOT NULL AND uh3.api_key_name != ''
+            )
+        `).run();
+
+        // Step 2 & 3: For still unresolved connections, check apiKeys config
+        const stillNull = db.prepare("SELECT DISTINCT connection_id FROM usage_history WHERE (api_key_name IS NULL OR api_key_name = '') AND connection_id IS NOT NULL").all();
+        if (stillNull.length > 0) {
+          const { getApiKeys } = await import("@/lib/localDb");
+          const apiKeys = (await getApiKeys()) as any[];
+          
+          const updateStmt = db.prepare("UPDATE usage_history SET api_key_name = ?, api_key_id = ? WHERE connection_id = ? AND (api_key_name IS NULL OR api_key_name = '')");
+          const updateMany = db.transaction((updates: any[]) => {
+            for (const u of updates) updateStmt.run(u.name, u.id, u.cid);
+          });
+          
+          const updates = [];
+          const orphanIds = new Set(stillNull.map((r: any) => r.connection_id));
+          
+          for (const ak of apiKeys) {
+            const allowed = Array.isArray(ak.allowedConnections) ? ak.allowedConnections : [];
+            const keyName = ak.name || ak.id;
+            const keyId = ak.id || null;
+            for (const cid of allowed) {
+              if (typeof cid === "string" && orphanIds.has(cid)) {
+                updates.push({ name: keyName, id: keyId, cid });
+                orphanIds.delete(cid);
+              }
+            }
+          }
+          
+          if (orphanIds.size > 0) {
+            const unrestrictedKeys = apiKeys.filter(
+              (ak: any) => !Array.isArray(ak.allowedConnections) || ak.allowedConnections.length === 0
+            );
+            if (unrestrictedKeys.length > 0) {
+              let bestKey = unrestrictedKeys[0];
+              let bestCount = -1;
+              for (const uk of unrestrictedKeys) {
+                const countRow = db.prepare("SELECT COUNT(*) as c FROM usage_history WHERE api_key_name = ?").get(uk.name || uk.id) as any;
+                if (countRow.c > bestCount) { bestCount = countRow.c; bestKey = uk; }
+              }
+              const fallbackName = bestKey.name || bestKey.id;
+              const fallbackId = bestKey.id || null;
+              for (const cid of orphanIds) {
+                updates.push({ name: fallbackName, id: fallbackId, cid });
+              }
+            }
+          }
+          
+          if (updates.length > 0) updateMany(updates);
+        }
+      }
+    } catch(e) {
+      console.error("Failed to backfill missing api_key_name:", e);
+    }
+
+    const conditions = [];
+    const params: Record<string, string> = {};
+
+    if (sinceIso) {
+      conditions.push("timestamp >= @since");
+      params.since = sinceIso;
+    }
+    if (untilIso) {
+      conditions.push("timestamp <= @until");
+      params.until = untilIso;
+    }
+
+    let apiKeyWhere = "";
+    if (apiKeyIds.length > 0) {
+      const placeholders = apiKeyIds.map((_, i) => `@apiKey${i}`);
+      apiKeyIds.forEach((key, i) => {
+        params[`apiKey${i}`] = key;
+      });
+      apiKeyWhere = `(api_key_name IN (${placeholders.join(",")}) OR api_key_id IN (${placeholders.join(",")}))`;
+      conditions.push(apiKeyWhere);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Fetch pricing data for cost calculation (no rows loaded)
     const { getPricing } = await import("@/lib/db/settings");
@@ -199,6 +315,22 @@ export async function GET(request: Request) {
 
     const heatmapStart = new Date();
     heatmapStart.setUTCDate(heatmapStart.getUTCDate() - 364);
+    // Custom date range might need a wider heatmap window
+    if (startDate) {
+      const customStart = new Date(startDate);
+      if (customStart.getTime() < heatmapStart.getTime()) {
+        heatmapStart.setTime(customStart.getTime());
+      }
+    }
+    
+    // Heatmap needs its own whereClause if api keys are filtered
+    const heatmapConditions = ["timestamp >= @heatmapStart"];
+    if (apiKeyWhere) heatmapConditions.push(apiKeyWhere);
+    const heatmapParams: Record<string, string> = { heatmapStart: heatmapStart.toISOString() };
+    if (apiKeyIds.length > 0) {
+      apiKeyIds.forEach((key, i) => { heatmapParams[`apiKey${i}`] = key; });
+    }
+
     const heatmapRows = db
       .prepare(
         `
@@ -206,12 +338,12 @@ export async function GET(request: Request) {
           DATE(timestamp) as date,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
-        WHERE timestamp >= @heatmapStart
+        WHERE ${heatmapConditions.join(" AND ")}
         GROUP BY DATE(timestamp)
         ORDER BY date ASC
       `
       )
-      .all({ heatmapStart: heatmapStart.toISOString() }) as Array<Record<string, unknown>>;
+      .all(heatmapParams) as Array<Record<string, unknown>>;
 
     const modelRows = db
       .prepare(
@@ -403,8 +535,7 @@ export async function GET(request: Request) {
             )
           : 0,
       avgLatencyMs: Math.round(Number(summaryRow?.avgLatencyMs || 0)),
-      // Compute totalCost by summing cost from byModel (calculated later)
-      totalCost: 0, // Will be updated after byModel is processed
+      totalCost: 0, 
       firstRequest: summaryRow?.firstRequest || "",
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
@@ -620,7 +751,7 @@ export async function GET(request: Request) {
       weeklyTokens,
       weeklyCounts,
       range,
-    };
+    } as any;
 
     if (presetsParam) {
       const allowedRanges = new Set(["1d", "7d", "30d", "90d", "ytd", "all"]);
@@ -639,8 +770,12 @@ export async function GET(request: Request) {
         }
 
         const presetSinceIso = getRangeStartIso(presetRange);
-        const presetWhere = presetSinceIso ? "WHERE timestamp >= @presetSince" : "";
-        const presetParams = presetSinceIso ? { presetSince: presetSinceIso } : {};
+        const presetConditions = [];
+        const presetParams: Record<string, string> = {};
+        if (presetSinceIso) { presetConditions.push("timestamp >= @presetSince"); presetParams.presetSince = presetSinceIso; }
+        if (apiKeyWhere) { presetConditions.push(apiKeyWhere); Object.assign(presetParams, params); }
+
+        const presetWhere = presetConditions.length > 0 ? `WHERE ${presetConditions.join(" AND ")}` : "";
 
         const presetModelRows = db
           .prepare(
