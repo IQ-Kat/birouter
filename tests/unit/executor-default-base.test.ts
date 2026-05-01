@@ -268,6 +268,40 @@ test("DefaultExecutor.buildUrl falls back to OpenAI config for unknown providers
   assert.equal(executor.buildUrl("gpt-4.1", true), PROVIDERS.openai.baseUrl);
 });
 
+test("DefaultExecutor.buildUrl applies urlSuffix for zai and glm-coding-apikey", () => {
+  const zai = new DefaultExecutor("zai");
+  const glmCodingApikey = new DefaultExecutor("glm-coding-apikey");
+  assert.equal(
+    zai.buildUrl("glm-5", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.z.ai/api/anthropic/v1/messages" },
+    }),
+    "https://api.z.ai/api/anthropic/v1/messages?beta=true"
+  );
+  assert.equal(
+    glmCodingApikey.buildUrl("glm-4.7", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.z.ai/api/anthropic/v1/messages" },
+    }),
+    "https://api.z.ai/api/anthropic/v1/messages?beta=true"
+  );
+  assert.equal(zai.buildUrl("glm-5", true), "https://api.z.ai/api/anthropic/v1/messages?beta=true");
+});
+
+test("DefaultExecutor.buildUrl applies urlSuffix from registry for unknown providers with suffix", () => {
+  const executor = new DefaultExecutor("unknown-provider");
+  assert.equal(executor.buildUrl("gpt-4.1", true), PROVIDERS.openai.baseUrl);
+});
+
+test("DefaultExecutor.buildHeaders uses x-api-key for zai and glm-coding-apikey", () => {
+  const zai = new DefaultExecutor("zai");
+  const glmCodingApikey = new DefaultExecutor("glm-coding-apikey");
+  const zaiHeaders = zai.buildHeaders({ apiKey: "zai-key" }, true);
+  const glmHeaders = glmCodingApikey.buildHeaders({ apiKey: "glm-key" }, true);
+  assert.equal(zaiHeaders["x-api-key"], "zai-key");
+  assert.equal(glmHeaders["x-api-key"], "glm-key");
+  assert.equal(zaiHeaders["Authorization"], undefined);
+  assert.equal(glmHeaders["Authorization"], undefined);
+});
+
 test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");
