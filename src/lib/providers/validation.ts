@@ -269,7 +269,7 @@ function toValidationErrorResult(error: unknown) {
     ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
       ? { timeout: true }
       : {}),
-    ...(statusCode === 400 ? { securityBlocked: true } : {}),
+    ...(statusCode === 503 ? { securityBlocked: true } : {}),
   };
 }
 
