@@ -42,6 +42,9 @@ import {
   syncPricingInput,
   cacheStatsInput,
   cacheFlushInput,
+  oneproxyFetchInput,
+  oneproxyRotateInput,
+  oneproxyStatsInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
 
@@ -66,6 +69,9 @@ import {
   handleSyncPricing,
   handleCacheStats,
   handleCacheFlush,
+  handleOneproxyFetch,
+  handleOneproxyRotate,
+  handleOneproxyStats,
 } from "./tools/advancedTools.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
@@ -829,6 +835,44 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_cache_flush", (args) =>
       handleCacheFlush(cacheFlushInput.parse(args))
+    )
+  );
+
+  // ── 1proxy Tools ──────────────────────────────
+
+  server.registerTool(
+    "omniroute_oneproxy_fetch",
+    {
+      description:
+        "Fetch free proxies from the 1proxy marketplace with optional filters for protocol, country, and quality. Returns validated proxies with quality scores.",
+      inputSchema: oneproxyFetchInput,
+    },
+    withScopeEnforcement("omniroute_oneproxy_fetch", (args) =>
+      handleOneproxyFetch(oneproxyFetchInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_oneproxy_rotate",
+    {
+      description:
+        "Get the next available free proxy from the 1proxy pool using the specified rotation strategy.",
+      inputSchema: oneproxyRotateInput,
+    },
+    withScopeEnforcement("omniroute_oneproxy_rotate", (args) =>
+      handleOneproxyRotate(oneproxyRotateInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_oneproxy_stats",
+    {
+      description:
+        "Returns 1proxy sync status and statistics: total proxies, average quality, sync history, and distribution by protocol and country.",
+      inputSchema: oneproxyStatsInput,
+    },
+    withScopeEnforcement("omniroute_oneproxy_stats", (args) =>
+      handleOneproxyStats(oneproxyStatsInput.parse(args))
     )
   );
 

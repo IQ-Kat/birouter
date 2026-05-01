@@ -1072,6 +1072,115 @@ export const compressionConfigureTool: McpToolDefinition<
   sourceEndpoints: ["/api/compression/configure"],
 };
 
+// ============ 1proxy Tools ============
+
+export const oneproxyFetchInput = z.object({
+  protocol: z.string().optional().describe("Filter by protocol: http, https, socks4, socks5"),
+  countryCode: z.string().optional().describe("Filter by country code (e.g. US, DE)"),
+  minQuality: z.number().optional().describe("Minimum quality score (0-100)"),
+  limit: z.number().optional().describe("Maximum number of proxies to return"),
+});
+
+export const oneproxyFetchOutput = z.object({
+  items: z.array(
+    z.object({
+      id: z.string(),
+      host: z.string(),
+      port: z.number(),
+      type: z.string(),
+      countryCode: z.string().nullable(),
+      qualityScore: z.number().nullable(),
+      latencyMs: z.number().nullable(),
+      anonymity: z.string().nullable(),
+      googleAccess: z.boolean(),
+      status: z.string(),
+    })
+  ),
+  total: z.number(),
+});
+
+export const oneproxyFetchTool: McpToolDefinition<
+  typeof oneproxyFetchInput,
+  typeof oneproxyFetchOutput
+> = {
+  name: "omniroute_oneproxy_fetch",
+  description:
+    "Fetch free proxies from the 1proxy marketplace with optional filters for protocol, country, and quality. Returns validated proxies with quality scores.",
+  inputSchema: oneproxyFetchInput,
+  outputSchema: oneproxyFetchOutput,
+  scopes: ["read:proxies"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/settings/oneproxy"],
+};
+
+export const oneproxyRotateInput = z.object({
+  strategy: z
+    .enum(["random", "quality", "sequential"])
+    .optional()
+    .describe("Rotation strategy: quality (best first), random, or sequential"),
+});
+
+export const oneproxyRotateOutput = z.object({
+  id: z.string(),
+  host: z.string(),
+  port: z.number(),
+  type: z.string(),
+  countryCode: z.string().nullable(),
+  qualityScore: z.number().nullable(),
+  latencyMs: z.number().nullable(),
+});
+
+export const oneproxyRotateTool: McpToolDefinition<
+  typeof oneproxyRotateInput,
+  typeof oneproxyRotateOutput
+> = {
+  name: "omniroute_oneproxy_rotate",
+  description:
+    "Get the next available free proxy from the 1proxy pool using the specified rotation strategy.",
+  inputSchema: oneproxyRotateInput,
+  outputSchema: oneproxyRotateOutput,
+  scopes: ["read:proxies"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/settings/oneproxy/rotate"],
+};
+
+export const oneproxyStatsInput = z.object({}).describe("No parameters required");
+
+export const oneproxyStatsOutput = z.object({
+  stats: z.object({
+    total: z.number(),
+    active: z.number(),
+    avgQuality: z.number().nullable(),
+    lastValidated: z.string().nullable(),
+    byProtocol: z.array(z.object({ protocol: z.string(), count: z.number() })),
+    byCountry: z.array(z.object({ countryCode: z.string(), count: z.number() })),
+  }),
+  status: z.object({
+    lastSyncSuccess: z.boolean(),
+    lastSyncError: z.string().nullable(),
+    lastSyncAt: z.string().nullable(),
+    lastSyncCount: z.number(),
+    consecutiveFailures: z.number(),
+  }),
+});
+
+export const oneproxyStatsTool: McpToolDefinition<
+  typeof oneproxyStatsInput,
+  typeof oneproxyStatsOutput
+> = {
+  name: "omniroute_oneproxy_stats",
+  description:
+    "Returns 1proxy sync status and statistics: total proxies, average quality, sync history, and distribution by protocol and country.",
+  inputSchema: oneproxyStatsInput,
+  outputSchema: oneproxyStatsOutput,
+  scopes: ["read:proxies"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/settings/oneproxy"],
+};
+
 // ============ Tool Registry ============
 
 /** All MCP tool definitions, ordered by phase then name */
@@ -1100,6 +1209,9 @@ export const MCP_TOOLS = [
   cacheFlushTool,
   compressionStatusTool,
   compressionConfigureTool,
+  oneproxyFetchTool,
+  oneproxyRotateTool,
+  oneproxyStatsTool,
 ] as const;
 
 /** Essential tools only (Phase 1) */
