@@ -1,5 +1,3 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/diegosouzapw-omniroute-badge.png)](https://mseep.ai/app/diegosouzapw-omniroute)
-
 # 🚀 OmniRoute — The Free AI Gateway
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
@@ -12,30 +10,39 @@ _Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now w
 
 <div align="center">
 
+<!-- Package & Distribution -->
+
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
+[![tag](https://custom-icon-badges.demolab.com/github/v/tag/diegosouzapw/OmniRoute?logo=tag&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/tags)
+[![license](https://custom-icon-badges.demolab.com/github/license/diegosouzapw/OmniRoute?logo=law)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
 
-![NPM Downloads](https://img.shields.io/npm/dw/omniroute?label=npm%20down%20week&color=red)
-![NPM Downloads](https://img.shields.io/npm/dm/omniroute?label=npm%20down%20month&color=red)
+<!-- Downloads -->
 
-![NPM Downloads](https://img.shields.io/npm/d18m/omniroute?label=npm%20down%20year&color=red)
-![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=eletron%20donwloads&color=blue)
+![NPM Weekly](https://img.shields.io/npm/dw/omniroute?label=npm/week&color=cb3837&logo=npm)
+![NPM Monthly](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![NPM Yearly](https://img.shields.io/npm/d18m/omniroute?label=npm/year&color=cb3837&logo=npm)
+![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+
+<!-- Repository Health -->
 
 [![stars](https://custom-icon-badges.demolab.com/github/stars/diegosouzapw/OmniRoute?logo=star&style=flat)](https://github.com/diegosouzapw/OmniRoute/stargazers)
-[![open issues](https://custom-icon-badges.demolab.com/github/issues-raw/diegosouzapw/OmniRoute?logo=issue)](https://github.com/diegosouzapw/OmniRoute/issues)
-[![license](https://custom-icon-badges.demolab.com/github/license/diegosouzapw/OmniRoute?logo=law)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
-[![last commit](https://custom-icon-badges.demolab.com/github/last-commit/diegosouzapw/OmniRoute?logo=history&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/commits/main)
-[![total contributions](https://custom-icon-badges.demolab.com/badge/dynamic/json?logo=graph&logoColor=fff&color=blue&label=total%20contributions&query=%24.totalContributions&url=https%3A%2F%2Fstreak-stats.demolab.com%2F%3Fuser%3Ddiegosouzapw%26type%3Djson)](https://github.com/diegosouzapw)
-[![code size](https://custom-icon-badges.demolab.com/github/languages/code-size/diegosouzapw/OmniRoute?logo=file-code&logoColor=white)](https://github.com/diegosouzapw/OmniRoute)
-[![pr closed](https://custom-icon-badges.demolab.com/github/issues-pr-closed/diegosouzapw/OmniRoute?color=purple&logo=git-pull-request&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/pulls?q=is%3Apr+is%3Aclosed)
-[![tag](https://custom-icon-badges.demolab.com/github/v/tag/diegosouzapw/OmniRoute?logo=tag&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/tags)
-[![github streak](https://custom-icon-badges.demolab.com/badge/dynamic/json?logo=fire&logoColor=fff&color=orange&label=github%20streak&query=%24.currentStreak.length&suffix=%20days&url=https%3A%2F%2Fstreak-stats.demolab.com%2F%3Fuser%3Ddiegosouzapw%26type%3Djson)](https://github.com/diegosouzapw)
-[![followers](https://custom-icon-badges.demolab.com/github/followers/diegosouzapw?logo=person-add)](https://github.com/diegosouzapw?tab=followers)
 [![fork](https://custom-icon-badges.demolab.com/github/forks/diegosouzapw/OmniRoute?logo=fork)](https://github.com/diegosouzapw/OmniRoute/network/members)
 [![watch](https://custom-icon-badges.demolab.com/github/watchers/diegosouzapw/OmniRoute?logo=eye)](https://github.com/diegosouzapw/OmniRoute/watchers)
+[![open issues](https://custom-icon-badges.demolab.com/github/issues-raw/diegosouzapw/OmniRoute?logo=issue)](https://github.com/diegosouzapw/OmniRoute/issues)
+[![pr closed](https://custom-icon-badges.demolab.com/github/issues-pr-closed/diegosouzapw/OmniRoute?color=purple&logo=git-pull-request&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/pulls?q=is%3Apr+is%3Aclosed)
+[![last commit](https://custom-icon-badges.demolab.com/github/last-commit/diegosouzapw/OmniRoute?logo=history&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/commits/main)
+[![code size](https://custom-icon-badges.demolab.com/github/languages/code-size/diegosouzapw/OmniRoute?logo=file-code&logoColor=white)](https://github.com/diegosouzapw/OmniRoute)
 
-[![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
+<!-- Community & Social -->
+
+[![total contributions](https://custom-icon-badges.demolab.com/badge/dynamic/json?logo=graph&logoColor=fff&color=blue&label=total%20contributions&query=%24.totalContributions&url=https%3A%2F%2Fstreak-stats.demolab.com%2F%3Fuser%3Ddiegosouzapw%26type%3Djson)](https://github.com/diegosouzapw)
+[![github streak](https://custom-icon-badges.demolab.com/badge/dynamic/json?logo=fire&logoColor=fff&color=orange&label=github%20streak&query=%24.currentStreak.length&suffix=%20days&url=https%3A%2F%2Fstreak-stats.demolab.com%2F%3Fuser%3Ddiegosouzapw%26type%3Djson)](https://github.com/diegosouzapw)
+[![followers](https://custom-icon-badges.demolab.com/github/followers/diegosouzapw?logo=person-add)](https://github.com/diegosouzapw?tab=followers)
+
+<!-- Links -->
+
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
@@ -158,6 +165,42 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
   </table>
 
 <sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
+
+---
+
+## 📺 OmniRoute in Action — Video Guides
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=Rxdc36yUyOQ">
+        <img src="https://img.youtube.com/vi/Rxdc36yUyOQ/maxresdefault.jpg" alt="OmniRoute — Guia em Português" width="300"/>
+      </a><br/>
+      <b>🇧🇷 Português</b><br/>
+      <sub>Guia completo do OmniRoute</sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=CMzyOiUyEVc">
+        <img src="https://img.youtube.com/vi/CMzyOiUyEVc/maxresdefault.jpg" alt="OmniRoute — English Guide" width="300"/>
+      </a><br/>
+      <b>🇺🇸 English</b><br/>
+      <sub>Complete OmniRoute walkthrough</sub>
+    </td>
+    <td align="center" width="320">
+      <a href="https://www.youtube.com/watch?v=il_5Ii6v4-Y">
+        <img src="https://img.youtube.com/vi/il_5Ii6v4-Y/maxresdefault.jpg" alt="OmniRoute — Руководство на русском" width="300"/>
+      </a><br/>
+      <b>🇷🇺 Русский</b><br/>
+      <sub>Полное руководство по OmniRoute</sub>
+    </td>
+  </tr>
+</table>
+
+</div>
+
+> 🎬 **Made a video about OmniRoute?** We'd love to feature it here! Open an [issue](https://github.com/diegosouzapw/OmniRoute/issues/new) or [discussion](https://github.com/diegosouzapw/OmniRoute/discussions) with the link and we'll add it to this showcase.
 
 ---
 
@@ -1617,6 +1660,33 @@ Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-in
 > Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 > ```
 
+---
+
+## 🌐 Free API Provider Directory — 25+ Providers, 500+ Models, $0
+
+> **We analyzed 6 community repositories** aggregating free LLM API providers and consolidated everything into one definitive reference. This is the most comprehensive free-tier directory available.
+
+| Provider          | Best Free Model  | RPM   | RPD          | Tokens        | Speed     |
+| ----------------- | ---------------- | ----- | ------------ | ------------- | --------- |
+| **Groq**          | Llama 3.3 70B    | 30    | 14,400       | 6K TPM        | 🟢 Fast   |
+| **Cerebras**      | Qwen3 235B       | 30    | 14,400       | 1M TPD        | 🟢 Fast   |
+| **Mistral AI**    | Mistral Large 3  | 60    | Unlimited    | 1B/month      | 🟡 Medium |
+| **Google Gemini** | Gemini 2.5 Flash | 5–15  | 20–1,500     | 250K TPM      | 🟢 Fast   |
+| **NVIDIA NIM**    | 129 models       | 40    | —            | —             | 🟡 Medium |
+| **OpenRouter**    | 35+ :free models | 20    | 50–1,000     | —             | 🟡 Medium |
+| **GitHub Models** | GPT-4.1, GPT-5   | 10–15 | 50–150       | 8K/4K per req | 🟡 Medium |
+| **Cloudflare AI** | 50+ models       | —     | 10K neurons  | —             | 🟡 Medium |
+| **Pollinations**  | Text+Image+Video | —     | Hourly reset | —             | 🟡 Medium |
+| **SiliconFlow**   | Qwen3-8B         | 1,000 | —            | 50K TPM       | 🟡 Medium |
+
+**Combined free capacity across all providers: ~31,000+ RPD · ~32B+ tokens/month · 500+ models · $0 forever.**
+
+The full directory includes 25+ providers with detailed rate limits, base URLs, model tables, trial credit providers (Baseten $30, AI21 $10, SambaNova $5, etc.), China-specific platforms (ModelScope, Volcengine, Tencent Hunyuan), and step-by-step OmniRoute combo configuration.
+
+📖 **Complete free provider directory with all models, quotas, and integration guide:** [`docs/FREE_TIERS.md`](docs/FREE_TIERS.md)
+
+---
+
 ## 🎙️ Free Transcription Combo
 
 > Transcribe any audio/video for **$0** — Deepgram leads with $200 free, AssemblyAI $50 fallback, Groq Whisper as unlimited emergency backup.
@@ -2602,6 +2672,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | [Release Checklist](docs/RELEASE_CHECKLIST.md)           | Pre-release validation steps                        |
 | [PWA Guide](docs/PWA_GUIDE.md)                           | Progressive Web App install, caching, architecture  |
 | [Proxy Guide](docs/PROXY_GUIDE.md)                       | Proxy system, 1proxy marketplace, registry CRUD     |
+| [Free Tiers](docs/FREE_TIERS.md)                         | 25+ free API providers consolidated directory       |
 | [Termux Guide](docs/TERMUX_GUIDE.md)                     | Run OmniRoute on Android via Termux                 |
 
 ---
