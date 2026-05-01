@@ -23,6 +23,8 @@
 - **fix(ui):** apply robust NaN handling, ensure 24h consistency, and fix missing hour slots in Compression Analytics (closes #1844)
 - **fix(ui):** implement short number formatting for token consumption metrics on cache pages to prevent overflow (closes #1842)
 - **fix(combo):** stabilize provider routing at 500+ connections by bounding semaphore queues and adjusting circuit breaker tracking (closes #1846) (#1854)
+- **fix(maritalk):** update Maritalk model list, use Authorization Key header, and align with latest API endpoints (#1856)
+- **fix(grok-web):** stabilize tool calling (bash, readFile, webSearch) and response parsing by mapping native Grok intents to standard OpenAI payloads (#1857)
 - **fix(providers):** correctly map and expose the Upstage embedding and chat model catalogs (#1855)
 
 ### 🛠️ Maintenance
