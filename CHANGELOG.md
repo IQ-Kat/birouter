@@ -22,6 +22,7 @@
 - **fix(usage):** correct Unix seconds vs milliseconds parsing logic for Kiro AI quota reset (closes #1849)
 - **fix(ui):** apply robust NaN handling, ensure 24h consistency, and fix missing hour slots in Compression Analytics (closes #1844)
 - **fix(ui):** implement short number formatting for token consumption metrics on cache pages to prevent overflow (closes #1842)
+- **fix(combo):** stabilize provider routing at 500+ connections by bounding semaphore queues and adjusting circuit breaker tracking (closes #1846) (#1854)
 
 ### 🛠️ Maintenance
 
