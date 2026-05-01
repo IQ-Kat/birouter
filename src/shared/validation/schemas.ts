@@ -81,6 +81,15 @@ function validateProviderSpecificData(
     });
   }
 
+  const disableStreamOptions = data.disableStreamOptions;
+  if (disableStreamOptions !== undefined && typeof disableStreamOptions !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.disableStreamOptions must be a boolean",
+      path: ["disableStreamOptions"],
+    });
+  }
+
   const requestDefaults = data.requestDefaults;
   if (requestDefaults !== undefined) {
     if (!requestDefaults || typeof requestDefaults !== "object" || Array.isArray(requestDefaults)) {
