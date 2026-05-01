@@ -197,19 +197,27 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 
 ## 🤔 Why OmniRoute?
 
-**Stop wasting money and hitting limits:**
+**Stop wasting money, tokens and hitting limits:**
 
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Subscription quota expires unused every month
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Rate limits stop you mid-coding
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Expensive APIs ($20-50/month per provider)
-- <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Manual switching between providers
+❌ Subscription quota expires unused every month
+❌ Rate limits stop you mid-coding
+❌ Tool outputs (`git diff`, `grep`, `ls`...) burn tokens fast
+❌ Expensive APIs ($20-50/month per provider)
+❌ Manual switching between providers
+❌ Each provider has a different API format
+❌ AI providers blocked in your country
 
-**OmniRoute solves this:**
+**OmniRoute solves all of this:**
 
-- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
-- ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
+✅ **Prompt Compression** — auto-compress prompts & tool outputs, save 15-75% tokens per request
+✅ **Maximize subscriptions** — track quota, use every bit before reset
+✅ **Auto fallback** — Subscription → API Key → Cheap → Free, zero downtime
+✅ **Multi-account** — round-robin between accounts per provider
+✅ **Format translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API, any tool works
+✅ **3-level proxy** — bypass geo-blocks with global, per-provider, and per-key proxies
+✅ **10 multi-modal APIs** — chat, images, video, music, audio, search in one endpoint
+✅ **MCP + A2A** — 29 MCP tools + agent-to-agent protocol, production-ready
+✅ **Universal** — works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
 
 ---
 
@@ -233,6 +241,151 @@ npm run system-info
 ```
 
 This generates a `system-info.txt` with your Node.js version, OmniRoute version, OS details, installed CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.), Docker/PM2 status, and system packages — everything we need to reproduce your issue quickly. Attach the file directly to your GitHub issue.
+
+---
+
+## 🛠️ Supported CLI Tools
+
+OmniRoute works seamlessly with **16+ AI coding tools** — one config, all tools:
+
+<table>
+  <tr>
+    <td align="center" width="110"><b>Claude Code</b><br/><sub>Anthropic</sub></td>
+    <td align="center" width="110"><b>Codex CLI</b><br/><sub>OpenAI</sub></td>
+    <td align="center" width="110"><b>Gemini CLI</b><br/><sub>Google</sub></td>
+    <td align="center" width="110"><b>Cursor</b><br/><sub>IDE</sub></td>
+    <td align="center" width="110"><b>OpenClaw</b><br/><sub>CLI</sub></td>
+    <td align="center" width="110"><b>Antigravity</b><br/><sub>VS Code</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="110"><b>Cline</b><br/><sub>Extension</sub></td>
+    <td align="center" width="110"><b>Continue</b><br/><sub>Extension</sub></td>
+    <td align="center" width="110"><b>Kilo Code</b><br/><sub>Extension</sub></td>
+    <td align="center" width="110"><b>Kiro</b><br/><sub>AWS IDE</sub></td>
+    <td align="center" width="110"><b>OpenCode</b><br/><sub>CLI</sub></td>
+    <td align="center" width="110"><b>Droid</b><br/><sub>CLI</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="110"><b>AMP</b><br/><sub>CLI</sub></td>
+    <td align="center" width="110"><b>Copilot</b><br/><sub>GitHub</sub></td>
+    <td align="center" width="110"><b>Windsurf</b><br/><sub>IDE</sub></td>
+    <td align="center" width="110"><b>Hermes</b><br/><sub>CLI</sub></td>
+    <td align="center" width="110"><b>Qwen CLI</b><br/><sub>Alibaba</sub></td>
+    <td align="center" width="110"><b>Custom</b><br/><sub>Any tool</sub></td>
+  </tr>
+</table>
+
+📖 Full setup for each tool: [`docs/CLI-TOOLS.md`](docs/CLI-TOOLS.md)
+
+---
+
+## 🌐 Supported Providers — 160+
+
+### 🔐 OAuth Providers
+
+<table>
+  <tr>
+    <td align="center" width="130"><b>Claude Code</b><br/><sub>Anthropic OAuth</sub></td>
+    <td align="center" width="130"><b>Antigravity</b><br/><sub>Google OAuth</sub></td>
+    <td align="center" width="130"><b>Codex</b><br/><sub>OpenAI OAuth</sub></td>
+    <td align="center" width="130"><b>GitHub Copilot</b><br/><sub>GitHub OAuth</sub></td>
+    <td align="center" width="130"><b>Cursor</b><br/><sub>Cursor OAuth</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="130"><b>Kimi Coding</b><br/><sub>Moonshot OAuth</sub></td>
+    <td align="center" width="130"><b>Kilo Code</b><br/><sub>Kilo OAuth</sub></td>
+    <td align="center" width="130"><b>Cline</b><br/><sub>Cline OAuth</sub></td>
+    <td align="center" colspan="2"></td>
+  </tr>
+</table>
+
+### 🆓 Free Providers (No Cost)
+
+<table>
+  <tr>
+    <td align="center" width="160"><b>🟢 Kiro AI</b><br/><sub>Claude Sonnet/Haiku<br/>Unlimited FREE</sub></td>
+    <td align="center" width="160"><b>🟢 Qoder AI</b><br/><sub>Kimi-K2, DeepSeek-R1<br/>Unlimited FREE</sub></td>
+    <td align="center" width="160"><b>🟢 Pollinations</b><br/><sub>GPT-5, Claude, Llama 4<br/>No API key needed</sub></td>
+    <td align="center" width="160"><b>🟢 Qwen Code</b><br/><sub>Qwen3 Coder Plus<br/>Unlimited FREE</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="160"><b>🟢 LongCat AI</b><br/><sub>Flash-Lite<br/>50M tokens/day</sub></td>
+    <td align="center" width="160"><b>🟢 Cloudflare AI</b><br/><sub>50+ models<br/>10K neurons/day</sub></td>
+    <td align="center" width="160"><b>🟢 Puter AI</b><br/><sub>GPT-4.1, Claude<br/>Rate-limited free</sub></td>
+    <td align="center" width="160"><b>🟢 NVIDIA NIM</b><br/><sub>Llama, Mistral<br/>1K req/day free</sub></td>
+  </tr>
+</table>
+
+### 🔑 API Key Providers (120+)
+
+<table>
+  <tr>
+    <td align="center" width="110"><b>OpenAI</b></td>
+    <td align="center" width="110"><b>Anthropic</b></td>
+    <td align="center" width="110"><b>Gemini</b></td>
+    <td align="center" width="110"><b>DeepSeek</b></td>
+    <td align="center" width="110"><b>Groq</b></td>
+    <td align="center" width="110"><b>xAI (Grok)</b></td>
+  </tr>
+  <tr>
+    <td align="center" width="110"><b>Mistral</b></td>
+    <td align="center" width="110"><b>OpenRouter</b></td>
+    <td align="center" width="110"><b>GLM</b></td>
+    <td align="center" width="110"><b>Kimi</b></td>
+    <td align="center" width="110"><b>MiniMax</b></td>
+    <td align="center" width="110"><b>Fireworks</b></td>
+  </tr>
+  <tr>
+    <td align="center" width="110"><b>Together AI</b></td>
+    <td align="center" width="110"><b>Cerebras</b></td>
+    <td align="center" width="110"><b>Cohere</b></td>
+    <td align="center" width="110"><b>NVIDIA</b></td>
+    <td align="center" width="110"><b>Perplexity</b></td>
+    <td align="center" width="110"><b>SiliconFlow</b></td>
+  </tr>
+  <tr>
+    <td align="center" width="110"><b>Nebius</b></td>
+    <td align="center" width="110"><b>HuggingFace</b></td>
+    <td align="center" width="110"><b>DeepInfra</b></td>
+    <td align="center" width="110"><b>SambaNova</b></td>
+    <td align="center" width="110"><b>Vertex AI</b></td>
+    <td align="center" width="110"><b>Azure OpenAI</b></td>
+  </tr>
+  <tr>
+    <td align="center" width="110"><b>AWS Bedrock</b></td>
+    <td align="center" width="110"><b>Snowflake</b></td>
+    <td align="center" width="110"><b>Databricks</b></td>
+    <td align="center" width="110"><b>Venice.ai</b></td>
+    <td align="center" width="110"><b>AI21 Labs</b></td>
+    <td align="center" width="110"><b>Meta Llama</b></td>
+  </tr>
+</table>
+
+<details>
+<summary><b>...and 90+ more providers</b></summary>
+
+Alibaba · Amazon Q · AssemblyAI · Baidu Qianfan · Baseten · Black Forest Labs · Blackbox · Brave Search · Bytez · CablyAI · Cartesia · ChatGPT Web · Chutes.ai · Clarifai · Codestral · CrofAI · DataRobot · Deepgram · ElevenLabs · Empower · Exa Search · Fal.ai · Featherless AI · FenayAI · FriendliAI · Galadriel · GigaChat · GitLab Duo · GLHF Chat · GoAPI · Heroku AI · Hyperbolic · IBM watsonx · Inference.net · Inworld · Jina AI · Kilo Gateway · Lambda AI · LaoZhang · Linkup Search · LlamaGate · Maritalk · Modal · Moonshot AI · Morph · Muse Spark · NanoBanana · NanoGPT · NLP Cloud · Nous Research · Novita AI · nScale · OCI · Ollama Cloud · OVHcloud · PiAPI · PlayHT · Poe · Predibase · PublicAI · Qwen Code · Recraft · Reka · Runway · SAP · Scaleway · SearchAPI · SearXNG · Serper · Stability AI · Synthetic · Tavily · TheB.AI · Topaz · Upstage · v0 (Vercel) · Vercel AI Gateway · Volcengine · Voyage AI · W&B Inference · Xiaomi MiMo · You.com · Z.AI · + OpenAI/Anthropic-compatible custom endpoints
+
+</details>
+
+### 🏠 Self-Hosted
+
+<table>
+  <tr>
+    <td align="center" width="130"><b>LM Studio</b></td>
+    <td align="center" width="130"><b>Ollama</b></td>
+    <td align="center" width="130"><b>vLLM</b></td>
+    <td align="center" width="130"><b>Llamafile</b></td>
+    <td align="center" width="130"><b>Docker Model Runner</b></td>
+  </tr>
+  <tr>
+    <td align="center" width="130"><b>NVIDIA Triton</b></td>
+    <td align="center" width="130"><b>XInference</b></td>
+    <td align="center" width="130"><b>oobabooga</b></td>
+    <td align="center" width="130"><b>ComfyUI</b></td>
+    <td align="center" width="130"><b>SD WebUI</b></td>
+  </tr>
+</table>
 
 ---
 
@@ -684,24 +837,7 @@ No proxy? Use the built-in **1proxy** integration for **hundreds of free, valida
 
 > 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
-**💡 $0 Combo Stack — The Complete Free Setup:**
-
-```
-# 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
-Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
-Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
-Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free API key
-Cloudflare AI (cf/)    → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
-Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-Groq (groq/)           → Llama/Gemma ultra-fast — 14.4K req/day
-NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
-Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
-```
-
-**Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
+**💡 See the full [$0 Free Stack (11 providers)](#-free-models--11-providers-0-forever) below.**
 
 > 💡 **Understanding Dashboard Costs:**
 >
@@ -712,156 +848,45 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ---
 
-## 🆓 Free Models — What You Actually Get
+## 🆓 Free Models — 11 Providers, $0 Forever
 
-> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
+> Combine all free providers into one unbreakable combo — OmniRoute auto-routes between them when quota runs out.
 
-### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
+| Provider          | Prefix      | Free Models                                                   | Quota             |
+| ----------------- | ----------- | ------------------------------------------------------------- | ----------------- |
+| **Kiro**          | `kr/`       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6                        | ♾️ Unlimited      |
+| **Qoder**         | `if/`       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2.1 | ♾️ Unlimited      |
+| **Qwen**          | `qw/`       | qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next         | ♾️ Unlimited      |
+| **Pollinations**  | `pol/`      | GPT-5, Claude, Gemini, DeepSeek, Llama 4, Mistral             | No key needed     |
+| **LongCat**       | `lc/`       | LongCat-Flash-Lite                                            | 50M tokens/day 🔥 |
+| **Gemini CLI**    | `gc/`       | gemini-3-flash, gemini-2.5-pro                                | 180K tok/mo       |
+| **Cloudflare AI** | `cf/`       | 50+ models (Llama, Gemma, Mistral, Whisper)                   | 10K Neurons/day   |
+| **Groq**          | `groq/`     | Llama 3.3 70B, Qwen3 32B, Kimi K2                             | 14.4K RPD         |
+| **NVIDIA NIM**    | `nvidia/`   | 129 models (DeepSeek, Llama, GLM, Kimi)                       | ~40 RPM           |
+| **Cerebras**      | `cerebras/` | Qwen3 235B, GPT-OSS 120B, Llama 3.1                           | 1M tok/day        |
+| **Scaleway**      | `scw/`      | Qwen3 235B, Llama 70B, DeepSeek V3                            | 1M tokens (EU)    |
 
-| Model               | Prefix | Limit         | Rate Limit            |
-| ------------------- | ------ | ------------- | --------------------- |
-| `claude-sonnet-4.5` | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
+<details>
+<summary><b>📖 25+ more free providers — Groq, Cerebras, Mistral, GitHub Models, OpenRouter, and more</b></summary>
 
-### 🟢 QODER MODELS (Free PAT via qodercli)
+**Also free (API Key required):**
+Mistral (1B tok/month) · OpenRouter (35+ `:free` models) · GitHub Models (GPT-5, 45+ models) ·
+Cohere (1K calls/month) · Z.AI/GLM (permanent free Flash models) · SiliconFlow (1K RPM, 50K TPM) ·
+Kilo Code (~200 req/hr auto-router) · HuggingFace ($0.10/mo credits) · Ollama Cloud (400+ models) ·
+LLM7.io (30+ models) · Kluster AI · IBM watsonx (300K tok/month) · OpenCode Zen · Vercel AI Gateway ($5/mo)
 
-| Model              | Prefix | Limit         | Rate Limit      |
-| ------------------ | ------ | ------------- | --------------- |
-| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
-| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
-| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+**Trial credits (one-time):**
+Baseten ($30) · NLP Cloud ($15) · AI21 ($10) · Upstage ($10) · SambaNova ($5) · Modal ($5/mo) ·
+Fireworks ($1) · Nebius ($1) · Inference.net ($1 + $25 survey) · Hyperbolic ($1) · Novita ($0.50)
 
-> Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
-> experimental and disabled by default unless `QODER_OAUTH_*` environment variables are configured.
+**China-based (free tiers):**
+ModelScope · Tencent Hunyuan · Volcengine · ChatAnywhere · InternAI · Bigmodel
 
-### 🟡 QWEN MODELS (Device Code Auth)
+**Combined capacity: ~31,000+ RPD · ~32B+ tokens/month · 500+ models · $0**
 
-| Model               | Prefix | Limit         | Rate Limit          |
-| ------------------- | ------ | ------------- | ------------------- |
-| `qwen3-coder-plus`  | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
-| `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
+</details>
 
-### 🟣 GEMINI CLI (Google OAuth)
-
-| Model                    | Prefix | Limit                       | Rate Limit    |
-| ------------------------ | ------ | --------------------------- | ------------- |
-| `gemini-3-flash-preview` | `gc/`  | **180K tok/month** + 1K/day | Monthly reset |
-| `gemini-2.5-pro`         | `gc/`  | 180K/month (shared pool)    | High quality  |
-
-### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
-
-| Tier       | Daily Limit  | Rate Limit  | Notes                                                  |
-| ---------- | ------------ | ----------- | ------------------------------------------------------ |
-| Free (Dev) | No token cap | **~40 RPM** | 70+ models; transitioning to pure rate limits mid-2025 |
-
-Popular free models: `moonshotai/kimi-k2.5` (Kimi K2.5), `z-ai/glm4.7` (GLM 4.7), `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2), `nvidia/llama-3.3-70b-instruct`, `deepseek/deepseek-r1`
-
-### ⚪ CEREBRAS (Free API Key — inference.cerebras.ai)
-
-| Tier | Daily Limit       | Rate Limit       | Notes                                       |
-| ---- | ----------------- | ---------------- | ------------------------------------------- |
-| Free | **1M tokens/day** | 60K TPM / 30 RPM | World's fastest LLM inference; resets daily |
-
-Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
-
-### 🔴 GROQ (Free API Key — console.groq.com)
-
-| Tier | Daily Limit   | Rate Limit       | Notes                                     |
-| ---- | ------------- | ---------------- | ----------------------------------------- |
-| Free | **14.4K RPD** | 30 RPM per model | No credit card; 429 on limit, not charged |
-
-Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
-
-### 🔴 LONGCAT AI (Free API Key — longcat.chat) 🆕
-
-| Model                         | Prefix | Daily Free Quota  | Notes                   |
-| ----------------------------- | ------ | ----------------- | ----------------------- |
-| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥 | Largest free quota ever |
-| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
-| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
-| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
-| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
-
-> 100% free while in public beta. Sign up at [longcat.chat](https://longcat.chat) with email or phone. Resets daily 00:00 UTC.
-
-### 🟢 POLLINATIONS AI (No API Key Required) 🆕
-
-| Model      | Prefix | Rate Limit | Provider Behind    |
-| ---------- | ------ | ---------- | ------------------ |
-| `openai`   | `pol/` | 1 req/15s  | GPT-5              |
-| `claude`   | `pol/` | 1 req/15s  | Anthropic Claude   |
-| `gemini`   | `pol/` | 1 req/15s  | Google Gemini      |
-| `deepseek` | `pol/` | 1 req/15s  | DeepSeek V3        |
-| `llama`    | `pol/` | 1 req/15s  | Meta Llama 4 Scout |
-| `mistral`  | `pol/` | 1 req/15s  | Mistral AI         |
-
-> ✨ **Zero friction:** No signup, no API key. Add the Pollinations provider with an empty key field and it works immediately.
-
-### 🟠 CLOUDFLARE WORKERS AI (Free API Key — cloudflare.com) 🆕
-
-| Tier | Daily Neurons | Equivalent Usage                        | Notes                   |
-| ---- | ------------- | --------------------------------------- | ----------------------- |
-| Free | **10,000**    | ~150 LLM resp / 500s audio / 15K embeds | Global edge, 50+ models |
-
-Popular free models: `@cf/meta/llama-3.3-70b-instruct`, `@cf/google/gemma-3-12b-it`, `@cf/openai/whisper-large-v3-turbo` (free audio!), `@cf/qwen/qwen2.5-coder-15b-instruct`
-
-> Requires API Token + Account ID from [dash.cloudflare.com](https://dash.cloudflare.com). Store Account ID in provider settings.
-
-### 🟣 SCALEWAY AI (1M Free Tokens — scaleway.com) 🆕
-
-| Tier | Free Quota    | Location     | Notes                               |
-| ---- | ------------- | ------------ | ----------------------------------- |
-| Free | **1M tokens** | 🇫🇷 Paris, EU | No credit card needed within limits |
-
-Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-instruct`, `mistral-small-3.2-24b-instruct-2506`, `deepseek-v3-0324`
-
-> EU/GDPR compliant. Get API key at [console.scaleway.com](https://console.scaleway.com).
-
-> **💡 The Ultimate Free Stack (11 Providers, $0 Forever):**
->
-> ```
-> Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-> LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
-> Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-> Qwen (qw/)             → qwen3-coder models UNLIMITED
-> Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free
-> Cloudflare AI (cf/)    → 50+ models — 10K Neurons/day
-> Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-> Groq (groq/)           → Llama/Gemma — 14.4K req/day ultra-fast
-> NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
-> Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
-> ```
-
----
-
-## 🌐 Free API Provider Directory — 25+ Providers, 500+ Models, $0
-
-> **We analyzed 6 community repositories** aggregating free LLM API providers and consolidated everything into one definitive reference. This is the most comprehensive free-tier directory available.
-
-| Provider          | Best Free Model  | RPM   | RPD          | Tokens        | Speed     |
-| ----------------- | ---------------- | ----- | ------------ | ------------- | --------- |
-| **Groq**          | Llama 3.3 70B    | 30    | 14,400       | 6K TPM        | 🟢 Fast   |
-| **Cerebras**      | Qwen3 235B       | 30    | 14,400       | 1M TPD        | 🟢 Fast   |
-| **Mistral AI**    | Mistral Large 3  | 60    | Unlimited    | 1B/month      | 🟡 Medium |
-| **Google Gemini** | Gemini 2.5 Flash | 5–15  | 20–1,500     | 250K TPM      | 🟢 Fast   |
-| **NVIDIA NIM**    | 129 models       | 40    | —            | —             | 🟡 Medium |
-| **OpenRouter**    | 35+ :free models | 20    | 50–1,000     | —             | 🟡 Medium |
-| **GitHub Models** | GPT-4.1, GPT-5   | 10–15 | 50–150       | 8K/4K per req | 🟡 Medium |
-| **Cloudflare AI** | 50+ models       | —     | 10K neurons  | —             | 🟡 Medium |
-| **Pollinations**  | Text+Image+Video | —     | Hourly reset | —             | 🟡 Medium |
-| **SiliconFlow**   | Qwen3-8B         | 1,000 | —            | 50K TPM       | 🟡 Medium |
-
-**Combined free capacity across all providers: ~31,000+ RPD · ~32B+ tokens/month · 500+ models · $0 forever.**
-
-The full directory includes 25+ providers with detailed rate limits, base URLs, model tables, trial credit providers (Baseten $30, AI21 $10, SambaNova $5, etc.), China-specific platforms (ModelScope, Volcengine, Tencent Hunyuan), and step-by-step OmniRoute combo configuration.
-
-📖 **Complete free provider directory with all models, quotas, and integration guide:** [`docs/FREE_TIERS.md`](docs/FREE_TIERS.md)
+📖 **Complete free provider directory:** [`docs/FREE_TIERS.md`](docs/FREE_TIERS.md) — 25+ providers, quotas, base URLs, model tables, and OmniRoute combo setup.
 
 ---
 
@@ -874,6 +899,8 @@ The full directory includes 25+ providers with detailed rate limits, base URLs, 
 | 🟢 **Deepgram**   | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages      | No RPM limit on free credits |
 | 🔵 **AssemblyAI** | **$50 free** (signup)  | `universal-3-pro` — chapters, sentiment, PII | No RPM limit on free credits |
 | 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)        |
+
+---
 
 **Suggested combo in `/dashboard/combos`:**
 
@@ -890,94 +917,67 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 
 ## 💡 Key Features
 
-OmniRoute v3.7+ is an operational platform, not just a relay proxy — backed by **4,690+ automated tests** across 517 test files.
+> **4,690+ automated tests** across 517 test files. Not just a relay — a full operational platform.
 
-| Category             | Feature                                                                          | Why It Matters                     |
-| -------------------- | -------------------------------------------------------------------------------- | ---------------------------------- |
-| 🧠 **Routing**       | Smart 4-Tier Fallback (Subscription → API → Cheap → Free)                        | Never stop coding, zero downtime   |
-|                      | 13 Balancing Strategies + Custom Combos                                          | Tailor routing to your exact needs |
-|                      | Task-Aware Smart Routing (coding/vision/analysis)                                | Right model for every task         |
-|                      | Context Relay — session handoffs during rotation                                 | No lost context mid-conversation   |
-|                      | Thinking Budget Controls (passthrough/auto/custom)                               | Control reasoning costs precisely  |
-| 🔄 **Translation**   | OpenAI ↔ Claude ↔ Gemini ↔ Responses API                                         | Works with ANY CLI tool            |
-|                      | Auto Token Refresh (OAuth PKCE for 8 providers)                                  | No manual re-login ever            |
-|                      | Responses API — full `/v1/responses` for Codex                                   | First-class Codex compatibility    |
-| 🎵 **Multi-Modal**   | 10 APIs: chat, embed, images, video, music, TTS, STT, moderation, rerank, search | One endpoint for everything        |
-|                      | Batch API — asynchronous processing with Files API                               | Background bulk processing         |
-|                      | OpenAPI 3.0 — live auto-generated spec + Try-It UI                               | API-first development              |
-| 🛡️ **Resilience**    | Circuit Breakers + Connection Cooldown + Anti-Thundering Herd                    | Auto-recovery from failures        |
-|                      | TLS Fingerprint Spoofing + CLI Fingerprint Matching                              | Stealth + anti-ban protection      |
-|                      | Semantic + Signature Cache (two-tier)                                            | Reduce costs + latency             |
-|                      | Request Idempotency + Rate Limit Detection                                       | No duplicate charges               |
-| 🤖 **Protocols**     | MCP Server — 29 tools, 3 transports, 10 scopes                                   | IDE/agent tool integration         |
-|                      | A2A Server — JSON-RPC 2.0, SSE streaming, task lifecycle                         | Agent-to-agent orchestration       |
-|                      | ACP — CLI agent discovery (14 agents + custom)                                   | Universal agent onboarding         |
-| 📊 **Observability** | Unified Logs (request/proxy/audit/console) + p50/p95/p99                         | Full request telemetry             |
-|                      | Health Dashboard — uptime, breakers, cache, lockouts                             | Operational visibility             |
-|                      | Cost Tracking + Budget Controls                                                  | Financial governance               |
-|                      | Evaluation Framework — golden set testing                                        | Quality assurance                  |
-| ☁️ **Platform**      | Desktop (Electron), Android (Termux), PWA                                        | Run anywhere                       |
-|                      | Docker (AMD64 + ARM64) with Compose profiles                                     | One-command deploy                 |
-|                      | Cloudflare / Tailscale / ngrok Tunnels                                           | Instant public endpoint            |
-|                      | 40+ languages with RTL support                                                   | Global accessibility               |
-| 🗜️ **Compression**   | 5-mode pipeline: off / lite / standard / aggressive / ultra                      | Save 15-75% tokens                 |
+| Feature                                                                                              | Why It Matters                   |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------- |
+| 🧠 **Smart 4-Tier Fallback** — Subscription → API → Cheap → Free                                     | Never stop coding, zero downtime |
+| 🔄 **Format Translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API                                 | Works with ANY CLI tool          |
+| 🗜️ **Prompt Compression** — 5-mode pipeline (off → lite → standard → aggressive → ultra)             | Save 15-75% tokens automatically |
+| 🤖 **MCP Server** — 29 tools, 3 transports (stdio/SSE/HTTP), 10 scopes                               | IDE/agent tool integration       |
+| 🛡️ **Resilience Engine** — circuit breakers, cooldowns, TLS spoofing, anti-thundering herd           | Auto-recovery from any failure   |
+| 🎵 **10 Multi-Modal APIs** — chat, embed, images, video, music, TTS, STT, moderation, rerank, search | One endpoint for everything      |
+| 🌍 **3-Level Proxy** — global, per-provider, per-key + 1proxy free marketplace                       | Access AI from any country       |
+| 📊 **Full Observability** — unified logs, p50/p95/p99 telemetry, cost tracking, budget controls      | Know exactly what's happening    |
 
 <details>
-<summary><b>🆕 What's New — v3.6+ Highlights</b></summary>
+<summary><b>📋 Complete feature list — 30+ capabilities</b></summary>
 
-- 🌐 V1 WebSocket Bridge — OpenAI-compatible WS at `/v1/ws`
-- 🔑 Sync Tokens & Config Bundle — versioned config sync with ETag
-- 🧠 GLM Thinking (glmt) — 65K tokens, 24K thinking budget, Claude-compatible
-- 🔢 Hybrid Token Counting — provider-side + estimation fallback
-- 🛡️ Safe Outbound Fetch — SSRF protection on all provider calls
-- ⏳ Wait For Cooldown — auto-retry after connection cooldowns
-- 🔍 Runtime Env Validation — Zod schemas at startup
-- 📋 Compliance Audit v2 — pagination, auth events, SSRF logging
-- 🔔 Webhooks — event-driven with test firing and dashboard management
-- 👁️ Vision Bridge — image analysis guardrail before routing
-- ⚡ Grok-4 Fast — $0.20/$0.50/M, 30% faster than Gemini Flash
-- 🧠 GLM-5 via Z.AI — 128K output, $0.5/1M
-- 🔮 MiniMax M2.5 — reasoning + agentic at $0.3/1M
-- 🎯 toolCalling flag — per-model tool capability in registry
-- 🌍 Multilingual Intent Detection — PT/ZH/ES/AR in AutoCombo
-- 📊 Benchmark-Driven Fallbacks — real p95 latency feeds scoring
-- 🔁 Request Deduplication — content-hash dedup window
+**Routing & Intelligence**
 
-</details>
+- 13 balancing strategies (priority, weighted, round-robin, P2C, cost-optimized, context-relay...)
+- Task-aware smart routing (coding/vision/analysis) · Context relay session handoffs
+- Thinking budget controls (passthrough/auto/custom) · Wildcard routing · System prompt injection
 
-<details>
-<summary><b>📖 Feature Deep Dive — Expanded Details</b></summary>
+**Translation & Compatibility**
 
-#### Smart fallback with practical cost control
+- Auto token refresh (OAuth PKCE for 8 providers) · Multi-account round-robin
+- Responses API — full `/v1/responses` for Codex · Batch API with Files API
+- OpenAPI 3.0 live spec + Try-It UI
+
+**Protocols**
+
+- A2A Server — JSON-RPC 2.0, SSE streaming, task lifecycle, skills
+- ACP — CLI agent discovery (14 agents + custom)
+
+**Platform**
+
+- Desktop (Electron) · Android (Termux) · PWA · Docker (AMD64 + ARM64)
+- Cloudflare / Tailscale / ngrok tunnels · 40+ languages with RTL
+- Semantic + signature cache (two-tier) · Request idempotency + deduplication
+
+**Observability**
+
+- Health dashboard — uptime, breakers, cache, lockouts
+- Evaluation framework — golden set testing · Webhooks · Compliance audit
+
+**v3.6+ Highlights:**
+V1 WebSocket Bridge · Sync Tokens & Config Bundle · GLM Thinking (glmt) · Hybrid Token Counting ·
+Safe Outbound Fetch · Wait For Cooldown · Runtime Env Validation · Vision Bridge ·
+Grok-4 Fast · GLM-5 via Z.AI · MiniMax M2.5 · toolCalling flag ·
+Multilingual Intent Detection · Benchmark-Driven Fallbacks · Request Deduplication
+
+**Architecture Examples:**
 
 ```txt
-Combo: "my-coding-stack"
-  1. cc/claude-opus-4-7
-  2. nvidia/llama-3.3-70b
-  3. glm/glm-4.7
+Combo: "my-coding-stack"              Format Translation:
+  1. cc/claude-opus-4-7                 CLI → OpenAI format
+  2. nvidia/llama-3.3-70b               OmniRoute → translates
+  3. glm/glm-4.7                        Provider → native format
   4. if/kimi-k2-thinking
 ```
 
-When quota, rate, or health fails, OmniRoute automatically moves to the next candidate without manual switching.
-
-#### Prompt Compression — Token Savings Breakdown
-
-```
-Without compression: 47K tokens sent to LLM
-With Lite:           40K tokens sent          (15% saved — safe, always-on)
-With Standard:       33K tokens sent          (30% saved — caveman-speak rules)
-With Aggressive:     24K tokens sent          (50% saved — aging + summarization)
-With Ultra:          12K tokens sent          (75% saved — heuristic pruning)
-```
-
-#### Format Translation — Universal Compatibility
-
-- **OpenAI** ↔ **Claude** ↔ **Gemini** ↔ **Cursor** ↔ **Kiro** ↔ **Vertex** ↔ **Antigravity** ↔ **Ollama** ↔ **Responses**
-- Your CLI tool sends OpenAI format → OmniRoute translates → Provider receives native format
-
-> 📖 **[MCP Server README](open-sse/mcp-server/README.md)** — Tool reference, IDE configs, and client examples
->
-> 📖 **[A2A Server README](src/lib/a2a/README.md)** — Skills, JSON-RPC methods, streaming, and task lifecycle
+📖 [MCP Server README](open-sse/mcp-server/README.md) · [A2A Server README](src/lib/a2a/README.md) · [Resilience Guide](docs/RESILIENCE_GUIDE.md) · [Features Gallery](docs/FEATURES.md)
 
 </details>
 
@@ -1346,31 +1346,6 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 | [i18n Guide](docs/I18N.md)                     | 40+ language support, translation workflow, RTL |
 | [Release Checklist](docs/RELEASE_CHECKLIST.md) | Pre-release validation steps                    |
 | [Coverage Plan](docs/COVERAGE_PLAN.md)         | Test coverage strategy and 4,690+ test suite    |
-
----
-
-## 🗺️ Roadmap
-
-OmniRoute has **218+ features planned** across multiple development phases. Here are the key areas:
-
-| Category                      | Planned Features | Highlights                                                                                            |
-| ----------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
-| 🧠 **Routing & Intelligence** | 25+              | Lowest-latency routing, tag-based routing, quota preflight, quota-aware P2C, step-based combo routing |
-| 🔒 **Security & Compliance**  | 20+              | SSRF hardening, credential cloaking, rate-limit per endpoint, management key scoping                  |
-| 📊 **Observability**          | 15+              | OpenTelemetry integration, real-time quota monitoring, combo target health, cost tracking per model   |
-| 🔄 **Provider Integrations**  | 20+              | Dynamic model registry, connection cooldowns, multi-account Codex, Copilot quota parsing              |
-| ⚡ **Performance**            | 15+              | Dual cache layer, prompt cache, response cache, streaming keepalive, batch API                        |
-| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode                           |
-
-### 🔜 Coming Soon
-
-- 🔗 **OpenCode Integration** — Native provider support for the OpenCode AI coding IDE
-- 🔗 **TRAE Integration** — Full support for the TRAE AI development framework
-- 💰 **Lowest-Cost Strategy** — Automatically select the cheapest available provider
-- 📊 **OpenTelemetry Integration** — OTLP traces and metrics export for enterprise observability
-- 🔄 **Config Hot-Reload** — Apply settings changes without server restart
-
-> 📝 Full feature specifications available in [`docs/new-features/`](docs/new-features/) (217 detailed specs)
 
 ---
 
