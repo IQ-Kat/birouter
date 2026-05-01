@@ -1000,3 +1000,119 @@ export async function handleCacheFlush(args: { signature?: string; model?: strin
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }
+
+// ============ 1proxy Tools ============
+
+export async function handleOneproxyFetch(
+  args: { protocol?: string; countryCode?: string; minQuality?: number; limit?: number } = {}
+) {
+  const start = Date.now();
+  try {
+    const params = new URLSearchParams();
+    if (args.protocol) params.set("protocol", args.protocol);
+    if (args.countryCode) params.set("countryCode", args.countryCode);
+    if (args.minQuality) params.set("minQuality", String(args.minQuality));
+    if (args.limit) params.set("limit", String(args.limit));
+
+    const query = params.toString();
+    const path = query ? `/api/settings/oneproxy?${query}` : "/api/settings/oneproxy";
+    const raw = toRecord(await apiFetch(path));
+
+    const items = toArrayOfRecords(raw.items).map((r) => ({
+      id: toString(r.id, ""),
+      host: toString(r.host, ""),
+      port: toNumber(r.port, 0),
+      type: toString(r.type, "http"),
+      countryCode: typeof r.country_code === "string" ? r.country_code : null,
+      qualityScore: r.quality_score != null ? toNumber(r.quality_score) : null,
+      latencyMs: r.latency_ms != null ? toNumber(r.latency_ms) : null,
+      anonymity: typeof r.anonymity === "string" ? r.anonymity : null,
+      googleAccess: r.google_access === 1 || r.google_access === true,
+      status: toString(r.status, "active"),
+    }));
+
+    const result = { items, total: toNumber(raw.total, items.length) };
+    await logToolCall("omniroute_oneproxy_fetch", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_oneproxy_fetch", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleOneproxyRotate(
+  args: { strategy?: "random" | "quality" | "sequential" } = {}
+) {
+  const start = Date.now();
+  try {
+    const body: Record<string, unknown> = {};
+    if (args.strategy) body.strategy = args.strategy;
+
+    const raw = toRecord(
+      await apiFetch("/api/settings/oneproxy/rotate", {
+        method: "POST",
+        body: JSON.stringify(body),
+      })
+    );
+
+    const result = {
+      id: toString(raw.id, ""),
+      host: toString(raw.host, ""),
+      port: toNumber(raw.port, 0),
+      type: toString(raw.type, "http"),
+      countryCode: typeof raw.country_code === "string" ? raw.country_code : null,
+      qualityScore: raw.quality_score != null ? toNumber(raw.quality_score) : null,
+      latencyMs: raw.latency_ms != null ? toNumber(raw.latency_ms) : null,
+    };
+
+    await logToolCall("omniroute_oneproxy_rotate", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_oneproxy_rotate", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleOneproxyStats(args: Record<string, never> = {}) {
+  const start = Date.now();
+  try {
+    const raw = toRecord(await apiFetch("/api/settings/oneproxy?action=stats"));
+
+    const statsRaw = toRecord(raw.stats);
+    const statusRaw = toRecord(raw.status);
+
+    const stats = {
+      total: toNumber(statsRaw.total, 0),
+      active: toNumber(statsRaw.active, 0),
+      avgQuality: statsRaw.avg_quality != null ? toNumber(statsRaw.avg_quality) : null,
+      lastValidated: typeof statsRaw.last_validated === "string" ? statsRaw.last_validated : null,
+      byProtocol: toArrayOfRecords(statsRaw.by_protocol || statsRaw.byProtocol).map((r) => ({
+        protocol: toString(r.protocol, ""),
+        count: toNumber(r.count, 0),
+      })),
+      byCountry: toArrayOfRecords(statsRaw.by_country || statsRaw.byCountry).map((r) => ({
+        countryCode: toString(r.countryCode || r.country_code, ""),
+        count: toNumber(r.count, 0),
+      })),
+    };
+
+    const status = {
+      lastSyncSuccess: toBoolean(statusRaw.last_sync_success, false),
+      lastSyncError:
+        typeof statusRaw.last_sync_error === "string" ? statusRaw.last_sync_error : null,
+      lastSyncAt: typeof statusRaw.last_sync_at === "string" ? statusRaw.last_sync_at : null,
+      lastSyncCount: toNumber(statusRaw.last_sync_count, 0),
+      consecutiveFailures: toNumber(statusRaw.consecutive_failures, 0),
+    };
+
+    const result = { stats, status };
+    await logToolCall("omniroute_oneproxy_stats", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_oneproxy_stats", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}

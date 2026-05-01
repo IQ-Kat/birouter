@@ -24,6 +24,7 @@ export const MCP_SCOPE_LIST = [
   "write:cache",
   "read:compression",
   "write:compression",
+  "read:proxies",
 ] as const;
 
 export type McpScope = (typeof MCP_SCOPE_LIST)[number];
@@ -58,6 +59,9 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_cache_flush: ["write:cache"],
   omniroute_compression_status: ["read:compression"],
   omniroute_compression_configure: ["write:compression"],
+  omniroute_oneproxy_fetch: ["read:proxies"],
+  omniroute_oneproxy_rotate: ["read:proxies"],
+  omniroute_oneproxy_stats: ["read:proxies"],
 } as const;
 
 // ============ Scope Groups ============
