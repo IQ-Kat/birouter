@@ -353,7 +353,7 @@ export class DefaultExecutor extends BaseExecutor {
     if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
       if (this.provider?.startsWith?.("anthropic-compatible-")) {
         if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
-          const withoutStreamOptions = { ...withDefaults } as Record<string, any>;
+          const withoutStreamOptions = { ...withDefaults } as Record<string, unknown>;
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
@@ -365,12 +365,12 @@ export class DefaultExecutor extends BaseExecutor {
           withDefaults = {
             ...withDefaults,
             stream_options: {
-              ...((withDefaults as any).stream_options || {}),
+              ...(((withDefaults as Record<string, unknown>).stream_options as object) || {}),
               include_usage: true,
             },
           };
         } else if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
-          const withoutStreamOptions = { ...withDefaults } as Record<string, any>;
+          const withoutStreamOptions = { ...withDefaults } as Record<string, unknown>;
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
@@ -378,7 +378,10 @@ export class DefaultExecutor extends BaseExecutor {
     }
 
     if (this.provider === "qwen" && typeof withDefaults === "object" && withDefaults !== null) {
-      return sanitizeQwenThinkingToolChoice(withDefaults as any, "QwenExecutor");
+      return sanitizeQwenThinkingToolChoice(
+        withDefaults as Record<string, unknown>,
+        "QwenExecutor"
+      );
     }
     return withDefaults;
   }
