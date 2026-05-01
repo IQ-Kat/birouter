@@ -4,6 +4,26 @@
 
 ---
 
+## [3.7.8] — 2026-05-01
+
+### ✨ New Features
+
+- **feat(providers):** add Grok 4.3 and Xiaomi Mimo TTS provider (#1837)
+- **feat(core):** implement Rate Limit Watchdog with environment override capability to detect and reset stalled queues (#1839)
+- **feat(providers):** add muse-spark-web provider with multiple models and reasoning support (#1843)
+- **feat(1proxy):** integrate 1proxy free proxy marketplace with dashboard management and new MCP tools (closes #1788) (#1847)
+
+### 🐛 Bug Fixes
+
+- **fix(ui):** hide combo compression controls when the global setting is disabled (#1840)
+- **fix(db):** tolerate missing request_detail_logs table for legacy deployments (#1848)
+
+### 🛠️ Maintenance
+
+- **fix(workflow):** build docker images on version tags (#1838)
+
+---
+
 ## [3.7.7] — 2026-04-30
 
 ### ✨ New Features
