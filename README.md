@@ -4,7 +4,7 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now with **MCP Server (29 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now with **MCP Server (29 tools)**, **A2A Protocol**, **Memory/Skills Systems**, **Electron Desktop App** & **Android (Termux)**._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -39,7 +39,7 @@ _Your universal API proxy — one endpoint, 160+ providers, zero downtime. Now w
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
-[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [🌍 Proxy/Geo](#-bypass-geographic-blocks--use-ai-from-any-country) • [📲 PWA](#-progressive-web-app-pwa--install-it-like-a-native-app) • [📱 Android](#-run-on-android--your-phone-is-an-ai-server) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 </div>
 
@@ -1146,6 +1146,295 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 
 ---
 
+## 📱 Run on Android — Your Phone is an AI Server
+
+> 🆕 **NEW!** OmniRoute now runs natively on **Android** via [Termux](https://termux.dev) — turn any phone or tablet into a fully functional AI gateway.
+
+<div align="center">
+
+🤖 **Your pocket-sized AI infrastructure** — no root required, no desktop needed.
+
+</div>
+
+### Why Run OmniRoute on Android?
+
+Your Android device is a surprisingly powerful server that's always with you. Here's what you unlock:
+
+| Benefit                    | Description                                                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 🌍 **AI Gateway Anywhere** | Carry a fully operational AI proxy in your pocket — coffee shops, airports, or any WiFi network                     |
+| 💸 **Zero Hardware Cost**  | No need to buy a Raspberry Pi, VPS, or dedicated server — your existing phone does it all                           |
+| 🔋 **Always-On Server**    | With Termux:Boot, OmniRoute starts automatically on device boot — a true 24/7 personal AI server                    |
+| 📡 **LAN AI Hub**          | Serve AI to every device on your network — laptops, tablets, other phones all connect to `http://PHONE_IP:20128/v1` |
+| 🛡️ **Offline-First**       | When paired with self-hosted models (Ollama), your phone becomes a completely offline, private AI server            |
+| 🧳 **Travel-Friendly**     | Perfect for developers who need their AI coding setup available on the go without cloud dependencies                |
+| ⚡ **ARM Native**          | OmniRoute's `better-sqlite3` compiles natively on ARM — no emulation overhead, real performance                     |
+
+### Quick Install (3 Commands)
+
+```bash
+# 1. Install prerequisites in Termux
+pkg update && pkg install nodejs-lts python build-essential git
+
+# 2. Run OmniRoute
+npx -y omniroute@latest
+```
+
+That's it — the dashboard is live at `http://localhost:20128` and accessible from your Android browser.
+
+### Use Cases
+
+<details>
+<summary><b>🧑‍💻 Mobile Developer Workstation</b></summary>
+
+Connect a Bluetooth keyboard, open Termux, and you have a full AI-powered dev environment. Point Claude Code, Codex CLI, or any coding tool running on a paired laptop to your phone's OmniRoute endpoint.
+
+</details>
+
+<details>
+<summary><b>🏠 Home Network AI Server</b></summary>
+
+Dedicate an old Android phone as a permanent AI gateway on your home WiFi. All family devices and workstations route through it. With Termux:Boot, it survives reboots and stays always-on.
+
+</details>
+
+<details>
+<summary><b>🌐 Portable Demo Server</b></summary>
+
+Doing a presentation or workshop? Run OmniRoute on your phone and let attendees connect to your hotspot — instant multi-user AI demo with zero cloud setup.
+
+</details>
+
+<details>
+<summary><b>🔒 Privacy-First AI</b></summary>
+
+Combine with local Ollama models for a fully air-gapped AI assistant that runs entirely on your phone — no data ever leaves the device.
+
+</details>
+
+### Access From Other Devices
+
+Find your phone's IP and connect from any device on the same network:
+
+```bash
+# On your phone (Termux)
+ip addr show wlan0
+
+# From any device on the network
+curl http://PHONE_IP:20128/v1/models
+```
+
+📖 **Full setup guide with background execution, auto-boot, troubleshooting, and more:** [`docs/TERMUX_GUIDE.md`](docs/TERMUX_GUIDE.md)
+
+---
+
+## 📲 Progressive Web App (PWA) — Install It Like a Native App
+
+> 🆕 **NEW!** OmniRoute is a fully installable **Progressive Web App**. Add it to your home screen on Android, iOS, or desktop — no app store needed.
+
+<div align="center">
+
+📱 **Native app feel** — fullscreen, offline-ready, instant launch from your home screen.
+
+</div>
+
+### Why PWA?
+
+| Feature                   | What You Get                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 📲 **One-Tap Install**    | "Add to Home Screen" on any device — works on Android (Chrome), iOS (Safari), and desktop (Chrome/Edge) |
+| 🖥️ **Fullscreen Mode**    | No browser chrome, no address bar — the dashboard fills the entire screen like a native app             |
+| ⚡ **Faster Loading**     | Static assets are cached by the service worker — subsequent launches are nearly instant                 |
+| 📡 **Offline Resilience** | A dedicated offline page with live connectivity status appears when the network drops                   |
+| 🔄 **Always Up-to-Date**  | The service worker auto-updates cached assets when a new version is deployed                            |
+| 🎨 **Custom Branding**    | Respects your Instance Name from Settings — the installed app shows your custom name                    |
+
+### How to Install
+
+<details>
+<summary><b>📱 Android (Chrome)</b></summary>
+
+1. Open `http://YOUR_IP:20128` in Chrome
+2. Tap **⋮** (three dots) → **"Add to Home screen"** or **"Install app"**
+3. Confirm — OmniRoute appears on your home screen with its own icon
+
+</details>
+
+<details>
+<summary><b>🍎 iOS (Safari)</b></summary>
+
+1. Open `http://YOUR_IP:20128` in Safari
+2. Tap the **Share** button (box with arrow) → **"Add to Home Screen"**
+3. Tap **Add** — OmniRoute launches fullscreen from your home screen
+
+</details>
+
+<details>
+<summary><b>🖥️ Desktop (Chrome / Edge)</b></summary>
+
+1. Open the OmniRoute dashboard in Chrome or Edge
+2. Click the **install icon** in the address bar (or ⋮ → "Install OmniRoute...")
+3. Confirm — OmniRoute opens as a standalone window, no tabs or address bar
+
+</details>
+
+### PWA + Termux = Complete On-Device AI
+
+When running OmniRoute on Android via Termux, the PWA creates the perfect companion:
+
+```
+┌──────────────────────────────────────┐
+│         Your Android Phone           │
+│                                      │
+│  ┌────────────────┐  ┌────────────┐  │
+│  │   Termux       │  │  PWA App   │  │
+│  │  (OmniRoute    │──│ (Dashboard │  │
+│  │   Server)      │  │  Client)   │  │
+│  └────────────────┘  └────────────┘  │
+│         localhost:20128              │
+└──────────────────────────────────────┘
+```
+
+Your phone is both the **server** and the **client** — a fully self-contained AI gateway in your pocket.
+
+📖 **Full PWA documentation with technical architecture, caching strategies, and customization:** [`docs/PWA_GUIDE.md`](docs/PWA_GUIDE.md)
+
+---
+
+## 🌍 Bypass Geographic Blocks — Use AI From Any Country
+
+> 🇷🇺 🇨🇳 🇮🇷 🇨🇺 🇹🇷 **Are you in Russia, China, Iran, Cuba, Turkey, or any country where AI providers are blocked?** OmniRoute has you covered.
+
+Many AI providers — including OpenAI, Anthropic (Claude), Codex, and GitHub Copilot — restrict access from certain countries and regions. Developers get frustrating errors like `unsupported_country_region_territory` or simply can't connect. **OmniRoute's built-in proxy system solves this completely.**
+
+### 3-Level Proxy Architecture
+
+OmniRoute offers proxy configuration at **three independent levels**, giving you precise control over which traffic goes through which proxy:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    Your Device (Russia, China, etc.)         │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │                   OmniRoute Server                     │  │
+│  │                                                        │  │
+│  │  Level 1: 🟢 GLOBAL PROXY                               │  │
+│  │  └─ All traffic from all providers goes through proxy   │  │
+│  │                                                        │  │
+│  │  Level 2: 🟡 PER-PROVIDER PROXY                          │  │
+│  │  └─ Only traffic for a specific provider (e.g. OpenAI)  │  │
+│  │                                                        │  │
+│  │  Level 3: 🔵 PER-CONNECTION PROXY                        │  │
+│  │  └─ Individual API key/account uses its own proxy       │  │
+│  └────────────────────────────────────────────────────┘  │
+│          │            │              │                         │
+│          ↓            ↓              ↓                         │
+│      🌐 Proxy     🌐 Proxy      🌐 Proxy                    │
+│      (US/EU)     (Japan)      (Singapore)                   │
+│          │            │              │                         │
+│          ↓            ↓              ↓                         │
+│      OpenAI      Claude         Codex                       │
+│      Gemini      Anthropic      Copilot                     │
+└──────────────────────────────────────────────────────────┘
+```
+
+### How It Works
+
+| Level              | Badge | How to Configure                               | Use Case                                                                             |
+| ------------------ | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Global**         | 🟢    | `Dashboard → Settings → Proxy`                 | Route **all** provider traffic through one proxy. Set it once, forget it.            |
+| **Per-Provider**   | 🟡    | `Dashboard → Providers → [Provider] → Proxy`   | Route only a specific provider (e.g., OpenAI) through a proxy — leave others direct. |
+| **Per-Connection** | 🔵    | `Dashboard → Providers → [Connection] → Proxy` | Each individual API key or account uses its own proxy endpoint.                      |
+
+### What Gets Proxied
+
+- ✅ **API requests** — All chat completions, embeddings, images, audio, etc.
+- ✅ **OAuth flows** — Token exchange goes through the proxy too, solving `unsupported_country_region_territory` errors
+- ✅ **Connection tests** — The "Test Connection" button uses the configured proxy
+- ✅ **Token refresh** — Background OAuth token renewal goes through proxy
+- ✅ **Model sync** — Model listing and discovery requests use the proxy
+
+### Supported Proxy Protocols
+
+| Protocol          | Example                                   | Notes                                                |
+| ----------------- | ----------------------------------------- | ---------------------------------------------------- |
+| **HTTP/HTTPS**    | `http://proxy.example.com:8080`           | Standard web proxy                                   |
+| **SOCKS5**        | `socks5://proxy.example.com:1080`         | Full SOCKS5 support (set `ENABLE_SOCKS5_PROXY=true`) |
+| **Authenticated** | `http://user:pass@proxy.example.com:8080` | Username/password authentication                     |
+
+### Proxy Registry — Full Management
+
+OmniRoute includes a complete proxy registry stored in SQLite. You can **create, update, delete, import, and export** proxies via the dashboard or API:
+
+```bash
+# Create a proxy
+curl -X POST http://localhost:20128/api/v1/management/proxies \
+  -H "Content-Type: application/json" \
+  -d '{"name":"US Proxy","type":"http","host":"proxy.example.com","port":8080}'
+
+# Assign to global scope
+curl -X PUT http://localhost:20128/api/settings/proxy \
+  -d '{"level":"global","proxy":{"type":"http","host":"proxy.example.com","port":8080}}'
+
+# Check which proxy resolves for a connection
+curl "http://localhost:20128/api/settings/proxy?resolve=connection-uuid"
+```
+
+Features: bulk assignment, upsert by host+port, health stats tracking, force delete, and automatic legacy migration.
+
+### 🆓 1proxy — Free Proxy Marketplace
+
+> 🆕 **Contributed by [@oyi77](https://github.com/oyi77)** — [#1847](https://github.com/diegosouzapw/OmniRoute/pull/1847)
+
+**Don't have your own proxy?** OmniRoute integrates with the [1proxy](https://1proxy-api.aitradepulse.com) community platform to provide **hundreds of free, validated proxies** from around the world:
+
+| Feature              | Description                                                                    |
+| -------------------- | ------------------------------------------------------------------------------ |
+| **One-Click Sync**   | Fetch up to 500 validated proxies from the 1proxy API                          |
+| **Quality Scores**   | Each proxy rated 0-100 with latency, anonymity level, and Google access status |
+| **Country Filter**   | Filter by country code (US, DE, JP, etc.) and protocol (HTTP/SOCKS5)           |
+| **Auto-Rotation**    | 3 strategies: `quality` (best first), `random`, `sequential`                   |
+| **Auto-Degradation** | Failed proxies lose 10 quality points; score ≤10 → marked inactive             |
+| **Circuit Breaker**  | Sync stops after 5 consecutive failures to protect stability                   |
+| **Dashboard Tab**    | Full UI at `Settings → 1proxy` with stats, filters, and sync controls          |
+
+```bash
+# Sync free proxies
+curl -X POST http://localhost:20128/api/settings/oneproxy -d '{}'
+# → {"success":true,"added":127,"updated":45,"total":172}
+
+# Rotate to next best proxy
+curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
+  -d '{"strategy":"quality"}'
+```
+
+### Anti-Detection Features
+
+OmniRoute doesn't just route traffic through a proxy — it also makes the traffic look legitimate:
+
+- 🔒 **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint via `wreq-js` to bypass bot detection
+- 🔏 **CLI Fingerprint Matching** — Reorders headers and body fields to match native CLI binary signatures, reducing account flagging
+- 🏠 **Proxy IP Preservation** — Your stealth features work **on top of** the proxy IP — you get both masking and authenticity
+
+### Quick Setup for Blocked Regions
+
+```bash
+# 1. Get a proxy in an allowed region (US, EU, Japan, etc.)
+#    Use any SOCKS5/HTTP proxy provider — or use 1proxy for free ones!
+
+# 2. Set it as the global proxy in OmniRoute
+#    Dashboard → Settings → Proxy → paste your proxy URL
+
+# 3. Done — all providers now accessible
+#    Badge shows: 🟢 proxy active (IP: xxx.xxx.xxx.xxx)
+```
+
+> 💡 **Tip**: Use **per-provider proxies** if you only need to bypass blocks for specific providers. For example, set a US proxy only for OpenAI while accessing DeepSeek directly from China.
+
+📖 **Full proxy documentation with registry CRUD, 1proxy API reference, database schema, and troubleshooting:** [`docs/PROXY_GUIDE.md`](docs/PROXY_GUIDE.md)
+
+---
+
 ## 💰 Pricing at a Glance
 
 | Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
@@ -1353,7 +1642,7 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 
 ## 💡 Key Features
 
-OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
+OmniRoute v3.7+ is built as an operational platform, not just a relay proxy — backed by **4,690+ automated tests** across 517 test files.
 
 ### 🆕 New — v3.6.x Highlights (Apr 2026)
 
@@ -1456,6 +1745,8 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                                                                                            |
 | 🔀 **Reranking**           | `/v1/rerank` for relevance scoring                                                                                                                                         |
 | 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache                                                               |
+| 📦 **Batch API** 🆕        | `/v1/batches` — asynchronous batch processing with Files API, job lifecycle (create/get/cancel), and dashboard management page                                             |
+| 📋 **OpenAPI Spec** 🆕     | `/api/openapi/spec` — live, auto-generated OpenAPI 3.0 specification with interactive Try-It endpoint at `/api/openapi/try`                                                |
 
 ### 🛡️ Resilience, Security & Governance
 
@@ -1483,6 +1774,9 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | ⏳ **Wait For Cooldown** 🆕         | Auto-retry chat after connection cooldowns; configurable `enabled`, `maxRetries`, and `maxRetryWaitSec` |
 | 🔍 **Runtime Env Validation** 🆕    | Zod-based env schema validation at startup with actionable error messages                               |
 | 📋 **Compliance Audit v2** 🆕       | Pagination, request context, auth events, provider CRUD, and SSRF-blocked logging                       |
+| 🔔 **Webhooks** 🆕                  | Event-driven webhook system with configurable endpoints, test firing, and per-hook management dashboard |
+| 👁️ **Vision Bridge** 🆕             | Guardrail system that intercepts image-bearing requests for vision model analysis before routing        |
+| 🗜️ **Prompt Compression** 🆕        | 5-mode compression pipeline (off/lite/aggressive/ultra/caveman) reducing token usage before upstream    |
 
 ### 📊 Observability & Analytics
 
@@ -1502,24 +1796,30 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### ☁️ Deployment & Platform
 
-| Feature                        | What It Does                                                           |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                             |
-| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                  |
-| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles  |
-| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls                |
-| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                              |
-| 🧙 **Onboarding Wizard**       | First-run guided setup                                                 |
-| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                               |
-| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                    |
-| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security               |
-| 🌐 **i18n (40+ languages)**    | Full dashboard + docs language support with RTL coverage               |
-| 🧹 **Clear All Models**        | One-click model list clearing in provider details                      |
-| 👁️ **Visibility Controls** 🆕  | Hide sidebar items and Endpoint tunnel panels from Appearance Settings |
-| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                    |
-| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                               |
-| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`               |
-| 🔑 **Sync Tokens & Bundle** 🆕 | Config sync tokens + versioned bundle endpoint with ETag support       |
+| Feature                        | What It Does                                                                      |
+| ------------------------------ | --------------------------------------------------------------------------------- |
+| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                                        |
+| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                             |
+| 🔗 **Tailscale Tunnel** 🆕     | Full Tailscale Funnel integration — install, login, enable/disable from dashboard |
+| 🌐 **ngrok Tunnel** 🆕         | ngrok tunnel management via dashboard for public endpoint exposure                |
+| 📲 **Progressive Web App** 🆕  | Installable PWA with fullscreen mode, service worker caching, and offline page    |
+| 📱 **Android (Termux)** 🆕     | Run OmniRoute natively on Android via Termux — ARM native, no root required       |
+| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles             |
+| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls                           |
+| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                                         |
+| 🧙 **Onboarding Wizard**       | First-run guided setup                                                            |
+| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                                          |
+| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                               |
+| 🔍 **Search Tools Dashboard**  | Dedicated web search UI with provider comparison, reranking, and search history   |
+| 🏷️ **Tag-Based Routing** 🆕    | Route requests using custom tags and metadata for granular traffic control        |
+| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security                          |
+| 🌐 **i18n (40+ languages)**    | Full dashboard + docs language support with RTL coverage                          |
+| 🧹 **Clear All Models**        | One-click model list clearing in provider details                                 |
+| 👁️ **Visibility Controls** 🆕  | Hide sidebar items and Endpoint tunnel panels from Appearance Settings            |
+| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                               |
+| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                                          |
+| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`                          |
+| 🔑 **Sync Tokens & Bundle** 🆕 | Config sync tokens + versioned bundle endpoint with ETag support                  |
 
 ### Feature Deep Dive
 
@@ -2265,9 +2565,10 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
 - **Schemas**: Zod (MCP tool I/O validation, API contracts)
 - **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
-- **Streaming**: Server-Sent Events (SSE)
+- **Streaming**: Server-Sent Events (SSE) + WebSocket bridge (`/v1/ws`)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
-- **Testing**: Node.js test runner + Vitest (900+ tests including unit, integration, E2E)
+- **Testing**: Node.js test runner + Vitest (**4,690+ test cases** across 517 files — unit, integration, E2E, security, ecosystem)
+- **Platforms**: Desktop (Electron), Android (Termux), PWA (any browser)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
 - **Website**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
@@ -2299,6 +2600,9 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)             | Complete guide: VM + nginx + Cloudflare setup       |
 | [Features Gallery](docs/FEATURES.md)                     | Visual dashboard tour with screenshots              |
 | [Release Checklist](docs/RELEASE_CHECKLIST.md)           | Pre-release validation steps                        |
+| [PWA Guide](docs/PWA_GUIDE.md)                           | Progressive Web App install, caching, architecture  |
+| [Proxy Guide](docs/PROXY_GUIDE.md)                       | Proxy system, 1proxy marketplace, registry CRUD     |
+| [Termux Guide](docs/TERMUX_GUIDE.md)                     | Run OmniRoute on Android via Termux                 |
 
 ---
 
@@ -2319,11 +2623,64 @@ OmniRoute has **218+ features planned** across multiple development phases. Here
 
 - 🔗 **OpenCode Integration** — Native provider support for the OpenCode AI coding IDE
 - 🔗 **TRAE Integration** — Full support for the TRAE AI development framework
-- 📦 **Batch API** — Asynchronous batch processing for bulk requests
-- 🎯 **Tag-Based Routing** — Route requests based on custom tags and metadata
 - 💰 **Lowest-Cost Strategy** — Automatically select the cheapest available provider
+- 📊 **OpenTelemetry Integration** — OTLP traces and metrics export for enterprise observability
+- 🔄 **Config Hot-Reload** — Apply settings changes without server restart
 
 > 📝 Full feature specifications available in [`docs/new-features/`](docs/new-features/) (217 detailed specs)
+
+---
+
+## ⭐ Top Contributors
+
+> OmniRoute is shaped by a passionate open-source community. These individuals have made exceptional contributions that directly impact the quality, stability, and reach of the project. **Thank you.**
+
+<table>
+  <tr>
+    <td align="center" width="160">
+      <a href="https://github.com/oyi77">
+        <img src="https://github.com/oyi77.png" width="80" style="border-radius:50%" alt="oyi77"/><br/>
+        <b>oyi77</b>
+      </a><br/>
+      <sub>🥇 190 commits • +72K lines</sub><br/>
+      <sub>Analytics engine, SQL aggregations,<br/>proxy marketplace, test coverage</sub>
+    </td>
+    <td align="center" width="160">
+      <a href="https://github.com/christopher-s">
+        <img src="https://github.com/christopher-s.png" width="80" style="border-radius:50%" alt="Chris Staley"/><br/>
+        <b>Chris Staley</b>
+      </a><br/>
+      <sub>🥈 72 commits • +5.7K lines</sub><br/>
+      <sub>SSE stream hardening, Responses API,<br/>Gemini pagination, test regression fixes</sub>
+    </td>
+    <td align="center" width="160">
+      <a href="https://github.com/zenobit">
+        <img src="https://github.com/zenobit.png" width="80" style="border-radius:50%" alt="zenobit"/><br/>
+        <b>zenobit</b>
+      </a><br/>
+      <sub>🥉 62 commits • +24K lines</sub><br/>
+      <sub>CI/CD pipeline, i18n for 33 languages,<br/>Void Linux package, platform fixes</sub>
+    </td>
+    <td align="center" width="160">
+      <a href="https://github.com/rdself">
+        <img src="https://github.com/rdself.png" width="80" style="border-radius:50%" alt="R.D. & Randi"/><br/>
+        <b>R.D. & Randi</b>
+      </a><br/>
+      <sub>🏅 107 commits • +28K lines</sub><br/>
+      <sub>Endpoints page, tunnel integrations,<br/>Docker workflows, A2A status, compression UI</sub>
+    </td>
+    <td align="center" width="160">
+      <a href="https://github.com/benzntech">
+        <img src="https://github.com/benzntech.png" width="80" style="border-radius:50%" alt="benzntech"/><br/>
+        <b>benzntech</b>
+      </a><br/>
+      <sub>🏅 20 commits • +7.5K lines</sub><br/>
+      <sub>Electron desktop app, auto-updater,<br/>release build workflows, cross-platform CI</sub>
+    </td>
+  </tr>
+</table>
+
+> 🙏 These contributors' features, bug fixes, and infrastructure improvements are a **core part** of what makes OmniRoute reliable and feature-rich. Every pull request, every test case, and every i18n translation file matters. Open source is built by people like them.
 
 ---
 
