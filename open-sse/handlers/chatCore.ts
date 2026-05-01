@@ -2219,6 +2219,11 @@ export async function handleChatCore({
     }
   }
 
+  // OpenAI's `store` parameter is not supported by most compatible providers and breaks them
+  if (provider !== "openai" && "store" in translatedBody) {
+    delete translatedBody.store;
+  }
+
   // Provider-specific max_tokens caps (#711)
   // Some providers reject requests when max_tokens exceeds their API limit.
   // Cap before sending to avoid upstream HTTP 400 errors.
