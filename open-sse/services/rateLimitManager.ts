@@ -68,6 +68,34 @@ let initialized = false;
 
 let currentRequestQueueSettings: RequestQueueSettings = DEFAULT_RESILIENCE_SETTINGS.requestQueue;
 
+// Watchdog: detect Bottleneck limiters that are wedged (queue has work, but no
+// jobs are dispatched). When the reservoir/refresh state desyncs from reality,
+// this catches it and force-resets so traffic isn't stuck forever.
+const lastDispatchAt = new Map<string, number>();
+let watchdogInterval: ReturnType<typeof setInterval> | null = null;
+const WATCHDOG_INTERVAL_MS = 30_000;
+// Threshold has to exceed any *legitimate* gap between dispatches:
+//  - default reservoirRefreshInterval is 60s
+//  - adaptive minTime can climb to ~60s for 1-RPM providers (see updateFromHeaders)
+// 120s gives a 2× margin against both, while still catching the actual wedge
+// case we observed (queue stalled for 3+ minutes with no progress).
+const WEDGE_THRESHOLD_MS = 120_000;
+
+/**
+ * Env-var override for the auto-enable safety net. Highest priority — wins
+ * over the persisted dashboard setting. Use to disable in an incident without
+ * needing dashboard access.
+ *   RATE_LIMIT_AUTO_ENABLE=false  → never auto-enable
+ *   RATE_LIMIT_AUTO_ENABLE=true   → force on regardless of dashboard
+ *   (unset)                        → use dashboard setting
+ */
+function isAutoEnableActive(settings: RequestQueueSettings): boolean {
+  const env = process.env.RATE_LIMIT_AUTO_ENABLE?.trim().toLowerCase();
+  if (env === "false" || env === "0" || env === "off") return false;
+  if (env === "true" || env === "1" || env === "on") return true;
+  return settings.autoEnableApiKeyProviders;
+}
+
 function buildLimiterDefaults() {
   return {
     maxConcurrent: currentRequestQueueSettings.concurrentRequests,
@@ -113,23 +141,17 @@ function reconcileEnabledConnections(
     }
 
     if (
-      requestQueueSettings.autoEnableApiKeyProviders &&
+      isAutoEnableActive(requestQueueSettings) &&
       getProviderCategory(provider) === "apikey" &&
       isActive
     ) {
       nextEnabledConnections.add(connectionId);
       autoCount++;
 
-      const key = `${provider}:${connectionId}`;
-      if (!limiters.has(key)) {
-        limiters.set(
-          key,
-          new Bottleneck({
-            ...buildLimiterDefaults(),
-            id: key,
-          })
-        );
-      }
+      // Route through getLimiter so the `queued`/`executing` listeners and
+      // lastDispatchAt heartbeat are wired up — otherwise the watchdog sees
+      // `stalledMs = now - 0` and falsely flags healthy idle limiters as wedged.
+      getLimiter(provider, connectionId);
     }
   }
 
@@ -147,6 +169,43 @@ function reconcileEnabledConnections(
     explicitCount,
     autoCount,
   };
+}
+
+function watchdogTick() {
+  const now = Date.now();
+  for (const [key, limiter] of Array.from(limiters)) {
+    const counts = limiter.counts();
+    if (counts.QUEUED === 0) continue;
+    if (counts.RUNNING > 0 || counts.EXECUTING > 0) continue;
+    const lastDispatch = lastDispatchAt.get(key);
+    // No heartbeat yet → seed it and skip this tick. Prevents false wedge
+    // detection on a brand-new limiter or one created outside getLimiter.
+    if (lastDispatch === undefined) {
+      lastDispatchAt.set(key, now);
+      continue;
+    }
+    const stalledMs = now - lastDispatch;
+    if (stalledMs < WEDGE_THRESHOLD_MS) continue;
+
+    console.warn(
+      `🚨 [RATE-LIMIT] WEDGED: ${key} queued=${counts.QUEUED} running=0 executing=0 stalled=${stalledMs}ms — force-resetting`
+    );
+    limiters.delete(key);
+    lastDispatchAt.delete(key);
+    trackAsyncOperation(limiter.stop({ dropWaitingJobs: true }));
+  }
+}
+
+export function startRateLimitWatchdog(): void {
+  if (watchdogInterval) return;
+  watchdogInterval = setInterval(watchdogTick, WATCHDOG_INTERVAL_MS);
+  watchdogInterval.unref?.();
+}
+
+export function stopRateLimitWatchdog(): void {
+  if (!watchdogInterval) return;
+  clearInterval(watchdogInterval);
+  watchdogInterval = null;
 }
 
 function trackAsyncOperation<T>(promise: Promise<T>): Promise<T> {
@@ -184,6 +243,10 @@ export async function initializeRateLimits() {
 
     // Load persisted learned limits
     await loadPersistedLimits();
+
+    // Watchdog runs unconditionally — cheap, only fires when something is
+    // actually wedged.
+    startRateLimitWatchdog();
   } catch (err) {
     console.error("[RATE-LIMIT] Failed to load settings:", err.message);
   }
@@ -209,12 +272,15 @@ export function enableRateLimitProtection(connectionId) {
  */
 export function disableRateLimitProtection(connectionId) {
   enabledConnections.delete(connectionId);
-  // Clean up limiters for this connection
-  for (const [key] of limiters) {
+  // Clean up limiters for this connection. Use stop({dropWaitingJobs:true})
+  // instead of disconnect() so any queued promises actually reject — disconnect
+  // shuts the limiter down without draining the queue, leaking stuck callers.
+  for (const [key] of Array.from(limiters)) {
     if (key.includes(connectionId)) {
       const limiter = limiters.get(key);
-      limiter?.disconnect();
       limiters.delete(key);
+      lastDispatchAt.delete(key);
+      if (limiter) trackAsyncOperation(limiter.stop({ dropWaitingJobs: true }));
     }
   }
 }
@@ -259,8 +325,15 @@ function getLimiter(provider, connectionId, model = null) {
         );
       }
     });
+    // Heartbeat: timestamp every dispatch so the watchdog can tell a healthy
+    // queue (just dispatched a job) from a wedged one (queue has work but
+    // nothing has been dispatched in a while).
+    limiter.on("executing", () => {
+      lastDispatchAt.set(key, Date.now());
+    });
 
     limiters.set(key, limiter);
+    lastDispatchAt.set(key, Date.now());
   }
 
   return limiters.get(key);

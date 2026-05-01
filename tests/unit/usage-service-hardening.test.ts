@@ -421,7 +421,9 @@ test("usage service manual Antigravity refresh bypasses usage TTL caches", async
   globalThis.fetch = async (url) => {
     const urlStr = String(url);
     if (urlStr.includes("loadCodeAssist")) {
-      return new Response(JSON.stringify({ cloudaicompanionProject: "ag-project" }), { status: 200 });
+      return new Response(JSON.stringify({ cloudaicompanionProject: "ag-project" }), {
+        status: 200,
+      });
     }
 
     if (urlStr.includes("streamGenerateContent")) {

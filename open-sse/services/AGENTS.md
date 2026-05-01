@@ -48,6 +48,16 @@
 - **`volumeDetector.ts`** — Detects request volume spikes; triggers rate-limit escalation or load-shedding.
 - **`contextHandoff.ts`** — Serializes/restores session context for agent handoff (A2A protocol).
 
+### Prompt Compression Pipeline
+
+- **`compression/`** — Modular prompt compression running proactively before `contextManager.ts`.
+  - `strategySelector.ts` — Selects mode (off/lite/standard/aggressive/ultra) with combo overrides and auto-trigger.
+  - `lite.ts` — 5 lite techniques: whitespace collapse, system prompt dedup, tool result truncation, redundant removal, image URL placeholder.
+  - `stats.ts` — Per-request compression stats (original/compressed tokens, savings %, techniques).
+  - `types.ts` — Shared types (`CompressionMode`, `CompressionConfig`, `CompressionStats`, `CompressionResult`).
+  - `index.ts` — Barrel re-exports.
+  - Phase 1: lite mode only. Standard/aggressive/ultra = Phase 2.
+
 ### Auto-Routing & Adaptive
 
 - **`autoCombo/`** — Auto-generates combo configs based on historical performance, cost, and latency.

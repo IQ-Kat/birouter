@@ -1230,7 +1230,11 @@ async function fetchAntigravityAvailableModelsCached(
 
   const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
   const cached = _antigravityAvailableModelsCache.get(cacheKey);
-  if (!options.forceRefresh && cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS) {
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
+  ) {
     return cached.data;
   }
 
@@ -1361,25 +1365,31 @@ async function probeAntigravityCreditBalance(
 
   const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId || accountId);
   const cached = _antigravityCreditProbeCache.get(cacheKey);
-  if (!options.forceRefresh && cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CREDIT_PROBE_TTL_MS) {
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_CREDIT_PROBE_TTL_MS
+  ) {
     return cached.data;
   }
 
   const inflight = _antigravityCreditProbeInflight.get(cacheKey);
   if (inflight) return inflight;
 
-  const promise = probeAntigravityCreditBalanceUncached(accessToken, accountId, projectId).then(
-    (data) => {
-      _antigravityCreditProbeCache.set(cacheKey, { data, fetchedAt: Date.now() });
-      return data;
-    },
-    (error) => {
-      _antigravityCreditProbeCache.set(cacheKey, { data: null, fetchedAt: Date.now() });
-      throw error;
-    }
-  ).finally(() => {
-    _antigravityCreditProbeInflight.delete(cacheKey);
-  });
+  const promise = probeAntigravityCreditBalanceUncached(accessToken, accountId, projectId)
+    .then(
+      (data) => {
+        _antigravityCreditProbeCache.set(cacheKey, { data, fetchedAt: Date.now() });
+        return data;
+      },
+      (error) => {
+        _antigravityCreditProbeCache.set(cacheKey, { data: null, fetchedAt: Date.now() });
+        throw error;
+      }
+    )
+    .finally(() => {
+      _antigravityCreditProbeInflight.delete(cacheKey);
+    });
 
   _antigravityCreditProbeInflight.set(cacheKey, promise);
   return promise;
@@ -1501,7 +1511,12 @@ async function getAntigravityUsage(
     // If no cached balance and credits mode is enabled, fire a minimal probe
     const creditsMode = getCreditsMode();
     if ((options.forceRefresh || creditBalance === null) && creditsMode !== "off") {
-      creditBalance = await probeAntigravityCreditBalance(accessToken, accountId, projectId, options);
+      creditBalance = await probeAntigravityCreditBalance(
+        accessToken,
+        accountId,
+        projectId,
+        options
+      );
     }
 
     const data = await fetchAntigravityAvailableModelsCached(accessToken, projectId, options);

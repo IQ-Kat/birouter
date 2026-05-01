@@ -45,7 +45,7 @@ export OMNIROUTE_API_KEY="your-api-key"
 
 # Optional: Scope enforcement (default: disabled)
 export OMNIROUTE_MCP_ENFORCE_SCOPES="true"
-export OMNIROUTE_MCP_SCOPES="read:health,read:combos,read:quota,read:usage,read:models,execute:completions,write:combos,write:budget,write:resilience"
+export OMNIROUTE_MCP_SCOPES="read:health,read:combos,read:quota,read:usage,read:models,read:cache,read:compression,execute:completions,write:combos,write:budget,write:resilience,write:cache,write:compression"
 ```
 
 ### 2. stdio Transport (IDE Integration)
@@ -142,6 +142,15 @@ omniroute --mcp
 | 14  | `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | AI-powered combo recommendation by task type with budget/latency constraints                   |
 | 15  | `omniroute_explain_route`          | `read:health`, `read:usage`          | Explain why a request was routed to a provider (scoring factors, fallbacks)                    |
 | 16  | `omniroute_get_session_snapshot`   | `read:usage`                         | Full session snapshot: cost, tokens, top models, errors, budget status                         |
+
+### Cache and Compression Tools
+
+| #   | Tool                              | Scopes              | Description                                                                  |
+| --- | --------------------------------- | ------------------- | ---------------------------------------------------------------------------- |
+| 21  | `omniroute_cache_stats`           | `read:cache`        | Semantic cache, prompt-cache, and idempotency statistics                     |
+| 22  | `omniroute_cache_flush`           | `write:cache`       | Flush cache entries globally or by signature/model                           |
+| 23  | `omniroute_compression_status`    | `read:compression`  | Compression settings, analytics summary, and provider-aware cache statistics |
+| 24  | `omniroute_compression_configure` | `write:compression` | Configure compression mode and trigger thresholds at runtime                 |
 
 ---
 
@@ -530,9 +539,13 @@ The MCP server supports **fine-grained scope enforcement** for multi-tenant envi
 | `read:quota`          | `check_quota`                                                                                  |
 | `read:usage`          | `cost_report`, `explain_route`, `get_session_snapshot`                                         |
 | `read:models`         | `list_models_catalog`                                                                          |
+| `read:cache`          | `cache_stats`                                                                                  |
+| `read:compression`    | `compression_status`                                                                           |
 | `write:combos`        | `switch_combo`                                                                                 |
 | `write:budget`        | `set_budget_guard`                                                                             |
 | `write:resilience`    | `set_resilience_profile`                                                                       |
+| `write:cache`         | `cache_flush`                                                                                  |
+| `write:compression`   | `compression_configure`                                                                        |
 | `execute:completions` | `route_request`, `test_combo`                                                                  |
 
 **Wildcard scopes:** Use `read:*` to grant all read scopes, or `*` for full access.

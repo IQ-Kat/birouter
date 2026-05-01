@@ -48,15 +48,15 @@ function normalizeDataRobotChatUrl(baseUrl) {
   return buildDataRobotChatUrl(baseUrl);
 }
 
-function normalizeAzureAiChatUrl(baseUrl, apiType = "chat") {
+function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
   return buildAzureAiChatUrl(baseUrl, apiType);
 }
 
-function normalizeWatsonxChatUrl(baseUrl) {
+function normalizeWatsonxChatUrl(baseUrl: string) {
   return buildWatsonxChatUrl(baseUrl);
 }
 
-function normalizeOciChatUrl(baseUrl, apiType = "chat") {
+function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
   return buildOciChatUrl(baseUrl, apiType);
 }
 
@@ -353,7 +353,7 @@ export class DefaultExecutor extends BaseExecutor {
     if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
       if (this.provider?.startsWith?.("anthropic-compatible-")) {
         if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
-          const withoutStreamOptions = { ...withDefaults };
+          const withoutStreamOptions = { ...withDefaults } as Record<string, any>;
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
@@ -361,18 +361,24 @@ export class DefaultExecutor extends BaseExecutor {
         stream &&
         getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai"
       ) {
-        withDefaults = {
-          ...withDefaults,
-          stream_options: {
-            ...(withDefaults.stream_options || {}),
-            include_usage: true,
-          },
-        };
+        if (!credentials?.providerSpecificData?.disableStreamOptions) {
+          withDefaults = {
+            ...withDefaults,
+            stream_options: {
+              ...((withDefaults as any).stream_options || {}),
+              include_usage: true,
+            },
+          };
+        } else if (Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")) {
+          const withoutStreamOptions = { ...withDefaults } as Record<string, any>;
+          delete withoutStreamOptions.stream_options;
+          withDefaults = withoutStreamOptions;
+        }
       }
     }
 
     if (this.provider === "qwen" && typeof withDefaults === "object" && withDefaults !== null) {
-      return sanitizeQwenThinkingToolChoice(withDefaults, "QwenExecutor");
+      return sanitizeQwenThinkingToolChoice(withDefaults as any, "QwenExecutor");
     }
     return withDefaults;
   }

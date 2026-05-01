@@ -71,10 +71,10 @@ async function applyStreamReadiness(response: Response): Promise<Response> {
 }
 
 function errorResponse(status: number, message: string): Response {
-  return new Response(
-    JSON.stringify({ error: { message, type: "upstream_error" } }),
-    { status, headers: { "Content-Type": "application/json" } }
-  );
+  return new Response(JSON.stringify({ error: { message, type: "upstream_error" } }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 test("combo falls back when first model returns HTTP 200 zombie SSE stream", async () => {
@@ -113,10 +113,7 @@ test("combo falls back when first model returns HTTP 200 zombie SSE stream", asy
   assert.deepEqual(calls, ["glm/zombie-model", "openai/gpt-5.4-mini"]);
   assert.ok(
     log.entries.some(
-      (e) =>
-        e.level === "warn" &&
-        e.tag === "COMBO" &&
-        String(e.msg).includes("glm/zombie-model")
+      (e) => e.level === "warn" && e.tag === "COMBO" && String(e.msg).includes("glm/zombie-model")
     ),
     "combo should log warning for the failed model"
   );
@@ -190,11 +187,7 @@ test("combo retries 504 on same model before falling through (transient retry)",
 
   assert.equal(result.ok, true, "combo should succeed via fallback after retries");
   const zombieCalls = calls.filter((c) => c === "glm/zombie");
-  assert.equal(
-    zombieCalls.length,
-    2,
-    "combo should retry zombie once before falling through"
-  );
+  assert.equal(zombieCalls.length, 2, "combo should retry zombie once before falling through");
   assert.ok(calls.includes("openai/gpt-5.4-mini"), "combo should reach fallback model");
 });
 
