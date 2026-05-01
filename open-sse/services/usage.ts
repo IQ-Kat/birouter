@@ -652,7 +652,7 @@ function parseResetTime(resetValue) {
     if (resetValue instanceof Date) {
       date = resetValue;
     } else if (typeof resetValue === "number") {
-      date = new Date(resetValue);
+      date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
     } else if (typeof resetValue === "string") {
       date = new Date(resetValue);
     } else {

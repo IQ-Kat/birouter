@@ -240,7 +240,7 @@ export default function CompressionAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">show_chart</span>
-            Last 24 Hours
+            Last 24 Hours (Activity)
           </h3>
           <div className="flex items-end gap-2 h-48">
             {stats.last24h.map((entry, idx) => {
@@ -258,7 +258,7 @@ export default function CompressionAnalyticsTab() {
                     </div>
                   </div>
                   <div className="text-xs text-text-muted rotate-45 origin-left">
-                    {entry.hour.substring(0, 2)}
+                    {entry.hour.substring(11, 13)}
                   </div>
                 </div>
               );

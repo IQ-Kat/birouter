@@ -266,7 +266,10 @@ describe("E2E: Security", () => {
       return;
     }
 
-    expect([200, 400]).toContain(res.status);
+    if (res.status !== 503) {
+      console.log("SEC-1 FAILED STATUS:", res.status, "BODY:", await res.text());
+    }
+    expect(res.status).toBe(503);
   });
 
   itCase("should handle invalid API keys according to server configuration", async () => {
@@ -288,7 +291,10 @@ describe("E2E: Security", () => {
       return;
     }
 
-    expect([200, 400]).toContain(res.status);
+    if (res.status !== 503) {
+      console.log("SEC-2 FAILED STATUS:", res.status, "BODY:", await res.text());
+    }
+    expect(res.status).toBe(503);
   });
 
   itCase("should not expose internal errors in API responses", async () => {

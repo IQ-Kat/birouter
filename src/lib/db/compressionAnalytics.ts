@@ -70,7 +70,7 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     FROM compression_analytics ${whereClause}
   `
     )
-    .get(...params) as ScalarRow;
+    .get(...params) as ScalarRow | undefined;
 
   const modeRows = db
     .prepare(
@@ -104,6 +104,14 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     byProvider[key] = { count: r.cnt, tokensSaved: r.saved };
   }
 
+  const last24hMap = new Map<string, { hour: string; count: number; tokensSaved: number }>();
+  const now = new Date();
+  for (let i = 23; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 60 * 60 * 1000);
+    const hourStr = d.toISOString().substring(0, 14) + "00:00Z";
+    last24hMap.set(hourStr, { hour: hourStr, count: 0, tokensSaved: 0 });
+  }
+
   const hourRows = db
     .prepare(
       `
@@ -114,19 +122,25 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     GROUP BY hour ORDER BY hour ASC
   `
     )
-    .all(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) as Array<{
+    .all(new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()) as Array<{
     hour: string;
     cnt: number;
     saved: number;
   }>;
 
-  const last24h = hourRows.map((r) => ({ hour: r.hour, count: r.cnt, tokensSaved: r.saved }));
+  for (const r of hourRows) {
+    if (last24hMap.has(r.hour)) {
+      last24hMap.set(r.hour, { hour: r.hour, count: r.cnt, tokensSaved: r.saved });
+    }
+  }
+
+  const last24h = Array.from(last24hMap.values());
 
   return {
-    totalRequests: scalar.total,
-    totalTokensSaved: scalar.totalSaved,
-    avgSavingsPct: Math.round(scalar.avgPct),
-    avgDurationMs: Math.round(scalar.avgDur),
+    totalRequests: scalar?.total ?? 0,
+    totalTokensSaved: scalar?.totalSaved ?? 0,
+    avgSavingsPct: Math.round(scalar?.avgPct ?? 0),
+    avgDurationMs: Math.round(scalar?.avgDur ?? 0),
     byMode,
     byProvider,
     last24h,

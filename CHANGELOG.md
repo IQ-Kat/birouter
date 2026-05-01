@@ -17,6 +17,11 @@
 
 - **fix(ui):** hide combo compression controls when the global setting is disabled (#1840)
 - **fix(db):** tolerate missing request_detail_logs table for legacy deployments (#1848)
+- **fix(core):** remove unneeded \`store\` payload parameter for providers lacking support (closes #1841)
+- **fix(core):** ensure safeOutboundFetch and A2A routers return 503 Service Unavailable when security guardrails are triggered
+- **fix(usage):** correct Unix seconds vs milliseconds parsing logic for Kiro AI quota reset (closes #1849)
+- **fix(ui):** apply robust NaN handling, ensure 24h consistency, and fix missing hour slots in Compression Analytics (closes #1844)
+- **fix(ui):** implement short number formatting for token consumption metrics on cache pages to prevent overflow (closes #1842)
 
 ### 🛠️ Maintenance
 
