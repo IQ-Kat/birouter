@@ -136,6 +136,7 @@ import {
   isFallbackDecision,
   EMERGENCY_FALLBACK_CONFIG,
 } from "../services/emergencyFallback.ts";
+import type { CompressionConfig } from "../services/compression/types.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
 import {
   resolveExplicitStreamAlias,
@@ -1561,15 +1562,37 @@ export async function handleChatCore({
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let promptCompressionEnabled = false;
+    let compressionSettings: CompressionConfig | null = null;
+
+    try {
+      const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
+      compressionSettings = await getCompressionSettings();
+      promptCompressionEnabled = compressionSettings.enabled;
+    } catch (err) {
+      log?.warn?.(
+        "COMPRESSION",
+        "Compression settings lookup skipped: " + (err instanceof Error ? err.message : String(err))
+      );
+    }
 
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
-      const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
       const { selectCompressionStrategy, applyCompression } =
         await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
-      let config = await getCompressionSettings();
+      let config: CompressionConfig = compressionSettings ?? {
+        enabled: false,
+        defaultMode: "off",
+        autoTriggerTokens: 0,
+        cacheMinutes: 5,
+        preserveSystemPrompt: true,
+        comboOverrides: {},
+      };
+      if (!promptCompressionEnabled || !compressionSettings) {
+        log?.debug?.("COMPRESSION", "Prompt compression disabled or unavailable");
+      }
       let compressionComboKey = comboName ?? null;
       if (isCombo && comboName) {
         try {
@@ -1704,6 +1727,12 @@ export async function handleChatCore({
     }
     // --- End Modular Compression Pipeline ---
 
+    if (!promptCompressionEnabled) {
+      log?.debug?.(
+        "CONTEXT",
+        "Skipping proactive context compression: Prompt Compression disabled"
+      );
+    }
     let contextLimit = getTokenLimit(provider, effectiveModel);
 
     if (isCombo && comboName) {
@@ -1748,7 +1777,7 @@ export async function handleChatCore({
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
 
-    if (estimatedTokens > threshold) {
+    if (promptCompressionEnabled && estimatedTokens > threshold) {
       log?.info?.(
         "CONTEXT",
         `Proactive compression triggered: ${estimatedTokens} tokens > ${threshold} threshold (${contextLimit} limit)`
