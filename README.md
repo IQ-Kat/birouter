@@ -8,6 +8,16 @@ _The most complete open-source AI proxy — **one endpoint**, **160+ providers**
 
 **Chat Completions • Responses API • Embeddings • Image Generation • Video • Music • Audio Speech/Transcription • Reranking • Moderations • Web Search • MCP Server • A2A Protocol • 4,600+ Tests • 100% TypeScript**
 
+<br/>
+
+<a href="https://agentrouter.org/register?aff=70LM">
+  <img src="https://img.shields.io/badge/🎁_GET_$100_FREE_AI_CREDITS-AgentRouter_(no_card_needed)-ff6600?style=for-the-badge&labelColor=1a1a2e&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAyTDIgNy41bDEwIDUuNSAxMC01LjVMMTIgMnpNMiAxNy41bDEwIDUuNSAxMC01LjVMMTIgMTIgMiAxNy41eiIvPjwvc3ZnPg==" alt="Get $100 Free AI Credits" height="40"/>
+</a>
+
+<sub>🔥 <b>Limited offer:</b> Sign up at <a href="https://agentrouter.org/register?aff=70LM"><b>AgentRouter</b></a> and get <b>$100 in free AI credits</b></br> Access GPT-5, Claude, Gemini, DeepSeek & 100+ models. No credit card required. <a href="https://agentrouter.org/register?aff=70LM"><b>Claim your credits →</b></a></sub>
+
+<br/>
+
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [🗜️ Compression](#%EF%B8%8F-prompt-compression--save-15-75-tokens-automatically) • [💰 Pricing](#-pricing-at-a-glance) • [🎯 Use Cases](#-use-cases--ready-made-combo-playbooks) • [🌍 Proxy](#-bypass-geographic-blocks--use-ai-from-any-country) • [❓ FAQ](#-frequently-asked-questions) • [📖 Docs](#-documentation) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
@@ -852,19 +862,19 @@ No proxy? Use the built-in **1proxy** integration for **hundreds of free, valida
 
 > Combine all free providers into one unbreakable combo — OmniRoute auto-routes between them when quota runs out.
 
-| Provider          | Prefix      | Free Models                                                   | Quota             |
-| ----------------- | ----------- | ------------------------------------------------------------- | ----------------- |
-| **Kiro**          | `kr/`       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6                        | ♾️ Unlimited      |
-| **Qoder**         | `if/`       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2.1 | ♾️ Unlimited      |
-| **Qwen**          | `qw/`       | qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next         | ♾️ Unlimited      |
-| **Pollinations**  | `pol/`      | GPT-5, Claude, Gemini, DeepSeek, Llama 4, Mistral             | No key needed     |
-| **LongCat**       | `lc/`       | LongCat-Flash-Lite                                            | 50M tokens/day 🔥 |
-| **Gemini CLI**    | `gc/`       | gemini-3-flash, gemini-2.5-pro                                | 180K tok/mo       |
-| **Cloudflare AI** | `cf/`       | 50+ models (Llama, Gemma, Mistral, Whisper)                   | 10K Neurons/day   |
-| **Groq**          | `groq/`     | Llama 3.3 70B, Qwen3 32B, Kimi K2                             | 14.4K RPD         |
-| **NVIDIA NIM**    | `nvidia/`   | 129 models (DeepSeek, Llama, GLM, Kimi)                       | ~40 RPM           |
-| **Cerebras**      | `cerebras/` | Qwen3 235B, GPT-OSS 120B, Llama 3.1                           | 1M tok/day        |
-| **Scaleway**      | `scw/`      | Qwen3 235B, Llama 70B, DeepSeek V3                            | 1M tokens (EU)    |
+| Provider          | Prefix      | Free Models                                                   | Quota                |
+| ----------------- | ----------- | ------------------------------------------------------------- | -------------------- |
+| **Kiro**          | `kr/`       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6                        | 50 CREDITS per month |
+| **Qoder**         | `if/`       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2.1 | ♾️ Unlimited         |
+| **Qwen**          | `qw/`       | qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next         | ♾️ Unlimited         |
+| **Pollinations**  | `pol/`      | GPT-5, Claude, Gemini, DeepSeek, Llama 4, Mistral             | No key needed        |
+| **LongCat**       | `lc/`       | LongCat-Flash-Lite                                            | 50M tokens/day 🔥    |
+| **Gemini CLI**    | `gc/`       | gemini-3-flash, gemini-2.5-pro                                | 180K tok/mo          |
+| **Cloudflare AI** | `cf/`       | 50+ models (Llama, Gemma, Mistral, Whisper)                   | 10K Neurons/day      |
+| **Groq**          | `groq/`     | Llama 3.3 70B, Qwen3 32B, Kimi K2                             | 14.4K RPD            |
+| **NVIDIA NIM**    | `nvidia/`   | 129 models (DeepSeek, Llama, GLM, Kimi)                       | ~40 RPM              |
+| **Cerebras**      | `cerebras/` | Qwen3 235B, GPT-OSS 120B, Llama 3.1                           | 1M tok/day           |
+| **Scaleway**      | `scw/`      | Qwen3 235B, Llama 70B, DeepSeek V3                            | 1M tokens (EU)       |
 
 <details>
 <summary><b>📖 25+ more free providers — Groq, Cerebras, Mistral, GitHub Models, OpenRouter, and more</b></summary>
