@@ -26,6 +26,7 @@
 - **fix(maritalk):** update Maritalk model list, use Authorization Key header, and align with latest API endpoints (#1856)
 - **fix(grok-web):** stabilize tool calling (bash, readFile, webSearch) and response parsing by mapping native Grok intents to standard OpenAI payloads (#1857)
 - **fix(providers):** correctly map and expose the Upstage embedding and chat model catalogs (#1855)
+- **fix(executor):** apply proper urlSuffix and custom authHeaders for unknown registry-based providers in DefaultExecutor (closes #1846) (#1861)
 
 ### 🛠️ Maintenance
 
