@@ -1560,7 +1560,150 @@ export async function handleChatCore({
   const allMessages =
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
-    const estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+
+    // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
+    // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
+    try {
+      const { getCompressionSettings } = await import("../../src/lib/db/compression.ts");
+      const { selectCompressionStrategy, applyCompression } =
+        await import("../services/compression/strategySelector.ts");
+      const { trackCompressionStats } = await import("../services/compression/stats.ts");
+      let config = await getCompressionSettings();
+      let compressionComboKey = comboName ?? null;
+      if (isCombo && comboName) {
+        try {
+          const { getComboByName } = await import("../../src/lib/localDb");
+          let comboConfig = await getComboByName(comboName);
+          if (!comboConfig && comboName.startsWith("combo/")) {
+            comboConfig = await getComboByName(comboName.substring(6));
+          }
+          const comboRuntimeConfig =
+            comboConfig?.config && typeof comboConfig.config === "object"
+              ? (comboConfig.config as Record<string, unknown>)
+              : {};
+          const comboMode =
+            typeof comboRuntimeConfig.compressionMode === "string"
+              ? comboRuntimeConfig.compressionMode
+              : typeof comboConfig?.compressionOverride === "string"
+                ? comboConfig.compressionOverride
+                : null;
+          if (
+            comboMode === "off" ||
+            comboMode === "lite" ||
+            comboMode === "standard" ||
+            comboMode === "aggressive" ||
+            comboMode === "ultra"
+          ) {
+            config = {
+              ...config,
+              comboOverrides: {
+                ...(config.comboOverrides ?? {}),
+                ...(comboName ? { [comboName]: comboMode } : {}),
+                ...(comboConfig?.id ? { [comboConfig.id]: comboMode } : {}),
+              },
+            };
+            compressionComboKey = comboName;
+          }
+        } catch (err) {
+          log?.debug?.(
+            "COMPRESSION",
+            "Combo compression override lookup skipped: " +
+              (err instanceof Error ? err.message : String(err))
+          );
+        }
+      }
+      const compressionInputBody = body as Record<string, unknown>;
+      const mode = selectCompressionStrategy(
+        config,
+        compressionComboKey,
+        estimatedTokens,
+        compressionInputBody,
+        { provider, targetFormat, model: effectiveModel }
+      );
+      if (mode !== "off") {
+        const result = applyCompression(compressionInputBody, mode, {
+          model: effectiveModel,
+          config,
+        });
+        if (result.compressed && result.stats) {
+          body = result.body as typeof body;
+          estimatedTokens = result.stats.compressedTokens;
+          trackCompressionStats(result.stats);
+          void (async () => {
+            try {
+              const { insertCompressionAnalyticsRow } =
+                await import("../../src/lib/db/compressionAnalytics.ts");
+              insertCompressionAnalyticsRow({
+                timestamp: new Date().toISOString(),
+                combo_id: comboName ?? null,
+                provider: provider ?? null,
+                mode,
+                original_tokens: result.stats.originalTokens,
+                compressed_tokens: result.stats.compressedTokens,
+                tokens_saved: Math.max(
+                  0,
+                  result.stats.originalTokens - result.stats.compressedTokens
+                ),
+                duration_ms: result.stats.durationMs ?? null,
+                request_id: skillRequestId,
+              });
+            } catch (err) {
+              log?.debug?.(
+                "COMPRESSION",
+                "Compression analytics write skipped: " +
+                  (err instanceof Error ? err.message : String(err))
+              );
+            }
+          })();
+          void (async () => {
+            try {
+              const { detectCachingContext } =
+                await import("../services/compression/cachingAware.ts");
+              const { recordCacheStats } =
+                await import("../../src/lib/db/compressionCacheStats.ts");
+              const cacheContext = detectCachingContext(compressionInputBody, {
+                provider,
+                targetFormat,
+                model: effectiveModel,
+              });
+              const tokensSavedCompression = Math.max(
+                0,
+                result.stats.originalTokens - result.stats.compressedTokens
+              );
+              recordCacheStats({
+                provider: cacheContext.provider ?? provider ?? "unknown",
+                model: effectiveModel ?? "",
+                compressionMode: mode,
+                cacheControlPresent: cacheContext.hasCacheControl,
+                estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
+                tokensSavedCompression,
+                tokensSavedCaching: 0,
+                netSavings: tokensSavedCompression,
+              });
+            } catch (err) {
+              log?.debug?.(
+                "COMPRESSION",
+                "Compression cache stats write skipped: " +
+                  (err instanceof Error ? err.message : String(err))
+              );
+            }
+          })();
+          log?.info?.(
+            "COMPRESSION",
+            `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
+          );
+        }
+      }
+    } catch (err) {
+      log?.warn?.(
+        "COMPRESSION",
+        "Compression pipeline error (non-fatal): " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    }
+    // --- End Modular Compression Pipeline ---
+
     let contextLimit = getTokenLimit(provider, effectiveModel);
 
     if (isCombo && comboName) {

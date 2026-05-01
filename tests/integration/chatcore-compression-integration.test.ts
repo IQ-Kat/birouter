@@ -13,6 +13,8 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const readCacheDb = await import("../../src/lib/db/readCache.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const compressionDb = await import("../../src/lib/db/compression.ts");
+const compressionAnalyticsDb = await import("../../src/lib/db/compressionAnalytics.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { estimateTokens, getTokenLimit } = await import("../../open-sse/services/contextManager.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
@@ -430,6 +432,72 @@ test("chatCore integration: combo requests run proactive compression before Kiro
     const currentContent =
       typeof userInputMessage?.content === "string" ? userInputMessage.content : "";
     assert.match(currentContent, /Please summarize everything\./);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("chatCore integration: modular compression records analytics row best-effort", async () => {
+  const provider = "openai";
+  const model = "gpt-4";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "lite",
+    autoTriggerTokens: 0,
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  const body = {
+    model,
+    stream: false,
+    messages: [
+      {
+        role: "user",
+        content: `Please help with this request.   ${"Keep spacing.   ".repeat(400)}\n\n\n\nFinal line.`,
+      },
+    ],
+  };
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+
+  try {
+    const result = await handleChatCore({
+      body,
+      modelInfo: { provider, model },
+      credentials: { apiKey: "test-key" },
+      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+      connectionId: connection.id,
+    });
+
+    assert.ok(result.success, "Request should succeed");
+
+    let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    for (let attempt = 0; attempt < 20 && summary.totalRequests === 0; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    }
+
+    assert.equal(summary.totalRequests, 1);
+    assert.ok(summary.totalTokensSaved > 0, "Analytics should record token savings");
+    assert.equal(summary.byMode.lite.count, 1);
+    assert.equal(summary.byProvider.openai.count, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

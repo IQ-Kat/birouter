@@ -126,12 +126,40 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
-    const sinceIso = getRangeStartIso(range);
+    const startDate = searchParams.get("startDate") || undefined;
+    const endDate = searchParams.get("endDate") || undefined;
+    const apiKeyIdsParam = searchParams.get("apiKeyIds") || "";
+    const apiKeyIds = apiKeyIdsParam ? apiKeyIdsParam.split(",").filter(Boolean) : [];
+
+    const sinceIso = startDate || getRangeStartIso(range);
+    const untilIso = endDate || null;
     const presetsParam = searchParams.get("presets");
 
     const db = getDbInstance();
-    const whereClause = sinceIso ? "WHERE timestamp >= @since" : "";
-    const params = sinceIso ? { since: sinceIso } : {};
+
+    const conditions = [];
+    const params: Record<string, string> = {};
+
+    if (sinceIso) {
+      conditions.push("timestamp >= @since");
+      params.since = sinceIso;
+    }
+    if (untilIso) {
+      conditions.push("timestamp <= @until");
+      params.until = untilIso;
+    }
+
+    let apiKeyWhere = "";
+    if (apiKeyIds.length > 0) {
+      const placeholders = apiKeyIds.map((_, i) => `@apiKey${i}`);
+      apiKeyIds.forEach((key, i) => {
+        params[`apiKey${i}`] = key;
+      });
+      apiKeyWhere = `(api_key_name IN (${placeholders.join(",")}) OR api_key_id IN (${placeholders.join(",")}))`;
+      conditions.push(apiKeyWhere);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Fetch pricing data for cost calculation (no rows loaded)
     const { getPricing } = await import("@/lib/db/settings");
@@ -199,6 +227,24 @@ export async function GET(request: Request) {
 
     const heatmapStart = new Date();
     heatmapStart.setUTCDate(heatmapStart.getUTCDate() - 364);
+    // Custom date range might need a wider heatmap window
+    if (startDate) {
+      const customStart = new Date(startDate);
+      if (customStart.getTime() < heatmapStart.getTime()) {
+        heatmapStart.setTime(customStart.getTime());
+      }
+    }
+
+    // Heatmap needs its own whereClause if api keys are filtered
+    const heatmapConditions = ["timestamp >= @heatmapStart"];
+    if (apiKeyWhere) heatmapConditions.push(apiKeyWhere);
+    const heatmapParams: Record<string, string> = { heatmapStart: heatmapStart.toISOString() };
+    if (apiKeyIds.length > 0) {
+      apiKeyIds.forEach((key, i) => {
+        heatmapParams[`apiKey${i}`] = key;
+      });
+    }
+
     const heatmapRows = db
       .prepare(
         `
@@ -206,12 +252,12 @@ export async function GET(request: Request) {
           DATE(timestamp) as date,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
-        WHERE timestamp >= @heatmapStart
+        WHERE ${heatmapConditions.join(" AND ")}
         GROUP BY DATE(timestamp)
         ORDER BY date ASC
       `
       )
-      .all({ heatmapStart: heatmapStart.toISOString() }) as Array<Record<string, unknown>>;
+      .all(heatmapParams) as Array<Record<string, unknown>>;
 
     const modelRows = db
       .prepare(
@@ -314,10 +360,7 @@ export async function GET(request: Request) {
       )
       .all(params) as Array<Record<string, unknown>>;
 
-    const apiKeyWhereClause = appendWhereCondition(
-      whereClause,
-      "(api_key_id IS NOT NULL AND api_key_id != '') OR (api_key_name IS NOT NULL AND api_key_name != '')"
-    );
+    const apiKeyWhereClause = whereClause;
     const apiKeyRows = db
       .prepare(
         `
@@ -403,8 +446,7 @@ export async function GET(request: Request) {
             )
           : 0,
       avgLatencyMs: Math.round(Number(summaryRow?.avgLatencyMs || 0)),
-      // Compute totalCost by summing cost from byModel (calculated later)
-      totalCost: 0, // Will be updated after byModel is processed
+      totalCost: 0,
       firstRequest: summaryRow?.firstRequest || "",
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
@@ -620,7 +662,7 @@ export async function GET(request: Request) {
       weeklyTokens,
       weeklyCounts,
       range,
-    };
+    } as any;
 
     if (presetsParam) {
       const allowedRanges = new Set(["1d", "7d", "30d", "90d", "ytd", "all"]);
@@ -639,8 +681,19 @@ export async function GET(request: Request) {
         }
 
         const presetSinceIso = getRangeStartIso(presetRange);
-        const presetWhere = presetSinceIso ? "WHERE timestamp >= @presetSince" : "";
-        const presetParams = presetSinceIso ? { presetSince: presetSinceIso } : {};
+        const presetConditions = [];
+        const presetParams: Record<string, string> = {};
+        if (presetSinceIso) {
+          presetConditions.push("timestamp >= @presetSince");
+          presetParams.presetSince = presetSinceIso;
+        }
+        if (apiKeyWhere) {
+          presetConditions.push(apiKeyWhere);
+          Object.assign(presetParams, params);
+        }
+
+        const presetWhere =
+          presetConditions.length > 0 ? `WHERE ${presetConditions.join(" AND ")}` : "";
 
         const presetModelRows = db
           .prepare(

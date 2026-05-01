@@ -6,9 +6,12 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-analytics-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+const ORIGINAL_API_KEY_SECRET = process.env.API_KEY_SECRET;
+process.env.API_KEY_SECRET = "test-usage-analytics-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const analyticsRoute = await import("../../src/app/api/usage/analytics/route.ts");
 
@@ -17,6 +20,7 @@ const EXPECTED_TOTAL_COST = 0.020925;
 
 async function resetStorage() {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   clearPendingRequests();
@@ -70,7 +74,14 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+
+  if (ORIGINAL_API_KEY_SECRET === undefined) {
+    delete process.env.API_KEY_SECRET;
+  } else {
+    process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
+  }
 });
 
 test("GET /api/usage/analytics returns summary with aggregated metrics", async () => {
@@ -171,6 +182,31 @@ test("GET /api/usage/analytics includes cost by API key", async () => {
   assert.equal(body.byApiKey[0].apiKeyId, "test-key");
   assert.equal(body.byApiKey[0].apiKeyName, "Primary Key");
   assertClose(body.byApiKey[0].cost, body.summary.totalCost);
+});
+
+test("GET /api/usage/analytics does not persist guessed API key attribution", async () => {
+  await localDb.updatePricing({
+    openai: { "gpt-4o": { input: 2.5, output: 10 } },
+  });
+  await apiKeysDb.createApiKey("Unrestricted Key", "machine1234567890");
+
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "legacy-conn", null, null, 100, 50, 1, 200, new Date().toISOString());
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.ok(body.byApiKey.some((row) => row.apiKeyName === "Unknown API key"));
+
+  const row = db
+    .prepare("SELECT api_key_id, api_key_name FROM usage_history WHERE connection_id = ?")
+    .get("legacy-conn") as { api_key_id: string | null; api_key_name: string | null };
+  assert.equal(row.api_key_id, null);
+  assert.equal(row.api_key_name, null);
 });
 
 test("GET /api/usage/analytics returns weeklyPattern for the costs dashboard", async () => {

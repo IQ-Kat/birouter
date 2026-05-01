@@ -263,8 +263,8 @@ NOTES=$(awk "/^## \\[$VERSION\\]/{flag=1; next} /^---/{if(flag) {flag=0; exit}} 
 if [ -z "$NOTES" ]; then NOTES="OmniRoute v$VERSION Release"; fi
 
 git tag -a "v$VERSION" -m "Release v$VERSION"
-git push origin --tags
-gh release create "v$VERSION" --title "v$VERSION" --notes "$NOTES" --target main
+git push origin "v$VERSION"
+gh release create "v$VERSION" --repo diegosouzapw/OmniRoute --title "v$VERSION" --notes "$NOTES" --target main || gh release edit "v$VERSION" --repo diegosouzapw/OmniRoute --title "v$VERSION" --notes "$NOTES"
 ```
 
 ### 14. 🐳 Trigger Docker Hub build (MANDATORY — keep npm and Docker in sync)

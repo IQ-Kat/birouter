@@ -611,6 +611,22 @@ test("DefaultExecutor.transformRequest only injects stream usage for OpenAI chat
   assert.equal((responsesResult as any).stream_options, undefined);
 });
 
+test("DefaultExecutor.transformRequest respects disableStreamOptions for OpenAI chat targets", () => {
+  const openAICompat = new DefaultExecutor("openai-compatible-test");
+  const chatBody = { model: "gpt-4.1", messages: [{ role: "user", content: "hi" }] };
+
+  const chatResultDisabled = openAICompat.transformRequest("gpt-4.1", chatBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1", disableStreamOptions: true },
+  });
+
+  const chatResultEnabled = openAICompat.transformRequest("gpt-4.1", chatBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1", disableStreamOptions: false },
+  });
+
+  assert.equal((chatResultDisabled as any).stream_options, undefined);
+  assert.deepEqual((chatResultEnabled as any).stream_options, { include_usage: true });
+});
+
 test("DefaultExecutor.transformRequest strips stream_options from Anthropic-compatible targets", () => {
   const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
   const anthropicCcCompat = new DefaultExecutor("anthropic-compatible-cc-test");

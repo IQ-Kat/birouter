@@ -132,7 +132,7 @@ All persistence uses SQLite through domain-specific modules:
 `backup.ts`, `proxies.ts`, `prompts.ts`, `webhooks.ts`, `detailedLogs.ts`,
 `domainState.ts`, `registeredKeys.ts`, `quotaSnapshots.ts`, `modelComboMappings.ts`,
 `cliToolState.ts`, `encryption.ts`, `readCache.ts`, `secrets.ts`, `stateReset.ts`,
-`contextHandoffs.ts`.
+`contextHandoffs.ts`, `compression.ts`.
 Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
@@ -142,7 +142,7 @@ Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
   journaling. `SCHEMA_SQL` defines 15 base tables. Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 21 files (`001_initial_schema.sql` → `021_combo_call_log_targets.sql`).
+- **Migrations**: 22 files (`001_initial_schema.sql` → `022_compression_settings.sql`).
   Each migration is idempotent and runs in a transaction.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
@@ -285,7 +285,24 @@ Includes request/response translators with helpers for image handling.
 `autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
 `contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
 `emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
-`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, and more.
+`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, `compression/` (prompt
+compression pipeline), and more.
+
+#### Prompt Compression Pipeline (`compression/`)
+
+Modular prompt compression that runs proactively before the existing reactive context manager.
+
+- **`strategySelector.ts`**: Selects compression mode based on config, combo overrides, auto-trigger
+  thresholds. Priority: combo override > auto-trigger > default mode > off.
+- **`lite.ts`**: 5 lite-mode techniques: `collapseWhitespace`, `dedupSystemPrompt`,
+  `compressToolResults`, `removeRedundantContent`, `replaceImageUrls`. Target: 10-15% savings at
+  <1ms latency.
+- **`stats.ts`**: Per-request compression stats tracking (original tokens, compressed tokens,
+  savings %, techniques used).
+- **`types.ts`**: `CompressionMode` (off/lite/standard/aggressive/ultra), `CompressionConfig`,
+  `CompressionStats`, `CompressionResult`.
+- DB settings in `src/lib/db/compression.ts`, API route at `src/app/api/settings/compression/`.
+- Phase 1 implements lite mode only; standard/aggressive/ultra are placeholders for Phase 2.
 
 #### Combo Routing Engine (`combo.ts`)
 
