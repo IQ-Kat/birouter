@@ -228,17 +228,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
   maritalk: buildModels(["sabia-3", "sabia-3-small"]),
-  "xiaomi-mimo": buildModels([
-    "mimo-v2.5-pro",
-    "mimo-v2.5",
-    "mimo-v2.5-tts",
-    "mimo-v2.5-tts-voiceclone",
-    "mimo-v2.5-tts-voicedesign",
-    "mimo-v2-pro",
-    "mimo-v2-omni",
-    "mimo-v2-tts",
-    "mimo-v2-flash",
-  ]),
+  "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",
@@ -398,7 +388,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5", name: "GPT 5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-mini", name: "GPT 5.5 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
@@ -1094,6 +1083,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "grok-4.3", name: "Grok 4.3" },
       { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi Agent" },
       { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
       { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20" },
@@ -1111,19 +1101,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "cookie",
     models: [
-      { id: "gpt-5.3-instant", name: "GPT-5.3 Instant" },
-      { id: "gpt-5.3", name: "GPT-5.3" },
-      { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" },
-      { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" },
-      { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" },
-      { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" },
-      { id: "gpt-5.2-instant", name: "GPT-5.2 Instant" },
-      { id: "gpt-5.2", name: "GPT-5.2" },
-      { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" },
-      { id: "gpt-5.1", name: "GPT-5.1" },
-      { id: "gpt-5", name: "GPT-5" },
-      { id: "gpt-5-mini", name: "GPT-5 Mini" },
-      { id: "o3", name: "o3" },
+      { id: "gpt-5.5-pro", name: "GPT-5.5 Pro" }, //pro tier only
+      { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" }, //plus, pro tier
+      { id: "gpt-5.4-pro", name: "GPT-5.4 Pro" }, //pro tier only
+      { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" }, //plus, pro tier
+      { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" }, //free-login only
+      { id: "gpt-5.3", name: "GPT-5.3" }, //free, free-login, plus, pro tier
+      { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" }, //limit fallback
+      { id: "gpt-5.2-pro", name: "GPT-5.2 Pro" }, //pro tier only
+      { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" }, //plus ~ tier
+      { id: "gpt-5.2-instant", name: "GPT-5.2 Instant" }, //plus ~ tier
+      { id: "o3", name: "o3" }, //plus ~ tier
+      { id: "gpt-4-5", name: "GPT-4.5" }, //pro tier only
     ],
   },
 
@@ -2055,6 +2044,20 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "mistral-large-latest", name: "Mistral Large (via AI/ML API)" },
     ],
     passthroughModels: true,
+  },
+  // Free tier: 50 RPM, 500,000 TPM
+  "nous-research": {
+    id: "nous-research",
+    alias: "nous",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://inference-api.nousresearch.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "Hermes-4-405B", name: "Hermes 4 7B (Nous Research)" },
+      { id: "Hermes-4-70B", name: "Hermes 4 70B (Nous Research)" },
+    ],
   },
 };
 
