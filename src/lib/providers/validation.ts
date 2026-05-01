@@ -264,12 +264,12 @@ function toValidationErrorResult(error: unknown) {
   return {
     valid: false,
     error: message || "Validation failed",
-    unsupported: false,
+    unsupported: false as const,
     ...(statusCode ? { statusCode } : {}),
     ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
       ? { timeout: true }
       : {}),
-    ...(statusCode === 400 ? { securityBlocked: true } : {}),
+    ...(statusCode === 503 ? { securityBlocked: true } : {}),
   };
 }
 
@@ -280,6 +280,13 @@ async function validateOpenAILikeProvider({
   providerSpecificData = {},
   modelId = "gpt-4o-mini",
   modelsUrl: customModelsUrl,
+}: {
+  provider: string;
+  apiKey: string;
+  baseUrl: string;
+  providerSpecificData?: any;
+  modelId?: string;
+  modelsUrl?: string;
 }) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
@@ -2009,7 +2016,7 @@ export async function validateClaudeCodeCompatibleProvider({
   const payload = buildClaudeCodeCompatibleValidationPayload(
     providerSpecificData?.validationModelId || "claude-sonnet-4-6"
   );
-  const sessionId = JSON.parse(payload.metadata.user_id).session_id;
+  const sessionId = JSON.parse(payload.metadata.user_id as string).session_id;
 
   try {
     const messagesRes = await validationWrite(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
