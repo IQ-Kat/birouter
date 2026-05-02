@@ -4,6 +4,14 @@
 
 ---
 
+## [3.7.9] — 2026-05-02
+
+### 🐛 Bug Fixes
+
+- **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
+
+---
+
 ## [3.7.8] — 2026-05-01
 
 ### ✨ New Features
