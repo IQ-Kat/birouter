@@ -11,6 +11,17 @@ export interface CompressionAnalyticsRow {
   tokens_saved: number;
   duration_ms?: number | null;
   request_id?: string | null;
+  actual_prompt_tokens?: number | null;
+  actual_completion_tokens?: number | null;
+  actual_total_tokens?: number | null;
+  actual_cache_read_tokens?: number | null;
+  actual_cache_write_tokens?: number | null;
+  estimated_usd_saved?: number | null;
+  mcp_description_tokens_saved?: number | null;
+  multimodal_skip_count?: number | null;
+  receipt_source?: string | null;
+  validation_fallback?: boolean | number | null;
+  output_mode?: string | null;
 }
 
 export interface CompressionAnalyticsSummary {
@@ -21,14 +32,85 @@ export interface CompressionAnalyticsSummary {
   byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
   byProvider: Record<string, { count: number; tokensSaved: number }>;
   last24h: Array<{ hour: string; count: number; tokensSaved: number }>;
+  validationFallbacks: number;
+  realUsage: {
+    requestsWithReceipts: number;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    cacheReadTokens: number;
+    cacheWriteTokens: number;
+    estimatedUsdSaved: number;
+    bySource: Record<string, number>;
+  };
+}
+
+let columnsEnsured = false;
+
+function ensureCompressionAnalyticsColumns(): void {
+  if (columnsEnsured) return;
+  const db = getDbInstance();
+  const rows = db.prepare("PRAGMA table_info(compression_analytics)").all() as Array<{
+    name: string;
+  }>;
+  const columns = new Set(rows.map((row) => row.name));
+  const addColumn = (name: string, sql: string) => {
+    if (!columns.has(name)) db.exec(sql);
+  };
+  addColumn(
+    "actual_prompt_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_prompt_tokens INTEGER"
+  );
+  addColumn(
+    "actual_completion_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_completion_tokens INTEGER"
+  );
+  addColumn(
+    "actual_total_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_total_tokens INTEGER"
+  );
+  addColumn(
+    "actual_cache_read_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_read_tokens INTEGER"
+  );
+  addColumn(
+    "actual_cache_write_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_write_tokens INTEGER"
+  );
+  addColumn(
+    "estimated_usd_saved",
+    "ALTER TABLE compression_analytics ADD COLUMN estimated_usd_saved REAL"
+  );
+  addColumn(
+    "mcp_description_tokens_saved",
+    "ALTER TABLE compression_analytics ADD COLUMN mcp_description_tokens_saved INTEGER DEFAULT 0"
+  );
+  addColumn(
+    "multimodal_skip_count",
+    "ALTER TABLE compression_analytics ADD COLUMN multimodal_skip_count INTEGER DEFAULT 0"
+  );
+  addColumn("receipt_source", "ALTER TABLE compression_analytics ADD COLUMN receipt_source TEXT");
+  addColumn(
+    "validation_fallback",
+    "ALTER TABLE compression_analytics ADD COLUMN validation_fallback INTEGER DEFAULT 0"
+  );
+  addColumn("output_mode", "ALTER TABLE compression_analytics ADD COLUMN output_mode TEXT");
+  columnsEnsured = true;
 }
 
 export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): void {
   const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
   db.prepare(
     `
-    INSERT INTO compression_analytics (timestamp, combo_id, provider, mode, original_tokens, compressed_tokens, tokens_saved, duration_ms, request_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO compression_analytics (
+      timestamp, combo_id, provider, mode, original_tokens, compressed_tokens, tokens_saved,
+      duration_ms, request_id, actual_prompt_tokens, actual_completion_tokens,
+      actual_total_tokens, actual_cache_read_tokens, actual_cache_write_tokens,
+      estimated_usd_saved, mcp_description_tokens_saved, multimodal_skip_count,
+      receipt_source, validation_fallback, output_mode
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
     row.timestamp,
@@ -39,12 +121,90 @@ export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): voi
     row.compressed_tokens,
     row.tokens_saved,
     row.duration_ms ?? null,
-    row.request_id ?? null
+    row.request_id ?? null,
+    row.actual_prompt_tokens ?? null,
+    row.actual_completion_tokens ?? null,
+    row.actual_total_tokens ?? null,
+    row.actual_cache_read_tokens ?? null,
+    row.actual_cache_write_tokens ?? null,
+    row.estimated_usd_saved ?? null,
+    row.mcp_description_tokens_saved ?? 0,
+    row.multimodal_skip_count ?? 0,
+    row.receipt_source ?? null,
+    row.validation_fallback ? 1 : 0,
+    row.output_mode ?? null
   );
+}
+
+export function attachCompressionUsageReceipt(
+  requestId: string | null | undefined,
+  usage: Record<string, unknown> | null | undefined,
+  source: "provider" | "estimated" | "stream" = "provider"
+): void {
+  if (!requestId || !usage || typeof usage !== "object") return;
+  const promptTokens = toFiniteInt(usage.prompt_tokens);
+  const completionTokens = toFiniteInt(usage.completion_tokens);
+  const totalTokens =
+    toFiniteInt(usage.total_tokens) ?? (promptTokens ?? 0) + (completionTokens ?? 0);
+  const promptDetails =
+    usage.prompt_tokens_details && typeof usage.prompt_tokens_details === "object"
+      ? (usage.prompt_tokens_details as Record<string, unknown>)
+      : {};
+  const cacheReadTokens = toFiniteInt(
+    usage.cache_read_input_tokens ?? usage.cached_tokens ?? promptDetails.cached_tokens
+  );
+  const cacheWriteTokens = toFiniteInt(
+    usage.cache_creation_input_tokens ?? promptDetails.cache_creation_tokens
+  );
+  if (promptTokens === null && completionTokens === null && totalTokens <= 0) return;
+
+  const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
+  db.prepare(
+    `
+    UPDATE compression_analytics
+    SET actual_prompt_tokens = ?,
+        actual_completion_tokens = ?,
+        actual_total_tokens = ?,
+        actual_cache_read_tokens = ?,
+        actual_cache_write_tokens = ?,
+        receipt_source = ?
+    WHERE request_id = ?
+      AND id = (
+        SELECT id FROM compression_analytics
+        WHERE request_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+      )
+  `
+  ).run(
+    promptTokens,
+    completionTokens,
+    totalTokens,
+    cacheReadTokens,
+    cacheWriteTokens,
+    source,
+    requestId,
+    requestId
+  );
+}
+
+function toFiniteInt(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.max(0, Math.floor(value));
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return Math.max(0, Math.floor(parsed));
+  }
+  return null;
+}
+
+function appendCondition(whereClause: string, condition: string): string {
+  return whereClause ? `${whereClause} AND ${condition}` : `WHERE ${condition}`;
 }
 
 export function getCompressionAnalyticsSummary(since?: string): CompressionAnalyticsSummary {
   const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
 
   let cutoff: string | null = null;
   if (since === "24h") {
@@ -136,6 +296,62 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
 
   const last24h = Array.from(last24hMap.values());
 
+  const receiptRows = db
+    .prepare(
+      `
+    SELECT receipt_source as source, COUNT(*) as cnt,
+      COALESCE(SUM(actual_prompt_tokens), 0) as prompt,
+      COALESCE(SUM(actual_completion_tokens), 0) as completion,
+      COALESCE(SUM(actual_total_tokens), 0) as total,
+      COALESCE(SUM(actual_cache_read_tokens), 0) as cacheRead,
+      COALESCE(SUM(actual_cache_write_tokens), 0) as cacheWrite,
+      COALESCE(SUM(estimated_usd_saved), 0) as usdSaved
+    FROM compression_analytics ${appendCondition(whereClause, "receipt_source IS NOT NULL")}
+    GROUP BY receipt_source
+  `
+    )
+    .all(...params) as Array<{
+    source: string | null;
+    cnt: number;
+    prompt: number;
+    completion: number;
+    total: number;
+    cacheRead: number;
+    cacheWrite: number;
+    usdSaved: number;
+  }>;
+
+  const realUsage = {
+    requestsWithReceipts: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    totalTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    estimatedUsdSaved: 0,
+    bySource: {} as Record<string, number>,
+  };
+  for (const row of receiptRows) {
+    const source = row.source ?? "unknown";
+    realUsage.requestsWithReceipts += row.cnt;
+    realUsage.promptTokens += row.prompt;
+    realUsage.completionTokens += row.completion;
+    realUsage.totalTokens += row.total;
+    realUsage.cacheReadTokens += row.cacheRead;
+    realUsage.cacheWriteTokens += row.cacheWrite;
+    realUsage.estimatedUsdSaved += row.usdSaved;
+    realUsage.bySource[source] = row.cnt;
+  }
+
+  const fallbackRow = db
+    .prepare(
+      `
+    SELECT COUNT(*) as cnt
+    FROM compression_analytics ${appendCondition(whereClause, "validation_fallback = 1")}
+  `
+    )
+    .get(...params) as { cnt: number } | undefined;
+
   return {
     totalRequests: scalar?.total ?? 0,
     totalTokensSaved: scalar?.totalSaved ?? 0,
@@ -144,5 +360,7 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     byMode,
     byProvider,
     last24h,
+    validationFallbacks: fallbackRow?.cnt ?? 0,
+    realUsage,
   };
 }

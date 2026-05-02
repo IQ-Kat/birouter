@@ -32,7 +32,7 @@ export function getEffectiveMode(
   const comboMode = checkComboOverride(config, comboId);
   if (comboMode) return comboMode;
 
-  if (shouldAutoTrigger(config, estimatedTokens)) return "lite";
+  if (shouldAutoTrigger(config, estimatedTokens)) return config.autoTriggerMode ?? "lite";
 
   return config.defaultMode;
 }
@@ -65,13 +65,23 @@ export function applyCompression(
     return { body, compressed: false, stats: null };
   }
   if (mode === "lite") {
-    return applyLiteCompression(body, options);
+    return applyLiteCompression(body, {
+      ...options,
+      preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+    });
   }
   if (mode === "standard") {
-    return cavemanCompress(
-      body as Parameters<typeof cavemanCompress>[0],
-      options?.config?.cavemanConfig
-    );
+    const cavemanConfig = {
+      ...(options?.config?.cavemanConfig ?? {}),
+      ...(options?.config?.preserveSystemPrompt !== false
+        ? {
+            compressRoles: (options?.config?.cavemanConfig?.compressRoles ?? ["user"]).filter(
+              (role) => role !== "system"
+            ),
+          }
+        : {}),
+    };
+    return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
   }
   if (mode === "aggressive") {
     const messages = (body.messages ?? []) as Array<{
@@ -82,7 +92,10 @@ export function applyCompression(
     if (!Array.isArray(messages) || messages.length === 0) {
       return { body, compressed: false, stats: null };
     }
-    const aggressiveConfig = options?.config?.aggressive;
+    const aggressiveConfig = {
+      ...(options?.config?.aggressive ?? {}),
+      preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+    };
     const result = compressAggressive(messages, aggressiveConfig);
     const compressedBody = { ...body, messages: result.messages };
     return {
@@ -107,8 +120,11 @@ export function applyCompression(
     if (!Array.isArray(messages) || messages.length === 0) {
       return { body, compressed: false, stats: null };
     }
-    const ultraConfig = options?.config?.ultra;
-    const result = ultraCompress(messages, ultraConfig ?? {});
+    const ultraConfig = {
+      ...(options?.config?.ultra ?? {}),
+      preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+    };
+    const result = ultraCompress(messages, ultraConfig);
     const compressedBody = { ...body, messages: result.messages };
     return {
       body: compressedBody,

@@ -5,6 +5,8 @@ export type {
   CompressionResult,
   CavemanConfig,
   CavemanRule,
+  CavemanIntensity,
+  CavemanOutputModeConfig,
   AggressiveConfig,
   AgingThresholds,
   ToolStrategiesConfig,
@@ -15,6 +17,7 @@ export type {
 export {
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
+  DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
   DEFAULT_AGGRESSIVE_CONFIG,
 } from "./types.ts";
 
@@ -28,8 +31,23 @@ export {
 } from "./lite.ts";
 
 export { cavemanCompress, applyRulesToText } from "./caveman.ts";
-export { getRulesForContext, CAVEMAN_RULES } from "./cavemanRules.ts";
-export { extractPreservedBlocks, restorePreservedBlocks } from "./preservation.ts";
+export { getRulesForContext, getCavemanRuleMetadata, CAVEMAN_RULES } from "./cavemanRules.ts";
+export {
+  extractPreservedBlocks,
+  restorePreservedBlocks,
+  findFencedCodeBlocks,
+} from "./preservation.ts";
+export type { PreservedBlock, PreservationOptions } from "./preservation.ts";
+export { validateCompression } from "./validation.ts";
+export type { ValidationResult } from "./validation.ts";
+export {
+  applyCavemanOutputMode,
+  buildCavemanOutputInstruction,
+  shouldBypassCavemanOutputMode,
+} from "./outputMode.ts";
+export type { CavemanOutputModeResult } from "./outputMode.ts";
+export { buildCompressionDiff, buildCompressionPreviewDiff } from "./diffHelper.ts";
+export type { CompressionDiffSegment, CompressionPreviewDiff } from "./diffHelper.ts";
 
 export {
   estimateCompressionTokens,

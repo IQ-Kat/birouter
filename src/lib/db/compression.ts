@@ -4,10 +4,12 @@ import { invalidateDbCache } from "./readCache";
 import {
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
+  DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_ULTRA_CONFIG,
   type AggressiveConfig,
   type CavemanConfig,
+  type CavemanOutputModeConfig,
   type CompressionConfig,
   type CompressionMode,
   type UltraConfig,
@@ -47,6 +49,10 @@ function parseJsonSafe(raw: string | null): unknown {
 
 function normalizeCavemanConfig(value: unknown): CavemanConfig {
   const record = toRecord(value);
+  const intensity =
+    record.intensity === "lite" || record.intensity === "full" || record.intensity === "ultra"
+      ? record.intensity
+      : DEFAULT_CAVEMAN_CONFIG.intensity;
   return {
     ...DEFAULT_CAVEMAN_CONFIG,
     ...record,
@@ -66,6 +72,26 @@ function normalizeCavemanConfig(value: unknown): CavemanConfig {
     preservePatterns: Array.isArray(record.preservePatterns)
       ? record.preservePatterns.filter((pattern): pattern is string => typeof pattern === "string")
       : DEFAULT_CAVEMAN_CONFIG.preservePatterns,
+    intensity,
+  };
+}
+
+function normalizeCavemanOutputModeConfig(value: unknown): CavemanOutputModeConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
+    enabled:
+      typeof record.enabled === "boolean"
+        ? record.enabled
+        : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.enabled,
+    intensity:
+      record.intensity === "lite" || record.intensity === "full" || record.intensity === "ultra"
+        ? record.intensity
+        : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.intensity,
+    autoClarity:
+      typeof record.autoClarity === "boolean"
+        ? record.autoClarity
+        : DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG.autoClarity,
   };
 }
 
@@ -196,6 +222,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   const config: CompressionConfig = {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
+    cavemanOutputMode: { ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG },
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
   };
@@ -217,6 +244,11 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
           config.defaultMode = parsed as CompressionMode;
         }
         break;
+      case "autoTriggerMode":
+        if (typeof parsed === "string" && COMPRESSION_MODES.has(parsed as CompressionMode)) {
+          config.autoTriggerMode = parsed as CompressionMode;
+        }
+        break;
       case "autoTriggerTokens":
         config.autoTriggerTokens =
           typeof parsed === "number" && Number.isFinite(parsed)
@@ -232,6 +264,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "preserveSystemPrompt":
         config.preserveSystemPrompt = parsed !== false;
         break;
+      case "mcpDescriptionCompressionEnabled":
+        config.mcpDescriptionCompressionEnabled = parsed !== false;
+        break;
       case "comboOverrides":
         if (parsed && typeof parsed === "object") {
           const overrides: Record<string, CompressionMode> = {};
@@ -245,6 +280,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "cavemanConfig":
         config.cavemanConfig = normalizeCavemanConfig(parsed);
+        break;
+      case "cavemanOutputMode":
+        config.cavemanOutputMode = normalizeCavemanOutputModeConfig(parsed);
         break;
       case "aggressive":
       case "aggressiveConfig":

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
 import type { CompressionMode } from "@omniroute/open-sse/services/compression/types";
+import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
 
 const PreviewRequestSchema = z.object({
   messages: z
@@ -67,6 +68,7 @@ export async function POST(req: Request) {
     const tokensSaved = Math.max(0, originalTokens - compressedTokens);
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
+    const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
 
     return NextResponse.json({
       original: originalText,
@@ -77,6 +79,23 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       durationMs,
+      mode,
+      intensity: null,
+      outputMode: null,
+      skippedReasons: [],
+      diff: diff.segments,
+      preservedBlocks: diff.preservedBlocks,
+      ruleRemovals: diff.ruleRemovals,
+      rulesApplied: diff.ruleRemovals,
+      validation: {
+        valid: diff.validationErrors.length === 0,
+        errors: diff.validationErrors,
+        warnings: diff.validationWarnings,
+        fallbackApplied: diff.fallbackApplied,
+      },
+      validationWarnings: diff.validationWarnings,
+      validationErrors: diff.validationErrors,
+      fallbackApplied: diff.fallbackApplied,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

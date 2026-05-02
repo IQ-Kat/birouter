@@ -4,11 +4,44 @@ const CAVEMAN_RULES: CavemanRule[] = [
   // ── Category 1: Filler Removal (10+ rules) ──────────────────────────
 
   {
+    name: "redundant_phrasing",
+    pattern:
+      /\b(?:make sure to|be sure to|due to the fact that|the reason is because|it is important to|you should|remember to)\b\s*/gi,
+    replacement: (match: string): string => {
+      const map: Record<string, string> = {
+        "make sure to": "ensure ",
+        "be sure to": "ensure ",
+        "due to the fact that": "because ",
+        "the reason is because": "because ",
+        "it is important to": "",
+        "you should": "",
+        "remember to": "",
+      };
+      return map[match.trim().toLowerCase()] ?? "";
+    },
+    context: "all",
+    category: "structural",
+    minIntensity: "full",
+    description: "Replace verbose stock phrases with shorter equivalents.",
+  },
+  {
+    name: "pleasantries",
+    pattern:
+      /\b(?:sure|certainly|of course|happy to|i'?d be happy to|i would be happy to)\b[,.!?\s]*/gi,
+    replacement: "",
+    context: "all",
+    category: "filler",
+    minIntensity: "lite",
+    description: "Drop conversational acknowledgements that do not change request meaning.",
+  },
+  {
     name: "polite_framing",
     pattern:
       /\b(?:please|kindly|could you please|would you please|can you please|I would like you to|I want you to|I need you to)\b\s*/gi,
     replacement: "",
     context: "all",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "hedging",
@@ -16,13 +49,19 @@ const CAVEMAN_RULES: CavemanRule[] = [
       /\b(?:it seems like|it appears that|I think that|I believe that|probably|possibly|maybe it)\b\s*/gi,
     replacement: "",
     context: "all",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "verbose_instructions",
     pattern:
-      /\b(?:provide a detailed|give me a comprehensive|write an in-depth|create a thorough|explain in detail)\b/gi,
+      /\b(?:provide a detailed explanation of|give me a comprehensive explanation of|write an in-depth explanation of|create a thorough explanation of|provide a detailed|give me a comprehensive|write an in-depth|create a thorough|explain in detail)\b/gi,
     replacement: (match: string): string => {
       const map: Record<string, string> = {
+        "provide a detailed explanation of": "explain",
+        "give me a comprehensive explanation of": "explain",
+        "write an in-depth explanation of": "explain",
+        "create a thorough explanation of": "explain",
         "provide a detailed": "provide",
         "give me a comprehensive": "give",
         "write an in-depth": "write",
@@ -33,48 +72,82 @@ const CAVEMAN_RULES: CavemanRule[] = [
       return map[lower] ?? match;
     },
     context: "all",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "filler_adverbs",
-    pattern: /(?<![a-z])\b(?:basically|essentially|actually|literally|simply)\b\s*/gi,
+    pattern: /(?<![a-z])\b(?:basically|essentially|actually|literally|simply|currently)\b\s*/gi,
     replacement: "",
     context: "all",
+    category: "filler",
+    minIntensity: "lite",
+  },
+  {
+    name: "articles",
+    pattern: /\b(?:a|an|the)\s+(?=[a-z])/gi,
+    replacement: "",
+    context: "all",
+    category: "terse",
+    minIntensity: "full",
+    description: "Remove English articles from prose while protected technical tokens stay intact.",
   },
   {
     name: "filler_phrases",
     pattern: /^(?:I want to|I need to|I'd like to|I'm looking for)\b\s*/gim,
     replacement: "",
     context: "user",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "redundant_openers",
     pattern: /^(?:Hi there|Hello|Good morning|Hey)\s*[,.!?\s]?\s*/gim,
     replacement: "",
     context: "user",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "verbose_requests",
     pattern: /\b(?:I was wondering if you could|Would it be possible to)\b\s*/gi,
     replacement: "",
     context: "user",
+    category: "filler",
+    minIntensity: "lite",
+  },
+  {
+    name: "leader_phrases",
+    pattern: /^(?:i'?ll|i will|i can|i'?d|let me|you can|we will|we can|let'?s)\s+(?=[a-z])/gim,
+    replacement: "",
+    context: "all",
+    category: "terse",
+    minIntensity: "full",
+    description: "Remove leading helper phrases before the actual instruction or answer.",
   },
   {
     name: "self_reference",
     pattern: /^(?:I am trying to|I am working on|I have been)\b\s*/gim,
     replacement: "",
     context: "user",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "excessive_gratitude",
     pattern: /\b(?:Thank you so much|Thanks in advance|I really appreciate)\b[,.!?\s]*/gi,
     replacement: "",
     context: "all",
+    category: "filler",
+    minIntensity: "lite",
   },
   {
     name: "qualifier_removal",
     pattern: /\b(?:a bit|a little|somewhat|kind of|sort of)\b\s*/gi,
     replacement: "",
     context: "all",
+    category: "filler",
+    minIntensity: "lite",
   },
 
   // ── Category 2: Context Condensation (8+ rules) ──────────────────────
@@ -84,6 +157,8 @@ const CAVEMAN_RULES: CavemanRule[] = [
     pattern: /\band any potential\b/gi,
     replacement: "",
     context: "all",
+    category: "context",
+    minIntensity: "full",
   },
   {
     name: "explanatory_prefix",
@@ -99,6 +174,8 @@ const CAVEMAN_RULES: CavemanRule[] = [
       return map[match.toLowerCase()] ?? match;
     },
     context: "all",
+    category: "context",
+    minIntensity: "lite",
   },
   {
     name: "question_to_directive",
@@ -115,12 +192,16 @@ const CAVEMAN_RULES: CavemanRule[] = [
       return map[trimmed] ?? match;
     },
     context: "user",
+    category: "context",
+    minIntensity: "lite",
   },
   {
     name: "context_setup",
     pattern: /\b(?:I have the following code|Here is my code|Below is the code)\b\s*[:.]?\s*/gi,
     replacement: "Code:",
     context: "user",
+    category: "context",
+    minIntensity: "lite",
   },
   {
     name: "intent_clarification",
@@ -128,31 +209,40 @@ const CAVEMAN_RULES: CavemanRule[] = [
       /\b(?:What I'm trying to do is|My objective is to|What I need is|I'm aiming to)\b\s*/gi,
     replacement: "Goal:",
     context: "user",
+    category: "context",
+    minIntensity: "lite",
   },
   {
     name: "background_removal",
     pattern: /\b(?:As you may know,?\s*|As we discussed earlier,?\s*)/gi,
     replacement: "",
     context: "all",
+    category: "context",
+    minIntensity: "lite",
   },
   {
     name: "meta_commentary",
     pattern: /^(?:Note that|Keep in mind that|Remember that)\b\s*/gim,
     replacement: "",
     context: "all",
+    category: "context",
+    minIntensity: "lite",
   },
   {
     name: "purpose_statement",
-    pattern: /\b(?:for the purpose of|with the goal of|in an effort to)\b/gi,
+    pattern: /\b(?:for the purpose of|with the goal of|in an effort to|for every)\b/gi,
     replacement: (match: string): string => {
       const map: Record<string, string> = {
         "for the purpose of": "for",
         "with the goal of": "to",
         "in an effort to": "to",
+        "for every": "per",
       };
       return map[match.toLowerCase()] ?? match;
     },
     context: "all",
+    category: "context",
+    minIntensity: "lite",
   },
 
   // ── Category 3: Structural Compression (7+ rules) ────────────────────
@@ -162,12 +252,16 @@ const CAVEMAN_RULES: CavemanRule[] = [
     pattern: /,\s*and also\s+|,\s*as well as\s+/gi,
     replacement: ", ",
     context: "all",
+    category: "structural",
+    minIntensity: "full",
   },
   {
     name: "purpose_phrases",
     pattern: /\b(?:in order to|so as to)\b\s*/gi,
     replacement: "to ",
     context: "all",
+    category: "structural",
+    minIntensity: "lite",
   },
   {
     name: "redundant_quantifiers",
@@ -181,32 +275,42 @@ const CAVEMAN_RULES: CavemanRule[] = [
       return map[match.toLowerCase()] ?? match;
     },
     context: "all",
+    category: "structural",
+    minIntensity: "full",
   },
   {
     name: "verbose_connectors",
     pattern: /\b(?:furthermore|additionally|moreover|in addition)\b\s*/gi,
     replacement: "also ",
     context: "all",
+    category: "structural",
+    minIntensity: "lite",
   },
   {
     name: "transition_removal",
     pattern: /^(?:On the other hand,?\s*|In contrast,?\s*|However,?\s*)/gim,
     replacement: "",
     context: "all",
+    category: "structural",
+    minIntensity: "lite",
   },
   {
     name: "emphasis_removal",
     pattern: /\b(?:very|really|extremely|highly|quite)\s+(?=[a-z])/gi,
     replacement: "",
     context: "all",
+    category: "structural",
+    minIntensity: "lite",
   },
   {
     name: "passive_voice",
-    pattern: /\b(?:is being used|is being called|was created|was generated|was implemented)\b/gi,
+    pattern:
+      /\b(?:is being used|is being called|is being generated|was created|was generated|was implemented)\b/gi,
     replacement: (match: string): string => {
       const map: Record<string, string> = {
         "is being used": "uses",
         "is being called": "calls",
+        "is being generated": "generated",
         "was created": "created",
         "was generated": "generated",
         "was implemented": "implemented",
@@ -214,6 +318,8 @@ const CAVEMAN_RULES: CavemanRule[] = [
       return map[match.toLowerCase()] ?? match;
     },
     context: "all",
+    category: "structural",
+    minIntensity: "full",
   },
 
   // ── Category 4: Multi-Turn Dedup (5+ rules) ─────────────────────────
@@ -224,6 +330,8 @@ const CAVEMAN_RULES: CavemanRule[] = [
       /\b(?:As we discussed earlier|As mentioned before|As previously stated|As I said before)\b[,.]?\s*/gi,
     replacement: "See above. ",
     context: "all",
+    category: "dedup",
+    minIntensity: "lite",
   },
   {
     name: "repeated_question",
@@ -231,12 +339,16 @@ const CAVEMAN_RULES: CavemanRule[] = [
       /\b(?:Same question as before|I asked this earlier|This is the same question)\b[,.]?\s*/gi,
     replacement: "[same question] ",
     context: "user",
+    category: "dedup",
+    minIntensity: "lite",
   },
   {
     name: "reestablished_context",
     pattern: /\b(?:Going back to the code above|Referring back to|Returning to)\b\s*/gi,
     replacement: "Re: ",
     context: "all",
+    category: "dedup",
+    minIntensity: "lite",
   },
   {
     name: "summary_replacement",
@@ -244,15 +356,63 @@ const CAVEMAN_RULES: CavemanRule[] = [
       /\b(?:To summarize what we've discussed|In summary of our conversation|To recap)\b[,.]?\s*/gi,
     replacement: "Summary: ",
     context: "assistant",
+    category: "dedup",
+    minIntensity: "lite",
+  },
+
+  // ── Category 5: Ultra Abbreviations ─────────────────────────────────
+
+  {
+    name: "ultra_abbreviations",
+    pattern:
+      /\b(?:database|configuration|function|request|response|implementation|authentication|authorization|application|dependency|dependencies)\b/gi,
+    replacement: (match: string): string => {
+      const map: Record<string, string> = {
+        database: "DB",
+        configuration: "config",
+        function: "fn",
+        request: "req",
+        response: "res",
+        implementation: "impl",
+        authentication: "auth",
+        authorization: "authz",
+        application: "app",
+        dependency: "dep",
+        dependencies: "deps",
+      };
+      return map[match.toLowerCase()] ?? match;
+    },
+    context: "all",
+    category: "ultra",
+    minIntensity: "ultra",
   },
 ];
 
-export function getRulesForContext(context: string): CavemanRule[] {
-  return CAVEMAN_RULES.filter((rule) => rule.context === "all" || rule.context === context);
+const INTENSITY_RANK = { lite: 0, full: 1, ultra: 2 } as const;
+
+export function getRulesForContext(
+  context: string,
+  intensity: "lite" | "full" | "ultra" = "full"
+): CavemanRule[] {
+  const rank = INTENSITY_RANK[intensity] ?? INTENSITY_RANK.full;
+  return CAVEMAN_RULES.filter((rule) => {
+    const minRank = INTENSITY_RANK[rule.minIntensity ?? "lite"];
+    return (rule.context === "all" || rule.context === context) && minRank <= rank;
+  });
 }
 
 export function getRuleByName(name: string): CavemanRule | undefined {
   return CAVEMAN_RULES.find((rule) => rule.name === name);
+}
+
+export function getCavemanRuleMetadata() {
+  return CAVEMAN_RULES.map((rule) => ({
+    name: rule.name,
+    context: rule.context,
+    category: rule.category ?? "terse",
+    minIntensity: rule.minIntensity ?? "lite",
+    description: rule.description ?? rule.name.replace(/_/g, " "),
+  }));
 }
 
 export { CAVEMAN_RULES };

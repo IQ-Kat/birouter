@@ -1000,14 +1000,41 @@ export const compressionStatusOutput = z.object({
   strategy: z.string(),
   settings: z.object({
     maxTokens: z.number(),
+    autoTriggerMode: z.string(),
     targetRatio: z.number(),
-    aggressiveness: z.string(),
+    preserveSystemPrompt: z.boolean(),
+    mcpDescriptionCompressionEnabled: z.boolean(),
   }),
   analytics: z.object({
     totalRequests: z.number(),
     compressedRequests: z.number(),
     tokensSaved: z.number(),
     avgCompressionRatio: z.number(),
+    byMode: z.record(
+      z.string(),
+      z.object({
+        count: z.number(),
+        tokensSaved: z.number(),
+        avgSavingsPct: z.number(),
+      })
+    ),
+    validationFallbacks: z.number(),
+    requestsWithReceipts: z.number(),
+    realUsage: z.object({
+      requestsWithReceipts: z.number(),
+      promptTokens: z.number(),
+      completionTokens: z.number(),
+      totalTokens: z.number(),
+      cacheReadTokens: z.number(),
+      cacheWriteTokens: z.number(),
+      estimatedUsdSaved: z.number(),
+      bySource: z.record(z.string(), z.number()),
+    }),
+    mcpDescriptionCompression: z.object({
+      descriptionsCompressed: z.number(),
+      charsSaved: z.number(),
+      estimatedTokensSaved: z.number(),
+    }),
   }),
   cacheStats: z
     .object({
@@ -1037,12 +1064,19 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .string()
+    .enum(["off", "lite", "standard", "aggressive", "ultra"])
     .optional()
-    .describe("Compression strategy: 'none' | 'standard' | 'aggressive' | 'ultra'"),
-  maxTokens: z.number().optional().describe("Maximum tokens before compression triggers"),
+    .describe("Compression mode"),
+  autoTriggerMode: z.enum(["off", "lite", "standard", "aggressive", "ultra"]).optional(),
+  maxTokens: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Maximum tokens before compression triggers"),
   targetRatio: z.number().optional().describe("Target compression ratio (0.0–1.0)"),
-  aggressiveness: z.string().optional().describe("Aggressiveness level: 'low' | 'medium' | 'high'"),
+  preserveSystemPrompt: z.boolean().optional(),
+  mcpDescriptionCompressionEnabled: z.boolean().optional(),
 });
 
 export const compressionConfigureOutput = z.object({
@@ -1051,9 +1085,11 @@ export const compressionConfigureOutput = z.object({
   settings: z.object({
     enabled: z.boolean(),
     strategy: z.string(),
+    autoTriggerMode: z.string(),
     maxTokens: z.number(),
     targetRatio: z.number(),
-    aggressiveness: z.string(),
+    preserveSystemPrompt: z.boolean(),
+    mcpDescriptionCompressionEnabled: z.boolean(),
   }),
 });
 
@@ -1063,7 +1099,7 @@ export const compressionConfigureTool: McpToolDefinition<
 > = {
   name: "omniroute_compression_configure",
   description:
-    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (none/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, and aggressiveness level.",
+    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
   inputSchema: compressionConfigureInput,
   outputSchema: compressionConfigureOutput,
   scopes: ["write:compression"],

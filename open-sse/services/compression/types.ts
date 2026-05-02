@@ -9,6 +9,7 @@
  */
 
 export type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
+export type CavemanIntensity = "lite" | "full" | "ultra";
 
 export interface CavemanRule {
   name: string;
@@ -16,6 +17,9 @@ export interface CavemanRule {
   replacement: string | ((match: string, ...groups: string[]) => string);
   context: "all" | "user" | "system" | "assistant";
   preservePatterns?: RegExp[];
+  category?: "filler" | "context" | "structural" | "dedup" | "terse" | "ultra";
+  description?: string;
+  minIntensity?: CavemanIntensity;
 }
 
 export interface CavemanConfig {
@@ -24,16 +28,26 @@ export interface CavemanConfig {
   skipRules: string[];
   minMessageLength: number;
   preservePatterns: string[];
+  intensity: CavemanIntensity;
+}
+
+export interface CavemanOutputModeConfig {
+  enabled: boolean;
+  intensity: CavemanIntensity;
+  autoClarity: boolean;
 }
 
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
+  autoTriggerMode?: CompressionMode;
   autoTriggerTokens: number;
   cacheMinutes: number;
   preserveSystemPrompt: boolean;
+  mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
+  cavemanOutputMode?: CavemanOutputModeConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
 }
@@ -47,6 +61,16 @@ export interface CompressionStats {
   timestamp: number;
   rulesApplied?: string[];
   durationMs?: number;
+  validationWarnings?: string[];
+  validationErrors?: string[];
+  fallbackApplied?: boolean;
+  preservedBlockCount?: number;
+  realUsage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+    source: "provider" | "estimated" | "stream";
+  };
   aggressive?: {
     summarizerSavings: number;
     toolResultSavings: number;
@@ -63,9 +87,11 @@ export interface CompressionResult {
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   enabled: false,
   defaultMode: "off",
+  autoTriggerMode: "lite",
   autoTriggerTokens: 0,
   cacheMinutes: 5,
   preserveSystemPrompt: true,
+  mcpDescriptionCompressionEnabled: true,
   comboOverrides: {},
 };
 
@@ -75,6 +101,13 @@ export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
   skipRules: [],
   minMessageLength: 50,
   preservePatterns: [],
+  intensity: "full",
+};
+
+export const DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG: CavemanOutputModeConfig = {
+  enabled: false,
+  intensity: "full",
+  autoClarity: true,
 };
 
 /** Aging thresholds for progressive message degradation (Phase 3) */
@@ -101,6 +134,7 @@ export interface AggressiveConfig {
   summarizerEnabled: boolean;
   maxTokensPerMessage: number;
   minSavingsThreshold: number;
+  preserveSystemPrompt?: boolean;
 }
 
 /** Options for the Summarizer interface (Phase 3) */
@@ -159,6 +193,7 @@ export interface UltraConfig {
    * 0 = always apply when mode is "ultra".
    */
   maxTokensPerMessage: number;
+  preserveSystemPrompt?: boolean;
 }
 
 export const DEFAULT_ULTRA_CONFIG: UltraConfig = {

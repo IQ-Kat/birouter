@@ -5,6 +5,7 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
+const cavemanIntensitySchema = z.enum(["lite", "full", "ultra"]);
 
 const cavemanConfigSchema = z
   .object({
@@ -13,6 +14,15 @@ const cavemanConfigSchema = z
     skipRules: z.array(z.string()).optional(),
     minMessageLength: z.number().int().min(0).optional(),
     preservePatterns: z.array(z.string()).optional(),
+    intensity: cavemanIntensitySchema.optional(),
+  })
+  .strict();
+
+const cavemanOutputModeSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    intensity: cavemanIntensitySchema.optional(),
+    autoClarity: z.boolean().optional(),
   })
   .strict();
 
@@ -56,11 +66,14 @@ const compressionSettingsUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
     defaultMode: compressionModeSchema.optional(),
+    autoTriggerMode: compressionModeSchema.optional(),
     autoTriggerTokens: z.number().int().min(0).optional(),
     cacheMinutes: z.number().int().min(1).max(60).optional(),
     preserveSystemPrompt: z.boolean().optional(),
+    mcpDescriptionCompressionEnabled: z.boolean().optional(),
     comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
     cavemanConfig: cavemanConfigSchema.optional(),
+    cavemanOutputMode: cavemanOutputModeSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
   })

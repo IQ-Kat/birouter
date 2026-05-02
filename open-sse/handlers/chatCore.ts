@@ -1560,6 +1560,8 @@ export async function handleChatCore({
   // This prevents "prompt too long" errors for large-but-not-full contexts.
   const allMessages =
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
+  let cavemanOutputModeApplied = false;
+  let cavemanOutputModeIntensity: string | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let promptCompressionEnabled = false;
@@ -1574,6 +1576,30 @@ export async function handleChatCore({
         "COMPRESSION",
         "Compression settings lookup skipped: " + (err instanceof Error ? err.message : String(err))
       );
+    }
+
+    if (compressionSettings?.cavemanOutputMode?.enabled) {
+      try {
+        const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
+        const outputMode = applyCavemanOutputMode(
+          body as Parameters<typeof applyCavemanOutputMode>[0],
+          compressionSettings.cavemanOutputMode
+        );
+        if (outputMode.applied) {
+          body = outputMode.body as typeof body;
+          cavemanOutputModeApplied = true;
+          cavemanOutputModeIntensity = compressionSettings.cavemanOutputMode.intensity;
+          estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+          log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
+        } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
+          log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
+        }
+      } catch (err) {
+        log?.debug?.(
+          "COMPRESSION",
+          "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
+        );
+      }
     }
 
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
@@ -1644,79 +1670,116 @@ export async function handleChatCore({
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel }
       );
+      let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
         const result = applyCompression(compressionInputBody, mode, {
           model: effectiveModel,
           config,
         });
-        if (result.compressed && result.stats) {
-          body = result.body as typeof body;
-          estimatedTokens = result.stats.compressedTokens;
-          trackCompressionStats(result.stats);
-          void (async () => {
-            try {
-              const { insertCompressionAnalyticsRow } =
-                await import("../../src/lib/db/compressionAnalytics.ts");
-              insertCompressionAnalyticsRow({
-                timestamp: new Date().toISOString(),
-                combo_id: comboName ?? null,
-                provider: provider ?? null,
-                mode,
-                original_tokens: result.stats.originalTokens,
-                compressed_tokens: result.stats.compressedTokens,
-                tokens_saved: Math.max(
+        if (result.stats) {
+          if (result.compressed) {
+            body = result.body as typeof body;
+            estimatedTokens = result.stats.compressedTokens;
+          }
+
+          if (result.compressed || result.stats.fallbackApplied || cavemanOutputModeApplied) {
+            trackCompressionStats(result.stats);
+            compressionAnalyticsRecorded = true;
+            void (async () => {
+              try {
+                const { insertCompressionAnalyticsRow } =
+                  await import("../../src/lib/db/compressionAnalytics.ts");
+                insertCompressionAnalyticsRow({
+                  timestamp: new Date().toISOString(),
+                  combo_id: comboName ?? null,
+                  provider: provider ?? null,
+                  mode,
+                  original_tokens: result.stats.originalTokens,
+                  compressed_tokens: result.stats.compressedTokens,
+                  tokens_saved: Math.max(
+                    0,
+                    result.stats.originalTokens - result.stats.compressedTokens
+                  ),
+                  duration_ms: result.stats.durationMs ?? null,
+                  request_id: skillRequestId,
+                  validation_fallback: result.stats.fallbackApplied ? 1 : 0,
+                  output_mode: cavemanOutputModeApplied ? cavemanOutputModeIntensity : null,
+                });
+              } catch (err) {
+                log?.debug?.(
+                  "COMPRESSION",
+                  "Compression analytics write skipped: " +
+                    (err instanceof Error ? err.message : String(err))
+                );
+              }
+            })();
+          }
+
+          if (result.compressed) {
+            void (async () => {
+              try {
+                const { detectCachingContext } =
+                  await import("../services/compression/cachingAware.ts");
+                const { recordCacheStats } =
+                  await import("../../src/lib/db/compressionCacheStats.ts");
+                const cacheContext = detectCachingContext(compressionInputBody, {
+                  provider,
+                  targetFormat,
+                  model: effectiveModel,
+                });
+                const tokensSavedCompression = Math.max(
                   0,
                   result.stats.originalTokens - result.stats.compressedTokens
-                ),
-                duration_ms: result.stats.durationMs ?? null,
-                request_id: skillRequestId,
-              });
-            } catch (err) {
-              log?.debug?.(
-                "COMPRESSION",
-                "Compression analytics write skipped: " +
-                  (err instanceof Error ? err.message : String(err))
-              );
-            }
-          })();
-          void (async () => {
-            try {
-              const { detectCachingContext } =
-                await import("../services/compression/cachingAware.ts");
-              const { recordCacheStats } =
-                await import("../../src/lib/db/compressionCacheStats.ts");
-              const cacheContext = detectCachingContext(compressionInputBody, {
-                provider,
-                targetFormat,
-                model: effectiveModel,
-              });
-              const tokensSavedCompression = Math.max(
-                0,
-                result.stats.originalTokens - result.stats.compressedTokens
-              );
-              recordCacheStats({
-                provider: cacheContext.provider ?? provider ?? "unknown",
-                model: effectiveModel ?? "",
-                compressionMode: mode,
-                cacheControlPresent: cacheContext.hasCacheControl,
-                estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
-                tokensSavedCompression,
-                tokensSavedCaching: 0,
-                netSavings: tokensSavedCompression,
-              });
-            } catch (err) {
-              log?.debug?.(
-                "COMPRESSION",
-                "Compression cache stats write skipped: " +
-                  (err instanceof Error ? err.message : String(err))
-              );
-            }
-          })();
-          log?.info?.(
-            "COMPRESSION",
-            `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
-          );
+                );
+                recordCacheStats({
+                  provider: cacheContext.provider ?? provider ?? "unknown",
+                  model: effectiveModel ?? "",
+                  compressionMode: mode,
+                  cacheControlPresent: cacheContext.hasCacheControl,
+                  estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
+                  tokensSavedCompression,
+                  tokensSavedCaching: 0,
+                  netSavings: tokensSavedCompression,
+                });
+              } catch (err) {
+                log?.debug?.(
+                  "COMPRESSION",
+                  "Compression cache stats write skipped: " +
+                    (err instanceof Error ? err.message : String(err))
+                );
+              }
+            })();
+            log?.info?.(
+              "COMPRESSION",
+              `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
+            );
+          }
         }
+      }
+      if (cavemanOutputModeApplied && !compressionAnalyticsRecorded) {
+        void (async () => {
+          try {
+            const { insertCompressionAnalyticsRow } =
+              await import("../../src/lib/db/compressionAnalytics.ts");
+            insertCompressionAnalyticsRow({
+              timestamp: new Date().toISOString(),
+              combo_id: comboName ?? null,
+              provider: provider ?? null,
+              mode: "output-caveman",
+              original_tokens: estimatedTokens,
+              compressed_tokens: estimatedTokens,
+              tokens_saved: 0,
+              request_id: skillRequestId,
+              output_mode: cavemanOutputModeIntensity,
+            });
+          } catch (err) {
+            log?.debug?.(
+              "COMPRESSION",
+              "Caveman output analytics write skipped: " +
+                (err instanceof Error ? err.message : String(err))
+            );
+          }
+        })();
       }
     } catch (err) {
       log?.warn?.(
@@ -3264,6 +3327,13 @@ export async function handleChatCore({
 
     // Log usage for non-streaming responses
     const usage = extractUsageFromResponse(responseBody, provider);
+    if (usage && typeof usage === "object") {
+      void import("../../src/lib/db/compressionAnalytics.ts")
+        .then(({ attachCompressionUsageReceipt }) => {
+          attachCompressionUsageReceipt(skillRequestId, usage, "provider");
+        })
+        .catch(() => {});
+    }
     appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
       () => {}
     );
@@ -3636,6 +3706,11 @@ export async function handleChatCore({
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
+      void import("../../src/lib/db/compressionAnalytics.ts")
+        .then(({ attachCompressionUsageReceipt }) => {
+          attachCompressionUsageReceipt(skillRequestId, streamUsage, "stream");
+        })
+        .catch(() => {});
       const inputTokens = streamUsage.prompt_tokens || 0;
       const cachedTokens = toPositiveNumber(
         streamUsage.cache_read_input_tokens ??

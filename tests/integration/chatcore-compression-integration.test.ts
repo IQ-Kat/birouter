@@ -624,3 +624,76 @@ test("chatCore integration: modular compression records analytics row best-effor
     globalThis.fetch = originalFetch;
   }
 });
+
+test("chatCore integration: caveman output mode records analytics and receipts without prompt compression", async () => {
+  const provider = "openai";
+  const model = "gpt-4";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: false,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+    cavemanOutputMode: {
+      enabled: true,
+      intensity: "full",
+      autoClarity: true,
+    },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  let capturedBody: any = null;
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) {
+      capturedBody = JSON.parse(init.body as string);
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 20, completion_tokens: 4, total_tokens: 24 },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const result = await handleChatCore({
+      body: {
+        model,
+        stream: false,
+        messages: [{ role: "user", content: "Summarize this implementation." }],
+      },
+      modelInfo: { provider, model },
+      credentials: { apiKey: "test-key" },
+      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+      connectionId: connection.id,
+    });
+
+    assert.ok(result.success, "Request should succeed");
+    assert.match(capturedBody.messages[0].content, /Caveman Output Mode/);
+
+    let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    for (
+      let attempt = 0;
+      attempt < 20 && (summary.totalRequests === 0 || summary.realUsage.requestsWithReceipts === 0);
+      attempt += 1
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    }
+
+    assert.equal(summary.byMode["output-caveman"].count, 1);
+    assert.equal(summary.realUsage.requestsWithReceipts, 1);
+    assert.equal(summary.realUsage.totalTokens, 24);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

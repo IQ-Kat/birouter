@@ -14,6 +14,7 @@ import {
 import { getCompressionAnalyticsSummary } from "../../../src/lib/db/compressionAnalytics.ts";
 import { getCacheStatsSummary } from "../../../src/lib/db/compressionCacheStats.ts";
 import type { McpToolExtraLike } from "../scopeEnforcement.ts";
+import { getMcpDescriptionCompressionStats } from "../descriptionCompressor.ts";
 
 /**
  * Handle compression_status tool: return current compression config, analytics, and cache stats
@@ -26,14 +27,34 @@ export async function handleCompressionStatus(
   strategy: string;
   settings: {
     maxTokens: number;
+    autoTriggerMode: string;
     targetRatio: number;
-    aggressiveness: string;
+    preserveSystemPrompt: boolean;
+    mcpDescriptionCompressionEnabled: boolean;
   };
   analytics: {
     totalRequests: number;
     compressedRequests: number;
     tokensSaved: number;
     avgCompressionRatio: number;
+    byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+    validationFallbacks: number;
+    requestsWithReceipts: number;
+    realUsage: {
+      requestsWithReceipts: number;
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+      cacheReadTokens: number;
+      cacheWriteTokens: number;
+      estimatedUsdSaved: number;
+      bySource: Record<string, number>;
+    };
+    mcpDescriptionCompression: {
+      descriptionsCompressed: number;
+      charsSaved: number;
+      estimatedTokensSaved: number;
+    };
   };
   cacheStats: {
     hits: number;
@@ -46,6 +67,7 @@ export async function handleCompressionStatus(
   try {
     const settings = await getCompressionSettings();
     const analyticsSummary = getCompressionAnalyticsSummary();
+    const mcpDescriptionStats = getMcpDescriptionCompressionStats();
     const cacheStats = getCacheStatsSummary();
 
     const result = {
@@ -53,14 +75,28 @@ export async function handleCompressionStatus(
       strategy: settings.defaultMode || "standard",
       settings: {
         maxTokens: settings.autoTriggerTokens,
+        autoTriggerMode: settings.autoTriggerMode ?? "lite",
         targetRatio: 0.7, // Default target ratio
-        aggressiveness: settings.defaultMode || "standard",
+        preserveSystemPrompt: settings.preserveSystemPrompt,
+        mcpDescriptionCompressionEnabled: settings.mcpDescriptionCompressionEnabled !== false,
       },
       analytics: {
         totalRequests: analyticsSummary.totalRequests,
-        compressedRequests: analyticsSummary.byMode?.standard?.count || 0,
+        compressedRequests: Object.values(analyticsSummary.byMode ?? {}).reduce(
+          (sum, mode) => sum + mode.count,
+          0
+        ),
         tokensSaved: analyticsSummary.totalTokensSaved,
-        avgCompressionRatio: analyticsSummary.byMode?.standard?.avgSavingsPct || 0,
+        avgCompressionRatio: analyticsSummary.avgSavingsPct,
+        byMode: analyticsSummary.byMode ?? {},
+        validationFallbacks: analyticsSummary.validationFallbacks,
+        requestsWithReceipts: analyticsSummary.realUsage.requestsWithReceipts,
+        realUsage: analyticsSummary.realUsage,
+        mcpDescriptionCompression: {
+          descriptionsCompressed: mcpDescriptionStats.descriptionsCompressed,
+          charsSaved: mcpDescriptionStats.charsSaved,
+          estimatedTokensSaved: mcpDescriptionStats.estimatedTokensSaved,
+        },
       },
       cacheStats: cacheStats
         ? {
@@ -98,9 +134,11 @@ export async function handleCompressionConfigure(
   args: {
     enabled?: boolean;
     strategy?: string;
+    autoTriggerMode?: string;
     maxTokens?: number;
     targetRatio?: number;
-    aggressiveness?: string;
+    preserveSystemPrompt?: boolean;
+    mcpDescriptionCompressionEnabled?: boolean;
   },
   extra?: McpToolExtraLike
 ): Promise<{
@@ -109,9 +147,11 @@ export async function handleCompressionConfigure(
   settings: {
     enabled: boolean;
     strategy: string;
+    autoTriggerMode: string;
     maxTokens: number;
     targetRatio: number;
-    aggressiveness: string;
+    preserveSystemPrompt: boolean;
+    mcpDescriptionCompressionEnabled: boolean;
   };
 }> {
   const start = Date.now();
@@ -124,11 +164,17 @@ export async function handleCompressionConfigure(
     if (args.strategy !== undefined) {
       updates.defaultMode = args.strategy;
     }
+    if (args.autoTriggerMode !== undefined) {
+      updates.autoTriggerMode = args.autoTriggerMode;
+    }
     if (args.maxTokens !== undefined) {
       updates.autoTriggerTokens = args.maxTokens;
     }
-    if (args.aggressiveness !== undefined) {
-      updates.defaultMode = args.aggressiveness;
+    if (args.preserveSystemPrompt !== undefined) {
+      updates.preserveSystemPrompt = args.preserveSystemPrompt;
+    }
+    if (args.mcpDescriptionCompressionEnabled !== undefined) {
+      updates.mcpDescriptionCompressionEnabled = args.mcpDescriptionCompressionEnabled;
     }
 
     const settings = await updateCompressionSettings(updates);
@@ -139,9 +185,11 @@ export async function handleCompressionConfigure(
       settings: {
         enabled: settings.enabled,
         strategy: settings.defaultMode || "standard",
+        autoTriggerMode: settings.autoTriggerMode ?? "lite",
         maxTokens: settings.autoTriggerTokens,
         targetRatio: 0.7, // Default target ratio
-        aggressiveness: settings.defaultMode || "standard",
+        preserveSystemPrompt: settings.preserveSystemPrompt,
+        mcpDescriptionCompressionEnabled: settings.mcpDescriptionCompressionEnabled !== false,
       },
     };
 
@@ -178,7 +226,7 @@ export const compressionTools = {
   omniroute_compression_configure: {
     name: "omniroute_compression_configure",
     description:
-      "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (none/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, and aggressiveness level.",
+      "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
     inputSchema: compressionConfigureInput,
     handler: (args: z.infer<typeof compressionConfigureInput>) => handleCompressionConfigure(args),
   },
