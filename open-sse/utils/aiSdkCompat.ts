@@ -22,8 +22,10 @@ export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): b
   // Explicit body value always wins
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
-  // No explicit stream param — fall back to Accept header heuristic
-  return !clientWantsJsonResponse(acceptHeader);
+
+  // No explicit stream param — default to false per OpenAI spec
+  // (Fixes #1873 - previously relied on Accept header heuristic)
+  return false;
 }
 
 /**

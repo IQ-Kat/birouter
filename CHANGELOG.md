@@ -13,6 +13,8 @@
 ### 🐛 Bug Fixes
 
 - **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
+- **fix(codex):** map prompt field to input array for Cursor compatibility (fixes #1872)
+- **fix(core):** align stream parameter default to false per strict OpenAI spec (fixes #1873)
 
 ### 🏆 Release Attribution & Retroactive Credits
 
