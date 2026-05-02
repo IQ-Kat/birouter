@@ -5151,6 +5151,15 @@ function ConnectionRow({
                 {t("autoPriority", { priority: connection.globalPriority })}
               </span>
             )}
+            {connection.maxConcurrent != null && connection.maxConcurrent > 0 && (
+              <span
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-zinc-500/15 text-zinc-500 dark:bg-zinc-400/15 dark:text-zinc-400"
+                title={t("accountConcurrencyCapLabel")}
+              >
+                <span className="material-symbols-outlined text-[11px]">dynamic_feed</span>
+                {connection.maxConcurrent}
+              </span>
+            )}
             {/* Rate Limit Protection — inline toggle with label */}
             <span className="text-text-muted/30 select-none">|</span>
             <button
