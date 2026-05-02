@@ -293,6 +293,23 @@ describe("compressionAnalytics", () => {
     assert.equal(summary.realUsage.bySource.provider, 1);
   });
 
+  it("aggregates estimated USD savings separately from token estimates", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "standard",
+      original_tokens: 1000,
+      compressed_tokens: 700,
+      tokens_saved: 300,
+      request_id: "req-usd",
+      estimated_usd_saved: 0.0015,
+    });
+    attachCompressionUsageReceipt("req-usd", { prompt_tokens: 700, total_tokens: 700 }, "provider");
+
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.realUsage.requestsWithReceipts, 1);
+    assert.equal(summary.realUsage.estimatedUsdSaved, 0.0015);
+  });
+
   it("summarizes validation fallback and output mode rows", () => {
     insertCompressionAnalyticsRow({
       timestamp: new Date().toISOString(),

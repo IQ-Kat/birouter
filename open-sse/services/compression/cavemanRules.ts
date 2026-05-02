@@ -406,11 +406,15 @@ export function getRuleByName(name: string): CavemanRule | undefined {
 }
 
 export function getCavemanRuleMetadata() {
+  const intensities = ["lite", "full", "ultra"] as const;
   return CAVEMAN_RULES.map((rule) => ({
     name: rule.name,
     context: rule.context,
     category: rule.category ?? "terse",
     minIntensity: rule.minIntensity ?? "lite",
+    intensities: intensities.filter(
+      (intensity) => INTENSITY_RANK[intensity] >= INTENSITY_RANK[rule.minIntensity ?? "lite"]
+    ),
     description: rule.description ?? rule.name.replace(/_/g, " "),
   }));
 }

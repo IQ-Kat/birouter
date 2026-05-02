@@ -144,7 +144,10 @@ export function compressAggressive(
     }
 
     try {
-      const liteResult = applyLiteCompression({ messages: currentMessages });
+      const liteResult = applyLiteCompression(
+        { messages: currentMessages },
+        { preserveSystemPrompt: cfg.preserveSystemPrompt !== false }
+      );
       if (liteResult?.compressed && liteResult.stats) {
         const liteSavings = liteResult.stats.savingsPercent ?? 0;
         if (liteSavings > resultStats.savingsPercent) {

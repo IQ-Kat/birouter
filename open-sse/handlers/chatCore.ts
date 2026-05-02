@@ -1689,6 +1689,18 @@ export async function handleChatCore({
               try {
                 const { insertCompressionAnalyticsRow } =
                   await import("../../src/lib/db/compressionAnalytics.ts");
+                const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
+                const tokensSaved = Math.max(
+                  0,
+                  result.stats.originalTokens - result.stats.compressedTokens
+                );
+                const estimatedUsdSaved = await calculateCost(
+                  provider ?? "",
+                  effectiveModel ?? "",
+                  {
+                    input: tokensSaved,
+                  }
+                );
                 insertCompressionAnalyticsRow({
                   timestamp: new Date().toISOString(),
                   combo_id: comboName ?? null,
@@ -1696,12 +1708,10 @@ export async function handleChatCore({
                   mode,
                   original_tokens: result.stats.originalTokens,
                   compressed_tokens: result.stats.compressedTokens,
-                  tokens_saved: Math.max(
-                    0,
-                    result.stats.originalTokens - result.stats.compressedTokens
-                  ),
+                  tokens_saved: tokensSaved,
                   duration_ms: result.stats.durationMs ?? null,
                   request_id: skillRequestId,
+                  estimated_usd_saved: estimatedUsdSaved || null,
                   validation_fallback: result.stats.fallbackApplied ? 1 : 0,
                   output_mode: cavemanOutputModeApplied ? cavemanOutputModeIntensity : null,
                 });

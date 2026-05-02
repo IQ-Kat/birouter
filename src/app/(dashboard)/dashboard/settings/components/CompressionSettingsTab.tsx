@@ -70,6 +70,7 @@ interface RuleMetadata {
   category: string;
   context: string;
   minIntensity: CavemanIntensity;
+  intensities?: CavemanIntensity[];
   description: string;
 }
 
@@ -498,7 +499,7 @@ export default function CompressionSettingsTab() {
                         <button
                           key={rule.name}
                           onClick={() => toggleCavemanRule(rule.name)}
-                          title={`${rule.category} · ${rule.context} · ${rule.minIntensity}`}
+                          title={`${rule.category} · ${rule.context} · ${(rule.intensities ?? [rule.minIntensity]).join("/")}`}
                           className={`px-2 py-1 rounded text-xs border transition-all ${
                             config.cavemanConfig!.skipRules.includes(rule.name)
                               ? "border-red-500/50 bg-red-500/10 text-red-400 line-through"

@@ -1,7 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { cavemanCompress } from "../../../open-sse/services/compression/caveman.ts";
-import { getRuleByName } from "../../../open-sse/services/compression/cavemanRules.ts";
+import {
+  getCavemanRuleMetadata,
+  getRuleByName,
+} from "../../../open-sse/services/compression/cavemanRules.ts";
 import { applyCompression } from "../../../open-sse/services/compression/strategySelector.ts";
 
 function compress(content: string, options = {}) {
@@ -132,6 +135,7 @@ describe("Caveman v3.7.9 rule parity", () => {
   });
 
   it("exposes metadata for new rule names", () => {
+    const metadata = getCavemanRuleMetadata();
     for (const ruleName of [
       "articles",
       "pleasantries",
@@ -140,6 +144,9 @@ describe("Caveman v3.7.9 rule parity", () => {
       "ultra_abbreviations",
     ]) {
       assert.ok(getRuleByName(ruleName), `missing rule ${ruleName}`);
+      const rule = metadata.find((entry) => entry.name === ruleName);
+      assert.ok(rule?.category, `missing metadata category for ${ruleName}`);
+      assert.ok(rule?.intensities?.length, `missing metadata intensities for ${ruleName}`);
     }
   });
 });
