@@ -503,6 +503,7 @@ interface ConnectionRowConnection {
   providerSpecificData?: Record<string, unknown>;
   expiresAt?: string;
   tokenExpiresAt?: string;
+  maxConcurrent?: number | null;
 }
 
 interface ConnectionRowProps {

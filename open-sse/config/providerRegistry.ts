@@ -6,7 +6,6 @@
  * is auto-generated from this registry.
  */
 
-import { platform, arch } from "os";
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
 import {
@@ -33,6 +32,8 @@ import {
   getKiroServiceHeaders,
   getQoderDefaultHeaders,
   getQwenOauthHeaders,
+  getRuntimePlatform,
+  getRuntimeArch,
 } from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 
@@ -245,7 +246,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
 };
 
 function mapStainlessOs() {
-  switch (platform()) {
+  switch (getRuntimePlatform()) {
     case "darwin":
       return "MacOS";
     case "win32":
@@ -253,12 +254,12 @@ function mapStainlessOs() {
     case "linux":
       return "Linux";
     default:
-      return `Other::${platform()}`;
+      return `Other::${getRuntimePlatform()}`;
   }
 }
 
 function mapStainlessArch() {
-  switch (arch()) {
+  switch (getRuntimeArch()) {
     case "x64":
       return "x64";
     case "arm64":
@@ -266,7 +267,7 @@ function mapStainlessArch() {
     case "ia32":
       return "x86";
     default:
-      return `other::${arch()}`;
+      return `other::${getRuntimeArch()}`;
   }
 }
 

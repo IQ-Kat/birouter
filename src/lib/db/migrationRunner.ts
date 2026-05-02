@@ -30,8 +30,25 @@ function resolveMigrationsDir(): string {
     return path.resolve(configuredDir);
   }
 
+  const checkLocations = (basePath: string) => {
+    const locations = [
+      path.join(basePath, "migrations"),
+      path.join(basePath, "src", "lib", "db", "migrations"),
+      path.join(basePath, "app", "src", "lib", "db", "migrations"),
+    ];
+    for (const loc of locations) {
+      if (fs.existsSync(loc)) return loc;
+    }
+    return null;
+  };
+
   try {
-    return path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
+    let currentDir = path.dirname(fileURLToPath(import.meta.url));
+    while (currentDir !== path.dirname(currentDir)) {
+      const found = checkLocations(currentDir);
+      if (found) return found;
+      currentDir = path.dirname(currentDir);
+    }
   } catch {
     // Fall through to more defensive URL parsing below.
   }
@@ -46,21 +63,20 @@ function resolveMigrationsDir(): string {
       const rawPath = decodeURIComponent(
         metaUrl.replace(/^file:\/\/\//, "/").replace(/^file:\/\//, "")
       );
-      return path.join(path.dirname(path.resolve(rawPath)), "migrations");
+      let currentDir = path.dirname(path.resolve(rawPath));
+      while (currentDir !== path.dirname(currentDir)) {
+        const found = checkLocations(currentDir);
+        if (found) return found;
+        currentDir = path.dirname(currentDir);
+      }
     } catch {
       // Fall through to process.cwd fallback
     }
   }
 
   // Last resort: use process.cwd to find migrations relative to the app root
-  const cwdFallback = path.join(process.cwd(), "src", "lib", "db", "migrations");
-  if (fs.existsSync(cwdFallback)) {
-    return cwdFallback;
-  }
-  const appFallback = path.join(process.cwd(), "app", "src", "lib", "db", "migrations");
-  if (fs.existsSync(appFallback)) {
-    return appFallback;
-  }
+  const fromCwd = checkLocations(process.cwd());
+  if (fromCwd) return fromCwd;
 
   throw new Error(
     "[Migration] Could not resolve migrations directory. Set OMNIROUTE_MIGRATIONS_DIR."

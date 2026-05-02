@@ -129,7 +129,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       providerSpecificData: incomingPsd,
     } = body;
 
-    const existing = await getProviderConnectionById(id);
+    const existing = (await getProviderConnectionById(id)) as Record<string, any> | null;
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -244,7 +244,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
 
     // Fetch connection before deleting to check provider type
-    const connection = await getProviderConnectionById(id);
+    const connection = (await getProviderConnectionById(id)) as Record<string, any> | null;
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
