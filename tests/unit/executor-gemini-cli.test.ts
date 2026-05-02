@@ -5,7 +5,14 @@ import { GeminiCLIExecutor } from "../../open-sse/executors/gemini-cli.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
 import { GEMINI_CLI_VERSION } from "../../open-sse/services/geminiCliHeaders.ts";
 
-type CapturedFetchCall = { url: string; body: Record<string, unknown> };
+type CapturedFetchCall = {
+  url: string;
+  body: Record<string, unknown>;
+};
+
+function parseInitBody(init: RequestInit): Record<string, unknown> {
+  return init.body ? JSON.parse(String(init.body)) : {};
+}
 
 function getMetadata(body: Record<string, unknown>): Record<string, unknown> {
   return body.metadata && typeof body.metadata === "object"
@@ -52,6 +59,27 @@ test("GeminiCLIExecutor.buildHeaders uses JSON accept for non-streaming requests
   );
 
   assert.equal(headers.Accept, "application/json");
+});
+
+test("GeminiCLIExecutor.buildHeaders derives the User-Agent from the request model", () => {
+  const executor = new GeminiCLIExecutor();
+
+  const flashHeaders = executor.buildHeaders(
+    { accessToken: "gcli-token" },
+    true,
+    undefined,
+    "models/gemini-3-flash-preview"
+  );
+  const proHeaders = executor.buildHeaders(
+    { accessToken: "gcli-token" },
+    true,
+    undefined,
+    "models/gemini-3.1-pro-preview"
+  );
+
+  assert.match(flashHeaders["User-Agent"], /\/gemini-3-flash-preview /);
+  assert.match(proHeaders["User-Agent"], /\/gemini-3\.1-pro-preview /);
+  assert.notEqual(flashHeaders["User-Agent"], proHeaders["User-Agent"]);
 });
 
 test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transformRequest updates body.project", async () => {
@@ -177,7 +205,7 @@ test("GeminiCLIExecutor.refreshProject onboards a managed project when loadCodeA
   const calls: CapturedFetchCall[] = [];
 
   globalThis.fetch = async (url, init: RequestInit = {}) => {
-    const body = init.body ? JSON.parse(String(init.body)) : {};
+    const body = parseInitBody(init);
     calls.push({ url: String(url), body });
 
     if (String(url).endsWith("loadCodeAssist")) {

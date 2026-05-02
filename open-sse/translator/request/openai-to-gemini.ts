@@ -21,7 +21,6 @@ import {
   convertOpenAIContentToParts,
   extractTextContent,
   tryParseJSON,
-  generateRequestId,
   generateSessionId,
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
@@ -97,6 +96,7 @@ type CloudCodeEnvelope = {
 
 type GeminiToolNameOptions = {
   stripNamespace?: boolean;
+  functionResponseShape?: "result" | "output";
 };
 
 function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, string> | null {
@@ -296,7 +296,10 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
                 functionResponse: {
                   id: fid,
                   name: name,
-                  response: { result: parsedResp },
+                  response:
+                    toolNameOptions.functionResponseShape === "output"
+                      ? { output: typeof resp === "string" ? resp : JSON.stringify(resp) }
+                      : { result: parsedResp },
                 },
               });
             }
@@ -350,8 +353,16 @@ export function openaiToGeminiRequest(model, body, stream) {
 }
 
 // OpenAI -> Gemini CLI (Cloud Code Assist)
-export function openaiToGeminiCLIRequest(model, body, stream) {
-  const gemini = openaiToGeminiBase(model, body, stream, { stripNamespace: true });
+export function openaiToGeminiCLIRequest(
+  model,
+  body,
+  stream,
+  options: { functionResponseShape?: "result" | "output" } = {}
+) {
+  const gemini = openaiToGeminiBase(model, body, stream, {
+    stripNamespace: true,
+    functionResponseShape: options.functionResponseShape,
+  });
 
   // Add thinking config for CLI
   if (body.reasoning_effort) {
@@ -413,7 +424,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
     : {
         model: cleanModel,
         project: projectId,
-        user_prompt_id: generateRequestId(),
+        user_prompt_id: generateUUID(),
         request: {
           contents: geminiCLI.contents,
           systemInstruction: geminiCLI.systemInstruction,
@@ -443,7 +454,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
     }
   } else {
     // Gemini CLI's native Cloud Code envelope uses snake_case identifiers.
-    envelope.request.session_id = generateSessionId();
+    envelope.request.session_id = envelope.user_prompt_id;
     envelope.request.safetySettings = geminiCLI.safetySettings;
   }
 
@@ -619,7 +630,11 @@ register(
   FORMATS.OPENAI,
   FORMATS.GEMINI_CLI,
   (model, body, stream, credentials) =>
-    wrapInCloudCodeEnvelope(model, openaiToGeminiCLIRequest(model, body, stream), credentials),
+    wrapInCloudCodeEnvelope(
+      model,
+      openaiToGeminiCLIRequest(model, body, stream, { functionResponseShape: "output" }),
+      credentials
+    ),
   null
 );
 register(FORMATS.OPENAI, FORMATS.ANTIGRAVITY, openaiToAntigravityRequest, null);

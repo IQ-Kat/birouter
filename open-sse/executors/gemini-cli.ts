@@ -120,6 +120,8 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   buildUrl(model, stream, urlIndex = 0) {
+    void model;
+    void urlIndex;
     const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
     return `${this.config.baseUrl}:${action}`;
   }

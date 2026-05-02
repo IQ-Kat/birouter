@@ -7,6 +7,16 @@ import {
 export const GEMINI_CLI_VERSION = "0.40.1";
 export const GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION = "9.15.1";
 
+const GEMINI_CLI_LOAD_CODE_ASSIST_METADATA = Object.freeze({
+  ideType: "IDE_UNSPECIFIED",
+  platform: "PLATFORM_UNSPECIFIED",
+  pluginType: "GEMINI",
+});
+
+export function getGeminiCliLoadCodeAssistMetadata(): Record<string, string> {
+  return { ...GEMINI_CLI_LOAD_CODE_ASSIST_METADATA };
+}
+
 export function geminiCliUserAgent(model: string): string {
   const normalizedModel = model || "unknown";
   return `GeminiCLI/${GEMINI_CLI_VERSION}/${normalizedModel} (${normalizeCloudCodePlatform()}; ${normalizeCloudCodeArch()}; terminal) google-api-nodejs-client/${GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION}`;
