@@ -15,6 +15,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(cli):** add capture-backed Gemini CLI fingerprint (#1866)
 - **fix(ui):** hide combo compression controls when the global setting is disabled (#1840)
 - **fix(db):** tolerate missing request_detail_logs table for legacy deployments (#1848)
 - **fix(core):** remove unneeded \`store\` payload parameter for providers lacking support (closes #1841)
