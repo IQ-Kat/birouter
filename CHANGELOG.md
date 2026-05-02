@@ -6,9 +6,17 @@
 
 ## [3.7.9] — 2026-05-02
 
+### ✨ New Features
+
+- **feat(provider):** update Jina AI model catalog to support Embeddings and Rerank natively (#1874 — thanks @backryun)
+
 ### 🐛 Bug Fixes
 
 - **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
+
+### 🏆 Release Attribution & Retroactive Credits
+
+- **@payne0420** (PR #1828 / #1839) — Implementation of the **Rate Limit Watchdog** and environment overrides. (This feature was manually backported to v3.7.8, causing the automatic GitHub Release notes to omit the author's credit).
 
 ---
 
