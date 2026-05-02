@@ -560,7 +560,10 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   // Do not rely on any highest-version-applied heuristic. We must explicitly
   // iterate through all missing files on disk and apply them if they are missing
   // from the _omniroute_migrations table.
-  const highestApplied = applied.size > 0 ? Math.max(...Array.from(applied).map(Number)) : 0;
+  const numericApplied = Array.from(applied)
+    .map((v) => Number.parseInt(v, 10))
+    .filter((n) => !Number.isNaN(n));
+  const highestApplied = numericApplied.length > 0 ? Math.max(...numericApplied) : 0;
   const pending = files.filter((f) => {
     const isMissing = !applied.has(f.version);
     if (isMissing && Number(f.version) < highestApplied) {

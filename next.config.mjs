@@ -177,6 +177,7 @@ const nextConfig = {
         tls: false,
         crypto: false,
         process: false,
+        os: false,
       };
     }
     return config;
