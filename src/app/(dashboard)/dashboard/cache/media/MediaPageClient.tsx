@@ -460,6 +460,15 @@ export default function MediaPageClient() {
   );
 
   useEffect(() => {
+    const audioUrl = result?.audioUrl;
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [result?.audioUrl]);
+
+  useEffect(() => {
     // Fetch configured provider connections to determine which local providers are set up
     fetch("/api/providers")
       .then((r) => r.json())

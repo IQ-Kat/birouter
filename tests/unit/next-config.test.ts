@@ -35,11 +35,21 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   const { default: nextConfig } = await loadNextConfig("distdir");
 
   const rewrites = await nextConfig.rewrites();
+  const headers = await nextConfig.headers();
+  const securityHeaders = Object.fromEntries(
+    headers[0].headers.map(({ key, value }) => [key, value])
+  );
 
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
   assert.equal(nextConfig.images.unoptimized, true);
   assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse", "@lobehub/icons"]);
+  assert.equal(headers[0].source, "/:path*");
+  assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
+  assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
+  assert.equal(securityHeaders["X-Frame-Options"], "DENY");
+  assert.equal(securityHeaders["X-Content-Type-Options"], "nosniff");
+  assert.match(securityHeaders["Strict-Transport-Security"], /includeSubDomains/);
   assert.deepEqual(rewrites.slice(0, 4), [
     {
       source: "/chat/completions",

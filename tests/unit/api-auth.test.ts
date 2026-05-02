@@ -180,6 +180,25 @@ test("isAuthRequired is disabled while no password exists", async () => {
   assert.equal(result, false);
 });
 
+test("isAuthRequired keeps fresh bootstrap open only on loopback", async () => {
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  assert.equal(await apiAuth.isAuthRequired(new Request("http://localhost/api/providers")), false);
+  assert.equal(await apiAuth.isAuthRequired(new Request("http://127.0.0.1/api/providers")), false);
+  assert.equal(
+    await apiAuth.isAuthRequired(new Request("https://example.com/api/providers")),
+    true
+  );
+});
+
+test("isAuthenticated rejects remote management bootstrap without a configured password", async () => {
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  const request = new Request("https://example.com/api/providers");
+
+  assert.equal(await apiAuth.isAuthenticated(request), false);
+});
+
 test("isAuthRequired stays enabled when a password exists", async () => {
   await localDb.updateSettings({ requireLogin: true, password: "hashed-password" });
 

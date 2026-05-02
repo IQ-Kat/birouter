@@ -13,7 +13,7 @@ import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
  * Exports a legacy 9router compatible JSON backup.
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired()) {
+  if (await isAuthRequired(request)) {
     if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -41,8 +41,8 @@ export async function GET(request: Request) {
       // Metadata to identify export version
       _meta: {
         exportedAt: new Date().toISOString(),
-        version: "omniroute-v3-legacy-export"
-      }
+        version: "omniroute-v3-legacy-export",
+      },
     };
 
     return new NextResponse(JSON.stringify(exportData, null, 2), {

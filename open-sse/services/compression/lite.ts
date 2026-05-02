@@ -17,6 +17,51 @@ interface LiteCompressionOptions {
   supportsVision?: boolean | null;
 }
 
+function trimTrailingHorizontalWhitespace(line: string): string {
+  let end = line.length;
+  while (end > 0) {
+    const code = line.charCodeAt(end - 1);
+    if (code !== 32 && code !== 9) break;
+    end--;
+  }
+  return end === line.length ? line : line.slice(0, end);
+}
+
+function collapseNewlineRuns(content: string): string {
+  let normalized = "";
+  let newlineRun = 0;
+
+  for (const char of content) {
+    if (char === "\n") {
+      newlineRun++;
+      if (newlineRun <= 2) {
+        normalized += char;
+      }
+      continue;
+    }
+
+    newlineRun = 0;
+    normalized += char;
+  }
+
+  return normalized;
+}
+
+function normalizeMessageWhitespace(content: string): string {
+  return collapseNewlineRuns(content).split("\n").map(trimTrailingHorizontalWhitespace).join("\n");
+}
+
+function modelSupportsVision(model: string): boolean {
+  const normalized = model.toLowerCase();
+  return (
+    normalized.includes("vision") ||
+    normalized.includes("gpt-4") ||
+    normalized.includes("4o") ||
+    normalized.includes("claude-3") ||
+    normalized.includes("gemini")
+  );
+}
+
 export function collapseWhitespace(body: ChatBody): {
   body: ChatBody;
   applied: boolean;
@@ -25,7 +70,7 @@ export function collapseWhitespace(body: ChatBody): {
   let applied = false;
   const messages = body.messages.map((msg) => {
     if (typeof msg.content !== "string") return msg;
-    const normalized = msg.content.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+$/gm, "");
+    const normalized = normalizeMessageWhitespace(msg.content);
     if (normalized !== msg.content) applied = true;
     return { ...msg, content: normalized };
   });
@@ -101,7 +146,11 @@ export function replaceImageUrls(
 ): { body: ChatBody; applied: boolean } {
   if (!body.messages) return { body, applied: false };
   const supportsVision =
-    typeof options === "object" && options !== null ? options.supportsVision : undefined;
+    typeof options === "object" && options !== null
+      ? options.supportsVision
+      : typeof options === "string"
+        ? modelSupportsVision(options)
+        : undefined;
   if (supportsVision !== false) return { body, applied: false };
 
   let applied = false;

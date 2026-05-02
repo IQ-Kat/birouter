@@ -97,7 +97,7 @@ async function getModelCatalogAuthRejection(
   settings: Record<string, any>,
   headers: Record<string, string>
 ): Promise<Response | null> {
-  if (settings.requireAuthForModels !== true || !(await isAuthRequired())) return null;
+  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
 
   const bearer = extractBearer(request.headers);
   if (bearer) {

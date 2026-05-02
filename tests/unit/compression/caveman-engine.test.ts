@@ -99,7 +99,7 @@ describe("caveman engine", () => {
       preservePatterns: [],
     });
     const text = result.body.messages[0].content as string;
-    assert.ok(text.includes(url), `URL should be preserved`);
+    assert.equal(text.split(/\s+/).includes(url), true, `URL should be preserved`);
   });
 
   it("should handle empty messages array", () => {

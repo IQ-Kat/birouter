@@ -15,8 +15,8 @@ export function extractPreservedBlocks(text: string): { text: string; blocks: Pr
     return placeholder;
   };
 
-  // Extract fenced code blocks (```lang\n...\n```)
-  result = result.replace(/```[a-z]*\n[\s\S]*?\n```/g, (match) => addBlock(match));
+  // Extract fenced code blocks with a linear scan to avoid ReDoS-prone patterns.
+  result = extractFencedCodeBlocks(result, addBlock);
 
   // Extract inline code (`...`)
   result = result.replace(/`[^`\n]+`/g, (match) => addBlock(match));
@@ -38,6 +38,38 @@ export function extractPreservedBlocks(text: string): { text: string; blocks: Pr
   );
 
   return { text: result, blocks };
+}
+
+function extractFencedCodeBlocks(text: string, addBlock: (content: string) => string): string {
+  let output = "";
+  let cursor = 0;
+
+  while (cursor < text.length) {
+    const start = text.indexOf("```", cursor);
+    if (start === -1) {
+      output += text.slice(cursor);
+      break;
+    }
+
+    const openingLineEnd = text.indexOf("\n", start + 3);
+    if (openingLineEnd === -1) {
+      output += text.slice(cursor);
+      break;
+    }
+
+    const closeStart = text.indexOf("\n```", openingLineEnd + 1);
+    if (closeStart === -1) {
+      output += text.slice(cursor);
+      break;
+    }
+
+    const closeEnd = closeStart + 4;
+    output += text.slice(cursor, start);
+    output += addBlock(text.slice(start, closeEnd));
+    cursor = closeEnd;
+  }
+
+  return output;
 }
 
 export function restorePreservedBlocks(text: string, blocks: PreservedBlock[]): string {

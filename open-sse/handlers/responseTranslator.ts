@@ -125,7 +125,7 @@ export function translateNonStreamingResponse(
           `call_${Date.now()}_${toolCalls.length}`;
         let argsToEmit = itemObj.arguments;
         if (argsToEmit != null && typeof argsToEmit === "object" && !Array.isArray(argsToEmit)) {
-          const cleaned = { ...argsToEmit };
+          const cleaned: JsonRecord = { ...(argsToEmit as JsonRecord) };
           for (const [k, v] of Object.entries(cleaned)) {
             if (v === "" || (Array.isArray(v) && v.length === 0)) delete cleaned[k];
           }

@@ -31,6 +31,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+      - run: npm run audit:deps
       - run: npm run lint
       - run: npm run check:cycles
       - run: npm run check:route-validation:t06
