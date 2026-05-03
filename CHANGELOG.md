@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(compression):** add RTK tool-output compression, stacked Caveman + RTK pipelines,
+  compression combo assignments, dashboard context pages, MCP management tools, and
+  language-aware Caveman rule packs.
+- **feat(compression):** expand RTK parity with a 39-filter catalog, RTK-style JSON DSL stages,
+  inline verify/benchmark coverage, trust-gated custom filters, expanded command detection, and
+  redacted raw-output recovery.
+
 ---
 
 ## [3.7.9] — 2026-05-02

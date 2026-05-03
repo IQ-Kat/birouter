@@ -7,6 +7,12 @@ export type {
   CavemanRule,
   CavemanIntensity,
   CavemanOutputModeConfig,
+  RtkConfig,
+  RtkIntensity,
+  RtkRawOutputRetention,
+  CompressionEngineId,
+  CompressionLanguageConfig,
+  CompressionPipelineStep,
   AggressiveConfig,
   AgingThresholds,
   ToolStrategiesConfig,
@@ -18,6 +24,8 @@ export {
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
   DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
+  DEFAULT_RTK_CONFIG,
+  DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_AGGRESSIVE_CONFIG,
 } from "./types.ts";
 
@@ -32,6 +40,19 @@ export {
 
 export { cavemanCompress, applyRulesToText } from "./caveman.ts";
 export { getRulesForContext, getCavemanRuleMetadata, CAVEMAN_RULES } from "./cavemanRules.ts";
+export {
+  getAvailableLanguagePacks,
+  listCavemanRulePacks,
+  loadAllRulesForLanguage,
+  loadCavemanFileRules,
+  loadRulePack,
+  validateRulePack,
+} from "./ruleLoader.ts";
+export type { RulePackMetadata } from "./ruleLoader.ts";
+export {
+  detectCompressionLanguage,
+  listSupportedCompressionLanguages,
+} from "./languageDetector.ts";
 export {
   extractPreservedBlocks,
   restorePreservedBlocks,
@@ -62,7 +83,61 @@ export {
   applyCompression,
   checkComboOverride,
   shouldAutoTrigger,
+  applyStackedCompression,
 } from "./strategySelector.ts";
+
+export type {
+  CompressionEngine,
+  CompressionEngineApplyOptions,
+  CompressionEngineMetadata,
+  CompressionEngineTarget,
+  EngineConfigField,
+  EngineRegistryEntry,
+  EngineValidationResult,
+} from "./engines/types.ts";
+
+export {
+  registerEngine,
+  registerCompressionEngine,
+  unregisterCompressionEngine,
+  getEngine,
+  getEngineEntry,
+  getCompressionEngine,
+  listEngines,
+  listCompressionEngines,
+  listEnabledEngines,
+  setEngineEnabled,
+  updateEngineConfig,
+  clearCompressionEngineRegistry,
+} from "./engines/registry.ts";
+export { registerBuiltinCompressionEngines } from "./engines/index.ts";
+
+export { applyRtkCompression, processRtkText, rtkEngine } from "./engines/rtk/index.ts";
+export {
+  detectCommandFromText,
+  detectCommandOutput,
+  detectCommandType,
+  type CommandDetectionResult,
+} from "./engines/rtk/commandDetector.ts";
+export {
+  loadRtkFilters,
+  getRtkFilterCatalog,
+  matchRtkFilter,
+  getRtkFilterLoadDiagnostics,
+} from "./engines/rtk/filterLoader.ts";
+export { runRtkFilterTests } from "./engines/rtk/verify.ts";
+export {
+  maybePersistRtkRawOutput,
+  readRtkRawOutput,
+  redactRtkRawOutput,
+} from "./engines/rtk/rawOutput.ts";
+export {
+  detectCodeLanguage,
+  normalizeCodeLanguage,
+  stripCode,
+  stripCodeComments,
+} from "./engines/rtk/codeStripper.ts";
+export type { CodeLanguage, CodeStripperOptions } from "./engines/rtk/codeStripper.ts";
 
 export { RuleBasedSummarizer, createSummarizer } from "./summarizer.ts";
 

@@ -2,10 +2,62 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
-import type { CompressionMode } from "@omniroute/open-sse/services/compression/types";
+import type {
+  CompressionConfig,
+  CompressionMode,
+} from "@omniroute/open-sse/services/compression/types";
 import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
 
-const PreviewRequestSchema = z.object({
+const previewRtkConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    intensity: z.enum(["minimal", "standard", "aggressive"]).optional(),
+    applyToToolResults: z.boolean().optional(),
+    applyToCodeBlocks: z.boolean().optional(),
+    applyToAssistantMessages: z.boolean().optional(),
+    enabledFilters: z.array(z.string()).optional(),
+    disabledFilters: z.array(z.string()).optional(),
+    maxLinesPerResult: z.number().int().min(0).max(100000).optional(),
+    maxCharsPerResult: z.number().int().min(0).max(1000000).optional(),
+    deduplicateThreshold: z.number().int().min(2).max(100).optional(),
+    customFiltersEnabled: z.boolean().optional(),
+    trustProjectFilters: z.boolean().optional(),
+    rawOutputRetention: z.enum(["never", "failures", "always"]).optional(),
+    rawOutputMaxBytes: z.number().int().min(1024).max(10_000_000).optional(),
+  })
+  .strict();
+
+const previewPipelineStepSchema = z
+  .object({
+    engine: z.enum(["lite", "caveman", "aggressive", "ultra", "rtk"]),
+    intensity: z.string().optional(),
+    config: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
+
+export const PreviewCompressionConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    defaultMode: z
+      .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+      .optional(),
+    preserveSystemPrompt: z.boolean().optional(),
+    compressionComboId: z.string().nullable().optional(),
+    rtkConfig: previewRtkConfigSchema.optional(),
+    stackedPipeline: z.array(previewPipelineStepSchema).optional(),
+    languageConfig: z
+      .object({
+        enabled: z.boolean().optional(),
+        defaultLanguage: z.string().min(1).optional(),
+        autoDetect: z.boolean().optional(),
+        enabledPacks: z.array(z.string().min(1)).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export const PreviewRequestSchema = z.object({
   messages: z
     .array(
       z.object({
@@ -14,7 +66,8 @@ const PreviewRequestSchema = z.object({
       })
     )
     .min(1),
-  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra"]),
+  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"]),
+  config: PreviewCompressionConfigSchema.optional(),
 });
 
 function countTokens(text: string): number {
@@ -49,14 +102,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode } = parsed.data;
+  const { messages, mode, config } = parsed.data;
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
   try {
     const start = Date.now();
     const requestBody = { messages };
-    const result = await applyCompression(requestBody as Record<string, unknown>, mode);
+    const result = await applyCompression(requestBody as Record<string, unknown>, mode, {
+      config: config as CompressionConfig | undefined,
+    });
     const durationMs = Date.now() - start;
 
     const compressedMessages = (result.body.messages ?? messages) as Array<{

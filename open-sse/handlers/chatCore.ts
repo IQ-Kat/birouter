@@ -1578,30 +1578,6 @@ export async function handleChatCore({
       );
     }
 
-    if (compressionSettings?.cavemanOutputMode?.enabled) {
-      try {
-        const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
-        const outputMode = applyCavemanOutputMode(
-          body as Parameters<typeof applyCavemanOutputMode>[0],
-          compressionSettings.cavemanOutputMode
-        );
-        if (outputMode.applied) {
-          body = outputMode.body as typeof body;
-          cavemanOutputModeApplied = true;
-          cavemanOutputModeIntensity = compressionSettings.cavemanOutputMode.intensity;
-          estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
-          log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
-        } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
-          log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
-        }
-      } catch (err) {
-        log?.debug?.(
-          "COMPRESSION",
-          "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
-        );
-      }
-    }
-
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
@@ -1642,7 +1618,9 @@ export async function handleChatCore({
             comboMode === "lite" ||
             comboMode === "standard" ||
             comboMode === "aggressive" ||
-            comboMode === "ultra"
+            comboMode === "ultra" ||
+            comboMode === "rtk" ||
+            comboMode === "stacked"
           ) {
             config = {
               ...config,
@@ -1654,11 +1632,105 @@ export async function handleChatCore({
             };
             compressionComboKey = comboName;
           }
+          const routingComboIds = [
+            comboConfig?.id,
+            comboName,
+            comboName.startsWith("combo/") ? comboName.substring(6) : null,
+          ].filter((id): id is string => typeof id === "string" && id.length > 0);
+          if (routingComboIds.length > 0) {
+            const { getCompressionComboForRoutingCombo } =
+              await import("../../src/lib/db/compressionCombos.ts");
+            const assignedCompressionCombo =
+              routingComboIds
+                .map((id) => getCompressionComboForRoutingCombo(id))
+                .find((combo) => combo !== null) ?? null;
+            if (assignedCompressionCombo && assignedCompressionCombo.pipeline.length > 0) {
+              const comboLanguagePacks = [
+                ...new Set(
+                  assignedCompressionCombo.languagePacks
+                    .map((pack) => pack.trim())
+                    .filter((pack) => pack.length > 0)
+                ),
+              ];
+              const comboOutputIntensity = (
+                ["lite", "full", "ultra"].includes(assignedCompressionCombo.outputModeIntensity)
+                  ? assignedCompressionCombo.outputModeIntensity
+                  : (config.cavemanOutputMode?.intensity ?? "full")
+              ) as "lite" | "full" | "ultra";
+              const comboDefaultLanguage =
+                comboLanguagePacks.find(
+                  (pack) => pack === config.languageConfig?.defaultLanguage
+                ) ??
+                comboLanguagePacks[0] ??
+                config.languageConfig?.defaultLanguage ??
+                "en";
+              config = {
+                ...config,
+                compressionComboId: assignedCompressionCombo.id,
+                stackedPipeline: assignedCompressionCombo.pipeline,
+                languageConfig: {
+                  ...(config.languageConfig ?? {
+                    enabled: false,
+                    defaultLanguage: "en",
+                    autoDetect: true,
+                    enabledPacks: ["en"],
+                  }),
+                  enabled: true,
+                  defaultLanguage: comboDefaultLanguage,
+                  enabledPacks:
+                    comboLanguagePacks.length > 0
+                      ? comboLanguagePacks
+                      : (config.languageConfig?.enabledPacks ?? ["en"]),
+                },
+                cavemanOutputMode: {
+                  ...(config.cavemanOutputMode ?? {
+                    enabled: false,
+                    intensity: "full",
+                    autoClarity: true,
+                  }),
+                  enabled: assignedCompressionCombo.outputMode,
+                  intensity: comboOutputIntensity,
+                },
+                comboOverrides: {
+                  ...(config.comboOverrides ?? {}),
+                  ...(comboName ? { [comboName]: "stacked" as const } : {}),
+                  ...(comboConfig?.id ? { [comboConfig.id]: "stacked" as const } : {}),
+                },
+              };
+              compressionComboKey = comboName;
+            }
+          }
         } catch (err) {
           log?.debug?.(
             "COMPRESSION",
             "Combo compression override lookup skipped: " +
               (err instanceof Error ? err.message : String(err))
+          );
+        }
+      }
+      if (config.cavemanOutputMode?.enabled) {
+        try {
+          const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
+          const outputModeLanguage =
+            config.languageConfig?.enabled === true ? config.languageConfig.defaultLanguage : "en";
+          const outputMode = applyCavemanOutputMode(
+            body as Parameters<typeof applyCavemanOutputMode>[0],
+            config.cavemanOutputMode,
+            outputModeLanguage
+          );
+          if (outputMode.applied) {
+            body = outputMode.body as typeof body;
+            cavemanOutputModeApplied = true;
+            cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
+            estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+            log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
+          } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
+            log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
+          }
+        } catch (err) {
+          log?.debug?.(
+            "COMPRESSION",
+            "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
           );
         }
       }
@@ -1706,6 +1778,9 @@ export async function handleChatCore({
                   combo_id: comboName ?? null,
                   provider: provider ?? null,
                   mode,
+                  engine: result.stats.engine ?? mode,
+                  compression_combo_id:
+                    result.stats.compressionComboId ?? config.compressionComboId ?? null,
                   original_tokens: result.stats.originalTokens,
                   compressed_tokens: result.stats.compressedTokens,
                   tokens_saved: tokensSaved,
@@ -1714,6 +1789,8 @@ export async function handleChatCore({
                   estimated_usd_saved: estimatedUsdSaved || null,
                   validation_fallback: result.stats.fallbackApplied ? 1 : 0,
                   output_mode: cavemanOutputModeApplied ? cavemanOutputModeIntensity : null,
+                  rtk_raw_output_pointer: result.stats.rtkRawOutputPointers?.[0]?.id ?? null,
+                  rtk_raw_output_bytes: result.stats.rtkRawOutputPointers?.[0]?.bytes ?? null,
                 });
               } catch (err) {
                 log?.debug?.(
@@ -1776,6 +1853,8 @@ export async function handleChatCore({
               combo_id: comboName ?? null,
               provider: provider ?? null,
               mode: "output-caveman",
+              engine: "caveman-output",
+              compression_combo_id: config.compressionComboId ?? null,
               original_tokens: estimatedTokens,
               compressed_tokens: estimatedTokens,
               tokens_saved: 0,
