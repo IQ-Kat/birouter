@@ -10,8 +10,22 @@
 - **feat(compression):** expand RTK parity with a 39-filter catalog, RTK-style JSON DSL stages,
   inline verify/benchmark coverage, trust-gated custom filters, expanded command detection, and
   redacted raw-output recovery.
+- **feat(provider):** add NanoGPT image generation provider (#1899 — thanks @Aculeasis)
+- **feat(ui):** move proxy configuration to dedicated System → Proxy page (#1907 — thanks @oyi77)
+- **feat(ui):** add K/M/B/T cost shortener utility (#1902 — thanks @oyi77)
+- **feat(providers):** implement bulk paste for extra API keys (#1916 — thanks @0xtbug)
+- **feat(analytics):** usage history API key backfill + dark mode pricing (#1896 — thanks @Gi99lin)
 
----
+### 🐛 Bug Fixes
+
+- **fix(codex):** flatten Chat Completions tool format to Codex Responses format in `normalizeCodexTools` — prevents `Missing required parameter: tools[0].name` upstream errors (#1914 — thanks @tranduykhanh030)
+- **fix(proxy):** add proxy-aware execution context to image generation route — proxy settings are now correctly applied for image providers behind restricted networks (#1904 — thanks @Aculeasis)
+- **fix(translator):** inject `properties: {}` into zero-argument MCP tool schemas during Anthropic→OpenAI translation — prevents 400 errors from OpenAI strict schema validation (#1898 — thanks @bryceIT)
+- **fix(codex):** sanitize raw responses input (#1895 — thanks @dhaern)
+- **fix(combos):** align strategy contracts (#1892 — thanks @dhaern)
+- **fix(combos):** fix combo provider breaker profile handling (#1891 — thanks @rdself)
+- **fix(migrations):** duplicate-column no-op fix (#1886 — thanks @smartenok-ops)
+- **fix(auth):** per-connection OAuth refresh mutex (#1885 — thanks @smartenok-ops)
 
 ## [3.7.9] — 2026-05-02
 

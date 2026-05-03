@@ -611,6 +611,40 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
       return false;
     }
 
+    // Codex Responses API requires function tools in flat Responses format:
+    // { type: "function", name, description, parameters }
+    // Some clients/translators send Chat Completions shape:
+    // { type: "function", function: { name, description, parameters } }
+    // which upstream rejects with "Missing required parameter: tools[0].name".
+    // Flatten the nested `function` wrapper into top-level fields (#1914).
+    const functionObject =
+      tool.function && typeof tool.function === "object" && !Array.isArray(tool.function)
+        ? (tool.function as Record<string, unknown>)
+        : null;
+    const description =
+      typeof tool.description === "string"
+        ? tool.description
+        : typeof functionObject?.description === "string"
+          ? functionObject.description
+          : "";
+    const parameters =
+      tool.parameters && typeof tool.parameters === "object" && !Array.isArray(tool.parameters)
+        ? tool.parameters
+        : functionObject?.parameters &&
+            typeof functionObject.parameters === "object" &&
+            !Array.isArray(functionObject.parameters)
+          ? functionObject.parameters
+          : { type: "object", properties: {} };
+
+    // Rewrite in-place to Responses format
+    for (const key of Object.keys(tool)) {
+      delete tool[key];
+    }
+    tool.type = "function";
+    tool.name = name;
+    if (description) tool.description = description;
+    tool.parameters = parameters;
+
     validToolNames.add(name);
     return true;
   });
