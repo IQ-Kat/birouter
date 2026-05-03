@@ -6054,7 +6054,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       : t("leaveBlankKeepCurrentApiKey");
 
   useEffect(() => {
-    if (connection) {
+    if (isOpen && connection) {
       const rawBaseUrl = connection.providerSpecificData?.baseUrl;
       const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
       const rawRegion = connection.providerSpecificData?.region;
@@ -6076,9 +6076,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         name: connection.name || "",
         priority: connection.priority || 1,
         maxConcurrent:
-          connection.maxConcurrent === null || connection.maxConcurrent === undefined
-            ? ""
-            : String(connection.maxConcurrent),
+          connection.maxConcurrent !== null && connection.maxConcurrent !== undefined
+            ? String(connection.maxConcurrent)
+            : "",
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
@@ -6115,7 +6115,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [connection, defaultBaseUrl, isVertex]);
+  }, [isOpen, connection, defaultBaseUrl, isVertex]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;

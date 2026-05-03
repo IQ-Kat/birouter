@@ -14,7 +14,7 @@ test("system sidebar items place logs before health", () => {
   assert.ok(systemSection, "expected system sidebar section to exist");
   assert.deepEqual(
     systemSection.items.map((item) => item.id),
-    ["logs", "audit", "webhooks", "health", "settings"]
+    ["logs", "audit", "webhooks", "health", "proxy", "settings"]
   );
 });
 

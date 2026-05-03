@@ -204,8 +204,8 @@ export function applyRulesToText(
 
 function cleanupArtifacts(text: string): string {
   let result = text;
-  if (result.includes("  ")) result = result.replace(/  +/g, " ");
-  if (/[\t ]+[,.;:!?]/.test(result)) result = result.replace(/\s+([,.;:!?])/g, "$1");
+  if (result.includes("  ")) result = result.replace(/[ \t]{2,}/g, " ");
+  if (/[\t ]+[,.;:!?]/.test(result)) result = result.replace(/[ \t]+([,.;:!?])/g, "$1");
   if (/[.!?]{2,}/.test(result)) result = result.replace(/([.!?]){2,}/g, "$1");
   if (/[ \t]\n/.test(result)) result = result.replace(/[ \t]+$/gm, "");
   if (result.endsWith(" ") || result.endsWith("\t")) result = result.trimEnd();
@@ -216,9 +216,12 @@ function cleanupArtifacts(text: string): string {
 }
 
 function recapitalizeSentences(text: string): string {
-  return text.replace(/(^|[.!?]\s+|\n+\s*)([a-z])/g, (_match, prefix: string, char: string) => {
-    return `${prefix}${char.toUpperCase()}`;
-  });
+  return text.replace(
+    /(^|[.!?][ \t]+|\n+[ \t]*)([a-z])/g,
+    (_match, prefix: string, char: string) => {
+      return `${prefix}${char.toUpperCase()}`;
+    }
+  );
 }
 
 function createCavemanStats(
@@ -262,7 +265,7 @@ function compileUserPreservePatterns(patterns: string[]): {
 }
 
 const PROTECTED_STRUCTURE_RE =
-  /```|~~~|`|https?:\/\/|\[[^\]\n]+\]\([^) \n]+(?:\s+"[^"]*")?\)|^#{1,6}\s+|^\s*\|.*\|\s*$|\$\$|\\\[|\\begin\{|^\s*#(?:set|show|let|import|include)\b|\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b|\bprocess\.env\.[A-Za-z_][A-Za-z0-9_]*\b|\$[A-Z_][A-Z0-9_]*\b|\b\d+(?:\.\d+){1,3}(?:[-+][A-Za-z0-9.-]+)?\b|\b[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+\(\)?|\b[A-Za-z_$][\w$]*\s*\([^()\n]*\)|(?:^|\s)(?:\.{0,2}\/[A-Za-z0-9_@./-]+|[A-Za-z]:\\[A-Za-z0-9_.\\/-]+)|\b(?:TypeError|ReferenceError|SyntaxError|RangeError|URIError|EvalError|Error|Exception):[^\n]+/im;
+  /```|~~~|`|https?:\/\/|\[[^\]\n]{1,1000}\]\([^)[ \t\n]{1,2000}(?:[ \t]+"[^"]{0,1000}")?\)|^#{1,6}\s+|^[ \t]*\|(?:[^|\n]{0,1000}\|){1,100}[ \t]*$|\$\$|\\\[|\\begin\{|^\s*#(?:set|show|let|import|include)\b|\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b|\bprocess\.env\.[A-Za-z_][A-Za-z0-9_]*\b|\$[A-Z_][A-Z0-9_]*\b|\b\d+(?:\.\d+){1,3}(?:[-+][A-Za-z0-9.-]+)?\b|\b[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+\(\)?|\b[A-Za-z_$][\w$]*[ \t]*\([^()\n]{0,1000}\)|(?:^|\s)(?:\.{0,2}\/[A-Za-z0-9_@./-]+|[A-Za-z]:\\[A-Za-z0-9_.\\/-]+)|\b(?:TypeError|ReferenceError|SyntaxError|RangeError|URIError|EvalError|Error|Exception):[^\n]{0,1000}/im;
 const PROTECTED_STRUCTURE_PREFILTER_RE = /[`~\[\]\|$#\\/:_()0-9]/;
 
 function hasProtectedStructure(text: string): boolean {
