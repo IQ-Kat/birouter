@@ -138,7 +138,10 @@ test("auto strategy handles null and empty prompt edge cases without throwing", 
   });
 
   assert.equal(
-    await selectedModelFor(combo, { model: combo.name, messages: [{ role: "user", content: null }] }),
+    await selectedModelFor(combo, {
+      model: combo.name,
+      messages: [{ role: "user", content: null }],
+    }),
     "openai/gpt-4"
   );
   assert.equal(await selectedModelFor(combo, { model: combo.name, messages: [] }), "openai/gpt-4");

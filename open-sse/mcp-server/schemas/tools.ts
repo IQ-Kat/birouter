@@ -538,9 +538,7 @@ export const setBudgetGuardTool: McpToolDefinition<
 // --- Tool 11: omniroute_set_routing_strategy ---
 export const setRoutingStrategyInput = z.object({
   comboId: z.string().describe("Combo ID or name to update"),
-  strategy: z
-    .enum(ROUTING_STRATEGY_VALUES)
-    .describe("Routing strategy to apply"),
+  strategy: z.enum(ROUTING_STRATEGY_VALUES).describe("Routing strategy to apply"),
   autoRoutingStrategy: z
     .enum(AUTO_ROUTING_STRATEGY_VALUES)
     .optional()

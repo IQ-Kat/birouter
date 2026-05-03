@@ -104,7 +104,8 @@ export default function ComboDefaultsTab() {
         setComboDefaults((prev) => ({
           ...prev,
           ...sanitizeComboRuntimeConfig(comboData.comboDefaults),
-          strategy: comboData.comboDefaults?.strategy ?? settingsData.fallbackStrategy ?? prev.strategy,
+          strategy:
+            comboData.comboDefaults?.strategy ?? settingsData.fallbackStrategy ?? prev.strategy,
           stickyRoundRobinLimit:
             settingsData.stickyRoundRobinLimit ??
             comboData.comboDefaults?.stickyRoundRobinLimit ??

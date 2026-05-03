@@ -665,14 +665,18 @@ function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
     .filter((target): target is ResolvedComboTarget => target !== null);
 }
 
-function getP2CTargetScore(target: ResolvedComboTarget, metrics: ReturnType<typeof getComboMetrics>): number {
+function getP2CTargetScore(
+  target: ResolvedComboTarget,
+  metrics: ReturnType<typeof getComboMetrics>
+): number {
   const breakerState = getCircuitBreaker(target.provider)?.getStatus?.()?.state;
   if (breakerState === "OPEN") return -Infinity;
   const modelMetric = metrics?.byModel?.[target.modelStr] || null;
   const successRate = Number(modelMetric?.successRate);
   const avgLatency = Number(modelMetric?.avgLatencyMs);
   const successScore = Number.isFinite(successRate) ? successRate / 100 : 0.5;
-  const latencyScore = Number.isFinite(avgLatency) && avgLatency > 0 ? 1 / Math.log10(avgLatency + 10) : 0.25;
+  const latencyScore =
+    Number.isFinite(avgLatency) && avgLatency > 0 ? 1 / Math.log10(avgLatency + 10) : 0.25;
   const breakerPenalty = breakerState === "HALF_OPEN" ? 0.25 : 0;
   return successScore + latencyScore - breakerPenalty;
 }
@@ -1465,7 +1469,10 @@ export async function handleComboChat({
     orderedTargets = fisherYatesShuffle([...orderedTargets]);
     log.info("COMBO", `Random shuffle: ${orderedTargets.length} targets`);
   } else if (strategy === "fill-first") {
-    log.info("COMBO", `Fill-first ordering: preserving priority order (${orderedTargets.length} targets)`);
+    log.info(
+      "COMBO",
+      `Fill-first ordering: preserving priority order (${orderedTargets.length} targets)`
+    );
   } else if (strategy === "p2c") {
     orderedTargets = orderTargetsByPowerOfTwoChoices(orderedTargets, combo.name);
     log.info("COMBO", `Power-of-two-choices ordering: selected ${orderedTargets[0]?.modelStr}`);

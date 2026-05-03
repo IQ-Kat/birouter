@@ -527,12 +527,23 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
     true
   );
   assert.equal(
-    result.input.some((item) => JSON.stringify(item).includes("Visible assistant history without phase")),
+    result.input.some((item) =>
+      JSON.stringify(item).includes("Visible assistant history without phase")
+    ),
     true
   );
-  assert.equal(result.input.some((item) => item.type === "reasoning"), true);
-  assert.equal(result.input.some((item) => item.type === "function_call"), true);
-  assert.equal(result.input.some((item) => item.type === "function_call_output"), true);
+  assert.equal(
+    result.input.some((item) => item.type === "reasoning"),
+    true
+  );
+  assert.equal(
+    result.input.some((item) => item.type === "function_call"),
+    true
+  );
+  assert.equal(
+    result.input.some((item) => item.type === "function_call_output"),
+    true
+  );
 });
 
 test("CodexExecutor.transformRequest strips internal assistant commentary before mapping messages to input", () => {

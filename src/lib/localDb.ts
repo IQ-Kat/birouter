@@ -341,9 +341,6 @@ export {
   setReasoningCache,
   getReasoningCache,
   deleteReasoningCache,
-  cleanupExpiredReasoning,
-  getReasoningCacheStats,
-  getReasoningCacheEntries,
   clearAllReasoningCache,
 } from "./db/reasoningCache";
 

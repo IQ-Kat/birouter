@@ -457,7 +457,9 @@ export async function handleSetRoutingStrategy(args: {
         name: toString(updatedCombo.name, toString(combo.name, comboId)),
         strategy: toString(updatedCombo.strategy, normalizedStrategy),
         autoRoutingStrategy:
-          toString(updatedCombo.strategy, normalizedStrategy) === "auto" ? resolvedAutoStrategy : null,
+          toString(updatedCombo.strategy, normalizedStrategy) === "auto"
+            ? resolvedAutoStrategy
+            : null,
       },
     };
 
