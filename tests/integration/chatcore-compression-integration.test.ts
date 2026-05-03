@@ -110,6 +110,12 @@ test("chatCore integration: compressContext called proactively when context exce
       },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -207,6 +213,11 @@ test("chatCore integration: disabled prompt compression leaves combo override re
       connectionId: connection.id,
       isCombo: true,
       comboName: "disabled-compression-combo",
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -287,6 +298,12 @@ test("chatCore integration: compressContext NOT called when context is below 85%
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -368,6 +385,12 @@ test("chatCore integration: compression preserves message structure", async () =
       },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -436,6 +459,12 @@ test("chatCore integration: compression handles tool messages", async () => {
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -527,6 +556,11 @@ test("chatCore integration: combo requests run proactive compression before Kiro
       connectionId,
       isCombo: true,
       comboName: "test-kiro-compression-combo",
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
     });
 
     // Kiro response translation in this integration harness may fail depending on upstream
@@ -606,7 +640,10 @@ test("chatCore integration: assigned compression combo applies language packs an
     outputMode: true,
     outputModeIntensity: "lite",
   });
-  assert.equal(compressionCombosDb.assignRoutingCombo(compressionCombo.id, routingCombo.id), true);
+  assert.equal(
+    compressionCombosDb.assignRoutingCombo(compressionCombo.id, routingCombo.id as string),
+    true
+  );
 
   let capturedBody: any = null;
   globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
@@ -639,6 +676,11 @@ test("chatCore integration: assigned compression combo applies language packs an
       connectionId: connection.id,
       isCombo: true,
       comboName: "assigned-compression-combo",
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -728,6 +770,12 @@ test("chatCore integration: default stacked compression combo applies for unassi
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId: connection.id,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -753,7 +801,7 @@ test("chatCore integration: default stacked compression combo applies for unassi
   }
 });
 
-test("chatCore integration: seeded Caveman default does not replace builtin stacked pipeline", async () => {
+test("chatCore integration: seeded default combo runs RTK before Caveman", async () => {
   const provider = "openai";
   const model = "gpt-4";
 
@@ -814,6 +862,12 @@ test("chatCore integration: seeded Caveman default does not replace builtin stac
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId: connection.id,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -825,7 +879,8 @@ test("chatCore integration: seeded Caveman default does not replace builtin stac
     for (
       let attempt = 0;
       attempt < 100 &&
-      (summary.totalRequests === 0 || summary.realUsage.requestsWithReceipts === 0);
+      (summary.byCompressionCombo["default-caveman"]?.count !== 1 ||
+        summary.realUsage.requestsWithReceipts === 0);
       attempt += 1
     ) {
       await new Promise((resolve) => setTimeout(resolve, 20));
@@ -833,7 +888,7 @@ test("chatCore integration: seeded Caveman default does not replace builtin stac
     }
 
     assert.equal(summary.totalRequests, 1);
-    assert.equal(summary.byCompressionCombo["default-caveman"], undefined);
+    assert.equal(summary.byCompressionCombo["default-caveman"].count, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -886,6 +941,12 @@ test("chatCore integration: modular compression records analytics row best-effor
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId: connection.id,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");
@@ -962,6 +1023,12 @@ test("chatCore integration: caveman output mode records analytics and receipts w
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
       connectionId: connection.id,
+      onCredentialsRefreshed: () => {},
+      onRequestSuccess: () => {},
+      onStreamFailure: () => {},
+      onDisconnect: () => {},
+      userAgent: "test-agent",
+      comboName: null,
     });
 
     assert.ok(result.success, "Request should succeed");

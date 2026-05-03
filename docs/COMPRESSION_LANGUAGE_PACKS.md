@@ -58,7 +58,7 @@ used when Caveman compresses message text.
 ## Adding a Language Pack
 
 1. Create `open-sse/services/compression/rules/<language>/<pack>.json`.
-2. Use the Caveman rule format from `docs/compression-rules-format.md`.
+2. Use the Caveman rule format from `docs/COMPRESSION_RULES_FORMAT.md`.
 3. Keep replacements conservative and avoid changing code, identifiers, URLs, or JSON.
 4. Add or update tests for language selection and replacement behavior.
 5. Expose new dashboard/i18n labels if the language appears in UI selectors.

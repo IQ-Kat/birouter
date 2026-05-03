@@ -87,7 +87,7 @@ RTK mode is optimized for verbose tool outputs that appear in coding-agent sessi
   TypeScript/Vite/Webpack builds, ESLint/Biome/Prettier, npm audit/installs, Docker logs, infra
   output, and generic shell output
 - Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
-- Ships 39 built-in filters with inline verify samples
+- Ships 49 built-in filters with inline verify samples
 - Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
 - Preserves failures, errors, warnings, changed files, summaries, and the tail of long output
 - Supports trust-gated project filters, global filters, and optional redacted raw-output recovery
@@ -231,6 +231,8 @@ Every compressed request includes stats in the server logs:
 
 Standard mode compression rules are inspired by **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project.
 
+RTK mode is inspired by **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project for terminal, build, test, git, and tool-output filtering.
+
 ---
 
 ## See Also
@@ -238,7 +240,7 @@ Standard mode compression rules are inspired by **[Caveman](https://github.com/J
 - [Environment Config](ENVIRONMENT.md) — Compression environment variables
 - [Architecture Guide](ARCHITECTURE.md) — Compression pipeline internals
 - [User Guide](USER_GUIDE.md) — Getting started with compression
-- [RTK Compression](rtk-compression.md) — RTK filters, trust model, verify gate, raw-output recovery
-- [Compression Engines](compression-engines.md) — Caveman, RTK, stacked, APIs, MCP, dashboard
-- [Compression Rules Format](compression-rules-format.md) — JSON rule-pack format
-- [Compression Language Packs](compression-language-packs.md) — Language-specific Caveman rules
+- [RTK Compression](RTK_COMPRESSION.md) — RTK filters, trust model, verify gate, raw-output recovery
+- [Compression Engines](COMPRESSION_ENGINES.md) — Caveman, RTK, stacked, APIs, MCP, dashboard
+- [Compression Rules Format](COMPRESSION_RULES_FORMAT.md) — JSON rule-pack format
+- [Compression Language Packs](COMPRESSION_LANGUAGE_PACKS.md) — Language-specific Caveman rules

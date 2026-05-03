@@ -19,7 +19,8 @@ omniroute --dev  # MCP auto-starts on /mcp endpoint
 
 ## IDE Configuration
 
-See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+See [MCP Client Configuration](SETUP_GUIDE.md#mcp-client-configuration) for Claude Desktop,
+Cursor, Cline, and compatible MCP client setup.
 
 ---
 
@@ -71,7 +72,7 @@ See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot,
 descriptions (`tools`, `prompts`, `resources`, and `resourceTemplates`); they are not provider usage
 receipts and are marked with `source: "mcp_metadata_estimate"`.
 
-See [Compression Engines](compression-engines.md) and [RTK Compression](rtk-compression.md) for
+See [Compression Engines](COMPRESSION_ENGINES.md) and [RTK Compression](RTK_COMPRESSION.md) for
 the runtime compression model behind these tools.
 
 ## Other Tool Groups

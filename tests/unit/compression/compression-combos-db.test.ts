@@ -33,7 +33,59 @@ test.after(() => {
 
 test("creates default compression combo automatically", () => {
   const combos = combosDb.listCompressionCombos();
-  assert.ok(combos.some((combo) => combo.id === "default-caveman" && combo.isDefault));
+  const combo = combos.find((item) => item.id === "default-caveman");
+
+  assert.equal(combo?.isDefault, true);
+  assert.equal(combo?.description, "Default RTK + Caveman compression pipeline");
+  assert.deepEqual(combo?.pipeline, [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ]);
+});
+
+test("upgrades the legacy seeded default compression combo pipeline", () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `
+    UPDATE compression_combos
+    SET description = ?, pipeline = ?
+    WHERE id = ?
+  `
+  ).run(
+    "Default Caveman compression pipeline",
+    JSON.stringify([{ engine: "caveman", intensity: "full" }]),
+    "default-caveman"
+  );
+
+  const combo = combosDb.getDefaultCompressionCombo();
+  assert.equal(combo?.id, "default-caveman");
+  assert.equal(combo?.description, "Default RTK + Caveman compression pipeline");
+  assert.deepEqual(combo?.pipeline, [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ]);
+});
+
+test("does not overwrite a customized default compression combo", () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `
+    UPDATE compression_combos
+    SET name = ?, description = ?, pipeline = ?
+    WHERE id = ?
+  `
+  ).run(
+    "Custom Default",
+    "User changed",
+    JSON.stringify([{ engine: "caveman", intensity: "lite" }]),
+    "default-caveman"
+  );
+
+  const combo = combosDb.getDefaultCompressionCombo();
+  assert.equal(combo?.id, "default-caveman");
+  assert.equal(combo?.name, "Custom Default");
+  assert.equal(combo?.description, "User changed");
+  assert.deepEqual(combo?.pipeline, [{ engine: "caveman", intensity: "lite" }]);
 });
 
 test("creates, updates and protects default compression combos", () => {

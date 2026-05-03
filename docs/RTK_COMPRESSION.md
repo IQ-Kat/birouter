@@ -59,7 +59,7 @@ skipped and reported by `/api/context/rtk/filters` diagnostics. Invalid built-in
 
 ## Filter DSL
 
-Filters use the JSON schema described in [Compression Rules Format](compression-rules-format.md).
+Filters use the JSON schema described in [Compression Rules Format](COMPRESSION_RULES_FORMAT.md).
 The runtime applies these stages in order:
 
 ```txt

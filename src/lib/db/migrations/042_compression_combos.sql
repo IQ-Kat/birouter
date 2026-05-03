@@ -34,11 +34,10 @@ INSERT OR IGNORE INTO compression_combos (
 VALUES (
   'default-caveman',
   'Standard Savings',
-  'Default Caveman compression pipeline',
-  '[{"engine":"caveman","intensity":"full"}]',
+  'Default RTK + Caveman compression pipeline',
+  '[{"engine":"rtk","intensity":"standard"},{"engine":"caveman","intensity":"full"}]',
   '["en"]',
   0,
   'full',
   1
 );
-

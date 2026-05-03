@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
+import type { CompressionPipelineStep } from "@omniroute/open-sse/services/compression/types.ts";
+
 import { backupDbFile } from "./backup";
 import { getDbInstance, rowToCamel } from "./core";
-import type { CompressionPipelineStep } from "@omniroute/open-sse/services/compression/types.ts";
 
 export interface CompressionCombo {
   id: string;
@@ -24,6 +25,18 @@ export interface CompressionComboAssignment {
 }
 
 type JsonRecord = Record<string, unknown>;
+
+const DEFAULT_COMPRESSION_COMBO_ID = "default-caveman";
+const DEFAULT_COMPRESSION_COMBO_NAME = "Standard Savings";
+const DEFAULT_COMPRESSION_COMBO_DESCRIPTION = "Default RTK + Caveman compression pipeline";
+const LEGACY_DEFAULT_COMPRESSION_COMBO_DESCRIPTION = "Default Caveman compression pipeline";
+
+function defaultCompressionComboPipeline(): CompressionPipelineStep[] {
+  return [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ];
+}
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -55,6 +68,44 @@ function normalizeLanguagePacks(value: unknown): string[] {
     (pack): pack is string => typeof pack === "string" && pack.trim().length > 0
   );
   return [...new Set(packs.length > 0 ? packs.map((pack) => pack.trim()) : ["en"])];
+}
+
+function isLegacySeededDefaultPipeline(pipeline: CompressionPipelineStep[]): boolean {
+  if (pipeline.length !== 1) return false;
+  const [step] = pipeline;
+  return step.engine === "caveman" && (step.intensity === undefined || step.intensity === "full");
+}
+
+function upgradeLegacySeededDefaultCompressionCombo(): void {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT name, description, pipeline FROM compression_combos WHERE id = ?")
+    .get(DEFAULT_COMPRESSION_COMBO_ID) as
+    | { name?: string; description?: string; pipeline?: string }
+    | undefined;
+
+  if (!row) return;
+
+  const description = String(row.description ?? "");
+  const isSeededMetadata =
+    String(row.name ?? "") === DEFAULT_COMPRESSION_COMBO_NAME &&
+    (description === LEGACY_DEFAULT_COMPRESSION_COMBO_DESCRIPTION ||
+      description === DEFAULT_COMPRESSION_COMBO_DESCRIPTION);
+
+  if (!isSeededMetadata || !isLegacySeededDefaultPipeline(normalizePipeline(row.pipeline))) return;
+
+  db.prepare(
+    `
+    UPDATE compression_combos
+    SET description = ?, pipeline = ?, updated_at = ?
+    WHERE id = ?
+  `
+  ).run(
+    DEFAULT_COMPRESSION_COMBO_DESCRIPTION,
+    JSON.stringify(defaultCompressionComboPipeline()),
+    new Date().toISOString(),
+    DEFAULT_COMPRESSION_COMBO_ID
+  );
 }
 
 function ensureCompressionComboTables(): void {
@@ -96,15 +147,16 @@ function ensureCompressionComboTables(): void {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
-    "default-caveman",
-    "Standard Savings",
-    "Default Caveman compression pipeline",
-    JSON.stringify([{ engine: "caveman", intensity: "full" }]),
+    DEFAULT_COMPRESSION_COMBO_ID,
+    DEFAULT_COMPRESSION_COMBO_NAME,
+    DEFAULT_COMPRESSION_COMBO_DESCRIPTION,
+    JSON.stringify(defaultCompressionComboPipeline()),
     JSON.stringify(["en"]),
     0,
     "full",
     1
   );
+  upgradeLegacySeededDefaultCompressionCombo();
 }
 
 function rowToCompressionCombo(row: unknown): CompressionCombo | null {
@@ -146,7 +198,7 @@ function buildComboPayload(data: Partial<CompressionCombo>, existing?: Compressi
         ? data.pipeline
         : existing?.pipeline && existing.pipeline.length > 0
           ? existing.pipeline
-          : [{ engine: "caveman" as const, intensity: "full" as const }],
+          : defaultCompressionComboPipeline(),
     languagePacks:
       data.languagePacks && data.languagePacks.length > 0
         ? data.languagePacks

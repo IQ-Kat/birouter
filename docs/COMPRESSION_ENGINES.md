@@ -46,7 +46,7 @@ RTK mode focuses on command and tool output:
 - detects output classes such as `git status`, `git branch`, `git diff`, Vitest/Jest/Pytest,
   Cargo/Go tests, TypeScript/Vite/Webpack builds, ESLint, npm audit/installs, Docker logs,
   shell `find`/`grep`, stack traces, and generic logs
-- applies 39 JSON filters from `open-sse/services/compression/engines/rtk/filters/`
+- applies 49 JSON filters from `open-sse/services/compression/engines/rtk/filters/`
 - supports the RTK-style declarative pipeline: ANSI stripping, replace, match-output short-circuit,
   strip/keep lines, per-line truncation, head/tail/max-line truncation, and on-empty fallback
 - supports trust-gated project filters in `.rtk/filters.json` and global filters in
@@ -59,7 +59,7 @@ RTK mode focuses on command and tool output:
 The dashboard surface is `Dashboard -> Context & Cache -> RTK`.
 
 Operational details for custom filters, trust, verify, and raw-output recovery live in
-[`rtk-compression.md`](rtk-compression.md).
+[`RTK_COMPRESSION.md`](RTK_COMPRESSION.md).
 
 ## Stacked Pipelines
 

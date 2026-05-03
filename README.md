@@ -460,7 +460,7 @@ Every request passes through the compression pipeline **transparently** — no c
 | **🪨 Standard (Caveman)** | ~30%    | 30+ regex rules: filler removal, context condensation, structural compression, multi-turn dedup | Daily coding with Claude/Codex         |
 | **⚡ Aggressive**         | ~50%    | All standard + progressive message aging + tool result summarization + LLM-based compression    | Long sessions with many tool calls     |
 | **🔥 Ultra**              | ~75%    | All aggressive + heuristic token pruning + stopword removal + score-based filtering             | Maximum savings when tokens are scarce |
-| **🧰 RTK**                | 20-70%  | 39 command-aware filters, RTK-style JSON DSL, verify gate, trust-gated custom filters           | Shell/test/build/git output in agents  |
+| **🧰 RTK**                | 20-70%  | 49 command-aware filters, RTK-style JSON DSL, verify gate, trust-gated custom filters           | Shell/test/build/git output in agents  |
 | **🔗 Stacked**            | 30-80%  | Ordered engine pipeline, usually RTK first then Caveman                                         | Mixed prompts with tool logs + prose   |
 
 ### Before & After (Standard/Caveman Mode)
@@ -518,7 +518,7 @@ Compression combos can also assign a named compression pipeline to routing combo
 
 > 🪨 **Fun fact:** The standard/caveman mode is inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — the viral project that proved "caveman speak" cuts 65% of tokens while keeping 100% technical accuracy. OmniRoute takes this further with a **7-option pipeline** that goes from gentle whitespace cleanup through RTK tool-output filters and stacked multi-engine compression.
 
-📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) • [`docs/rtk-compression.md`](docs/rtk-compression.md) • [`docs/compression-engines.md`](docs/compression-engines.md) • [`docs/compression-rules-format.md`](docs/compression-rules-format.md) • [`docs/compression-language-packs.md`](docs/compression-language-packs.md)
+📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) • [`docs/RTK_COMPRESSION.md`](docs/RTK_COMPRESSION.md) • [`docs/COMPRESSION_ENGINES.md`](docs/COMPRESSION_ENGINES.md) • [`docs/COMPRESSION_RULES_FORMAT.md`](docs/COMPRESSION_RULES_FORMAT.md) • [`docs/COMPRESSION_LANGUAGE_PACKS.md`](docs/COMPRESSION_LANGUAGE_PACKS.md)
 
 ---
 
@@ -1337,10 +1337,10 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [Architecture](docs/ARCHITECTURE.md)                             | System architecture, data flow, and internals                                 |
 | [Compression Guide](docs/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked |
-| [RTK Compression](docs/rtk-compression.md)                       | Command-output compression, filters, trust, verify, raw-output recovery       |
-| [Compression Engines](docs/compression-engines.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                   |
-| [Compression Rules Format](docs/compression-rules-format.md)     | JSON rule-pack schemas for Caveman and RTK filters                            |
-| [Compression Language Packs](docs/compression-language-packs.md) | Language detection and Caveman rule-pack authoring                            |
+| [RTK Compression](docs/RTK_COMPRESSION.md)                       | Command-output compression, filters, trust, verify, raw-output recovery       |
+| [Compression Engines](docs/COMPRESSION_ENGINES.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                   |
+| [Compression Rules Format](docs/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                            |
+| [Compression Language Packs](docs/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                            |
 | [Resilience Guide](docs/RESILIENCE_GUIDE.md)                     | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing        |
 | [Auto-Combo Engine](docs/AUTO-COMBO.md)                          | 6-factor scoring, mode packs, self-healing                                    |
 | [Proxy Guide](docs/PROXY_GUIDE.md)                               | 3-level proxy system, 1proxy marketplace, registry CRUD                       |
@@ -1471,9 +1471,11 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
 
-Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — the original Go implementation that inspired this JavaScript port.
+Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** by **[router-for-me](https://github.com/router-for-me)** — the original Go implementation that inspired this JavaScript port.
 
 Special thanks to **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project whose caveman-speak compression philosophy inspired OmniRoute's standard compression mode and 30+ filler/condensation regex rules.
+
+Special thanks to **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project whose terminal, build, test, git, and tool-output filtering model inspired OmniRoute's RTK engine, JSON filter DSL, raw-output recovery, and stacked RTK → Caveman compression pipeline.
 
 ---
 
