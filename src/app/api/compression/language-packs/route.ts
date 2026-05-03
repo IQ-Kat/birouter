@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   listCavemanRulePacks,
   listSupportedCompressionLanguages,
 } from "@omniroute/open-sse/services/compression";
 
 export async function GET(req: Request) {
-  const policy = await enforceApiKeyPolicy(req, "settings");
-  if (policy.rejection) return policy.rejection;
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
 
   return NextResponse.json({
     languages: listSupportedCompressionLanguages(),

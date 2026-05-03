@@ -1178,6 +1178,23 @@ export async function handleChatCore({
   const capturePipelineStreamChunks =
     detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
+  let compressionAnalyticsWritePromise: Promise<void> | null = null;
+  const attachCompressionUsageReceiptAfterAnalytics = (
+    usage: Record<string, unknown>,
+    source: "provider" | "estimated" | "stream"
+  ) => {
+    const pendingWrite = compressionAnalyticsWritePromise;
+    void (async () => {
+      try {
+        if (pendingWrite) await pendingWrite;
+        const { attachCompressionUsageReceipt } =
+          await import("../../src/lib/db/compressionAnalytics.ts");
+        attachCompressionUsageReceipt(skillRequestId, usage, source);
+      } catch {
+        // Compression analytics are best-effort and must never affect responses.
+      }
+    })();
+  };
   const pipelineSessionId =
     (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("x-omniroute-session-id")
@@ -1676,6 +1693,11 @@ export async function handleChatCore({
         compressionComboApplied = true;
         return true;
       };
+      const isStackedCompressionCombo = (
+        compressionCombo: RuntimeCompressionCombo | null
+      ): compressionCombo is RuntimeCompressionCombo => {
+        return Boolean(compressionCombo && compressionCombo.pipeline.length > 1);
+      };
       if (isCombo && comboName) {
         try {
           const { getComboByName } = await import("../../src/lib/localDb");
@@ -1759,6 +1781,7 @@ export async function handleChatCore({
             await import("../../src/lib/db/compressionCombos.ts");
           const defaultCompressionCombo = getDefaultCompressionCombo();
           if (
+            isStackedCompressionCombo(defaultCompressionCombo as RuntimeCompressionCombo | null) &&
             applyCompressionComboConfig(defaultCompressionCombo as RuntimeCompressionCombo | null)
           ) {
             log?.debug?.(
@@ -1823,7 +1846,7 @@ export async function handleChatCore({
           if (result.compressed || result.stats.fallbackApplied || cavemanOutputModeApplied) {
             trackCompressionStats(result.stats);
             compressionAnalyticsRecorded = true;
-            void (async () => {
+            compressionAnalyticsWritePromise = (async () => {
               try {
                 const { insertCompressionAnalyticsRow } =
                   await import("../../src/lib/db/compressionAnalytics.ts");
@@ -1910,7 +1933,7 @@ export async function handleChatCore({
         }
       }
       if (cavemanOutputModeApplied && !compressionAnalyticsRecorded) {
-        void (async () => {
+        compressionAnalyticsWritePromise = (async () => {
           try {
             const { insertCompressionAnalyticsRow } =
               await import("../../src/lib/db/compressionAnalytics.ts");
@@ -3483,11 +3506,7 @@ export async function handleChatCore({
     // Log usage for non-streaming responses
     const usage = extractUsageFromResponse(responseBody, provider);
     if (usage && typeof usage === "object") {
-      void import("../../src/lib/db/compressionAnalytics.ts")
-        .then(({ attachCompressionUsageReceipt }) => {
-          attachCompressionUsageReceipt(skillRequestId, usage, "provider");
-        })
-        .catch(() => {});
+      attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
     }
     appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
       () => {}
@@ -3861,11 +3880,7 @@ export async function handleChatCore({
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
-      void import("../../src/lib/db/compressionAnalytics.ts")
-        .then(({ attachCompressionUsageReceipt }) => {
-          attachCompressionUsageReceipt(skillRequestId, streamUsage, "stream");
-        })
-        .catch(() => {});
+      attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
       const inputTokens = streamUsage.prompt_tokens || 0;
       const cachedTokens = toPositiveNumber(
         streamUsage.cache_read_input_tokens ??

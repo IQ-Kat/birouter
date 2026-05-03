@@ -660,7 +660,7 @@ test("chatCore integration: assigned compression combo applies language packs an
   }
 });
 
-test("chatCore integration: default compression combo applies for unassigned stacked requests", async () => {
+test("chatCore integration: default stacked compression combo applies for unassigned stacked requests", async () => {
   const provider = "openai";
   const model = "gpt-4";
 
@@ -683,7 +683,10 @@ test("chatCore integration: default compression combo applies for unassigned sta
 
   const compressionCombo = compressionCombosDb.createCompressionCombo({
     name: "Default PT Output Mode",
-    pipeline: [{ engine: "caveman", intensity: "lite" }],
+    pipeline: [
+      { engine: "rtk", intensity: "standard" },
+      { engine: "caveman", intensity: "lite" },
+    ],
     languagePacks: ["pt-BR"],
     outputMode: true,
     outputModeIntensity: "lite",
@@ -750,6 +753,92 @@ test("chatCore integration: default compression combo applies for unassigned sta
   }
 });
 
+test("chatCore integration: seeded Caveman default does not replace builtin stacked pipeline", async () => {
+  const provider = "openai";
+  const model = "gpt-4";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "stacked",
+    autoTriggerTokens: 0,
+    cavemanOutputMode: {
+      enabled: false,
+      intensity: "full",
+      autoClarity: true,
+    },
+    languageConfig: {
+      enabled: false,
+      defaultLanguage: "en",
+      autoDetect: true,
+      enabledPacks: ["en"],
+    },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  let capturedBody: { messages?: Array<{ role?: string; content?: string }> } | null = null;
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) {
+      capturedBody = JSON.parse(init.body as string) as typeof capturedBody;
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const result = await handleChatCore({
+      body: {
+        model,
+        stream: false,
+        messages: [
+          {
+            role: "tool",
+            content: Array.from({ length: 8 }, () => "same noisy line").join("\n"),
+          },
+        ],
+      },
+      modelInfo: { provider, model },
+      credentials: { apiKey: "test-key" },
+      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+      connectionId: connection.id,
+    });
+
+    assert.ok(result.success, "Request should succeed");
+    assert.ok(capturedBody, "Fetch should receive the request body");
+    const toolContent = capturedBody.messages?.[0]?.content ?? "";
+    assert.match(toolContent, /rtk:dropped 7 repeated lines/);
+
+    let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    for (
+      let attempt = 0;
+      attempt < 100 &&
+      (summary.totalRequests === 0 || summary.realUsage.requestsWithReceipts === 0);
+      attempt += 1
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    }
+
+    assert.equal(summary.totalRequests, 1);
+    assert.equal(summary.byCompressionCombo["default-caveman"], undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("chatCore integration: modular compression records analytics row best-effort", async () => {
   const provider = "openai";
   const model = "gpt-4";
@@ -802,7 +891,12 @@ test("chatCore integration: modular compression records analytics row best-effor
     assert.ok(result.success, "Request should succeed");
 
     let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
-    for (let attempt = 0; attempt < 100 && summary.totalRequests === 0; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt < 100 &&
+      (summary.totalRequests === 0 || summary.realUsage.requestsWithReceipts === 0);
+      attempt += 1
+    ) {
       await new Promise((resolve) => setTimeout(resolve, 20));
       summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
     }
@@ -811,6 +905,8 @@ test("chatCore integration: modular compression records analytics row best-effor
     assert.ok(summary.totalTokensSaved > 0, "Analytics should record token savings");
     assert.equal(summary.byMode.lite.count, 1);
     assert.equal(summary.byProvider.openai.count, 1);
+    assert.equal(summary.realUsage.requestsWithReceipts, 1);
+    assert.equal(summary.realUsage.totalTokens, 15);
   } finally {
     globalThis.fetch = originalFetch;
   }
