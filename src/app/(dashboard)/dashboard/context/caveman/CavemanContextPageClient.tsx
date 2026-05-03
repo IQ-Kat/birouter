@@ -251,7 +251,7 @@ export default function CavemanContextPageClient() {
             {previewPrompt}
           </pre>
           <p className="mt-3 text-xs text-text-muted">
-            {t("bypassConditions")}: security, irreversible, clarification, order-sensitive
+            {t("bypassConditions")}: {t("bypassConditionsList")}
           </p>
         </div>
       </section>

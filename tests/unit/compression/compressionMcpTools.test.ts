@@ -21,6 +21,8 @@ const {
   listCompressionCombosTool,
   compressionComboStatsTool,
 } = await import("../../../open-sse/mcp-server/schemas/tools.ts");
+const { maybeCompressMcpDescription, resetMcpDescriptionCompressionStats } =
+  await import("../../../open-sse/mcp-server/descriptionCompressor.ts");
 
 describe("compression MCP tool schemas", () => {
   it("uses canonical read/write compression scopes", () => {
@@ -82,6 +84,26 @@ describe("handleCompressionStatus", () => {
     assert.equal(result.analytics.mcpDescriptionCompression.notProviderUsage, true);
     assert.equal(typeof result.analytics.mcpDescriptionCompression.charsBefore, "number");
     assert.equal(typeof result.analytics.mcpDescriptionCompression.charsAfter, "number");
+  });
+
+  it("snapshots MCP description savings into analytics separately", async () => {
+    resetMcpDescriptionCompressionStats();
+    const compressed = maybeCompressMcpDescription(
+      "The function returns the current weather for a city and the detailed forecast summary.",
+      { enabled: true }
+    );
+    assert.match(compressed, /weather/i);
+
+    const result = await handleCompressionStatus({});
+    assert.ok(result.analytics.mcpDescriptionCompression.estimatedTokensSaved > 0);
+    assert.ok(result.analytics.mcpDescriptionCompression.persistedEstimatedTokensSaved > 0);
+    assert.ok(result.analytics.mcpDescriptionCompression.persistedSnapshots > 0);
+
+    const stats = await handleCompressionComboStats({ since: "all" });
+    const mcp = stats.mcpDescriptionCompression as { estimatedTokensSaved?: number };
+    const realUsage = stats.realUsage as { bySource?: Record<string, number> };
+    assert.ok((mcp.estimatedTokensSaved ?? 0) > 0);
+    assert.equal(realUsage.bySource?.mcp_metadata_estimate, undefined);
   });
 });
 

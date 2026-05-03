@@ -3,7 +3,11 @@ import { cavemanCompress } from "../caveman.ts";
 import { compressAggressive } from "../aggressive.ts";
 import { ultraCompress } from "../ultra.ts";
 import { createCompressionStats } from "../stats.ts";
-import type { CavemanIntensity } from "../types.ts";
+import {
+  DEFAULT_AGGRESSIVE_CONFIG,
+  DEFAULT_ULTRA_CONFIG,
+  type CavemanIntensity,
+} from "../types.ts";
 import type { CompressionEngine, EngineConfigField, EngineValidationResult } from "./types.ts";
 
 const CAVEMAN_INTENSITIES: CavemanIntensity[] = ["lite", "full", "ultra"];
@@ -32,8 +36,114 @@ const CAVEMAN_SCHEMA: EngineConfigField[] = [
   },
 ];
 
+const AGGRESSIVE_SCHEMA: EngineConfigField[] = [
+  {
+    key: "summarizerEnabled",
+    type: "boolean",
+    label: "Summarizer enabled",
+    defaultValue: DEFAULT_AGGRESSIVE_CONFIG.summarizerEnabled,
+  },
+  {
+    key: "maxTokensPerMessage",
+    type: "number",
+    label: "Max tokens per message",
+    defaultValue: DEFAULT_AGGRESSIVE_CONFIG.maxTokensPerMessage,
+    min: 256,
+    max: 32768,
+  },
+  {
+    key: "minSavingsThreshold",
+    type: "number",
+    label: "Minimum savings threshold",
+    defaultValue: DEFAULT_AGGRESSIVE_CONFIG.minSavingsThreshold,
+    min: 0,
+    max: 1,
+  },
+  {
+    key: "preserveSystemPrompt",
+    type: "boolean",
+    label: "Preserve system prompt",
+    defaultValue: true,
+  },
+];
+
+const ULTRA_SCHEMA: EngineConfigField[] = [
+  {
+    key: "enabled",
+    type: "boolean",
+    label: "Enabled",
+    defaultValue: DEFAULT_ULTRA_CONFIG.enabled,
+  },
+  {
+    key: "compressionRate",
+    type: "number",
+    label: "Compression rate",
+    defaultValue: DEFAULT_ULTRA_CONFIG.compressionRate,
+    min: 0,
+    max: 1,
+  },
+  {
+    key: "minScoreThreshold",
+    type: "number",
+    label: "Minimum score threshold",
+    defaultValue: DEFAULT_ULTRA_CONFIG.minScoreThreshold,
+    min: 0,
+    max: 1,
+  },
+  {
+    key: "slmFallbackToAggressive",
+    type: "boolean",
+    label: "Fallback to aggressive",
+    defaultValue: DEFAULT_ULTRA_CONFIG.slmFallbackToAggressive,
+  },
+  {
+    key: "modelPath",
+    type: "string",
+    label: "Model path",
+    defaultValue: "",
+  },
+  {
+    key: "maxTokensPerMessage",
+    type: "number",
+    label: "Max tokens per message",
+    defaultValue: DEFAULT_ULTRA_CONFIG.maxTokensPerMessage,
+    min: 0,
+    max: 32768,
+  },
+  {
+    key: "preserveSystemPrompt",
+    type: "boolean",
+    label: "Preserve system prompt",
+    defaultValue: true,
+  },
+];
+
 function ok(): EngineValidationResult {
   return { valid: true, errors: [] };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function validateBoolean(config: Record<string, unknown>, key: string, errors: string[]): void {
+  if (config[key] !== undefined && typeof config[key] !== "boolean") {
+    errors.push(`${key} must be a boolean`);
+  }
+}
+
+function validateNumberRange(
+  config: Record<string, unknown>,
+  key: string,
+  min: number,
+  max: number,
+  errors: string[]
+): void {
+  const value = config[key];
+  if (value === undefined) return;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) {
+    errors.push(`${key} must be a number between ${min} and ${max}`);
+  }
 }
 
 function validateCavemanLikeConfig(config: Record<string, unknown>): EngineValidationResult {
@@ -52,6 +162,50 @@ function validateCavemanLikeConfig(config: Record<string, unknown>): EngineValid
   }
   if (config.enabled !== undefined && typeof config.enabled !== "boolean") {
     errors.push("enabled must be a boolean");
+  }
+  return { valid: errors.length === 0, errors };
+}
+
+function validateAggressiveConfig(config: Record<string, unknown>): EngineValidationResult {
+  const errors: string[] = [];
+  validateBoolean(config, "summarizerEnabled", errors);
+  validateBoolean(config, "preserveSystemPrompt", errors);
+  validateNumberRange(config, "maxTokensPerMessage", 256, 32768, errors);
+  validateNumberRange(config, "minSavingsThreshold", 0, 1, errors);
+
+  if (config.thresholds !== undefined) {
+    if (!isRecord(config.thresholds)) {
+      errors.push("thresholds must be an object");
+    } else {
+      for (const key of ["fullSummary", "moderate", "light", "verbatim"]) {
+        validateNumberRange(config.thresholds, key, 1, 100, errors);
+      }
+    }
+  }
+
+  if (config.toolStrategies !== undefined) {
+    if (!isRecord(config.toolStrategies)) {
+      errors.push("toolStrategies must be an object");
+    } else {
+      for (const key of ["fileContent", "grepSearch", "shellOutput", "json", "errorMessage"]) {
+        validateBoolean(config.toolStrategies, key, errors);
+      }
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+function validateUltraConfig(config: Record<string, unknown>): EngineValidationResult {
+  const errors: string[] = [];
+  validateBoolean(config, "enabled", errors);
+  validateBoolean(config, "slmFallbackToAggressive", errors);
+  validateBoolean(config, "preserveSystemPrompt", errors);
+  validateNumberRange(config, "compressionRate", 0, 1, errors);
+  validateNumberRange(config, "minScoreThreshold", 0, 1, errors);
+  validateNumberRange(config, "maxTokensPerMessage", 0, 32768, errors);
+  if (config.modelPath !== undefined && typeof config.modelPath !== "string") {
+    errors.push("modelPath must be a string");
   }
   return { valid: errors.length === 0, errors };
 }
@@ -83,10 +237,10 @@ export const liteEngine: CompressionEngine = {
     return this.apply(body, { stepConfig: config });
   },
   getConfigSchema() {
-    return [];
+    return AGGRESSIVE_SCHEMA;
   },
-  validateConfig() {
-    return ok();
+  validateConfig(config) {
+    return validateAggressiveConfig(config);
   },
 };
 
@@ -189,10 +343,10 @@ export const aggressiveEngine: CompressionEngine = {
     return this.apply(body, { stepConfig: config });
   },
   getConfigSchema() {
-    return [];
+    return AGGRESSIVE_SCHEMA;
   },
-  validateConfig() {
-    return ok();
+  validateConfig(config) {
+    return validateAggressiveConfig(config);
   },
 };
 
@@ -246,9 +400,9 @@ export const ultraEngine: CompressionEngine = {
     return this.apply(body, { stepConfig: config });
   },
   getConfigSchema() {
-    return [];
+    return ULTRA_SCHEMA;
   },
-  validateConfig() {
-    return ok();
+  validateConfig(config) {
+    return validateUltraConfig(config);
   },
 };

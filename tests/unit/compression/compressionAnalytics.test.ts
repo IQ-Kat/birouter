@@ -68,6 +68,10 @@ describe("compressionAnalytics", () => {
         estimatedUsdSaved: 0,
         bySource: {},
       },
+      mcpDescriptionCompression: {
+        snapshots: 0,
+        estimatedTokensSaved: 0,
+      },
     });
     assert.equal(summary.last24h.length, 24);
   });
@@ -334,5 +338,23 @@ describe("compressionAnalytics", () => {
     assert.equal(summary.byMode["output-caveman"].count, 1);
     assert.equal(summary.realUsage.requestsWithReceipts, 1);
     assert.equal(summary.realUsage.totalTokens, 1020);
+  });
+
+  it("summarizes MCP description estimates without counting them as provider receipts", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "mcp-description",
+      engine: "mcp-description",
+      original_tokens: 20,
+      compressed_tokens: 12,
+      tokens_saved: 8,
+      mcp_description_tokens_saved: 8,
+    });
+
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.mcpDescriptionCompression.snapshots, 1);
+    assert.equal(summary.mcpDescriptionCompression.estimatedTokensSaved, 8);
+    assert.equal(summary.realUsage.requestsWithReceipts, 0);
+    assert.equal(summary.realUsage.bySource.mcp_metadata_estimate, undefined);
   });
 });

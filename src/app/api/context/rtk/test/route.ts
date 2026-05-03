@@ -6,12 +6,13 @@ import {
 } from "@omniroute/open-sse/services/compression/engines/rtk";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { rtkConfigSchema } from "@/shared/validation/compressionConfigSchemas";
 
 export const rtkTestSchema = z
   .object({
     text: z.string().min(1),
     command: z.string().optional(),
-    config: z.record(z.string(), z.unknown()).optional(),
+    config: rtkConfigSchema.optional(),
   })
   .strict();
 

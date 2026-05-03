@@ -49,5 +49,17 @@ describe("compression preview API contract", () => {
       }).success,
       false
     );
+    assert.equal(
+      PreviewCompressionConfigSchema.safeParse({
+        stackedPipeline: [{ engine: "rtk", intensity: "bogus" }],
+      }).success,
+      false
+    );
+    assert.equal(
+      PreviewCompressionConfigSchema.safeParse({
+        stackedPipeline: [{ engine: "rtk", config: { maxLinesPerResult: -1 } }],
+      }).success,
+      false
+    );
   });
 });

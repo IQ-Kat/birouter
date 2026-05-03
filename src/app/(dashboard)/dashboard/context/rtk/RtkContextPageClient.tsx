@@ -23,6 +23,10 @@ type RtkConfig = {
   maxLinesPerResult: number;
   maxCharsPerResult: number;
   deduplicateThreshold: number;
+  customFiltersEnabled: boolean;
+  trustProjectFilters: boolean;
+  rawOutputRetention: "never" | "failures" | "always";
+  rawOutputMaxBytes: number;
 };
 
 type AnalyticsSummary = {
@@ -156,7 +160,7 @@ export default function RtkContextPageClient() {
 
       {config && (
         <section className="rounded-lg border border-border bg-surface p-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
             <label className="flex items-center gap-2 text-sm text-text-main">
               <input
                 type="checkbox"
@@ -205,12 +209,39 @@ export default function RtkContextPageClient() {
                 className="rounded border border-border bg-bg px-2 py-1 text-sm"
               />
             </label>
+            <label className="flex flex-col gap-1 text-sm text-text-main">
+              {t("deduplicateThreshold")}
+              <input
+                type="number"
+                min={2}
+                max={100}
+                value={config.deduplicateThreshold}
+                onChange={(event) =>
+                  saveConfig({ deduplicateThreshold: Number(event.target.value) || 2 })
+                }
+                className="rounded border border-border bg-bg px-2 py-1 text-sm"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm text-text-main">
+              {t("rawOutputMaxBytes")}
+              <input
+                type="number"
+                min={1024}
+                value={config.rawOutputMaxBytes}
+                onChange={(event) =>
+                  saveConfig({ rawOutputMaxBytes: Number(event.target.value) || 1024 })
+                }
+                className="rounded border border-border bg-bg px-2 py-1 text-sm"
+              />
+            </label>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-text-main">
             {[
               ["applyToToolResults", t("toolResults")],
               ["applyToAssistantMessages", t("assistantMessages")],
               ["applyToCodeBlocks", t("codeBlocks")],
+              ["customFiltersEnabled", t("customFilters")],
+              ["trustProjectFilters", t("trustProjectFilters")],
             ].map(([key, label]) => (
               <label key={key} className="flex items-center gap-2">
                 <input
@@ -224,6 +255,25 @@ export default function RtkContextPageClient() {
                 {label}
               </label>
             ))}
+          </div>
+          <div className="mt-4 max-w-sm text-sm text-text-main">
+            <label className="flex flex-col gap-1">
+              {t("rawOutputRetention")}
+              <select
+                value={config.rawOutputRetention}
+                disabled={saving}
+                onChange={(event) =>
+                  saveConfig({
+                    rawOutputRetention: event.target.value as RtkConfig["rawOutputRetention"],
+                  })
+                }
+                className="rounded border border-border bg-bg px-2 py-1 text-sm"
+              >
+                <option value="never">{t("rawOutputNever")}</option>
+                <option value="failures">{t("rawOutputFailures")}</option>
+                <option value="always">{t("rawOutputAlways")}</option>
+              </select>
+            </label>
           </div>
         </section>
       )}

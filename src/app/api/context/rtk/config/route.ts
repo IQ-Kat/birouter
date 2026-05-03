@@ -1,27 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { getCompressionSettings, updateCompressionSettings } from "@/lib/db/compression";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { rtkConfigSchema } from "@/shared/validation/compressionConfigSchemas";
 
-export const rtkConfigSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    intensity: z.enum(["minimal", "standard", "aggressive"]).optional(),
-    applyToToolResults: z.boolean().optional(),
-    applyToCodeBlocks: z.boolean().optional(),
-    applyToAssistantMessages: z.boolean().optional(),
-    enabledFilters: z.array(z.string()).optional(),
-    disabledFilters: z.array(z.string()).optional(),
-    maxLinesPerResult: z.number().int().min(0).max(100000).optional(),
-    maxCharsPerResult: z.number().int().min(0).max(1000000).optional(),
-    deduplicateThreshold: z.number().int().min(2).max(100).optional(),
-    customFiltersEnabled: z.boolean().optional(),
-    trustProjectFilters: z.boolean().optional(),
-    rawOutputRetention: z.enum(["never", "failures", "always"]).optional(),
-    rawOutputMaxBytes: z.number().int().min(1024).max(10_000_000).optional(),
-  })
-  .strict();
+export { rtkConfigSchema };
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);

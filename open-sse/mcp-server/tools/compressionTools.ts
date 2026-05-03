@@ -15,7 +15,10 @@ import { getCompressionAnalyticsSummary } from "../../../src/lib/db/compressionA
 import { getCacheStatsSummary } from "../../../src/lib/db/compressionCacheStats.ts";
 import { listCompressionCombos } from "../../../src/lib/db/compressionCombos.ts";
 import type { McpToolExtraLike } from "../scopeEnforcement.ts";
-import { getMcpDescriptionCompressionStats } from "../descriptionCompressor.ts";
+import {
+  getMcpDescriptionCompressionStats,
+  snapshotMcpDescriptionCompressionStats,
+} from "../descriptionCompressor.ts";
 
 /**
  * Handle compression_status tool: return current compression config, analytics, and cache stats
@@ -59,6 +62,8 @@ export async function handleCompressionStatus(
       charsAfter: number;
       charsSaved: number;
       estimatedTokensSaved: number;
+      persistedEstimatedTokensSaved: number;
+      persistedSnapshots: number;
       source: "mcp_metadata_estimate";
       notProviderUsage: true;
     };
@@ -73,6 +78,7 @@ export async function handleCompressionStatus(
   const start = Date.now();
   try {
     const settings = await getCompressionSettings();
+    await snapshotMcpDescriptionCompressionStats();
     const analyticsSummary = getCompressionAnalyticsSummary();
     const mcpDescriptionStats = getMcpDescriptionCompressionStats();
     const cacheStats = getCacheStatsSummary();
@@ -107,6 +113,9 @@ export async function handleCompressionStatus(
           charsAfter: mcpDescriptionStats.charsAfter,
           charsSaved: mcpDescriptionStats.charsSaved,
           estimatedTokensSaved: mcpDescriptionStats.estimatedTokensSaved,
+          persistedEstimatedTokensSaved:
+            analyticsSummary.mcpDescriptionCompression.estimatedTokensSaved,
+          persistedSnapshots: analyticsSummary.mcpDescriptionCompression.snapshots,
           source: "mcp_metadata_estimate" as const,
           notProviderUsage: true as const,
         },

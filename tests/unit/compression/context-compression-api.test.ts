@@ -23,6 +23,13 @@ describe("context compression API schemas", () => {
     assert.equal(rtkConfigSchema.safeParse({ rawOutputRetention: "plaintext" }).success, false);
     assert.equal(rtkTestSchema.safeParse({ text: "" }).success, false);
     assert.equal(rtkTestSchema.safeParse({ text: "ok", extra: true }).success, false);
+    assert.equal(
+      rtkTestSchema.safeParse({
+        text: "ok",
+        config: { maxLinesPerResult: -1, madeUp: true },
+      }).success,
+      false
+    );
   });
 
   it("rejects invalid compression combo payloads", () => {
@@ -38,5 +45,12 @@ describe("context compression API schemas", () => {
     assert.equal(compressionComboUpdateSchema.safeParse({ pipeline: [] }).success, false);
     assert.equal(assignmentsUpdateSchema.safeParse({ routingComboIds: ["combo-a"] }).success, true);
     assert.equal(assignmentsUpdateSchema.safeParse({ routingComboIds: [""] }).success, false);
+    assert.equal(
+      compressionComboCreateSchema.safeParse({
+        name: "Bad",
+        pipeline: [{ engine: "rtk", intensity: "bogus" }],
+      }).success,
+      false
+    );
   });
 });

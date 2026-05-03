@@ -3,14 +3,12 @@ import { z } from "zod";
 import { createCompressionCombo, listCompressionCombos } from "@/lib/db/compressionCombos";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import {
+  cavemanIntensitySchema,
+  stackedPipelineStepSchema,
+} from "@/shared/validation/compressionConfigSchemas";
 
-export const pipelineStepSchema = z
-  .object({
-    engine: z.enum(["lite", "caveman", "aggressive", "ultra", "rtk"]),
-    intensity: z.string().optional(),
-    config: z.record(z.string(), z.unknown()).optional(),
-  })
-  .strict();
+export const pipelineStepSchema = stackedPipelineStepSchema;
 
 export const compressionComboCreateSchema = z
   .object({
@@ -20,7 +18,7 @@ export const compressionComboCreateSchema = z
     pipeline: z.array(pipelineStepSchema).min(1).optional(),
     languagePacks: z.array(z.string().trim().min(1)).optional(),
     outputMode: z.boolean().optional(),
-    outputModeIntensity: z.string().optional(),
+    outputModeIntensity: cavemanIntensitySchema.optional(),
     isDefault: z.boolean().optional(),
   })
   .strict();

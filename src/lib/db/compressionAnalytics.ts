@@ -49,6 +49,10 @@ export interface CompressionAnalyticsSummary {
     estimatedUsdSaved: number;
     bySource: Record<string, number>;
   };
+  mcpDescriptionCompression: {
+    snapshots: number;
+    estimatedTokensSaved: number;
+  };
 }
 
 let columnsEnsuredForDb: unknown = null;
@@ -413,6 +417,15 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     )
     .get(...params) as { cnt: number } | undefined;
 
+  const mcpDescriptionRow = db
+    .prepare(
+      `
+    SELECT COUNT(*) as cnt, COALESCE(SUM(mcp_description_tokens_saved), 0) as saved
+    FROM compression_analytics ${appendCondition(whereClause, "mcp_description_tokens_saved > 0")}
+  `
+    )
+    .get(...params) as { cnt: number; saved: number } | undefined;
+
   return {
     totalRequests: scalar?.total ?? 0,
     totalTokensSaved: scalar?.totalSaved ?? 0,
@@ -425,5 +438,9 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     last24h,
     validationFallbacks: fallbackRow?.cnt ?? 0,
     realUsage,
+    mcpDescriptionCompression: {
+      snapshots: mcpDescriptionRow?.cnt ?? 0,
+      estimatedTokensSaved: mcpDescriptionRow?.saved ?? 0,
+    },
   };
 }

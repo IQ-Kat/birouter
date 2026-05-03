@@ -199,6 +199,9 @@ export function applyStackedCompression(
   const rules = new Set<string>();
   const breakdown: NonNullable<CompressionStats["engineBreakdown"]> = [];
   const rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]> = [];
+  const validationWarnings = new Set<string>();
+  const validationErrors = new Set<string>();
+  let fallbackApplied = false;
   const start = performance.now();
 
   for (const step of steps) {
@@ -218,6 +221,9 @@ export function applyStackedCompression(
       result.stats.rtkRawOutputPointers?.forEach((pointer) => {
         rtkRawOutputPointers.push(pointer);
       });
+      result.stats.validationWarnings?.forEach((warning) => validationWarnings.add(warning));
+      result.stats.validationErrors?.forEach((error) => validationErrors.add(error));
+      fallbackApplied = fallbackApplied || result.stats.fallbackApplied === true;
       breakdown.push({
         engine: step.engine,
         originalTokens: result.stats.originalTokens,
@@ -246,6 +252,15 @@ export function applyStackedCompression(
   stats.compressionComboId =
     options?.compressionComboId ?? options?.config?.compressionComboId ?? null;
   stats.engineBreakdown = breakdown;
+  if (validationWarnings.size > 0) {
+    stats.validationWarnings = Array.from(validationWarnings);
+  }
+  if (validationErrors.size > 0) {
+    stats.validationErrors = Array.from(validationErrors);
+  }
+  if (fallbackApplied) {
+    stats.fallbackApplied = true;
+  }
   if (rtkRawOutputPointers.length > 0) {
     const seenPointers = new Set<string>();
     stats.rtkRawOutputPointers = rtkRawOutputPointers.filter((pointer) => {

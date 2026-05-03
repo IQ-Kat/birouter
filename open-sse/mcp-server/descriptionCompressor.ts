@@ -32,6 +32,14 @@ const descriptionCompressionStats: McpDescriptionCompressionStats = {
   estimatedTokensSaved: 0,
 };
 
+const persistedDescriptionCompressionStats: McpDescriptionCompressionStats = {
+  descriptionsCompressed: 0,
+  charsBefore: 0,
+  charsAfter: 0,
+  charsSaved: 0,
+  estimatedTokensSaved: 0,
+};
+
 const MCP_LIST_CONTAINER_KEYS = new Set(["tools", "prompts", "resources", "resourceTemplates"]);
 const MCP_METADATA_DESCRIPTION_FIELDS = ["description"];
 
@@ -163,10 +171,73 @@ export function getMcpDescriptionCompressionStats(): McpDescriptionCompressionSt
   return { ...descriptionCompressionStats };
 }
 
+function getUnpersistedMcpDescriptionCompressionStats(): McpDescriptionCompressionStats {
+  return {
+    descriptionsCompressed:
+      descriptionCompressionStats.descriptionsCompressed -
+      persistedDescriptionCompressionStats.descriptionsCompressed,
+    charsBefore:
+      descriptionCompressionStats.charsBefore - persistedDescriptionCompressionStats.charsBefore,
+    charsAfter:
+      descriptionCompressionStats.charsAfter - persistedDescriptionCompressionStats.charsAfter,
+    charsSaved:
+      descriptionCompressionStats.charsSaved - persistedDescriptionCompressionStats.charsSaved,
+    estimatedTokensSaved:
+      descriptionCompressionStats.estimatedTokensSaved -
+      persistedDescriptionCompressionStats.estimatedTokensSaved,
+  };
+}
+
+export async function snapshotMcpDescriptionCompressionStats(): Promise<McpDescriptionCompressionStats> {
+  const delta = getUnpersistedMcpDescriptionCompressionStats();
+  if (
+    delta.descriptionsCompressed <= 0 ||
+    delta.charsSaved <= 0 ||
+    delta.estimatedTokensSaved <= 0
+  ) {
+    return {
+      descriptionsCompressed: 0,
+      charsBefore: 0,
+      charsAfter: 0,
+      charsSaved: 0,
+      estimatedTokensSaved: 0,
+    };
+  }
+
+  const originalTokens = Math.max(delta.estimatedTokensSaved, Math.ceil(delta.charsBefore / 4));
+  const compressedTokens = Math.max(0, originalTokens - delta.estimatedTokensSaved);
+  const { insertCompressionAnalyticsRow } =
+    await import("../../src/lib/db/compressionAnalytics.ts");
+  insertCompressionAnalyticsRow({
+    timestamp: new Date().toISOString(),
+    mode: "mcp-description",
+    engine: "mcp-description",
+    original_tokens: originalTokens,
+    compressed_tokens: compressedTokens,
+    tokens_saved: delta.estimatedTokensSaved,
+    mcp_description_tokens_saved: delta.estimatedTokensSaved,
+  });
+
+  persistedDescriptionCompressionStats.descriptionsCompressed =
+    descriptionCompressionStats.descriptionsCompressed;
+  persistedDescriptionCompressionStats.charsBefore = descriptionCompressionStats.charsBefore;
+  persistedDescriptionCompressionStats.charsAfter = descriptionCompressionStats.charsAfter;
+  persistedDescriptionCompressionStats.charsSaved = descriptionCompressionStats.charsSaved;
+  persistedDescriptionCompressionStats.estimatedTokensSaved =
+    descriptionCompressionStats.estimatedTokensSaved;
+
+  return delta;
+}
+
 export function resetMcpDescriptionCompressionStats(): void {
   descriptionCompressionStats.descriptionsCompressed = 0;
   descriptionCompressionStats.charsBefore = 0;
   descriptionCompressionStats.charsAfter = 0;
   descriptionCompressionStats.charsSaved = 0;
   descriptionCompressionStats.estimatedTokensSaved = 0;
+  persistedDescriptionCompressionStats.descriptionsCompressed = 0;
+  persistedDescriptionCompressionStats.charsBefore = 0;
+  persistedDescriptionCompressionStats.charsAfter = 0;
+  persistedDescriptionCompressionStats.charsSaved = 0;
+  persistedDescriptionCompressionStats.estimatedTokensSaved = 0;
 }
