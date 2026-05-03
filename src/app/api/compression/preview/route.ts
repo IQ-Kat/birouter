@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { compressionPreviewConfigSchema } from "@/shared/validation/compressionConfigSchemas";
 import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
 import type {
@@ -38,8 +38,8 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
 }
 
 export async function POST(req: Request) {
-  const policy = await enforceApiKeyPolicy(req, "settings");
-  if (policy.rejection) return policy.rejection;
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
 
   let body: unknown;
   try {
