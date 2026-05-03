@@ -2,7 +2,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Save 15-75% tokens with prompt compression + auto-fallback to **FREE & low-cost AI models**.
+### Never stop coding. Save 15-95% eligible tokens with RTK+Caveman compression + auto-fallback to **FREE & low-cost AI models**.
 
 _The most complete open-source AI proxy — **one endpoint**, **160+ providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (37 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
 
@@ -20,7 +20,7 @@ _The most complete open-source AI proxy — **one endpoint**, **160+ providers**
 
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
-[🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [🗜️ Compression](#%EF%B8%8F-prompt-compression--save-15-75-tokens-automatically) • [💰 Pricing](#-pricing-at-a-glance) • [🎯 Use Cases](#-use-cases--ready-made-combo-playbooks) • [🌍 Proxy](#-bypass-geographic-blocks--use-ai-from-any-country) • [❓ FAQ](#-frequently-asked-questions) • [📖 Docs](#-documentation) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+[🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [🗜️ Compression](#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically) • [💰 Pricing](#-pricing-at-a-glance) • [🎯 Use Cases](#-use-cases--ready-made-combo-playbooks) • [🌍 Proxy](#-bypass-geographic-blocks--use-ai-from-any-country) • [❓ FAQ](#-frequently-asked-questions) • [📖 Docs](#-documentation) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 </div>
 
@@ -219,7 +219,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 
 **OmniRoute solves all of this:**
 
-✅ **Prompt Compression** — auto-compress prompts & tool outputs, save 15-75% tokens per request
+✅ **Prompt Compression** — auto-compress prompts & tool outputs, save 15-95% eligible tokens per request with RTK+Caveman stacked mode
 ✅ **Maximize subscriptions** — track quota, use every bit before reset
 ✅ **Auto fallback** — Subscription → API Key → Cheap → Free, zero downtime
 ✅ **Multi-account** — round-robin between accounts per provider
@@ -410,7 +410,7 @@ Alibaba · Amazon Q · AssemblyAI · Baidu Qianfan · Baseten · Black Forest La
        ↓
 ┌──────────────────────────────────────────────────┐
 │              OmniRoute (Smart Router)             │
-│  • 🗜️ Prompt Compression (save 15-75% tokens)    │
+│  • 🗜️ Prompt Compression (save 15-95% eligible)  │
 │  • Format translation (OpenAI ↔ Claude ↔ Gemini) │
 │  • Quota tracking + Embeddings + Images          │
 │  • Auto token refresh + Rate limit management    │
@@ -424,14 +424,14 @@ Alibaba · Amazon Q · AssemblyAI · Baidu Qianfan · Baseten · Black Forest La
        │   ↓ budget limit
        └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
 
-Result: Never stop coding, minimal cost + 15-75% token savings
+Result: Never stop coding, minimal cost + 15-95% eligible token savings
 ```
 
 ---
 
-## 🗜️ Prompt Compression — Save 15-75% Tokens Automatically
+## 🗜️ Prompt Compression — Save 15-95% Eligible Tokens Automatically
 
-> **Why use many token when few token do trick?** OmniRoute's built-in compression pipeline reduces token usage on every request — before it even reaches the provider. Inspired by [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 51K+).
+> **Why use many token when few token do trick?** OmniRoute's built-in compression pipeline reduces token usage before requests reach the provider. It combines ideas from [RTK - Rust Token Killer](https://github.com/rtk-ai/rtk) and [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 51K+).
 
 ### How It Works
 
@@ -442,12 +442,12 @@ Every request passes through the compression pipeline **transparently** — no c
 │   Client sends   │────▶│  OmniRoute Compression      │────▶│  Provider    │
 │   full prompt    │     │  Pipeline (7 options)        │     │  receives    │
 │   (10,000 tok)   │     │                              │     │  compressed  │
-│                  │     │  🪶 Lite ........... ~15%     │     │  (2,500 tok) │
+│                  │     │  🪶 Lite ........... ~15%     │     │  (~1,080 tok)│
 │                  │     │  🪨 Standard ....... ~30%     │     │              │
-│                  │     │  ⚡ Aggressive ..... ~50%     │     │  💰 75% saved │
+│                  │     │  ⚡ Aggressive ..... ~50%     │     │  💰 up to 95%│
 │                  │     │  🔥 Ultra .......... ~75%     │     │              │
-│                  │     │  🧰 RTK ............ 20-70%    │     │              │
-│                  │     │  🔗 Stacked ........ 30-80%    │     │              │
+│                  │     │  🧰 RTK ............ 60-90%    │     │              │
+│                  │     │  🔗 Stacked ........ 78-95%    │     │              │
 └──────────────────┘     └─────────────────────────────┘     └──────────────┘
 ```
 
@@ -460,8 +460,36 @@ Every request passes through the compression pipeline **transparently** — no c
 | **🪨 Standard (Caveman)** | ~30%    | 30+ regex rules: filler removal, context condensation, structural compression, multi-turn dedup | Daily coding with Claude/Codex         |
 | **⚡ Aggressive**         | ~50%    | All standard + progressive message aging + tool result summarization + LLM-based compression    | Long sessions with many tool calls     |
 | **🔥 Ultra**              | ~75%    | All aggressive + heuristic token pruning + stopword removal + score-based filtering             | Maximum savings when tokens are scarce |
-| **🧰 RTK**                | 20-70%  | 49 command-aware filters, RTK-style JSON DSL, verify gate, trust-gated custom filters           | Shell/test/build/git output in agents  |
-| **🔗 Stacked**            | 30-80%  | Ordered engine pipeline, usually RTK first then Caveman                                         | Mixed prompts with tool logs + prose   |
+| **🧰 RTK**                | 60-90%  | 49 command-aware filters, RTK-style JSON DSL, verify gate, trust-gated custom filters           | Shell/test/build/git output in agents  |
+| **🔗 Stacked**            | 78-95%  | RTK first, then Caveman input condensation; ~89% with upstream average math                     | Mixed prompts with tool logs + prose   |
+
+### RTK + Caveman Savings Math
+
+These numbers are based on the upstream project READMEs under `_references/_outros`:
+
+| Source  | Upstream claim used by OmniRoute docs                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------- |
+| Caveman | `~75%` fewer output tokens; benchmark average `65%` output savings, range `22-87%`; `~46%` input compression tool   |
+| RTK     | `60-90%` command-output token savings; sample session `~118,000 -> ~23,900` tokens, which is `79.7%` saved (`~80%`) |
+
+For the default stacked compression combo, OmniRoute runs:
+
+```txt
+RTK -> Caveman
+```
+
+When both engines can act on the same tool/context payload, the savings compound:
+
+```txt
+combined = 1 - (1 - RTK savings) * (1 - Caveman input savings)
+average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
+range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
+```
+
+Caveman output mode is separate from prompt compression. When enabled for responses, use Caveman's
+own upstream output numbers: `65%` average, `~75%` headline, `22-87%` observed range. Total bill
+savings depend on the prompt/output mix, but coding-agent sessions are often tool-context heavy, so
+the `RTK -> Caveman` combo is the best default for maximum context savings.
 
 ### Before & After (Standard/Caveman Mode)
 
@@ -516,7 +544,7 @@ Auto-trigger: set `autoTriggerTokens` to automatically enable compression when a
 
 Compression combos can also assign a named compression pipeline to routing combos, so a coding combo can use RTK + Caveman while a paid subscription combo stays on lite mode.
 
-> 🪨 **Fun fact:** The standard/caveman mode is inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — the viral project that proved "caveman speak" cuts 65% of tokens while keeping 100% technical accuracy. OmniRoute takes this further with a **7-option pipeline** that goes from gentle whitespace cleanup through RTK tool-output filters and stacked multi-engine compression.
+> 🪨 **Fun fact:** The standard/caveman mode is inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — the viral project that reports 65% average output-token savings while keeping technical accuracy. OmniRoute takes this further with a **7-option pipeline** and a default `RTK -> Caveman` combo that can reach ~89% average savings on eligible tool/context payloads.
 
 📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) • [`docs/RTK_COMPRESSION.md`](docs/RTK_COMPRESSION.md) • [`docs/COMPRESSION_ENGINES.md`](docs/COMPRESSION_ENGINES.md) • [`docs/COMPRESSION_RULES_FORMAT.md`](docs/COMPRESSION_RULES_FORMAT.md) • [`docs/COMPRESSION_LANGUAGE_PACKS.md`](docs/COMPRESSION_LANGUAGE_PACKS.md)
 
@@ -941,7 +969,7 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
 | 🧠 **Smart 4-Tier Fallback** — Subscription → API → Cheap → Free                                     | Never stop coding, zero downtime |
 | 🔄 **Format Translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API                                 | Works with ANY CLI tool          |
-| 🗜️ **Prompt Compression** — 7 options including Caveman, RTK, and stacked pipelines                  | Save 15-75% tokens automatically |
+| 🗜️ **Prompt Compression** — 7 options including Caveman, RTK, and stacked pipelines                  | Save 15-95% eligible tokens      |
 | 🤖 **MCP Server** — 37 tools, 3 transports (stdio/SSE/HTTP), 10 scopes                               | IDE/agent tool integration       |
 | 🛡️ **Resilience Engine** — circuit breakers, cooldowns, TLS spoofing, anti-thundering herd           | Auto-recovery from any failure   |
 | 🎵 **10 Multi-Modal APIs** — chat, embed, images, video, music, TTS, STT, moderation, rerank, search | One endpoint for everything      |

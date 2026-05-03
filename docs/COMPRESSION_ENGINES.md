@@ -13,7 +13,7 @@ OmniRoute compression is built around engine contracts. A mode can run one engin
 | `aggressive` | Caveman + history/tool summarizers | Long chat sessions                           |
 | `ultra`      | Caveman + pruning helpers          | Context-limit recovery                       |
 | `rtk`        | RTK                                | Terminal, shell, build, test, and git output |
-| `stacked`    | Pipeline, default `rtk -> caveman` | Mixed tool logs and prose                    |
+| `stacked`    | Pipeline, default `rtk -> caveman` | Mixed tool logs and prose, max savings       |
 
 ## Engine Registry
 
@@ -39,6 +39,11 @@ Caveman mode focuses on semantic condensation of normal prose:
 
 The dashboard surface is `Dashboard -> Context & Cache -> Caveman`.
 
+Caveman upstream reports `~75%` fewer output tokens, `65%` average output savings in benchmarks
+with a `22-87%` range, and a `~46%` input-compression tool. OmniRoute uses the Caveman input-side
+number when documenting stacked prompt/context savings; Caveman output mode remains a separate
+response-behavior feature.
+
 ## RTK
 
 RTK mode focuses on command and tool output:
@@ -61,6 +66,9 @@ The dashboard surface is `Dashboard -> Context & Cache -> RTK`.
 Operational details for custom filters, trust, verify, and raw-output recovery live in
 [`RTK_COMPRESSION.md`](RTK_COMPRESSION.md).
 
+RTK upstream reports `60-90%` savings for command-output compression. Its README example shows a
+30-minute Claude Code session going from `~118,000` tokens to `~23,900`, or `79.7%` saved.
+
 ## Stacked Pipelines
 
 Stacked mode runs pipeline steps in order. The default is:
@@ -74,6 +82,14 @@ prose. RTK reduces noisy tool logs first, then Caveman compresses remaining natu
 
 Pipeline steps are configured with `stackedPipeline` in compression settings or through compression
 combos.
+
+When both engines reduce the same eligible payload, savings compound:
+
+```txt
+combined = 1 - (1 - RTK savings) * (1 - Caveman input savings)
+average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
+range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
+```
 
 ## Compression Combos
 

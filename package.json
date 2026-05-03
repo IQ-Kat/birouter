@@ -1,7 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.7.9",
-  "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
+  "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
     "omniroute": "bin/omniroute.mjs",

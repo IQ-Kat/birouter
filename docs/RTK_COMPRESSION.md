@@ -12,9 +12,20 @@ rtk -> caveman
 
 That order compresses noisy machine output first, then lets Caveman condense remaining prose.
 
+Upstream RTK reports `60-90%` command-output savings. Its README sample session goes from
+`~118,000` standard tokens to `~23,900` RTK tokens, which is `79.7%` saved (`~80%`). OmniRoute uses
+that upstream average for the stacked savings calculation with Caveman input compression:
+
+```txt
+RTK average:    80% saved
+Caveman input: 46% saved
+Stacked:       1 - (1 - 0.80) * (1 - 0.46) = 89.2% saved
+Range:         1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
+```
+
 ## What It Compresses
 
-The built-in catalog currently ships 39 filters across these categories:
+The built-in catalog currently ships 49 filters across these categories:
 
 | Category  | Examples                                                      |
 | --------- | ------------------------------------------------------------- |

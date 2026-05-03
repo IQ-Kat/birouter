@@ -119,7 +119,7 @@ Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Co
 
 - **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
 - **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
-- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
 - **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
 
 See [Compression Guide](COMPRESSION_GUIDE.md), [RTK Compression](RTK_COMPRESSION.md), and
