@@ -2,14 +2,16 @@
 
 ## [Unreleased]
 
+## [3.7.9] — 2026-05-03
+
 ### ✨ New Features
 
-- **feat(compression):** add RTK tool-output compression, stacked Caveman + RTK pipelines,
-  compression combo assignments, dashboard context pages, MCP management tools, and
-  language-aware Caveman rule packs.
-- **feat(compression):** expand RTK parity with a 39-filter catalog, RTK-style JSON DSL stages,
-  inline verify/benchmark coverage, trust-gated custom filters, expanded command detection, and
-  redacted raw-output recovery.
+- **feat(compression):** major upgrade to Caveman and RTK compression pipelines (#1876, #1889):
+  - Add RTK tool-output compression, stacked Caveman + RTK pipelines, compression combo assignments, dashboard context pages, MCP management tools, and language-aware Caveman rule packs.
+  - Expand RTK parity with a 39-filter catalog, RTK-style JSON DSL stages, inline verify/benchmark coverage, trust-gated custom filters, expanded command detection, and redacted raw-output recovery.
+  - Expose rule intensities, track USD savings, unify config validation, and persist MCP savings.
+  - Expand Caveman parity and MCP metadata compression.
+- **feat(provider):** update Jina AI model catalog to support Embeddings and Rerank natively (#1874 — thanks @backryun)
 - **feat(provider):** add NanoGPT image generation provider (#1899 — thanks @Aculeasis)
 - **feat(ui):** move proxy configuration to dedicated System → Proxy page (#1907 — thanks @oyi77)
 - **feat(ui):** add K/M/B/T cost shortener utility (#1902 — thanks @oyi77)
@@ -18,6 +20,11 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)
+- **fix(compression):** align seeded standard savings combo with stacked default, preserve stacked defaults, and secure metadata routes.
+- **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
+- **fix(codex):** map prompt field to input array for Cursor compatibility (fixes #1872)
+- **fix(core):** align stream parameter default to false per strict OpenAI spec (fixes #1873)
 - **fix(ui):** restore Next.js CSP `unsafe-eval` in production `script-src` to fix unresponsive Onboarding button (fixes #1883)
 - **fix(proxy):** globally strip `prompt_cache_retention` in `BaseExecutor` to prevent upstream 400 errors from strict endpoints like droid/gemini-2-pro (fixes #1884)
 - **fix(ui):** include `isOpen` dependency in `EditConnectionModal` state sync to ensure `maxConcurrent` is properly hydrated when reopening the modal (fixes #1859)
@@ -30,18 +37,11 @@
 - **fix(combos):** fix combo provider breaker profile handling (#1891 — thanks @rdself)
 - **fix(migrations):** duplicate-column no-op fix (#1886 — thanks @smartenok-ops)
 - **fix(auth):** per-connection OAuth refresh mutex (#1885 — thanks @smartenok-ops)
+- **fix(auth):** require dashboard management auth for compression preview
 
-## [3.7.9] — 2026-05-02
+### 📝 Documentation
 
-### ✨ New Features
-
-- **feat(provider):** update Jina AI model catalog to support Embeddings and Rerank natively (#1874 — thanks @backryun)
-
-### 🐛 Bug Fixes
-
-- **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
-- **fix(codex):** map prompt field to input array for Cursor compatibility (fixes #1872)
-- **fix(core):** align stream parameter default to false per strict OpenAI spec (fixes #1873)
+- **docs(compression):** document RTK+Caveman stacked savings ranges
 
 ### 🏆 Release Attribution & Retroactive Credits
 
