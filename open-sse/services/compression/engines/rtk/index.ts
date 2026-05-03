@@ -8,6 +8,7 @@ import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
 import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
 import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
+import { isTextBlock } from "../../messageContent.ts";
 
 type Message = {
   role: string;
@@ -191,31 +192,6 @@ function shouldCompressMessage(message: Message, config: RtkConfig): boolean {
   return false;
 }
 
-function mapStringContent(
-  content: Message["content"],
-  transform: (text: string) => string
-): Message["content"] {
-  if (typeof content === "string") return transform(content);
-  if (!Array.isArray(content)) return content;
-  return content.map((part) => {
-    if (part && typeof part === "object" && part.type === "text" && typeof part.text === "string") {
-      return { ...part, text: transform(part.text) };
-    }
-    return part;
-  });
-}
-
-function extractContentText(content: Message["content"]): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return "";
-  return content
-    .map((part) =>
-      part && typeof part === "object" && typeof part.text === "string" ? part.text : ""
-    )
-    .filter(Boolean)
-    .join("\n");
-}
-
 export function processRtkText(
   text: string,
   options: { command?: string | null; config?: Partial<RtkConfig> } = {}
@@ -310,6 +286,64 @@ export function processRtkText(
   };
 }
 
+function processRtkContent(
+  content: Message["content"],
+  config: RtkConfig
+): {
+  content: Message["content"];
+  compressed: boolean;
+  techniquesUsed: string[];
+  rulesApplied: string[];
+  rawOutputPointers: RtkRawOutputPointer[];
+} {
+  const techniquesUsed: string[] = [];
+  const rulesApplied: string[] = [];
+  const rawOutputPointers: RtkRawOutputPointer[] = [];
+
+  const collect = (processed: RtkProcessResult) => {
+    techniquesUsed.push(...processed.techniquesUsed);
+    rulesApplied.push(...processed.rulesApplied);
+    if (processed.rawOutputPointers) rawOutputPointers.push(...processed.rawOutputPointers);
+  };
+
+  if (typeof content === "string") {
+    if (!content) {
+      return { content, compressed: false, techniquesUsed, rulesApplied, rawOutputPointers };
+    }
+    const processed = processRtkText(content, { config });
+    collect(processed);
+    return {
+      content: processed.compressed ? processed.text : content,
+      compressed: processed.compressed,
+      techniquesUsed,
+      rulesApplied,
+      rawOutputPointers,
+    };
+  }
+
+  if (!Array.isArray(content)) {
+    return { content, compressed: false, techniquesUsed, rulesApplied, rawOutputPointers };
+  }
+
+  let compressed = false;
+  const nextContent = content.map((part) => {
+    if (!isTextBlock(part) || !part.text) return part;
+    const processed = processRtkText(part.text, { config });
+    collect(processed);
+    if (!processed.compressed) return part;
+    compressed = true;
+    return { ...part, text: processed.text };
+  });
+
+  return {
+    content: compressed ? nextContent : content,
+    compressed,
+    techniquesUsed,
+    rulesApplied,
+    rawOutputPointers,
+  };
+}
+
 export function applyRtkCompression(
   body: Record<string, unknown>,
   options: { config?: Partial<RtkConfig>; stepConfig?: Record<string, unknown> } = {}
@@ -328,16 +362,14 @@ export function applyRtkCompression(
   const rawOutputPointers: RtkRawOutputPointer[] = [];
   const compressedMessages = messages.map((message) => {
     if (!shouldCompressMessage(message, config)) return message;
-    const text = extractContentText(message.content);
-    if (!text) return message;
-    const processed = processRtkText(text, { config });
+    const processed = processRtkContent(message.content, config);
     allTechniques.push(...processed.techniquesUsed);
     allRules.push(...processed.rulesApplied);
-    if (processed.rawOutputPointers) rawOutputPointers.push(...processed.rawOutputPointers);
+    rawOutputPointers.push(...processed.rawOutputPointers);
     if (!processed.compressed) return message;
     return {
       ...message,
-      content: mapStringContent(message.content, () => processed.text),
+      content: processed.content,
     };
   });
 

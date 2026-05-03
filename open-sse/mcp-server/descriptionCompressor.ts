@@ -32,6 +32,9 @@ const descriptionCompressionStats: McpDescriptionCompressionStats = {
   estimatedTokensSaved: 0,
 };
 
+const MCP_LIST_CONTAINER_KEYS = new Set(["tools", "prompts", "resources", "resourceTemplates"]);
+const MCP_METADATA_DESCRIPTION_FIELDS = ["description"];
+
 function isDisabledEnvValue(value: string | undefined): boolean {
   return !!value && ["0", "false", "off", "no"].includes(value.trim().toLowerCase());
 }
@@ -84,8 +87,9 @@ export function maybeCompressMcpDescription(
     descriptionCompressionStats.estimatedTokensSaved += Math.ceil(
       (result.before - result.after) / 4
     );
+    return result.compressed;
   }
-  return result.compressed;
+  return description;
 }
 
 export function compressDescriptionsInPlace(
@@ -107,6 +111,52 @@ export function compressDescriptionsInPlace(
       compressDescriptionsInPlace(nested, fieldNames, options);
     }
   }
+}
+
+function clonePlainMetadata<T>(value: T): T {
+  if (!value || typeof value !== "object") return value;
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function compressMcpListContainersInPlace(
+  value: unknown,
+  options: DescriptionCompressionOptions = {}
+): void {
+  if (!value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    for (const item of value) compressMcpListContainersInPlace(item, options);
+    return;
+  }
+
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    if (MCP_LIST_CONTAINER_KEYS.has(key) && Array.isArray(nested)) {
+      compressDescriptionsInPlace(nested, MCP_METADATA_DESCRIPTION_FIELDS, options);
+    } else if (nested && typeof nested === "object") {
+      compressMcpListContainersInPlace(nested, options);
+    }
+  }
+}
+
+export function compressMcpListMetadata<T>(
+  value: T,
+  options: DescriptionCompressionOptions = {}
+): T {
+  if (!isMcpDescriptionCompressionEnabled(options)) return value;
+  const clone = clonePlainMetadata(value);
+  compressMcpListContainersInPlace(clone, options);
+  return clone;
+}
+
+export function compressMcpRegistryMetadata<T extends Record<string, unknown>>(
+  metadata: T,
+  options: DescriptionCompressionOptions = {}
+): T {
+  if (!isMcpDescriptionCompressionEnabled(options)) return metadata;
+  const clone: Record<string, unknown> = { ...metadata };
+  if (typeof clone.description === "string") {
+    clone.description = maybeCompressMcpDescription(clone.description, options);
+  }
+  return clone as T;
 }
 
 export function getMcpDescriptionCompressionStats(): McpDescriptionCompressionStats {

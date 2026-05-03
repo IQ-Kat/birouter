@@ -66,6 +66,11 @@ See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot,
 | `omniroute_list_compression_combos` | List named compression combos and routing assignments          |
 | `omniroute_compression_combo_stats` | Analytics grouped by compression combo and engine              |
 
+`omniroute_compression_status` reports MCP description compression separately under
+`analytics.mcpDescriptionCompression`. Those values are metadata-size estimates for MCP listable
+descriptions (`tools`, `prompts`, `resources`, and `resourceTemplates`); they are not provider usage
+receipts and are marked with `source: "mcp_metadata_estimate"`.
+
 See [Compression Engines](compression-engines.md) and [RTK Compression](rtk-compression.md) for
 the runtime compression model behind these tools.
 

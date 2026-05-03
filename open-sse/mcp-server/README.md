@@ -155,6 +155,11 @@ omniroute --mcp
 | 26  | `omniroute_list_compression_combos` | `read:compression`  | List named compression combos and routing assignments                        |
 | 27  | `omniroute_compression_combo_stats` | `read:compression`  | Read analytics grouped by compression combo and engine                       |
 
+MCP listable metadata descriptions are compressed at registration/list time when description
+compression is enabled. `omniroute_compression_status` exposes those savings separately as
+`analytics.mcpDescriptionCompression` with `source: "mcp_metadata_estimate"`, so clients do not
+mistake metadata shrink estimates for provider token receipts.
+
 ---
 
 ## Client Examples

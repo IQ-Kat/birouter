@@ -68,4 +68,39 @@ describe("compression pipeline integration", () => {
       ["rtk", "caveman"]
     );
   });
+
+  it("keeps multipart tool output safe through stacked RTK then Caveman", () => {
+    const imagePart = { type: "image_url", image_url: { url: "data:image/png;base64,abc" } };
+    const body = {
+      messages: [
+        {
+          role: "tool",
+          content: [
+            {
+              type: "text",
+              text: Array.from({ length: 12 }, () => "first repeated tool line").join("\n"),
+            },
+            imagePart,
+            {
+              type: "text",
+              text: Array.from({ length: 12 }, () => "second repeated tool line").join("\n"),
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = applyStackedCompression(body, [
+      { engine: "rtk", intensity: "standard" },
+      { engine: "caveman", intensity: "full" },
+    ]);
+    const content = (result.body.messages as typeof body.messages)[0].content;
+
+    assert.equal(result.stats?.engine, "stacked");
+    assert.ok(Array.isArray(content));
+    assert.match(content[0].text ?? "", /first repeated tool line/);
+    assert.match(content[2].text ?? "", /second repeated tool line/);
+    assert.notEqual(content[0].text, content[2].text);
+    assert.deepEqual(content[1], imagePart);
+  });
 });

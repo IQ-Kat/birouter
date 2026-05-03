@@ -4,7 +4,7 @@
   "rules": [
     {
       "name": "pleasantries",
-      "pattern": "(?<!make\\s)(?<!be\\s)\\b(?:sure|certainly|of course|happy to|i'?d be happy to|i would be happy to)\\b[,.!?\\s]*",
+      "pattern": "(?<!make\\s)(?<!be\\s)\\b(?:i'?d be happy to|i would be happy to|i'?d be glad to|i would be glad to|glad to help|happy to|thank you|thanks|no problem|you'?re welcome|absolutely|certainly|of course|sure)\\b[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
@@ -29,7 +29,18 @@
     {
       "name": "verbose_instructions",
       "pattern": "\\b(?:provide a detailed explanation of|give me a comprehensive explanation of|write an in-depth explanation of|create a thorough explanation of|provide a detailed|give me a comprehensive|write an in-depth|create a thorough|explain in detail)\\b",
-      "replacement": "provide",
+      "replacement": "explain ",
+      "replacementMap": {
+        "provide a detailed explanation of": "explain ",
+        "give me a comprehensive explanation of": "explain ",
+        "write an in-depth explanation of": "explain ",
+        "create a thorough explanation of": "explain ",
+        "provide a detailed": "provide ",
+        "give me a comprehensive": "give ",
+        "write an in-depth": "write ",
+        "create a thorough": "create ",
+        "explain in detail": "explain "
+      },
       "context": "all",
       "category": "filler",
       "minIntensity": "lite"

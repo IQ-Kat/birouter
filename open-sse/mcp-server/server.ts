@@ -76,7 +76,7 @@ import {
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
-import { maybeCompressMcpDescription } from "./descriptionCompressor.ts";
+import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
@@ -594,14 +594,30 @@ export function createMcpServer(): McpServer {
   const mcpDescriptionCompressionEnabled = readMcpDescriptionCompressionEnabled();
   const registerTool = server.registerTool.bind(server);
   server.registerTool = ((name: string, config: Record<string, unknown>, handler: unknown) => {
-    const description =
-      typeof config.description === "string"
-        ? maybeCompressMcpDescription(config.description, {
-            enabled: mcpDescriptionCompressionEnabled,
-          })
-        : config.description;
-    return registerTool(name, { ...config, description }, handler as never);
+    const metadata = compressMcpRegistryMetadata(config, {
+      enabled: mcpDescriptionCompressionEnabled,
+    });
+    return registerTool(name, metadata, handler as never);
   }) as typeof server.registerTool;
+  const registerPrompt = server.registerPrompt.bind(server);
+  server.registerPrompt = ((name: string, config: Record<string, unknown>, handler: unknown) => {
+    const metadata = compressMcpRegistryMetadata(config, {
+      enabled: mcpDescriptionCompressionEnabled,
+    });
+    return registerPrompt(name, metadata as never, handler as never);
+  }) as typeof server.registerPrompt;
+  const registerResource = server.registerResource.bind(server);
+  server.registerResource = ((
+    name: string,
+    uriOrTemplate: unknown,
+    config: Record<string, unknown>,
+    readCallback: unknown
+  ) => {
+    const metadata = compressMcpRegistryMetadata(config, {
+      enabled: mcpDescriptionCompressionEnabled,
+    });
+    return registerResource(name, uriOrTemplate as never, metadata as never, readCallback as never);
+  }) as typeof server.registerResource;
 
   // Register essential tools
   server.registerTool(

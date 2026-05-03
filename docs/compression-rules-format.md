@@ -19,13 +19,18 @@ Each pack contains replacements that apply to normal prose after protected regio
   "category": "filler",
   "rules": [
     {
-      "name": "remove_basically",
-      "pattern": "\\bbasically\\b",
-      "replacement": "",
+      "name": "question_to_directive",
+      "pattern": "\\b(?:Can you explain why|Could you show me how)\\b\\s*",
+      "replacement": "Explain why ",
+      "replacementMap": {
+        "can you explain why": "Explain why ",
+        "could you show me how": "Show how "
+      },
+      "flags": "gi",
       "context": "all",
-      "category": "filler",
+      "category": "context",
       "minIntensity": "lite",
-      "description": "Remove filler adverb."
+      "description": "Convert verbose questions into direct requests."
     }
   ]
 }
@@ -33,21 +38,25 @@ Each pack contains replacements that apply to normal prose after protected regio
 
 ### Caveman Fields
 
-| Field                  | Required | Description                                                      |
-| ---------------------- | -------- | ---------------------------------------------------------------- |
-| `language`             | yes      | BCP-47-like language key such as `en`, `pt-BR`, `es`             |
-| `category`             | yes      | Pack category filename/category, for example `filler` or `dedup` |
-| `rules`                | yes      | Array of regex replacement rules                                 |
-| `rules[].name`         | yes      | Stable rule name                                                 |
-| `rules[].pattern`      | yes      | JavaScript regex source, compiled with `gi`                      |
-| `rules[].replacement`  | yes      | Replacement string                                               |
-| `rules[].context`      | no       | `all`, `user`, `assistant`, or `system`; default `all`           |
-| `rules[].category`     | no       | `filler`, `context`, `structural`, `dedup`, `terse`, or `ultra`  |
-| `rules[].minIntensity` | no       | `lite`, `full`, or `ultra`; default `lite`                       |
-| `rules[].description`  | no       | Human-readable rule summary                                      |
+| Field                    | Required | Description                                                      |
+| ------------------------ | -------- | ---------------------------------------------------------------- |
+| `language`               | yes      | BCP-47-like language key such as `en`, `pt-BR`, `es`             |
+| `category`               | yes      | Pack category filename/category, for example `filler` or `dedup` |
+| `rules`                  | yes      | Array of regex replacement rules                                 |
+| `rules[].name`           | yes      | Stable rule name                                                 |
+| `rules[].pattern`        | yes      | JavaScript regex source                                          |
+| `rules[].flags`          | no       | JavaScript regex flags; default `gi`                             |
+| `rules[].replacement`    | no       | Replacement string or fallback when `replacementMap` misses      |
+| `rules[].replacementMap` | no       | Match-specific replacements keyed by normalized matched text     |
+| `rules[].context`        | no       | `all`, `user`, `assistant`, or `system`; default `all`           |
+| `rules[].category`       | no       | `filler`, `context`, `structural`, `dedup`, `terse`, or `ultra`  |
+| `rules[].minIntensity`   | no       | `lite`, `full`, or `ultra`; default `lite`                       |
+| `rules[].description`    | no       | Human-readable rule summary                                      |
 
-Caveman file packs are data-only. Replacement functions are reserved for built-in TypeScript rules;
-JSON packs use string replacements only.
+Use `flags` when case-sensitive matching matters, for example article removal before lowercase prose
+without stripping `the OpenAI API`. Use `replacementMap` when one regex has multiple alternatives
+that need different outputs; this keeps JSON rule packs data-only while preserving the behavior of
+the richer built-in TypeScript replacement functions.
 
 ## RTK Filter Packs
 

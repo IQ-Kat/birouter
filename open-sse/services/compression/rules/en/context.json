@@ -14,6 +14,12 @@
       "name": "explanatory_prefix",
       "pattern": "\\b(?:The function appears to be handling|The code seems to|The class is|This module is)\\b",
       "replacement": "Function:",
+      "replacementMap": {
+        "the function appears to be handling": "Function:",
+        "the code seems to": "Code:",
+        "the class is": "Class:",
+        "this module is": "Module:"
+      },
       "context": "all",
       "category": "context",
       "minIntensity": "lite"
@@ -21,7 +27,13 @@
     {
       "name": "question_to_directive",
       "pattern": "\\b(?:Can you explain why|Could you show me how|Would you tell me|Can you tell me)\\b\\s*",
-      "replacement": "Explain why",
+      "replacement": "Explain why ",
+      "replacementMap": {
+        "can you explain why": "Explain why ",
+        "could you show me how": "Show how ",
+        "would you tell me": "Tell me ",
+        "can you tell me": "Tell me "
+      },
       "context": "user",
       "category": "context",
       "minIntensity": "lite"
@@ -62,6 +74,12 @@
       "name": "purpose_statement",
       "pattern": "\\b(?:for the purpose of|with the goal of|in an effort to|for every)\\b",
       "replacement": "for",
+      "replacementMap": {
+        "for the purpose of": "for",
+        "with the goal of": "to",
+        "in an effort to": "to",
+        "for every": "per"
+      },
       "context": "all",
       "category": "context",
       "minIntensity": "lite"

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { cavemanCompress } from "../../open-sse/services/compression/caveman.ts";
 import {
@@ -10,6 +11,7 @@ import {
 } from "../../open-sse/mcp-server/descriptionCompressor.ts";
 
 const require = createRequire(import.meta.url);
+const upstreamFixtureDir = path.resolve("_references/_outros/caveman/tests/caveman-compress");
 const upstream = require(
   path.resolve("_references/_outros/caveman/mcp-servers/caveman-shrink/compress.js")
 ) as {
@@ -17,6 +19,10 @@ const upstream = require(
 };
 
 function omnirouteCompress(text: string): string {
+  return omniroutePromptCompression(text).text;
+}
+
+function omniroutePromptCompression(text: string): { text: string; fallbackApplied: boolean } {
   const result = cavemanCompress(
     { messages: [{ role: "user", content: text }] },
     {
@@ -28,7 +34,10 @@ function omnirouteCompress(text: string): string {
       intensity: "full",
     }
   );
-  return result.body.messages[0].content as string;
+  return {
+    text: result.body.messages[0].content as string,
+    fallbackApplied: result.stats?.fallbackApplied === true,
+  };
 }
 
 const parityCases = [
@@ -88,5 +97,55 @@ describe("upstream Caveman parity benchmark", () => {
     assert.ok(payload.tools[0].description.length < originalDescription.length);
     assert.equal(stats.descriptionsCompressed, 1);
     assert.ok(stats.estimatedTokensSaved > 0);
+  });
+
+  it("runs offline parity against upstream Caveman fixture files", () => {
+    const fixturePairs = readdirSync(upstreamFixtureDir)
+      .filter((entry) => entry.endsWith(".original.md"))
+      .map((originalName) => ({
+        name: originalName.replace(/\.original\.md$/, ""),
+        originalPath: path.join(upstreamFixtureDir, originalName),
+        compressedPath: path.join(
+          upstreamFixtureDir,
+          originalName.replace(/\.original\.md$/, ".md")
+        ),
+      }));
+
+    assert.ok(fixturePairs.length >= 5, "expected upstream fixture pairs");
+
+    for (const fixture of fixturePairs) {
+      const original = readFileSync(fixture.originalPath, "utf8");
+      const expected = readFileSync(fixture.compressedPath, "utf8");
+      const ours = omniroutePromptCompression(original);
+      const upstreamShrink = upstream.compress(original).compressed;
+
+      assert.ok(
+        expected.length < original.length,
+        `${fixture.name}: upstream fixture did not reduce`
+      );
+      if (ours.fallbackApplied) {
+        assert.equal(
+          ours.text,
+          original,
+          `${fixture.name}: fallback must preserve original fixture verbatim`
+        );
+      } else {
+        assert.ok(ours.text.length < original.length, `${fixture.name}: OmniRoute did not reduce`);
+        assert.ok(
+          ours.text.length <= Math.ceil(Math.max(expected.length, upstreamShrink.length) * 1.35),
+          `${fixture.name}: OmniRoute drifted too far from upstream fixture budget`
+        );
+      }
+
+      for (const protectedPattern of [/```[\s\S]*?```/g, /`[^`\n]+`/g, /https?:\/\/\S+/g]) {
+        const protectedValues = original.match(protectedPattern) ?? [];
+        for (const protectedValue of protectedValues) {
+          assert.ok(
+            ours.text.includes(protectedValue),
+            `${fixture.name}: protected content changed: ${protectedValue.slice(0, 80)}`
+          );
+        }
+      }
+    }
   });
 });

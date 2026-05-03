@@ -55,8 +55,12 @@ export async function handleCompressionStatus(
     };
     mcpDescriptionCompression: {
       descriptionsCompressed: number;
+      charsBefore: number;
+      charsAfter: number;
       charsSaved: number;
       estimatedTokensSaved: number;
+      source: "mcp_metadata_estimate";
+      notProviderUsage: true;
     };
   };
   cacheStats: {
@@ -99,8 +103,12 @@ export async function handleCompressionStatus(
         realUsage: analyticsSummary.realUsage,
         mcpDescriptionCompression: {
           descriptionsCompressed: mcpDescriptionStats.descriptionsCompressed,
+          charsBefore: mcpDescriptionStats.charsBefore,
+          charsAfter: mcpDescriptionStats.charsAfter,
           charsSaved: mcpDescriptionStats.charsSaved,
           estimatedTokensSaved: mcpDescriptionStats.estimatedTokensSaved,
+          source: "mcp_metadata_estimate" as const,
+          notProviderUsage: true as const,
         },
       },
       cacheStats: cacheStats

@@ -28,7 +28,7 @@ const CAVEMAN_RULES: CavemanRule[] = [
   {
     name: "pleasantries",
     pattern:
-      /\b(?:sure|certainly|of course|happy to|i'?d be happy to|i would be happy to)\b[,.!?\s]*/gi,
+      /(?<!make\s)(?<!be\s)\b(?:i'?d be happy to|i would be happy to|i'?d be glad to|i would be glad to|glad to help|happy to|thank you|thanks|no problem|you'?re welcome|absolutely|certainly|of course|sure)\b[,.!?\s]*/gi,
     replacement: "",
     context: "all",
     category: "filler",
@@ -59,15 +59,15 @@ const CAVEMAN_RULES: CavemanRule[] = [
       /\b(?:provide a detailed explanation of|give me a comprehensive explanation of|write an in-depth explanation of|create a thorough explanation of|provide a detailed|give me a comprehensive|write an in-depth|create a thorough|explain in detail)\b/gi,
     replacement: (match: string): string => {
       const map: Record<string, string> = {
-        "provide a detailed explanation of": "explain",
-        "give me a comprehensive explanation of": "explain",
-        "write an in-depth explanation of": "explain",
-        "create a thorough explanation of": "explain",
-        "provide a detailed": "provide",
-        "give me a comprehensive": "give",
-        "write an in-depth": "write",
-        "create a thorough": "create",
-        "explain in detail": "explain",
+        "provide a detailed explanation of": "explain ",
+        "give me a comprehensive explanation of": "explain ",
+        "write an in-depth explanation of": "explain ",
+        "create a thorough explanation of": "explain ",
+        "provide a detailed": "provide ",
+        "give me a comprehensive": "give ",
+        "write an in-depth": "write ",
+        "create a thorough": "create ",
+        "explain in detail": "explain ",
       };
       const lower = match.toLowerCase();
       return map[lower] ?? match;
@@ -86,7 +86,7 @@ const CAVEMAN_RULES: CavemanRule[] = [
   },
   {
     name: "articles",
-    pattern: /\b(?:a|an|the)\s+(?=[a-z])/gi,
+    pattern: /\b(?:[Aa]n|[Aa]|[Tt]he)\s+(?=[a-z])/g,
     replacement: "",
     context: "all",
     category: "terse",
@@ -185,10 +185,10 @@ const CAVEMAN_RULES: CavemanRule[] = [
     replacement: (match: string): string => {
       const trimmed = match.trimEnd().toLowerCase();
       const map: Record<string, string> = {
-        "can you explain why": "Explain why",
-        "could you show me how": "Show how",
-        "would you tell me": "Tell me",
-        "can you tell me": "Tell me",
+        "can you explain why": "Explain why ",
+        "could you show me how": "Show how ",
+        "would you tell me": "Tell me ",
+        "can you tell me": "Tell me ",
       };
       return map[trimmed] ?? match;
     },

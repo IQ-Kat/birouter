@@ -86,4 +86,30 @@ describe("RTK compression engine", () => {
     assert.equal(result.compressed, true);
     assert.equal(result.stats?.mode, "rtk");
   });
+
+  it("compresses multipart text parts independently without duplicating output", () => {
+    const imagePart = { type: "image_url", image_url: { url: "data:image/png;base64,abc" } };
+    const body = {
+      messages: [
+        {
+          role: "tool",
+          content: [
+            { type: "text", text: Array.from({ length: 12 }, () => "alpha noisy line").join("\n") },
+            imagePart,
+            { type: "text", text: Array.from({ length: 12 }, () => "beta noisy line").join("\n") },
+          ],
+        },
+      ],
+    };
+
+    const result = applyRtkCompression(body);
+    const content = (result.body.messages as typeof body.messages)[0].content;
+
+    assert.equal(result.compressed, true);
+    assert.ok(Array.isArray(content));
+    assert.match(content[0].text ?? "", /alpha noisy line/);
+    assert.match(content[2].text ?? "", /beta noisy line/);
+    assert.notEqual(content[0].text, content[2].text);
+    assert.deepEqual(content[1], imagePart);
+  });
 });

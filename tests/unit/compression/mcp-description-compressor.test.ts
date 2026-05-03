@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   compressDescriptionsInPlace,
+  compressMcpListMetadata,
+  compressMcpRegistryMetadata,
   compressMcpDescription,
   getMcpDescriptionCompressionStats,
   maybeCompressMcpDescription,
@@ -45,6 +47,49 @@ describe("MCP description compression", () => {
     assert.deepEqual(payload.result.tools[1].inputSchema.description, { not: "string" });
   });
 
+  it("compresses only MCP list metadata containers, not tool-call response bodies", () => {
+    resetMcpDescriptionCompressionStats();
+    const payload = {
+      result: {
+        tools: [
+          { name: "get_weather", description: "The function returns the weather for a city." },
+        ],
+        prompts: [{ name: "ask", description: "The prompt asks for a detailed summary." }],
+        resources: [{ name: "docs", description: "The resource contains the project docs." }],
+        resourceTemplates: [
+          { name: "doc", description: "The template returns the matching project document." },
+        ],
+        content: [
+          {
+            type: "text",
+            description: "The tool response body should remain unchanged.",
+          },
+        ],
+      },
+    };
+
+    const output = compressMcpListMetadata(payload);
+
+    assert.doesNotMatch(output.result.tools[0].description, /\bthe\b/i);
+    assert.doesNotMatch(output.result.prompts[0].description, /\bthe\b/i);
+    assert.doesNotMatch(output.result.resources[0].description, /\bthe\b/i);
+    assert.doesNotMatch(output.result.resourceTemplates[0].description, /\bthe\b/i);
+    assert.equal(
+      output.result.content[0].description,
+      "The tool response body should remain unchanged."
+    );
+  });
+
+  it("compresses registry metadata for tools, prompts, and resources", () => {
+    const metadata = compressMcpRegistryMetadata({
+      description: "The function returns the current weather for a city.",
+      inputSchema: {},
+    });
+
+    assert.doesNotMatch(metadata.description as string, /\bthe\b/i);
+    assert.deepEqual(metadata.inputSchema, {});
+  });
+
   it("honors settings and environment kill switches", () => {
     const originalEnv = process.env.OMNIROUTE_MCP_DESCRIPTION_COMPRESSION;
     const originalAliasEnv = process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS;
@@ -79,6 +124,8 @@ describe("MCP description compression", () => {
 
     assert.notEqual(output, input);
     assert.equal(stats.descriptionsCompressed, 1);
+    assert.equal(stats.charsBefore, input.length);
+    assert.equal(stats.charsAfter, output.length);
     assert.ok(stats.charsSaved > 0);
     assert.ok(stats.estimatedTokensSaved > 0);
   });

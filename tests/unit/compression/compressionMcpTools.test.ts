@@ -75,6 +75,14 @@ describe("handleCompressionStatus", () => {
     const result = await handleCompressionStatus({});
     assert.equal(typeof result.analytics.compressedRequests, "number");
   });
+
+  it("labels MCP description savings as metadata estimates, not provider usage", async () => {
+    const result = await handleCompressionStatus({});
+    assert.equal(result.analytics.mcpDescriptionCompression.source, "mcp_metadata_estimate");
+    assert.equal(result.analytics.mcpDescriptionCompression.notProviderUsage, true);
+    assert.equal(typeof result.analytics.mcpDescriptionCompression.charsBefore, "number");
+    assert.equal(typeof result.analytics.mcpDescriptionCompression.charsAfter, "number");
+  });
 });
 
 describe("handleCompressionConfigure", () => {

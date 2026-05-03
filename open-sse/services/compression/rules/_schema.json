@@ -10,11 +10,16 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "pattern", "replacement"],
+        "required": ["name", "pattern"],
         "properties": {
           "name": { "type": "string" },
           "pattern": { "type": "string" },
+          "flags": { "type": "string" },
           "replacement": { "type": "string" },
+          "replacementMap": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
           "context": { "enum": ["all", "user", "system", "assistant"] },
           "category": { "enum": ["filler", "context", "structural", "dedup", "terse", "ultra"] },
           "minIntensity": { "enum": ["lite", "full", "ultra"] },

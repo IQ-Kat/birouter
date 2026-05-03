@@ -4,7 +4,8 @@
   "rules": [
     {
       "name": "articles",
-      "pattern": "\\b(?:a|an|the)\\s+(?=[a-z])",
+      "pattern": "\\b(?:[Aa]n|[Aa]|[Tt]he)\\s+(?=[a-z])",
+      "flags": "g",
       "replacement": "",
       "context": "all",
       "category": "terse",
@@ -94,6 +95,10 @@
       "name": "ultra_dependency_abbreviation",
       "pattern": "\\b(?:dependency|dependencies)\\b",
       "replacement": "dep",
+      "replacementMap": {
+        "dependency": "dep",
+        "dependencies": "deps"
+      },
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra"

@@ -86,6 +86,14 @@
       "name": "passive_voice",
       "pattern": "\\b(?:is being used|is being called|is being generated|was created|was generated|was implemented)\\b",
       "replacement": "uses",
+      "replacementMap": {
+        "is being used": "uses",
+        "is being called": "calls",
+        "is being generated": "generated",
+        "was created": "created",
+        "was generated": "generated",
+        "was implemented": "implemented"
+      },
       "context": "all",
       "category": "structural",
       "minIntensity": "full"

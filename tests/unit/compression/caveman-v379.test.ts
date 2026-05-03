@@ -58,6 +58,36 @@ describe("Caveman v3.7.9 rule parity", () => {
     assert.match(ultra, /\bres\b/);
   });
 
+  it("preserves articles before proper nouns, numbers, and code-like tokens", () => {
+    const text = compress(
+      "Use the OpenAI API, the 404 error, the config.api.endpoint() function, and the database."
+    );
+
+    assert.match(text, /\bthe OpenAI API\b/);
+    assert.match(text, /\bthe 404 error\b/);
+    assert.match(text, /\bthe config\.api\.endpoint\(\) function\b/);
+    assert.doesNotMatch(text, /\bthe database\b/i);
+  });
+
+  it("removes upstream Caveman pleasantry variants without breaking make sure to", () => {
+    const text = compress(
+      "Thanks, thank you, glad to help, I'd be glad to, no problem, you're welcome, absolutely. Please make sure to review the database."
+    );
+
+    for (const phrase of [
+      "thanks",
+      "thank you",
+      "glad to help",
+      "I'd be glad to",
+      "no problem",
+      "you're welcome",
+      "absolutely",
+    ]) {
+      assert.doesNotMatch(text, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+    }
+    assert.match(text, /\bensure review database\b/i);
+  });
+
   it("keeps system prompts unchanged when preserveSystemPrompt is enabled", () => {
     const body = {
       messages: [
