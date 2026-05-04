@@ -175,6 +175,7 @@ export const DEFAULT_PRICING = {
 
   // OpenAI Codex (cx)
   cx: {
+    "codex-auto-review": GPT_5_5_PRICING,
     // GPT 5.5
     "gpt-5.5": GPT_5_5_PRICING,
     "gpt5.5": GPT_5_5_PRICING,
