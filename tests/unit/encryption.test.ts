@@ -39,7 +39,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt } = await import("../encryption");
+      const { encrypt, decrypt } = await import("@/lib/db/encryption");
 
       const plaintext = "my-secret-api-key";
       const encrypted = encrypt(plaintext);
@@ -56,7 +56,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt } = await import("../encryption");
+      const { encrypt, decrypt } = await import("@/lib/db/encryption");
 
       const values = ["token1", "token2", "token3"];
       const encrypted = values.map((v) => encrypt(v));
@@ -77,7 +77,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
       vi.resetModules();
 
-      const { decrypt } = await import("../encryption");
+      const { decrypt } = await import("@/lib/db/encryption");
 
       const decrypted = decrypt(legacyEncrypted);
       expect(decrypted).toBe(plaintext);
@@ -92,7 +92,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
       vi.resetModules();
 
-      const { decrypt } = await import("../encryption");
+      const { decrypt } = await import("@/lib/db/encryption");
 
       const decrypted = legacyEncrypted.map((e) => decrypt(e));
       expect(decrypted).toEqual(values);
@@ -108,7 +108,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
       vi.resetModules();
 
-      const { decrypt, isMigrationNeeded } = await import("../encryption");
+      const { decrypt, isMigrationNeeded } = await import("@/lib/db/encryption");
 
       expect(isMigrationNeeded()).toBe(false);
 
@@ -121,7 +121,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt, isMigrationNeeded } = await import("../encryption");
+      const { encrypt, decrypt, isMigrationNeeded } = await import("@/lib/db/encryption");
 
       const plaintext = "modern-token";
       const encrypted = encrypt(plaintext);
@@ -143,7 +143,8 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
       vi.resetModules();
 
-      const { decrypt, isMigrationNeeded, resetMigrationFlag } = await import("../encryption");
+      const { decrypt, isMigrationNeeded, resetMigrationFlag } =
+        await import("@/lib/db/encryption");
 
       decrypt(legacyEncrypted);
       expect(isMigrationNeeded()).toBe(true);
@@ -158,7 +159,7 @@ describe("encryption module", () => {
       // No STORAGE_ENCRYPTION_KEY set
       vi.resetModules();
 
-      const { encrypt, decrypt, isEncryptionEnabled } = await import("../encryption");
+      const { encrypt, decrypt, isEncryptionEnabled } = await import("@/lib/db/encryption");
 
       expect(isEncryptionEnabled()).toBe(false);
 
@@ -174,7 +175,7 @@ describe("encryption module", () => {
     it("should handle null and undefined in passthrough mode", async () => {
       vi.resetModules();
 
-      const { encrypt, decrypt } = await import("../encryption");
+      const { encrypt, decrypt } = await import("@/lib/db/encryption");
 
       expect(encrypt(null)).toBeNull();
       expect(encrypt(undefined)).toBeUndefined();
@@ -188,7 +189,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encryptConnectionFields } = await import("../encryption");
+      const { encryptConnectionFields } = await import("@/lib/db/encryption");
 
       const conn = {
         id: "conn-123",
@@ -211,7 +212,8 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encryptConnectionFields, decryptConnectionFields } = await import("../encryption");
+      const { encryptConnectionFields, decryptConnectionFields } =
+        await import("@/lib/db/encryption");
 
       const conn = {
         id: "conn-123",
@@ -235,7 +237,8 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encryptConnectionFields, decryptConnectionFields } = await import("../encryption");
+      const { encryptConnectionFields, decryptConnectionFields } =
+        await import("@/lib/db/encryption");
 
       expect(encryptConnectionFields(null)).toBeNull();
       expect(encryptConnectionFields(undefined)).toBeUndefined();
@@ -247,9 +250,10 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encryptConnectionFields, decryptConnectionFields } = await import("../encryption");
+      const { encryptConnectionFields, decryptConnectionFields } =
+        await import("@/lib/db/encryption");
 
-      const conn: import("../encryption").ConnectionFields = {
+      const conn: import("@/lib/db/encryption").ConnectionFields = {
         id: "conn-123",
         apiKey: "plain-api-key",
         // accessToken, refreshToken, idToken missing
@@ -271,7 +275,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
       vi.resetModules();
 
-      const { decryptConnectionFields, isMigrationNeeded } = await import("../encryption");
+      const { decryptConnectionFields, isMigrationNeeded } = await import("@/lib/db/encryption");
 
       const conn = {
         id: "conn-123",
@@ -291,7 +295,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt } = await import("../encryption");
+      const { encrypt, decrypt } = await import("@/lib/db/encryption");
 
       expect(encrypt(null)).toBeNull();
       expect(encrypt(undefined)).toBeUndefined();
@@ -303,7 +307,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt } = await import("../encryption");
+      const { encrypt } = await import("@/lib/db/encryption");
 
       const plaintext = "my-secret";
       const encrypted = encrypt(plaintext);
@@ -319,7 +323,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { decrypt } = await import("../encryption");
+      const { decrypt } = await import("@/lib/db/encryption");
 
       const malformed = "enc:v1:onlyonepart";
       const result = decrypt(malformed);
@@ -330,7 +334,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { decrypt } = await import("../encryption");
+      const { decrypt } = await import("@/lib/db/encryption");
 
       const malformed = "enc:v1:notvalidhex:notvalidhex:notvalidhex";
       const result = decrypt(malformed);
@@ -341,7 +345,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt } = await import("../encryption");
+      const { encrypt, decrypt } = await import("@/lib/db/encryption");
 
       const plaintext = "my-secret";
       const encrypted = encrypt(plaintext);
@@ -359,7 +363,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { decrypt } = await import("../encryption");
+      const { decrypt } = await import("@/lib/db/encryption");
 
       const plaintext = "not-encrypted-value";
       const result = decrypt(plaintext);
@@ -370,7 +374,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt } = await import("../encryption");
+      const { encrypt } = await import("@/lib/db/encryption");
 
       const plaintext = "my-secret";
       const encrypted = encrypt(plaintext);
@@ -379,7 +383,7 @@ describe("encryption module", () => {
       vi.unstubAllEnvs();
       vi.resetModules();
 
-      const { decrypt } = await import("../encryption");
+      const { decrypt } = await import("@/lib/db/encryption");
 
       const result = decrypt(encrypted!);
       expect(result).toBeNull();
@@ -390,7 +394,7 @@ describe("encryption module", () => {
     it("should return valid when no key is set (passthrough mode)", async () => {
       vi.resetModules();
 
-      const { validateEncryptionConfig } = await import("../encryption");
+      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
 
       const result = validateEncryptionConfig();
       expect(result.valid).toBe(true);
@@ -401,7 +405,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { validateEncryptionConfig } = await import("../encryption");
+      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
 
       const result = validateEncryptionConfig();
       expect(result.valid).toBe(true);
@@ -412,7 +416,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "");
       vi.resetModules();
 
-      const { validateEncryptionConfig } = await import("../encryption");
+      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
 
       const result = validateEncryptionConfig();
       expect(result.valid).toBe(true);
@@ -423,7 +427,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "   ");
       vi.resetModules();
 
-      const { validateEncryptionConfig } = await import("../encryption");
+      const { validateEncryptionConfig } = await import("@/lib/db/encryption");
 
       const result = validateEncryptionConfig();
       expect(result.valid).toBe(false);
@@ -435,7 +439,7 @@ describe("encryption module", () => {
     it("should return false when no key is set", async () => {
       vi.resetModules();
 
-      const { isEncryptionEnabled } = await import("../encryption");
+      const { isEncryptionEnabled } = await import("@/lib/db/encryption");
 
       expect(isEncryptionEnabled()).toBe(false);
     });
@@ -444,7 +448,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { isEncryptionEnabled } = await import("../encryption");
+      const { isEncryptionEnabled } = await import("@/lib/db/encryption");
 
       expect(isEncryptionEnabled()).toBe(true);
     });
@@ -453,7 +457,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "");
       vi.resetModules();
 
-      const { isEncryptionEnabled } = await import("../encryption");
+      const { isEncryptionEnabled } = await import("@/lib/db/encryption");
 
       // isEncryptionEnabled only checks if the env var is truthy
       expect(isEncryptionEnabled()).toBe(false);
@@ -465,7 +469,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt, isMigrationNeeded } = await import("../encryption");
+      const { encrypt, decrypt, isMigrationNeeded } = await import("@/lib/db/encryption");
 
       const plaintext = "new-token";
       const encrypted = encrypt(plaintext);
@@ -481,7 +485,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
       vi.resetModules();
 
-      const { encrypt, decrypt, isMigrationNeeded } = await import("../encryption");
+      const { encrypt, decrypt, isMigrationNeeded } = await import("@/lib/db/encryption");
 
       const values = ["token1", "token2", "token3"];
       const encrypted = values.map((v) => encrypt(v));
@@ -506,7 +510,7 @@ describe("encryption module", () => {
       vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
       vi.resetModules();
 
-      const { decrypt, isMigrationNeeded } = await import("../encryption");
+      const { decrypt, isMigrationNeeded } = await import("@/lib/db/encryption");
 
       expect(isMigrationNeeded()).toBe(false);
 
@@ -528,7 +532,7 @@ describe("encryption module", () => {
       vi.resetModules();
 
       const { decrypt, encrypt, isMigrationNeeded, resetMigrationFlag } =
-        await import("../encryption");
+        await import("@/lib/db/encryption");
 
       // Decrypt legacy value
       const decrypted = decrypt(legacyEncrypted);

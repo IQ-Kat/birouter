@@ -35,6 +35,11 @@ const STATIC_SALT = "omniroute-field-encryption-v1";
 
 let _staticKey: Buffer | null = null;
 let _legacyDynamicKey: Buffer | null = null;
+// Module-level migration flag. Safe in Node.js because:
+// 1. Node.js is single-threaded — no concurrent access race conditions
+// 2. decrypt() is synchronous — no interleaving between flag-set and flag-read
+// 3. Used as a "check-after-decrypt" signal, not a persistent state dependency
+// 4. Same pattern as _staticKey/_legacyDynamicKey cache variables above
 let _migrationNeeded = false;
 
 /** Connection object with potentially encrypted credential fields. */
@@ -55,15 +60,7 @@ function getStaticKey(): Buffer | null {
   if (_staticKey !== null) return _staticKey;
 
   const secret = process.env.STORAGE_ENCRYPTION_KEY;
-  if (!secret) return null;
-
-  if (typeof secret !== "string" || secret.trim().length === 0) {
-    console.error(
-      "[Encryption] STORAGE_ENCRYPTION_KEY is set but empty or invalid. " +
-        "Generate a valid key with: openssl rand -base64 32"
-    );
-    return null;
-  }
+  if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
   try {
     _staticKey = scryptSync(secret, STATIC_SALT, KEY_LENGTH);
