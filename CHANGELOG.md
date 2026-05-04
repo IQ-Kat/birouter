@@ -44,6 +44,8 @@
 - **fix(migrations):** duplicate-column no-op fix (#1886 — thanks @smartenok-ops)
 - **fix(auth):** per-connection OAuth refresh mutex (#1885 — thanks @smartenok-ops)
 - **fix(auth):** require dashboard management auth for compression preview
+- **fix(mitm):** add root user and system-level certificate authority support for MITM proxy on Linux/Android (#1948)
+- **fix(registry):** remove deprecated GPT-5.5 pricing tiers, GPT-5.4-nano, and update Grok vision model catalog (#1949)
 
 ### 📝 Documentation
 
