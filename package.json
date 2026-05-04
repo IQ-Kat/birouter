@@ -36,7 +36,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <25"
+    "node": ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27"
   },
   "keywords": [
     "ai",
@@ -145,14 +145,14 @@
     "tsx": "^4.21.0",
     "undici": "^8.1.0",
     "uuid": "^14.0.0",
-    "wreq-js": "^2.0.1",
     "xxhash-wasm": "^1.1.0",
     "yazl": "^3.3.1",
     "zod": "^4.3.6",
     "zustand": "^5.0.10"
   },
   "optionalDependencies": {
-    "keytar": "^7.9.0"
+    "keytar": "^7.9.0",
+    "wreq-js": "^2.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
