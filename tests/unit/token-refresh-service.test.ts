@@ -1055,12 +1055,28 @@ test("getAccessToken per-connection mutex: different connections run independent
         async () => {
           const [groupA, groupB] = await Promise.all([
             Promise.all([
-              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-A", refreshToken: "rt-a" }, log),
-              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-A", refreshToken: "rt-a" }, log),
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-A", refreshToken: "rt-a" },
+                log
+              ),
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-A", refreshToken: "rt-a" },
+                log
+              ),
             ]),
             Promise.all([
-              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-B", refreshToken: "rt-b" }, log),
-              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-B", refreshToken: "rt-b" }, log),
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-B", refreshToken: "rt-b" },
+                log
+              ),
+              getAccessToken(
+                "custom-oauth-conn-mutex",
+                { connectionId: "conn-B", refreshToken: "rt-b" },
+                log
+              ),
             ]),
           ]);
 

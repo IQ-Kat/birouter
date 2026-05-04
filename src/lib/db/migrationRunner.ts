@@ -777,10 +777,9 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
       // "duplicate column name" means the column already exists — end state achieved, mark applied.
       if (message.includes("duplicate column name")) {
         const applyMarkerOnly = db.transaction(() => {
-          db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-            migration.version,
-            migration.name
-          );
+          db.prepare(
+            "INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)"
+          ).run(migration.version, migration.name);
         });
         applyMarkerOnly();
         count++;

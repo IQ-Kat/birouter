@@ -871,7 +871,12 @@ export async function getAccessToken(provider, credentials, log, proxyConfig: un
     }
 
     const entry = { promise: null, waiters: 0 };
-    entry.promise = _getAccessTokenWithStalenessCheck(provider, credentials, log, proxyConfig).finally(() => {
+    entry.promise = _getAccessTokenWithStalenessCheck(
+      provider,
+      credentials,
+      log,
+      proxyConfig
+    ).finally(() => {
       connectionRefreshMutex.delete(connectionId);
     });
     connectionRefreshMutex.set(connectionId, entry);
