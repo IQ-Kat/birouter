@@ -15,6 +15,7 @@
 ### 🐛 Bug Fixes
 
 - **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)
+- **fix(providers):** bypass AgentRouter unauthorized_client_error by spoofing Claude CLI headers via Anthropic endpoints (fixes #1921)
 - **fix(copilot):** emit compatible reasoning text deltas (#1919 — thanks @ivan-mezentsev)
 - **fix(api-manager):** show validation errors inline in modals, not behind (#1920 — thanks @andrewmunsell)
 - **fix(compression):** align seeded standard savings combo with stacked default, preserve stacked defaults, and secure metadata routes.
