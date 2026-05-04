@@ -922,6 +922,28 @@ function buildExecutorClientHeaders(
   return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
+function isCopilotClient(
+  headers: Headers | Record<string, unknown> | null | undefined,
+  userAgent?: string | null
+) {
+  const isMatch = (value: unknown) =>
+    typeof value === "string" && value.toLowerCase().includes("copilot");
+
+  if (isMatch(userAgent)) return true;
+
+  if (headers instanceof Headers) {
+    for (const [key, value] of headers) {
+      if (isMatch(key) || isMatch(value)) return true;
+    }
+  } else if (headers && typeof headers === "object") {
+    for (const [key, value] of Object.entries(headers)) {
+      if (isMatch(key) || isMatch(value)) return true;
+    }
+  }
+
+  return false;
+}
+
 export async function handleChatCore({
   body,
   modelInfo,
@@ -1099,6 +1121,7 @@ export async function handleChatCore({
   });
   const isDroidCLI =
     userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
+  const copilotCompatibleReasoning = isCopilotClient(clientRawRequest?.headers, userAgent);
   const clientResponseFormat =
     sourceFormat === FORMATS.OPENAI_RESPONSES && !isResponsesEndpoint && !isDroidCLI
       ? FORMATS.OPENAI
@@ -4022,7 +4045,8 @@ export async function handleChatCore({
       streamStateBody,
       onStreamComplete,
       apiKeyInfo,
-      handleStreamFailure
+      handleStreamFailure,
+      copilotCompatibleReasoning
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
@@ -4038,7 +4062,8 @@ export async function handleChatCore({
       streamStateBody,
       onStreamComplete,
       apiKeyInfo,
-      handleStreamFailure
+      handleStreamFailure,
+      copilotCompatibleReasoning
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
