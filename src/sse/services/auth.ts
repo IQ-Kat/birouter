@@ -5,6 +5,10 @@ import {
   updateProviderConnection,
   getSettings,
   getCachedSettings,
+  getSessionAccountAffinity,
+  upsertSessionAccountAffinity,
+  touchSessionAccountAffinity,
+  deleteSessionAccountAffinity,
 } from "@/lib/localDb";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
@@ -232,6 +236,10 @@ export function extractSessionAffinityKey(
   const inputText = getFirstInputText(body);
   if (!inputText || inputText.trim().length === 0) return null;
   return `input:sha256:${createHash("sha256").update(inputText.slice(0, 4096)).digest("hex")}`;
+}
+
+function formatSessionKeyForLog(sessionKey: string): string {
+  return `${sessionKey.slice(0, 18)}...`;
 }
 
 function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
@@ -593,6 +601,68 @@ function compareP2CConnections(
   }
 
   return a.id.localeCompare(b.id);
+}
+
+function compareLruConnections(a: ProviderConnectionView, b: ProviderConnectionView): number {
+  if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
+  if (!a.lastUsedAt) return -1;
+  if (!b.lastUsedAt) return 1;
+  const recencyDelta = new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
+  if (recencyDelta !== 0) return recencyDelta;
+  if ((a.consecutiveUseCount || 0) !== (b.consecutiveUseCount || 0)) {
+    return (a.consecutiveUseCount || 0) - (b.consecutiveUseCount || 0);
+  }
+  return (a.priority || 999) - (b.priority || 999);
+}
+
+async function selectSessionAffinityConnection(
+  provider: string,
+  sessionKey: string | null | undefined,
+  connections: ProviderConnectionView[]
+): Promise<ProviderConnectionView | null> {
+  if (!sessionKey || connections.length === 0) return null;
+
+  const existing = getSessionAccountAffinity(sessionKey, provider);
+  if (existing) {
+    const connection = connections.find((candidate) => candidate.id === existing.connectionId);
+    if (connection) {
+      touchSessionAccountAffinity(sessionKey, provider);
+      await updateProviderConnection(connection.id, {
+        lastUsedAt: new Date().toISOString(),
+        consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
+      });
+      log.info(
+        "AUTH",
+        `session_key=${formatSessionKeyForLog(sessionKey)} -> connection ${connection.id.slice(
+          0,
+          8
+        )} (affinity)`
+      );
+      return connection;
+    }
+
+    deleteSessionAccountAffinity(sessionKey, provider);
+    log.info(
+      "AUTH",
+      `affinity cleared for session_key=${formatSessionKeyForLog(sessionKey)} provider=${provider}`
+    );
+  }
+
+  const connection = [...connections].sort(compareLruConnections)[0] ?? null;
+  if (!connection) return null;
+
+  upsertSessionAccountAffinity(sessionKey, provider, connection.id);
+  await updateProviderConnection(connection.id, {
+    lastUsedAt: new Date().toISOString(),
+    consecutiveUseCount: 1,
+  });
+  log.info(
+    "AUTH",
+    `new affinity created for session_key=${formatSessionKeyForLog(
+      sessionKey
+    )} -> connection ${connection.id.slice(0, 8)}`
+  );
+  return connection;
 }
 
 function normalizeExcludedConnectionIds(
@@ -1011,7 +1081,23 @@ export async function getProviderCredentials(
     const strategy = settings.fallbackStrategy || "fill-first";
 
     let connection;
-    if (strategy === "round-robin") {
+    const affinityConnection = await selectSessionAffinityConnection(
+      provider,
+      options.sessionKey,
+      orderedConnections
+    );
+    if (affinityConnection) {
+      connection = affinityConnection;
+    } else if (options.sessionKey) {
+      log.info(
+        "AUTH",
+        `session_key=${formatSessionKeyForLog(options.sessionKey)} has no available affinity target`
+      );
+    }
+
+    if (connection) {
+      // Session affinity selected a connection before global sticky routing.
+    } else if (strategy === "round-robin") {
       const stickyLimit = toNumber((settings as Record<string, unknown>).stickyRoundRobinLimit, 3);
 
       // If excluding an account (fallback scenario), skip sticky logic and go straight to LRU
