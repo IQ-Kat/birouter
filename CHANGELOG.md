@@ -21,6 +21,8 @@
 ### 🐛 Bug Fixes
 
 - **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)
+- **fix(copilot):** emit compatible reasoning text deltas (#1919 — thanks @ivan-mezentsev)
+- **fix(api-manager):** show validation errors inline in modals, not behind (#1920 — thanks @andrewmunsell)
 - **fix(compression):** align seeded standard savings combo with stacked default, preserve stacked defaults, and secure metadata routes.
 - **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
 - **fix(codex):** map prompt field to input array for Cursor compatibility (fixes #1872)
