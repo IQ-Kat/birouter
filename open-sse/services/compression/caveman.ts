@@ -216,9 +216,12 @@ function cleanupArtifacts(text: string): string {
 }
 
 function recapitalizeSentences(text: string): string {
-  return text.replace(/(^|[.!?]\s+|^\s+)([a-z])/gm, (_match, prefix: string, char: string) => {
-    return `${prefix}${char.toUpperCase()}`;
-  });
+  return text.replace(
+    /(^|[.!?][ \t]+|\n+[ \t]*)([a-z])/g,
+    (_match, prefix: string, char: string) => {
+      return `${prefix}${char.toUpperCase()}`;
+    }
+  );
 }
 
 function createCavemanStats(

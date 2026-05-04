@@ -934,11 +934,9 @@ function isCopilotClient(
   if (isMatch(userAgent)) return true;
 
   if (headers instanceof Headers) {
-    let found = false;
-    headers.forEach((value, key) => {
-      if (isMatch(key) || isMatch(value)) found = true;
-    });
-    if (found) return true;
+    for (const [key, value] of headers) {
+      if (isMatch(key) || isMatch(value)) return true;
+    }
   } else if (headers && typeof headers === "object") {
     for (const [key, value] of Object.entries(headers)) {
       if (isMatch(key) || isMatch(value)) return true;
