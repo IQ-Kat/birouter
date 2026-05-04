@@ -475,13 +475,14 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          COUNT(*) as total,
-          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' THEN 1 ELSE 0 END) as with_requested,
+          SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
+          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
           SUM(CASE
             WHEN requested_model IS NOT NULL
              AND requested_model != ''
              AND model IS NOT NULL
-             AND requested_model != model
+             AND LOWER(requested_model) != LOWER(model)
+             AND (combo_name IS NULL OR combo_name = '')
             THEN 1 ELSE 0 END
           ) as fallbacks
         FROM call_logs
