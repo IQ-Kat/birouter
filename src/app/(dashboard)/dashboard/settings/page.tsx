@@ -15,7 +15,6 @@ import ThinkingBudgetTab from "./components/ThinkingBudgetTab";
 import SystemPromptTab from "./components/SystemPromptTab";
 import ModelAliasesUnified from "./components/ModelAliasesUnified";
 import BackgroundDegradationTab from "./components/BackgroundDegradationTab";
-import CacheSettingsTab from "./components/CacheSettingsTab";
 import MemorySkillsTab from "./components/MemorySkillsTab";
 import ModelsDevSyncTab from "./components/ModelsDevSyncTab";
 import ResilienceTab from "./components/ResilienceTab";
@@ -115,7 +114,6 @@ export default function SettingsPage() {
               </Link>
               <VisionBridgeSettingsTab />
               <SystemPromptTab />
-              <CacheSettingsTab />
               <MemorySkillsTab />
               <ModelsDevSyncTab />
             </div>

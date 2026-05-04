@@ -18,6 +18,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import type Database from "better-sqlite3";
+import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
 
 /**
  * Resolve the migrations directory path safely across platforms.
@@ -799,7 +800,42 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
     console.log(`[Migration] ${count} migration(s) applied successfully.`);
   }
 
+  // After applying all migrations, insert default settings if we just ran migration 46
+  try {
+    if (appliedRecords.some((m) => m.name.startsWith("046_"))) {
+      insertDefaultDatabaseSettings(db);
+    }
+  } catch (error) {
+    console.error("Error inserting default database settings:", error);
+  }
+
   return count;
+}
+
+function insertDefaultDatabaseSettings(db: Database.Database) {
+  const tx = db.transaction(() => {
+    // Insert all default settings
+    for (const [section, values] of Object.entries(DEFAULT_DATABASE_SETTINGS)) {
+      for (const [key, value] of Object.entries(values as Record<string, unknown>)) {
+        db.prepare("INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+          "databaseSettings",
+          `${section}.${key}`,
+          JSON.stringify(value)
+        );
+      }
+    }
+  });
+
+  // Run in an immediate transaction to avoid nested transactions
+  try {
+    // @ts-expect-error - Better-SQLite3 transaction types
+    db.immediate(() => {
+      tx();
+    });
+  } catch (error) {
+    console.error("Transaction error inserting default settings:", error);
+    throw error;
+  }
 }
 
 /**
