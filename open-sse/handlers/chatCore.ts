@@ -2756,8 +2756,13 @@ export async function handleChatCore({
                 }
               }
 
-              // Codex 429 account-rotation failover
-              if (provider === "codex" && res.response.status === 429 && attempts < maxAttempts - 1) {
+              // Codex 429 account-rotation failover (disabled for context-relay so combo.ts can inject handoff)
+              if (
+                provider === "codex" &&
+                comboStrategy !== "context-relay" &&
+                res.response.status === 429 &&
+                attempts < maxAttempts - 1
+              ) {
                 const failedConnectionId = credentials?.connectionId || connectionId;
                 const retryAfterHeader = res.response.headers.get("retry-after");
                 const retryAfterMs = retryAfterHeader ? parseFloat(retryAfterHeader) * 1000 : null;
