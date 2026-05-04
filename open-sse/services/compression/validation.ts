@@ -85,7 +85,10 @@ export function validateCompression(original: string, compressed: string): Valid
   );
   requireExactPresence(
     "LaTeX block",
-    collectMatches(original, /\\begin\{[A-Za-z*]{1,50}\}(?:(?!\\end\{)[^])*\\end\{[A-Za-z*]{1,50}\}/g),
+    collectMatches(
+      original,
+      /\\begin\{[A-Za-z*]{1,50}\}(?:(?!\\end\{)[^])*\\end\{[A-Za-z*]{1,50}\}/g
+    ),
     compressed,
     errors
   );

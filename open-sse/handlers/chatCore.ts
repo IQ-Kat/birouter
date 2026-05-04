@@ -1437,7 +1437,9 @@ export async function handleChatCore({
       const cachedUsage =
         extractUsageFromResponse(cached as Record<string, unknown>, provider) ||
         ((cached as Record<string, unknown>)?.usage as Record<string, unknown> | undefined);
-      const cachedCost = cachedUsage ? await calculateCost(provider, model, cachedUsage as Record<string, number>) : 0;
+      const cachedCost = cachedUsage
+        ? await calculateCost(provider, model, cachedUsage as Record<string, number>)
+        : 0;
       persistAttemptLogs({
         status: 200,
         tokens: (cached as Record<string, unknown>)?.usage,
