@@ -932,9 +932,11 @@ function isCopilotClient(
   if (isMatch(userAgent)) return true;
 
   if (headers instanceof Headers) {
-    for (const [key, value] of headers) {
-      if (isMatch(key) || isMatch(value)) return true;
-    }
+    let found = false;
+    headers.forEach((value, key) => {
+      if (isMatch(key) || isMatch(value)) found = true;
+    });
+    if (found) return true;
   } else if (headers && typeof headers === "object") {
     for (const [key, value] of Object.entries(headers)) {
       if (isMatch(key) || isMatch(value)) return true;
@@ -1080,7 +1082,7 @@ export async function handleChatCore({
             | undefined)
         : undefined;
     const idempotentCost = idempotentUsage
-      ? await calculateCost(provider, model, idempotentUsage)
+      ? await calculateCost(provider, model, idempotentUsage as Record<string, number>)
       : 0;
     return {
       success: true,
@@ -1435,7 +1437,7 @@ export async function handleChatCore({
       const cachedUsage =
         extractUsageFromResponse(cached as Record<string, unknown>, provider) ||
         ((cached as Record<string, unknown>)?.usage as Record<string, unknown> | undefined);
-      const cachedCost = cachedUsage ? await calculateCost(provider, model, cachedUsage) : 0;
+      const cachedCost = cachedUsage ? await calculateCost(provider, model, cachedUsage as Record<string, number>) : 0;
       persistAttemptLogs({
         status: 200,
         tokens: (cached as Record<string, unknown>)?.usage,
@@ -1754,7 +1756,7 @@ export async function handleChatCore({
               comboOverrides: {
                 ...(config.comboOverrides ?? {}),
                 ...(comboName ? { [comboName]: comboMode } : {}),
-                ...(comboConfig?.id ? { [comboConfig.id]: comboMode } : {}),
+                ...(comboConfig?.id ? { [String(comboConfig.id)]: comboMode } : {}),
               },
             };
             compressionComboKey = comboName;
