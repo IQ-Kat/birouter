@@ -17,6 +17,7 @@
 - **feat(ui):** add K/M/B/T cost shortener utility (#1902 — thanks @oyi77)
 - **feat(providers):** implement bulk paste for extra API keys (#1916 — thanks @0xtbug)
 - **feat(analytics):** usage history API key backfill + dark mode pricing (#1896 — thanks @Gi99lin)
+- **feat(logs):** show RTK and Caveman compression token savings accurately in request log UI (#1923 — thanks @emdash)
 
 ### 🐛 Bug Fixes
 
