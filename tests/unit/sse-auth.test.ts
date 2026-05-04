@@ -169,9 +169,9 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
   quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 99 : 40,
+    used: connectionId === blocked.id ? 100 : 40,
     total: 100,
-    percentUsed: connectionId === blocked.id ? 0.99 : 0.4,
+    percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
   }));
 
   const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
@@ -222,9 +222,9 @@ test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a for
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
   quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 99 : 20,
+    used: connectionId === blocked.id ? 100 : 20,
     total: 100,
-    percentUsed: connectionId === blocked.id ? 0.99 : 0.2,
+    percentUsed: connectionId === blocked.id ? 1.0 : 0.2,
     resetAt: futureIso(120_000),
   }));
 
@@ -867,7 +867,7 @@ test("markAccountUnavailable uses the unified configured api-key connection cool
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
-        transientCooldown: 200,
+        transientCooldown: 125,
         rateLimitCooldown: 125,
         maxBackoffLevel: 3,
         circuitBreakerThreshold: 60,

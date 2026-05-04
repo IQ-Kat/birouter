@@ -1501,7 +1501,9 @@ export async function markAccountUnavailable(
         model,
         "not_found",
         status,
-        COOLDOWN_MS.notFoundLocal,
+        status === 404
+          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+          : COOLDOWN_MS.notFoundLocal,
         effectiveProviderProfile
       );
       updateProviderConnection(connectionId, {
