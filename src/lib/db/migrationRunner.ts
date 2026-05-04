@@ -282,6 +282,8 @@ function isSchemaAlreadyApplied(
         hasColumn(db, "compression_analytics", "compression_combo_id") &&
         hasColumn(db, "compression_analytics", "engine")
       );
+    case "045":
+      return hasColumn(db, "call_logs", "tokens_compressed");
     default:
       return false;
   }
