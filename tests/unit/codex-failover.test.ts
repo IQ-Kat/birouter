@@ -157,15 +157,27 @@ test("codex failover: Object.assign patches credentials with new account", () =>
 
 // ── Test 6: failover only triggers on 429, not other errors ──────────────────
 test("codex failover: only 429 triggers account rotation", () => {
-  const shouldTriggerFailover = (provider: string, status: number, attempt: number, maxAttempts: number) =>
-    provider === "codex" && status === 429 && attempt < maxAttempts - 1;
+  const shouldTriggerFailover = (
+    provider: string,
+    status: number,
+    attempt: number,
+    maxAttempts: number
+  ) => provider === "codex" && status === 429 && attempt < maxAttempts - 1;
 
   assert.equal(shouldTriggerFailover("codex", 429, 0, 3), true, "Codex 429 attempt 0 → rotate");
   assert.equal(shouldTriggerFailover("codex", 429, 1, 3), true, "Codex 429 attempt 1 → rotate");
-  assert.equal(shouldTriggerFailover("codex", 429, 2, 3), false, "Codex 429 last attempt → no rotate");
+  assert.equal(
+    shouldTriggerFailover("codex", 429, 2, 3),
+    false,
+    "Codex 429 last attempt → no rotate"
+  );
   assert.equal(shouldTriggerFailover("codex", 500, 0, 3), false, "Codex 500 → no rotate");
   assert.equal(shouldTriggerFailover("codex", 200, 0, 3), false, "Codex 200 → no rotate");
-  assert.equal(shouldTriggerFailover("openai", 429, 0, 1), false, "OpenAI 429 → no rotate (not codex)");
+  assert.equal(
+    shouldTriggerFailover("openai", 429, 0, 1),
+    false,
+    "OpenAI 429 → no rotate (not codex)"
+  );
 });
 
 // ── Test 7: no-credentials response stops rotation ───────────────────────────
