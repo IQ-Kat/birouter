@@ -121,10 +121,11 @@ export default function SystemStorageTab() {
     if (!dbSettings) return;
     setDbSettingsSaving(true);
     try {
+      const { logs, backup, cache, retention, aggregation, optimization } = dbSettings;
       const res = await fetch("/api/settings/database", {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dbSettings),
+        body: JSON.stringify({ logs, backup, cache, retention, aggregation, optimization }),
       });
       if (res.ok) {
         await loadDatabaseSettings();

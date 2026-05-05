@@ -27,6 +27,7 @@
 
 - **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
 - **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
+- **fix(mcp):** reclassify MCP endpoints to ensure API key authentication works even when dashboard auth is enabled (#1970)
 - **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)
 - **fix(providers):** bypass AgentRouter unauthorized_client_error by spoofing Claude CLI headers via Anthropic endpoints (fixes #1921)
 - **fix(copilot):** emit compatible reasoning text deltas (#1919 — thanks @ivan-mezentsev)

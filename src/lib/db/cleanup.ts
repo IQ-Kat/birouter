@@ -5,35 +5,15 @@
  */
 
 import { getDbInstance } from "./core";
-import { getSettings } from "@/lib/localDb";
-import type { DatabaseSettings } from "@/types/databaseSettings";
+import { getUserDatabaseSettings } from "./databaseSettings";
 
 interface CleanupResult {
   deleted: number;
   errors: number;
 }
 
-/**
- * Extract database settings from the full settings object with proper typing.
- */
-function getDatabaseSettings(): DatabaseSettings["retention"] {
-  const settings = getSettings();
-  // Database settings are stored under the 'databaseSettings' key in the main settings
-  const dbSettings = (settings as Record<string, unknown>).databaseSettings as
-    | DatabaseSettings
-    | undefined;
-  return (
-    dbSettings?.retention ?? {
-      quotaSnapshots: 30,
-      compressionAnalytics: 30,
-      mcpAudit: 30,
-      a2aEvents: 30,
-      callLogs: 7,
-      usageHistory: 90,
-      memoryEntries: 90,
-      autoCleanupEnabled: false,
-    }
-  );
+function getRetentionSettings() {
+  return getUserDatabaseSettings().retention;
 }
 
 /**
@@ -41,7 +21,7 @@ function getDatabaseSettings(): DatabaseSettings["retention"] {
  */
 export async function cleanupQuotaSnapshots(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.quotaSnapshots;
   const cutoffDate = new Date();
@@ -71,7 +51,7 @@ export async function cleanupQuotaSnapshots(): Promise<CleanupResult> {
  */
 export async function cleanupCallLogs(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.callLogs;
   const cutoffDate = new Date();
@@ -99,7 +79,7 @@ export async function cleanupCallLogs(): Promise<CleanupResult> {
  */
 export async function cleanupUsageHistory(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.usageHistory;
   const cutoffDate = new Date();
@@ -129,7 +109,7 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
  */
 export async function cleanupCompressionAnalytics(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.compressionAnalytics;
   const cutoffDate = new Date();
@@ -159,7 +139,7 @@ export async function cleanupCompressionAnalytics(): Promise<CleanupResult> {
  */
 export async function cleanupMcpAudit(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.mcpAudit;
   const cutoffDate = new Date();
@@ -189,7 +169,7 @@ export async function cleanupMcpAudit(): Promise<CleanupResult> {
  */
 export async function cleanupA2aEvents(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.a2aEvents;
   const cutoffDate = new Date();
@@ -217,7 +197,7 @@ export async function cleanupA2aEvents(): Promise<CleanupResult> {
  */
 export async function cleanupMemoryEntries(): Promise<CleanupResult> {
   const db = getDbInstance();
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
 
   const retentionDays = retention.memoryEntries;
   const cutoffDate = new Date();
@@ -250,7 +230,7 @@ export async function runAutoCleanup(): Promise<{
   totalErrors: number;
   results: Record<string, CleanupResult>;
 }> {
-  const retention = getDatabaseSettings();
+  const retention = getRetentionSettings();
   const autoCleanupEnabled = retention.autoCleanupEnabled;
 
   if (!autoCleanupEnabled) {
@@ -321,20 +301,20 @@ export async function purgeCallLogs(): Promise<CleanupResult> {
 }
 
 /**
- * Purge ALL detailed_logs immediately (no retention check).
+ * Purge ALL request_detail_logs immediately (no retention check).
  */
 export async function purgeDetailedLogs(): Promise<CleanupResult> {
   const db = getDbInstance();
   const result: CleanupResult = { deleted: 0, errors: 0 };
 
   try {
-    const stmt = db.prepare("DELETE FROM detailed_logs");
+    const stmt = db.prepare("DELETE FROM request_detail_logs");
     const runResult = stmt.run();
     result.deleted = runResult.changes;
 
-    console.log(`[Cleanup] Purged ${result.deleted} detailed_logs`);
+    console.log(`[Cleanup] Purged ${result.deleted} request_detail_logs`);
   } catch (err: unknown) {
-    console.error("[Cleanup] Error purging detailed_logs:", err);
+    console.error("[Cleanup] Error purging request_detail_logs:", err);
     result.errors++;
   }
 

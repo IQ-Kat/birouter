@@ -288,7 +288,7 @@ export function migrateLegacyEncryptedString(ciphertext: string | null | undefin
   const parts = rawPayload.split(":");
   if (parts.length !== 3) return { updated: false, value: ciphertext };
 
-  const [ivHex, authTagHex, encryptedHex] = parts;
+  const [ivHex, encryptedHex, authTagHex] = parts;
   const iv = Buffer.from(ivHex, "hex");
   const authTag = Buffer.from(authTagHex, "hex");
   const encrypted = Buffer.from(encryptedHex, "hex");

@@ -163,9 +163,10 @@ export const databaseSettingsSchema = z.object(
         .or(z.literal("daily"))
         .or(z.literal("weekly"))
         .or(z.literal("monthly")),
-      pageSize: z.number().multipleOf(512).min(512).max(16384),
-      cacheSize: z.number().int().min(1000).max(1000000),
-      mmapSize: z.number().int().min(0),
+      vacuumHour: z.number().int().min(0).max(23),
+      pageSize: z.number().multipleOf(512).min(512).max(65536),
+      cacheSize: z.number().int().min(-1000000).max(1000000),
+      optimizeOnStartup: z.boolean(),
     }),
 
     // Skip location and stats as they're read-only

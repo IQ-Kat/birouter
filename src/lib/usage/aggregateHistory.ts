@@ -6,7 +6,7 @@
  */
 
 import { getDbInstance } from "../db/core";
-import { getSettings } from "@/lib/localDb";
+import { getUserDatabaseSettings } from "../db/databaseSettings";
 
 interface AggregationResult {
   processed: number;
@@ -27,10 +27,6 @@ export async function rollupDailyUsage(
   toDate: string
 ): Promise<AggregationResult> {
   const db = getDbInstance();
-  const settings = await getSettings();
-
-  // Get retention settings
-  const rawDataRetentionDays = (settings.aggregation as any)?.rawDataRetentionDays ?? 90;
 
   const result: AggregationResult = {
     processed: 0,
@@ -54,10 +50,10 @@ export async function rollupDailyUsage(
       WHERE DATE(created_at) >= ? AND DATE(created_at) <= ?
       GROUP BY provider, model, DATE(created_at)
       ON CONFLICT(provider, model, date) DO UPDATE SET
-        total_requests = total_requests + excluded.total_requests,
-        total_input_tokens = total_input_tokens + excluded.total_input_tokens,
-        total_output_tokens = total_output_tokens + excluded.total_output_tokens,
-        total_cost = total_cost + excluded.total_cost
+        total_requests = excluded.total_requests,
+        total_input_tokens = excluded.total_input_tokens,
+        total_output_tokens = excluded.total_output_tokens,
+        total_cost = excluded.total_cost
     `;
 
     const stmt = db.prepare(aggregateQuery);
@@ -88,10 +84,6 @@ export async function rollupHourlyQuota(
   toDate: string
 ): Promise<AggregationResult> {
   const db = getDbInstance();
-  const settings = await getSettings();
-
-  // Get retention settings
-  const rawDataRetentionDays = (settings.aggregation as any)?.rawDataRetentionDays ?? 90;
 
   const result: AggregationResult = {
     processed: 0,
@@ -115,10 +107,10 @@ export async function rollupHourlyQuota(
       WHERE created_at >= ? AND created_at <= ?
       GROUP BY provider, model, datetime(strftime('%Y-%m-%d %H:00:00', created_at))
       ON CONFLICT(provider, model, date_hour) DO UPDATE SET
-        total_requests = total_requests + excluded.total_requests,
-        total_input_tokens = total_input_tokens + excluded.total_input_tokens,
-        total_output_tokens = total_output_tokens + excluded.total_output_tokens,
-        total_cost = total_cost + excluded.total_cost
+        total_requests = excluded.total_requests,
+        total_input_tokens = excluded.total_input_tokens,
+        total_output_tokens = excluded.total_output_tokens,
+        total_cost = excluded.total_cost
     `;
 
     const stmt = db.prepare(aggregateQuery);
@@ -145,8 +137,7 @@ export async function rollupHourlyQuota(
  * @returns ISO date string (YYYY-MM-DD)
  */
 export async function getRawDataCutoffDate(): Promise<string> {
-  const settings = await getSettings();
-  const rawDataRetentionDays = (settings.aggregation as any)?.rawDataRetentionDays ?? 90;
+  const rawDataRetentionDays = getUserDatabaseSettings().aggregation.rawDataRetentionDays;
 
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - rawDataRetentionDays);
@@ -158,6 +149,5 @@ export async function getRawDataCutoffDate(): Promise<string> {
  * Check if aggregation is enabled in settings.
  */
 export async function isAggregationEnabled(): Promise<boolean> {
-  const settings = await getSettings();
-  return (settings.aggregation as any)?.enabled ?? false;
+  return getUserDatabaseSettings().aggregation.enabled;
 }
