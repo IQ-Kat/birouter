@@ -18,6 +18,16 @@ const REASONING_UNSUPPORTED_PATTERNS = [
   "antigravity/tab_",
 ];
 
+const MAX_TOKENS_UNSUPPORTED_PATTERNS = [
+  "o1-preview",
+  "o1-mini",
+  "o1",
+  "o3-mini",
+  "o3",
+  "gpt-5.4",
+  "gpt-5.5",
+];
+
 type CapabilityInput =
   | string
   | {
@@ -36,6 +46,7 @@ export interface ResolvedModelCapabilities {
   supportsThinking: boolean | null;
   supportsTools: boolean | null;
   supportsVision: boolean | null;
+  supportsMaxTokens: boolean;
   attachment: boolean | null;
   structuredOutput: boolean | null;
   temperature: boolean | null;
@@ -144,6 +155,16 @@ function heuristicReasoning(modelStr: string): boolean {
   return !blocked;
 }
 
+function heuristicMaxTokens(modelStr: string): boolean {
+  const normalized = String(modelStr || "").toLowerCase();
+  if (!normalized) return true;
+  const blocked = MAX_TOKENS_UNSUPPORTED_PATTERNS.some(
+    (pattern) =>
+      normalized === pattern || normalized.endsWith(`/${pattern}`) || normalized.includes(pattern)
+  );
+  return !blocked;
+}
+
 function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSpec | undefined {
   if (modelId) {
     const byCanonical = getModelSpec(modelId);
@@ -222,6 +243,7 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
       modalitiesInput,
       modalitiesOutput
     ),
+    supportsMaxTokens: heuristicMaxTokens(lookupKey),
     attachment: synced?.attachment ?? null,
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
@@ -257,6 +279,11 @@ export function supportsToolCalling(input: CapabilityInput): boolean {
 export function supportsReasoning(input: CapabilityInput): boolean {
   if (typeof input === "string" && !String(input || "").trim()) return true;
   return getResolvedModelCapabilities(input).reasoning;
+}
+
+export function supportsMaxTokens(input: CapabilityInput): boolean {
+  if (typeof input === "string" && !String(input || "").trim()) return true;
+  return getResolvedModelCapabilities(input).supportsMaxTokens;
 }
 
 export function capMaxOutputTokens(input: CapabilityInput, requested?: number): number {

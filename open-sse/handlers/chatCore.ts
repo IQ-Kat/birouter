@@ -20,6 +20,7 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -2491,6 +2492,17 @@ export async function handleChatCore({
     }
     if (stripped.length > 0) {
       log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
+    }
+  }
+
+  // Rename max_tokens to max_completion_tokens if not supported (#1961)
+  if (!supportsMaxTokens({ provider, model })) {
+    if (translatedBody.max_tokens !== undefined) {
+      if (translatedBody.max_completion_tokens === undefined) {
+        translatedBody.max_completion_tokens = translatedBody.max_tokens;
+      }
+      delete translatedBody.max_tokens;
+      log?.debug?.("PARAMS", `Renamed max_tokens to max_completion_tokens for ${model}`);
     }
   }
 

@@ -74,15 +74,29 @@ function resolveModelPricing(
   const pLower = (providerRaw || "").toLowerCase();
 
   let providerPricing = findKeyInsensitive(pricingByProvider, pLower);
+
   if (!providerPricing) {
+    // providerAliasMap maps ID -> ALIAS. So if pLower is "codex", alias is "cx".
     const alias = providerAliasMap[pLower];
     if (alias) {
       providerPricing = findKeyInsensitive(pricingByProvider, alias);
-    } else {
-      const np = pLower.replace(/-cn$/, "");
-      if (np && np !== pLower) {
-        providerPricing = findKeyInsensitive(pricingByProvider, np);
+    }
+  }
+
+  if (!providerPricing) {
+    // In case pLower was ALIAS and we want to try the ID (reverse search values)
+    for (const [id, alias] of Object.entries(providerAliasMap)) {
+      if (alias.toLowerCase() === pLower) {
+        providerPricing = findKeyInsensitive(pricingByProvider, id);
+        if (providerPricing) break;
       }
+    }
+  }
+
+  if (!providerPricing) {
+    const np = pLower.replace(/-cn$/, "");
+    if (np && np !== pLower) {
+      providerPricing = findKeyInsensitive(pricingByProvider, np);
     }
   }
 
@@ -481,7 +495,7 @@ export async function GET(request: Request) {
             WHEN requested_model IS NOT NULL
              AND requested_model != ''
              AND model IS NOT NULL
-             AND LOWER(requested_model) != LOWER(model)
+             AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
              AND (combo_name IS NULL OR combo_name = '')
             THEN 1 ELSE 0 END
           ) as fallbacks

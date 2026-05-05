@@ -228,6 +228,19 @@ export class DefaultExecutor extends BaseExecutor {
   buildHeaders(credentials, stream = true) {
     const headers = { "Content-Type": "application/json", ...this.config.headers };
 
+    // Allow per-provider User-Agent override via environment variable.
+    const providerId = this.config?.id || this.provider;
+    if (providerId) {
+      const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
+      const envUA = process.env[envKey]?.trim();
+      if (envUA) {
+        headers["User-Agent"] = envUA;
+        if ("user-agent" in headers) {
+          headers["user-agent"] = envUA;
+        }
+      }
+    }
+
     // T07: resolve extra keys round-robin locally since DefaultExecutor overrides BaseExecutor buildHeaders
     const extraKeys =
       (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
@@ -409,7 +422,7 @@ export class DefaultExecutor extends BaseExecutor {
 
       // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
       if (getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai") {
-        const isRecentOpenAI = /^(o1|o3|gpt-5)/i.test(model);
+        const isRecentOpenAI = /^(o1|o3|o4|gpt-5)/i.test(model);
         if (isRecentOpenAI && withDefaults && typeof withDefaults === "object") {
           const defaultsRecord = withDefaults as Record<string, unknown>;
           if ("max_tokens" in defaultsRecord) {

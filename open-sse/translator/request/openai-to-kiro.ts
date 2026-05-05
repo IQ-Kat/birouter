@@ -229,6 +229,13 @@ function convertMessages(messages, tools, model) {
   // If last message in history is userInputMessage, use it as currentMessage
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
+  } else if (!currentMessage) {
+    currentMessage = {
+      userInputMessage: {
+        content: "Continue",
+        modelId: model,
+      },
+    };
   }
 
   const firstHistoryItem = history[0];

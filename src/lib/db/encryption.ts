@@ -34,13 +34,6 @@ const PREFIX = "enc:v1:";
 const STATIC_SALT = "omniroute-field-encryption-v1";
 
 let _staticKey: Buffer | null = null;
-let _legacyDynamicKey: Buffer | null = null;
-// Module-level migration flag. Safe in Node.js because:
-// 1. Node.js is single-threaded — no concurrent access race conditions
-// 2. decrypt() is synchronous — no interleaving between flag-set and flag-read
-// 3. Used as a "check-after-decrypt" signal, not a persistent state dependency
-// 4. Same pattern as _staticKey/_legacyDynamicKey cache variables above
-let _migrationNeeded = false;
 
 /** Connection object with potentially encrypted credential fields. */
 export interface ConnectionFields {
@@ -73,39 +66,6 @@ function getStaticKey(): Buffer | null {
     return null;
   }
   return _staticKey;
-}
-
-/**
- * Derive the LEGACY key using the old dynamic salt method.
- * Used exclusively for fallback decryption of tokens encrypted by older versions.
- *
- * The old dynamic salt was: createHash("sha256").update(secret).digest().slice(0, 16)
- * This produced a different derived key than the static salt, causing incompatibility.
- */
-function getLegacyDynamicKey(): Buffer | null {
-  if (_legacyDynamicKey !== null) return _legacyDynamicKey;
-
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
-  if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
-
-  // This is the OLD dynamic salt derivation that caused the bug
-  const dynamicSalt = createHash("sha256").update(secret).digest().slice(0, 16);
-  try {
-    _legacyDynamicKey = scryptSync(secret, dynamicSalt, KEY_LENGTH);
-  } catch {
-    return null;
-  }
-  return _legacyDynamicKey;
-}
-
-/** Check if any tokens were decrypted using the legacy key (indicating migration is needed). */
-export function isMigrationNeeded(): boolean {
-  return _migrationNeeded;
-}
-
-/** Reset migration flag (call after migration is complete). */
-export function resetMigrationFlag(): void {
-  _migrationNeeded = false;
 }
 
 /** Check if encryption is enabled. */
@@ -198,21 +158,9 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
 
   try {
     // PRIMARY: Try static-salt key first (canonical derivation)
-    let decrypted = tryDecryptWithKey(staticKey);
+    const decrypted = tryDecryptWithKey(staticKey);
     if (decrypted !== null) {
       return decrypted;
-    }
-
-    // FALLBACK: Try legacy dynamic-salt key (backward compatibility)
-    const legacyKey = getLegacyDynamicKey();
-    if (legacyKey) {
-      const legacyDecrypted = tryDecryptWithKey(legacyKey);
-      if (legacyDecrypted !== null) {
-        // Flag for migration: this token was encrypted with the legacy key
-        // and should be re-encrypted with the static key on next write
-        _migrationNeeded = true;
-        return legacyDecrypted;
-      }
     }
 
     console.error(

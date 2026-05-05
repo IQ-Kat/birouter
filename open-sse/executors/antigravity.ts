@@ -633,12 +633,24 @@ export class AntigravityExecutor extends BaseExecutor {
         );
         const finalHeaders = serializedRequest.headers;
 
+        log?.debug?.(
+          "TELEMETRY",
+          `[Antigravity] Execute - URL: ${url}, Model: ${model}, Target: ${(transformedBody as any)?.model || "unknown"}, RetryAttempt: ${retryAttemptsByUrl[urlIndex]}`
+        );
+
         const response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
           body: serializedRequest.bodyString,
           signal,
         });
+
+        if (!response.ok) {
+          log?.warn?.(
+            "TELEMETRY",
+            `[Antigravity] Error Response - URL: ${url}, Status: ${response.status}, Model: ${model}`
+          );
+        }
 
         // Parse retry time for 429/503 responses
         let retryMs = null;
@@ -977,6 +989,10 @@ export class AntigravityExecutor extends BaseExecutor {
         };
       } catch (error) {
         lastError = error;
+        log?.error?.(
+          "TELEMETRY",
+          `[Antigravity] Network/Fetch Error - URL: ${url}, Model: ${model}, Error: ${error instanceof Error ? error.message : String(error)}`
+        );
         if (urlIndex + 1 < fallbackCount) {
           log?.debug?.("RETRY", `Error on ${url}, trying fallback ${urlIndex + 1}`);
           continue;
