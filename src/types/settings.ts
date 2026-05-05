@@ -15,6 +15,7 @@ export interface Settings {
   stickyRoundRobinLimit: number;
   requestRetry: number;
   maxRetryIntervalSec: number;
+  maxBodySizeMb?: number;
   jwtSecret?: string;
   mcpEnabled?: boolean;
   mcpTransport?: "stdio" | "sse" | "streamable-http";

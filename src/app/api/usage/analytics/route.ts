@@ -136,6 +136,20 @@ function resolveModelPricing(
     }
   }
 
+  // Last resort fallback for historical usage (e.g. "gpt-4" missing, matches "gpt-4.1" or first available)
+  if (!pricing && providerPricing && typeof providerPricing === "object") {
+    for (const [key, val] of Object.entries(providerPricing as Record<string, unknown>)) {
+      if (key.includes(lowerModel) || lowerModel.includes(key)) {
+        pricing = val;
+        break;
+      }
+    }
+    if (!pricing) {
+      const keys = Object.keys(providerPricing as Record<string, unknown>);
+      if (keys.length > 0) pricing = (providerPricing as Record<string, unknown>)[keys[0]];
+    }
+  }
+
   return pricing as Record<string, unknown> | null;
 }
 

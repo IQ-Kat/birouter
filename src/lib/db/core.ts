@@ -16,6 +16,7 @@ import {
   writeCallArtifact,
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
+import { autoMigrateLegacyEncryptedConnections } from "./providers";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
@@ -1248,6 +1249,15 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   setDb(db);
+
+  // Re-encrypt any tokens using the legacy dynamic salt to canonical static salt
+  try {
+    autoMigrateLegacyEncryptedConnections();
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[DB] Legacy encryption migration failed: ${message}`);
+  }
+
   startDbHealthCheckScheduler(db);
   console.log(`[DB] SQLite database ready: ${sqliteFile}`);
   return db;

@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { Card, Button, Badge } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 
+const rowCountFormatter = new Intl.NumberFormat("en-US");
+
+function formatRows(rows: number | null | undefined) {
+  return typeof rows === "number" ? rowCountFormatter.format(rows) : "100K";
+}
+
 export default function SystemStorageTab() {
   const [backups, setBackups] = useState([]);
   const [backupsLoading, setBackupsLoading] = useState(false);
@@ -588,7 +594,7 @@ export default function SystemStorageTab() {
               App {storageHealth.retentionDays.app}d
             </Badge>
             <Badge variant="default" size="sm">
-              {storageHealth.tableMaxRows?.callLogs?.toLocaleString() || "100K"} rows
+              {formatRows(storageHealth.tableMaxRows?.callLogs)} rows
             </Badge>
           </div>
         </div>
