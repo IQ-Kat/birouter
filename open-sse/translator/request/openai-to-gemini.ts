@@ -489,6 +489,17 @@ function wrapInCloudCodeEnvelopeForClaude(
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 
+  // Keep Antigravity's default and caller-provided system rules
+  let systemText = ANTIGRAVITY_DEFAULT_SYSTEM;
+  if (claudeRequest.system) {
+    if (Array.isArray(claudeRequest.system)) {
+      const texts = claudeRequest.system.map((b) => b.text).filter(Boolean);
+      if (texts.length > 0) systemText += "\n" + texts.join("\n");
+    } else if (typeof claudeRequest.system === "string") {
+      systemText += "\n" + claudeRequest.system;
+    }
+  }
+
   const envelope: CloudCodeEnvelope = {
     project: projectId,
     model: cleanModel,
@@ -497,6 +508,8 @@ function wrapInCloudCodeEnvelopeForClaude(
     requestType: "agent",
     request: {
       ...claudeRequest,
+      system: systemText,
+      max_tokens: getAntigravityClaudeOutputTokens(sourceBody),
       sessionId: generateSessionId(),
     },
   };

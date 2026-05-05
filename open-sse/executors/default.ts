@@ -410,9 +410,12 @@ export class DefaultExecutor extends BaseExecutor {
       // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
       if (getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai") {
         const isRecentOpenAI = /^(o1|o3|gpt-5)/i.test(model);
-        if (isRecentOpenAI && "max_tokens" in withDefaults) {
-          withDefaults.max_completion_tokens = withDefaults.max_tokens;
-          delete withDefaults.max_tokens;
+        if (isRecentOpenAI && withDefaults && typeof withDefaults === "object") {
+          const defaultsRecord = withDefaults as Record<string, unknown>;
+          if ("max_tokens" in defaultsRecord) {
+            defaultsRecord.max_completion_tokens = defaultsRecord.max_tokens;
+            delete defaultsRecord.max_tokens;
+          }
         }
       }
     }
