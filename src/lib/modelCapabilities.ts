@@ -183,15 +183,20 @@ function resolveVisionCapability(
   modalitiesInput: string[],
   modalitiesOutput: string[]
 ): boolean | null {
-  if (typeof spec?.supportsVision === "boolean") return spec.supportsVision;
-  if (typeof registryModel?.supportsVision === "boolean") return registryModel.supportsVision;
-
   const allModalities = [...modalitiesInput, ...modalitiesOutput].map((entry) =>
     String(entry).toLowerCase()
   );
+
+  if (typeof synced?.attachment === "boolean") {
+    return synced.attachment;
+  }
+
   if (allModalities.some((entry) => entry.includes("image"))) {
     return true;
   }
+
+  if (typeof registryModel?.supportsVision === "boolean") return registryModel.supportsVision;
+  if (typeof spec?.supportsVision === "boolean") return spec.supportsVision;
 
   return null;
 }
@@ -215,18 +220,22 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     ) || "";
 
   const supportsTools =
-    typeof spec?.supportsTools === "boolean"
-      ? spec.supportsTools
-      : typeof registryModel?.toolCalling === "boolean"
-        ? registryModel.toolCalling
-        : (synced?.tool_call ?? null);
+    synced?.tool_call ??
+    (typeof registryModel?.toolCalling === "boolean" ? registryModel.toolCalling : null) ??
+    (typeof spec?.supportsTools === "boolean" ? spec.supportsTools : null);
 
   const supportsThinking =
-    typeof spec?.supportsThinking === "boolean"
-      ? spec.supportsThinking
-      : typeof registryModel?.supportsReasoning === "boolean"
-        ? registryModel.supportsReasoning
-        : (synced?.reasoning ?? null);
+    synced?.reasoning ??
+    (typeof registryModel?.supportsReasoning === "boolean"
+      ? registryModel.supportsReasoning
+      : null) ??
+    (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null);
+
+  const contextWindow =
+    synced?.limit_context ??
+    (typeof registryModel?.contextLength === "number" ? registryModel.contextLength : null) ??
+    spec?.contextWindow ??
+    null;
 
   return {
     provider: resolved.provider,
@@ -247,14 +256,10 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     attachment: synced?.attachment ?? null,
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
-    contextWindow:
-      spec?.contextWindow ??
-      (typeof registryModel?.contextLength === "number" ? registryModel.contextLength : null) ??
-      synced?.limit_context ??
-      null,
-    maxInputTokens: synced?.limit_input ?? spec?.contextWindow ?? null,
+    contextWindow,
+    maxInputTokens: synced?.limit_input ?? contextWindow,
     maxOutputTokens:
-      spec?.maxOutputTokens ?? synced?.limit_output ?? MODEL_SPECS.__default__.maxOutputTokens,
+      synced?.limit_output ?? spec?.maxOutputTokens ?? MODEL_SPECS.__default__.maxOutputTokens,
     defaultThinkingBudget: spec?.defaultThinkingBudget ?? 0,
     thinkingBudgetCap: spec?.thinkingBudgetCap ?? null,
     thinkingOverhead: spec?.thinkingOverhead ?? null,
