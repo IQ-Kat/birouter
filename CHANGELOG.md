@@ -22,9 +22,23 @@
 - **feat(providers):** implement bulk paste for extra API keys (#1916 — thanks @0xtbug)
 - **feat(analytics):** usage history API key backfill + dark mode pricing (#1896 — thanks @Gi99lin)
 - **feat(logs):** show RTK and Caveman compression token savings accurately in request log UI (#1923 — thanks @emdash)
+- **feat(routing):** auto-skip exhausted quota accounts (Issue #1952)
+- **feat(docs):** docs site overhaul (#1976 — thanks @oyi77)
+- **feat(db):** consolidate all database settings into SystemStorageTab (closes #1935) (#1947 — thanks @oyi77)
+- **feat(sse):** codex 429 mid-task failover with account rotation (#1888 — thanks @smartenok-ops)
+- **feat(auto-assessment):** add auto-assessment engine for combo self-healing (#1918 — thanks @oyi77)
+- **feat(usage):** DeepSeek V4 native cache token extraction (#1930 — thanks @smartenok-ops)
+- **feat(cost):** enhance cost formatting and add Codex GPT-5.5 pricing support (#1944 — thanks @JxnLexn)
 
 ### 🐛 Bug Fixes
 
+- **fix(auth):** implement session affinity sticky routing logic
+- **fix(dashboard):** derive display base URL from origin instead of hardcoding localhost (#1960 — thanks @jeanfbrito)
+- **fix(proxy):** use credentials.connectionId instead of non-existent credentials.id for image proxy resolution (#1929 — thanks @Aculeasis)
+- **fix(routing):** codex bare-name disambiguation + family-native fallback (#1933 — thanks @smartenok-ops)
+- **fix(infrastructure):** move wreq-js to optionalDependencies and add Node 25/26 to secure runtime policy (#1924)
+- **fix(providers):** resolve ChatGPT Web authentication failure by aligning TLS fingerprint User-Agent strings (#1925)
+- **fix(mitm):** support root user for MITM sudo handling (#1948 — thanks @NekoMonci12)
 - **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941, #1945)
 - **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 - **fix(mcp):** reclassify MCP endpoints to ensure API key authentication works even when dashboard auth is enabled (#1970)
@@ -49,6 +63,11 @@
 - **fix(migrations):** duplicate-column no-op fix (#1886 — thanks @smartenok-ops)
 - **fix(auth):** per-connection OAuth refresh mutex (#1885 — thanks @smartenok-ops)
 - **fix(auth):** require dashboard management auth for compression preview
+
+### 🔄 Updates
+
+- **chore(provider):** Add reka models list (#1956 — thanks @backryun)
+- **chore(model):** Update new models, Delete Deprecated models (#1949 — thanks @backryun)
 
 ### 📝 Documentation
 
