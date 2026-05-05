@@ -461,6 +461,21 @@ if (existsSync(openapiSpecSrc)) {
   cpSync(openapiSpecSrc, join(docsDest, "openapi.yaml"));
 }
 
+const docsMarkdownSrc = join(ROOT, "docs");
+if (existsSync(docsMarkdownSrc)) {
+  const docsDest = join(APP_DIR, "docs");
+  mkdirSync(docsDest, { recursive: true });
+  const mdFiles = readdirSync(docsMarkdownSrc).filter(
+    (f) => f.endsWith(".md") || f.endsWith(".mdx")
+  );
+  for (const mdFile of mdFiles) {
+    cpSync(join(docsMarkdownSrc, mdFile), join(docsDest, mdFile));
+  }
+  if (mdFiles.length > 0) {
+    console.log(`[prepublish] Copied ${mdFiles.length} docs markdown files to app/docs/`);
+  }
+}
+
 const syncEnvSrc = join(ROOT, "scripts", "sync-env.mjs");
 if (existsSync(syncEnvSrc)) {
   const scriptsDest = join(APP_DIR, "scripts");

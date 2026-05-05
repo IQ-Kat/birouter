@@ -5,6 +5,8 @@ import { autoAllSlugs, autoNavSections } from "../lib/docs-auto-generated";
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { marked } from "marked";
+import DOMPurify from "isomorphic-dompurify";
 import { Metadata } from "next";
 import { DocCodeBlocks } from "../components/DocCodeBlocks";
 import { FeedbackWidget } from "../components/FeedbackWidget";
@@ -74,63 +76,58 @@ export function extractMermaidCharts(content: string): string[] {
   return charts;
 }
 
+const PROSE_CLASSES: Record<string, string> = {
+  h1: "text-3xl font-bold mb-4",
+  h2: "text-2xl font-bold mb-4 mt-10",
+  h3: "text-xl font-bold mb-3 mt-8",
+  h4: "text-lg font-bold mb-2 mt-6",
+  p: "mb-4 leading-relaxed",
+  ul: "list-disc ml-6 mb-4",
+  ol: "list-decimal ml-6 mb-4",
+  li: "mb-1",
+  a: "text-primary hover:underline",
+  blockquote: "border-l-4 border-primary/30 pl-4 italic text-text-muted mb-4",
+  code: "bg-bg-subtle px-2 py-1 rounded text-sm",
+  pre: "bg-bg-subtle p-4 rounded-lg overflow-x-auto mb-4",
+  hr: "border-border my-8",
+  table: "w-full border-collapse mb-4 text-sm",
+  th: "border border-border p-2 text-left font-semibold bg-bg-subtle",
+  td: "border border-border p-2 text-sm",
+  img: "max-w-full rounded-lg my-4",
+};
+
+marked.use({
+  gfm: true,
+  breaks: false,
+});
+
 export function renderMarkdown(content: string): string {
-  return content
-    .replace(/^####\s+(.*)$/gm, '<h4 id="$1" class="text-lg font-bold mb-2 mt-6">$1</h4>')
-    .replace(/^###\s+(.*)$/gm, '<h3 id="$1" class="text-xl font-bold mb-3 mt-8">$1</h3>')
-    .replace(/^##\s+(.*)$/gm, '<h2 id="$1" class="text-2xl font-bold mb-4 mt-10">$1</h2>')
-    .replace(/^#\s+(.*)$/gm, '<h1 class="text-3xl font-bold mb-4">$1</h1>')
-    .replace(
-      /```mermaid\n([\s\S]*?)```/g,
-      '<div class="mermaid-diagram-fallback my-6" data-mermaid="$1">$1</div>'
-    )
-    .replace(
-      /```(\w*)\n([\s\S]*?)```/g,
-      '<div class="group relative"><pre class="bg-bg-subtle p-4 rounded-lg overflow-x-auto"><code class="language-$1">$2</code></pre></div>'
-    )
-    .replace(/`([^`]+)`/g, '<code class="bg-bg-subtle px-2 py-1 rounded text-sm">$1</code>')
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/__(.*?)__/g, "<strong>$1</strong>")
-    .replace(/_(.*?)_/g, "<em>$1</em>")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:underline">$1</a>')
-    .replace(
-      /!\[([^\]]+)\]\(([^)]+)\)/g,
-      '<img src="$2" alt="$1" class="max-w-full rounded-lg my-4">'
-    )
-    .replace(/^(\*|\-)\s+(.*)$/gm, '<li class="mb-1 ml-4">$2</li>')
-    .replace(/^(\d+)\.\s+(.*)$/gm, '<li class="mb-1 ml-4">$2</li>')
-    .replace(/^\|\s*(.+?)\s*\|$/gm, (match) => {
-      if (match.match(/^\|\s*[-:]+[-|\s:]*$/)) return "";
-      const cells = match
-        .split("|")
-        .filter((c) => c.trim())
-        .map((c) => `<td class="border border-border p-2 text-sm">${c.trim()}</td>`)
-        .join("");
-      return `<tr>${cells}</tr>`;
-    })
-    .replace(
-      /(<tr>.*<\/tr>\n?)+/g,
-      (match) =>
-        `<table class="w-full border-collapse mb-4 text-sm"><tbody>${match}</tbody></table>`
-    )
-    .replace(
-      /^>\s+(.*)$/gm,
-      '<blockquote class="border-l-4 border-primary/30 pl-4 italic text-text-muted mb-4">$1</blockquote>'
-    )
-    .replace(/^---$/gm, '<hr class="border-border my-8">');
+  const mermaidReplaced = content.replace(
+    /```mermaid\n([\s\S]*?)```/g,
+    (_match, code: string) =>
+      `<div class="mermaid-diagram-fallback my-6" data-mermaid="${encodeURIComponent(code.trim())}">${code.trim()}</div>`
+  );
+
+  const rawHtml = marked.parse(mermaidReplaced) as string;
+
+  const sanitized = DOMPurify.sanitize(rawHtml, {
+    ADD_TAGS: ["mermaid-diagram"],
+    ADD_ATTR: ["data-mermaid"],
+  });
+
+  return addProseClasses(sanitized);
 }
 
-function cleanHeadingIds(html: string): string {
-  return html.replace(
-    /id="([^"]*)"/g,
-    (_, id) =>
-      `id="${id
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")}"`
-  );
+function addProseClasses(html: string): string {
+  let result = html;
+  for (const [tag, classes] of Object.entries(PROSE_CLASSES)) {
+    const regex = new RegExp(`<${tag}(\\s|>)`, "g");
+    result = result.replace(regex, `<${tag} class="${classes}"`);
+  }
+  return result;
 }
+
+
 
 export async function generateMetadata({
   params,
@@ -179,8 +176,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
     lastUpdated = (frontmatter.lastUpdated as string) || null;
     mermaidCharts = extractMermaidCharts(content);
     headings = extractHeadings(content);
-    const rawHtml = renderMarkdown(content);
-    htmlContent = cleanHeadingIds(rawHtml);
+    htmlContent = renderMarkdown(content);
   } catch (error) {
     console.error(`Failed to read doc file for slug: ${slug}`, error);
     loadError = error instanceof Error ? error.message : "Unknown error";

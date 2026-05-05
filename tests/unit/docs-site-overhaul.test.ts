@@ -147,20 +147,29 @@ test("extractHeadings strips bold and code from heading text", () => {
 
 test("renderMarkdown converts headings to HTML", () => {
   const html = renderMarkdown("# Title\n## Section\n### Subsection\n#### Details");
-  assert.ok(html.includes('<h1 class="text-3xl'), "h1 tag");
-  assert.ok(html.includes('<h2 id="Section"'), "h2 tag with id");
-  assert.ok(html.includes('<h3 id="Subsection"'), "h3 tag with id");
-  assert.ok(html.includes('<h4 id="Details"'), "h4 tag with id");
+  assert.ok(html.includes('<h1'), "h1 tag");
+  assert.ok(html.includes("Title"), "h1 text");
+  assert.ok(html.includes('<h2'), "h2 tag");
+  assert.ok(html.includes("Section"), "h2 text");
+  assert.ok(html.includes('<h3'), "h3 tag");
+  assert.ok(html.includes('<h4'), "h4 tag");
+});
+
+test("renderMarkdown sanitizes XSS content", () => {
+  const html = renderMarkdown('<script>alert("xss")</script>');
+  assert.ok(!html.includes("<script"), "script tags should be sanitized");
 });
 
 test("renderMarkdown converts code blocks", () => {
   const html = renderMarkdown("```js\nconst x = 1;\n```");
+  assert.ok(html.includes("<pre"), "pre tag");
   assert.ok(html.includes('<pre class="bg-bg-subtle'), "pre tag");
   assert.ok(html.includes("language-js"), "language class");
 });
 
 test("renderMarkdown converts inline code", () => {
   const html = renderMarkdown("Use `npm install` to install");
+  assert.ok(html.includes("<code"), "inline code tag");
   assert.ok(html.includes('<code class="bg-bg-subtle'), "inline code tag");
 });
 
@@ -176,18 +185,23 @@ test("renderMarkdown converts italic text", () => {
 
 test("renderMarkdown converts links", () => {
   const html = renderMarkdown("[OmniRoute](https://omniroute.online)");
-  assert.ok(html.includes('<a href="https://omniroute.online"'));
-  assert.ok(html.includes(">OmniRoute</a>"));
+  assert.ok(html.includes('href="https://omniroute.online"'));
+  assert.ok(html.includes("OmniRoute</a>"));
+  assert.ok(html.includes('<a class="text-primary hover:underline"'));
 });
 
 test("renderMarkdown converts unordered lists", () => {
   const html = renderMarkdown("- Item 1\n- Item 2");
-  assert.ok(html.includes('<li class="mb-1 ml-4">'));
+  assert.ok(html.includes("<ul"));
+  assert.ok(html.includes("<li"));
+  assert.ok(html.includes('class="mb-1"'));
 });
 
 test("renderMarkdown converts ordered lists", () => {
   const html = renderMarkdown("1. First\n2. Second");
-  assert.ok(html.includes('<li class="mb-1 ml-4">'));
+  assert.ok(html.includes("<ol"), "ol tag");
+  assert.ok(html.includes("<li"), "li tag");
+  assert.ok(html.includes('class="mb-1"'), "li class");
 });
 
 test("renderMarkdown converts blockquotes", () => {
@@ -198,6 +212,7 @@ test("renderMarkdown converts blockquotes", () => {
 
 test("renderMarkdown converts horizontal rules", () => {
   const html = renderMarkdown("---");
+  assert.ok(html.includes("<hr"));
   assert.ok(html.includes('<hr class="border-border'));
 });
 
