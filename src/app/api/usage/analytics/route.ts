@@ -74,15 +74,29 @@ function resolveModelPricing(
   const pLower = (providerRaw || "").toLowerCase();
 
   let providerPricing = findKeyInsensitive(pricingByProvider, pLower);
+
   if (!providerPricing) {
+    // providerAliasMap maps ID -> ALIAS. So if pLower is "codex", alias is "cx".
     const alias = providerAliasMap[pLower];
     if (alias) {
       providerPricing = findKeyInsensitive(pricingByProvider, alias);
-    } else {
-      const np = pLower.replace(/-cn$/, "");
-      if (np && np !== pLower) {
-        providerPricing = findKeyInsensitive(pricingByProvider, np);
+    }
+  }
+
+  if (!providerPricing) {
+    // In case pLower was ALIAS and we want to try the ID (reverse search values)
+    for (const [id, alias] of Object.entries(providerAliasMap)) {
+      if (alias.toLowerCase() === pLower) {
+        providerPricing = findKeyInsensitive(pricingByProvider, id);
+        if (providerPricing) break;
       }
+    }
+  }
+
+  if (!providerPricing) {
+    const np = pLower.replace(/-cn$/, "");
+    if (np && np !== pLower) {
+      providerPricing = findKeyInsensitive(pricingByProvider, np);
     }
   }
 
@@ -119,6 +133,20 @@ function resolveModelPricing(
         pricing = found;
         break;
       }
+    }
+  }
+
+  // Last resort fallback for historical usage (e.g. "gpt-4" missing, matches "gpt-4.1" or first available)
+  if (!pricing && providerPricing && typeof providerPricing === "object") {
+    for (const [key, val] of Object.entries(providerPricing as Record<string, unknown>)) {
+      if (key.includes(lowerModel) || lowerModel.includes(key)) {
+        pricing = val;
+        break;
+      }
+    }
+    if (!pricing) {
+      const keys = Object.keys(providerPricing as Record<string, unknown>);
+      if (keys.length > 0) pricing = (providerPricing as Record<string, unknown>)[keys[0]];
     }
   }
 
@@ -475,13 +503,14 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          COUNT(*) as total,
-          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' THEN 1 ELSE 0 END) as with_requested,
+          SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
+          SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
           SUM(CASE
             WHEN requested_model IS NOT NULL
              AND requested_model != ''
              AND model IS NOT NULL
-             AND requested_model != model
+             AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
+             AND (combo_name IS NULL OR combo_name = '')
             THEN 1 ELSE 0 END
           ) as fallbacks
         FROM call_logs

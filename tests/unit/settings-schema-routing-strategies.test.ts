@@ -38,6 +38,18 @@ test("settings schemas accept cooldown-aware retry knobs", () => {
   assert.equal(sharedParsed.maxRetryIntervalSec, 30);
 });
 
+test("settings schemas accept request body limit", () => {
+  const routeParsed = settingsRouteSchema.parse({ maxBodySizeMb: 100 });
+  const sharedParsed = sharedSettingsSchema.parse({ maxBodySizeMb: 100 });
+
+  assert.equal(routeParsed.maxBodySizeMb, 100);
+  assert.equal(sharedParsed.maxBodySizeMb, 100);
+  assert.equal(settingsRouteSchema.safeParse({ maxBodySizeMb: 0 }).success, false);
+  assert.equal(settingsRouteSchema.safeParse({ maxBodySizeMb: 501 }).success, false);
+  assert.equal(sharedSettingsSchema.safeParse({ maxBodySizeMb: 0 }).success, false);
+  assert.equal(sharedSettingsSchema.safeParse({ maxBodySizeMb: 501 }).success, false);
+});
+
 test("settings schemas accept wsAuth toggle", () => {
   const routeParsed = settingsRouteSchema.parse({ wsAuth: true });
   const sharedParsed = sharedSettingsSchema.parse({ wsAuth: false });

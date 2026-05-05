@@ -20,6 +20,7 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
+import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -65,6 +66,8 @@ import {
   getModelUpstreamExtraHeaders,
   getUpstreamProxyConfig,
 } from "@/lib/localDb";
+import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
+import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getExecutor } from "../executors/index.ts";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
@@ -1080,7 +1083,7 @@ export async function handleChatCore({
             | undefined)
         : undefined;
     const idempotentCost = idempotentUsage
-      ? await calculateCost(provider, model, idempotentUsage)
+      ? await calculateCost(provider, model, idempotentUsage as Record<string, number>)
       : 0;
     return {
       success: true,
@@ -1435,7 +1438,9 @@ export async function handleChatCore({
       const cachedUsage =
         extractUsageFromResponse(cached as Record<string, unknown>, provider) ||
         ((cached as Record<string, unknown>)?.usage as Record<string, unknown> | undefined);
-      const cachedCost = cachedUsage ? await calculateCost(provider, model, cachedUsage) : 0;
+      const cachedCost = cachedUsage
+        ? await calculateCost(provider, model, cachedUsage as Record<string, number>)
+        : 0;
       persistAttemptLogs({
         status: 200,
         tokens: (cached as Record<string, unknown>)?.usage,
@@ -1754,7 +1759,7 @@ export async function handleChatCore({
               comboOverrides: {
                 ...(config.comboOverrides ?? {}),
                 ...(comboName ? { [comboName]: comboMode } : {}),
-                ...(comboConfig?.id ? { [comboConfig.id]: comboMode } : {}),
+                ...(comboConfig?.id ? { [String(comboConfig.id)]: comboMode } : {}),
               },
             };
             compressionComboKey = comboName;
@@ -2490,6 +2495,17 @@ export async function handleChatCore({
     }
   }
 
+  // Rename max_tokens to max_completion_tokens if not supported (#1961)
+  if (!supportsMaxTokens({ provider, model })) {
+    if (translatedBody.max_tokens !== undefined) {
+      if (translatedBody.max_completion_tokens === undefined) {
+        translatedBody.max_completion_tokens = translatedBody.max_tokens;
+      }
+      delete translatedBody.max_tokens;
+      log?.debug?.("PARAMS", `Renamed max_tokens to max_completion_tokens for ${model}`);
+    }
+  }
+
   // OpenAI's `store` parameter is not supported by most compatible providers and breaks them
   if (provider !== "openai" && "store" in translatedBody) {
     delete translatedBody.store;
@@ -2704,7 +2720,16 @@ export async function handleChatCore({
           async () => {
             trace("inside_rate_limit");
             let attempts = 0;
-            const maxAttempts = provider === "qwen" ? 3 : 1;
+            const maxAttempts = provider === "qwen" ? 3 : provider === "codex" ? 3 : 1;
+
+            // ── Codex 429 account-rotation state ─────────────────────────────────
+            // Track excluded connection IDs for codex failover across attempts.
+            const codexExcludedIds: string[] = [];
+            // Derive session affinity key once for codex failover (used to clear affinity on 429).
+            const codexSessionAffinityKey =
+              provider === "codex"
+                ? (extractSessionAffinityKey(body, clientRawRequest?.headers) ?? null)
+                : null;
 
             while (attempts < maxAttempts) {
               trace("pre_executor", { attempt: attempts });
@@ -2712,7 +2737,7 @@ export async function handleChatCore({
                 model: modelToCall,
                 body: bodyToSend,
                 stream: upstreamStream,
-                credentials: executionCredentials,
+                credentials: getExecutionCredentials(),
                 signal: streamController.signal,
                 log,
                 extendedContext,
@@ -2739,6 +2764,82 @@ export async function handleChatCore({
                   attempts++;
                   continue;
                 }
+              }
+
+              // Codex 429 account-rotation failover (disabled for context-relay so combo.ts can inject handoff)
+              if (
+                provider === "codex" &&
+                comboStrategy !== "context-relay" &&
+                res.response.status === 429 &&
+                attempts < maxAttempts - 1
+              ) {
+                const failedConnectionId = credentials?.connectionId || connectionId;
+                const retryAfterHeader = res.response.headers.get("retry-after");
+                const retryAfterMs = retryAfterHeader ? parseFloat(retryAfterHeader) * 1000 : null;
+
+                log?.warn?.(
+                  "CODEX_FAILOVER",
+                  `429 on connection ${String(failedConnectionId).slice(0, 8)} (attempt ${attempts + 1}/${maxAttempts}), rotating account`
+                );
+
+                // Mark current connection as rate-limited in the DB
+                if (failedConnectionId) {
+                  const rateLimitedUntil = new Date(
+                    Date.now() + (retryAfterMs || 60_000)
+                  ).toISOString();
+                  updateProviderConnection(String(failedConnectionId), {
+                    rateLimitedUntil,
+                    testStatus: "unavailable",
+                    lastError: "429 rate limited — codex account rotation",
+                    errorCode: 429,
+                  }).catch(() => {});
+                  if (!codexExcludedIds.includes(String(failedConnectionId))) {
+                    codexExcludedIds.push(String(failedConnectionId));
+                  }
+                }
+
+                // Clear session affinity so next request won't be pinned to the failing account
+                if (codexSessionAffinityKey) {
+                  try {
+                    deleteSessionAccountAffinity(codexSessionAffinityKey, "codex");
+                  } catch {
+                    // best-effort
+                  }
+                }
+
+                // Fetch next available codex connection (excluding all previously failed ones)
+                const nextCreds = await getProviderCredentials("codex", null, null, null, {
+                  excludeConnectionIds: [...codexExcludedIds],
+                }).catch(() => null);
+
+                if (!nextCreds || nextCreds.allRateLimited) {
+                  log?.warn?.("CODEX_FAILOVER", "No more codex accounts available — returning 429");
+                  return res;
+                }
+
+                const newConnectionId = nextCreds.connectionId;
+                log?.info?.(
+                  "CODEX_FAILOVER",
+                  `Rotating codex account: ${String(failedConnectionId).slice(0, 8)} → ${newConnectionId.slice(0, 8)} (attempt ${attempts + 2}/${maxAttempts})`
+                );
+
+                logAuditEvent({
+                  action: "codex.account_rotation",
+                  actor: apiKeyInfo?.name || "system",
+                  target: newConnectionId,
+                  details: {
+                    failed_connection_id: failedConnectionId,
+                    new_connection_id: newConnectionId,
+                    attempt: attempts + 1,
+                    retry_after_ms: retryAfterMs,
+                  },
+                });
+
+                // Update credentials in-place so getExecutionCredentials() picks up the new account
+                Object.assign(credentials, nextCreds);
+
+                attempts++;
+                continue;
               }
 
               // For streaming: release the semaphore when the client drains or cancels the stream.
@@ -2823,6 +2924,8 @@ export async function handleChatCore({
     translatedBody.messages?.length ||
     translatedBody.contents?.length ||
     translatedBody.request?.contents?.length ||
+    (translatedBody.conversationState?.history?.length ?? 0) +
+      (translatedBody.conversationState?.currentMessage ? 1 : 0) ||
     0;
   log?.debug?.("REQUEST", `${provider.toUpperCase()} | ${model} | ${msgCount} msgs`);
 
@@ -3548,7 +3651,6 @@ export async function handleChatCore({
       const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
       console.log(`${COLORS.green}${msg}${COLORS.reset}`);
 
-      // Track cache token metrics
       const inputTokens = usage.prompt_tokens || 0;
       const cachedTokens = toPositiveNumber(
         usage.cache_read_input_tokens ??

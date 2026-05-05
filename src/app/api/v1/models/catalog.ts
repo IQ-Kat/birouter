@@ -338,10 +338,6 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      // Get default context length from registry (provider-level default)
-      const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
-      const defaultContextLength = registryEntry?.defaultContextLength;
-
       for (const model of providerModels) {
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
@@ -349,8 +345,6 @@ export async function getUnifiedModelsResponse(
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
-        // Model-level context length overrides provider default
-        const contextLength = model.contextLength || defaultContextLength;
 
         models.push({
           id: aliasId,
@@ -360,7 +354,6 @@ export async function getUnifiedModelsResponse(
           permission: [],
           root: model.id,
           parent: null,
-          ...(contextLength ? { context_length: contextLength } : {}),
           ...(visionFields || {}),
         });
 
@@ -378,7 +371,6 @@ export async function getUnifiedModelsResponse(
             permission: [],
             root: model.id,
             parent: aliasId,
-            ...(contextLength ? { context_length: contextLength } : {}),
             ...(providerVisionFields || {}),
           });
         }
@@ -390,6 +382,7 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
+        if (providerId === "reka") continue;
 
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
@@ -637,6 +630,7 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
+        if (providerId === "reka") continue;
         const providerCustomModels = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
               (model): model is Record<string, unknown> =>
@@ -811,7 +805,24 @@ export async function getUnifiedModelsResponse(
       finalModels = filtered;
     }
 
-    const enrichedModels = finalModels.map((model) => enrichCatalogModelEntry(model));
+    const getDefaultContextFallback = (model: any): number | undefined => {
+      if (typeof model.context_length === "number") return undefined;
+      if (model.owned_by === "combo") return undefined;
+      if (model.type && model.type !== "chat") return undefined;
+
+      const provider = typeof model.owned_by === "string" ? model.owned_by : null;
+      if (!provider) return undefined;
+      const canonicalId = aliasToProviderId[provider] || provider;
+      return REGISTRY[canonicalId]?.defaultContextLength;
+    };
+
+    const enrichedModels = finalModels.map((model) => {
+      const enriched = enrichCatalogModelEntry(model);
+      const fallbackContextLength = getDefaultContextFallback(enriched);
+      return fallbackContextLength
+        ? { ...enriched, context_length: fallbackContextLength }
+        : enriched;
+    });
 
     return Response.json(
       {

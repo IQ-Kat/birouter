@@ -147,6 +147,14 @@ export {
 export type { PricingSource, PricingSourceMap } from "./db/settings";
 
 export {
+  getDatabaseSettings,
+  getUserDatabaseSettings,
+  updateDatabaseSettings,
+} from "./db/databaseSettings";
+
+export type { UserDatabaseSettings } from "./db/databaseSettings";
+
+export {
   // Proxy Registry
   listProxies,
   getProxyById,
@@ -276,6 +284,8 @@ export {
   getAggregatedSnapshots,
   cleanupOldSnapshots,
 } from "./db/quotaSnapshots";
+
+export * from "./db/sessionAccountAffinity";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 

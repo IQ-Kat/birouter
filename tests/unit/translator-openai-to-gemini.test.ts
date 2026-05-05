@@ -659,33 +659,28 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
 
   assert.equal(result.project, "proj-claude");
   assert.equal(result.userAgent, "antigravity");
-  assert.equal((result as any).request?.systemInstruction.role, "system");
-  assert.equal(
-    (result as any).request?.systemInstruction.parts[0].text,
-    ANTIGRAVITY_DEFAULT_SYSTEM
-  );
-  assert.equal((result as any).request?.systemInstruction.parts[1].text, "Project rules");
-  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 16384);
-  assert.equal((result as any).request?.generationConfig.temperature, 1);
-  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
+  assert.ok((result as any).request?.system.includes(ANTIGRAVITY_DEFAULT_SYSTEM));
+  assert.ok((result as any).request?.system.includes("Project rules"));
+  assert.equal((result as any).request?.max_tokens, 16384);
 
-  const modelTurn = result.request.contents.find(
-    (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
+  const modelTurn = result.request.messages.find(
+    (msg) => msg.role === "assistant" && msg.content.some((block) => block.type === "tool_use")
   );
   assert.ok(modelTurn, "expected a Claude-bridged model turn");
-  const bridgeFunctionCall = getFunctionCall(modelTurn.parts[0]);
+  const bridgeFunctionCall = modelTurn.content.find((block) => block.type === "tool_use");
   assert.equal(bridgeFunctionCall.name, "read_file");
-  assert.deepEqual(bridgeFunctionCall.args, { path: "/tmp/demo" });
+  assert.deepEqual(bridgeFunctionCall.input, { path: "/tmp/demo" });
 
-  const toolTurn = result.request.contents.find(
-    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
+  const toolTurn = result.request.messages.find(
+    (msg) => msg.role === "user" && msg.content.some((block) => block.type === "tool_result")
   );
   assert.ok(toolTurn, "expected a Claude-bridged tool response turn");
-  assert.equal(getFunctionResponse(toolTurn.parts[0]).id, "call_1");
-  assert.equal((result as any).request?.tools[0].functionDeclarations[0].name, "read_file");
+  const toolResultBlock = toolTurn.content.find((block) => block.type === "tool_result");
+  assert.equal(toolResultBlock.tool_use_id, "call_1");
+  assert.equal((result as any).request?.tools[0].name, "read_file");
 });
 
-test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves restore map", () => {
+test("OpenAI -> Antigravity Claude bridge preserves tool names (Claude supports longer names)", () => {
   const longToolName =
     "ns:mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle";
   const result = openaiToAntigravityRequest(
@@ -727,26 +722,26 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
     { projectId: "proj-claude-map" } as any
   );
 
-  const sanitizedToolName = (result as any).request?.tools[0].functionDeclarations[0].name;
-  assert.equal(sanitizedToolName.length, 64);
-  assert.match(sanitizedToolName, /^[a-zA-Z0-9_]+$/);
-  assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
+  const sanitizedToolName = (result as any).request?.tools[0].name;
+  assert.equal(sanitizedToolName, longToolName);
 
-  const modelTurn = result.request.contents.find(
-    (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
+  const modelTurn = result.request.messages.find(
+    (msg) => msg.role === "assistant" && msg.content.some((block) => block.type === "tool_use")
   );
   assert.ok(modelTurn, "expected a model turn");
-  assert.equal(getFunctionCall(modelTurn.parts[0]).name, sanitizedToolName);
+  const toolUseBlock = modelTurn.content.find((block) => block.type === "tool_use");
+  assert.equal(toolUseBlock.name, sanitizedToolName);
 
-  const toolTurn = result.request.contents.find(
-    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
+  const toolTurn = result.request.messages.find(
+    (msg) => msg.role === "user" && msg.content.some((block) => block.type === "tool_result")
   );
   assert.ok(toolTurn, "expected a tool response turn");
-  assert.equal(getFunctionResponse(toolTurn.parts[0]).name, sanitizedToolName);
-  assert.deepEqual(getFunctionResponse(toolTurn.parts[0]).response, { result: { ok: true } });
+  const toolResultBlock = toolTurn.content.find((block) => block.type === "tool_result");
+  assert.equal(toolResultBlock.tool_use_id, "call_long_2");
+  assert.ok(toolResultBlock.content.includes("ok"));
 });
 
-test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap without forwarding thinking", () => {
+test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap but forwards thinking", () => {
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
     {
@@ -758,8 +753,8 @@ test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap without
     { projectId: "proj-claude-thinking" } as any
   );
 
-  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 16384);
-  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
+  assert.equal((result as any).request?.max_tokens, 16384);
+  assert.deepEqual((result as any).request?.thinking, { type: "enabled", budget_tokens: 131072 });
 });
 
 test("OpenAI -> Antigravity Claude bridge preserves lower requested output despite reasoning effort", () => {
@@ -774,6 +769,6 @@ test("OpenAI -> Antigravity Claude bridge preserves lower requested output despi
     { projectId: "proj-claude-short" } as any
   );
 
-  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 1000);
-  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
+  assert.equal((result as any).request?.max_tokens, 1000);
+  assert.deepEqual((result as any).request?.thinking, { type: "enabled", budget_tokens: 131072 });
 });

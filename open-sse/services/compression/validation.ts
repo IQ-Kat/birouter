@@ -59,7 +59,7 @@ export function validateCompression(original: string, compressed: string): Valid
   );
   requireExactPresence(
     "markdown link",
-    collectMatches(original, /\[[^\]\n]{1,1000}\]\([^)[ \t\n]{1,2000}(?:[ \t]+"[^"]{0,1000}")?\)/g),
+    collectMatches(original, /\[[^\]\n]{1,1000}\]\([^)\n]{1,2000}\)/g),
     compressed,
     errors
   );
@@ -67,7 +67,7 @@ export function validateCompression(original: string, compressed: string): Valid
   requireExactPresence("heading", collectMatches(original, /^#{1,6}\s+.+$/gm), compressed, errors);
   requireExactPresence(
     "table row",
-    collectMatches(original, /^[ \t]*\|(?:[^|\n]{0,1000}\|){1,100}[ \t]*$/gm),
+    collectMatches(original, /^[ \t]*\|(?:[^|\n]{0,1000}\|){1,100}/gm),
     compressed,
     errors
   );

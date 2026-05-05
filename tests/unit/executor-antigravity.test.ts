@@ -503,3 +503,37 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     globalThis.fetch = originalFetch;
   }
 });
+
+test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for claude models", async () => {
+  const executor = new AntigravityExecutor();
+  const body = {
+    project: "project-1",
+    model: "claude-sonnet-4-6",
+    userAgent: "antigravity",
+    requestId: "agent-123",
+    requestType: "agent",
+    request: {
+      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      system: [{ type: "text", text: "System prompt" }],
+      generationConfig: {
+        temperature: 1,
+        maxOutputTokens: 16384,
+      },
+    },
+  };
+
+  const result = (await executor.transformRequest("antigravity/claude-sonnet-4-6", body, true, {
+    projectId: "project-1",
+  })) as any;
+
+  assert.equal(result.project, "project-1");
+  assert.equal(result.model, "claude-sonnet-4-6");
+  assert.equal(result.requestType, "agent");
+  assert.ok(result.request.sessionId);
+  assert.deepEqual(result.request.messages, [
+    { role: "user", content: [{ type: "text", text: "Hello" }] },
+  ]);
+  assert.deepEqual(result.request.system, [{ type: "text", text: "System prompt" }]);
+  assert.equal(result.request.contents, undefined);
+  assert.equal(result.request.toolConfig, undefined);
+});

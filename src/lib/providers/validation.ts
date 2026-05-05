@@ -1531,7 +1531,7 @@ async function validateRekaProvider({ apiKey, providerSpecificData = {} }: any) 
       method: "POST",
       headers,
       body: JSON.stringify({
-        model: providerSpecificData.validationModelId || "reka-flash",
+        model: providerSpecificData.validationModelId || "reka-flash-3",
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
       }),
@@ -2543,7 +2543,7 @@ async function validateChatGptWebProvider({ apiKey, providerSpecificData = {} }:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:150.0) Gecko/20100101 Firefox/150.0",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
           },
           providerSpecificData
         ),

@@ -5,6 +5,10 @@
 ## [3.7.9] — 2026-05-03
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
 
 - **feat(compression):** major upgrade to Caveman and RTK compression pipelines (#1876, #1889):
   - Add RTK tool-output compression, stacked Caveman + RTK pipelines, compression combo assignments, dashboard context pages, MCP management tools, and language-aware Caveman rule packs.
@@ -21,6 +25,9 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941, #1945)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
+- **fix(mcp):** reclassify MCP endpoints to ensure API key authentication works even when dashboard auth is enabled (#1970)
 - **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)
 - **fix(providers):** bypass AgentRouter unauthorized_client_error by spoofing Claude CLI headers via Anthropic endpoints (fixes #1921)
 - **fix(copilot):** emit compatible reasoning text deltas (#1919 — thanks @ivan-mezentsev)
@@ -56,6 +63,12 @@
 ## [3.7.8] — 2026-05-01
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** add Grok 4.3 and Xiaomi Mimo TTS provider (#1837)
 - **feat(core):** implement Rate Limit Watchdog with environment override capability to detect and reset stalled queues (#1839)
@@ -88,6 +101,12 @@
 ## [3.7.7] — 2026-04-30
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **Prompt Compression Pipeline:** Implemented a multi-phase prompt compression engine including `lite` (whitespace/duplication collapse), `aggressive` (summarization, tool compression), and `ultra` modes (heuristic pruning and SLM stub) (#1633, #1738, #1739, #1741)
 - **Compression Dashboard & Analytics:** Added a compression settings UI, real-time log viewer, pipeline statistics tracking, and interactive playground preview (#1756)
@@ -113,6 +132,12 @@
 ## [3.7.6] — 2026-04-30
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(api-keys):** add rename support in the permissions modal — editable key name field with validation (#1796)
 - **feat(chatgpt-web):** support `thinking_effort` parameter (Standard/Extended) for thinking-capable models (#1821)
@@ -209,6 +234,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.7.5] — 2026-04-29
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(tunnels):** integrate native ngrok tunnel support with dashboard UI parity (#1753)
 
@@ -254,6 +285,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.7.4] — 2026-04-28
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(ui):** add endpoint tunnel visibility settings (#1743)
 - **feat(cli):** refresh CLI fingerprint provider profiles (#1746)
@@ -310,6 +347,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.7.2] — 2026-04-28
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(authz):** introduce centralized proxy-based authz pipeline and lifecycle policy (#1632)
 - **feat(logs):** configure call log pipeline artifacts (#1650)
@@ -379,6 +422,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.7.1] — 2026-04-26
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Add GPT-5.5 support to the Codex provider — includes 1.05M context window, tool calling, vision, and reasoning capabilities with proper pricing entries across `cx` and `openai` providers. Refactors `splitCodexReasoningSuffix()` into a shared helper for cleaner effort-level parsing (#1617 — thanks @Zhaba1337228).
 - **feat(cli):** Add `omniroute reset-encrypted-columns` recovery command — nulls encrypted credential columns (`api_key`, `access_token`, `refresh_token`, `id_token`) in `provider_connections` while preserving provider metadata, giving users affected by #1622 a clean recovery path without losing configurations.
@@ -420,6 +469,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.7.0] — 2026-04-26
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -578,6 +633,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.9] — 2026-04-19
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -660,6 +721,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.8] — 2026-04-17
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -740,6 +807,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.6] — 2026-04-15
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -816,6 +889,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.5] — 2026-04-13
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -880,6 +959,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.4] — 2026-04-12
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -980,6 +1065,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.3] — 2026-04-11
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1018,6 +1109,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.2] — 2026-04-11
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1050,6 +1147,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.1] — 2026-04-10
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1079,6 +1182,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.6.0] — 2026-04-10
 
 ### ✨ New Features & Analytics
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1109,6 +1218,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.9] — 2026-04-09
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1142,6 +1257,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.8] — 2026-04-09
 
 ### ✨ New Features & Analytics
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1194,6 +1315,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.6] — 2026-04-09
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1240,6 +1367,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.5] — 2026-04-08
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1287,6 +1420,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.4] — 2026-04-07
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1375,6 +1514,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.2] — 2026-04-05
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1407,6 +1552,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.1] — 2026-04-04
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1435,6 +1586,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.5.0] — 2026-04-03
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1539,6 +1696,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.4.6] - 2026-04-02
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1573,6 +1736,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.4.5] - 2026-04-02
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1635,6 +1804,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.4.3] - 2026-04-02
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1695,6 +1870,12 @@ We identified that **155 community PRs** across the entire project history (from
 > On the first startup after upgrading, OmniRoute archives legacy request logs from `DATA_DIR/logs/`, legacy `DATA_DIR/call_logs/`, and `DATA_DIR/log.txt` into `DATA_DIR/log_archives/*.zip`, then removes the deprecated layout and switches to the new unified artifact format under `DATA_DIR/call_logs/`.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1869,6 +2050,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.3.5] - 2026-03-30
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1899,6 +2086,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.3.4] - 2026-03-30
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -1960,6 +2153,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.3.2] - 2026-03-29
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2170,6 +2369,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.2.2] — 2026-03-29
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2198,6 +2403,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.2.1] — 2026-03-29
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2230,6 +2441,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.2.0] — 2026-03-28
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2284,6 +2501,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.1.9] — 2026-03-28
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2479,6 +2702,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.1.1] — 2026-03-26
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2513,6 +2742,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.1.0] — 2026-03-26
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2621,6 +2856,12 @@ We identified that **155 community PRs** across the entire project history (from
 - **Proxy Test:** Test endpoint now resolves real credentials from DB via proxyId
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2657,6 +2898,12 @@ We identified that **155 community PRs** across the entire project history (from
 - **Settings:** Proxy test button now shows success/failure results immediately (previously hidden behind health data)
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2675,6 +2922,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.0.5] — 2026-03-25
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -2710,6 +2963,12 @@ We identified that **155 community PRs** across the entire project history (from
 ## [3.0.3] — 2026-03-25
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3155,6 +3414,12 @@ docker pull diegosouzapw/omniroute:3.0.0
 ## [3.0.0-rc.16] — 2026-03-24
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3170,6 +3435,12 @@ docker pull diegosouzapw/omniroute:3.0.0
 ## [3.0.0-rc.15] — 2026-03-24
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3267,6 +3538,12 @@ docker pull diegosouzapw/omniroute:3.0.0
 ## [3.0.0-rc.9] — 2026-03-23
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3314,6 +3591,12 @@ Both providers use the new `OpencodeExecutor` with multi-format routing (`/chat/
 ---
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3449,6 +3732,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 ## [3.0.0-rc.5] - 2026-03-22
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3472,6 +3761,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 ## [3.0.0-rc.4] - 2026-03-22
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3488,6 +3783,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 ## [3.0.0-rc.3] - 2026-03-22
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -3697,6 +3998,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > Sprint: Cross-platform machineId fix, per-API-key rate limits, streaming context cache, Alibaba DashScope, search analytics, ZWS v5, and 8 issues closed.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4164,6 +4471,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > Sprint: Unified web search routing (POST /v1/search) with 5 providers + Next.js 16.1.7 security fixes (6 CVEs).
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4384,6 +4697,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > Sprint: reasoning model param filtering, local provider 404 fix, Kilo Gateway provider, dependency bumps.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4663,6 +4982,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **fix(electron) #379**: New `scripts/prepare-electron-standalone.mjs` stages a dedicated `/.next/electron-standalone` bundle before Electron packaging. Aborts with a clear error if `node_modules` is a symlink (electron-builder would ship a runtime dependency on the build machine). Cross-platform path sanitization via `path.basename`. By @kfiramar.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4728,6 +5053,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > Codex account quota policy with auto-rotation, fast tier toggle, gpt-5.4 model, and analytics label fix.
 
 ### ✨ New Features (PRs #366, #367, #368)
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4756,6 +5087,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > Major release: strict-random routing strategy, API key access controls, connection groups, external pricing sync, and critical bug fixes for thinking models, combo testing, and tool name validation.
 
 ### ✨ New Features (PRs #363 & #365)
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4792,6 +5129,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > API Key Round-Robin support for multi-key provider setups, and confirmation of wildcard routing and quota window rolling already in place.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4809,6 +5152,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > UI polish, routing strategy additions, and graceful error handling for usage limits.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4839,6 +5188,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 > Multiple improvements from community issue analysis, new provider support, bug fixes for token tracking, model routing, and streaming reliability.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
@@ -4962,6 +5317,12 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **Tier Scoring (API + Validation)**: Added `tierPriority` (weight `0.05`) to the `ScoringWeights` Zod schema and the `combos/auto` API route — the 7th scoring factor is now fully accepted by the REST API and validated on input. `stability` weight adjusted from `0.10` to `0.05` to keep total sum = `1.0`.
 
 ### ✨ New Features
+- **feat(docs):** integrate multi-page documentation into OmniRoute dashboard (#1969)
+- **feat(settings):** add request body limit setting (#1968)
+- **feat(auth):** add Gemini CLI OAuth client secret default (#1974)
+- **feat(models):** expose models.dev context windows in /v1/models (#1972)
+- **fix(db):** resolve legacy encryption fallback causing re-encryption loops (#1941)
+- **fix(auth):** fix Codex assistant final_answer response sanitization (#1965)
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).

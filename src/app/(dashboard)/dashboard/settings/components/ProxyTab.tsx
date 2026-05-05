@@ -5,6 +5,7 @@ import { Card, Button, ProxyConfigModal, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import ProxyRegistryManager from "./ProxyRegistryManager";
 import OneproxyTab from "./OneproxyTab";
+import RequestLimitsTab from "./RequestLimitsTab";
 
 export default function ProxyTab() {
   const [proxyModalOpen, setProxyModalOpen] = useState(false);
@@ -184,6 +185,7 @@ export default function ProxyTab() {
             </div>
           </div>
         </Card>
+        <RequestLimitsTab />
       </div>
 
       <ProxyConfigModal
