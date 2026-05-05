@@ -1064,18 +1064,40 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: prioritize accounts with available quota
+    // Quota-aware: filter out accounts with exhausted quota
     const withQuota = policyEligibleConnections.filter((c) => !isAccountQuotaExhausted(c.id));
     const exhaustedQuota = policyEligibleConnections.filter((c) => isAccountQuotaExhausted(c.id));
-    const orderedConnections =
-      withQuota.length > 0 ? [...withQuota, ...exhaustedQuota] : policyEligibleConnections;
 
     if (exhaustedQuota.length > 0) {
-      log.debug(
+      log.info(
         "AUTH",
-        `${provider} | quota-aware: ${withQuota.length} with quota, ${exhaustedQuota.length} exhausted`
+        `${provider} | quota-aware: ${withQuota.length} with quota, skipping ${exhaustedQuota.length} exhausted`
       );
     }
+
+    if (withQuota.length === 0 && exhaustedQuota.length > 0) {
+      // All remaining eligible accounts are exhausted
+      const earliestResetAt = getEarliestFutureDate(
+        exhaustedQuota.map((c) => {
+          const entry = getQuotaCache(c.id);
+          return entry?.nextResetAt || null;
+        })
+      );
+      const earliestResetMs = parseFutureDateMs(earliestResetAt);
+      const retryAfter = earliestResetMs
+        ? new Date(earliestResetMs).toISOString()
+        : new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+      return {
+        allRateLimited: true,
+        retryAfter,
+        retryAfterHuman: formatRetryAfter(retryAfter),
+        lastError: `All ${provider} accounts have exhausted their quota`,
+        lastErrorCode: 429,
+      };
+    }
+
+    const orderedConnections = withQuota;
 
     const settings = await getSettings();
     const strategy = settings.fallbackStrategy || "fill-first";
