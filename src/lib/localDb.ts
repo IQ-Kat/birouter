@@ -277,6 +277,8 @@ export {
   cleanupOldSnapshots,
 } from "./db/quotaSnapshots";
 
+export * from "./db/sessionAccountAffinity";
+
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
 export {

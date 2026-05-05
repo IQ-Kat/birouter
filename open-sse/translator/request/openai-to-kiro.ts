@@ -144,7 +144,7 @@ function convertMessages(messages, tools, model) {
 
             pendingToolResults.push({
               toolUseId: block.tool_use_id,
-              status: "success",
+              status: "SUCCESS",
               content: [{ text: text }],
             });
           });
@@ -156,7 +156,7 @@ function convertMessages(messages, tools, model) {
         const toolContent = typeof msg.content === "string" ? msg.content : "";
         pendingToolResults.push({
           toolUseId: msg.tool_call_id,
-          status: "success",
+          status: "SUCCESS",
           content: [{ text: toolContent }],
         });
       } else if (content) {

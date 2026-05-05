@@ -810,7 +810,7 @@ test("markAccountUnavailable keeps local 404 failures model-scoped with the loca
   const updated = await (providersDb as any).getProviderConnectionById(connection.id);
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, COOLDOWN_MS.notFoundLocal);
+  assert.equal(result.cooldownMs, 250);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "not_found");
@@ -889,7 +889,7 @@ test("markAccountUnavailable uses the unified configured api-key connection cool
   );
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 200);
+  assert.equal(result.cooldownMs, 125);
 });
 
 test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {

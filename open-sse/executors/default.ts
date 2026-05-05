@@ -378,7 +378,6 @@ export class DefaultExecutor extends BaseExecutor {
    * "org/model-name") — we must NOT strip path segments. (Fix #493)
    */
   transformRequest(model, body, stream, credentials) {
-    void model;
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
 
@@ -405,6 +404,15 @@ export class DefaultExecutor extends BaseExecutor {
           const withoutStreamOptions = { ...withDefaults } as Record<string, unknown>;
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
+        }
+      }
+
+      // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
+      if (getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai") {
+        const isRecentOpenAI = /^(o1|o3|gpt-5)/i.test(model);
+        if (isRecentOpenAI && "max_tokens" in withDefaults) {
+          withDefaults.max_completion_tokens = withDefaults.max_tokens;
+          delete withDefaults.max_tokens;
         }
       }
     }
