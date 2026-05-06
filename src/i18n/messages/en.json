@@ -1505,6 +1505,8 @@
     "randomDesc": "Uniform random selection, then fallback to remaining models",
     "leastUsedDesc": "Picks the model with fewest requests, balancing load over time",
     "costOptimizedDesc": "Routes to the cheapest model first based on pricing",
+    "resetAware": "Reset-Aware RR",
+    "resetAwareDesc": "Balances remaining quota against 5h and weekly resets, then round-robins similar scores",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each model once before reshuffling",
     "models": "Models",
@@ -1562,6 +1564,11 @@
         "when": "Cost reduction is your top priority.",
         "avoid": "Pricing data is missing or outdated.",
         "example": "Background or batch jobs where lower cost is preferred."
+      },
+      "reset-aware": {
+        "when": "You route across multiple accounts with quota telemetry and different reset windows.",
+        "avoid": "Quota telemetry is unavailable for most accounts.",
+        "example": "Prefer a 60% weekly account resetting tomorrow over an 80% account resetting later."
       },
       "strict-random": {
         "when": "Use when you want perfectly even spread — each model used once before repeating.",
@@ -1734,6 +1741,13 @@
         "tip1": "Ensure pricing coverage for all selected models.",
         "tip2": "Keep a quality fallback for hard prompts.",
         "tip3": "Use for batch/background jobs where cost is the main KPI."
+      },
+      "reset-aware": {
+        "title": "Reset-aware account rotation",
+        "description": "Balances remaining provider quota against reset timing.",
+        "tip1": "Use explicit account steps or account-tag routing for providers with quota telemetry.",
+        "tip2": "Tune session vs weekly weights when short-term exhaustion is more risky.",
+        "tip3": "Keep the tie band small so equivalent accounts still rotate fairly."
       },
       "strict-random": {
         "title": "Shuffle deck distribution",
@@ -3363,6 +3377,8 @@
     "leastUsedDesc": "Pick least recently used account",
     "costOpt": "Cost Opt",
     "costOptDesc": "Prefer cheapest available account",
+    "resetAware": "Reset-Aware RR",
+    "resetAwareDesc": "Prefer accounts with healthy remaining quota and nearer resets",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each account once before reshuffling",
     "stickyLimit": "Sticky Limit",

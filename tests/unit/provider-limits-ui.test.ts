@@ -56,6 +56,7 @@ test("quota labels normalize session and weekly windows while preserving readabl
 });
 
 test("MiniMax providers are exposed to the limits dashboard support list", () => {
+  assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("zai"));
   assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("minimax"));
   assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("minimax-cn"));
 });
@@ -92,4 +93,29 @@ test("MiniMax quota payloads use generic provider parsing and stale resets still
   assert.equal(parsed[1].remainingPercentage, 100);
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[0].name), "Session");
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[1].name), "Weekly");
+});
+
+test("Z.AI quota labels render token and time limit usage", () => {
+  assert.equal(providerLimitUtils.formatQuotaLabel("tokens"), "Tokens");
+  assert.equal(providerLimitUtils.formatQuotaLabel("time_limit"), "Time Limit");
+
+  const future = new Date(Date.now() + 5 * 60_000).toISOString();
+  const parsed = providerLimitUtils.parseQuotaData("zai", {
+    quotas: {
+      tokens: { used: 18, total: 100, remaining: 82, remainingPercentage: 82, resetAt: future },
+      time_limit: {
+        used: 0,
+        total: 100,
+        remaining: 100,
+        remainingPercentage: 100,
+        resetAt: future,
+      },
+    },
+  });
+
+  assert.equal(parsed.length, 2);
+  assert.equal(parsed[0].name, "tokens");
+  assert.equal(parsed[0].remainingPercentage, 82);
+  assert.equal(parsed[1].name, "time_limit");
+  assert.equal(parsed[1].remainingPercentage, 100);
 });

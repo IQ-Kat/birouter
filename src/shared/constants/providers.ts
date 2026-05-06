@@ -1840,6 +1840,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "claude",
   "kimi-coding",
   "glm",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",

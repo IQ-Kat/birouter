@@ -395,6 +395,10 @@ const comboRuntimeConfigSchema = z
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
     compositeTiers: compositeTiersSchema.optional(),
+    resetAwareSessionWeight: z.coerce.number().min(0).max(100).optional(),
+    resetAwareWeeklyWeight: z.coerce.number().min(0).max(100).optional(),
+    resetAwareTieBandPercent: z.coerce.number().min(0).max(100).optional(),
+    resetAwareExhaustionGuardPercent: z.coerce.number().min(0).max(100).optional(),
   })
   .strict();
 

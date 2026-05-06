@@ -17,6 +17,10 @@ const DEFAULT_COMBO_CONFIG = {
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
   trackMetrics: true,
+  resetAwareSessionWeight: 0.35,
+  resetAwareWeeklyWeight: 0.65,
+  resetAwareTieBandPercent: 5,
+  resetAwareExhaustionGuardPercent: 10,
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([

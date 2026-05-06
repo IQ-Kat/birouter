@@ -1,7 +1,8 @@
 /**
  * Shared combo (model combo) handling with fallback support
  * Supports: priority, weighted, round-robin, random, least-used, cost-optimized,
- * strict-random, auto, fill-first, p2c, lkgp, context-optimized, and context-relay strategies
+ * reset-aware, strict-random, auto, fill-first, p2c, lkgp, context-optimized,
+ * and context-relay strategies
  */
 
 import {
@@ -16,6 +17,7 @@ import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboM
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
+import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
@@ -86,6 +88,18 @@ const DEFAULT_MODEL_P95_MS = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
+const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
+const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const RESET_AWARE_REMAINING_WEIGHT = 0.55;
+const RESET_AWARE_RESET_WEIGHT = 0.45;
+const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
+const RESET_AWARE_QUOTA_FETCH_CONCURRENCY = 5;
+const RESET_AWARE_DEFAULTS = {
+  sessionWeight: 0.35,
+  weeklyWeight: 0.65,
+  tieBandPercent: 5,
+  exhaustionGuardPercent: 10,
+};
 
 type ResolvedComboTarget = {
   kind: "model";
@@ -209,6 +223,11 @@ export async function validateResponseQuality(
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
 const rrCounters = new Map();
+
+const resetAwareConnectionCache = new Map<
+  string,
+  { fetchedAt: number; connections: Array<Record<string, unknown>> }
+>();
 
 /**
  * Normalize a model entry to { model, weight }
@@ -697,6 +716,338 @@ function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboNa
   return [targets[selectedIndex], ...targets.filter((_, index) => index !== selectedIndex)];
 }
 
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+function finiteNumberOrNull(value: unknown): number | null {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function getPercentConfig(value: unknown, fallback: number): number {
+  const numericValue = finiteNumberOrNull(value);
+  if (numericValue === null) return fallback;
+  return Math.max(0, Math.min(100, numericValue));
+}
+
+function getWeightConfig(value: unknown, fallback: number): number {
+  const numericValue = finiteNumberOrNull(value);
+  if (numericValue === null || numericValue < 0) return fallback;
+  return numericValue;
+}
+
+function resolveResetAwareConfig(config: Record<string, unknown> | null | undefined) {
+  const sessionWeight = getWeightConfig(
+    config?.resetAwareSessionWeight,
+    RESET_AWARE_DEFAULTS.sessionWeight
+  );
+  const weeklyWeight = getWeightConfig(
+    config?.resetAwareWeeklyWeight,
+    RESET_AWARE_DEFAULTS.weeklyWeight
+  );
+  const totalWeight = sessionWeight + weeklyWeight;
+  const normalizedSessionWeight =
+    totalWeight > 0 ? sessionWeight / totalWeight : RESET_AWARE_DEFAULTS.sessionWeight;
+
+  return {
+    sessionWeight: normalizedSessionWeight,
+    weeklyWeight: 1 - normalizedSessionWeight,
+    tieBand:
+      getPercentConfig(config?.resetAwareTieBandPercent, RESET_AWARE_DEFAULTS.tieBandPercent) / 100,
+    exhaustionGuard:
+      getPercentConfig(
+        config?.resetAwareExhaustionGuardPercent,
+        RESET_AWARE_DEFAULTS.exhaustionGuardPercent
+      ) / 100,
+  };
+}
+
+function getResetAwareProvider(target: ResolvedComboTarget): string | null {
+  const provider = (target.providerId || target.provider || "").toLowerCase();
+  return provider || null;
+}
+
+function normalizeResetAt(value: unknown): string | null {
+  if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function parseResetTimeMs(resetAt: string | null | undefined): number {
+  if (!resetAt) return NaN;
+  const resetTime = Date.parse(resetAt);
+  if (Number.isFinite(resetTime)) return resetTime;
+
+  if (!/^\d+(?:\.\d+)?$/.test(resetAt)) return NaN;
+  const numericResetAt = Number(resetAt);
+  if (!Number.isFinite(numericResetAt)) return NaN;
+  return numericResetAt < 10_000_000_000 ? numericResetAt * 1000 : numericResetAt;
+}
+
+function getQuotaWindow(
+  quota: unknown,
+  key: "window5h" | "window7d" | "windowWeekly" | "windowMonthly"
+): { percentUsed: number | null; resetAt: string | null } | null {
+  if (!isRecord(quota)) return null;
+  const window = quota[key];
+  if (!isRecord(window)) return null;
+  const percentUsed = finiteNumberOrNull(window.percentUsed);
+  const resetAt = normalizeResetAt(window.resetAt);
+  return { percentUsed, resetAt };
+}
+
+function getResetUrgency(resetAt: string | null | undefined, windowMs: number): number {
+  if (!resetAt) return 0.5;
+  const resetTime = parseResetTimeMs(resetAt);
+  if (!Number.isFinite(resetTime)) return 0.5;
+  const msUntilReset = resetTime - Date.now();
+  if (msUntilReset <= 0) return 1;
+  return clamp01(1 - msUntilReset / windowMs);
+}
+
+function scoreQuotaWindow(
+  remaining: number,
+  resetAt: string | null | undefined,
+  windowMs: number
+): number {
+  return (
+    RESET_AWARE_REMAINING_WEIGHT * clamp01(remaining) +
+    RESET_AWARE_RESET_WEIGHT * getResetUrgency(resetAt, windowMs)
+  );
+}
+
+function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveResetAwareConfig>) {
+  if (!quota || !isRecord(quota)) return { score: 0.5 };
+  if (quota.limitReached === true) return { score: -Infinity };
+
+  const overallPercentUsed = clamp01(finiteNumberOrNull(quota.percentUsed) ?? 0.5);
+  const sessionWindow = getQuotaWindow(quota, "window5h");
+  const weeklyWindow = getQuotaWindow(quota, "window7d") || getQuotaWindow(quota, "windowWeekly");
+  const sessionRemaining = clamp01(1 - (sessionWindow?.percentUsed ?? overallPercentUsed));
+  const weeklyRemaining = clamp01(1 - (weeklyWindow?.percentUsed ?? overallPercentUsed));
+  const sessionScore = scoreQuotaWindow(
+    sessionRemaining,
+    sessionWindow?.resetAt,
+    RESET_AWARE_SESSION_WINDOW_MS
+  );
+  const weeklyScore = scoreQuotaWindow(
+    weeklyRemaining,
+    weeklyWindow?.resetAt ?? normalizeResetAt(quota.resetAt),
+    RESET_AWARE_WEEKLY_WINDOW_MS
+  );
+  let score = config.sessionWeight * sessionScore + config.weeklyWeight * weeklyScore;
+
+  if (config.exhaustionGuard > 0 && sessionRemaining < config.exhaustionGuard) {
+    score *= Math.max(0.05, sessionRemaining / config.exhaustionGuard);
+  }
+
+  return { score };
+}
+
+async function getQuotaAwareConnectionsForTarget(
+  target: ResolvedComboTarget,
+  connectionCache: Map<string, Array<Record<string, unknown>>>,
+  comboName: string,
+  log: { warn?: (...args: unknown[]) => void }
+) {
+  const provider = getResetAwareProvider(target);
+  if (!provider || !getQuotaFetcher(provider)) return [];
+  if (!connectionCache.has(provider)) {
+    const cached = resetAwareConnectionCache.get(provider);
+    if (cached && Date.now() - cached.fetchedAt < RESET_AWARE_CONNECTION_CACHE_TTL_MS) {
+      connectionCache.set(provider, cached.connections);
+      return cached.connections;
+    }
+
+    try {
+      const connections = await getProviderConnections({ provider, isActive: true });
+      const activeConnections = Array.isArray(connections)
+        ? (connections as Array<Record<string, unknown>>)
+        : [];
+      connectionCache.set(provider, activeConnections);
+      resetAwareConnectionCache.set(provider, {
+        connections: activeConnections,
+        fetchedAt: Date.now(),
+      });
+    } catch (error) {
+      log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
+        comboName,
+        err: error,
+        operation: "getProviderConnections",
+        provider,
+      });
+      connectionCache.set(provider, []);
+    }
+  }
+  return connectionCache.get(provider) || [];
+}
+
+function normalizeConnectionIds(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const ids = value.filter(
+    (connectionId): connectionId is string =>
+      typeof connectionId === "string" && connectionId.trim().length > 0
+  );
+  return ids.length > 0 ? ids : null;
+}
+
+function filterAllowedConnectionIds(
+  connectionIds: string[],
+  apiKeyAllowedConnectionIds: string[] | null | undefined
+): string[] {
+  const allowedIds = normalizeConnectionIds(apiKeyAllowedConnectionIds);
+  if (!allowedIds) return connectionIds;
+  const allowedSet = new Set(allowedIds);
+  return connectionIds.filter((connectionId) => allowedSet.has(connectionId));
+}
+
+function getTargetConnectionIds(
+  target: ResolvedComboTarget,
+  connections: Array<Record<string, unknown>>
+): string[] {
+  let connectionIds: string[];
+  if (target.connectionId) {
+    return [target.connectionId];
+  }
+
+  if (Array.isArray(target.allowedConnectionIds) && target.allowedConnectionIds.length > 0) {
+    return target.allowedConnectionIds.filter(
+      (connectionId): connectionId is string =>
+        typeof connectionId === "string" && connectionId.trim().length > 0
+    );
+  }
+
+  connectionIds = connections
+    .map((connection) => (typeof connection.id === "string" ? connection.id : null))
+    .filter((connectionId): connectionId is string => !!connectionId);
+  return connectionIds;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex++;
+        results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+      }
+    })
+  );
+
+  return results;
+}
+
+async function orderTargetsByResetAwareQuota(
+  targets: ResolvedComboTarget[],
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
+) {
+  if (targets.length === 0) return targets;
+
+  const config = resolveResetAwareConfig(configSource);
+  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionById = new Map<string, Record<string, unknown>>();
+  const expandedTargets: ResolvedComboTarget[] = [];
+
+  const targetsWithConnections = await Promise.all(
+    targets.map(async (target) => ({
+      connections: await getQuotaAwareConnectionsForTarget(target, connectionCache, comboName, log),
+      target,
+    }))
+  );
+
+  for (const { target, connections } of targetsWithConnections) {
+    for (const connection of connections) {
+      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
+    }
+
+    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
+    const connectionIds = filterAllowedConnectionIds(
+      unrestrictedConnectionIds,
+      apiKeyAllowedConnectionIds
+    );
+    if (connectionIds.length === 0) {
+      if (
+        unrestrictedConnectionIds.length > 0 &&
+        normalizeConnectionIds(apiKeyAllowedConnectionIds)
+      ) {
+        continue;
+      }
+      expandedTargets.push(target);
+      continue;
+    }
+
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey:
+          target.connectionId === connectionId
+            ? target.executionKey
+            : `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
+  const scoredTargets = await mapWithConcurrency(
+    expandedTargets,
+    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
+    async (target, index) => {
+      let quota: unknown = null;
+      const provider = getResetAwareProvider(target);
+      const fetcher = provider ? getQuotaFetcher(provider) : null;
+      if (fetcher && provider && target.connectionId) {
+        try {
+          quota = await fetcher(target.connectionId, connectionById.get(target.connectionId));
+        } catch (error) {
+          log.warn?.("COMBO", "Reset-aware quota fetch failed.", {
+            comboName,
+            connectionId: target.connectionId,
+            err: error,
+            operation: "quotaFetch",
+            provider,
+          });
+        }
+      }
+      const { score } = scoreResetAwareQuota(quota, config);
+      return { target, score, index };
+    }
+  );
+
+  scoredTargets.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.index - b.index;
+  });
+
+  const bestScore = scoredTargets[0]?.score ?? 0;
+  const tiedTargets = scoredTargets.filter((entry) => bestScore - entry.score <= config.tieBand);
+  let orderedTiedTargets = tiedTargets;
+  if (tiedTargets.length > 1) {
+    const key = `reset-aware:${comboName}`;
+    const counter = rrCounters.get(key) || 0;
+    rrCounters.set(key, counter + 1);
+    const startIndex = counter % tiedTargets.length;
+    orderedTiedTargets = [...tiedTargets.slice(startIndex), ...tiedTargets.slice(0, startIndex)];
+  }
+
+  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
+  return [
+    ...orderedTiedTargets,
+    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
+  ].map((entry) => entry.target);
+}
+
 function toTextContent(content) {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -1074,6 +1425,7 @@ export async function handleComboChat({
   allCombos,
   relayOptions,
   signal,
+  apiKeyAllowedConnections = null,
 }) {
   const strategy = normalizeRoutingStrategy(combo.strategy || "priority");
   const relayConfig =
@@ -1482,6 +1834,18 @@ export async function handleComboChat({
   } else if (strategy === "cost-optimized") {
     orderedTargets = await sortTargetsByCost(orderedTargets);
     log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
+  } else if (strategy === "reset-aware") {
+    orderedTargets = await orderTargetsByResetAwareQuota(
+      orderedTargets,
+      combo.name,
+      config,
+      log,
+      apiKeyAllowedConnections
+    );
+    log.info(
+      "COMBO",
+      `Reset-aware ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`
+    );
   } else if (strategy === "context-optimized") {
     orderedTargets = sortTargetsByContextSize(orderedTargets);
     log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);
