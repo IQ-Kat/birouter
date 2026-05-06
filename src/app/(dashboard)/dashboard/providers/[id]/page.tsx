@@ -5995,6 +5995,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
+    geminiProjectId: "",
     blockExtraUsage:
       connection?.provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
@@ -6020,6 +6021,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
   const isClaude = connection?.provider === "claude";
+  const isGeminiCli = connection?.provider === "gemini-cli";
   const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isSearxng = connection?.provider === "searxng-search";
@@ -6082,6 +6084,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
+        geminiProjectId: (connection.providerSpecificData?.projectId as string) || "",
         blockExtraUsage: isClaudeExtraUsageBlockEnabled(
           connection.provider,
           connection.providerSpecificData
@@ -6187,6 +6190,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         maxConcurrent: parsedMaxConcurrent,
         healthCheckInterval: formData.healthCheckInterval,
       };
+
+      if (isGeminiCli) {
+        updates.projectId = formData.geminiProjectId.trim() || null;
+      }
 
       if (isGooglePse && !formData.cx.trim()) {
         setSaveError(t("searchEngineIdRequired"));
@@ -6309,6 +6316,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
+        if (isGeminiCli) {
+          updates.providerSpecificData.projectId = formData.geminiProjectId.trim() || undefined;
+        }
       }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
@@ -6400,6 +6410,18 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
               label={t("ccCompatibleContext1mLabel")}
               description={t("ccCompatibleContext1mDescription")}
+            />
+          </div>
+        )}
+        {isGeminiCli && (
+          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            <Input
+              label={t("geminiCliProjectIdLabel")}
+              value={formData.geminiProjectId}
+              onChange={(e) => setFormData({ ...formData, geminiProjectId: e.target.value })}
+              placeholder={t("geminiCliProjectIdPlaceholder")}
+              hint={t("geminiCliProjectIdHint")}
+              className="font-mono text-xs"
             />
           </div>
         )}
