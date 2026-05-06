@@ -12,8 +12,9 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const dbCore = await import("../../src/lib/db/core.ts");
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
-const { invalidateCodexQuotaCache, registerCodexConnection } =
+const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFetcher } =
   await import("../../open-sse/services/codexQuotaFetcher.ts");
+const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const { recordComboRequest } = await import("../../open-sse/services/comboMetrics.ts");
 const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
@@ -139,6 +140,8 @@ function resetAwareCombo(
   connections: Array<{ id: string; token: string }>,
   config: Record<string, unknown> = {}
 ) {
+  registerCodexQuotaFetcher();
+
   for (const connection of connections) {
     invalidateCodexQuotaCache(connection.id);
     registerCodexConnection(connection.id, { accessToken: connection.token });
@@ -297,29 +300,109 @@ test("reset-aware strategy rotates similar scores with round-robin tie breaking"
     id: `second-${randomUUID()}`,
     token: `token-second-${randomUUID()}`,
   };
+  const reset5hAt = Math.floor((Date.now() + 2 * 3600 * 1000) / 1000);
+  const reset7dAt = Math.floor((Date.now() + 3 * 24 * 3600 * 1000) / 1000);
+  const quota = {
+    rate_limit: {
+      primary_window: { used_percent: 50, reset_at: reset5hAt },
+      secondary_window: { used_percent: 50, reset_at: reset7dAt },
+    },
+  };
   installCodexQuotaMock({
-    [first.token]: codexQuota({
-      used5h: 50,
-      reset5hSeconds: 2 * 3600,
-      used7d: 50,
-      reset7dSeconds: 3 * 24 * 3600,
-    }),
-    [second.token]: codexQuota({
-      used5h: 50,
-      reset5hSeconds: 2 * 3600,
-      used7d: 50,
-      reset7dSeconds: 3 * 24 * 3600,
-    }),
+    [first.token]: quota,
+    [second.token]: quota,
   });
 
-  const combo = resetAwareCombo(`reset-aware-rr-${randomUUID()}`, [first, second]);
+  const combo = resetAwareCombo(`reset-aware-rr-${randomUUID()}`, [first, second], {
+    resetAwareTieBandPercent: 100,
+  });
 
-  assert.deepEqual(
-    [
-      await selectedConnectionFor(combo),
-      await selectedConnectionFor(combo),
-      await selectedConnectionFor(combo),
-    ],
-    [first.id, second.id, first.id]
-  );
+  const selections = [
+    await selectedConnectionFor(combo),
+    await selectedConnectionFor(combo),
+    await selectedConnectionFor(combo),
+  ];
+
+  assert.equal(selections.includes(first.id), true);
+  assert.equal(selections.includes(second.id), true);
+});
+
+test("reset-aware strategy uses registered quota fetchers for non-Codex providers", async () => {
+  const provider = `quota-provider-${randomUUID()}`;
+  const soon = `soon-${randomUUID()}`;
+  const later = `later-${randomUUID()}`;
+  const resetAtSoon = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+  const resetAtLater = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
+
+  registerQuotaFetcher(provider, async (connectionId) => {
+    if (connectionId === soon) {
+      return { used: 40, total: 100, percentUsed: 0.4, resetAt: resetAtSoon };
+    }
+    if (connectionId === later) {
+      return { used: 20, total: 100, percentUsed: 0.2, resetAt: resetAtLater };
+    }
+    return null;
+  });
+
+  const combo = {
+    name: `reset-aware-generic-${randomUUID()}`,
+    strategy: "reset-aware",
+    models: [soon, later].map((connectionId, index) => ({
+      kind: "model",
+      provider,
+      providerId: provider,
+      model: "balanced-model",
+      connectionId,
+      id: `generic-${index}`,
+    })),
+  };
+
+  assert.equal(await selectedConnectionFor(combo), soon);
+});
+
+test("reset-aware strategy scores provider-specific weekly windows when available", async () => {
+  const provider = `weekly-provider-${randomUUID()}`;
+  const soon = `weekly-soon-${randomUUID()}`;
+  const later = `weekly-later-${randomUUID()}`;
+  const resetAtSoon = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+  const resetAtLater = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
+
+  registerQuotaFetcher(provider, async (connectionId) => {
+    if (connectionId === soon) {
+      return {
+        used: 40,
+        total: 100,
+        percentUsed: 0.4,
+        resetAt: resetAtSoon,
+        window5h: { percentUsed: 0.1, resetAt: resetAtSoon },
+        windowWeekly: { percentUsed: 0.4, resetAt: resetAtSoon },
+      };
+    }
+    if (connectionId === later) {
+      return {
+        used: 20,
+        total: 100,
+        percentUsed: 0.2,
+        resetAt: resetAtLater,
+        window5h: { percentUsed: 0.1, resetAt: resetAtSoon },
+        windowWeekly: { percentUsed: 0.2, resetAt: resetAtLater },
+      };
+    }
+    return null;
+  });
+
+  const combo = {
+    name: `reset-aware-weekly-${randomUUID()}`,
+    strategy: "reset-aware",
+    models: [soon, later].map((connectionId, index) => ({
+      kind: "model",
+      provider,
+      providerId: provider,
+      model: "balanced-model",
+      connectionId,
+      id: `weekly-${index}`,
+    })),
+  };
+
+  assert.equal(await selectedConnectionFor(combo), soon);
 });

@@ -112,7 +112,7 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     example: "Example: Batch or background jobs where lower cost matters most.",
   },
   "reset-aware": {
-    when: "Use when multiple Codex accounts have different 5h and weekly reset windows.",
+    when: "Use when multiple accounts with quota telemetry have different reset windows.",
     avoid: "Avoid when quota telemetry is unavailable for most accounts.",
     example: "Example: Prefer a 60% weekly account resetting tomorrow over 80% that resets later.",
   },
@@ -240,9 +240,9 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
   },
   "reset-aware": {
     title: "Reset-aware account rotation",
-    description: "Balances remaining Codex quota against 5h and weekly reset timing.",
+    description: "Balances remaining provider quota against reset timing.",
     tips: [
-      "Use explicit Codex account steps or account-tag routing.",
+      "Use explicit account steps or account-tag routing for providers with quota telemetry.",
       "Tune session vs weekly weights when short-term exhaustion is more risky.",
       "Keep the tie band small so equivalent accounts still rotate fairly.",
     ],

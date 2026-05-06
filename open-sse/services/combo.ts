@@ -17,6 +17,7 @@ import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboM
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
+import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
@@ -755,14 +756,14 @@ function resolveResetAwareConfig(config: Record<string, unknown> | null | undefi
   };
 }
 
-function isCodexTarget(target: ResolvedComboTarget): boolean {
+function getResetAwareProvider(target: ResolvedComboTarget): string | null {
   const provider = (target.providerId || target.provider || "").toLowerCase();
-  return provider === "codex" || target.modelStr.toLowerCase().startsWith("codex/");
+  return provider || null;
 }
 
 function getQuotaWindow(
   quota: unknown,
-  key: "window5h" | "window7d"
+  key: "window5h" | "window7d" | "windowWeekly" | "windowMonthly"
 ): { percentUsed: number | null; resetAt: string | null } | null {
   if (!isRecord(quota)) return null;
   const window = quota[key];
@@ -799,7 +800,7 @@ function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveR
 
   const overallPercentUsed = clamp01(finiteNumberOrNull(quota.percentUsed) ?? 0.5);
   const sessionWindow = getQuotaWindow(quota, "window5h");
-  const weeklyWindow = getQuotaWindow(quota, "window7d");
+  const weeklyWindow = getQuotaWindow(quota, "window7d") || getQuotaWindow(quota, "windowWeekly");
   const sessionRemaining = clamp01(1 - (sessionWindow?.percentUsed ?? overallPercentUsed));
   const weeklyRemaining = clamp01(1 - (weeklyWindow?.percentUsed ?? overallPercentUsed));
   const sessionScore = scoreQuotaWindow(
@@ -821,13 +822,12 @@ function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveR
   return { score };
 }
 
-async function getCodexConnectionsForTarget(
+async function getQuotaAwareConnectionsForTarget(
   target: ResolvedComboTarget,
   connectionCache: Map<string, Array<Record<string, unknown>>>
 ) {
-  if (!isCodexTarget(target)) return [];
-  const provider = target.providerId || target.provider;
-  if (!provider) return [];
+  const provider = getResetAwareProvider(target);
+  if (!provider || !getQuotaFetcher(provider)) return [];
   if (!connectionCache.has(provider)) {
     try {
       const connections = await getProviderConnections({ provider, isActive: true });
@@ -872,7 +872,7 @@ async function orderTargetsByResetAwareQuota(
   const expandedTargets: ResolvedComboTarget[] = [];
 
   for (const target of targets) {
-    const connections = await getCodexConnectionsForTarget(target, connectionCache);
+    const connections = await getQuotaAwareConnectionsForTarget(target, connectionCache);
     for (const connection of connections) {
       if (typeof connection.id === "string") connectionById.set(connection.id, connection);
     }
@@ -898,16 +898,15 @@ async function orderTargetsByResetAwareQuota(
   const scoredTargets = await Promise.all(
     expandedTargets.map(async (target, index) => {
       let quota: unknown = null;
-      if (isCodexTarget(target) && target.connectionId) {
+      const provider = getResetAwareProvider(target);
+      const fetcher = provider ? getQuotaFetcher(provider) : null;
+      if (fetcher && provider && target.connectionId) {
         try {
-          quota = await fetchCodexQuota(
-            target.connectionId,
-            connectionById.get(target.connectionId)
-          );
+          quota = await fetcher(target.connectionId, connectionById.get(target.connectionId));
         } catch (error) {
           log.warn?.(
             "COMBO",
-            `Reset-aware quota fetch failed for connection=${target.connectionId}: ${error instanceof Error ? error.message : String(error)}`
+            `Reset-aware quota fetch failed for provider=${provider} connection=${target.connectionId}: ${error instanceof Error ? error.message : String(error)}`
           );
         }
       }

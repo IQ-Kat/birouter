@@ -1450,7 +1450,7 @@
         "example": "Hintergrund- oder Batch-Jobs, bei denen geringere Kosten bevorzugt werden."
       },
       "reset-aware": {
-        "when": "Du routest über mehrere Codex-Konten mit unterschiedlichen 5h- und Wochen-Reset-Fenstern.",
+        "when": "Du routest über mehrere Konten mit Quota-Telemetrie und unterschiedlichen Reset-Fenstern.",
         "avoid": "Für die meisten Konten fehlen Quota-Telemetriedaten.",
         "example": "Bevorzuge ein Konto mit 60 % Wochen-Restquote und Reset morgen vor 80 % mit späterem Reset."
       },
@@ -1564,8 +1564,8 @@
       },
       "reset-aware": {
         "title": "Reset-bewusste Kontorotation",
-        "description": "Gewichtet verbleibende Codex-Quote gegen 5h- und Wochen-Reset-Zeitpunkte.",
-        "tip1": "Nutze explizite Codex-Kontoschritte oder kontobasiertes Tag-Routing.",
+        "description": "Gewichtet verbleibende Provider-Quote gegen Reset-Zeitpunkte.",
+        "tip1": "Nutze explizite Kontoschritte oder Tag-Routing für Provider mit Quota-Telemetrie.",
         "tip2": "Passe 5h- und Wochengewichtung an, wenn kurzfristige Erschöpfung riskant ist.",
         "tip3": "Halte das Tie-Band klein, damit gleichwertige Konten fair rotieren."
       },
