@@ -1,7 +1,8 @@
 /**
  * Shared combo (model combo) handling with fallback support
  * Supports: priority, weighted, round-robin, random, least-used, cost-optimized,
- * strict-random, auto, fill-first, p2c, lkgp, context-optimized, and context-relay strategies
+ * reset-aware, strict-random, auto, fill-first, p2c, lkgp, context-optimized,
+ * and context-relay strategies
  */
 
 import {
@@ -86,6 +87,16 @@ const DEFAULT_MODEL_P95_MS = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
+const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
+const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const RESET_AWARE_REMAINING_WEIGHT = 0.55;
+const RESET_AWARE_RESET_WEIGHT = 0.45;
+const RESET_AWARE_DEFAULTS = {
+  sessionWeight: 0.35,
+  weeklyWeight: 0.65,
+  tieBandPercent: 5,
+  exhaustionGuardPercent: 10,
+};
 
 type ResolvedComboTarget = {
   kind: "model";
@@ -695,6 +706,237 @@ function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboNa
       ? secondIndex
       : firstIndex;
   return [targets[selectedIndex], ...targets.filter((_, index) => index !== selectedIndex)];
+}
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+function finiteNumberOrNull(value: unknown): number | null {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function getPercentConfig(value: unknown, fallback: number): number {
+  const numericValue = finiteNumberOrNull(value);
+  if (numericValue === null) return fallback;
+  return Math.max(0, Math.min(100, numericValue));
+}
+
+function getWeightConfig(value: unknown, fallback: number): number {
+  const numericValue = finiteNumberOrNull(value);
+  if (numericValue === null || numericValue < 0) return fallback;
+  return numericValue;
+}
+
+function resolveResetAwareConfig(config: Record<string, unknown> | null | undefined) {
+  const sessionWeight = getWeightConfig(
+    config?.resetAwareSessionWeight,
+    RESET_AWARE_DEFAULTS.sessionWeight
+  );
+  const weeklyWeight = getWeightConfig(
+    config?.resetAwareWeeklyWeight,
+    RESET_AWARE_DEFAULTS.weeklyWeight
+  );
+  const totalWeight = sessionWeight + weeklyWeight;
+  const normalizedSessionWeight = totalWeight > 0 ? sessionWeight / totalWeight : 0.35;
+
+  return {
+    sessionWeight: normalizedSessionWeight,
+    weeklyWeight: 1 - normalizedSessionWeight,
+    tieBand:
+      getPercentConfig(config?.resetAwareTieBandPercent, RESET_AWARE_DEFAULTS.tieBandPercent) / 100,
+    exhaustionGuard:
+      getPercentConfig(
+        config?.resetAwareExhaustionGuardPercent,
+        RESET_AWARE_DEFAULTS.exhaustionGuardPercent
+      ) / 100,
+  };
+}
+
+function isCodexTarget(target: ResolvedComboTarget): boolean {
+  const provider = (target.providerId || target.provider || "").toLowerCase();
+  return provider === "codex" || target.modelStr.toLowerCase().startsWith("codex/");
+}
+
+function getQuotaWindow(
+  quota: unknown,
+  key: "window5h" | "window7d"
+): { percentUsed: number | null; resetAt: string | null } | null {
+  if (!isRecord(quota)) return null;
+  const window = quota[key];
+  if (!isRecord(window)) return null;
+  const percentUsed = finiteNumberOrNull(window.percentUsed);
+  const resetAt =
+    typeof window.resetAt === "string" && window.resetAt.length > 0 ? window.resetAt : null;
+  return { percentUsed, resetAt };
+}
+
+function getResetUrgency(resetAt: string | null | undefined, windowMs: number): number {
+  if (!resetAt) return 0.5;
+  const resetTime = new Date(resetAt).getTime();
+  if (!Number.isFinite(resetTime)) return 0.5;
+  const msUntilReset = resetTime - Date.now();
+  if (msUntilReset <= 0) return 1;
+  return clamp01(1 - msUntilReset / windowMs);
+}
+
+function scoreQuotaWindow(
+  remaining: number,
+  resetAt: string | null | undefined,
+  windowMs: number
+): number {
+  return (
+    RESET_AWARE_REMAINING_WEIGHT * clamp01(remaining) +
+    RESET_AWARE_RESET_WEIGHT * getResetUrgency(resetAt, windowMs)
+  );
+}
+
+function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveResetAwareConfig>) {
+  if (!quota || !isRecord(quota)) return { score: 0.5 };
+  if (quota.limitReached === true) return { score: -Infinity };
+
+  const overallPercentUsed = clamp01(finiteNumberOrNull(quota.percentUsed) ?? 0.5);
+  const sessionWindow = getQuotaWindow(quota, "window5h");
+  const weeklyWindow = getQuotaWindow(quota, "window7d");
+  const sessionRemaining = clamp01(1 - (sessionWindow?.percentUsed ?? overallPercentUsed));
+  const weeklyRemaining = clamp01(1 - (weeklyWindow?.percentUsed ?? overallPercentUsed));
+  const sessionScore = scoreQuotaWindow(
+    sessionRemaining,
+    sessionWindow?.resetAt,
+    RESET_AWARE_SESSION_WINDOW_MS
+  );
+  const weeklyScore = scoreQuotaWindow(
+    weeklyRemaining,
+    weeklyWindow?.resetAt ?? (typeof quota.resetAt === "string" ? quota.resetAt : null),
+    RESET_AWARE_WEEKLY_WINDOW_MS
+  );
+  let score = config.sessionWeight * sessionScore + config.weeklyWeight * weeklyScore;
+
+  if (config.exhaustionGuard > 0 && sessionRemaining < config.exhaustionGuard) {
+    score *= Math.max(0.05, sessionRemaining / config.exhaustionGuard);
+  }
+
+  return { score };
+}
+
+async function getCodexConnectionsForTarget(
+  target: ResolvedComboTarget,
+  connectionCache: Map<string, Array<Record<string, unknown>>>
+) {
+  if (!isCodexTarget(target)) return [];
+  const provider = target.providerId || target.provider;
+  if (!provider) return [];
+  if (!connectionCache.has(provider)) {
+    try {
+      const connections = await getProviderConnections({ provider, isActive: true });
+      connectionCache.set(
+        provider,
+        Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
+      );
+    } catch {
+      connectionCache.set(provider, []);
+    }
+  }
+  return connectionCache.get(provider) || [];
+}
+
+function getTargetConnectionIds(
+  target: ResolvedComboTarget,
+  connections: Array<Record<string, unknown>>
+): string[] {
+  if (target.connectionId) return [target.connectionId];
+  if (Array.isArray(target.allowedConnectionIds) && target.allowedConnectionIds.length > 0) {
+    return target.allowedConnectionIds.filter(
+      (connectionId): connectionId is string =>
+        typeof connectionId === "string" && connectionId.trim().length > 0
+    );
+  }
+  return connections
+    .map((connection) => (typeof connection.id === "string" ? connection.id : null))
+    .filter((connectionId): connectionId is string => !!connectionId);
+}
+
+async function orderTargetsByResetAwareQuota(
+  targets: ResolvedComboTarget[],
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void }
+) {
+  if (targets.length === 0) return targets;
+
+  const config = resolveResetAwareConfig(configSource);
+  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionById = new Map<string, Record<string, unknown>>();
+  const expandedTargets: ResolvedComboTarget[] = [];
+
+  for (const target of targets) {
+    const connections = await getCodexConnectionsForTarget(target, connectionCache);
+    for (const connection of connections) {
+      if (typeof connection.id === "string") connectionById.set(connection.id, connection);
+    }
+
+    const connectionIds = getTargetConnectionIds(target, connections);
+    if (connectionIds.length === 0) {
+      expandedTargets.push(target);
+      continue;
+    }
+
+    for (const connectionId of connectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey:
+          target.connectionId === connectionId
+            ? target.executionKey
+            : `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+
+  const scoredTargets = await Promise.all(
+    expandedTargets.map(async (target, index) => {
+      let quota: unknown = null;
+      if (isCodexTarget(target) && target.connectionId) {
+        try {
+          quota = await fetchCodexQuota(
+            target.connectionId,
+            connectionById.get(target.connectionId)
+          );
+        } catch (error) {
+          log.warn?.(
+            "COMBO",
+            `Reset-aware quota fetch failed for connection=${target.connectionId}: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+      const { score } = scoreResetAwareQuota(quota, config);
+      return { target, score, index };
+    })
+  );
+
+  scoredTargets.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.index - b.index;
+  });
+
+  const bestScore = scoredTargets[0]?.score ?? 0;
+  const tiedTargets = scoredTargets.filter((entry) => bestScore - entry.score <= config.tieBand);
+  let orderedTiedTargets = tiedTargets;
+  if (tiedTargets.length > 1) {
+    const key = `reset-aware:${comboName}`;
+    const counter = rrCounters.get(key) || 0;
+    rrCounters.set(key, counter + 1);
+    const startIndex = counter % tiedTargets.length;
+    orderedTiedTargets = [...tiedTargets.slice(startIndex), ...tiedTargets.slice(0, startIndex)];
+  }
+
+  const tiedExecutionKeys = new Set(orderedTiedTargets.map((entry) => entry.target.executionKey));
+  return [
+    ...orderedTiedTargets,
+    ...scoredTargets.filter((entry) => !tiedExecutionKeys.has(entry.target.executionKey)),
+  ].map((entry) => entry.target);
 }
 
 function toTextContent(content) {
@@ -1482,6 +1724,12 @@ export async function handleComboChat({
   } else if (strategy === "cost-optimized") {
     orderedTargets = await sortTargetsByCost(orderedTargets);
     log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
+  } else if (strategy === "reset-aware") {
+    orderedTargets = await orderTargetsByResetAwareQuota(orderedTargets, combo.name, config, log);
+    log.info(
+      "COMBO",
+      `Reset-aware ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`
+    );
   } else if (strategy === "context-optimized") {
     orderedTargets = sortTargetsByContextSize(orderedTargets);
     log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);

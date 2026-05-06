@@ -1396,6 +1396,8 @@
     "randomDesc": "Einheitliche Zufallsauswahl, dann Rückgriff auf verbleibende Modelle",
     "leastUsedDesc": "Wählt das Modell mit den wenigsten Anfragen aus und gleicht die Last über die Zeit aus",
     "costOptimizedDesc": "Leitet basierend auf dem Preis zuerst zum günstigsten Modell weiter",
+    "resetAware": "Reset-Aware RR",
+    "resetAwareDesc": "Gewichtet Restquote gegen 5h- und Wochen-Resets und rotiert ähnliche Scores per Round Robin",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each model once before reshuffling",
     "models": "Modelle",
@@ -1446,6 +1448,11 @@
         "when": "Kostenreduzierung steht für Sie an erster Stelle.",
         "avoid": "Preisdaten fehlen oder sind veraltet.",
         "example": "Hintergrund- oder Batch-Jobs, bei denen geringere Kosten bevorzugt werden."
+      },
+      "reset-aware": {
+        "when": "Du routest über mehrere Codex-Konten mit unterschiedlichen 5h- und Wochen-Reset-Fenstern.",
+        "avoid": "Für die meisten Konten fehlen Quota-Telemetriedaten.",
+        "example": "Bevorzuge ein Konto mit 60 % Wochen-Restquote und Reset morgen vor 80 % mit späterem Reset."
       },
       "strict-random": {
         "when": "Use when you want perfectly even spread — each model used once before repeating.",
@@ -1554,6 +1561,13 @@
         "tip1": "Sichere Preisabdeckung für alle ausgewählten Modelle.",
         "tip2": "Behalte einen Qualitäts-Fallback für schwierige Prompts.",
         "tip3": "Ideal für Batch/Hintergrundjobs, bei denen Kosten das Haupt-KPI sind."
+      },
+      "reset-aware": {
+        "title": "Reset-bewusste Kontorotation",
+        "description": "Gewichtet verbleibende Codex-Quote gegen 5h- und Wochen-Reset-Zeitpunkte.",
+        "tip1": "Nutze explizite Codex-Kontoschritte oder kontobasiertes Tag-Routing.",
+        "tip2": "Passe 5h- und Wochengewichtung an, wenn kurzfristige Erschöpfung riskant ist.",
+        "tip3": "Halte das Tie-Band klein, damit gleichwertige Konten fair rotieren."
       },
       "strict-random": {
         "title": "Shuffle deck distribution",
@@ -2906,6 +2920,8 @@
     "leastUsedDesc": "Wählen Sie das zuletzt verwendete Konto aus",
     "costOpt": "Kosten Opt",
     "costOptDesc": "Bevorzugen Sie das günstigste verfügbare Konto",
+    "resetAware": "Reset-Aware RR",
+    "resetAwareDesc": "Bevorzugt Konten mit gesunder Restquote und näherem Reset",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each account once before reshuffling",
     "stickyLimit": "Sticky-Limit",

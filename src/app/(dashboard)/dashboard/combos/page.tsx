@@ -64,11 +64,14 @@ const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
 
 const STRATEGY_LABEL_FALLBACK = {
   "context-relay": "Context Relay",
+  "reset-aware": "Reset-Aware RR",
 };
 
 const STRATEGY_DESC_FALLBACK = {
   "context-relay":
     "Priority-style routing with automatic context handoffs when account rotation happens.",
+  "reset-aware":
+    "Quota remaining and reset windows decide the order; similar scores rotate round-robin.",
 };
 
 const STRATEGY_GUIDANCE_FALLBACK = {
@@ -107,6 +110,11 @@ const STRATEGY_GUIDANCE_FALLBACK = {
     when: "Use when minimizing cost is the top priority.",
     avoid: "Avoid when pricing data is missing or outdated.",
     example: "Example: Batch or background jobs where lower cost matters most.",
+  },
+  "reset-aware": {
+    when: "Use when multiple Codex accounts have different 5h and weekly reset windows.",
+    avoid: "Avoid when quota telemetry is unavailable for most accounts.",
+    example: "Example: Prefer a 60% weekly account resetting tomorrow over 80% that resets later.",
   },
   "fill-first": {
     when: "Use when you want to drain one provider's quota fully before moving to the next.",
@@ -228,6 +236,15 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
       "Ensure pricing coverage for all selected models.",
       "Keep a quality fallback for hard prompts.",
       "Use for batch/background jobs where cost is the main KPI.",
+    ],
+  },
+  "reset-aware": {
+    title: "Reset-aware account rotation",
+    description: "Balances remaining Codex quota against 5h and weekly reset timing.",
+    tips: [
+      "Use explicit Codex account steps or account-tag routing.",
+      "Tune session vs weekly weights when short-term exhaustion is more risky.",
+      "Keep the tie band small so equivalent accounts still rotate fairly.",
     ],
   },
   "fill-first": {
@@ -439,6 +456,7 @@ function getStrategyBadgeClass(strategy) {
   if (strategy === "random") return "bg-purple-500/15 text-purple-600 dark:text-purple-400";
   if (strategy === "least-used") return "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400";
   if (strategy === "cost-optimized") return "bg-teal-500/15 text-teal-600 dark:text-teal-400";
+  if (strategy === "reset-aware") return "bg-lime-500/15 text-lime-700 dark:text-lime-300";
   if (strategy === "fill-first") return "bg-orange-500/15 text-orange-600 dark:text-orange-400";
   if (strategy === "p2c") return "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400";
   return "bg-blue-500/15 text-blue-600 dark:text-blue-400";
