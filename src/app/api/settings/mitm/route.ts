@@ -205,12 +205,14 @@ export async function PUT(request: Request) {
     if (typeof parsed.data.enabled === "boolean") {
       const { getCachedPassword, setCachedPassword, startMitm, stopMitm } =
         await import("@/mitm/manager");
+      const { isRoot } = await import("@/mitm/systemCommands");
       const isWin = process.platform === "win32";
+      const isRootUser = !isWin && isRoot();
       const sudoPassword = parsed.data.sudoPassword || getCachedPassword() || "";
 
       if (parsed.data.enabled) {
         const apiKey = await resolveApiKey(parsed.data.keyId || null, parsed.data.apiKey || null);
-        if (!apiKey || (!isWin && !sudoPassword)) {
+        if (!apiKey || (!isWin && !isRootUser && !sudoPassword)) {
           return NextResponse.json(
             { error: isWin ? "Missing apiKey" : "Missing apiKey or sudoPassword" },
             { status: 400 }
@@ -219,7 +221,7 @@ export async function PUT(request: Request) {
         await startMitm(apiKey, sudoPassword, { port: config.port });
         if (!isWin) setCachedPassword(sudoPassword);
       } else {
-        if (!isWin && !sudoPassword) {
+        if (!isWin && !isRootUser && !sudoPassword) {
           return NextResponse.json({ error: "Missing sudoPassword" }, { status: 400 });
         }
         await stopMitm(sudoPassword);
