@@ -18,6 +18,14 @@ export interface ModelSpec {
 }
 
 export const MODEL_SPECS: Record<string, ModelSpec> = {
+  "gpt-5.5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1050000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
     maxOutputTokens: 65536,

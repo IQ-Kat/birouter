@@ -3,6 +3,7 @@ import { getProviderConnections, getSettings } from "@/lib/localDb";
 import { buildHealthPayload } from "@/lib/monitoring/observability";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/monitoring/health — System health overview
@@ -13,7 +14,8 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 export async function GET() {
   try {
     const { getAllCircuitBreakerStatuses } = await import("@/shared/utils/circuitBreaker");
-    const { getAllRateLimitStatus } = await import("@omniroute/open-sse/services/rateLimitManager");
+    const { getAllRateLimitStatus, getLearnedLimits } =
+      await import("@omniroute/open-sse/services/rateLimitManager");
     const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
     const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
     const { getQuotaMonitorSummary, getQuotaMonitorSnapshots } =
@@ -25,6 +27,7 @@ export async function GET() {
     const connections = await getProviderConnections();
     const circuitBreakers = getAllCircuitBreakerStatuses();
     const rateLimitStatus = getAllRateLimitStatus();
+    const learnedLimits = getLearnedLimits();
     const lockouts = getAllModelLockouts();
     const quotaMonitorSummary = getQuotaMonitorSummary();
     const quotaMonitorMonitors = getQuotaMonitorSnapshots();
@@ -38,6 +41,7 @@ export async function GET() {
       connections,
       circuitBreakers,
       rateLimitStatus,
+      learnedLimits,
       lockouts,
       localProviders: getAllHealthStatuses(),
       inflightRequests: getInflightCount(),
@@ -60,7 +64,11 @@ export async function GET() {
  * Resets all provider circuit breakers to CLOSED state,
  * clearing failure counts and persisted state.
  */
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { resetAllCircuitBreakers, getAllCircuitBreakerStatuses } =
       await import("@/shared/utils/circuitBreaker");

@@ -1,8 +1,10 @@
 import {
   isAccountDeactivated,
   isCreditsExhausted,
+  isDailyQuotaExhausted,
   isOAuthInvalidToken,
 } from "./accountFallback.ts";
+import { getProviderCategory } from "../config/providerRegistry.ts";
 
 export function isEmptyContentResponse(responseBody: unknown): boolean {
   if (!responseBody || typeof responseBody !== "object") return false;
@@ -90,17 +92,37 @@ function responseBodyToString(responseBody: unknown): string {
   return "";
 }
 
-export function classifyProviderError(statusCode: number, responseBody: unknown): string | null {
+function shouldPreserveQuotaSignalsFor429(provider?: string | null): boolean {
+  if (!provider) return true;
+  return getProviderCategory(provider) === "oauth";
+}
+
+export function classifyProviderError(
+  statusCode: number,
+  responseBody: unknown,
+  provider?: string | null
+): string | null {
   const bodyStr = responseBodyToString(responseBody);
   const creditsExhausted = isCreditsExhausted(bodyStr);
   const accountDeactivated = isAccountDeactivated(bodyStr);
   const oauthInvalid = isOAuthInvalidToken(bodyStr);
+  const preserveQuota429 = shouldPreserveQuotaSignalsFor429(provider);
 
-  if (creditsExhausted && [400, 402, 403, 429].includes(statusCode)) {
+  if (creditsExhausted && [400, 402, 403].includes(statusCode)) {
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
+  if (creditsExhausted && statusCode === 429 && preserveQuota429) {
+    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+  }
+
+  // API-key providers route 429 cooldowns through the resilience-aware fallback layer.
+  // OAuth providers keep their existing quota semantics because some of them encode
+  // longer quota windows as 429 responses.
   if (statusCode === 429) {
+    if (preserveQuota429 && isDailyQuotaExhausted(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+    }
     return PROVIDER_ERROR_TYPES.RATE_LIMITED;
   }
 
@@ -120,6 +142,9 @@ export function classifyProviderError(statusCode: number, responseBody: unknown)
   if (statusCode === 403) {
     if (bodyStr.includes("has not been used in project")) {
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
+    }
+    if (provider && getProviderCategory(provider) === "apikey") {
+      return null;
     }
     return PROVIDER_ERROR_TYPES.FORBIDDEN;
   }

@@ -5,6 +5,28 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 type JsonRecord = Record<string, unknown>;
 const TOOL_CHOICE_ANY = ["a", "n", "y"].join("");
 
+/**
+ * Normalize tool input schema for OpenAI compatibility.
+ * OpenAI strict mode requires `properties: {}` on object-type schemas,
+ * even for zero-argument tools. Anthropic/MCP tools may omit it (#1898).
+ */
+function normalizeToolSchema(schema: unknown): Record<string, unknown> {
+  const fallback = { type: "object", properties: {} };
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) return fallback;
+  const s = schema as Record<string, unknown>;
+  if (s.type === "object" && !s.properties) {
+    return { ...s, properties: {} };
+  }
+  return s;
+}
+
+function normalizeOpenAIReasoningEffort(effort: unknown): string | undefined {
+  if (typeof effort !== "string") return undefined;
+  const normalized = effort.toLowerCase();
+  if (normalized === "max") return "xhigh";
+  return normalized || undefined;
+}
+
 // Convert Claude request to OpenAI format
 export function claudeToOpenAIRequest(model, body, stream) {
   const result: {
@@ -79,7 +101,7 @@ export function claudeToOpenAIRequest(model, body, stream) {
           function: {
             name,
             description: typeof tool.description === "string" ? tool.description : "", // fix: never null (#276)
-            parameters: tool.input_schema || { type: "object", properties: {} },
+            parameters: normalizeToolSchema(tool.input_schema),
           },
         };
       })
@@ -100,6 +122,27 @@ export function claudeToOpenAIRequest(model, body, stream) {
   // Tool choice
   if (body.tool_choice) {
     result.tool_choice = convertToolChoice(body.tool_choice);
+  }
+
+  // Reasoning effort: map Claude-side thinking controls to OpenAI reasoning_effort.
+  // Priority: output_config.effort (Claude Code) > thinking.budget_tokens (Claude native).
+  // Budget buckets match the reverse mapping in thinkingBudget.ts::setCustomBudget.
+  const outputEffort = normalizeOpenAIReasoningEffort(body.output_config?.effort) || "";
+  if (outputEffort) {
+    result.reasoning_effort = outputEffort;
+  } else if (body.thinking?.type === "enabled" && typeof body.thinking.budget_tokens === "number") {
+    const budget = body.thinking.budget_tokens;
+    if (budget <= 0) {
+      // disabled — leave reasoning_effort unset
+    } else if (budget <= 1024) {
+      result.reasoning_effort = "low";
+    } else if (budget <= 10240) {
+      result.reasoning_effort = "medium";
+    } else if (budget < 131072) {
+      result.reasoning_effort = "high";
+    } else {
+      result.reasoning_effort = "xhigh";
+    }
   }
 
   return result;

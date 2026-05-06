@@ -50,17 +50,19 @@ test("filterCombosByStrategyCategory returns expected combo subsets", () => {
 });
 
 test("combo strategies stay aligned between UI metadata and schema validation", async () => {
-  const { ROUTING_STRATEGIES } = await import("../../src/shared/constants/routingStrategies.ts");
+  const { ROUTING_STRATEGIES, ROUTING_STRATEGY_VALUES, normalizeRoutingStrategy } =
+    await import("../../src/shared/constants/routingStrategies.ts");
   const { comboStrategySchema, createComboSchema } =
     await import("../../src/shared/validation/schemas.ts");
+  const { comboSchema } = await import("../../src/shared/schemas/validation.ts");
+  const { setRoutingStrategyInput } = await import("../../open-sse/mcp-server/schemas/tools.ts");
   const strategyValues = ROUTING_STRATEGIES.map((strategy) => strategy.value);
 
-  assert.equal(strategyValues.length, 13);
-  assert.equal(new Set(strategyValues).size, 13);
+  assert.deepEqual(strategyValues, [...ROUTING_STRATEGY_VALUES]);
+  assert.equal(new Set(strategyValues).size, ROUTING_STRATEGY_VALUES.length);
   assert.equal(strategyValues.includes("auto"), true);
   assert.equal(strategyValues.includes("lkgp"), true);
-  assert.equal(comboStrategySchema.options.length, 13);
-  assert.equal(new Set(comboStrategySchema.options).size, 13);
+  assert.deepEqual(comboStrategySchema.options, [...ROUTING_STRATEGY_VALUES]);
 
   strategyValues.forEach((strategy) => {
     const parsed = createComboSchema.safeParse({
@@ -69,7 +71,26 @@ test("combo strategies stay aligned between UI metadata and schema validation", 
       strategy,
     });
     assert.equal(parsed.success, true, `schema should accept strategy ${strategy}`);
+    assert.equal(
+      comboSchema.safeParse({
+        name: `legacy-combo-${strategy}`,
+        model: "openai/gpt-4o-mini",
+        strategy,
+        nodes: [{ connectionId: crypto.randomUUID() }],
+      }).success,
+      true,
+      `legacy combo schema should accept strategy ${strategy}`
+    );
+    assert.equal(
+      setRoutingStrategyInput.safeParse({ comboId: "combo", strategy }).success,
+      true,
+      `MCP set strategy schema should accept ${strategy}`
+    );
   });
+
+  assert.equal(normalizeRoutingStrategy("usage"), "least-used");
+  assert.equal(normalizeRoutingStrategy("context"), "context-optimized");
+  assert.equal(normalizeRoutingStrategy("unknown"), "priority");
 
   const invalidParse = createComboSchema.safeParse({
     name: "combo-invalid",
@@ -128,29 +149,40 @@ test("sidebar visibility excludes the removed auto-combo item", async () => {
   assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo", "home"]), ["home"]);
 });
 
-test("intelligent routing helpers normalize config and health state", () => {
+test("intelligent routing helpers normalize config and build provider scores", () => {
   const normalizedConfig = intelligentRouting.normalizeIntelligentRoutingConfig({
     candidatePool: ["openai", "anthropic"],
     explorationRate: "0.25",
+    modePack: "",
+    routerStrategy: "",
     weights: { quota: 0.4 },
   });
 
   assert.deepEqual(normalizedConfig.candidatePool, ["openai", "anthropic"]);
   assert.equal(normalizedConfig.explorationRate, 0.25);
+  assert.equal(normalizedConfig.modePack, "ship-fast");
+  assert.equal(normalizedConfig.routerStrategy, "rules");
   assert.equal(normalizedConfig.weights.quota, 0.4);
   assert.equal(
     normalizedConfig.weights.health,
     intelligentRouting.DEFAULT_INTELLIGENT_WEIGHTS.health
   );
 
-  const healthState = intelligentRouting.extractIntelligentHealthState({
-    circuitBreakers: [
-      { provider: "openai", state: "OPEN", lastFailure: "2026-04-12T12:00:00Z" },
-      { provider: "anthropic", state: "OPEN", lastFailure: "2026-04-12T12:01:00Z" },
-      { provider: "google", state: "CLOSED" },
-    ],
+  const providerScores = intelligentRouting.buildIntelligentProviderScores({
+    config: normalizedConfig,
   });
 
-  assert.equal(healthState.incidentMode, true);
-  assert.equal(healthState.exclusions.length, 2);
+  assert.equal(providerScores.length, 2);
+  assert.deepEqual(
+    providerScores.map((entry) => ({
+      provider: entry.provider,
+      model: entry.model,
+      score: entry.score,
+      quotaWeight: entry.factors.quota,
+    })),
+    [
+      { provider: "openai", model: "auto", score: 0.5, quotaWeight: 0.4 },
+      { provider: "anthropic", model: "auto", score: 0.5, quotaWeight: 0.4 },
+    ]
+  );
 });

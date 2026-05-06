@@ -4,9 +4,13 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "api-manager",
   "providers",
   "combos",
+  "batch",
   "costs",
   "analytics",
   "cache",
+  "context-caveman",
+  "context-rtk",
+  "context-combos",
   "limits",
   "cli-tools",
   "agents",
@@ -17,15 +21,18 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "media",
   "search-tools",
   "logs",
-  "health",
   "audit",
+  "webhooks",
+  "health",
+  "proxy",
   "settings",
   "docs",
   "issues",
+  "changelog",
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
-export type SidebarSectionId = "primary" | "cli" | "debug" | "system" | "help";
+export type SidebarSectionId = "primary" | "context" | "cli" | "debug" | "system" | "help";
 
 export interface SidebarItemDefinition {
   id: HideableSidebarItemId;
@@ -51,6 +58,7 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
   { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
   { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
+  { id: "batch", href: "/dashboard/batch", i18nKey: "batch", icon: "view_list" },
   { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
   { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
   { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
@@ -63,6 +71,27 @@ const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
   { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
   { id: "skills", href: "/dashboard/skills", i18nKey: "skills", icon: "auto_fix_high" },
+];
+
+const CONTEXT_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  {
+    id: "context-caveman",
+    href: "/dashboard/context/caveman",
+    i18nKey: "contextCaveman",
+    icon: "compress",
+  },
+  {
+    id: "context-rtk",
+    href: "/dashboard/context/rtk",
+    i18nKey: "contextRtk",
+    icon: "filter_alt",
+  },
+  {
+    id: "context-combos",
+    href: "/dashboard/context/combos",
+    i18nKey: "contextCombos",
+    icon: "hub",
+  },
 ];
 
 const DEBUG_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
@@ -78,8 +107,10 @@ const DEBUG_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
 
 const SYSTEM_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "logs", href: "/dashboard/logs", i18nKey: "logs", icon: "description" },
+  { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "policy" },
+  { id: "webhooks", href: "/dashboard/webhooks", i18nKey: "webhooks", icon: "webhook" },
   { id: "health", href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
-  { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "history" },
+  { id: "proxy", href: "/dashboard/system/proxy", i18nKey: "proxy", icon: "dns" },
   { id: "settings", href: "/dashboard/settings", i18nKey: "settings", icon: "settings" },
 ];
 
@@ -92,6 +123,7 @@ const HELP_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "bug_report",
     external: true,
   },
+  { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog", icon: "campaign" },
 ];
 
 export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
@@ -101,6 +133,12 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     titleFallback: "Main",
     items: PRIMARY_SIDEBAR_ITEMS,
     showTitleInSidebar: false,
+  },
+  {
+    id: "context",
+    titleKey: "contextSection",
+    titleFallback: "Context & Cache",
+    items: CONTEXT_SIDEBAR_ITEMS,
   },
   {
     id: "cli",

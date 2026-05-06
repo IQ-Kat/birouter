@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 /**
  * Audio Speech Handler (TTS)
  *
@@ -28,6 +29,7 @@ import {
   isJsonObject,
   parseKieResultJson,
 } from "../utils/kieTask.ts";
+import { signAwsRequest } from "../utils/awsSigV4.ts";
 
 /**
  * Return a CORS error response from an upstream fetch failure
@@ -56,7 +58,7 @@ function upstreamErrorResponse(res, errText) {
     { error: { message: errorMessage, code: res.status } },
     {
       status: res.status,
-      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+      headers: { ...CORS_HEADERS },
     }
   );
 }
@@ -69,8 +71,8 @@ function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
   return new Response(res.body, {
     status: 200,
     headers: {
+      ...CORS_HEADERS,
       "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
       "Transfer-Encoding": "chunked",
     },
   });
@@ -167,6 +169,125 @@ function isValidPathSegment(segment: string): boolean {
   return !segment.includes("..") && !segment.includes("//");
 }
 
+function getStringValue(value): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function getAwsPollyProviderData(credentials) {
+  return credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    !Array.isArray(credentials.providerSpecificData)
+    ? credentials.providerSpecificData
+    : {};
+}
+
+function resolveAwsPollyRegion(providerSpecificData) {
+  return (
+    getStringValue(providerSpecificData.region) ||
+    getStringValue(providerSpecificData.awsRegion) ||
+    process.env.AWS_REGION ||
+    process.env.AWS_DEFAULT_REGION ||
+    "us-east-1"
+  );
+}
+
+function resolveAwsPollyBaseUrl(providerSpecificData, region) {
+  const configuredBaseUrl = getStringValue(providerSpecificData.baseUrl);
+  const baseUrl = configuredBaseUrl || `https://polly.${region}.amazonaws.com`;
+  return stripTrailingSlashes(baseUrl.replace(/\/v1\/speech\/?$/i, ""));
+}
+
+function getProviderSpecificData(credentials) {
+  return credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    !Array.isArray(credentials.providerSpecificData)
+    ? credentials.providerSpecificData
+    : {};
+}
+
+function normalizeXiaomiMimoSpeechUrl(baseUrl) {
+  const configured = getStringValue(baseUrl) || "https://api.xiaomimimo.com/v1";
+  const normalized = stripTrailingSlashes(configured).replace(/\/chat\/completions$/i, "");
+  return `${normalized}/chat/completions`;
+}
+
+function normalizeXiaomiMimoMimeType(format) {
+  switch (getStringValue(format)?.toLowerCase()) {
+    case undefined:
+    case null:
+    case "mp3":
+    case "audio/mp3":
+    case "audio/mpeg":
+      return "audio/mpeg";
+    case "wav":
+    case "audio/wav":
+      return "audio/wav";
+    default:
+      return null;
+  }
+}
+
+function getXiaomiMimoAudioData(data) {
+  const messageAudio = data?.choices?.[0]?.message?.audio;
+  const directAudio = data?.audio || data?.output_audio;
+  const firstDataItem = Array.isArray(data?.data) ? data.data[0] : null;
+
+  return (
+    getStringValue(messageAudio?.data) ||
+    getStringValue(messageAudio?.b64_json) ||
+    getStringValue(directAudio?.data) ||
+    getStringValue(directAudio?.b64_json) ||
+    getStringValue(firstDataItem?.b64_json) ||
+    getStringValue(firstDataItem?.audio) ||
+    getStringValue(data?.audioContent) ||
+    getStringValue(data?.audio_content)
+  );
+}
+
+function normalizeAwsPollyEngine(modelId) {
+  const engine = getStringValue(modelId) || "standard";
+  return ["standard", "neural", "long-form", "generative"].includes(engine) ? engine : "standard";
+}
+
+function normalizeAwsPollyOutputFormat(responseFormat) {
+  const format = getStringValue(responseFormat)?.toLowerCase();
+  switch (format) {
+    case "pcm":
+    case "wav":
+      return "pcm";
+    case "opus":
+    case "ogg_opus":
+      return "ogg_opus";
+    case "ogg":
+    case "ogg_vorbis":
+      return "ogg_vorbis";
+    case "json":
+      return "json";
+    case "mp3":
+    default:
+      return "mp3";
+  }
+}
+
+function normalizeAwsPollyTextType(body) {
+  const explicitTextType = getStringValue(body.text_type || body.textType)?.toLowerCase();
+  if (explicitTextType === "ssml") return "ssml";
+  if (explicitTextType === "text") return "text";
+
+  const input = getStringValue(body.input) || "";
+  return input.trim().startsWith("<speak") ? "ssml" : "text";
+}
+
+function getAwsPollySampleRate(responseFormat, sampleRate) {
+  const explicit = getStringValue(sampleRate || null);
+  if (explicit) return explicit;
+
+  const outputFormat = normalizeAwsPollyOutputFormat(responseFormat);
+  if (outputFormat === "ogg_opus") return "48000";
+  if (outputFormat === "pcm") return "16000";
+  return undefined;
+}
+
 /**
  * Handle Hyperbolic TTS (returns base64 audio in JSON)
  */
@@ -192,7 +313,6 @@ async function handleHyperbolicSpeech(providerConfig, body, token) {
     status: 200,
     headers: {
       "Content-Type": "audio/mpeg",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -338,7 +458,6 @@ async function handleInworldSpeech(providerConfig, body, modelId, token) {
     status: 200,
     headers: {
       "Content-Type": mimeType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -418,7 +537,6 @@ async function handlePlayHtSpeech(providerConfig, body, modelId, token) {
  */
 async function handleKieAudioSpeech(providerConfig, body, modelId, token) {
   const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
-
   const voice = normalizeKieElevenLabsVoice(body.voice);
 
   const payload = {
@@ -453,12 +571,12 @@ async function handleKieAudioSpeech(providerConfig, body, modelId, token) {
       },
       {
         status,
-        headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+        headers: { ...CORS_HEADERS },
       }
     );
   }
-  const taskId = data?.data?.taskId || data?.taskId;
 
+  const taskId = data?.data?.taskId || data?.taskId;
   if (taskId) {
     return pollKieAudioResult(baseUrl, modelId, taskId, token);
   }
@@ -479,6 +597,7 @@ async function handleKieAudioSpeech(providerConfig, body, modelId, token) {
  * Internal polling for Kie.ai async audio tasks
  */
 async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
+  void modelId;
   const statusUrl = kieExecutor.getTaskStatusUrl(baseUrl);
   try {
     const { data, state } = await kieExecutor.pollTask({
@@ -508,6 +627,133 @@ async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
 }
 
 /**
+ * Handle AWS Polly TTS
+ * POST /v1/speech signed with AWS SigV4.
+ * The configured apiKey stores AWS Secret Access Key; providerSpecificData.accessKeyId stores
+ * AWS Access Key ID, with optional region/baseUrl/defaultVoice/sessionToken.
+ */
+async function handleAwsPollySpeech(providerConfig, body, modelId, token, credentials) {
+  const providerSpecificData = getAwsPollyProviderData(credentials);
+  const accessKeyId =
+    getStringValue(providerSpecificData.accessKeyId) ||
+    getStringValue(providerSpecificData.awsAccessKeyId);
+  const secretAccessKey = getStringValue(token);
+
+  if (!accessKeyId) {
+    return errorResponse(400, "AWS Polly requires providerSpecificData.accessKeyId");
+  }
+  if (!secretAccessKey) {
+    return errorResponse(401, "No AWS Secret Access Key for AWS Polly");
+  }
+
+  const region = resolveAwsPollyRegion(providerSpecificData);
+  const baseUrl = resolveAwsPollyBaseUrl(providerSpecificData, region);
+  const url = `${baseUrl}/v1/speech`;
+  const outputFormat = normalizeAwsPollyOutputFormat(body.response_format);
+  const sampleRate = getAwsPollySampleRate(
+    body.response_format,
+    body.sample_rate || body.sampleRate
+  );
+
+  const requestBody = {
+    Engine: normalizeAwsPollyEngine(modelId),
+    OutputFormat: outputFormat,
+    Text: body.input,
+    TextType: normalizeAwsPollyTextType(body),
+    VoiceId:
+      getStringValue(body.voice) || getStringValue(providerSpecificData.defaultVoice) || "Joanna",
+    ...(getStringValue(body.language_code || body.languageCode)
+      ? { LanguageCode: getStringValue(body.language_code || body.languageCode) }
+      : {}),
+    ...(sampleRate ? { SampleRate: sampleRate } : {}),
+  };
+  const serializedBody = JSON.stringify(requestBody);
+
+  const signedHeaders = signAwsRequest({
+    method: "POST",
+    url,
+    region,
+    service: "polly",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: serializedBody,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+      sessionToken:
+        getStringValue(providerSpecificData.sessionToken) ||
+        getStringValue(providerSpecificData.awsSessionToken),
+    },
+  });
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: signedHeaders,
+    body: serializedBody,
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  return audioStreamResponse(res, outputFormat === "pcm" ? "audio/pcm" : "audio/mpeg");
+}
+
+/**
+ * Xiaomi MiMo TTS uses chat/completions with an audio config instead of OpenAI's /audio/speech
+ * request body.
+ */
+async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials) {
+  const providerSpecificData = getProviderSpecificData(credentials);
+  const url = normalizeXiaomiMimoSpeechUrl(providerSpecificData.baseUrl || providerConfig.baseUrl);
+  const audioMimeType = normalizeXiaomiMimoMimeType(body.response_format);
+  if (!audioMimeType) {
+    return errorResponse(400, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...buildAuthHeaders(providerConfig, token),
+    },
+    body: JSON.stringify({
+      model: modelId,
+      messages: [{ role: "assistant", content: body.input }],
+      audio: {
+        format: audioMimeType,
+        voice: body.voice || getStringValue(providerSpecificData.defaultVoice) || "mimo_default",
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.startsWith("audio/")) {
+    return audioStreamResponse(res, audioMimeType);
+  }
+
+  const data = await res.json();
+  const audioBase64 = getXiaomiMimoAudioData(data);
+  if (!audioBase64) {
+    return errorResponse(502, "Xiaomi MiMo TTS response did not contain audio data");
+  }
+
+  const audioBuffer = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+  return new Response(audioBuffer, {
+    status: 200,
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": audioMimeType,
+    },
+  });
+}
+
+/**
  * Handle Coqui TTS (local, no auth)
  * POST {baseUrl} with { text, speaker_id } → WAV audio
  */
@@ -530,7 +776,6 @@ async function handleCoquiSpeech(providerConfig, body) {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -558,7 +803,6 @@ async function handleTortoiseSpeech(providerConfig, body) {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -598,7 +842,7 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, kie, aws-polly, xiaomi-mimo, coqui, tortoise, qwen`
     );
   }
 
@@ -645,6 +889,14 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "kie-audio") {
       return handleKieAudioSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "aws-polly") {
+      return handleAwsPollySpeech(providerConfig, body, modelId, token, credentials);
+    }
+
+    if (providerConfig.format === "xiaomi-mimo-tts") {
+      return handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials);
     }
 
     if (providerConfig.format === "coqui") {

@@ -1,4 +1,4 @@
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS, getCorsOrigin } from "../utils/cors.ts";
 import { Buffer } from "node:buffer";
 /**
  * Audio Transcription Handler
@@ -53,7 +53,7 @@ function upstreamErrorResponse(res, errText) {
     { error: { message: errorMessage, code: res.status } },
     {
       status: res.status,
-      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+      headers: { ...CORS_HEADERS },
     }
   );
 }
@@ -154,7 +154,7 @@ async function handleDeepgramTranscription(
   // Return it explicitly so the client can distinguish from a credentials error
   return Response.json(
     { text: text ?? "", noSpeechDetected: text === null || text === "" },
-    { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
+    { headers: { ...CORS_HEADERS } }
   );
 }
 
@@ -215,10 +215,7 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
     const result = await pollRes.json();
 
     if (result.status === "completed") {
-      return Response.json(
-        { text: result.text || "" },
-        { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
-      );
+      return Response.json({ text: result.text || "" }, { headers: { ...CORS_HEADERS } });
     }
 
     if (result.status === "error") {
@@ -252,7 +249,7 @@ async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
   // Normalize to { text } — Nvidia may return { text } directly or nested
   const text = data.text || data.transcript || "";
 
-  return Response.json({ text }, { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } });
+  return Response.json({ text }, { headers: { ...CORS_HEADERS } });
 }
 
 /**
@@ -283,7 +280,7 @@ async function handleHuggingFaceTranscription(providerConfig, file, modelId, tok
   // HuggingFace returns { text } directly
   const text = data.text || "";
 
-  return Response.json({ text }, { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } });
+  return Response.json({ text }, { headers: { ...CORS_HEADERS } });
 }
 
 /**
@@ -486,7 +483,7 @@ export async function handleAudioTranscription({
 
     return new Response(data, {
       status: 200,
-      headers: { "Content-Type": contentType, "Access-Control-Allow-Origin": getCorsOrigin() },
+      headers: { "Content-Type": contentType },
     });
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));

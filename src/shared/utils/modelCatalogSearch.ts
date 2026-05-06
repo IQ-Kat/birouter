@@ -1,4 +1,4 @@
-export type ModelCatalogSource = "system" | "custom" | "api-sync" | "fallback" | "alias";
+export type ModelCatalogSource = "system" | "custom" | "imported" | "fallback" | "alias";
 
 type ModelCatalogTarget = {
   modelId?: string | null;
@@ -14,10 +14,17 @@ function normalizeText(value: string | null | undefined): string {
 export function normalizeModelCatalogSource(source?: string | null): ModelCatalogSource {
   const normalized = normalizeText(source);
 
-  if (normalized === "api-sync" || normalized === "synced") return "api-sync";
+  if (
+    normalized === "api-sync" ||
+    normalized === "synced" ||
+    normalized === "auto-sync" ||
+    normalized === "imported"
+  ) {
+    return "imported";
+  }
   if (normalized === "fallback") return "fallback";
   if (normalized === "alias") return "alias";
-  if (normalized === "custom" || normalized === "manual" || normalized === "imported") {
+  if (normalized === "custom" || normalized === "manual") {
     return "custom";
   }
 
@@ -26,8 +33,8 @@ export function normalizeModelCatalogSource(source?: string | null): ModelCatalo
 
 export function getModelCatalogSourceLabel(source?: string | null): string {
   switch (normalizeModelCatalogSource(source)) {
-    case "api-sync":
-      return "Synced";
+    case "imported":
+      return "Imported";
     case "custom":
       return "Custom";
     case "fallback":
@@ -42,7 +49,7 @@ export function getModelCatalogSourceLabel(source?: string | null): string {
 
 function getModelCatalogSourceSearchText(source?: string | null): string {
   switch (normalizeModelCatalogSource(source)) {
-    case "api-sync":
+    case "imported":
       return "synced api imported discovered";
     case "custom":
       return "custom manual imported";

@@ -23,6 +23,7 @@ const { createStructuredSSECollector } =
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
+  detailedLogsDb.resetRequestDetailLogsTableExistsCache();
 
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
@@ -30,7 +31,7 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error) {
+    } catch (error: any) {
       if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
@@ -72,6 +73,24 @@ test("isDetailedLoggingEnabled follows the stored setting", async () => {
   assert.equal(await detailedLogsDb.isDetailedLoggingEnabled(), true);
 });
 
+test("legacy detailed log helpers tolerate databases without request_detail_logs", () => {
+  const db = core.getDbInstance();
+  db.exec("DROP TABLE request_detail_logs");
+
+  assert.doesNotThrow(() =>
+    detailedLogsDb.saveRequestDetailLog({
+      id: "missing-table-write",
+      call_log_id: "call-missing-table",
+      provider: "openai",
+      model: "gpt-4.1",
+    })
+  );
+  assert.deepEqual(detailedLogsDb.getRequestDetailLogs(), []);
+  assert.equal(detailedLogsDb.getRequestDetailLogCount(), 0);
+  assert.equal(detailedLogsDb.getRequestDetailLogById("missing-table-write"), null);
+  assert.equal(detailedLogsDb.getRequestDetailLogByCallLogId("call-missing-table"), null);
+});
+
 test("saveRequestDetailLog persists protected payloads and compacted stream summaries", () => {
   const collector = createStructuredSSECollector({ stage: "provider-response" });
   collector.push({
@@ -107,9 +126,9 @@ test("saveRequestDetailLog persists protected payloads and compacted stream summ
     token: "[REDACTED]",
   });
   assert.deepEqual(row.translated_request, { message: "hello" });
-  assert.equal(row.provider_response.id, "resp_123");
-  assert.equal(row.provider_response.output_text, "Hello world");
-  assert.deepEqual(row.provider_response._omniroute_stream, {
+  assert.equal((row.provider_response as any).id, "resp_123");
+  assert.equal((row as any).provider_response.output_text, "Hello world");
+  assert.deepEqual((row as any).provider_response._omniroute_stream, {
     format: "sse-json",
     stage: "provider-response",
     eventCount: 1,

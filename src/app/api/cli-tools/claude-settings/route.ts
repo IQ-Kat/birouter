@@ -3,12 +3,14 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import {
   ensureCliConfigWriteAllowed,
   getCliPrimaryConfigPath,
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
 import { createBackup } from "@/shared/services/backupService";
+import { normalizeClaudeBaseUrl } from "@/shared/services/claudeCliConfig";
 import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { cliSettingsEnvSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -32,7 +34,10 @@ const readSettings = async () => {
 };
 
 // GET - Check claude CLI and read current settings
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const runtime = await getCliRuntimeStatus("claude");
 
@@ -74,6 +79,9 @@ export async function GET() {
 
 // POST - Backup old fields and write new settings
 export async function POST(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -115,7 +123,7 @@ export async function POST(request: Request) {
           env.ANTHROPIC_AUTH_TOKEN = keyRecord.key as string;
         }
       } catch {
-        // Non-critical: fall back to whatever value was in env (e.g. sk_omniroute)
+        // Non-critical: fall back to whatever value was already provided in env.
       }
     }
 
@@ -139,11 +147,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Normalize ANTHROPIC_BASE_URL to ensure /v1 suffix
+    // Claude Code gateway mode expects the unified root endpoint, not a forced /v1 suffix.
     if (env.ANTHROPIC_BASE_URL) {
-      env.ANTHROPIC_BASE_URL = env.ANTHROPIC_BASE_URL.endsWith("/v1")
-        ? env.ANTHROPIC_BASE_URL
-        : `${env.ANTHROPIC_BASE_URL}/v1`;
+      env.ANTHROPIC_BASE_URL = normalizeClaudeBaseUrl(env.ANTHROPIC_BASE_URL);
     }
 
     // Merge new env with existing settings
@@ -179,6 +185,7 @@ export async function POST(request: Request) {
 const RESET_ENV_KEYS = [
   "ANTHROPIC_BASE_URL",
   "ANTHROPIC_AUTH_TOKEN",
+  "ANTHROPIC_API_KEY",
   "ANTHROPIC_DEFAULT_OPUS_MODEL",
   "ANTHROPIC_DEFAULT_SONNET_MODEL",
   "ANTHROPIC_DEFAULT_HAIKU_MODEL",
@@ -186,7 +193,10 @@ const RESET_ENV_KEYS = [
 ];
 
 // DELETE - Reset settings (remove env fields)
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const authError = await requireCliToolsAuth(request);
+  if (authError) return authError;
+
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
     if (writeGuard) {

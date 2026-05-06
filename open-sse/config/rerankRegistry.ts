@@ -45,13 +45,65 @@ export const RERANK_PROVIDERS = {
     authHeader: "bearer",
     models: [{ id: "accounts/fireworks/models/nomic-rerank-v1", name: "Nomic Rerank v1" }],
   },
+
+  "voyage-ai": {
+    id: "voyage-ai",
+    baseUrl: "https://api.voyageai.com/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "rerank-2.5", name: "Rerank 2.5" },
+      { id: "rerank-2.5-lite", name: "Rerank 2.5 Lite" },
+      { id: "rerank-2", name: "Rerank 2" },
+      { id: "rerank-2-lite", name: "Rerank 2 Lite" },
+      { id: "rerank-1", name: "Rerank 1" },
+      { id: "rerank-lite-1", name: "Rerank Lite 1" },
+    ],
+  },
+
+  "jina-ai": {
+    id: "jina-ai",
+    baseUrl: "https://api.jina.ai/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "jina-reranker-v3", name: "Jina Reranker v3" },
+      { id: "jina-reranker-m0", name: "Jina Reranker m0" },
+    ],
+  },
 };
+
+const RERANK_PROVIDER_ALIASES = {
+  jina: "jina-ai",
+  voyage: "voyage-ai",
+};
+
+function resolveRerankProviderId(providerId) {
+  return RERANK_PROVIDER_ALIASES[providerId] || providerId;
+}
+
+function normalizeProviderScopedModelId(providerId, modelId) {
+  const resolvedProvider = resolveRerankProviderId(providerId);
+  const provider = RERANK_PROVIDERS[resolvedProvider];
+  if (provider?.models.some((model) => model.id === modelId)) return modelId;
+
+  const providerScopedModelId = `${resolvedProvider}/${modelId}`;
+  if (provider?.models.some((model) => model.id === providerScopedModelId)) {
+    return providerScopedModelId;
+  }
+
+  return modelId.startsWith(`${providerId}/`) ? modelId.slice(providerId.length + 1) : modelId;
+}
+
+function toProviderScopedModelId(providerId, modelId) {
+  return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
+}
 
 /**
  * Get rerank provider config by ID
  */
 export function getRerankProvider(providerId) {
-  return RERANK_PROVIDERS[providerId] || null;
+  return RERANK_PROVIDERS[resolveRerankProviderId(providerId)] || null;
 }
 
 /**
@@ -61,10 +113,25 @@ export function getRerankProvider(providerId) {
 export function parseRerankModel(modelStr) {
   if (!modelStr) return { provider: null, model: null };
 
+  const slashIdx = modelStr.indexOf("/");
+  if (slashIdx > 0) {
+    const rawProvider = modelStr.slice(0, slashIdx);
+    const resolvedProvider = resolveRerankProviderId(rawProvider);
+    if (RERANK_PROVIDERS[resolvedProvider]) {
+      return {
+        provider: resolvedProvider,
+        model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
+      };
+    }
+  }
+
   // Try each provider prefix
   for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {
-      return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
+      return {
+        provider: providerId,
+        model: normalizeProviderScopedModelId(providerId, modelStr.slice(providerId.length + 1)),
+      };
     }
   }
 
@@ -86,7 +153,7 @@ export function getAllRerankModels() {
   for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
-        id: `${providerId}/${model.id}`,
+        id: toProviderScopedModelId(providerId, model.id),
         name: model.name,
         provider: providerId,
       });

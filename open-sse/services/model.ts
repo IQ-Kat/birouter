@@ -26,12 +26,12 @@ const PROVIDER_MODEL_ALIASES = {
     "raptor-mini": "oswe-vscode-prime",
   },
   gemini: {
-    "gemini-3.1-pro-preview": "gemini-3.1-pro",
-    "gemini-3-1-pro": "gemini-3.1-pro",
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",
+    "gemini-3-1-pro": "gemini-3.1-pro-preview",
   },
   "gemini-cli": {
-    "gemini-3.1-pro-preview": "gemini-3.1-pro",
-    "gemini-3-1-pro": "gemini-3.1-pro",
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",
+    "gemini-3-1-pro": "gemini-3.1-pro-preview",
   },
   nvidia: {
     "gpt-oss-120b": "openai/gpt-oss-120b",
@@ -73,6 +73,7 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
+const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
 
 /**
  * Resolve provider alias to provider ID
@@ -276,6 +277,16 @@ function parseAliasTarget(target) {
 function resolveModelByProviderInference(modelId, extendedContext) {
   const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
 
+  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
+
+  if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
+    return {
+      provider: "codex",
+      model: modelId,
+      extendedContext,
+    };
+  }
+
   // Preserve historical behavior: OpenAI stays default when model exists there
   if (providers.includes("openai")) {
     return {
@@ -285,7 +296,6 @@ function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
   if (nonOpenAIProviders.length === 1) {
     const provider = nonOpenAIProviders[0];
     const canonicalModel = resolveProviderModelAlias(provider, modelId);
@@ -365,7 +375,10 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
 
   // T13: Try wildcard alias (glob patterns like "claude-sonnet-*" → "anthropic/claude-sonnet-4-...")
   if (aliases && typeof aliases === "object") {
-    const aliasEntries = Object.entries(aliases).map(([pattern, target]) => ({ pattern, target }));
+    const aliasEntries = Object.entries(aliases).map(([pattern, target]) => ({
+      pattern,
+      target: target as string,
+    }));
     const wildcardMatch = resolveWildcardAlias(parsed.model, aliasEntries);
     if (wildcardMatch) {
       const target = wildcardMatch.target as string;

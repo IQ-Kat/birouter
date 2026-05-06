@@ -5,6 +5,7 @@ import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/comp
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
+import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
@@ -104,7 +105,12 @@ export default function KiloToolCard({
         await fetchBackups();
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || t("failedRestoreBackup") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedRestoreBackup"),
+        });
       }
     } catch (e) {
       setMessage({ type: "error", text: e.message });
@@ -128,7 +134,7 @@ export default function KiloToolCard({
 
   const getEffectiveBaseUrl = () => {
     if (customBaseUrl) return customBaseUrl;
-    return baseUrl || "http://localhost:20128";
+    return baseUrl || DEFAULT_DISPLAY_BASE_URL;
   };
 
   const handleApply = async () => {
@@ -159,7 +165,10 @@ export default function KiloToolCard({
         await checkKiloStatus();
         await fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failed") });
+        setMessage({
+          type: "error",
+          text: (typeof data.error === "string" ? data.error : data.error?.message) || t("failed"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -181,7 +190,10 @@ export default function KiloToolCard({
         await checkKiloStatus();
         await fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failed") });
+        setMessage({
+          type: "error",
+          text: (typeof data.error === "string" ? data.error : data.error?.message) || t("failed"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });

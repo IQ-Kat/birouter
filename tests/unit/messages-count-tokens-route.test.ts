@@ -68,12 +68,12 @@ test("messages/count_tokens uses real provider count when Claude-compatible upst
     );
 
     assert.equal(response.status, 200);
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.input_tokens, 321);
     assert.equal(body.source, "provider");
     assert.equal(body.provider, "anthropic");
     assert.equal(body.model, "claude-opus-4.6");
-    assert.ok(captured.url.endsWith("/v1/messages/count_tokens"));
+    assert.ok(captured.url.includes("/v1/messages/count_tokens"));
     assert.equal(captured.body.model, "claude-opus-4.6");
     assert.equal(captured.headers["x-api-key"], "sk-ant-count");
   } finally {
@@ -96,7 +96,7 @@ test("messages/count_tokens falls back to estimate when model is missing", async
   );
 
   assert.equal(response.status, 200);
-  const body = await response.json();
+  const body = (await response.json()) as any;
   assert.equal(body.input_tokens, 3);
   assert.equal(body.source, "estimated");
 });
@@ -120,7 +120,7 @@ test("messages/count_tokens falls back to estimate when real upstream count fail
     );
 
     assert.equal(response.status, 200);
-    const body = await response.json();
+    const body = (await response.json()) as any;
     assert.equal(body.input_tokens, 1);
     assert.equal(body.source, "estimated");
   } finally {

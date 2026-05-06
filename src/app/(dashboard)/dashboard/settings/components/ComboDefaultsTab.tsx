@@ -3,12 +3,22 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
-import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
+import {
+  ROUTING_STRATEGIES,
+  SETTINGS_FALLBACK_STRATEGY_VALUES,
+} from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
 const STRATEGY_LABEL_FALLBACKS: Record<string, string> = {
   "context-relay": "Context Relay",
 };
+
+const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
+  "timeoutMs",
+  "healthCheckEnabled",
+  "healthCheckTimeoutMs",
+]);
+const ACCOUNT_FALLBACK_STRATEGIES = new Set<string>(SETTINGS_FALLBACK_STRATEGY_VALUES);
 
 function translateOrFallback(
   t: ReturnType<typeof useTranslations>,
@@ -18,14 +28,42 @@ function translateOrFallback(
   return typeof t.has === "function" && t.has(key) ? t(key) : fallback;
 }
 
+function sanitizeComboRuntimeConfig(config?: Record<string, any> | null) {
+  if (!config || typeof config !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(config).filter(
+      ([key, value]) =>
+        value !== undefined && value !== null && !LEGACY_COMBO_RESILIENCE_KEYS.has(key)
+    )
+  );
+}
+
+function sanitizeProviderOverrides(overrides?: Record<string, any> | null) {
+  if (!overrides || typeof overrides !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(overrides).map(([providerId, config]) => [
+      providerId,
+      sanitizeComboRuntimeConfig(config),
+    ])
+  );
+}
+
+function toGlobalRoutingPatch(strategy: string | undefined, stickyRoundRobinLimit?: number) {
+  const patch: Record<string, unknown> = {};
+  if (strategy && ACCOUNT_FALLBACK_STRATEGIES.has(strategy)) {
+    patch.fallbackStrategy = strategy;
+  }
+  if (strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
+    patch.stickyRoundRobinLimit = stickyRoundRobinLimit;
+  }
+  return patch;
+}
+
 export default function ComboDefaultsTab() {
   const [comboDefaults, setComboDefaults] = useState<any>({
     strategy: "priority",
     maxRetries: 1,
     retryDelayMs: 2000,
-    timeoutMs: 120000,
-    healthCheckEnabled: true,
-    healthCheckTimeoutMs: 3000,
     maxComboDepth: 3,
     trackMetrics: true,
     handoffThreshold: 0.85,
@@ -54,7 +92,6 @@ export default function ComboDefaultsTab() {
   const numericSettings = [
     { key: "maxRetries", label: t("maxRetriesLabel"), min: 0, max: 5 },
     { key: "retryDelayMs", label: t("retryDelayLabel"), min: 500, max: 10000, step: 500 },
-    { key: "timeoutMs", label: t("timeoutLabel"), min: 5000, step: 5000 },
     { key: "maxComboDepth", label: t("maxNestingDepth"), min: 1, max: 10 },
   ];
 
@@ -66,15 +103,17 @@ export default function ComboDefaultsTab() {
       .then(([comboData, settingsData]) => {
         setComboDefaults((prev) => ({
           ...prev,
-          ...(comboData.comboDefaults || {}),
+          ...sanitizeComboRuntimeConfig(comboData.comboDefaults),
           strategy:
-            settingsData.fallbackStrategy ?? comboData.comboDefaults?.strategy ?? prev.strategy,
+            comboData.comboDefaults?.strategy ?? settingsData.fallbackStrategy ?? prev.strategy,
           stickyRoundRobinLimit:
             settingsData.stickyRoundRobinLimit ??
             comboData.comboDefaults?.stickyRoundRobinLimit ??
             prev.stickyRoundRobinLimit,
         }));
-        if (comboData.providerOverrides) setProviderOverrides(comboData.providerOverrides);
+        if (comboData.providerOverrides) {
+          setProviderOverrides(sanitizeProviderOverrides(comboData.providerOverrides));
+        }
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
   }, []);
@@ -85,8 +124,7 @@ export default function ComboDefaultsTab() {
   };
 
   const syncGlobalRoutingSettings = async (patch: Record<string, unknown>) => {
-    const keys = Object.keys(patch);
-    if (keys.length === 0) return true;
+    if (Object.keys(patch).length === 0) return;
 
     const res = await fetch("/api/settings", {
       method: "PATCH",
@@ -97,26 +135,21 @@ export default function ComboDefaultsTab() {
     if (!res.ok) {
       throw new Error("Failed to sync global routing settings");
     }
-
-    return true;
   };
 
   const saveComboDefaults = async () => {
     setSaving(true);
     try {
       const { stickyRoundRobinLimit, ...comboDefaultsPayload } = comboDefaults;
-      const settingsPatch: Record<string, unknown> = {};
-      if (comboDefaults.strategy) {
-        settingsPatch.fallbackStrategy = comboDefaults.strategy;
-      }
-      if (comboDefaults.strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
-        settingsPatch.stickyRoundRobinLimit = stickyRoundRobinLimit;
-      }
+      const settingsPatch = toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit);
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comboDefaults: comboDefaultsPayload, providerOverrides }),
+        body: JSON.stringify({
+          comboDefaults: sanitizeComboRuntimeConfig(comboDefaultsPayload),
+          providerOverrides: sanitizeProviderOverrides(providerOverrides),
+        }),
       });
 
       if (!comboDefaultsRes.ok) {
@@ -136,7 +169,7 @@ export default function ComboDefaultsTab() {
   const addProviderOverride = () => {
     const name = newOverrideProvider.trim().toLowerCase();
     if (!name || providerOverrides[name]) return;
-    setProviderOverrides((prev) => ({ ...prev, [name]: { maxRetries: 1, timeoutMs: 120000 } }));
+    setProviderOverrides((prev) => ({ ...prev, [name]: { maxRetries: 1 } }));
     setNewOverrideProvider("");
   };
 
@@ -216,7 +249,7 @@ export default function ComboDefaultsTab() {
                 onClick={async () => {
                   setComboDefaults((prev) => ({ ...prev, strategy: s.value }));
                   try {
-                    await syncGlobalRoutingSettings({ fallbackStrategy: s.value });
+                    await syncGlobalRoutingSettings(toGlobalRoutingPatch(s.value));
                   } catch (error) {
                     console.error("Failed to sync fallback strategy:", error);
                     showStatus("error", t("errorOccurred"));
@@ -383,21 +416,6 @@ export default function ComboDefaultsTab() {
         <div className="flex flex-col gap-3 pt-3 border-t border-border/50">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-sm">{t("healthCheck")}</p>
-              <p className="text-xs text-text-muted">{t("healthCheckDesc")}</p>
-            </div>
-            <Toggle
-              checked={comboDefaults.healthCheckEnabled !== false}
-              onChange={() =>
-                setComboDefaults((prev) => ({
-                  ...prev,
-                  healthCheckEnabled: !prev.healthCheckEnabled,
-                }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
               <p className="font-medium text-sm">{t("trackMetrics")}</p>
               <p className="text-xs text-text-muted">{t("trackMetricsDesc")}</p>
             </div>
@@ -436,24 +454,6 @@ export default function ComboDefaultsTab() {
                 aria-label={t("providerMaxRetriesAria", { provider })}
               />
               <span className="text-[10px] text-text-muted">{t("retries")}</span>
-              <Input
-                type="number"
-                min="5000"
-                step="5000"
-                value={config.timeoutMs ?? 120000}
-                onChange={(e) =>
-                  setProviderOverrides((prev) => ({
-                    ...prev,
-                    [provider]: {
-                      ...prev[provider],
-                      timeoutMs: parseInt(e.target.value) || 120000,
-                    },
-                  }))
-                }
-                className="text-xs w-24"
-                aria-label={t("providerTimeoutAria", { provider })}
-              />
-              <span className="text-[10px] text-text-muted">{t("ms")}</span>
               <button
                 onClick={() => removeProviderOverride(provider)}
                 className="ml-auto text-red-400 hover:text-red-500 transition-colors"

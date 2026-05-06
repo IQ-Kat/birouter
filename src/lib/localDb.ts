@@ -79,6 +79,9 @@ export {
   deleteCombo,
 } from "./db/combos";
 
+export * from "./db/compressionCacheStats";
+export * from "./db/compressionCombos";
+
 export {
   // API Keys
   getApiKeys,
@@ -94,6 +97,27 @@ export {
 } from "./db/apiKeys";
 
 export {
+  // Evals
+  saveEvalRun,
+  listEvalRuns,
+  getEvalScorecard,
+  listCustomEvalSuites,
+  getCustomEvalSuite,
+  saveCustomEvalSuite,
+  deleteCustomEvalSuite,
+  serializeEvalTargetKey,
+} from "./db/evals";
+
+export type {
+  EvalCaseRecord,
+  EvalSuiteRecord,
+  EvalTargetType,
+  EvalTargetDescriptor,
+  EvalRunSummary,
+  PersistedEvalRun,
+} from "./db/evals";
+
+export {
   // Settings
   getSettings,
   updateSettings,
@@ -105,6 +129,7 @@ export {
 
   // Pricing
   getPricing,
+  getPricingWithSources,
   getPricingForModel,
   updatePricing,
   resetPricing,
@@ -119,12 +144,23 @@ export {
   setProxyConfig,
 } from "./db/settings";
 
+export type { PricingSource, PricingSourceMap } from "./db/settings";
+
+export {
+  getDatabaseSettings,
+  getUserDatabaseSettings,
+  updateDatabaseSettings,
+} from "./db/databaseSettings";
+
+export type { UserDatabaseSettings } from "./db/databaseSettings";
+
 export {
   // Proxy Registry
   listProxies,
   getProxyById,
   createProxy,
   updateProxy,
+  upsertProxy,
   deleteProxyById,
   getProxyAssignments,
   getProxyWhereUsed,
@@ -159,7 +195,7 @@ export {
 } from "./db/backup";
 
 export {
-  // Read Cache (cached wrappers for hot read paths)
+  // Read Cache (cached wrappers for hot-read paths)
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
@@ -202,6 +238,30 @@ export {
   resolveComboForModel,
 } from "./db/modelComboMappings";
 
+export {
+  // Files
+  createFile,
+  getFile,
+  getFileContent,
+  listFiles,
+  updateFileStatus,
+  formatFileResponse,
+  deleteFile,
+} from "./db/files";
+
+export {
+  // Batches
+  createBatch,
+  getBatch,
+  updateBatch,
+  listBatches,
+  getPendingBatches,
+  getTerminalBatches,
+} from "./db/batches";
+
+export type { FileRecord } from "./db/files";
+export type { BatchRecord } from "./db/batches";
+
 export type { ModelComboMapping } from "./db/modelComboMappings";
 
 export {
@@ -224,6 +284,8 @@ export {
   getAggregatedSnapshots,
   cleanupOldSnapshots,
 } from "./db/quotaSnapshots";
+
+export * from "./db/sessionAccountAffinity";
 
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
@@ -273,3 +335,37 @@ export {
   getAllPersistedCreditBalances,
   persistCreditBalance,
 } from "./db/creditBalance";
+
+export {
+  insertCompressionAnalyticsRow,
+  getCompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export type {
+  CompressionAnalyticsRow,
+  CompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export {
+  // Reasoning Replay Cache (#1628)
+  setReasoningCache,
+  getReasoningCache,
+  deleteReasoningCache,
+  clearAllReasoningCache,
+} from "./db/reasoningCache";
+
+export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";
+
+export {
+  // 1proxy Integration (#1788)
+  listOneproxyProxies,
+  getOneproxyStats,
+  upsertOneproxyProxy,
+  getOneproxyProxyById,
+  deleteOneproxyProxy,
+  clearAllOneproxyProxies,
+  getOneproxyProxyForRotation,
+  markOneproxyProxyFailed,
+} from "./db/oneproxy";
+
+export type { OneproxyProxyRecord, OneproxyStats } from "./db/oneproxy";

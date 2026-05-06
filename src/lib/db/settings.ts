@@ -8,10 +8,13 @@ import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.
 import { invalidateDbCache } from "./readCache";
 import { resolveProxyForConnectionFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
+import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
 type PricingByProvider = Record<string, PricingModels>;
+export type PricingSource = "default" | "litellm" | "modelsDev" | "user";
+export type PricingSourceMap = Record<string, Record<string, PricingSource>>;
 type ProxyValue = JsonRecord | string | null;
 type ProxyMap = Record<string, ProxyValue>;
 
@@ -44,15 +47,24 @@ export async function getSettings() {
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
   const settings: Record<string, unknown> = {
     cloudEnabled: false,
+    tailscaleEnabled: false,
+    tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
     requestRetry: 3,
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
+    mcpEnabled: false,
+    a2aEnabled: false,
     hiddenSidebarItems: [],
+    hideEndpointCloudflaredTunnel: false,
+    hideEndpointTailscaleFunnel: false,
+    hideEndpointNgrokTunnel: false,
+    comboConfigMode: "guided",
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
     wsAuth: false,
+    maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -113,73 +125,43 @@ export async function isCloudEnabled() {
 
 // ──────────────── Pricing ────────────────
 
-export async function getPricing() {
-  const db = getDbInstance();
+function readPricingNamespace(
+  db: ReturnType<typeof getDbInstance>,
+  namespace: string
+): PricingByProvider {
+  const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all(namespace);
+  const pricing: PricingByProvider = {};
 
-  // Layer 1: Hardcoded defaults (lowest priority)
-  const { getDefaultPricing } = await import("@/shared/constants/pricing");
-  const defaultPricing = getDefaultPricing();
-
-  // Layer 2: Synced external pricing from LiteLLM (middle-low priority)
-  const syncedRows = db
-    .prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing_synced'")
-    .all();
-  const syncedPricing: PricingByProvider = {};
-  for (const row of syncedRows) {
-    const record = toRecord(row);
-    const key = typeof record.key === "string" ? record.key : null;
-    const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || rawValue === null) continue;
-    syncedPricing[key] = toRecord(JSON.parse(rawValue)) as PricingModels;
-  }
-
-  // Layer 3: Synced pricing from models.dev (middle-high priority)
-  const modelsDevRows = db
-    .prepare("SELECT key, value FROM key_value WHERE namespace = 'models_dev_pricing'")
-    .all();
-  const modelsDevPricing: PricingByProvider = {};
-  for (const row of modelsDevRows) {
-    const record = toRecord(row);
-    const key = typeof record.key === "string" ? record.key : null;
-    const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || rawValue === null) continue;
-    try {
-      modelsDevPricing[key] = JSON.parse(rawValue) as PricingModels;
-    } catch {
-      // Corrupted data — skip silently, fallback to lower layers
-    }
-  }
-
-  // Layer 4: User overrides (highest priority)
-  const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing'").all();
-  const userPricing: PricingByProvider = {};
   for (const row of rows) {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
     if (!key || rawValue === null) continue;
-    userPricing[key] = toRecord(JSON.parse(rawValue)) as PricingModels;
+
+    try {
+      pricing[key] = toRecord(JSON.parse(rawValue)) as PricingModels;
+    } catch {
+      // Corrupted data — skip silently, fallback to lower layers
+    }
   }
 
-  // Merge: defaults → LiteLLM → models.dev → user (each layer overrides the previous)
+  return pricing;
+}
+
+function mergePricingLayers(layers: PricingByProvider[]): PricingByProvider {
   const mergedPricing: PricingByProvider = {};
 
-  // Start with defaults
-  for (const [provider, models] of Object.entries(defaultPricing) as Array<[string, unknown]>) {
-    mergedPricing[provider] = { ...(toRecord(models) as PricingModels) };
-  }
-
-  // Layer synced (LiteLLM), then models.dev, then user on top
-  for (const layer of [syncedPricing, modelsDevPricing, userPricing]) {
+  for (const layer of layers) {
     for (const [provider, models] of Object.entries(layer)) {
       if (!mergedPricing[provider]) {
         mergedPricing[provider] = { ...models };
-      } else {
-        for (const [model, pricing] of Object.entries(models)) {
-          mergedPricing[provider][model] = mergedPricing[provider][model]
-            ? { ...(mergedPricing[provider][model] || {}), ...toRecord(pricing) }
-            : pricing;
-        }
+        continue;
+      }
+
+      for (const [model, pricing] of Object.entries(models)) {
+        mergedPricing[provider][model] = mergedPricing[provider][model]
+          ? { ...(mergedPricing[provider][model] || {}), ...toRecord(pricing) }
+          : pricing;
       }
     }
   }
@@ -187,13 +169,84 @@ export async function getPricing() {
   return mergedPricing;
 }
 
+function buildPricingSourceMap(layers: {
+  defaults: PricingByProvider;
+  litellm: PricingByProvider;
+  modelsDev: PricingByProvider;
+  user: PricingByProvider;
+}): PricingSourceMap {
+  const sourceMap: PricingSourceMap = {};
+  const mergedPricing = mergePricingLayers([
+    layers.defaults,
+    layers.litellm,
+    layers.modelsDev,
+    layers.user,
+  ]);
+
+  for (const [provider, models] of Object.entries(mergedPricing)) {
+    sourceMap[provider] = {};
+
+    for (const model of Object.keys(models)) {
+      if (layers.user[provider]?.[model]) {
+        sourceMap[provider][model] = "user";
+      } else if (layers.modelsDev[provider]?.[model]) {
+        sourceMap[provider][model] = "modelsDev";
+      } else if (layers.litellm[provider]?.[model]) {
+        sourceMap[provider][model] = "litellm";
+      } else {
+        sourceMap[provider][model] = "default";
+      }
+    }
+  }
+
+  return sourceMap;
+}
+
+async function getPricingLayers() {
+  const db = getDbInstance();
+
+  // Layer 1: Hardcoded defaults (lowest priority)
+  const { getDefaultPricing } = await import("@/shared/constants/pricing");
+  return {
+    defaults: getDefaultPricing(),
+    litellm: readPricingNamespace(db, "pricing_synced"),
+    modelsDev: readPricingNamespace(db, "models_dev_pricing"),
+    user: readPricingNamespace(db, "pricing"),
+  };
+}
+
+export async function getPricing() {
+  const layers = await getPricingLayers();
+  // Merge: defaults → LiteLLM → models.dev → user (each layer overrides the previous)
+  return mergePricingLayers([layers.defaults, layers.litellm, layers.modelsDev, layers.user]);
+}
+
+export async function getPricingWithSources(): Promise<{
+  pricing: PricingByProvider;
+  sourceMap: PricingSourceMap;
+}> {
+  const layers = await getPricingLayers();
+  return {
+    pricing: mergePricingLayers([layers.defaults, layers.litellm, layers.modelsDev, layers.user]),
+    sourceMap: buildPricingSourceMap(layers),
+  };
+}
+
 export async function getPricingForModel(provider: string, model: string) {
   const pricing = await getPricing();
   if (pricing[provider]?.[model]) return pricing[provider][model];
 
   const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
+  // Check if provider is an ID -> map to ALIAS
   const alias = PROVIDER_ID_TO_ALIAS[provider];
   if (alias && pricing[alias]) return pricing[alias][model] || null;
+
+  // Check if provider is an ALIAS -> map to ID (search values)
+  for (const [id, mappedAlias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
+    if (mappedAlias === provider && pricing[id]?.[model]) {
+      return pricing[id][model];
+    }
+  }
 
   const np = provider?.replace(/-cn$/, "");
   if (np && np !== provider && pricing[np]) return pricing[np][model] || null;

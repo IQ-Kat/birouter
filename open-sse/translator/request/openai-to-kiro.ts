@@ -6,6 +6,27 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
 
+function parseToolInput(value: unknown) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value;
+  }
+  if (typeof value !== "string") {
+    return {};
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
@@ -123,7 +144,7 @@ function convertMessages(messages, tools, model) {
 
             pendingToolResults.push({
               toolUseId: block.tool_use_id,
-              status: "success",
+              status: "SUCCESS",
               content: [{ text: text }],
             });
           });
@@ -135,7 +156,7 @@ function convertMessages(messages, tools, model) {
         const toolContent = typeof msg.content === "string" ? msg.content : "";
         pendingToolResults.push({
           toolUseId: msg.tool_call_id,
-          status: "success",
+          status: "SUCCESS",
           content: [{ text: toolContent }],
         });
       } else if (content) {
@@ -183,16 +204,13 @@ function convertMessages(messages, tools, model) {
               return {
                 toolUseId: tc.id || uuidv4(),
                 name: tc.function.name,
-                input:
-                  typeof tc.function.arguments === "string"
-                    ? JSON.parse(tc.function.arguments)
-                    : tc.function.arguments || {},
+                input: parseToolInput(tc.function.arguments),
               };
             } else {
               return {
                 toolUseId: tc.id || uuidv4(),
                 name: tc.name,
-                input: tc.input || {},
+                input: parseToolInput(tc.input),
               };
             }
           });
@@ -211,6 +229,13 @@ function convertMessages(messages, tools, model) {
   // If last message in history is userInputMessage, use it as currentMessage
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
+  } else if (!currentMessage) {
+    currentMessage = {
+      userInputMessage: {
+        content: "Continue",
+        modelId: model,
+      },
+    };
   }
 
   const firstHistoryItem = history[0];

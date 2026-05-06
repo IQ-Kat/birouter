@@ -168,6 +168,12 @@ test("buildAuthHeaders: returns Token header for token authHeader", () => {
   assert.deepEqual(headers, { Authorization: "Token hf-token" });
 });
 
+test("buildAuthHeaders: returns Key header for key authHeader", () => {
+  const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "key", authType: "apikey" };
+  const headers = buildAuthHeaders(provider, "maritalk-key");
+  assert.deepEqual(headers, { Authorization: "Key maritalk-key" });
+});
+
 test("buildAuthHeaders: returns x-api-key header", () => {
   const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "x-api-key", authType: "apikey" };
   const headers = buildAuthHeaders(provider, "custom-key");
@@ -201,6 +207,7 @@ test("getAllVideoModels: returns video models with provider prefix", async () =>
   const models = getAllVideoModels();
   assert.ok(models.length >= 3, `Expected at least 3 video models, got ${models.length}`);
   assert.ok(models.some((m) => m.id === "comfyui/animatediff"));
+  assert.ok(models.some((m) => m.id === "runwayml/gen4.5"));
 });
 
 test("getAllMusicModels: returns music models with provider prefix", async () => {

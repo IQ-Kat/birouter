@@ -1,12 +1,21 @@
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
 import {
   getProviderConnections,
   validateApiKey,
   updateProviderConnection,
   getSettings,
   getCachedSettings,
+  getSessionAccountAffinity,
+  upsertSessionAccountAffinity,
+  touchSessionAccountAffinity,
+  deleteSessionAccountAffinity,
 } from "@/lib/localDb";
-import { getQuotaCache, getQuotaWindowStatus, isAccountQuotaExhausted } from "@/domain/quotaCache";
+import {
+  DEFAULT_QUOTA_THRESHOLD_PERCENT,
+  getQuotaCache,
+  getQuotaWindowStatus,
+  isAccountQuotaExhausted,
+} from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -23,6 +32,10 @@ import {
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
 import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
+import {
+  classifyProviderError,
+  PROVIDER_ERROR_TYPES,
+} from "@omniroute/open-sse/services/errorClassifier.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
@@ -51,6 +64,7 @@ interface ProviderConnectionView {
   lastErrorSource: string | null;
   errorCode: string | number | null;
   backoffLevel: number;
+  maxConcurrent: number | null;
 }
 
 interface RecoverableConnectionState {
@@ -68,6 +82,7 @@ interface CredentialSelectionOptions {
   bypassQuotaPolicy?: boolean;
   forcedConnectionId?: string | null;
   excludeConnectionIds?: string[] | null;
+  sessionKey?: string | null;
 }
 
 interface CooldownInspectionState {
@@ -77,7 +92,6 @@ interface CooldownInspectionState {
   retryableModelCooldownMs: number | null;
 }
 
-const CODEX_QUOTA_THRESHOLD_PERCENT = 90;
 const MIN_QUOTA_THRESHOLD_PERCENT = 1;
 const MAX_QUOTA_THRESHOLD_PERCENT = 100;
 const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
@@ -97,6 +111,12 @@ function toNumber(value: unknown, fallback = 0): number {
     return Number.isFinite(parsed) ? parsed : fallback;
   }
   return fallback;
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = toNumber(value, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function toProviderConnection(value: unknown): ProviderConnectionView {
@@ -122,11 +142,104 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
     errorCode:
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
+    maxConcurrent: toNullableNumber(row.maxConcurrent),
   };
 }
 
 function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
+}
+
+function readHeaderValue(
+  headers: Headers | { get?: (name: string) => string | null } | null | undefined,
+  name: string
+): string | null {
+  if (!headers || typeof headers.get !== "function") return null;
+  const value = headers.get(name);
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function normalizeSessionKey(value: unknown, prefix: string): string | null {
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+  const trimmed = value.trim();
+  if (trimmed.length <= 180 && /^[A-Za-z0-9._:-]+$/.test(trimmed)) {
+    return `${prefix}:${trimmed}`;
+  }
+  return `${prefix}:sha256:${createHash("sha256").update(trimmed).digest("hex")}`;
+}
+
+function extractTextForSessionHash(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const parts = value
+      .map((item) => {
+        if (typeof item === "string") return item;
+        const record = asRecord(item);
+        if (typeof record.text === "string") return record.text;
+        if (typeof record.content === "string") return record.content;
+        return null;
+      })
+      .filter(Boolean) as string[];
+    return parts.length > 0 ? parts.join("\n") : JSON.stringify(value);
+  }
+  if (value && typeof value === "object") return JSON.stringify(value);
+  return null;
+}
+
+function getFirstInputText(body: unknown): string | null {
+  const record = asRecord(body);
+  if (record.input !== undefined) {
+    if (typeof record.input === "string") return record.input;
+    if (Array.isArray(record.input)) {
+      for (const item of record.input) {
+        const itemRecord = asRecord(item);
+        const text = extractTextForSessionHash(itemRecord.content ?? item);
+        if (text && text.trim().length > 0) return text;
+      }
+    }
+    const text = extractTextForSessionHash(record.input);
+    if (text && text.trim().length > 0) return text;
+  }
+
+  if (Array.isArray(record.messages)) {
+    const userMessage = record.messages.find((message) => asRecord(message).role === "user");
+    const firstMessage = userMessage ?? record.messages[0];
+    const text = extractTextForSessionHash(asRecord(firstMessage).content ?? firstMessage);
+    if (text && text.trim().length > 0) return text;
+  }
+
+  return null;
+}
+
+export function extractSessionAffinityKey(
+  body: unknown,
+  headers?: Headers | { get?: (name: string) => string | null } | null
+): string | null {
+  const headerKey = normalizeSessionKey(
+    readHeaderValue(headers, "x-codex-session-id") ??
+      readHeaderValue(headers, "x-session-id") ??
+      readHeaderValue(headers, "x-omniroute-session"),
+    "header"
+  );
+  if (headerKey) return headerKey;
+
+  const record = asRecord(body);
+  const metadata = asRecord(record.metadata);
+  const explicitKey =
+    normalizeSessionKey(metadata.session_id, "metadata") ??
+    normalizeSessionKey(metadata.sessionId, "metadata") ??
+    normalizeSessionKey(record.conversation_id, "conversation") ??
+    normalizeSessionKey(record.session_id, "session") ??
+    normalizeSessionKey(record.prompt_cache_key, "prompt-cache");
+  if (explicitKey) return explicitKey;
+
+  const inputText = getFirstInputText(body);
+  if (!inputText || inputText.trim().length === 0) return null;
+  return `input:sha256:${createHash("sha256").update(inputText.slice(0, 4096)).digest("hex")}`;
+}
+
+function formatSessionKeyForLog(sessionKey: string): string {
+  return `${sessionKey.slice(0, 18)}...`;
 }
 
 function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
@@ -156,7 +269,10 @@ interface QuotaCacheView {
   >;
 }
 
-function normalizeQuotaThreshold(value: unknown, fallback = CODEX_QUOTA_THRESHOLD_PERCENT): number {
+function normalizeQuotaThreshold(
+  value: unknown,
+  fallback = DEFAULT_QUOTA_THRESHOLD_PERCENT
+): number {
   const parsed = toNumber(value, fallback);
   return Math.min(MAX_QUOTA_THRESHOLD_PERCENT, Math.max(MIN_QUOTA_THRESHOLD_PERCENT, parsed));
 }
@@ -249,6 +365,31 @@ function normalizeStatus(value: string | null): string {
 function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean {
   const status = normalizeStatus(connection.testStatus);
   return status === "credits_exhausted" || status === "banned" || status === "expired";
+}
+
+function resolveTerminalConnectionStatus(
+  status: number,
+  result: { permanent?: boolean; creditsExhausted?: boolean },
+  providerErrorType: string | null = null
+): string | null {
+  if (result.creditsExhausted || status === 402) return "credits_exhausted";
+  if (
+    providerErrorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR ||
+    providerErrorType === PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN
+  ) {
+    return null;
+  }
+  if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
+    return "banned";
+  }
+  if (
+    providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
+    providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
+    status === 401
+  ) {
+    return "expired";
+  }
+  return null;
 }
 
 export function resolveQuotaLimitPolicy(
@@ -460,6 +601,68 @@ function compareP2CConnections(
   }
 
   return a.id.localeCompare(b.id);
+}
+
+function compareLruConnections(a: ProviderConnectionView, b: ProviderConnectionView): number {
+  if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
+  if (!a.lastUsedAt) return -1;
+  if (!b.lastUsedAt) return 1;
+  const recencyDelta = new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
+  if (recencyDelta !== 0) return recencyDelta;
+  if ((a.consecutiveUseCount || 0) !== (b.consecutiveUseCount || 0)) {
+    return (a.consecutiveUseCount || 0) - (b.consecutiveUseCount || 0);
+  }
+  return (a.priority || 999) - (b.priority || 999);
+}
+
+async function selectSessionAffinityConnection(
+  provider: string,
+  sessionKey: string | null | undefined,
+  connections: ProviderConnectionView[]
+): Promise<ProviderConnectionView | null> {
+  if (!sessionKey || connections.length === 0) return null;
+
+  const existing = getSessionAccountAffinity(sessionKey, provider);
+  if (existing) {
+    const connection = connections.find((candidate) => candidate.id === existing.connectionId);
+    if (connection) {
+      touchSessionAccountAffinity(sessionKey, provider);
+      await updateProviderConnection(connection.id, {
+        lastUsedAt: new Date().toISOString(),
+        consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
+      });
+      log.info(
+        "AUTH",
+        `session_key=${formatSessionKeyForLog(sessionKey)} -> connection ${connection.id.slice(
+          0,
+          8
+        )} (affinity)`
+      );
+      return connection;
+    }
+
+    deleteSessionAccountAffinity(sessionKey, provider);
+    log.info(
+      "AUTH",
+      `affinity cleared for session_key=${formatSessionKeyForLog(sessionKey)} provider=${provider}`
+    );
+  }
+
+  const connection = [...connections].sort(compareLruConnections)[0] ?? null;
+  if (!connection) return null;
+
+  upsertSessionAccountAffinity(sessionKey, provider, connection.id);
+  await updateProviderConnection(connection.id, {
+    lastUsedAt: new Date().toISOString(),
+    consecutiveUseCount: 1,
+  });
+  log.info(
+    "AUTH",
+    `new affinity created for session_key=${formatSessionKeyForLog(
+      sessionKey
+    )} -> connection ${connection.id.slice(0, 8)}`
+  );
+  return connection;
 }
 
 function normalizeExcludedConnectionIds(
@@ -861,24 +1064,62 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: prioritize accounts with available quota
+    // Quota-aware: filter out accounts with exhausted quota
     const withQuota = policyEligibleConnections.filter((c) => !isAccountQuotaExhausted(c.id));
     const exhaustedQuota = policyEligibleConnections.filter((c) => isAccountQuotaExhausted(c.id));
-    const orderedConnections =
-      withQuota.length > 0 ? [...withQuota, ...exhaustedQuota] : policyEligibleConnections;
 
     if (exhaustedQuota.length > 0) {
-      log.debug(
+      log.info(
         "AUTH",
-        `${provider} | quota-aware: ${withQuota.length} with quota, ${exhaustedQuota.length} exhausted`
+        `${provider} | quota-aware: ${withQuota.length} with quota, skipping ${exhaustedQuota.length} exhausted`
       );
     }
+
+    if (withQuota.length === 0 && exhaustedQuota.length > 0) {
+      // All remaining eligible accounts are exhausted
+      const earliestResetAt = getEarliestFutureDate(
+        exhaustedQuota.map((c) => {
+          const entry = getQuotaCache(c.id);
+          return entry?.nextResetAt || null;
+        })
+      );
+      const earliestResetMs = parseFutureDateMs(earliestResetAt);
+      const retryAfter = earliestResetMs
+        ? new Date(earliestResetMs).toISOString()
+        : new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+      return {
+        allRateLimited: true,
+        retryAfter,
+        retryAfterHuman: formatRetryAfter(retryAfter),
+        lastError: `All ${provider} accounts have exhausted their quota`,
+        lastErrorCode: 429,
+      };
+    }
+
+    const orderedConnections = withQuota;
 
     const settings = await getSettings();
     const strategy = settings.fallbackStrategy || "fill-first";
 
     let connection;
-    if (strategy === "round-robin") {
+    const affinityConnection = await selectSessionAffinityConnection(
+      provider,
+      options.sessionKey,
+      orderedConnections
+    );
+    if (affinityConnection) {
+      connection = affinityConnection;
+    } else if (options.sessionKey) {
+      log.info(
+        "AUTH",
+        `session_key=${formatSessionKeyForLog(options.sessionKey)} has no available affinity target`
+      );
+    }
+
+    if (connection) {
+      // Session affinity selected a connection before global sticky routing.
+    } else if (strategy === "round-robin") {
       const stickyLimit = toNumber((settings as Record<string, unknown>).stickyRoundRobinLimit, 3);
 
       // If excluding an account (fallback scenario), skip sticky logic and go straight to LRU
@@ -1028,6 +1269,7 @@ export async function getProviderCredentials(
       lastErrorSource: connection.lastErrorSource,
       errorCode: connection.errorCode,
       rateLimitedUntil: connection.rateLimitedUntil,
+      maxConcurrent: connection.maxConcurrent,
     };
   } finally {
     if (resolveMutex) resolveMutex();
@@ -1188,22 +1430,39 @@ export async function markAccountUnavailable(
 
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
+    const fallbackResult = checkFallbackError(
+      status,
+      errorText,
+      backoffLevel,
+      model,
+      provider,
+      null,
+      effectiveProviderProfile
+    );
 
-    const isPerModelQuotaProvider = hasPerModelQuota(provider, model);
+    // Read passthroughModels from connection config (user-configured per-model quota)
+    const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
+    const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
+      | boolean
+      | undefined;
+
+    const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
       const reason = status === 404 ? "not_found" : "rate_limited";
-      const fallbackCooldown =
-        status === 404
-          ? (effectiveProviderProfile?.transientCooldown ?? COOLDOWN_MS.notFoundLocal)
-          : 0;
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,
         model,
         reason,
         status,
-        fallbackCooldown,
-        effectiveProviderProfile
+        status === 404
+          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+          : (fallbackResult.baseCooldownMs ?? effectiveProviderProfile?.baseCooldownMs ?? 0),
+        effectiveProviderProfile,
+        {
+          exactCooldownMs:
+            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+        }
       );
       // Update last error for observability (without changing terminal status)
       updateProviderConnection(connectionId, {
@@ -1218,18 +1477,36 @@ export async function markAccountUnavailable(
       );
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
-
-    const result = checkFallbackError(
-      status,
-      errorText,
-      backoffLevel,
-      model,
-      provider,
-      null,
-      effectiveProviderProfile
-    );
-    const { shouldFallback, cooldownMs, newBackoffLevel, reason } = result;
+    const result = fallbackResult;
+    const { shouldFallback, cooldownMs: rawCooldownMs, newBackoffLevel, reason } = result;
     if (!shouldFallback) return { shouldFallback: false, cooldownMs: 0 };
+    const providerErrorType = classifyProviderError(status, errorText, provider);
+
+    if (provider && resolveProviderId(provider) === "grok-web" && status === 403 && model) {
+      const lockout = recordModelLockoutFailure(
+        provider,
+        connectionId,
+        model,
+        "forbidden",
+        status,
+        effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.unavailable,
+        effectiveProviderProfile
+      );
+      updateProviderConnection(connectionId, {
+        lastErrorType: "forbidden",
+        lastError: `Mode ${model} forbidden for this Grok account`,
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      }).catch(() => {});
+      log.info(
+        "AUTH",
+        `Mode-only lockout for ${provider}:${model} — 403 forbidden ${Math.ceil(lockout.cooldownMs / 1000)}s (connection stays active)`
+      );
+      return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
+    }
+
+    const terminalStatus = resolveTerminalConnectionStatus(status, result, providerErrorType);
+    const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
     // ── 404 model-only lockout: connection stays active ──
     // For local providers (detected by URL), a 404 means the specific model
@@ -1246,7 +1523,9 @@ export async function markAccountUnavailable(
         model,
         "not_found",
         status,
-        COOLDOWN_MS.notFoundLocal,
+        status === 404
+          ? (effectiveProviderProfile?.baseCooldownMs ?? COOLDOWN_MS.notFoundLocal)
+          : COOLDOWN_MS.notFoundLocal,
         effectiveProviderProfile
       );
       updateProviderConnection(connectionId, {
@@ -1262,7 +1541,6 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: lockout.cooldownMs };
     }
 
-    const rateLimitedUntil = getUnavailableUntil(cooldownMs);
     const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
 
     // T09: Codex per-scope lockout (do not block the whole account globally).
@@ -1270,7 +1548,7 @@ export async function markAccountUnavailable(
       const scope = getCodexModelScope(model);
       const existingScopeMap = asRecord(conn.providerSpecificData.codexScopeRateLimitedUntil);
       const persistedScopeUntil = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-      const scopeRateLimitedUntil = persistedScopeUntil || rateLimitedUntil;
+      const scopeRateLimitedUntil = persistedScopeUntil || getUnavailableUntil(cooldownMs);
       const scopeCooldownMs = Math.max(new Date(scopeRateLimitedUntil).getTime() - Date.now(), 0);
 
       await updateProviderConnection(connectionId, {
@@ -1299,14 +1577,27 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
     }
 
-    await updateProviderConnection(connectionId, {
-      rateLimitedUntil,
-      testStatus: "unavailable",
+    const baseUpdate = {
       lastError: errorMsg,
+      lastErrorType: providerErrorType,
       errorCode: status,
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
-    });
+    };
+
+    if (cooldownMs > 0) {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+        rateLimitedUntil: getUnavailableUntil(cooldownMs),
+        testStatus: "unavailable",
+      });
+    } else {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+        rateLimitedUntil: null,
+        ...(terminalStatus ? { testStatus: terminalStatus } : {}),
+      });
+    }
 
     // T-AUTODISABLE: If auto-disable setting is enabled and error is permanent/terminal,
     // mark account as inactive so it is never retried again.
@@ -1328,11 +1619,6 @@ export async function markAccountUnavailable(
       } catch (e) {
         log.info("AUTH", `Auto-disable check failed (non-fatal): ${e}`);
       }
-    }
-
-    // Per-model lockout: lock the specific model if known
-    if (provider && model && cooldownMs > 0) {
-      lockModel(provider, connectionId, model, reason || "unknown", cooldownMs);
     }
 
     if (provider && status && errorMsg) {

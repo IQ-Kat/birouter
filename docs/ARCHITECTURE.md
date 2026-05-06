@@ -2,7 +2,7 @@
 
 🌐 **Languages:** 🇺🇸 [English](ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/ARCHITECTURE.md) | 🇪🇸 [Español](i18n/es/ARCHITECTURE.md) | 🇫🇷 [Français](i18n/fr/ARCHITECTURE.md) | 🇮🇹 [Italiano](i18n/it/ARCHITECTURE.md) | 🇷🇺 [Русский](i18n/ru/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/ARCHITECTURE.md) | 🇩🇪 [Deutsch](i18n/de/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](i18n/in/ARCHITECTURE.md) | 🇹🇭 [ไทย](i18n/th/ARCHITECTURE.md) | 🇺🇦 [Українська](i18n/uk-UA/ARCHITECTURE.md) | 🇸🇦 [العربية](i18n/ar/ARCHITECTURE.md) | 🇯🇵 [日本語](i18n/ja/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](i18n/vi/ARCHITECTURE.md) | 🇧🇬 [Български](i18n/bg/ARCHITECTURE.md) | 🇩🇰 [Dansk](i18n/da/ARCHITECTURE.md) | 🇫🇮 [Suomi](i18n/fi/ARCHITECTURE.md) | 🇮🇱 [עברית](i18n/he/ARCHITECTURE.md) | 🇭🇺 [Magyar](i18n/hu/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/ARCHITECTURE.md) | 🇰🇷 [한국어](i18n/ko/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/ARCHITECTURE.md) | 🇳🇱 [Nederlands](i18n/nl/ARCHITECTURE.md) | 🇳🇴 [Norsk](i18n/no/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](i18n/pt/ARCHITECTURE.md) | 🇷🇴 [Română](i18n/ro/ARCHITECTURE.md) | 🇵🇱 [Polski](i18n/pl/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](i18n/sk/ARCHITECTURE.md) | 🇸🇪 [Svenska](i18n/sv/ARCHITECTURE.md) | 🇵🇭 [Filipino](i18n/phi/ARCHITECTURE.md) | 🇨🇿 [Čeština](i18n/cs/ARCHITECTURE.md)
 
-_Last updated: 2026-04-15_
+_Last updated: 2026-05-02_
 
 ## Executive Summary
 
@@ -11,7 +11,7 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (100+ providers, 16 executors)
+- OpenAI-compatible API surface for CLI/tools (160+ providers, 16 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
@@ -42,7 +42,7 @@ Core capabilities:
 - Circuit breaker pattern for provider resilience
 - Anti-thundering herd protection with mutex locking
 - Signature-based request deduplication cache
-- Domain layer: model availability, cost rules, fallback policy, lockout policy
+- Domain layer: cost rules, fallback policy, lockout policy
 - Context Relay: session handoff summaries for account rotation continuity
 - Domain state persistence (SQLite write-through cache for fallbacks, budgets, lockouts, circuit breakers)
 - Policy engine for centralized request evaluation (lockout → budget → fallback)
@@ -51,13 +51,14 @@ Core capabilities:
 - Correlation ID (X-Request-Id) for end-to-end tracing
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
-- Resilience UI dashboard with real-time circuit breaker status
-- MCP Server (25 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- Health dashboard with real-time provider circuit breaker status
+- MCP Server (37 tools) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
 - MITM proxy with certificate management and DNS handling
 - Prompt injection guard middleware
+- Prompt compression pipeline with Caveman, RTK, stacked pipelines, compression combos, language packs, and analytics
 - ACP (Agent Communication Protocol) registry
 - Modular OAuth providers (13 individual modules under `src/lib/oauth/providers/`)
 - Uninstall/full-uninstall scripts
@@ -112,6 +113,9 @@ Main pages under `src/app/(dashboard)/dashboard/`:
 - `/dashboard/health` — uptime, circuit breakers, rate limits, quota-monitored sessions
 - `/dashboard/logs` — request/proxy/audit/console logs
 - `/dashboard/settings` — system settings tabs (general, routing, combo defaults, etc.)
+- `/dashboard/context/caveman` — Caveman compression rules, language packs, preview, and output mode
+- `/dashboard/context/rtk` — RTK command-output filters, preview, and runtime safety settings
+- `/dashboard/context/combos` — named compression pipelines assigned to routing combos
 - `/dashboard/api-manager` — API key lifecycle and model permissions
 
 ## High-Level System Context
@@ -203,12 +207,13 @@ Management domains:
 - IP filter: `src/app/api/settings/ip-filter` (GET/PUT)
 - Thinking budget: `src/app/api/settings/thinking-budget` (GET/PUT)
 - System prompt: `src/app/api/settings/system-prompt` (GET/PUT)
+- Compression: `src/app/api/settings/compression`, `src/app/api/compression/*`, and
+  `src/app/api/context/*`
 - Sessions: `src/app/api/sessions` (GET)
 - Rate limits: `src/app/api/rate-limits` (GET)
-- Resilience: `src/app/api/resilience` (GET/PATCH) — provider profiles, circuit breaker, rate limit state
-- Resilience reset: `src/app/api/resilience/reset` (POST) — reset breakers + cooldowns
+- Resilience: `src/app/api/resilience` (GET/PATCH) — request queue, connection cooldown, provider breaker, wait-for-cooldown config
+- Resilience reset: `src/app/api/resilience/reset` (POST) — reset provider breakers
 - Cache stats: `src/app/api/cache/stats` (GET/DELETE)
-- Model availability: `src/app/api/models/availability` (GET/POST)
 - Telemetry: `src/app/api/telemetry/summary` (GET)
 - Budget: `src/app/api/usage/budget` (GET/POST)
 - Fallback chains: `src/app/api/fallback/chains` (GET/POST/DELETE)
@@ -253,6 +258,8 @@ Services (business logic):
 - Rate limit management: `open-sse/services/rateLimitManager.ts`
 - Circuit breaker: `open-sse/services/circuitBreaker.ts`
 - Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
+- Compression: `open-sse/services/compression/*` — proactive compression before provider translation;
+  includes Caveman rules, RTK filters, stacked pipelines, compression combos, stats, and validation
 - Codex quota fetcher: `open-sse/services/codexQuotaFetcher.ts` — fetches Codex quota for context-relay handoff decisions
 - Cooldown-aware retry: `src/sse/services/cooldownAwareRetry.ts` — per-model cooldown retries with configurable `requestRetry` / `maxRetryIntervalSec`
 - Safe outbound fetch: `src/shared/network/safeOutboundFetch.ts` — guarded provider/model fetch with SSRF guard, private-URL blocking, retry, and timeout
@@ -265,7 +272,6 @@ Services (business logic):
 
 Domain layer modules:
 
-- Model availability: `src/lib/domain/modelAvailability.ts`
 - Cost rules/budgets: `src/lib/domain/costRules.ts`
 - Fallback policy: `src/lib/domain/fallbackPolicy.ts`
 - Combo resolver: `src/lib/domain/comboResolver.ts`
@@ -632,6 +638,12 @@ flowchart LR
 - `src/app/api/settings/ip-filter`: IP allowlist/blocklist (GET/PUT)
 - `src/app/api/settings/thinking-budget`: thinking token budget config (GET/PUT)
 - `src/app/api/settings/system-prompt`: global system prompt (GET/PUT)
+- `src/app/api/settings/compression`: global compression settings (GET/PUT)
+- `src/app/api/compression/*`: compression preview, rule metadata, and language packs
+- `src/app/api/context/caveman/config`: Caveman settings alias (GET/PUT)
+- `src/app/api/context/rtk/*`: RTK config, filter catalog, test endpoint, and raw-output recovery
+- `src/app/api/context/combos*`: compression combo CRUD and routing-combo assignments
+- `src/app/api/context/analytics`: compression analytics alias
 - `src/app/api/sessions`: active session listing (GET)
 - `src/app/api/rate-limits`: per-account rate limit status (GET)
 - `src/app/api/sync/tokens`: sync token CRUD (GET/POST)
@@ -794,7 +806,7 @@ legacy compatibility. The current runtime contract uses:
 
 ## 1) Account/Provider Availability
 
-- provider account cooldown on transient/rate/auth errors
+- connection cooldown on retryable upstream failures
 - account fallback before failing request
 - combo model fallback when current model/provider path is exhausted
 
@@ -876,7 +888,7 @@ Environment variables actively used by code:
 5. The `open-sse/` directory is published as the `@omniroute/open-sse` **npm workspace package**. Source code imports it via `@omniroute/open-sse/...` (resolved by Next.js `transpilePackages`). File paths in this document still use the directory name `open-sse/` for consistency.
 6. Charts in the dashboard use **Recharts** (SVG-based) for accessible, interactive analytics visualizations (model usage bar charts, provider breakdown tables with success rates).
 7. E2E tests use **Playwright** (`tests/e2e/`), run via `npm run test:e2e`. Unit tests use **Node.js test runner** (`tests/unit/`), run via `npm run test:unit`. Source code under `src/` is **TypeScript** (`.ts`/`.tsx`); the `open-sse/` workspace remains JavaScript (`.js`).
-8. Settings page is organized into 5 tabs: Security, Routing (6 global strategies: fill-first, round-robin, p2c, random, least-used, cost-optimized), Resilience (editable rate limits, circuit breaker, policies, **Context Relay** handoff config), AI (thinking budget, system prompt, prompt cache), Advanced (proxy).
+8. Settings page is organized into 7 tabs: General, Appearance, AI, Security, Routing, Resilience, Advanced. The Resilience page only configures request queue, connection cooldown, provider breaker, and wait-for-cooldown behavior; live breaker runtime state is shown on the Health page.
 9. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated, `chat.ts` injects the handoff after account resolution. Handoff data lives in `context_handoffs` SQLite table. This split is intentional because only `chat.ts` knows whether the actual account changed.
 10. **Proxy enforcement** is now comprehensive: `tokenHealthCheck.ts` resolves proxy per connection, `/api/providers/validate` uses `runWithProxyContext`, and `proxyFetch.ts` uses `undici.fetch()` to maintain dispatcher compatibility on Node 22.
 11. **Node.js runtime policy detection**: `/api/settings/require-login` returns `nodeVersion` and `nodeCompatible` fields. The login page renders a warning banner when the runtime falls outside the supported secure Node.js lines.

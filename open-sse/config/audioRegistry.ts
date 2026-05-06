@@ -272,6 +272,34 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/sound-effect-v2", name: "ElevenLabs Sound Effect v2" },
     ],
   },
+
+  "aws-polly": {
+    id: "aws-polly",
+    // POST https://polly.{region}.amazonaws.com/v1/speech
+    // Auth: AWS SigV4. The provider apiKey stores Secret Access Key; PSD stores accessKeyId/region.
+    baseUrl: "https://polly.us-east-1.amazonaws.com",
+    authType: "apikey",
+    authHeader: "aws-sigv4",
+    format: "aws-polly",
+    models: [
+      { id: "standard", name: "Polly Standard" },
+      { id: "neural", name: "Polly Neural" },
+      { id: "long-form", name: "Polly Long-Form" },
+      { id: "generative", name: "Polly Generative" },
+    ],
+  },
+  "xiaomi-mimo": {
+    id: "xiaomi-mimo",
+    baseUrl: "https://api.xiaomimimo.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xiaomi-mimo-tts",
+    models: [
+      { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
+      { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
+      { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
+    ],
+  },
 };
 
 /**

@@ -216,14 +216,32 @@ Response example:
 
 ### Settings
 
-| Endpoint                        | Method        | Description            |
-| ------------------------------- | ------------- | ---------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | General settings       |
-| `/api/settings/proxy`           | GET/PUT       | Network proxy config   |
-| `/api/settings/proxy/test`      | POST          | Test proxy connection  |
-| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist |
-| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget |
-| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt   |
+| Endpoint                        | Method        | Description               |
+| ------------------------------- | ------------- | ------------------------- |
+| `/api/settings`                 | GET/PUT/PATCH | General settings          |
+| `/api/settings/proxy`           | GET/PUT       | Network proxy config      |
+| `/api/settings/proxy/test`      | POST          | Test proxy connection     |
+| `/api/settings/ip-filter`       | GET/PUT       | IP allowlist/blocklist    |
+| `/api/settings/thinking-budget` | GET/PUT       | Reasoning token budget    |
+| `/api/settings/system-prompt`   | GET/PUT       | Global system prompt      |
+| `/api/settings/compression`     | GET/PUT       | Global compression config |
+
+### Context & Compression
+
+| Endpoint                               | Method         | Description                                                              |
+| -------------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| `/api/compression/preview`             | POST           | Preview off/lite/standard/aggressive/ultra/RTK/stacked compression       |
+| `/api/compression/language-packs`      | GET            | List available Caveman language packs                                    |
+| `/api/compression/rules`               | GET            | List Caveman rule metadata                                               |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman-specific settings alias                                          |
+| `/api/context/rtk/config`              | GET/PUT        | RTK-specific settings, including custom filters and raw-output retention |
+| `/api/context/rtk/filters`             | GET            | RTK filter catalog and custom-filter diagnostics                         |
+| `/api/context/rtk/test`                | POST           | Run RTK preview/test against a text payload                              |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Read retained redacted raw output by pointer id                          |
+| `/api/context/combos`                  | GET/POST       | Compression combo list/create                                            |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Compression combo detail/update/delete                                   |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Assign compression combos to routing combos                              |
+| `/api/context/analytics`               | GET            | Compression analytics alias                                              |
 
 ### Monitoring
 
@@ -259,6 +277,8 @@ Response example:
 | -------------------------- | ------ | ----------------------------------------------------------------------- |
 | `/api/tunnels/cloudflared` | GET    | Read Cloudflare Quick Tunnel install/runtime status for the dashboard   |
 | `/api/tunnels/cloudflared` | POST   | Enable or disable the Cloudflare Quick Tunnel (`action=enable/disable`) |
+| `/api/tunnels/ngrok`       | GET    | Read ngrok Tunnel runtime status for the dashboard                      |
+| `/api/tunnels/ngrok`       | POST   | Enable or disable the ngrok Tunnel (`action=enable/disable`)            |
 
 ### CLI Tools
 
@@ -284,12 +304,12 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 
 ### Resilience & Rate Limits
 
-| Endpoint                | Method    | Description                     |
-| ----------------------- | --------- | ------------------------------- |
-| `/api/resilience`       | GET/PATCH | Get/update resilience profiles  |
-| `/api/resilience/reset` | POST      | Reset circuit breakers          |
-| `/api/rate-limits`      | GET       | Per-account rate limit status   |
-| `/api/rate-limit`       | GET       | Global rate limit configuration |
+| Endpoint                | Method    | Description                                                                        |
+| ----------------------- | --------- | ---------------------------------------------------------------------------------- |
+| `/api/resilience`       | GET/PATCH | Get/update request queue, connection cooldown, provider breaker, and wait settings |
+| `/api/resilience/reset` | POST      | Reset provider circuit breakers                                                    |
+| `/api/rate-limits`      | GET       | Per-account rate limit status                                                      |
+| `/api/rate-limit`       | GET       | Global rate limit configuration                                                    |
 
 ### Evals
 
@@ -443,36 +463,18 @@ Content-Type: application/json
 }
 ```
 
----
-
-## Model Availability
-
-```bash
-# Get real-time model availability across all providers
-GET /api/models/availability
-
-# Check availability for a specific model
-POST /api/models/availability
-Content-Type: application/json
-
-{
-  "model": "claude-sonnet-4-5-20250929"
-}
-```
-
----
-
 ## Request Processing
 
 1. Client sends request to `/v1/*`
 2. Route handler calls `handleChat`, `handleEmbedding`, `handleAudioTranscription`, or `handleImageGeneration`
 3. Model is resolved (direct provider/model or alias/combo)
 4. Credentials selected from local DB with account availability filtering
-5. For chat: `handleChatCore` — format detection, translation, cache check, idempotency check
-6. Provider executor sends upstream request
-7. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
-8. Usage/logging recorded
-9. Fallback applies on errors according to combo rules
+5. For chat: `handleChatCore` checks semantic/signature cache and resolves combo compression settings
+6. Proactive compression runs before provider translation when enabled (`lite`, Caveman, RTK, or stacked)
+7. Provider executor sends upstream request
+8. Response translated back to client format (chat) or returned as-is (embeddings/images/audio)
+9. Usage, compression analytics, and request logs are recorded
+10. Fallback applies on errors according to combo rules
 
 Full architecture reference: [`ARCHITECTURE.md`](ARCHITECTURE.md)
 

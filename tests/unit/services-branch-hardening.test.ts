@@ -79,8 +79,8 @@ test("model capability helpers cover denylist, empty input and default-safe path
   assert.equal(modelCapabilities.supportsReasoning("missing-provider/tool"), true);
 
   assert.equal(modelCapabilities.supportsToolCalling(""), false);
-  assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-oss-120b"), false);
-  assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), false);
+  assert.equal(modelCapabilities.supportsToolCalling("openai/gpt-oss-120b"), true);
+  assert.equal(modelCapabilities.supportsToolCalling("deepseek-reasoner"), true);
   assert.equal(
     modelCapabilities.supportsToolCalling("openai/nonexistent-default-safe-model"),
     true
@@ -174,7 +174,7 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
     maxConcurrency: 1,
     timeoutMs: 15,
   });
-  await assert.rejects(timeoutPromise, (error) => error?.code === "SEMAPHORE_TIMEOUT");
+  await assert.rejects(timeoutPromise, (error) => (error as any).code === "SEMAPHORE_TIMEOUT");
   heldRelease();
 
   const firstRelease = await rateLimitSemaphore.acquire("model-c", { maxConcurrency: 1 });
@@ -335,7 +335,7 @@ test("model helpers cover malformed input, alias maps, wildcard aliases, ambigui
   assert.equal(wildcardAlias.model, "claude-sonnet-4-5-20250929");
   assert.equal(wildcardAlias.wildcardPattern, "claude-sonnet-*");
 
-  const ambiguous = await modelService.getModelInfoCore("gpt-5.2-codex", {});
+  const ambiguous = await modelService.getModelInfoCore("claude-haiku-4.5", {});
   assert.equal(ambiguous.provider, null);
   assert.equal(ambiguous.errorType, "ambiguous_model");
   assert.ok(ambiguous.errorMessage.includes("provider/model"));
