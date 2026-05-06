@@ -64,6 +64,44 @@ function findKeyInsensitive(obj: Record<string, any> | undefined | null, key: st
   return obj[key.toLowerCase()];
 }
 
+function uniqueValues(values: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(normalized);
+  }
+  return result;
+}
+
+function stripCodexEffortSuffix(model: string): string {
+  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+}
+
+function getPricingModelCandidates(
+  model: string,
+  normalizeModelName: (model: string) => string
+): string[] {
+  const normalizedModel = normalizeModelName(model);
+  const lowerModel = model.toLowerCase();
+  const lowerNormalized = normalizedModel.toLowerCase();
+  const hyphenModel = lowerModel.replace(/\./g, "-");
+  const hyphenNormalized = lowerNormalized.replace(/\./g, "-");
+  const effortBaseModel = stripCodexEffortSuffix(lowerNormalized);
+
+  return uniqueValues([
+    lowerModel,
+    lowerNormalized,
+    hyphenModel,
+    hyphenNormalized,
+    effortBaseModel,
+    effortBaseModel.replace(/\./g, "-"),
+    lowerNormalized === "codex-auto-review" ? "gpt-5.5" : null,
+  ]);
+}
+
 function resolveModelPricing(
   pricingByProvider: PricingByProvider,
   providerAliasMap: Record<string, string>,
@@ -105,22 +143,15 @@ function resolveModelPricing(
     if (pLower === "antigravity") providerPricing = findKeyInsensitive(pricingByProvider, "ag");
   }
 
-  const normalizedModel = normalizeModelName(model).toLowerCase();
-  const shortModel = normalizedModel; // normalizeModelName behaves exactly like shortModelName
-  const hyphenModel = model.toLowerCase().replace(/\./g, "-");
-  const hyphenNormalized = normalizedModel.replace(/\./g, "-");
-  const lowerModel = model.toLowerCase();
+  const modelCandidates = getPricingModelCandidates(model, normalizeModelName);
 
   const tryFind = (prov: Record<string, unknown> | null | undefined) => {
     if (!prov || typeof prov !== "object") return null;
-    return (
-      findKeyInsensitive(prov as Record<string, unknown>, lowerModel) ||
-      findKeyInsensitive(prov as Record<string, unknown>, normalizedModel) ||
-      findKeyInsensitive(prov as Record<string, unknown>, shortModel) ||
-      findKeyInsensitive(prov as Record<string, unknown>, hyphenModel) ||
-      findKeyInsensitive(prov as Record<string, unknown>, hyphenNormalized) ||
-      null
-    );
+    for (const candidate of modelCandidates) {
+      const pricing = findKeyInsensitive(prov as Record<string, unknown>, candidate);
+      if (pricing) return pricing;
+    }
+    return null;
   };
 
   let pricing = providerPricing ? tryFind(providerPricing) : null;
@@ -139,7 +170,8 @@ function resolveModelPricing(
   // Last resort fallback for historical usage (e.g. "gpt-4" missing, matches "gpt-4.1" or first available)
   if (!pricing && providerPricing && typeof providerPricing === "object") {
     for (const [key, val] of Object.entries(providerPricing as Record<string, unknown>)) {
-      if (key.includes(lowerModel) || lowerModel.includes(key)) {
+      const lm = model.toLowerCase();
+      if (key.includes(lm) || lm.includes(key)) {
         pricing = val;
         break;
       }
@@ -506,11 +538,20 @@ export async function GET(request: Request) {
           SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
           SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
           SUM(CASE
-            WHEN requested_model IS NOT NULL
+            WHEN (combo_name IS NULL OR combo_name = '')
+             AND requested_model IS NOT NULL
              AND requested_model != ''
              AND model IS NOT NULL
+             AND model != ''
+            THEN 1 ELSE 0 END
+          ) as fallback_eligible,
+          SUM(CASE
+            WHEN (combo_name IS NULL OR combo_name = '')
+             AND requested_model IS NOT NULL
+             AND requested_model != ''
+             AND model IS NOT NULL
+             AND model != ''
              AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
-             AND (combo_name IS NULL OR combo_name = '')
             THEN 1 ELSE 0 END
           ) as fallbacks
         FROM call_logs
@@ -544,10 +585,11 @@ export async function GET(request: Request) {
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
       fallbackRatePct:
-        Number(fallbackRow?.with_requested || 0) > 0
+        Number(fallbackRow?.fallback_eligible || 0) > 0
           ? Number(
               (
-                (Number(fallbackRow?.fallbacks || 0) / Number(fallbackRow?.with_requested || 1)) *
+                (Number(fallbackRow?.fallbacks || 0) /
+                  Number(fallbackRow?.fallback_eligible || 1)) *
                 100
               ).toFixed(2)
             )
