@@ -370,6 +370,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       log,
       settings,
       allCombos,
+      apiKeyAllowedConnections: apiKeyInfo?.allowedConnections ?? null,
       relayOptions:
         combo.strategy === "context-relay"
           ? {

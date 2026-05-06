@@ -741,7 +741,8 @@ function resolveResetAwareConfig(config: Record<string, unknown> | null | undefi
     RESET_AWARE_DEFAULTS.weeklyWeight
   );
   const totalWeight = sessionWeight + weeklyWeight;
-  const normalizedSessionWeight = totalWeight > 0 ? sessionWeight / totalWeight : 0.35;
+  const normalizedSessionWeight =
+    totalWeight > 0 ? sessionWeight / totalWeight : RESET_AWARE_DEFAULTS.sessionWeight;
 
   return {
     sessionWeight: normalizedSessionWeight,
@@ -776,7 +777,7 @@ function getQuotaWindow(
 
 function getResetUrgency(resetAt: string | null | undefined, windowMs: number): number {
   if (!resetAt) return 0.5;
-  const resetTime = new Date(resetAt).getTime();
+  const resetTime = resetAt ? new Date(resetAt).getTime() : NaN;
   if (!Number.isFinite(resetTime)) return 0.5;
   const msUntilReset = resetTime - Date.now();
   if (msUntilReset <= 0) return 1;
@@ -824,7 +825,9 @@ function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveR
 
 async function getQuotaAwareConnectionsForTarget(
   target: ResolvedComboTarget,
-  connectionCache: Map<string, Array<Record<string, unknown>>>
+  connectionCache: Map<string, Array<Record<string, unknown>>>,
+  comboName: string,
+  log: { warn?: (...args: unknown[]) => void }
 ) {
   const provider = getResetAwareProvider(target);
   if (!provider || !getQuotaFetcher(provider)) return [];
@@ -835,34 +838,69 @@ async function getQuotaAwareConnectionsForTarget(
         provider,
         Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
       );
-    } catch {
+    } catch (error) {
+      log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
+        comboName,
+        err: error,
+        operation: "getProviderConnections",
+        provider,
+      });
       connectionCache.set(provider, []);
     }
   }
   return connectionCache.get(provider) || [];
 }
 
+function normalizeConnectionIds(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const ids = value.filter(
+    (connectionId): connectionId is string =>
+      typeof connectionId === "string" && connectionId.trim().length > 0
+  );
+  return ids.length > 0 ? ids : null;
+}
+
+function filterAllowedConnectionIds(
+  connectionIds: string[],
+  apiKeyAllowedConnectionIds: string[] | null | undefined
+): string[] {
+  const allowedIds = normalizeConnectionIds(apiKeyAllowedConnectionIds);
+  if (!allowedIds) return connectionIds;
+  const allowedSet = new Set(allowedIds);
+  return connectionIds.filter((connectionId) => allowedSet.has(connectionId));
+}
+
 function getTargetConnectionIds(
   target: ResolvedComboTarget,
-  connections: Array<Record<string, unknown>>
+  connections: Array<Record<string, unknown>>,
+  apiKeyAllowedConnectionIds?: string[] | null
 ): string[] {
-  if (target.connectionId) return [target.connectionId];
+  let connectionIds: string[];
+  if (target.connectionId) {
+    connectionIds = [target.connectionId];
+    return filterAllowedConnectionIds(connectionIds, apiKeyAllowedConnectionIds);
+  }
+
   if (Array.isArray(target.allowedConnectionIds) && target.allowedConnectionIds.length > 0) {
-    return target.allowedConnectionIds.filter(
+    connectionIds = target.allowedConnectionIds.filter(
       (connectionId): connectionId is string =>
         typeof connectionId === "string" && connectionId.trim().length > 0
     );
+    return filterAllowedConnectionIds(connectionIds, apiKeyAllowedConnectionIds);
   }
-  return connections
+
+  connectionIds = connections
     .map((connection) => (typeof connection.id === "string" ? connection.id : null))
     .filter((connectionId): connectionId is string => !!connectionId);
+  return filterAllowedConnectionIds(connectionIds, apiKeyAllowedConnectionIds);
 }
 
 async function orderTargetsByResetAwareQuota(
   targets: ResolvedComboTarget[],
   comboName: string,
   configSource: Record<string, unknown> | null | undefined,
-  log: { warn?: (...args: unknown[]) => void }
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
 ) {
   if (targets.length === 0) return targets;
 
@@ -871,14 +909,30 @@ async function orderTargetsByResetAwareQuota(
   const connectionById = new Map<string, Record<string, unknown>>();
   const expandedTargets: ResolvedComboTarget[] = [];
 
-  for (const target of targets) {
-    const connections = await getQuotaAwareConnectionsForTarget(target, connectionCache);
+  const targetsWithConnections = await Promise.all(
+    targets.map(async (target) => ({
+      connections: await getQuotaAwareConnectionsForTarget(target, connectionCache, comboName, log),
+      target,
+    }))
+  );
+
+  for (const { target, connections } of targetsWithConnections) {
     for (const connection of connections) {
       if (typeof connection.id === "string") connectionById.set(connection.id, connection);
     }
 
-    const connectionIds = getTargetConnectionIds(target, connections);
+    const unrestrictedConnectionIds = getTargetConnectionIds(target, connections);
+    const connectionIds = filterAllowedConnectionIds(
+      unrestrictedConnectionIds,
+      apiKeyAllowedConnectionIds
+    );
     if (connectionIds.length === 0) {
+      if (
+        unrestrictedConnectionIds.length > 0 &&
+        normalizeConnectionIds(apiKeyAllowedConnectionIds)
+      ) {
+        continue;
+      }
       expandedTargets.push(target);
       continue;
     }
@@ -904,10 +958,13 @@ async function orderTargetsByResetAwareQuota(
         try {
           quota = await fetcher(target.connectionId, connectionById.get(target.connectionId));
         } catch (error) {
-          log.warn?.(
-            "COMBO",
-            `Reset-aware quota fetch failed for provider=${provider} connection=${target.connectionId}: ${error instanceof Error ? error.message : String(error)}`
-          );
+          log.warn?.("COMBO", "Reset-aware quota fetch failed.", {
+            comboName,
+            connectionId: target.connectionId,
+            err: error,
+            operation: "quotaFetch",
+            provider,
+          });
         }
       }
       const { score } = scoreResetAwareQuota(quota, config);
@@ -1315,6 +1372,7 @@ export async function handleComboChat({
   allCombos,
   relayOptions,
   signal,
+  apiKeyAllowedConnections = null,
 }) {
   const strategy = normalizeRoutingStrategy(combo.strategy || "priority");
   const relayConfig =
@@ -1724,7 +1782,13 @@ export async function handleComboChat({
     orderedTargets = await sortTargetsByCost(orderedTargets);
     log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
   } else if (strategy === "reset-aware") {
-    orderedTargets = await orderTargetsByResetAwareQuota(orderedTargets, combo.name, config, log);
+    orderedTargets = await orderTargetsByResetAwareQuota(
+      orderedTargets,
+      combo.name,
+      config,
+      log,
+      apiKeyAllowedConnections
+    );
     log.info(
       "COMBO",
       `Reset-aware ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`

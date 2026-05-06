@@ -16,6 +16,7 @@ const { invalidateCodexQuotaCache, registerCodexConnection, registerCodexQuotaFe
   await import("../../open-sse/services/codexQuotaFetcher.ts");
 const { registerQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const { recordComboRequest } = await import("../../open-sse/services/comboMetrics.ts");
 const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
 
@@ -125,6 +126,7 @@ function codexQuota({
 }
 
 function installCodexQuotaMock(quotasByToken: Record<string, unknown>) {
+  const previousFetch = globalThis.fetch;
   globalThis.fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
     const headers = init?.headers as Record<string, string> | undefined;
     const authorization = headers?.Authorization || headers?.authorization || "";
@@ -132,6 +134,9 @@ function installCodexQuotaMock(quotasByToken: Record<string, unknown>) {
     const quota = quotasByToken[token];
     if (!quota) return Response.json({ error: "missing quota" }, { status: 404 });
     return Response.json(quota);
+  };
+  return () => {
+    globalThis.fetch = previousFetch;
   };
 }
 
@@ -162,7 +167,10 @@ function resetAwareCombo(
   };
 }
 
-async function selectedConnectionFor(combo: Record<string, unknown>) {
+async function selectedConnectionFor(
+  combo: Record<string, unknown>,
+  options: { apiKeyAllowedConnections?: string[] | null } = {}
+) {
   const calls: Array<string | null> = [];
   const response = await handleComboChat({
     body: reqBodyTextArray,
@@ -173,10 +181,11 @@ async function selectedConnectionFor(combo: Record<string, unknown>) {
     signal: undefined,
     settings: {},
     log: makeLog(),
+    apiKeyAllowedConnections: options.apiKeyAllowedConnections,
     handleSingleModel: async (
       _body: unknown,
       modelStr: string,
-      target?: { connectionId?: string | null }
+      target?: { connectionId?: string | null; allowedConnectionIds?: string[] | null }
     ) => {
       calls.push(target?.connectionId ?? null);
       return okResponse(modelStr);
@@ -242,30 +251,32 @@ test("auto strategy handles null and empty prompt edge cases without throwing", 
   assert.equal(await selectedModelFor(combo, { model: combo.name, messages: [] }), "openai/gpt-4");
 });
 
-test("reset-aware strategy prefers lower weekly remaining quota when reset is much sooner", async () => {
+test("reset-aware strategy prefers lower weekly remaining quota when reset is much sooner", async (t) => {
   const soon = { id: `soon-${randomUUID()}`, token: `token-soon-${randomUUID()}` };
   const later = { id: `later-${randomUUID()}`, token: `token-later-${randomUUID()}` };
-  installCodexQuotaMock({
-    [soon.token]: codexQuota({
-      used5h: 10,
-      reset5hSeconds: 3600,
-      used7d: 40,
-      reset7dSeconds: 24 * 3600,
-    }),
-    [later.token]: codexQuota({
-      used5h: 10,
-      reset5hSeconds: 3600,
-      used7d: 20,
-      reset7dSeconds: 5 * 24 * 3600,
-    }),
-  });
+  t.after(
+    installCodexQuotaMock({
+      [soon.token]: codexQuota({
+        used5h: 10,
+        reset5hSeconds: 3600,
+        used7d: 40,
+        reset7dSeconds: 24 * 3600,
+      }),
+      [later.token]: codexQuota({
+        used5h: 10,
+        reset5hSeconds: 3600,
+        used7d: 20,
+        reset7dSeconds: 5 * 24 * 3600,
+      }),
+    })
+  );
 
   const combo = resetAwareCombo(`reset-aware-soon-${randomUUID()}`, [soon, later]);
 
   assert.equal(await selectedConnectionFor(combo), soon.id);
 });
 
-test("reset-aware strategy avoids accounts near 5h exhaustion", async () => {
+test("reset-aware strategy avoids accounts near 5h exhaustion", async (t) => {
   const exhausted5h = {
     id: `exhausted-${randomUUID()}`,
     token: `token-exhausted-${randomUUID()}`,
@@ -274,27 +285,29 @@ test("reset-aware strategy avoids accounts near 5h exhaustion", async () => {
     id: `healthy-${randomUUID()}`,
     token: `token-healthy-${randomUUID()}`,
   };
-  installCodexQuotaMock({
-    [exhausted5h.token]: codexQuota({
-      used5h: 98,
-      reset5hSeconds: 20 * 60,
-      used7d: 5,
-      reset7dSeconds: 24 * 3600,
-    }),
-    [healthy5h.token]: codexQuota({
-      used5h: 20,
-      reset5hSeconds: 4 * 3600,
-      used7d: 50,
-      reset7dSeconds: 4 * 24 * 3600,
-    }),
-  });
+  t.after(
+    installCodexQuotaMock({
+      [exhausted5h.token]: codexQuota({
+        used5h: 98,
+        reset5hSeconds: 20 * 60,
+        used7d: 5,
+        reset7dSeconds: 24 * 3600,
+      }),
+      [healthy5h.token]: codexQuota({
+        used5h: 20,
+        reset5hSeconds: 4 * 3600,
+        used7d: 50,
+        reset7dSeconds: 4 * 24 * 3600,
+      }),
+    })
+  );
 
   const combo = resetAwareCombo(`reset-aware-guard-${randomUUID()}`, [exhausted5h, healthy5h]);
 
   assert.equal(await selectedConnectionFor(combo), healthy5h.id);
 });
 
-test("reset-aware strategy rotates similar scores with round-robin tie breaking", async () => {
+test("reset-aware strategy rotates similar scores with round-robin tie breaking", async (t) => {
   const first = { id: `first-${randomUUID()}`, token: `token-first-${randomUUID()}` };
   const second = {
     id: `second-${randomUUID()}`,
@@ -308,10 +321,12 @@ test("reset-aware strategy rotates similar scores with round-robin tie breaking"
       secondary_window: { used_percent: 50, reset_at: reset7dAt },
     },
   };
-  installCodexQuotaMock({
-    [first.token]: quota,
-    [second.token]: quota,
-  });
+  t.after(
+    installCodexQuotaMock({
+      [first.token]: quota,
+      [second.token]: quota,
+    })
+  );
 
   const combo = resetAwareCombo(`reset-aware-rr-${randomUUID()}`, [first, second], {
     resetAwareTieBandPercent: 100,
@@ -358,6 +373,57 @@ test("reset-aware strategy uses registered quota fetchers for non-Codex provider
   };
 
   assert.equal(await selectedConnectionFor(combo), soon);
+});
+
+test("reset-aware strategy respects API-key allowed connections during expansion", async () => {
+  const provider = `limited-provider-${randomUUID()}`;
+  const disallowed = await providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    name: `disallowed-${randomUUID()}`,
+    apiKey: "sk-disallowed",
+    isActive: true,
+  });
+  const allowed = await providersDb.createProviderConnection({
+    provider,
+    authType: "apikey",
+    name: `allowed-${randomUUID()}`,
+    apiKey: "sk-allowed",
+    isActive: true,
+  });
+  const allowedId = String(allowed.id);
+  const disallowedId = String(disallowed.id);
+  const fetchedConnectionIds: string[] = [];
+
+  registerQuotaFetcher(provider, async (connectionId) => {
+    fetchedConnectionIds.push(connectionId);
+    return {
+      used: connectionId === disallowedId ? 60 : 20,
+      total: 100,
+      percentUsed: connectionId === disallowedId ? 0.6 : 0.2,
+      resetAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+    };
+  });
+
+  const combo = {
+    name: `reset-aware-api-key-${randomUUID()}`,
+    strategy: "reset-aware",
+    models: [
+      {
+        kind: "model",
+        provider,
+        providerId: provider,
+        model: "balanced-model",
+        id: "limited-provider-step",
+      },
+    ],
+  };
+
+  assert.equal(
+    await selectedConnectionFor(combo, { apiKeyAllowedConnections: [allowedId] }),
+    allowedId
+  );
+  assert.deepEqual(fetchedConnectionIds, [allowedId]);
 });
 
 test("reset-aware strategy scores provider-specific weekly windows when available", async () => {
