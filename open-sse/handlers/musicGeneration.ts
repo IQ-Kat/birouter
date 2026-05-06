@@ -266,7 +266,7 @@ async function handleKieMusicGeneration({
   if (isMarket) {
     url = `${baseUrl}/api/v1/jobs/createTask`;
     payload = {
-      model: model.includes("/") ? model.split("/").pop() : model,
+      model,
       callBackUrl: getKieCallbackUrl(body),
       input: {
         prompt,
@@ -310,7 +310,9 @@ async function handleKieMusicGeneration({
 
     const statusUrl = isMarket
       ? `${baseUrl}/api/v1/jobs/recordInfo`
-      : providerConfig.statusUrl || `${baseUrl}/api/v1/generate/record-info`;
+      : providerConfig.statusUrl && !providerConfig.statusUrl.includes("jobs/recordInfo")
+        ? providerConfig.statusUrl
+        : `${baseUrl}/api/v1/generate/record-info`;
 
     const { data: recordData, state } = await kieExecutor.pollTask({
       statusUrl,

@@ -328,11 +328,8 @@ async function handleKieVideoGeneration({
     return { success: false, status: 401, error: "KIE API key is required" };
   }
 
-  // Strip category prefix (e.g., "veo/veo-3-1" -> "veo-3-1")
-  const marketModelId = model.includes("/") ? model.split("/").pop() : model;
-
   const payload = {
-    model: marketModelId,
+    model,
     input: {
       prompt,
       duration: body.duration ? String(body.duration) : "5",

@@ -392,8 +392,6 @@ async function handleKieImageGeneration({
   if (isMarket) {
     // Unified Market API endpoint
     baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/createTask`;
-    // Strip category prefix (e.g., "gpt/gpt-image-2" -> "gpt-image-2")
-    const marketModelId = model.includes("/") ? model.split("/").pop() : model;
     const input: Record<string, unknown> = {
       prompt,
       aspect_ratio: mapImageSize(size, "1:1"),
@@ -402,7 +400,7 @@ async function handleKieImageGeneration({
       input.image_url = imageUrl;
     }
     payload = {
-      model: marketModelId,
+      model,
       input,
     };
   } else {
