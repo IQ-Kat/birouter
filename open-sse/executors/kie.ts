@@ -1,5 +1,13 @@
 import { BaseExecutor } from "./base.ts";
 import { sleep } from "../utils/sleep.ts";
+import {
+  isJsonObject,
+  normalizeKieTaskState,
+  type JsonObject,
+  type KieTaskState,
+} from "../utils/kieTask.ts";
+
+export type { KieTaskState } from "../utils/kieTask.ts";
 
 type KieTaskInput = {
   baseUrl: string;
@@ -16,54 +24,13 @@ type KiePollInput = {
   pollIntervalMs: number;
 };
 
-export type KieTaskState = "success" | "failed" | "pending";
-
 export type KieTaskRecord = {
-  data: any;
+  data: JsonObject;
   state: KieTaskState;
 };
 
 function normalizeBaseUrl(baseUrl: string): string {
   return baseUrl.replace(/\/$/, "");
-}
-
-export function normalizeKieTaskState(recordData: any): KieTaskState {
-  const state = String(
-    recordData?.data?.status ??
-      recordData?.data?.state ??
-      recordData?.data?.successFlag ??
-      recordData?.msg ??
-      "PENDING"
-  ).toUpperCase();
-
-  if (
-    state === "SUCCESS" ||
-    state === "1" ||
-    state === "FINISHED" ||
-    state === "COMPLETE" ||
-    state === "COMPLETED" ||
-    state === "FIRST_SUCCESS" ||
-    state === "ALL_SUCCESS" ||
-    state.includes("SUCCESS")
-  ) {
-    return "success";
-  }
-
-  if (
-    state === "FAIL" ||
-    state === "FAILED" ||
-    state === "ERROR" ||
-    state === "2" ||
-    state === "3" ||
-    state.includes("FAIL") ||
-    state.includes("ERROR") ||
-    state === "CREATE_TASK_FAILED" ||
-    state === "GENERATE_FAILED"
-  ) {
-    return "failed";
-  }
-
-  return "pending";
 }
 
 export class KieExecutor extends BaseExecutor {
@@ -79,7 +46,7 @@ export class KieExecutor extends BaseExecutor {
     return `${normalizeBaseUrl(baseUrl)}/api/v1/jobs/recordInfo`;
   }
 
-  async createTask({ baseUrl, token, payload, endpoint }: KieTaskInput): Promise<any> {
+  async createTask({ baseUrl, token, payload, endpoint }: KieTaskInput): Promise<JsonObject> {
     const res = await fetch(this.getTaskCreateUrl(baseUrl, endpoint), {
       method: "POST",
       headers: {
@@ -96,7 +63,8 @@ export class KieExecutor extends BaseExecutor {
       });
     }
 
-    return res.json();
+    const data = (await res.json()) as unknown;
+    return isJsonObject(data) ? data : {};
   }
 
   async pollTask({
@@ -124,10 +92,11 @@ export class KieExecutor extends BaseExecutor {
         });
       }
 
-      const data = await res.json();
-      const state = normalizeKieTaskState(data);
+      const data = (await res.json()) as unknown;
+      const recordData = isJsonObject(data) ? data : {};
+      const state = normalizeKieTaskState(recordData);
       if (state !== "pending") {
-        return { data, state };
+        return { data: recordData, state };
       }
 
       await sleep(pollIntervalMs);

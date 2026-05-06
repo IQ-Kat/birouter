@@ -279,7 +279,7 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
     }
 
     return { valid: false, error: `Validation failed: ${response.status}` };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
@@ -577,7 +577,7 @@ async function validateKieProvider({ apiKey, providerSpecificData = {} }: any) {
     }
 
     return { valid: false, error: `Validation failed: ${chatRes.status}` };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }

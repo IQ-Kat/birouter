@@ -21,6 +21,13 @@ import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts"
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { errorResponse } from "../utils/error.ts";
+import {
+  getKieCallbackUrl,
+  getKieErrorMessage,
+  getKieErrorStatus,
+  isJsonObject,
+  parseKieResultJson,
+} from "../utils/kieTask.ts";
 
 /**
  * Return a CORS error response from an upstream fetch failure
@@ -69,15 +76,6 @@ function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
   });
 }
 
-function getKieCallbackUrl(body: any): string {
-  return (
-    body.callBackUrl ||
-    body.callback_url ||
-    body.callbackUrl ||
-    "https://omniroute.local/api/kie/callback"
-  );
-}
-
 function normalizeKieElevenLabsVoice(voice: unknown): string {
   const value = typeof voice === "string" ? voice.trim() : "";
   const aliases: Record<string, string> = {
@@ -91,17 +89,7 @@ function normalizeKieElevenLabsVoice(voice: unknown): string {
   return aliases[value.toLowerCase()] || value || "Rachel";
 }
 
-function parseKieResultJson(recordData: any): any {
-  try {
-    return typeof recordData?.data?.resultJson === "string"
-      ? JSON.parse(recordData.data.resultJson)
-      : recordData?.data?.resultJson || {};
-  } catch {
-    return {};
-  }
-}
-
-function findAudioUrlDeep(value: any): string | null {
+function findAudioUrlDeep(value: unknown): string | null {
   if (!value) return null;
 
   if (typeof value === "string") {
@@ -119,7 +107,7 @@ function findAudioUrlDeep(value: any): string | null {
     return null;
   }
 
-  if (typeof value === "object") {
+  if (isJsonObject(value)) {
     const preferredKeys = [
       "audio_url",
       "audioUrl",
@@ -145,16 +133,20 @@ function findAudioUrlDeep(value: any): string | null {
   return null;
 }
 
-function findKieAudioUrl(recordData: any): string | null {
+function findKieAudioUrl(recordData: unknown): string | null {
+  const record = isJsonObject(recordData) ? recordData : {};
+  const data = isJsonObject(record.data) ? record.data : {};
   const resultJson = parseKieResultJson(recordData);
+  const response = data.response;
+  const nestedData = data.data;
   const candidates = [
-    recordData?.data?.response,
-    recordData?.data,
+    response,
+    data,
     resultJson,
-    ...(Array.isArray(recordData?.data?.response) ? recordData.data.response : []),
-    ...(Array.isArray(recordData?.data?.data) ? recordData.data.data : []),
-    ...(Array.isArray(resultJson?.data) ? resultJson.data : []),
-    ...(Array.isArray(resultJson?.result) ? resultJson.result : []),
+    ...(Array.isArray(response) ? response : []),
+    ...(Array.isArray(nestedData) ? nestedData : []),
+    ...(Array.isArray(resultJson.data) ? resultJson.data : []),
+    ...(Array.isArray(resultJson.result) ? resultJson.result : []),
   ];
 
   for (const item of candidates) {
@@ -453,13 +445,14 @@ async function handleKieAudioSpeech(providerConfig, body, modelId, token) {
       token,
       payload,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const status = getKieErrorStatus(err, 502);
     return Response.json(
       {
-        error: { message: err?.message || "Kie audio createTask failed", code: err?.status || 502 },
+        error: { message: getKieErrorMessage(err, "Kie audio createTask failed"), code: status },
       },
       {
-        status: Number(err?.status) || 502,
+        status,
         headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
       }
     );
@@ -504,10 +497,10 @@ async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
       }
       return errorResponse(502, "Kie audio task completed without audio URL");
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     return errorResponse(
-      Number(err?.status) || 504,
-      err?.message || "Kie audio generation timed out or failed"
+      getKieErrorStatus(err, 504),
+      getKieErrorMessage(err, "Kie audio generation timed out or failed")
     );
   }
 

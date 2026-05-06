@@ -22,6 +22,12 @@ import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sleep } from "../utils/sleep.ts";
 import {
+  getKieErrorMessage,
+  getKieErrorStatus,
+  isJsonObject,
+  parseKieResultJson,
+} from "../utils/kieTask.ts";
+import {
   submitComfyWorkflow,
   pollComfyResult,
   fetchComfyOutput,
@@ -31,10 +37,25 @@ import {
 interface KieImageOptions {
   model: string;
   provider: string;
-  providerConfig: any;
-  body: any;
-  credentials: any;
-  log: any;
+  providerConfig: {
+    baseUrl: string;
+    statusUrl?: string;
+  };
+  body: Record<string, unknown> & {
+    prompt?: unknown;
+    size?: unknown;
+    n?: unknown;
+    timeout_ms?: unknown;
+    poll_interval_ms?: unknown;
+  };
+  credentials?: {
+    apiKey?: string;
+    accessToken?: string;
+  } | null;
+  log?: {
+    info: (scope: string, message: string) => void;
+    error: (scope: string, message: string) => void;
+  } | null;
 }
 
 const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
@@ -300,20 +321,14 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
 }
 
-function normalizeKieImageResult(recordData: any): string[] {
-  let resultJson: Record<string, unknown> = {};
-  try {
-    resultJson =
-      typeof recordData?.data?.resultJson === "string"
-        ? JSON.parse(recordData.data.resultJson)
-        : recordData?.data?.resultJson || {};
-  } catch {
-    resultJson = {};
-  }
-
+function normalizeKieImageResult(recordData: unknown): string[] {
+  const record = isJsonObject(recordData) ? recordData : {};
+  const data = isJsonObject(record.data) ? record.data : {};
+  const response = isJsonObject(data.response) ? data.response : {};
+  const resultJson = parseKieResultJson(recordData);
   const urls = new Set<string>();
 
-  const add = (val: any) => {
+  const add = (val: unknown) => {
     if (typeof val === "string" && val.startsWith("http")) urls.add(val);
     if (Array.isArray(val)) {
       val.forEach((v) => {
@@ -329,13 +344,13 @@ function normalizeKieImageResult(recordData: any): string[] {
   add(resultJson?.imageUrl);
 
   // Check data.response (common in 4o-image API)
-  add(recordData?.data?.response?.resultUrls);
-  add(recordData?.data?.response?.resultUrl);
+  add(response.resultUrls);
+  add(response.resultUrl);
 
   // Check direct data fields
-  add(recordData?.data?.resultImageUrls);
-  add(recordData?.data?.resultImageUrl);
-  add(recordData?.data?.url);
+  add(data.resultImageUrls);
+  add(data.resultImageUrl);
+  add(data.url);
 
   return Array.from(urls);
 }
@@ -352,31 +367,44 @@ async function handleKieImageGeneration({
   const token = credentials?.apiKey || credentials?.accessToken;
   const timeoutMs = normalizePositiveNumber(body.timeout_ms, 300000);
   const pollIntervalMs = normalizePositiveNumber(body.poll_interval_ms, 2500);
+  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  const size = typeof body.size === "string" ? body.size : undefined;
+
+  if (!token) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 401,
+      startTime,
+      error: "KIE API key is required",
+    });
+  }
 
   // Check if model is a Market model (unified API)
   const fullRegistry = getImageProvider(provider);
-  const modelEntry = fullRegistry?.models?.find((m: any) => m.id === model);
+  const modelEntry = fullRegistry?.models?.find((m) => m.id === model);
   const isMarket = modelEntry?.isMarket || model.includes("/");
 
   const { imageUrl } = extractImageInputs(body);
   let baseUrl = "";
-  let payload: any = {};
+  let payload: Record<string, unknown> = {};
 
   if (isMarket) {
     // Unified Market API endpoint
     baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/createTask`;
     // Strip category prefix (e.g., "gpt/gpt-image-2" -> "gpt-image-2")
     const marketModelId = model.includes("/") ? model.split("/").pop() : model;
-    payload = {
-      model: marketModelId,
-      input: {
-        prompt: body.prompt,
-        aspect_ratio: mapImageSize(body.size, "1:1"),
-      },
+    const input: Record<string, unknown> = {
+      prompt,
+      aspect_ratio: mapImageSize(size, "1:1"),
     };
     if (imageUrl) {
-      payload.input.image_url = imageUrl;
+      input.image_url = imageUrl;
     }
+    payload = {
+      model: marketModelId,
+      input,
+    };
   } else {
     // Legacy/Direct endpoint
     const modelPath = model.replace("-t2i", "").replace("-i2i", "");
@@ -385,8 +413,8 @@ async function handleKieImageGeneration({
       : `https://api.kie.ai/api/v1/${modelPath}/generate`;
 
     payload = {
-      prompt: body.prompt,
-      image_size: mapImageSize(body.size, "1:1"),
+      prompt,
+      image_size: mapImageSize(size, "1:1"),
       num_images: body.n || 1,
     };
   }
@@ -436,106 +464,58 @@ async function handleKieImageGeneration({
         ? providerConfig.statusUrl
         : baseUrl.replace(/\/generate$/, "/record-info");
 
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-      const pollUrl = new URL(statusUrl);
-      pollUrl.searchParams.set("taskId", String(taskId));
+    const { data: recordData, state } = await kieExecutor.pollTask({
+      statusUrl,
+      taskId: String(taskId),
+      token,
+      timeoutMs,
+      pollIntervalMs,
+    });
 
-      const recordRes = await fetch(pollUrl.toString(), {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    if (state === "success") {
+      if (log) {
+        log.info("IMAGE", `KIE poll success for task ${taskId}`);
+      }
+      const urls = normalizeKieImageResult(recordData);
+      const images = urls.map((url: string) => ({ url, revised_prompt: prompt }));
+
+      return saveImageSuccessResult({
+        provider,
+        model,
+        startTime,
+        requestBody: payload,
+        responseBody: { images_count: images.length },
+        images,
       });
+    }
 
-      if (!recordRes.ok) {
-        const errorText = await recordRes.text();
-        return saveImageErrorResult({
-          provider,
-          model,
-          status: recordRes.status,
-          startTime,
-          error: errorText,
-          requestBody: payload,
-        });
-      }
+    const record = isJsonObject(recordData) ? recordData : {};
+    const recordDataBody = isJsonObject(record.data) ? record.data : {};
+    const errorMessage =
+      recordDataBody.errorMessage ||
+      recordDataBody.failMsg ||
+      record.msg ||
+      "KIE image task failed";
 
-      const recordData = await recordRes.json();
-      const state = String(
-        recordData?.data?.status ??
-          recordData?.data?.state ??
-          recordData?.data?.successFlag ??
-          recordData?.msg ??
-          "PENDING"
-      ).toUpperCase();
-
-      if (state === "SUCCESS" || state === "1" || state === "FINISHED") {
-        if (log) {
-          log.info("IMAGE", `KIE poll success for task ${taskId}`);
-        }
-        const urls = normalizeKieImageResult(recordData);
-        const images = urls.map((url: string) => ({ url, revised_prompt: body.prompt }));
-
-        return saveImageSuccessResult({
-          provider,
-          model,
-          startTime,
-          requestBody: payload,
-          responseBody: { images_count: images.length },
-          images,
-        });
-      }
-
-      // Expanded failure state detection
-      if (
-        state === "FAIL" ||
-        state === "FAILED" ||
-        state === "ERROR" ||
-        state === "2" ||
-        state === "3" ||
-        state.includes("FAIL") ||
-        state.includes("ERROR") ||
-        state === "CREATE_TASK_FAILED" ||
-        state === "GENERATE_FAILED"
-      ) {
-        const errorMessage =
-          recordData?.data?.errorMessage ||
-          recordData?.data?.failMsg ||
-          recordData?.msg ||
-          `KIE image task failed with status: ${state}`;
-
-        if (log) {
-          log.error("IMAGE", `KIE poll failed for task ${taskId}: ${JSON.stringify(recordData)}`);
-        }
-
-        return saveImageErrorResult({
-          provider,
-          model,
-          status: 502,
-          startTime,
-          error: errorMessage,
-          requestBody: payload,
-        });
-      }
-
-      await sleep(pollIntervalMs);
+    if (log) {
+      log.error("IMAGE", `KIE poll failed for task ${taskId}: ${JSON.stringify(recordData)}`);
     }
 
     return saveImageErrorResult({
       provider,
       model,
-      status: 504,
+      status: 502,
       startTime,
-      error: `KIE image polling timed out after ${timeoutMs}ms`,
+      error: String(errorMessage),
       requestBody: payload,
     });
-  } catch (err) {
+  } catch (err: unknown) {
     return saveImageErrorResult({
       provider,
       model,
-      status: 502,
+      status: getKieErrorStatus(err, 502),
       startTime,
-      error: `Image provider error: ${err instanceof Error ? err.message : String(err)}`,
+      error: `Image provider error: ${getKieErrorMessage(err, "KIE image generation failed")}`,
     });
   }
 }

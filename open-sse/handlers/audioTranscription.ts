@@ -306,16 +306,20 @@ async function handleKieAudioTranscription(providerConfig, file, modelId, token)
         },
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const status =
+      typeof err === "object" && err !== null && "status" in err
+        ? Number((err as { status?: unknown }).status) || 502
+        : 502;
     return Response.json(
       {
         error: {
-          message: err?.message || "Kie transcription createTask failed",
-          code: err?.status || 502,
+          message: err instanceof Error ? err.message : "Kie transcription createTask failed",
+          code: status,
         },
       },
       {
-        status: Number(err?.status) || 502,
+        status,
         headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
       }
     );
@@ -359,10 +363,14 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
         { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
       );
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const status =
+      typeof err === "object" && err !== null && "status" in err
+        ? Number((err as { status?: unknown }).status) || 504
+        : 504;
     return errorResponse(
-      Number(err?.status) || 504,
-      err?.message || "Kie transcription generation timed out or failed"
+      status,
+      err instanceof Error ? err.message : "Kie transcription generation timed out or failed"
     );
   }
 
