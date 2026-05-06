@@ -426,6 +426,36 @@ test("reset-aware strategy respects API-key allowed connections during expansion
   assert.deepEqual(fetchedConnectionIds, [allowedId]);
 });
 
+test("reset-aware strategy parses numeric reset timestamps from quota telemetry", async () => {
+  const provider = `timestamp-provider-${randomUUID()}`;
+  const soon = `timestamp-soon-${randomUUID()}`;
+  const later = `timestamp-later-${randomUUID()}`;
+  const soonResetSeconds = Math.floor((Date.now() + 24 * 3600 * 1000) / 1000);
+  const laterResetMs = Date.now() + 5 * 24 * 3600 * 1000;
+
+  registerQuotaFetcher(provider, async (connectionId) => ({
+    used: connectionId === soon ? 40 : 20,
+    total: 100,
+    percentUsed: connectionId === soon ? 0.4 : 0.2,
+    resetAt: connectionId === soon ? soonResetSeconds : laterResetMs,
+  }));
+
+  const combo = {
+    name: `reset-aware-timestamps-${randomUUID()}`,
+    strategy: "reset-aware",
+    models: [soon, later].map((connectionId, index) => ({
+      kind: "model",
+      provider,
+      providerId: provider,
+      model: "balanced-model",
+      connectionId,
+      id: `timestamp-${index}`,
+    })),
+  };
+
+  assert.equal(await selectedConnectionFor(combo), soon);
+});
+
 test("reset-aware strategy scores provider-specific weekly windows when available", async () => {
   const provider = `weekly-provider-${randomUUID()}`;
   const soon = `weekly-soon-${randomUUID()}`;

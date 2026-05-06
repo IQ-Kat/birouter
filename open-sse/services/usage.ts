@@ -532,7 +532,7 @@ function getGlmQuotaLabel(type: unknown): string | null {
 
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
   if (!apiKey) {
-    return { message: "Z.AI API key not available. Add a coding plan API key to view usage." };
+    return { message: "API key not available. Add a coding plan API key to view usage." };
   }
 
   const quotaUrl = getGlmQuotaUrl(providerSpecificData);

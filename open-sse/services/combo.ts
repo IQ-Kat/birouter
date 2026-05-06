@@ -92,6 +92,8 @@ const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
 const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const RESET_AWARE_REMAINING_WEIGHT = 0.55;
 const RESET_AWARE_RESET_WEIGHT = 0.45;
+const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
+const RESET_AWARE_QUOTA_FETCH_CONCURRENCY = 5;
 const RESET_AWARE_DEFAULTS = {
   sessionWeight: 0.35,
   weeklyWeight: 0.65,
@@ -221,6 +223,11 @@ export async function validateResponseQuality(
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
 const rrCounters = new Map();
+
+const resetAwareConnectionCache = new Map<
+  string,
+  { fetchedAt: number; connections: Array<Record<string, unknown>> }
+>();
 
 /**
  * Normalize a model entry to { model, weight }
@@ -762,6 +769,23 @@ function getResetAwareProvider(target: ResolvedComboTarget): string | null {
   return provider || null;
 }
 
+function normalizeResetAt(value: unknown): string | null {
+  if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+function parseResetTimeMs(resetAt: string | null | undefined): number {
+  if (!resetAt) return NaN;
+  const resetTime = Date.parse(resetAt);
+  if (Number.isFinite(resetTime)) return resetTime;
+
+  if (!/^\d+(?:\.\d+)?$/.test(resetAt)) return NaN;
+  const numericResetAt = Number(resetAt);
+  if (!Number.isFinite(numericResetAt)) return NaN;
+  return numericResetAt < 10_000_000_000 ? numericResetAt * 1000 : numericResetAt;
+}
+
 function getQuotaWindow(
   quota: unknown,
   key: "window5h" | "window7d" | "windowWeekly" | "windowMonthly"
@@ -770,14 +794,13 @@ function getQuotaWindow(
   const window = quota[key];
   if (!isRecord(window)) return null;
   const percentUsed = finiteNumberOrNull(window.percentUsed);
-  const resetAt =
-    typeof window.resetAt === "string" && window.resetAt.length > 0 ? window.resetAt : null;
+  const resetAt = normalizeResetAt(window.resetAt);
   return { percentUsed, resetAt };
 }
 
 function getResetUrgency(resetAt: string | null | undefined, windowMs: number): number {
   if (!resetAt) return 0.5;
-  const resetTime = resetAt ? new Date(resetAt).getTime() : NaN;
+  const resetTime = parseResetTimeMs(resetAt);
   if (!Number.isFinite(resetTime)) return 0.5;
   const msUntilReset = resetTime - Date.now();
   if (msUntilReset <= 0) return 1;
@@ -811,7 +834,7 @@ function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveR
   );
   const weeklyScore = scoreQuotaWindow(
     weeklyRemaining,
-    weeklyWindow?.resetAt ?? (typeof quota.resetAt === "string" ? quota.resetAt : null),
+    weeklyWindow?.resetAt ?? normalizeResetAt(quota.resetAt),
     RESET_AWARE_WEEKLY_WINDOW_MS
   );
   let score = config.sessionWeight * sessionScore + config.weeklyWeight * weeklyScore;
@@ -832,12 +855,22 @@ async function getQuotaAwareConnectionsForTarget(
   const provider = getResetAwareProvider(target);
   if (!provider || !getQuotaFetcher(provider)) return [];
   if (!connectionCache.has(provider)) {
+    const cached = resetAwareConnectionCache.get(provider);
+    if (cached && Date.now() - cached.fetchedAt < RESET_AWARE_CONNECTION_CACHE_TTL_MS) {
+      connectionCache.set(provider, cached.connections);
+      return cached.connections;
+    }
+
     try {
       const connections = await getProviderConnections({ provider, isActive: true });
-      connectionCache.set(
-        provider,
-        Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
-      );
+      const activeConnections = Array.isArray(connections)
+        ? (connections as Array<Record<string, unknown>>)
+        : [];
+      connectionCache.set(provider, activeConnections);
+      resetAwareConnectionCache.set(provider, {
+        connections: activeConnections,
+        fetchedAt: Date.now(),
+      });
     } catch (error) {
       log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
         comboName,
@@ -872,27 +905,45 @@ function filterAllowedConnectionIds(
 
 function getTargetConnectionIds(
   target: ResolvedComboTarget,
-  connections: Array<Record<string, unknown>>,
-  apiKeyAllowedConnectionIds?: string[] | null
+  connections: Array<Record<string, unknown>>
 ): string[] {
   let connectionIds: string[];
   if (target.connectionId) {
-    connectionIds = [target.connectionId];
-    return filterAllowedConnectionIds(connectionIds, apiKeyAllowedConnectionIds);
+    return [target.connectionId];
   }
 
   if (Array.isArray(target.allowedConnectionIds) && target.allowedConnectionIds.length > 0) {
-    connectionIds = target.allowedConnectionIds.filter(
+    return target.allowedConnectionIds.filter(
       (connectionId): connectionId is string =>
         typeof connectionId === "string" && connectionId.trim().length > 0
     );
-    return filterAllowedConnectionIds(connectionIds, apiKeyAllowedConnectionIds);
   }
 
   connectionIds = connections
     .map((connection) => (typeof connection.id === "string" ? connection.id : null))
     .filter((connectionId): connectionId is string => !!connectionId);
-  return filterAllowedConnectionIds(connectionIds, apiKeyAllowedConnectionIds);
+  return connectionIds;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex++;
+        results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+      }
+    })
+  );
+
+  return results;
 }
 
 async function orderTargetsByResetAwareQuota(
@@ -949,8 +1000,10 @@ async function orderTargetsByResetAwareQuota(
     }
   }
 
-  const scoredTargets = await Promise.all(
-    expandedTargets.map(async (target, index) => {
+  const scoredTargets = await mapWithConcurrency(
+    expandedTargets,
+    RESET_AWARE_QUOTA_FETCH_CONCURRENCY,
+    async (target, index) => {
       let quota: unknown = null;
       const provider = getResetAwareProvider(target);
       const fetcher = provider ? getQuotaFetcher(provider) : null;
@@ -969,7 +1022,7 @@ async function orderTargetsByResetAwareQuota(
       }
       const { score } = scoreResetAwareQuota(quota, config);
       return { target, score, index };
-    })
+    }
   );
 
   scoredTargets.sort((a, b) => {

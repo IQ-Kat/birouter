@@ -883,6 +883,15 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
   });
   assert.match(qoder.message, /Usage tracked per request/i);
 
+  const glmMissingKey: any = await usageService.getUsageForProvider({
+    provider: "glm",
+    apiKey: "",
+  });
+  assert.equal(
+    glmMissingKey.message,
+    "API key not available. Add a coding plan API key to view usage."
+  );
+
   globalThis.fetch = async (url, init = {}) => {
     if (String(url).includes("/api/monitor/usage/quota/limit")) {
       assert.equal((init as any).headers.Authorization, "Bearer glm-key");
