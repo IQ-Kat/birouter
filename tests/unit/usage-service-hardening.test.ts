@@ -862,7 +862,7 @@ test("usage service covers Codex auth failures, Kiro hard failures, Kimi no-quot
   assert.equal(qwenCatch.message, "Unable to fetch Qwen usage.");
 });
 
-test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
+test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () => {
   const qwenMissingUrl: any = await usageService.getUsageForProvider({
     provider: "qwen",
     accessToken: "qwen-token",
@@ -897,6 +897,11 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
                 nextResetTime: Date.now() + 120_000,
               },
               {
+                type: "TIME_LIMIT",
+                percentage: "7",
+                nextResetTime: Date.now() + 300_000,
+              },
+              {
                 type: "OTHER_LIMIT",
                 percentage: "10",
               },
@@ -916,8 +921,18 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
     providerSpecificData: { apiRegion: "invalid-region" },
   });
   assert.equal(glm.plan, "Pro");
-  assert.equal(glm.quotas.session.used, 64);
-  assert.equal(glm.quotas.session.remaining, 36);
+  assert.equal(glm.quotas.tokens.used, 64);
+  assert.equal(glm.quotas.tokens.remaining, 36);
+  assert.equal(glm.quotas.time_limit.used, 7);
+  assert.equal(glm.quotas.time_limit.remaining, 93);
+
+  const zai: any = await usageService.getUsageForProvider({
+    provider: "zai",
+    apiKey: "glm-key",
+  });
+  assert.equal(zai.plan, "Pro");
+  assert.equal(zai.quotas.tokens.used, 64);
+  assert.equal(zai.quotas.time_limit.remaining, 93);
 
   const glmt: any = await usageService.getUsageForProvider({
     provider: "glmt",
@@ -925,8 +940,8 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
     providerSpecificData: { apiRegion: "international" },
   });
   assert.equal(glmt.plan, "Pro");
-  assert.equal(glmt.quotas.session.used, 64);
-  assert.equal(glmt.quotas.session.remaining, 36);
+  assert.equal(glmt.quotas.tokens.used, 64);
+  assert.equal(glmt.quotas.tokens.remaining, 36);
 
   globalThis.fetch = async () => new Response("nope", { status: 401 });
   await assert.rejects(

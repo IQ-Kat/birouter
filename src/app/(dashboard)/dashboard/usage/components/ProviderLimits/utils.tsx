@@ -22,6 +22,8 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   agentic_request_freetrial: "Agentic (Trial)",
   credits: "AI Credits",
   models: "Models",
+  tokens: "Tokens",
+  time_limit: "Time Limit",
 };
 
 function toRecord(value: unknown): Record<string, unknown> {
