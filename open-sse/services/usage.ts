@@ -515,19 +515,39 @@ async function getCrofUsage(apiKey: string) {
   return { quotas };
 }
 
-function getGlmQuotaLabel(type: unknown): string | null {
+const GLM_QUOTA_ORDER = ["5 Hours Quota", "Weekly Quota", "Monthly Tools", "Tokens", "Time Limit"];
+
+function getGlmQuotaLabel(type: unknown, unit: unknown): string | null {
   const normalized = typeof type === "string" ? type.trim().toUpperCase() : "";
+  const unitValue = toNumber(unit, -1);
 
   switch (normalized) {
     case "TOKENS_LIMIT":
     case "TOKEN_LIMIT":
-      return "tokens";
+      if (unitValue === 3) return "5 Hours Quota";
+      if (unitValue === 6) return "Weekly Quota";
+      return "Tokens";
     case "TIME_LIMIT":
     case "TIME_USAGE_LIMIT":
-      return "time_limit";
+      if (unitValue === 5) return "Monthly Tools";
+      return "Time Limit";
     default:
       return null;
   }
+}
+
+function orderGlmQuotas(quotas: Record<string, UsageQuota>): Record<string, UsageQuota> {
+  const ordered: Record<string, UsageQuota> = {};
+
+  for (const key of GLM_QUOTA_ORDER) {
+    if (quotas[key]) ordered[key] = quotas[key];
+  }
+
+  for (const [key, quota] of Object.entries(quotas)) {
+    if (!ordered[key]) ordered[key] = quota;
+  }
+
+  return ordered;
 }
 
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
@@ -556,7 +576,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
 
   for (const limit of limits) {
     const src = toRecord(limit);
-    const label = getGlmQuotaLabel(src.type);
+    const label = getGlmQuotaLabel(src.type, src.unit);
     if (!label) continue;
 
     const usedPercent = toNumber(src.percentage, 0);
@@ -578,7 +598,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
     ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
     : "Unknown";
 
-  return { plan, quotas };
+  return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
 /**

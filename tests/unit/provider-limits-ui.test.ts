@@ -95,15 +95,29 @@ test("MiniMax quota payloads use generic provider parsing and stale resets still
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[1].name), "Weekly");
 });
 
-test("Z.AI quota labels render token and time limit usage", () => {
-  assert.equal(providerLimitUtils.formatQuotaLabel("tokens"), "Tokens");
-  assert.equal(providerLimitUtils.formatQuotaLabel("time_limit"), "Time Limit");
+test("Z.AI quota labels render 5h, weekly and monthly tool usage", () => {
+  assert.equal(providerLimitUtils.formatQuotaLabel("5 Hours Quota"), "5 Hours");
+  assert.equal(providerLimitUtils.formatQuotaLabel("Weekly Quota"), "Weekly");
+  assert.equal(providerLimitUtils.formatQuotaLabel("Monthly Tools"), "Monthly Tools");
 
   const future = new Date(Date.now() + 5 * 60_000).toISOString();
   const parsed = providerLimitUtils.parseQuotaData("zai", {
     quotas: {
-      tokens: { used: 18, total: 100, remaining: 82, remainingPercentage: 82, resetAt: future },
-      time_limit: {
+      "5 Hours Quota": {
+        used: 15,
+        total: 100,
+        remaining: 85,
+        remainingPercentage: 85,
+        resetAt: future,
+      },
+      "Weekly Quota": {
+        used: 4,
+        total: 100,
+        remaining: 96,
+        remainingPercentage: 96,
+        resetAt: future,
+      },
+      "Monthly Tools": {
         used: 0,
         total: 100,
         remaining: 100,
@@ -113,9 +127,11 @@ test("Z.AI quota labels render token and time limit usage", () => {
     },
   });
 
-  assert.equal(parsed.length, 2);
-  assert.equal(parsed[0].name, "tokens");
-  assert.equal(parsed[0].remainingPercentage, 82);
-  assert.equal(parsed[1].name, "time_limit");
-  assert.equal(parsed[1].remainingPercentage, 100);
+  assert.equal(parsed.length, 3);
+  assert.equal(parsed[0].name, "5 Hours Quota");
+  assert.equal(parsed[0].remainingPercentage, 85);
+  assert.equal(parsed[1].name, "Weekly Quota");
+  assert.equal(parsed[1].remainingPercentage, 96);
+  assert.equal(parsed[2].name, "Monthly Tools");
+  assert.equal(parsed[2].remainingPercentage, 100);
 });

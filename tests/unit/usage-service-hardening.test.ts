@@ -902,11 +902,21 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
             limits: [
               {
                 type: "TOKENS_LIMIT",
-                percentage: "64",
+                unit: 3,
+                usage: 15,
+                currentValue: 85,
+                percentage: "15",
                 nextResetTime: Date.now() + 120_000,
               },
               {
+                type: "TOKENS_LIMIT",
+                unit: 6,
+                percentage: "64",
+                nextResetTime: Date.now() + 604_800_000,
+              },
+              {
                 type: "TIME_LIMIT",
+                unit: 5,
                 percentage: "7",
                 nextResetTime: Date.now() + 300_000,
               },
@@ -930,18 +940,21 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
     providerSpecificData: { apiRegion: "invalid-region" },
   });
   assert.equal(glm.plan, "Pro");
-  assert.equal(glm.quotas.tokens.used, 64);
-  assert.equal(glm.quotas.tokens.remaining, 36);
-  assert.equal(glm.quotas.time_limit.used, 7);
-  assert.equal(glm.quotas.time_limit.remaining, 93);
+  assert.equal(glm.quotas["5 Hours Quota"].used, 15);
+  assert.equal(glm.quotas["5 Hours Quota"].remaining, 85);
+  assert.equal(glm.quotas["Weekly Quota"].used, 64);
+  assert.equal(glm.quotas["Weekly Quota"].remaining, 36);
+  assert.equal(glm.quotas["Monthly Tools"].used, 7);
+  assert.equal(glm.quotas["Monthly Tools"].remaining, 93);
 
   const zai: any = await usageService.getUsageForProvider({
     provider: "zai",
     apiKey: "glm-key",
   });
   assert.equal(zai.plan, "Pro");
-  assert.equal(zai.quotas.tokens.used, 64);
-  assert.equal(zai.quotas.time_limit.remaining, 93);
+  assert.equal(zai.quotas["5 Hours Quota"].used, 15);
+  assert.equal(zai.quotas["Weekly Quota"].remaining, 36);
+  assert.equal(zai.quotas["Monthly Tools"].remaining, 93);
 
   const glmt: any = await usageService.getUsageForProvider({
     provider: "glmt",
@@ -949,8 +962,8 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
     providerSpecificData: { apiRegion: "international" },
   });
   assert.equal(glmt.plan, "Pro");
-  assert.equal(glmt.quotas.tokens.used, 64);
-  assert.equal(glmt.quotas.tokens.remaining, 36);
+  assert.equal(glmt.quotas["5 Hours Quota"].used, 15);
+  assert.equal(glmt.quotas["Weekly Quota"].remaining, 36);
 
   globalThis.fetch = async () => new Response("nope", { status: 401 });
   await assert.rejects(
