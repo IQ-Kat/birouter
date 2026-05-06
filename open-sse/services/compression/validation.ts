@@ -26,10 +26,45 @@ function requireExactPresence(
 ) {
   for (const item of originalItems) {
     if (!compressed.includes(item)) {
-      const preview = item.replace(/\s+/g, " ").slice(0, 80);
+      const preview = collapseWhitespaceForPreview(item).slice(0, 80);
       errors.push(`${label} changed or missing: ${preview}`);
     }
   }
+}
+
+function isPreviewWhitespace(char: string): boolean {
+  return (
+    char === " " ||
+    char === "\t" ||
+    char === "\n" ||
+    char === "\r" ||
+    char === "\f" ||
+    char === "\v"
+  );
+}
+
+function collapseWhitespaceForPreview(text: string): string {
+  let output = "";
+  let previousWasWhitespace = false;
+  let changed = false;
+
+  for (const char of text) {
+    if (isPreviewWhitespace(char)) {
+      if (!previousWasWhitespace) {
+        output += " ";
+      } else {
+        changed = true;
+      }
+      if (char !== " ") changed = true;
+      previousWasWhitespace = true;
+      continue;
+    }
+
+    output += char;
+    previousWasWhitespace = false;
+  }
+
+  return changed ? output : text;
 }
 
 export function validateCompression(original: string, compressed: string): ValidationResult {
