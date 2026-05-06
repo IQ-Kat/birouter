@@ -10,6 +10,7 @@ import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtil
 interface MusicModel {
   id: string;
   name: string;
+  isMarket?: boolean;
 }
 
 interface MusicProvider {
@@ -26,14 +27,13 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
-    statusUrl: "https://api.kie.ai/api/v1/generate/record-info",
+    statusUrl: "https://api.kie.ai/api/v1/jobs/recordInfo",
     authType: "apikey",
     authHeader: "bearer",
     format: "kie-music",
     models: [
-      { id: "V4", name: "Suno V4" },
-      { id: "V4_5", name: "Suno V4.5" },
-      { id: "V5", name: "Suno V5" },
+      { id: "suno-v3.5", name: "Suno V3.5" },
+      { id: "suno-v4.0", name: "Suno V4.0" },
     ],
   },
 

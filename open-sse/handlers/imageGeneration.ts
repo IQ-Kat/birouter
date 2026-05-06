@@ -17,6 +17,7 @@ import { randomUUID } from "crypto";
  */
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
+import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sleep } from "../utils/sleep.ts";
@@ -299,6 +300,46 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
 }
 
+function normalizeKieImageResult(recordData: any): string[] {
+  let resultJson: Record<string, unknown> = {};
+  try {
+    resultJson =
+      typeof recordData?.data?.resultJson === "string"
+        ? JSON.parse(recordData.data.resultJson)
+        : recordData?.data?.resultJson || {};
+  } catch {
+    resultJson = {};
+  }
+
+  const urls = new Set<string>();
+
+  const add = (val: any) => {
+    if (typeof val === "string" && val.startsWith("http")) urls.add(val);
+    if (Array.isArray(val)) {
+      val.forEach((v) => {
+        if (typeof v === "string" && v.startsWith("http")) urls.add(v);
+      });
+    }
+  };
+
+  // Check resultJson (common in Market API)
+  add(resultJson?.resultUrls);
+  add(resultJson?.imageUrls);
+  add(resultJson?.resultUrl);
+  add(resultJson?.imageUrl);
+
+  // Check data.response (common in 4o-image API)
+  add(recordData?.data?.response?.resultUrls);
+  add(recordData?.data?.response?.resultUrl);
+
+  // Check direct data fields
+  add(recordData?.data?.resultImageUrls);
+  add(recordData?.data?.resultImageUrl);
+  add(recordData?.data?.url);
+
+  return Array.from(urls);
+}
+
 async function handleKieImageGeneration({
   model,
   provider,
@@ -312,58 +353,88 @@ async function handleKieImageGeneration({
   const timeoutMs = normalizePositiveNumber(body.timeout_ms, 300000);
   const pollIntervalMs = normalizePositiveNumber(body.poll_interval_ms, 2500);
 
-  const payload = {
-    prompt: body.prompt,
-    image_size: mapImageSize(body.size, "1:1"),
-    num_images: body.n || 1,
-  };
+  // Check if model is a Market model (unified API)
+  const fullRegistry = getImageProvider(provider);
+  const modelEntry = fullRegistry?.models?.find((m: any) => m.id === model);
+  const isMarket = modelEntry?.isMarket || model.includes("/");
+
+  const { imageUrl } = extractImageInputs(body);
+  let baseUrl = "";
+  let payload: any = {};
+
+  if (isMarket) {
+    // Unified Market API endpoint
+    baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/createTask`;
+    // Strip category prefix (e.g., "gpt/gpt-image-2" -> "gpt-image-2")
+    const marketModelId = model.includes("/") ? model.split("/").pop() : model;
+    payload = {
+      model: marketModelId,
+      input: {
+        prompt: body.prompt,
+        aspect_ratio: mapImageSize(body.size, "1:1"),
+      },
+    };
+    if (imageUrl) {
+      payload.input.image_url = imageUrl;
+    }
+  } else {
+    // Legacy/Direct endpoint
+    const modelPath = model.replace("-t2i", "").replace("-i2i", "");
+    baseUrl = providerConfig.baseUrl.includes(model)
+      ? providerConfig.baseUrl
+      : `https://api.kie.ai/api/v1/${modelPath}/generate`;
+
+    payload = {
+      prompt: body.prompt,
+      image_size: mapImageSize(body.size, "1:1"),
+      num_images: body.n || 1,
+    };
+  }
 
   if (log) {
     const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("IMAGE", `${provider}/${model} (kie-image) | prompt: "${promptPreview}..."`);
+    log.info(
+      "IMAGE",
+      `${provider}/${model} (${isMarket ? "market" : "direct"}) | prompt: "${promptPreview}..."`
+    );
   }
 
   try {
-    const createRes = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+    const endpoint = isMarket ? "/api/v1/jobs/createTask" : new URL(baseUrl).pathname;
+    const createBaseUrl = isMarket ? providerConfig.baseUrl : baseUrl.replace(endpoint, "");
+    const createData = await kieExecutor.createTask({
+      baseUrl: createBaseUrl,
+      token,
+      payload,
+      endpoint,
     });
-
-    if (!createRes.ok) {
-      const errorText = await createRes.text();
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: createRes.status,
-        startTime,
-        error: errorText,
-        requestBody: payload,
-      });
-    }
-
-    const createData = await createRes.json();
     const taskId = createData?.data?.taskId || createData?.taskId;
+
     if (!taskId) {
+      const errorMessage =
+        createData?.msg ||
+        createData?.message ||
+        createData?.error ||
+        "KIE image generation did not return taskId";
+      if (log) {
+        log.error("IMAGE", `KIE createTask failed: ${JSON.stringify(createData)}`);
+      }
       return saveImageErrorResult({
         provider,
         model,
         status: 502,
         startTime,
-        error: "KIE image generation did not return taskId",
+        error: errorMessage,
         requestBody: payload,
       });
     }
 
     // Use statusUrl from providerConfig if available, fallback to dynamic derivation
-    const statusUrl =
-      providerConfig.statusUrl ||
-      providerConfig.baseUrl
-        .replace(/\/generate$/, "/record-info")
-        .replace("/api/v1/gpt4o-image/generate", "/api/v1/gpt4o-image/record-info");
+    const statusUrl = isMarket
+      ? `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/recordInfo`
+      : providerConfig.statusUrl && !providerConfig.statusUrl.includes("jobs/recordInfo")
+        ? providerConfig.statusUrl
+        : baseUrl.replace(/\/generate$/, "/record-info");
 
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
@@ -391,18 +462,20 @@ async function handleKieImageGeneration({
 
       const recordData = await recordRes.json();
       const state = String(
-        recordData?.data?.status ?? recordData?.data?.successFlag ?? recordData?.msg ?? "PENDING"
+        recordData?.data?.status ??
+          recordData?.data?.state ??
+          recordData?.data?.successFlag ??
+          recordData?.msg ??
+          "PENDING"
       ).toUpperCase();
 
       if (state === "SUCCESS" || state === "1" || state === "FINISHED") {
-        const urls = Array.isArray(recordData?.data?.response?.resultUrls)
-          ? recordData.data.response.resultUrls
-          : Array.isArray(recordData?.data?.resultImageUrls)
-            ? recordData.data.resultImageUrls
-            : [];
-        const images = urls
-          .filter((url: unknown) => typeof url === "string" && url.length > 0)
-          .map((url: unknown) => ({ url: url as string, revised_prompt: body.prompt }));
+        if (log) {
+          log.info("IMAGE", `KIE poll success for task ${taskId}`);
+        }
+        const urls = normalizeKieImageResult(recordData);
+        const images = urls.map((url: string) => ({ url, revised_prompt: body.prompt }));
+
         return saveImageSuccessResult({
           provider,
           model,
@@ -430,6 +503,11 @@ async function handleKieImageGeneration({
           recordData?.data?.failMsg ||
           recordData?.msg ||
           `KIE image task failed with status: ${state}`;
+
+        if (log) {
+          log.error("IMAGE", `KIE poll failed for task ${taskId}: ${JSON.stringify(recordData)}`);
+        }
+
         return saveImageErrorResult({
           provider,
           model,

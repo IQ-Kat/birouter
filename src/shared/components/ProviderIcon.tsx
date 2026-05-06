@@ -153,6 +153,7 @@ const KNOWN_PNGS = new Set([
   "glmt",
   "groq",
   "ironclaw",
+  "kie",
   "kilo-gateway",
   "kilocode",
   "kimi-coding-apikey",

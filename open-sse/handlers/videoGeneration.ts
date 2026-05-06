@@ -16,6 +16,7 @@
  */
 
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
+import { kieExecutor } from "../executors/kie.ts";
 import {
   submitComfyWorkflow,
   pollComfyResult,
@@ -311,8 +312,11 @@ async function handleKieVideoGeneration({
   const token = credentials?.apiKey || credentials?.accessToken;
   const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
 
+  // Strip category prefix (e.g., "veo/veo-3-1" -> "veo-3-1")
+  const marketModelId = model.includes("/") ? model.split("/").pop() : model;
+
   const payload = {
-    model,
+    model: marketModelId,
     input: {
       prompt: body.prompt,
       duration: body.duration ? String(body.duration) : "5",
@@ -327,24 +331,18 @@ async function handleKieVideoGeneration({
   }
 
   try {
-    const createRes = await fetch(`${baseUrl}/api/v1/jobs/createTask`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!createRes.ok) {
-      const errorText = await createRes.text();
-      return { success: false, status: createRes.status, error: errorText };
-    }
-
-    const createData = await createRes.json();
+    const createData = await kieExecutor.createTask({ baseUrl, token, payload });
     const taskId = createData?.data?.taskId || createData?.taskId;
     if (!taskId) {
-      return { success: false, status: 502, error: "KIE video generation did not return taskId" };
+      const errorMessage =
+        createData?.msg ||
+        createData?.message ||
+        createData?.error ||
+        "KIE video generation did not return taskId";
+      if (log) {
+        log.error("VIDEO", `KIE createTask failed: ${JSON.stringify(createData)}`);
+      }
+      return { success: false, status: 502, error: errorMessage };
     }
 
     const deadline = Date.now() + timeoutMs;

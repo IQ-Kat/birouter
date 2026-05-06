@@ -10,6 +10,7 @@ import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtil
 interface VideoModel {
   id: string;
   name: string;
+  isMarket?: boolean;
 }
 
 interface VideoProvider {
@@ -31,23 +32,33 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "bearer",
     format: "kie-video",
     models: [
-      { id: "kling-2.6/text-to-video", name: "Kling 2.6 Text to Video" },
-      { id: "kling/v2-1-master-image-to-video", name: "Kling v2.1 Master I2V" },
-      { id: "kling/v2-1-master-text-to-video", name: "Kling v2.1 Master T2V" },
-      { id: "kling/v25-turbo-image-to-video-pro", name: "Kling v2.5 Turbo I2V Pro" },
-      { id: "kling/v25-turbo-text-to-video-pro", name: "Kling v2.5 Turbo T2V Pro" },
-      { id: "wan/2-6-text-to-video", name: "Wan 2.6 Text to Video" },
-      { id: "wan/2-6-image-to-video", name: "Wan 2.6 Image to Video" },
-      { id: "wan/2-7-text-to-video", name: "Wan 2.7 Text to Video" },
-      { id: "wan/2-7-image-to-video", name: "Wan 2.7 Image to Video" },
-      { id: "sora2/sora-2-text-to-video", name: "Sora 2 Text to Video" },
-      { id: "sora2/sora-2-image-to-video", name: "Sora 2 Image to Video" },
-      { id: "hailuo/02-text-to-video-pro", name: "Hailuo 02 T2V Pro" },
-      { id: "hailuo/02-image-to-video-pro", name: "Hailuo 02 I2V Pro" },
-      { id: "grok-imagine/text-to-video", name: "Grok Imagine T2V" },
-      { id: "grok-imagine/image-to-video", name: "Grok Imagine I2V" },
-      { id: "bytedance/v1-pro-text-to-video", name: "Bytedance v1 Pro T2V" },
-      { id: "bytedance/v1-pro-image-to-video", name: "Bytedance v1 Pro I2V" },
+      { id: "veo/veo-3-1", name: "Veo 3.1", isMarket: true },
+      { id: "veo/veo-3-1-fast", name: "Veo 3.1 Fast", isMarket: true },
+      {
+        id: "kling/kling-v2-1-master-text-to-video",
+        name: "Kling v2.1 Master T2V",
+        isMarket: true,
+      },
+      {
+        id: "kling/kling-v2-1-master-image-to-video",
+        name: "Kling v2.1 Master I2V",
+        isMarket: true,
+      },
+      { id: "kling/v2-5-turbo-text-to-video", name: "Kling v2.5 Turbo T2V", isMarket: true },
+      { id: "kling/v2-5-turbo-image-to-video", name: "Kling v2.5 Turbo I2V", isMarket: true },
+      { id: "kling/v3-0", name: "Kling v3.0", isMarket: true },
+      { id: "wan/2-6-text-to-video", name: "Wan 2.6 T2V", isMarket: true },
+      { id: "wan/2-6-image-to-video", name: "Wan 2.6 I2V", isMarket: true },
+      { id: "wan/2-7-text-to-video", name: "Wan 2.7 T2V", isMarket: true },
+      { id: "wan/2-7-image-to-video", name: "Wan 2.7 I2V", isMarket: true },
+      { id: "sora2/sora-2-text-to-video", name: "Sora 2 T2V", isMarket: true },
+      { id: "sora2/sora-2-image-to-video", name: "Sora 2 I2V", isMarket: true },
+      { id: "hailuo/02-text-to-video-pro", name: "Hailuo 02 T2V Pro", isMarket: true },
+      { id: "hailuo/02-image-to-video-pro", name: "Hailuo 02 I2V Pro", isMarket: true },
+      { id: "grok-imagine/text-to-video", name: "Grok Imagine T2V", isMarket: true },
+      { id: "grok-imagine/image-to-video", name: "Grok Imagine I2V", isMarket: true },
+      { id: "bytedance/v2-0-text-to-video", name: "Seedance v2.0 T2V", isMarket: true },
+      { id: "bytedance/v2-0-fast-text-to-video", name: "Seedance v2.0 Fast T2V", isMarket: true },
     ],
   },
 

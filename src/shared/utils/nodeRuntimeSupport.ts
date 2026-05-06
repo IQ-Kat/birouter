@@ -11,6 +11,7 @@ export const SECURE_NODE_LINES = Object.freeze([
   Object.freeze({ major: 20, minor: 20, patch: 2 }),
   Object.freeze({ major: 22, minor: 22, patch: 2 }),
   Object.freeze({ major: 24, minor: 0, patch: 0 }),
+  Object.freeze({ major: 25, minor: 0, patch: 0 }),
 ]);
 
 export const RECOMMENDED_NODE_VERSION = "24.14.1";

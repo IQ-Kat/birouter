@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { IMAGE_PROVIDERS } from "@omniroute/open-sse/config/imageRegistry.ts";
@@ -93,23 +93,18 @@ const PROVIDER_MODELS: Record<
       id: "kie",
       name: "KIE.AI",
       models: [
-        { id: "kie/kling-2.6/text-to-video", name: "Kling 2.6 Text to Video" },
-        { id: "kie/kling/v2-1-master-image-to-video", name: "Kling v2.1 Master I2V" },
-        { id: "kie/kling/v2-1-master-text-to-video", name: "Kling v2.1 Master T2V" },
-        { id: "kie/kling/v25-turbo-image-to-video-pro", name: "Kling v2.5 Turbo I2V Pro" },
-        { id: "kie/kling/v25-turbo-text-to-video-pro", name: "Kling v2.5 Turbo T2V Pro" },
-        { id: "kie/wan/2-6-text-to-video", name: "Wan 2.6 Text to Video" },
-        { id: "kie/wan/2-6-image-to-video", name: "Wan 2.6 Image to Video" },
-        { id: "kie/wan/2-7-text-to-video", name: "Wan 2.7 Text to Video" },
-        { id: "kie/wan/2-7-image-to-video", name: "Wan 2.7 Image to Video" },
-        { id: "kie/sora2/sora-2-text-to-video", name: "Sora 2 Text to Video" },
-        { id: "kie/sora2/sora-2-image-to-video", name: "Sora 2 Image to Video" },
+        { id: "kie/veo/veo-3-1", name: "Veo 3.1" },
+        { id: "kie/veo/veo-3-1-fast", name: "Veo 3.1 Fast" },
+        { id: "kie/kling/kling-v2-1-master-text-to-video", name: "Kling v2.1 Master T2V" },
+        { id: "kie/kling/kling-v2-1-master-image-to-video", name: "Kling v2.1 Master I2V" },
+        { id: "kie/kling/v2-5-turbo-text-to-video", name: "Kling v2.5 Turbo T2V" },
+        { id: "kie/kling/v2-5-turbo-image-to-video", name: "Kling v2.5 Turbo I2V" },
+        { id: "kie/wan/2-7-text-to-video", name: "Wan 2.7 T2V" },
+        { id: "kie/wan/2-7-image-to-video", name: "Wan 2.7 I2V" },
+        { id: "kie/sora2/sora-2-text-to-video", name: "Sora 2 T2V" },
         { id: "kie/hailuo/02-text-to-video-pro", name: "Hailuo 02 T2V Pro" },
-        { id: "kie/hailuo/02-image-to-video-pro", name: "Hailuo 02 I2V Pro" },
         { id: "kie/grok-imagine/text-to-video", name: "Grok Imagine T2V" },
-        { id: "kie/grok-imagine/image-to-video", name: "Grok Imagine I2V" },
-        { id: "kie/bytedance/v1-pro-text-to-video", name: "Bytedance v1 Pro T2V" },
-        { id: "kie/bytedance/v1-pro-image-to-video", name: "Bytedance v1 Pro I2V" },
+        { id: "kie/bytedance/v2-0-text-to-video", name: "Seedance v2.0 T2V" },
       ],
     },
     {
@@ -131,9 +126,8 @@ const PROVIDER_MODELS: Record<
       id: "kie",
       name: "KIE.AI",
       models: [
-        { id: "kie/V4", name: "Suno V4" },
-        { id: "kie/V4_5", name: "Suno V4.5" },
-        { id: "kie/V5", name: "Suno V5" },
+        { id: "kie/suno-v3.5", name: "Suno V3.5" },
+        { id: "kie/suno-v4.0", name: "Suno V4.0" },
       ],
     },
     {
@@ -153,6 +147,16 @@ const PROVIDER_MODELS: Record<
         { id: "openai/tts-1", name: "TTS-1" },
         { id: "openai/tts-1-hd", name: "TTS-1 HD" },
         { id: "openai/gpt-4o-mini-tts", name: "GPT-4o Mini TTS" },
+      ],
+    },
+    {
+      id: "kie",
+      name: "KIE.AI",
+      models: [
+        { id: "kie/elevenlabs/text-to-speech-multilingual-v2", name: "ElevenLabs TTS v2" },
+        { id: "kie/elevenlabs/text-to-speech-turbo-2-5", name: "ElevenLabs TTS Turbo 2.5" },
+        { id: "kie/elevenlabs/text-to-dialogue-v3", name: "ElevenLabs Text to Dialogue v3" },
+        { id: "kie/elevenlabs/sound-effect-v2", name: "ElevenLabs Sound Effect v2" },
       ],
     },
     {
@@ -228,6 +232,14 @@ const PROVIDER_MODELS: Record<
       ],
     },
     {
+      id: "kie",
+      name: "KIE.AI",
+      models: [
+        { id: "kie/elevenlabs/speech-to-text", name: "ElevenLabs STT" },
+        { id: "kie/elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
+      ],
+    },
+    {
       id: "assemblyai",
       name: "AssemblyAI ($50 free)",
       models: [
@@ -265,6 +277,8 @@ const PROVIDER_MODELS: Record<
     { id: "qwen", name: "Qwen", models: [{ id: "qwen/qwen3-asr", name: "Qwen3 ASR" }] },
   ],
 };
+const INITIAL_IMAGE_PROVIDER = PROVIDER_MODELS.image[0];
+const INITIAL_IMAGE_MODEL = INITIAL_IMAGE_PROVIDER?.models[0];
 
 // Voice presets per TTS provider
 const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
@@ -286,6 +300,13 @@ const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
     { id: "VR6AewLTigWG4xSOukaG", label: "Arnold (EN)" },
     { id: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN)" },
     { id: "yoZ06aMxZJJ28mfd3POQ", label: "Sam (EN)" },
+  ],
+  kie: [
+    { id: "Rachel", label: "Rachel (EN)" },
+    { id: "Adam", label: "Adam (EN)" },
+    { id: "Brian", label: "Brian (EN)" },
+    { id: "Roger", label: "Roger (EN)" },
+    { id: "Bella", label: "Bella (EN)" },
   ],
   cartesia: [
     { id: "a0e99841-438c-4a64-b679-ae501e7d6091", label: "Barbershop Man" },
@@ -414,8 +435,10 @@ export default function MediaPageClient() {
   const [prompt, setPrompt] = useState("");
 
   // Selected provider and model per modality
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedProvider, setSelectedProvider] = useState<string>(
+    INITIAL_IMAGE_PROVIDER?.id ?? ""
+  );
+  const [selectedModel, setSelectedModel] = useState<string>(INITIAL_IMAGE_MODEL?.id ?? "");
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GenerationResult | null>(null);
@@ -504,16 +527,6 @@ export default function MediaPageClient() {
       setSpeechVoice(getVoiceList(providerId)[0]?.id ?? "alloy");
     }
   };
-
-  // Initialize on mount — pick first provider/model for image tab
-  const initialized = useRef(false);
-  if (!initialized.current) {
-    initialized.current = true;
-    const providers = PROVIDER_MODELS["image"] ?? [];
-    const firstProvider = providers[0];
-    setSelectedProvider(firstProvider?.id ?? "");
-    setSelectedModel(firstProvider?.models[0]?.id ?? "");
-  }
 
   const handleGenerate = async () => {
     setLoading(true);

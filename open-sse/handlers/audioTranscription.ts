@@ -1,4 +1,5 @@
 import { getCorsOrigin } from "../utils/cors.ts";
+import { Buffer } from "node:buffer";
 /**
  * Audio Transcription Handler
  *
@@ -19,6 +20,7 @@ import {
   type AudioProvider,
 } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
+import { kieExecutor } from "../executors/kie.ts";
 import { errorResponse } from "../utils/error.ts";
 
 type TranscriptionCredentials = {
@@ -285,6 +287,89 @@ async function handleHuggingFaceTranscription(providerConfig, file, modelId, tok
 }
 
 /**
+ * Handle Kie.ai transcription
+ */
+async function handleKieAudioTranscription(providerConfig, file, modelId, token) {
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+  const fileBuffer = await file.arrayBuffer();
+  const fileBase64 = Buffer.from(fileBuffer).toString("base64");
+  let data;
+  try {
+    data = await kieExecutor.createTask({
+      baseUrl,
+      token,
+      payload: {
+        model: modelId,
+        input: {
+          file_name: getUploadedFileName(file),
+          file_base64: fileBase64,
+        },
+      },
+    });
+  } catch (err: any) {
+    return Response.json(
+      {
+        error: {
+          message: err?.message || "Kie transcription createTask failed",
+          code: err?.status || 502,
+        },
+      },
+      {
+        status: Number(err?.status) || 502,
+        headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+      }
+    );
+  }
+  const taskId = data?.data?.taskId || data?.taskId;
+
+  if (taskId) {
+    return pollKieTranscriptionResult(baseUrl, modelId, taskId, token);
+  }
+
+  return Response.json(
+    { text: data?.data?.text || data?.text || "" },
+    { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
+  );
+}
+
+/**
+ * Internal polling for Kie.ai async transcription tasks
+ */
+async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
+  void modelId;
+  const statusUrl = kieExecutor.getTaskStatusUrl(baseUrl);
+  try {
+    const { data, state } = await kieExecutor.pollTask({
+      statusUrl,
+      taskId: String(taskId),
+      token,
+      timeoutMs: 120000,
+      pollIntervalMs: 2000,
+    });
+
+    if (state === "success") {
+      const text =
+        data?.data?.response?.text ||
+        data?.data?.resultText ||
+        data?.data?.text ||
+        data?.text ||
+        "";
+      return Response.json(
+        { text },
+        { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
+      );
+    }
+  } catch (err: any) {
+    return errorResponse(
+      Number(err?.status) || 504,
+      err?.message || "Kie transcription generation timed out or failed"
+    );
+  }
+
+  return errorResponse(504, "Kie transcription generation timed out or failed");
+}
+
+/**
  * Handle audio transcription request
  *
  * @param {Object} options
@@ -352,6 +437,10 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "huggingface-asr") {
     return handleHuggingFaceTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "kie-audio") {
+    return handleKieAudioTranscription(providerConfig, file, modelId, token);
   }
 
   // Default: OpenAI/Groq/Qwen3-compatible multipart proxy

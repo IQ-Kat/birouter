@@ -15,6 +15,7 @@
  */
 
 import { getMusicProvider, parseMusicModel } from "../config/musicRegistry.ts";
+import { kieExecutor } from "../executors/kie.ts";
 import {
   submitComfyWorkflow,
   pollComfyResult,
@@ -23,6 +24,63 @@ import {
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sleep } from "../utils/sleep.ts";
+
+function getKieCallbackUrl(body: any): string {
+  return (
+    body.callBackUrl ||
+    body.callback_url ||
+    body.callbackUrl ||
+    "https://omniroute.local/api/kie/callback"
+  );
+}
+
+function normalizeKieSunoModel(model: string): string {
+  const map: Record<string, string> = {
+    "suno-v3.5": "V3_5",
+    "suno-v4.0": "V4",
+  };
+  return map[model] || model;
+}
+
+function parseKieResultJson(recordData: any): any {
+  try {
+    return typeof recordData?.data?.resultJson === "string"
+      ? JSON.parse(recordData.data.resultJson)
+      : recordData?.data?.resultJson || {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeKieMusicTracks(recordData: any): any[] {
+  const resultJson = parseKieResultJson(recordData);
+  const candidates = [
+    recordData?.data?.response?.sunoData,
+    recordData?.data?.response?.data,
+    recordData?.data?.data,
+    recordData?.data?.sunoData,
+    resultJson?.sunoData,
+    resultJson?.data,
+    resultJson?.result,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.length > 0) {
+      return candidate;
+    }
+  }
+
+  const singleUrl =
+    recordData?.data?.response?.audioUrl ||
+    recordData?.data?.response?.audio_url ||
+    recordData?.data?.resultUrl ||
+    recordData?.data?.audio_url ||
+    resultJson?.audioUrl ||
+    resultJson?.audio_url ||
+    resultJson?.url;
+
+  return typeof singleUrl === "string" && singleUrl.length > 0 ? [{ audioUrl: singleUrl }] : [];
+}
 
 /**
  * Handle music generation request
@@ -190,41 +248,64 @@ async function handleKieMusicGeneration({
   const pollIntervalMs = Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500;
   const token = credentials?.apiKey || credentials?.accessToken;
   const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
-  const payload = {
-    prompt: body.prompt,
-    customMode: false,
-    instrumental: true,
-    model,
-  };
+
+  // Check if model is a Market model
+  const fullRegistry = getMusicProvider(provider);
+  const modelEntry = fullRegistry?.models?.find((m: any) => m.id === model);
+  const isMarket = modelEntry?.isMarket || model.includes("/");
+
+  let url = "";
+  let payload: any = {};
+
+  if (isMarket) {
+    url = `${baseUrl}/api/v1/jobs/createTask`;
+    payload = {
+      model: model.includes("/") ? model.split("/").pop() : model,
+      callBackUrl: getKieCallbackUrl(body),
+      input: {
+        prompt: body.prompt,
+        instrumental: true,
+      },
+    };
+  } else {
+    url = `${baseUrl}/api/v1/generate`;
+    payload = {
+      prompt: body.prompt,
+      customMode: false,
+      instrumental: true,
+      model: normalizeKieSunoModel(model),
+      callBackUrl: getKieCallbackUrl(body),
+    };
+  }
 
   if (log) {
     const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("MUSIC", `${provider}/${model} (kie-music) | prompt: "${promptPreview}..."`);
+    log.info(
+      "MUSIC",
+      `${provider}/${model} (${isMarket ? "market" : "direct"}) | prompt: "${promptPreview}..."`
+    );
   }
 
   try {
-    const createRes = await fetch(`${baseUrl}/api/v1/generate`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!createRes.ok) {
-      const errorText = await createRes.text();
-      return { success: false, status: createRes.status, error: errorText };
-    }
-
-    const createData = await createRes.json();
+    const endpoint = new URL(url).pathname;
+    const createData = await kieExecutor.createTask({ baseUrl, token, payload, endpoint });
     const taskId = createData?.data?.taskId || createData?.taskId;
     if (!taskId) {
-      return { success: false, status: 502, error: "KIE music generation did not return taskId" };
+      const errorMessage =
+        createData?.msg ||
+        createData?.message ||
+        createData?.error ||
+        "KIE music generation did not return taskId";
+      if (log) {
+        log.error("MUSIC", `KIE createTask failed: ${JSON.stringify(createData)}`);
+      }
+      return { success: false, status: 502, error: errorMessage };
     }
 
     const deadline = Date.now() + timeoutMs;
-    const statusUrl = providerConfig.statusUrl || `${baseUrl}/api/v1/generate/record-info`;
+    const statusUrl = isMarket
+      ? `${baseUrl}/api/v1/jobs/recordInfo`
+      : providerConfig.statusUrl || `${baseUrl}/api/v1/generate/record-info`;
 
     while (Date.now() < deadline) {
       const pollUrl = new URL(statusUrl);
@@ -243,16 +324,22 @@ async function handleKieMusicGeneration({
       }
 
       const recordData = await recordRes.json();
-      const state = String(recordData?.data?.status || recordData?.msg || "PENDING").toUpperCase();
+      const state = String(
+        recordData?.data?.status ??
+          recordData?.data?.state ??
+          recordData?.data?.successFlag ??
+          recordData?.msg ??
+          "PENDING"
+      ).toUpperCase();
 
       if (state === "SUCCESS" || state === "1" || state === "FINISHED") {
-        const tracks = Array.isArray(recordData?.data?.response?.sunoData)
-          ? recordData.data.response.sunoData
-          : [];
+        const tracks = normalizeKieMusicTracks(recordData);
+
         const audioFiles = tracks
-          .map((track: unknown) => {
-            const t = track as Record<string, unknown>;
-            return (typeof t?.audioUrl === "string" ? t.audioUrl : t?.url) as string;
+          .map((track: any) => {
+            return (
+              typeof track?.audioUrl === "string" ? track.audioUrl : track?.audio_url || track?.url
+            ) as string;
           })
           .filter((url: string) => typeof url === "string" && url.length > 0)
           .map((url: string) => ({ url, format: "mp3" }));
