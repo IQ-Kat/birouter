@@ -8,6 +8,11 @@
 
 - **feat(gemini-cli):** add custom projectId support for Gemini CLI transport (UI, DB, executor) (#1991)
 
+### 🐛 Bug Fixes
+
+- **fix:** remove Anthropic-Beta header from non-Anthropic providers to fix identity contamination (#1989)
+- **fix(cli):** resolve .env loading failure for global npm installations
+
 ### 🔒 Security
 
 - **fix(security):** remediate regex validation backtracking path in core compression cleanup (#1990)
