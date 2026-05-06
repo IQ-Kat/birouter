@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## [3.8.0] — 2026-05-06
 
 ### ✨ New Features
