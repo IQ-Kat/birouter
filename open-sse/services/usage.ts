@@ -554,9 +554,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
   }
 
   const levelRaw = typeof data.level === "string" ? data.level : "";
-  const plan = levelRaw
-    ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
-    : "Unknown";
+  const plan = levelRaw ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase() : null;
 
   return { plan, quotas };
 }
@@ -1820,7 +1818,7 @@ async function getClaudeUsageLegacy(accessToken) {
         if (usageResponse.ok) {
           const usage = await usageResponse.json();
           return {
-            plan: settings.plan || "Unknown",
+            plan: settings.plan || null,
             organization: settings.organization_name,
             quotas: usage,
           };
@@ -1828,7 +1826,7 @@ async function getClaudeUsageLegacy(accessToken) {
       }
 
       return {
-        plan: settings.plan || "Unknown",
+        plan: settings.plan || null,
         organization: settings.organization_name,
         message: "Claude connected. Usage details require admin access.",
       };
