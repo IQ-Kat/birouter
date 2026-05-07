@@ -597,16 +597,20 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   assert.equal(result.project, "proj-1");
   assert.deepEqual(Object.keys(result), [
     "project",
+    "requestId",
+    "request",
     "model",
     "userAgent",
     "requestType",
-    "requestId",
-    "request",
+    "enabledCreditTypes",
   ]);
   assert.equal(result.userAgent, "antigravity");
   assert.equal(result.requestType, "agent");
-  assert.match(result.requestId, /^agent-/);
-  assert.match(result.request.sessionId, /^-\d+$/);
+  assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
+  assert.match(result.request.sessionId, /^-?\d+$/);
+  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.request.generationConfig.topK, 40);
+  assert.equal(result.request.generationConfig.topP, 1.0);
   assert.equal(
     (result as any).request?.systemInstruction.parts[0].text,
     ANTIGRAVITY_DEFAULT_SYSTEM
@@ -659,6 +663,8 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
 
   assert.equal(result.project, "proj-claude");
   assert.equal(result.userAgent, "antigravity");
+  assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
+  assert.deepEqual((result as any).enabledCreditTypes, ["GOOGLE_ONE_AI"]);
   assert.ok((result as any).request?.system.includes(ANTIGRAVITY_DEFAULT_SYSTEM));
   assert.ok((result as any).request?.system.includes("Project rules"));
   assert.equal((result as any).request?.max_tokens, 16384);

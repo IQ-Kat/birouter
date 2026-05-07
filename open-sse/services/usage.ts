@@ -2,7 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import crypto from "node:crypto";
 import { PROVIDERS } from "../config/constants.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
@@ -19,7 +18,6 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
@@ -28,11 +26,18 @@ import {
   updateAntigravityRemainingCredits,
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
+import {
+  deriveAntigravityMachineId,
+  generateAntigravityRequestId,
+  getAntigravitySessionId,
+  getAntigravityVscodeSessionId,
+} from "./antigravityIdentity.ts";
+import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
   quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
-  loadProjectApiUrl: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+  loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
     return PROVIDERS.antigravity.clientId;
@@ -1493,13 +1498,13 @@ async function probeAntigravityCreditBalanceUncached(
     for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
       const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
-      const sessionId = `-${crypto.randomUUID()}`;
+      const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
       const body = {
         project: projectId,
         model: "gemini-2-flash",
         userAgent: "antigravity",
         requestType: "agent",
-        requestId: `credits-probe-${Date.now()}`,
+        requestId: generateAntigravityRequestId(),
         enabledCreditTypes: ["GOOGLE_ONE_AI"],
         request: {
           model: "gemini-2-flash",
@@ -1513,7 +1518,11 @@ async function probeAntigravityCreditBalanceUncached(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
+        "x-client-name": "antigravity",
+        "x-client-version": getCachedAntigravityVersion(),
+        "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
+        "x-vscode-sessionid": getAntigravityVscodeSessionId(),
+        "x-goog-user-project": projectId,
         Accept: "text/event-stream",
       };
 

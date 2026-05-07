@@ -50,6 +50,7 @@ test("AntigravityExecutor.buildHeaders includes native headers without OmniRoute
 
   assert.equal(headers.Authorization, "Bearer ag-token");
   assert.equal(headers.Accept, "text/event-stream");
+  assert.match(headers["User-Agent"], /^Antigravity\/4\.1\.33 /);
   assert.equal(headers["X-OmniRoute-Source"], undefined);
 });
 
@@ -98,14 +99,19 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
   assert.equal(result.model, "gemini-3.1-pro-low");
   assert.deepEqual(Object.keys(result), [
     "project",
+    "requestId",
+    "request",
     "model",
     "userAgent",
     "requestType",
-    "requestId",
-    "request",
+    "enabledCreditTypes",
   ]);
   assert.equal(result.userAgent, "antigravity");
+  assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
+  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
   assert.ok(result.request.sessionId);
+  assert.equal(result.request.generationConfig.topK, 40);
+  assert.equal(result.request.generationConfig.topP, 1.0);
   assert.deepEqual(result.request.toolConfig, {
     functionCallingConfig: { mode: "VALIDATED" },
   });
@@ -466,15 +472,21 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
 
-    assert.equal(headers["User-Agent"], "antigravity/2026.04.17-test darwin/arm64");
+    assert.equal(
+      headers["User-Agent"],
+      "Antigravity/2026.04.17-test (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3"
+    );
+    assert.equal(headers["x-client-name"], "antigravity");
+    assert.equal(headers["x-client-version"], "2026.04.17-test");
+    assert.equal(headers["x-goog-user-project"], "project-1");
     assert.deepEqual(Object.keys(parsedBody), [
       "project",
+      "requestId",
+      "request",
       "model",
       "userAgent",
       "requestType",
-      "requestId",
       "enabledCreditTypes",
-      "request",
     ]);
 
     return new Response(
@@ -530,6 +542,7 @@ test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for 
   assert.equal(result.model, "claude-sonnet-4-6");
   assert.equal(result.requestType, "agent");
   assert.ok(result.request.sessionId);
+  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
   assert.deepEqual(result.request.messages, [
     { role: "user", content: [{ type: "text", text: "Hello" }] },
   ]);

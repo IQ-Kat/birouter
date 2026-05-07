@@ -323,19 +323,13 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
   assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
-  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
-  assert.equal(
-    loadCodeAssistCall?.init.headers["X-Goog-Api-Client"],
-    "google-cloud-sdk vscode_cloudshelleditor/0.1"
-  );
-  assert.equal(
-    loadCodeAssistCall?.init.headers["Client-Metadata"],
-    JSON.stringify({
-      ideType: "IDE_UNSPECIFIED",
-      platform: "PLATFORM_UNSPECIFIED",
-      pluginType: "GEMINI",
-    })
-  );
+  assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
+  assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
+  assert.equal(loadCodeAssistCall?.init.headers["X-Goog-Api-Client"], undefined);
+  assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
+  assert.deepEqual(JSON.parse(loadCodeAssistCall?.init.body).metadata, {
+    ideType: "ANTIGRAVITY",
+  });
 
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {
@@ -369,7 +363,7 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
 
     try {
       const parsedUrl = new URL(String(url));
-      if (parsedUrl.hostname === "cloudcode-pa.googleapis.com") {
+      if (parsedUrl.hostname === "daily-cloudcode-pa.sandbox.googleapis.com") {
         return new Response("bad gateway", { status: 502 });
       }
       if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
@@ -403,12 +397,12 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
     [
-      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
     ]
   );
-  assert.match(quotaCalls[2].init.headers["User-Agent"], /^antigravity\//);
+  assert.match(quotaCalls[2].init.headers["User-Agent"], /^Antigravity\//);
   assert.equal(usage.plan, "Business");
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
 });

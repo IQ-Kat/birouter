@@ -5,6 +5,11 @@ import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
 import { resolveGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
 import {
+  generateAntigravityRequestId,
+  getAntigravityEnvelopeUserAgent,
+  getAntigravitySessionId,
+} from "../../services/antigravityIdentity.ts";
+import {
   capMaxOutputTokens,
   capThinkingBudget,
   getDefaultThinkingBudget,
@@ -74,9 +79,10 @@ type CloudCodeEnvelope = {
   project: string;
   model: string;
   user_prompt_id?: string;
-  userAgent?: string;
+  userAgent?: "antigravity" | "jetski" | string;
   requestId?: string;
   requestType?: string;
+  enabledCreditTypes?: string[];
   request: {
     session_id?: string;
     sessionId?: string;
@@ -128,6 +134,28 @@ function extractClientThoughtSignature(toolCall: unknown): string | null {
     candidate.function?.thought_signature ||
     null;
   return typeof signature === "string" && signature.length > 0 ? signature : null;
+}
+
+function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationConfig) {
+  const config = { ...generationConfig };
+  if (config.topK === undefined) {
+    config.topK = 40;
+  }
+  if (config.topP === undefined) {
+    config.topP = 1.0;
+  }
+
+  const thinkingBudget = Number(config.thinkingConfig?.thinkingBudget);
+  const maxOutputTokens = Number(config.maxOutputTokens);
+  if (
+    Number.isFinite(thinkingBudget) &&
+    thinkingBudget > 0 &&
+    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
+  ) {
+    config.maxOutputTokens = Math.floor(thinkingBudget) + 1;
+  }
+
+  return config;
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
@@ -421,17 +449,18 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
   const envelope: CloudCodeEnvelope = isAntigravity
     ? {
         project: projectId,
-        model: cleanModel,
-        userAgent: "antigravity",
-        requestType: "agent",
-        requestId: `agent-${generateUUID()}`,
+        requestId: generateAntigravityRequestId(),
         request: {
-          sessionId: generateSessionId(),
+          sessionId: getAntigravitySessionId(credentials),
           contents: geminiCLI.contents,
           systemInstruction: geminiCLI.systemInstruction,
-          generationConfig: geminiCLI.generationConfig,
+          generationConfig: applyAntigravityGenerationDefaults(geminiCLI.generationConfig),
           tools: geminiCLI.tools,
         },
+        model: cleanModel,
+        userAgent: getAntigravityEnvelopeUserAgent(credentials),
+        requestType: "agent",
+        enabledCreditTypes: ["GOOGLE_ONE_AI"],
       }
     : {
         model: cleanModel,
@@ -512,16 +541,17 @@ function wrapInCloudCodeEnvelopeForClaude(
 
   const envelope: CloudCodeEnvelope = {
     project: projectId,
-    model: cleanModel,
-    userAgent: "antigravity",
-    requestId: `agent-${generateUUID()}`,
-    requestType: "agent",
+    requestId: generateAntigravityRequestId(),
     request: {
       ...claudeRequest,
       system: systemText,
       max_tokens: getAntigravityClaudeOutputTokens(sourceBody),
-      sessionId: generateSessionId(),
+      sessionId: getAntigravitySessionId(credentials),
     },
+    model: cleanModel,
+    userAgent: getAntigravityEnvelopeUserAgent(credentials),
+    requestType: "agent",
+    enabledCreditTypes: ["GOOGLE_ONE_AI"],
   };
 
   return envelope;

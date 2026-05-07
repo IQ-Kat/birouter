@@ -30,6 +30,7 @@ const HEADERS_TO_REMOVE = [
   "x-stainless-helper-method",
   "http-referer",
   "referer",
+  "x-goog-api-client",
   // Browser / Chromium fingerprint (Electron clients, NOT Node.js)
   "sec-ch-ua",
   "sec-ch-ua-mobile",
