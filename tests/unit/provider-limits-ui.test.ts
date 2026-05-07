@@ -30,6 +30,17 @@ test("Codex workspacePlanType is used when live plan is missing or unknown", () 
   assert.equal(tier.variant, "success");
 });
 
+test("Claude providerSpecificData plan is used when live plan is missing", () => {
+  const resolvedPlan = providerLimitUtils.resolvePlanValue(null, {
+    plan: "Pro",
+  });
+
+  assert.equal(resolvedPlan, "Pro");
+  const tier = providerLimitUtils.normalizePlanTier(resolvedPlan);
+  assert.equal(tier.key, "pro");
+  assert.equal(tier.variant, "success");
+});
+
 test("remaining percentage helpers reflect remaining quota and stale resets refill to 100", () => {
   assert.equal(providerLimitUtils.calculatePercentage(0, 100), 100);
   assert.equal(providerLimitUtils.calculatePercentage(17, 100), 83);
