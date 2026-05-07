@@ -892,3 +892,57 @@ test("v1 models catalog adds managed fallback models for Claude-compatible provi
   assert.ok(ids.has("ccdemo/claude-opus-4-6"));
   assert.equal(ids.has("ccdemo/claude-sonnet-4-6"), false);
 });
+
+test("v1 models catalog auto-calculates combo context_length from targets when not set manually", async () => {
+  await seedConnection("openai", { name: "openai-auto-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-auto-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  // Create a combo with targets having different context limits.
+  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 200000.
+  // The combo should expose context_length = min = 128000.
+  const combo = await combosDb.createCombo({
+    name: "auto-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o", "claude/claude-sonnet-4-6"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "auto-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo context_length should be the MIN of all target model limits"
+  );
+});
+
+test("v1 models catalog prefers manual combo context_length over auto-calculated", async () => {
+  await seedConnection("openai", { name: "openai-manual-context" });
+
+  const combo = await combosDb.createCombo({
+    name: "manual-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o"],
+  });
+  await combosDb.updateCombo((combo as any).id, { context_length: 64000 });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "manual-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
+});
