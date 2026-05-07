@@ -130,7 +130,6 @@ const KIMI_CODING_SHARED = {
   authHeader: "x-api-key",
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.6", name: "Kimi K2.6" },
@@ -785,7 +784,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
-    defaultContextLength: 128000,
+    defaultContextLength: 200000,
     models: [{ id: "glm-5.1", name: "GLM-5.1" }],
     passthroughModels: true,
   },
@@ -818,7 +817,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
@@ -843,7 +841,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5.1", name: "GLM 5.1" },
@@ -964,7 +961,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -986,7 +982,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
@@ -1130,8 +1125,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi Agent" },
       { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
       { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20" },
-      { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast Reasoning" },
-      { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast" },
     ],
   },
 
@@ -1170,7 +1163,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "fast", name: "Grok 4.20", toolCalling: true },
       { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
       { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
       { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
@@ -1187,7 +1180,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "mistral-large-latest", name: "Mistral Large 3" },
-      { id: "mistral-medium-latest", name: "Mistral Medium 3.1" },
+      { id: "mistral-medium-3-5", name: "Mistral Medium 3.5" },
       { id: "mistral-small-latest", name: "Mistral Small 4" },
       { id: "devstral-latest", name: "Devstral 2" },
       { id: "codestral-latest", name: "Codestral" },
