@@ -10,6 +10,9 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)
+- **fix(routing):** dynamically filter bare model auto-resolution by active provider connections to prevent dead-routing (#2029)
+- **fix(embeddings):** add Google Gemini embeddings compatibility via OpenAI-compatible endpoint mapping (#2006)
 - **fix:** remove Anthropic-Beta header from non-Anthropic providers to fix identity contamination (#1989)
 - **fix(cli):** resolve .env loading failure for global npm installations
 
