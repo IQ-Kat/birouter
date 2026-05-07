@@ -25,6 +25,8 @@ import {
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { parseModel } from "@omniroute/open-sse/services/model.ts";
+import { getTokenLimit } from "@omniroute/open-sse/services/contextManager.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -313,6 +315,30 @@ export async function getUnifiedModelsResponse(
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
+
+      // Calculate combo context length from its model targets.
+      // OpenCode and other clients read context_length from the catalog; without it
+      // they fall back to a conservative ~4000 token limit, causing truncation.
+      const comboContextLength = Array.isArray(combo.models)
+        ? combo.models
+            .filter((step) => step && step.kind === "model" && step.model)
+            .map((step) => {
+              const parsed = parseModel(step.model);
+              const provider = parsed.provider || (step as any).providerId || "unknown";
+              const model = parsed.model || step.model;
+              return getTokenLimit(provider, model);
+            })
+            .filter((limit): limit is number => typeof limit === "number" && limit > 0)
+            .reduce((min, limit) => Math.min(min, limit), Infinity)
+        : undefined;
+
+      const effectiveContextLength =
+        typeof combo.context_length === "number" && combo.context_length > 0
+          ? combo.context_length
+          : comboContextLength !== undefined && comboContextLength !== Infinity
+            ? comboContextLength
+            : undefined;
+
       models.push({
         id: combo.name,
         object: "model",
@@ -321,7 +347,7 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: combo.name,
         parent: null,
-        ...(combo.context_length ? { context_length: combo.context_length } : {}),
+        ...(effectiveContextLength !== undefined ? { context_length: effectiveContextLength } : {}),
       });
     }
 
