@@ -50,6 +50,8 @@ COPY --from=builder /app/node_modules/split2 ./node_modules/split2
 # traced by Next.js standalone output — copy them explicitly.
 COPY --from=builder /app/src/lib/db/migrations ./migrations
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
+# MITM server.cjs is spawned at runtime via child_process — not traced by nft
+COPY --from=builder /app/src/mitm/server.cjs ./src/mitm/server.cjs
 
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs

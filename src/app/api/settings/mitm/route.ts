@@ -137,7 +137,7 @@ function readStats(): MitmStats {
 }
 
 async function buildMitmResponse() {
-  const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager");
+  const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager.runtime");
   const status = await getMitmStatus();
   const config = readConfig();
   const stats = readStats();
@@ -204,7 +204,7 @@ export async function PUT(request: Request) {
 
     if (typeof parsed.data.enabled === "boolean") {
       const { getCachedPassword, setCachedPassword, startMitm, stopMitm } =
-        await import("@/mitm/manager");
+        await import("@/mitm/manager.runtime");
       const { isRoot } = await import("@/mitm/systemCommands");
       const isWin = process.platform === "win32";
       const isRootUser = !isWin && isRoot();
@@ -247,7 +247,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { getMitmStatus } = await import("@/mitm/manager");
+    const { getMitmStatus } = await import("@/mitm/manager.runtime");
     const status = await getMitmStatus();
     if (status.running) {
       return NextResponse.json(
