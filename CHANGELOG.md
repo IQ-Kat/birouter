@@ -10,6 +10,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(db):** preserve legacy SQLite database path on Windows to prevent data loss (#1973)
 - **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)
 - **fix(routing):** dynamically filter bare model auto-resolution by active provider connections to prevent dead-routing (#2029)
 - **fix(embeddings):** add Google Gemini embeddings compatibility via OpenAI-compatible endpoint mapping (#2006)
