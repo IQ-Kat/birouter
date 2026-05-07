@@ -275,7 +275,7 @@ function parseAliasTarget(target) {
   return { model: normalizedTarget };
 }
 
-function resolveModelByProviderInference(modelId, extendedContext) {
+async function resolveModelByProviderInference(modelId, extendedContext) {
   const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
 
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
@@ -305,14 +305,29 @@ function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  if (nonOpenAIProviders.length === 1) {
-    const provider = nonOpenAIProviders[0];
+  let activeProviders: Set<string> | null = null;
+  try {
+    const { getProviderConnections } = await import("@/lib/localDb");
+    const conns = await getProviderConnections();
+    activeProviders = new Set(conns.filter((c: any) => c.is_active).map((c: any) => c.provider));
+  } catch {
+    // DB unavailable
+  }
+
+  const eligibleProviders = activeProviders
+    ? nonOpenAIProviders.filter((p) => activeProviders!.has(p))
+    : nonOpenAIProviders;
+
+  const candidatesToUse = eligibleProviders.length > 0 ? eligibleProviders : nonOpenAIProviders;
+
+  if (candidatesToUse.length === 1) {
+    const provider = candidatesToUse[0];
     const canonicalModel = resolveProviderModelAlias(provider, modelId);
     return { provider, model: canonicalModel, extendedContext };
   }
 
-  if (nonOpenAIProviders.length > 1) {
-    const aliasesForHint = nonOpenAIProviders.map((p) => PROVIDER_ID_TO_ALIAS[p] || p);
+  if (candidatesToUse.length > 1) {
+    const aliasesForHint = candidatesToUse.map((p) => PROVIDER_ID_TO_ALIAS[p] || p);
     const hints = aliasesForHint.slice(0, 2).map((alias) => `${alias}/${modelId}`);
     const message = `Ambiguous model '${modelId}'. Use provider/model prefix (ex: ${hints.join(" or ")}).`;
     console.warn(`[MODEL] ${message} Candidates: ${aliasesForHint.join(", ")}`);
@@ -321,7 +336,7 @@ function resolveModelByProviderInference(modelId, extendedContext) {
       model: modelId,
       errorType: "ambiguous_model",
       errorMessage: message,
-      candidateProviders: nonOpenAIProviders,
+      candidateProviders: candidatesToUse,
       candidateAliases: aliasesForHint,
     };
   }
@@ -379,7 +394,7 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
     };
   }
   if (resolved?.model) {
-    return resolveModelByProviderInference(resolved.model, extendedContext);
+    return await resolveModelByProviderInference(resolved.model, extendedContext);
   }
 
   // T13: Try wildcard alias (glob patterns like "claude-sonnet-*" → "anthropic/claude-sonnet-4-...")
@@ -408,5 +423,5 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
   }
 
   const normalizedModelId = normalizeCrossProxyModelId(parsed.model).modelId;
-  return resolveModelByProviderInference(normalizedModelId, extendedContext);
+  return await resolveModelByProviderInference(normalizedModelId, extendedContext);
 }
