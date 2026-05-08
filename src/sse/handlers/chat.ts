@@ -791,6 +791,25 @@ async function handleSingleModelChat(
         return result.response;
       }
 
+      if (result.errorType === "account_semaphore_capacity") {
+        // Local concurrency pressure is not an upstream quota failure. Prefer another
+        // account when possible; pinned combo steps fall through to combo orchestration.
+        if (hasForcedConnection) {
+          return result.response;
+        }
+
+        log.warn(
+          "AUTH",
+          `Account ${accountId}... at local concurrency cap, trying fallback account`
+        );
+        excludedConnectionIds.add(credentials.connectionId);
+        lastError = result.error;
+        lastStatus = result.status;
+        requestRetryLastError = result.error;
+        requestRetryLastStatus = result.status;
+        continue;
+      }
+
       // Emergency fallback for budget exhaustion (402 / billing / quota keywords):
       // reroute to a free model (default provider/model: nvidia + openai/gpt-oss-120b) exactly once.
       if (!runtimeOptions.emergencyFallbackTried) {

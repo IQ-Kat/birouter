@@ -595,12 +595,37 @@ function toFiniteNumberOrNull(value: unknown): number | null {
   return null;
 }
 
-function isSemaphoreTimeoutError(error: unknown): error is Error & { code: string } {
+function isSemaphoreCapacityError(error: unknown): error is Error & { code: string } {
   return (
     !!error &&
     typeof error === "object" &&
-    (error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT"
+    ((error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT" ||
+      (error as { code?: unknown }).code === "SEMAPHORE_QUEUE_FULL")
   );
+}
+
+function createStreamingErrorResult(statusCode: number, message: string, code?: string) {
+  const errorBody = buildErrorBody(statusCode, message);
+  if (code) {
+    errorBody.error.code = code;
+  }
+
+  const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
+
+  return {
+    success: false as const,
+    status: statusCode,
+    error: message,
+    response: new Response(body, {
+      status: statusCode,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    }),
+  };
 }
 
 function wrapReadableStreamWithFinalize<T>(
@@ -2998,16 +3023,13 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
-    if (isSemaphoreTimeoutError(error)) {
+    if (isSemaphoreCapacityError(error)) {
       appendRequestLog({
         model,
         provider,
         connectionId,
         status: `FAILED ${error.code}`,
       }).catch(() => {});
-      if (isCombo) {
-        throw error;
-      }
       const failureMessage = error.message || "Semaphore timeout";
       persistAttemptLogs({
         status: HTTP_STATUS.RATE_LIMITED,
@@ -3018,7 +3040,14 @@ export async function handleChatCore({
         cacheSource: "upstream",
       });
       persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
-      return createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
+      const result = stream
+        ? createStreamingErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage, error.code)
+        : createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
+      return {
+        ...result,
+        errorType: "account_semaphore_capacity",
+        errorCode: error.code,
+      };
     }
     const failureStatus =
       error.name === "AbortError"
