@@ -770,6 +770,7 @@ export class AntigravityExecutor extends BaseExecutor {
           method: "POST",
           headers: finalHeaders,
           body: getChunkedOrFixedBody(serializedRequest.bodyString),
+          ...(stream ? { duplex: "half" } : {}),
           signal,
         });
 
@@ -781,6 +782,7 @@ export class AntigravityExecutor extends BaseExecutor {
             method: "POST",
             headers: retryHeaders,
             body: getChunkedOrFixedBody(serializedRequest.bodyString),
+            ...(stream ? { duplex: "half" } : {}),
             signal,
           });
           finalHeaders = retryHeaders;
@@ -850,6 +852,7 @@ export class AntigravityExecutor extends BaseExecutor {
                     method: "POST",
                     headers: finalCreditsHeaders,
                     body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString),
+                    ...(stream ? { duplex: "half" } : {}),
                     signal,
                   });
                   if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
