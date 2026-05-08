@@ -82,6 +82,10 @@ import {
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
+import {
+  getCodexRequestDefaults,
+  normalizeCodexServiceTier,
+} from "@/lib/providers/requestDefaults";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 
@@ -981,6 +985,21 @@ export async function handleChatCore({
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
   };
   let tokensCompressed: number | null = null;
+  let effectiveServiceTier: "standard" | "priority" = "standard";
+  const resolveEffectiveServiceTier = (requestBody?: unknown): "standard" | "priority" => {
+    if (provider !== "codex") return "standard";
+    const requestRecord =
+      requestBody && typeof requestBody === "object" && !Array.isArray(requestBody)
+        ? (requestBody as Record<string, unknown>)
+        : {};
+    const rawServiceTier = requestRecord.service_tier;
+    if (typeof rawServiceTier === "string" && rawServiceTier.trim().length > 0) {
+      return normalizeCodexServiceTier(rawServiceTier) ? "priority" : "standard";
+    }
+    return getCodexRequestDefaults(credentials?.providerSpecificData).serviceTier === "priority"
+      ? "priority"
+      : "standard";
+  };
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
       provider: provider || "unknown",
@@ -995,6 +1014,7 @@ export async function handleChatCore({
       connectionId: connectionId || undefined,
       apiKeyId: apiKeyInfo?.id || undefined,
       apiKeyName: apiKeyInfo?.name || undefined,
+      serviceTier: effectiveServiceTier,
     }).catch(() => {});
   };
 
@@ -1084,7 +1104,9 @@ export async function handleChatCore({
             | undefined)
         : undefined;
     const idempotentCost = idempotentUsage
-      ? await calculateCost(provider, model, idempotentUsage as Record<string, number>)
+      ? await calculateCost(provider, model, idempotentUsage as Record<string, number>, {
+          serviceTier: effectiveServiceTier,
+        })
       : 0;
     return {
       success: true,
@@ -1404,6 +1426,7 @@ export async function handleChatCore({
       : resolveStreamFlag(body?.stream, acceptHeader);
   const settings = await getCachedSettings();
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
+  effectiveServiceTier = resolveEffectiveServiceTier(body);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
@@ -1441,7 +1464,9 @@ export async function handleChatCore({
         extractUsageFromResponse(cached as Record<string, unknown>, provider) ||
         ((cached as Record<string, unknown>)?.usage as Record<string, unknown> | undefined);
       const cachedCost = cachedUsage
-        ? await calculateCost(provider, model, cachedUsage as Record<string, number>)
+        ? await calculateCost(provider, model, cachedUsage as Record<string, number>, {
+            serviceTier: effectiveServiceTier,
+          })
         : 0;
       persistAttemptLogs({
         status: 200,
@@ -1896,7 +1921,8 @@ export async function handleChatCore({
                   effectiveModel ?? "",
                   {
                     input: tokensSaved,
-                  }
+                  },
+                  { serviceTier: effectiveServiceTier }
                 );
                 insertCompressionAnalyticsRow({
                   timestamp: new Date().toISOString(),
@@ -2945,6 +2971,7 @@ export async function handleChatCore({
     providerUrl = result.url;
     providerHeaders = result.headers;
     finalBody = result.transformedBody;
+    effectiveServiceTier = resolveEffectiveServiceTier(finalBody);
     claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
       targetFormat,
       finalBody,
@@ -3685,6 +3712,7 @@ export async function handleChatCore({
         connectionId: connectionId || undefined,
         apiKeyId: apiKeyInfo?.id || undefined,
         apiKeyName: apiKeyInfo?.name || undefined,
+        serviceTier: effectiveServiceTier,
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
@@ -3817,7 +3845,9 @@ export async function handleChatCore({
       (translatedResponse?.usage && typeof translatedResponse.usage === "object"
         ? translatedResponse.usage
         : null);
-    const estimatedCost = responseUsage ? await calculateCost(provider, model, responseUsage) : 0;
+    const estimatedCost = responseUsage
+      ? await calculateCost(provider, model, responseUsage, { serviceTier: effectiveServiceTier })
+      : 0;
 
     if (postCallGuardrails.blocked) {
       const guardrailMessage = postCallGuardrails.message || "Response blocked by guardrail";
@@ -4047,6 +4077,7 @@ export async function handleChatCore({
         connectionId: connectionId || undefined,
         apiKeyId: apiKeyInfo?.id || undefined,
         apiKeyName: apiKeyInfo?.name || undefined,
+        serviceTier: effectiveServiceTier,
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
@@ -4065,7 +4096,7 @@ export async function handleChatCore({
     });
 
     if (apiKeyInfo?.id && streamUsage) {
-      calculateCost(provider, model, streamUsage)
+      calculateCost(provider, model, streamUsage, { serviceTier: effectiveServiceTier })
         .then((estimatedCost) => {
           if (estimatedCost > 0) recordCost(apiKeyInfo.id, estimatedCost);
         })

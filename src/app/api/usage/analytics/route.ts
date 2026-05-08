@@ -35,7 +35,8 @@ const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 type PricingByProvider = Record<string, Record<string, Record<string, unknown>>>;
 type ComputeCostFromPricing = (
   pricing: Record<string, unknown> | null | undefined,
-  tokens: Record<string, number | undefined> | null | undefined
+  tokens: Record<string, number | undefined> | null | undefined,
+  options?: Record<string, unknown>
 ) => number;
 
 function toNumber(value: unknown): number {
@@ -53,6 +54,15 @@ function toStringValue(value: unknown, fallback = ""): string {
 
 function roundCost(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
+}
+
+function normalizeServiceTier(value: unknown): "standard" | "priority" {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return tier === "priority" || tier === "fast" ? "priority" : "standard";
+}
+
+function getServiceTierLabel(serviceTier: string): string {
+  return normalizeServiceTier(serviceTier) === "priority" ? "Fast" : "Standard";
 }
 
 function appendWhereCondition(whereClause: string, condition: string): string {
@@ -195,6 +205,7 @@ function computeUsageRowCost(
   const provider = toStringValue(row.provider);
   const model = toStringValue(row.model);
   if (!provider || !model) return 0;
+  const serviceTier = normalizeServiceTier(row.serviceTier ?? row.service_tier);
 
   const pricing = resolveModelPricing(
     pricingByProvider,
@@ -205,13 +216,21 @@ function computeUsageRowCost(
   );
   if (!pricing) return 0;
 
-  return computeCostFromPricing(pricing, {
-    input: toNumber(row.promptTokens),
-    output: toNumber(row.completionTokens),
-    cacheRead: toNumber(row.cacheReadTokens),
-    cacheCreation: toNumber(row.cacheCreationTokens),
-    reasoning: toNumber(row.reasoningTokens),
-  });
+  return computeCostFromPricing(
+    pricing,
+    {
+      input: toNumber(row.promptTokens),
+      output: toNumber(row.completionTokens),
+      cacheRead: toNumber(row.cacheReadTokens),
+      cacheCreation: toNumber(row.cacheCreationTokens),
+      reasoning: toNumber(row.reasoningTokens),
+    },
+    {
+      provider,
+      model,
+      serviceTier,
+    }
+  );
 }
 
 function formatUtcDate(date: Date): string {
@@ -331,6 +350,7 @@ export async function GET(request: Request) {
           DATE(timestamp) as date,
           LOWER(provider) as provider,
           LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -338,7 +358,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
         FROM usage_history
         ${whereClause}
-        GROUP BY DATE(timestamp), LOWER(provider), LOWER(model)
+        GROUP BY DATE(timestamp), LOWER(provider), LOWER(model), serviceTier
         ORDER BY date ASC
       `
       )
@@ -384,6 +404,7 @@ export async function GET(request: Request) {
         SELECT
           LOWER(model) as model,
           LOWER(provider) as provider,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -396,9 +417,8 @@ export async function GET(request: Request) {
           COALESCE(MAX(timestamp), '') as lastUsed
         FROM usage_history
         ${whereClause}
-        GROUP BY LOWER(model), LOWER(provider)
+        GROUP BY LOWER(model), LOWER(provider), serviceTier
         ORDER BY requests DESC
-        LIMIT 50
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -409,6 +429,7 @@ export async function GET(request: Request) {
         SELECT
           LOWER(provider) as provider,
           LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -416,7 +437,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
         FROM usage_history
         ${whereClause}
-        GROUP BY LOWER(provider), LOWER(model)
+        GROUP BY LOWER(provider), LOWER(model), serviceTier
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -447,6 +468,7 @@ export async function GET(request: Request) {
           COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
           LOWER(usage_history.provider) as provider,
           LOWER(usage_history.model) as model,
+          COALESCE(NULLIF(usage_history.service_tier, ''), 'standard') as serviceTier,
           COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
           COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
           COALESCE(SUM(usage_history.tokens_cache_read), 0) as cacheReadTokens,
@@ -455,7 +477,7 @@ export async function GET(request: Request) {
         FROM usage_history
         LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
         ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
-        GROUP BY account, LOWER(usage_history.provider), LOWER(usage_history.model)
+        GROUP BY account, LOWER(usage_history.provider), LOWER(usage_history.model), serviceTier
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -493,6 +515,7 @@ export async function GET(request: Request) {
           COALESCE(NULLIF(api_key_name, ''), NULLIF(api_key_id, ''), 'Unknown API key') as apiKeyName,
           LOWER(provider) as provider,
           LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -502,7 +525,28 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
         ${apiKeyWhereClause}
-        GROUP BY api_key_id, api_key_name, LOWER(provider), LOWER(model)
+        GROUP BY api_key_id, api_key_name, LOWER(provider), LOWER(model), serviceTier
+      `
+      )
+      .all(params) as Array<Record<string, unknown>>;
+
+    const serviceTierRows = db
+      .prepare(
+        `
+        SELECT
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
+          COUNT(*) as requests,
+          COALESCE(SUM(tokens_input), 0) as promptTokens,
+          COALESCE(SUM(tokens_output), 0) as completionTokens,
+          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
+          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
+          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
+        FROM usage_history
+        ${whereClause}
+        GROUP BY serviceTier, LOWER(provider), LOWER(model)
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -584,6 +628,11 @@ export async function GET(request: Request) {
       firstRequest: summaryRow?.firstRequest || "",
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
+      fastRequests: 0,
+      standardRequests: 0,
+      fastCost: 0,
+      standardCost: 0,
+      fastRequestSharePct: 0,
       fallbackRatePct:
         Number(fallbackRow?.fallback_eligible || 0) > 0
           ? Number(
@@ -648,14 +697,11 @@ export async function GET(request: Request) {
     }
     summary.streak = computeActivityStreak(activityMap);
 
-    const byModel = modelRows.map((row) => {
+    const modelMap = new Map<string, Record<string, unknown>>();
+    for (const row of modelRows) {
       const model = row.model as string;
       const provider = row.provider as string;
       const short = normalizeModelName(model);
-      const tokens = {
-        input: Number(row.promptTokens) || 0,
-        output: Number(row.completionTokens) || 0,
-      };
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
@@ -663,23 +709,59 @@ export async function GET(request: Request) {
         normalizeModelName,
         computeCostFromPricing
       );
-      return {
+      const key = `${provider}::${model}`;
+      const existing = modelMap.get(key) || {
         model: short,
         provider,
         rawModel: model,
+        requests: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        latencyWeightedTotal: 0,
+        successfulRequests: 0,
+        lastUsed: "",
+        cost: 0,
+      };
+      const requests = Number(row.requests) || 0;
+      existing.requests = Number(existing.requests || 0) + requests;
+      existing.promptTokens = Number(existing.promptTokens || 0) + Number(row.promptTokens || 0);
+      existing.completionTokens =
+        Number(existing.completionTokens || 0) + Number(row.completionTokens || 0);
+      existing.totalTokens = Number(existing.totalTokens || 0) + Number(row.totalTokens || 0);
+      existing.latencyWeightedTotal =
+        Number(existing.latencyWeightedTotal || 0) + Number(row.avgLatencyMs || 0) * requests;
+      existing.successfulRequests =
+        Number(existing.successfulRequests || 0) + Number(row.successfulRequests || 0);
+      if (!existing.lastUsed || String(row.lastUsed || "") > String(existing.lastUsed || "")) {
+        existing.lastUsed = row.lastUsed;
+      }
+      existing.cost = Number(existing.cost || 0) + cost;
+      modelMap.set(key, existing);
+    }
+
+    const byModel = Array.from(modelMap.values())
+      .map((row) => ({
+        model: row.model,
+        provider: row.provider,
+        rawModel: row.rawModel,
         requests: Number(row.requests),
-        promptTokens: tokens.input,
-        completionTokens: tokens.output,
+        promptTokens: Number(row.promptTokens),
+        completionTokens: Number(row.completionTokens),
         totalTokens: Number(row.totalTokens),
-        avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
+        avgLatencyMs:
+          Number(row.requests) > 0
+            ? Math.round(Number(row.latencyWeightedTotal || 0) / Number(row.requests))
+            : 0,
         successRatePct:
           Number(row.requests) > 0
-            ? Number((Number(row.successfulRequests) / Number(row.requests)) * 100).toFixed(2)
+            ? Number((Number(row.successfulRequests || 0) / Number(row.requests)) * 100).toFixed(2)
             : 0,
         lastUsed: row.lastUsed,
-        cost: roundCost(cost),
-      };
-    });
+        cost: roundCost(Number(row.cost || 0)),
+      }))
+      .sort((left, right) => Number(right.requests) - Number(left.requests))
+      .slice(0, 50);
 
     const totalCost = Array.from(dailyCostByDate.values()).reduce((sum, cost) => sum + cost, 0);
     summary.totalCost = roundCost(totalCost);
@@ -781,6 +863,56 @@ export async function GET(request: Request) {
       .map((row) => ({ ...row, cost: roundCost(row.cost) }))
       .sort((left, right) => right.cost - left.cost);
 
+    const serviceTierMap = new Map<
+      string,
+      {
+        serviceTier: "standard" | "priority";
+        label: string;
+        requests: number;
+        promptTokens: number;
+        completionTokens: number;
+        totalTokens: number;
+        cost: number;
+      }
+    >();
+    for (const row of serviceTierRows) {
+      const serviceTier = normalizeServiceTier(row.serviceTier);
+      const existing = serviceTierMap.get(serviceTier) || {
+        serviceTier,
+        label: getServiceTierLabel(serviceTier),
+        requests: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        cost: 0,
+      };
+      existing.requests += Number(row.requests || 0);
+      existing.promptTokens += Number(row.promptTokens || 0);
+      existing.completionTokens += Number(row.completionTokens || 0);
+      existing.totalTokens += Number(row.totalTokens || 0);
+      existing.cost += computeUsageRowCost(
+        row,
+        pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
+        normalizeModelName,
+        computeCostFromPricing
+      );
+      serviceTierMap.set(serviceTier, existing);
+    }
+    const byServiceTier = Array.from(serviceTierMap.values())
+      .map((row) => ({ ...row, cost: roundCost(row.cost) }))
+      .sort((left, right) => (left.serviceTier === "priority" ? -1 : 1));
+    const fastTier = serviceTierMap.get("priority");
+    const standardTier = serviceTierMap.get("standard");
+    summary.fastRequests = fastTier?.requests || 0;
+    summary.fastCost = roundCost(fastTier?.cost || 0);
+    summary.standardRequests = standardTier?.requests || 0;
+    summary.standardCost = roundCost(standardTier?.cost || 0);
+    summary.fastRequestSharePct =
+      summary.totalRequests > 0
+        ? Number(((Number(summary.fastRequests) / Number(summary.totalRequests)) * 100).toFixed(2))
+        : 0;
+
     const weeklyTokens = [0, 0, 0, 0, 0, 0, 0];
     const weeklyCounts = [0, 0, 0, 0, 0, 0, 0];
     const weeklyPattern = WEEKDAY_LABELS.map((day) => ({
@@ -816,6 +948,7 @@ export async function GET(request: Request) {
       byProvider,
       byApiKey,
       byAccount,
+      byServiceTier,
       weeklyPattern,
       weeklyTokens,
       weeklyCounts,

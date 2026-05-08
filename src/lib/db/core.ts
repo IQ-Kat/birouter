@@ -250,6 +250,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT 0,
     tokens_cache_creation INTEGER DEFAULT 0,
     tokens_reasoning INTEGER DEFAULT 0,
+    service_tier TEXT DEFAULT 'standard',
     status TEXT,
     success INTEGER DEFAULT 1,
     latency_ms INTEGER DEFAULT 0,
@@ -260,6 +261,7 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_uh_timestamp ON usage_history(timestamp);
   CREATE INDEX IF NOT EXISTS idx_uh_provider ON usage_history(provider);
   CREATE INDEX IF NOT EXISTS idx_uh_model ON usage_history(model);
+  CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier);
 
   CREATE TABLE IF NOT EXISTS call_logs (
     id TEXT PRIMARY KEY,

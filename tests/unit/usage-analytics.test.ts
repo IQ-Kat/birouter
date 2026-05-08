@@ -275,6 +275,22 @@ test("getUsageStats aggregates totals, buckets, pending requests, and cost break
   assert.equal(recentBucketTotal, 1);
 });
 
+test("Codex Fast service tier applies documented GPT-5.5 and GPT-5.4 cost multipliers", async () => {
+  await localDb.updatePricing({
+    codex: {
+      "gpt-5.5": { input: 5, output: 30 },
+      "gpt-5.4": { input: 5, output: 30 },
+    },
+  });
+
+  const tokens = { input: 1000, output: 500 };
+
+  assert.equal(await calculateCost("codex", "gpt-5.5", tokens), 0.02);
+  assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.05);
+  assert.equal(await calculateCost("codex", "gpt-5.4-high", tokens, { serviceTier: "fast" }), 0.04);
+  assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "priority" }), 0);
+});
+
 test("recent request summaries are generated from SQLite call logs", async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "log-provider",

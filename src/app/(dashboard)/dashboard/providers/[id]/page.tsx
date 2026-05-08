@@ -2855,8 +2855,8 @@ export default function ProviderDetailPage() {
       {/* Connections */}
       {!isUpstreamProxyProvider && (
         <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
                 <div title="Apply Codex Fast tier to all Codex connections by default">
@@ -2865,8 +2865,9 @@ export default function ProviderDetailPage() {
                     checked={codexGlobalFastServiceTier}
                     onChange={handleToggleCodexGlobalFastServiceTier}
                     disabled={savingCodexGlobalFastServiceTier}
-                    label="Fast"
-                    className="rounded-lg border border-border bg-bg-subtle px-2 py-1"
+                    label="Fast default"
+                    ariaLabel="Toggle Codex Fast default"
+                    className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
                   />
                 </div>
               )}
@@ -2898,42 +2899,44 @@ export default function ProviderDetailPage() {
                   : t("providerProxy")}
               </button>
             </div>
-            {connections.length > 1 && (
-              <button
-                onClick={handleBatchTestAll}
-                disabled={batchTesting || !!retestingId}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                  batchTesting
-                    ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                    : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                }`}
-                title={t("testAll")}
-                aria-label={t("testAll")}
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {batchTesting ? "sync" : "play_arrow"}
-                </span>
-                {batchTesting ? t("testing") : t("testAll")}
-              </button>
-            )}
-            {!isCompatible ? (
-              <div className="flex items-center gap-2">
-                <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
-                  {providerSupportsPat ? "Add PAT" : t("add")}
-                </Button>
-                {providerId === "qoder" && (
-                  <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
-                    Experimental OAuth
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              {connections.length > 1 && (
+                <button
+                  onClick={handleBatchTestAll}
+                  disabled={batchTesting || !!retestingId}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    batchTesting
+                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                  }`}
+                  title={t("testAll")}
+                  aria-label={t("testAll")}
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {batchTesting ? "sync" : "play_arrow"}
+                  </span>
+                  {batchTesting ? t("testing") : t("testAll")}
+                </button>
+              )}
+              {!isCompatible ? (
+                <>
+                  <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                    {providerSupportsPat ? "Add PAT" : t("add")}
                   </Button>
-                )}
-              </div>
-            ) : (
-              connections.length === 0 && (
-                <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
-                  {t("add")}
-                </Button>
-              )
-            )}
+                  {providerId === "qoder" && (
+                    <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                      Experimental OAuth
+                    </Button>
+                  )}
+                </>
+              ) : (
+                connections.length === 0 && (
+                  <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                    {t("add")}
+                  </Button>
+                )
+              )}
+            </div>
           </div>
 
           {connections.length === 0 ? (
