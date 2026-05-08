@@ -41,6 +41,15 @@ const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
 
+function getChunkedOrFixedBody(bodyStr: string, stream: boolean) {
+  if (stream) {
+    return (async function* () {
+      yield new TextEncoder().encode(bodyStr);
+    })();
+  }
+  return bodyStr;
+}
+
 function cloneAntigravityRequestBody(body: unknown): unknown {
   if (!body || typeof body !== "object") {
     return body;
@@ -757,19 +766,10 @@ export class AntigravityExecutor extends BaseExecutor {
           );
         }
 
-        const getChunkedOrFixedBody = (bodyStr: string) => {
-          if (stream) {
-            return (async function* () {
-              yield new TextEncoder().encode(bodyStr);
-            })();
-          }
-          return bodyStr;
-        };
-
         let response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
-          body: getChunkedOrFixedBody(serializedRequest.bodyString),
+          body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
           ...(stream ? { duplex: "half" } : {}),
           signal,
         });
@@ -781,7 +781,7 @@ export class AntigravityExecutor extends BaseExecutor {
           response = await fetch(url, {
             method: "POST",
             headers: retryHeaders,
-            body: getChunkedOrFixedBody(serializedRequest.bodyString),
+            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
             ...(stream ? { duplex: "half" } : {}),
             signal,
           });
@@ -851,7 +851,7 @@ export class AntigravityExecutor extends BaseExecutor {
                   const creditsResp = await fetch(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
-                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString),
+                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
                     ...(stream ? { duplex: "half" } : {}),
                     signal,
                   });

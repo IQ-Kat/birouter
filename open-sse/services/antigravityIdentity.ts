@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import os from "node:os";
 
 type AntigravityCredentialsLike = {
   accessToken?: string | null;
@@ -66,8 +67,8 @@ export function deriveAntigravitySessionId(accountKey?: string | null): string |
 
   let hash = FNV_OFFSET_I64;
   for (const byte of Buffer.from(key, "utf8")) {
-    hash = BigInt.asIntN(64, hash * FNV_PRIME_I64);
     hash = BigInt.asIntN(64, hash ^ BigInt(byte));
+    hash = BigInt.asIntN(64, hash * FNV_PRIME_I64);
   }
   return hash.toString();
 }
@@ -82,8 +83,6 @@ export function getAntigravitySessionId(
     generateAntigravitySessionId()
   );
 }
-
-import os from "node:os";
 
 const STABLE_MACHINE_ID = crypto
   .createHash("sha256")

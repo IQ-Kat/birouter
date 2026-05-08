@@ -597,7 +597,12 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
   // hasn't explicitly specified max_tokens / max_completion_tokens.
   // The Cloud Code server decides the output limit on its own.
   const clientRequestedMaxTokens = body.max_tokens ?? body.max_completion_tokens;
-  if (clientRequestedMaxTokens === undefined && envelope.request?.generationConfig) {
+  const hasThinking = !!envelope.request?.generationConfig?.thinkingConfig?.thinkingBudget;
+  if (
+    clientRequestedMaxTokens === undefined &&
+    !hasThinking &&
+    envelope.request?.generationConfig
+  ) {
     delete envelope.request.generationConfig.maxOutputTokens;
   }
 
