@@ -89,7 +89,11 @@ export function applyCompression(
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "stacked") {
-    const result = applyStackedCompression(compressionBody, options?.config?.stackedPipeline, options);
+    const result = applyStackedCompression(
+      compressionBody,
+      options?.config?.stackedPipeline,
+      options
+    );
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "standard") {

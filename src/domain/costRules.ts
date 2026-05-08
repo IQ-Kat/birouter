@@ -239,7 +239,8 @@ function getActiveBudgetLimit(budget: NormalizedBudgetConfig): number {
 function getBudgetWindowTotal(apiKeyId: string, periodStartAt: number): number {
   try {
     return (
-      loadCostTotal(apiKeyId, periodStartAt) + spendBatchWriter.getPendingCostTotal(apiKeyId, periodStartAt)
+      loadCostTotal(apiKeyId, periodStartAt) +
+      spendBatchWriter.getPendingCostTotal(apiKeyId, periodStartAt)
     );
   } catch {
     return 0;

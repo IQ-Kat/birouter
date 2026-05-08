@@ -16,7 +16,12 @@ type PricingByProvider = Record<string, PricingModels>;
 export type PricingSource = "default" | "litellm" | "modelsDev" | "user";
 export type PricingSourceMap = Record<string, Record<string, PricingSource>>;
 type ProxyValue = JsonRecord | string | null;
-type ProxyResolutionResult = { proxy: ProxyValue; level: string; levelId: string | null; source?: string };
+type ProxyResolutionResult = {
+  proxy: ProxyValue;
+  level: string;
+  levelId: string | null;
+  source?: string;
+};
 type ProxyResolutionCacheEntry = {
   generation: number;
   registryGeneration: number;
@@ -541,7 +546,12 @@ export async function resolveProxyForConnection(connectionId: string) {
   const registryResolved = await resolveProxyForConnectionFromRegistry(connectionId);
   if (registryResolved?.proxy) {
     if (registryResolved.level === "account") {
-      cacheProxyResolution(connectionId, startGeneration, startRegistryGeneration, registryResolved);
+      cacheProxyResolution(
+        connectionId,
+        startGeneration,
+        startRegistryGeneration,
+        registryResolved
+      );
     }
     return registryResolved;
   }

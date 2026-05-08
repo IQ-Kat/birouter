@@ -190,7 +190,9 @@ function shouldCompressMessage(message: Message, config: RtkConfig): boolean {
   if (message.role === "tool")
     return config.applyToToolResults || (config.applyToCodeBlocks && hasCodeFence(message.content));
   if (message.role === "assistant")
-    return config.applyToAssistantMessages || (config.applyToCodeBlocks && hasCodeFence(message.content));
+    return (
+      config.applyToAssistantMessages || (config.applyToCodeBlocks && hasCodeFence(message.content))
+    );
   return false;
 }
 
@@ -198,7 +200,9 @@ function hasCodeFence(content: Message["content"]): boolean {
   if (!content) return false;
   if (typeof content === "string") return /```/.test(content);
   if (!Array.isArray(content)) return false;
-  return content.some((part) => isTextBlock(part) && typeof part.text === "string" && /```/.test(part.text));
+  return content.some(
+    (part) => isTextBlock(part) && typeof part.text === "string" && /```/.test(part.text)
+  );
 }
 
 function codeOnlyConfig(config: RtkConfig): boolean {

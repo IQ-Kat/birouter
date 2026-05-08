@@ -78,10 +78,15 @@ export async function handleEmbedding({
   // Set up request logger for pipeline artifact capture
   const detailedLoggingEnabled = await isDetailedLoggingEnabled();
   const captureStreamChunks = await getCallLogPipelineCaptureStreamChunks();
-  const reqLogger = await createRequestLogger(provider || "openai", "openai", body.model as string, {
-    enabled: detailedLoggingEnabled,
-    captureStreamChunks,
-  });
+  const reqLogger = await createRequestLogger(
+    provider || "openai",
+    "openai",
+    body.model as string,
+    {
+      enabled: detailedLoggingEnabled,
+      captureStreamChunks,
+    }
+  );
 
   // Log client raw request
   if (clientRawRequest) {

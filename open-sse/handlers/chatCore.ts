@@ -1615,9 +1615,10 @@ export async function handleChatCore({
   // ── Proactive Context Compression (Phase 4) ──
   // Check if context exceeds 70% of limit and compress proactively before sending to provider.
   // This prevents "prompt too long" errors for large-but-not-full contexts.
-  const compressionBody = body ? adaptBodyForCompression(body as Record<string, unknown>).body : null;
-  const allMessages =
-    compressionBody?.messages || body?.contents || body?.request?.contents || [];
+  const compressionBody = body
+    ? adaptBodyForCompression(body as Record<string, unknown>).body
+    : null;
+  const allMessages = compressionBody?.messages || body?.contents || body?.request?.contents || [];
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {

@@ -51,9 +51,18 @@ describe("Caveman language packs", () => {
   it("keeps the Spanish pack aligned with English rule categories", () => {
     const esRules = loadAllRulesForLanguage("es", { refresh: true });
     assert.ok(esRules.length >= 40, `es expected 40+ rules, got ${esRules.length}`);
-    assert.ok(esRules.some((rule) => rule.category === "dedup"), "es missing dedup");
-    assert.ok(esRules.some((rule) => rule.category === "ultra"), "es missing ultra");
-    assert.ok(esRules.some((rule) => rule.category === "terse"), "es missing terse");
+    assert.ok(
+      esRules.some((rule) => rule.category === "dedup"),
+      "es missing dedup"
+    );
+    assert.ok(
+      esRules.some((rule) => rule.category === "ultra"),
+      "es missing ultra"
+    );
+    assert.ok(
+      esRules.some((rule) => rule.category === "terse"),
+      "es missing terse"
+    );
   });
 
   it("applies expanded Spanish rules without touching technical terms", () => {
