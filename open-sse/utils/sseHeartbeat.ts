@@ -1,4 +1,4 @@
-const DEFAULT_INTERVAL_MS = 15_000;
+export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 
 type SseHeartbeatTransformOptions = {
   intervalMs?: number;
@@ -6,7 +6,7 @@ type SseHeartbeatTransformOptions = {
 };
 
 export function createSseHeartbeatTransform({
-  intervalMs = DEFAULT_INTERVAL_MS,
+  intervalMs = DEFAULT_SSE_HEARTBEAT_INTERVAL_MS,
   signal,
 }: SseHeartbeatTransformOptions = {}) {
   let intervalId: ReturnType<typeof setInterval> | undefined;

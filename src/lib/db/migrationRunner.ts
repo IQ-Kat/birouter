@@ -303,8 +303,10 @@ function isSchemaAlreadyApplied(
       );
     case "045":
       return hasColumn(db, "call_logs", "tokens_compressed");
-    case "051":
+    case "053":
       return !hasColumn(db, "files", "status");
+    case "054":
+      return hasColumn(db, "usage_history", "service_tier");
     default:
       return false;
   }
