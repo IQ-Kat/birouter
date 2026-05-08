@@ -72,6 +72,12 @@ const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
 
+function resolveDelayMs(value: unknown, fallback: number): number {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue < 0) return fallback;
+  return numericValue;
+}
+
 function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
 }
@@ -1659,7 +1665,8 @@ export async function handleComboChat({
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const maxRetries = config.maxRetries ?? 1;
-  const retryDelayMs = config.retryDelayMs ?? 2000;
+  const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
+  const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
 
   let orderedTargets =
     strategy === "weighted"
@@ -2027,17 +2034,19 @@ export async function handleComboChat({
 
         // Record last known good provider (LKGP) for this combo/model (#919)
         if (provider) {
-          try {
-            const { setLKGP } = await import("../../src/lib/localDb");
-            await Promise.all([
-              setLKGP(combo.name, target.executionKey, provider),
-              setLKGP(combo.name, combo.id || combo.name, provider),
-            ]);
-          } catch (err) {
-            log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
-              err,
-            });
-          }
+          void (async () => {
+            try {
+              const { setLKGP } = await import("../../src/lib/localDb");
+              await Promise.all([
+                setLKGP(combo.name, target.executionKey, provider),
+                setLKGP(combo.name, combo.id || combo.name, provider),
+              ]);
+            } catch (err) {
+              log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
+                err,
+              });
+            }
+          })();
         }
 
         return quality.clonedResponse ?? result;
@@ -2141,8 +2150,8 @@ export async function handleComboChat({
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
       const fallbackWaitMs =
-        retryDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
-          ? Math.min(cooldownMs, retryDelayMs)
+        fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+          ? Math.min(cooldownMs, fallbackDelayMs)
           : 0;
       if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
         log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
@@ -2229,7 +2238,8 @@ async function handleRoundRobinCombo({
   const concurrency = config.concurrencyPerModel ?? 3;
   const queueTimeout = config.queueTimeoutMs ?? 30000;
   const maxRetries = config.maxRetries ?? 1;
-  const retryDelayMs = config.retryDelayMs ?? 2000;
+  const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
+  const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
 
   const orderedTargets = resolveComboTargets(combo, allCombos);
   const filteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
@@ -2354,21 +2364,23 @@ async function handleRoundRobinCombo({
           });
           recordedAttempts++;
           if (provider) {
-            try {
-              const { setLKGP } = await import("../../src/lib/localDb");
-              await Promise.all([
-                setLKGP(combo.name, target.executionKey, provider),
-                setLKGP(combo.name, combo.id || combo.name, provider),
-              ]);
-            } catch (err) {
-              log.warn(
-                "COMBO-RR",
-                "Failed to record Last Known Good Provider. This is non-fatal.",
-                {
-                  err,
-                }
-              );
-            }
+            void (async () => {
+              try {
+                const { setLKGP } = await import("../../src/lib/localDb");
+                await Promise.all([
+                  setLKGP(combo.name, target.executionKey, provider),
+                  setLKGP(combo.name, combo.id || combo.name, provider),
+                ]);
+              } catch (err) {
+                log.warn(
+                  "COMBO-RR",
+                  "Failed to record Last Known Good Provider. This is non-fatal.",
+                  {
+                    err,
+                  }
+                );
+              }
+            })();
           }
           return result;
         }
@@ -2488,8 +2500,8 @@ async function handleRoundRobinCombo({
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
         const fallbackWaitMs =
-          retryDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
-            ? Math.min(cooldownMs, retryDelayMs)
+          fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+            ? Math.min(cooldownMs, fallbackDelayMs)
             : 0;
         if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
           log.info("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);

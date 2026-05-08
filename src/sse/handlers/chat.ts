@@ -26,7 +26,7 @@ import {
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
-import { getCachedSettings, getSettings, getCombos } from "@/lib/localDb";
+import { getCachedSettings, getCombos } from "@/lib/localDb";
 import {
   ensureOpenAIStoreSessionFallback,
   isOpenAIResponsesStoreEnabled,
@@ -90,6 +90,21 @@ registerBailianCodingPlanQuotaFetcher();
 // Surfaces usable_requests + credits in the monitor and only blocks (preflight
 // opt-in) when the active bucket reaches zero.
 registerCrofUsageFetcher();
+
+let combosCachePromise: Promise<unknown[]> | null = null;
+let combosCacheTs = 0;
+const COMBOS_CACHE_TTL_MS = 10_000;
+
+async function getCombosCachedForChat(): Promise<unknown[]> {
+  const now = Date.now();
+  if (combosCachePromise && now - combosCacheTs < COMBOS_CACHE_TTL_MS) {
+    return combosCachePromise;
+  }
+
+  combosCacheTs = now;
+  combosCachePromise = getCombos().catch(() => []);
+  return combosCachePromise;
+}
 
 function normalizeAllowedConnectionIds(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
@@ -336,8 +351,8 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
     // Fetch settings and all combos for config cascade and nested resolution
     const [settings, allCombos] = await Promise.all([
-      getSettings().catch(() => ({})),
-      getCombos().catch(() => []),
+      getCachedSettings().catch(() => ({})),
+      getCombosCachedForChat(),
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
