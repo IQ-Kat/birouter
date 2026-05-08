@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Routeringsstrategie",
     "routingAdvancedGuideTitle": "Geavanceerde routebegeleiding",
     "routingAdvancedGuideHint1": "Gebruik Fill First voor voorspelbare prioriteit, Round Robin voor eerlijkheid en P2C voor latency-veerkracht.",
@@ -3771,7 +3773,8 @@
     "weeklyLimitSummary": "Weekly budget limit summary",
     "suiteBuilderDescriptionLabel": "Description",
     "targetComparisonHint": "Side-by-side comparison of evaluation results between targets.",
-    "compareCompletedWithScore": "Comparison completed — {score}% pass rate"
+    "compareCompletedWithScore": "Comparison completed — {score}% pass rate",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "Wachten op toestemming",

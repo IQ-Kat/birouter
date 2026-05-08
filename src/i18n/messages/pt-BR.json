@@ -3032,6 +3032,8 @@
     "cliFingerprintEnabled": "{count} provider(s) com fingerprint CLI ativo",
     "enableFingerprintTitle": "Ativar fingerprint para {provider}",
     "disableFingerprintTitle": "Desativar fingerprint para {provider}",
+    "forcedFingerprintTitle": "Sempre ativado para {provider} — necessário para a segurança da conta OAuth; não pode ser desativado.",
+    "forcedFingerprintBadge": "Obrigatório",
     "routingStrategy": "Estratégia de Roteamento",
     "routingAdvancedGuideTitle": "Orientação avançada de roteamento",
     "routingAdvancedGuideHint1": "Use Fill First para prioridade previsível, Round Robin para justiça e P2C para resiliência de latência.",
@@ -3941,7 +3943,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "save": "Save",
-    "edit": "Edit"
+    "edit": "Edit",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "Aguardando Autorização",

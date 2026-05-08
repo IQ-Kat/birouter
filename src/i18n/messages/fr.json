@@ -2890,6 +2890,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Stratégie de routage",
     "routingAdvancedGuideTitle": "Guidage d'itinéraire avancé",
     "routingAdvancedGuideHint1": "Utilisez Fill First pour une priorité prévisible, Round Robin pour l’équité et P2C pour la résilience en matière de latence.",
@@ -3771,7 +3773,8 @@
     "weeklyLimitSummary": "Weekly budget limit summary",
     "suiteBuilderDescriptionLabel": "Description",
     "targetComparisonHint": "Side-by-side comparison of evaluation results between targets.",
-    "compareCompletedWithScore": "Comparison completed — {score}% pass rate"
+    "compareCompletedWithScore": "Comparison completed — {score}% pass rate",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "En attente d'autorisation",

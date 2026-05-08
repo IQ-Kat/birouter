@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} poskytovatel(ů) s aktivním CLI otiskem",
     "enableFingerprintTitle": "Povolit otisk pro {provider}",
     "disableFingerprintTitle": "Zakázat otisk pro {provider}",
+    "forcedFingerprintTitle": "Vždy aktivní pro {provider} — vyžadováno pro bezpečnost OAuth účtu; nelze vypnout.",
+    "forcedFingerprintBadge": "Vyžadováno",
     "routingStrategy": "Strategie směrování",
     "routingAdvancedGuideTitle": "Pokročilé pokyny směrování",
     "routingAdvancedGuideHint1": "Pro předvídatelnou prioritu použijte Fill First, pro spravedlivé rozdělení Round Robin a pro odolnost vůči zpoždění P2C.",
@@ -3771,7 +3773,8 @@
     "weeklyLimitSummary": "Weekly budget limit summary",
     "suiteBuilderDescriptionLabel": "Description",
     "targetComparisonHint": "Side-by-side comparison of evaluation results between targets.",
-    "compareCompletedWithScore": "Comparison completed — {score}% pass rate"
+    "compareCompletedWithScore": "Comparison completed — {score}% pass rate",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "Očekávám Autorizaci",
