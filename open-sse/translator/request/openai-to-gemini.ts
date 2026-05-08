@@ -567,7 +567,17 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
   }
 
   const geminiCLI = openaiToGeminiCLIRequest(model, body, stream);
-  return wrapInCloudCodeEnvelope(model, geminiCLI, credentials, true);
+  const envelope = wrapInCloudCodeEnvelope(model, geminiCLI, credentials, true);
+
+  // Match real Antigravity client: don't send maxOutputTokens when the user
+  // hasn't explicitly specified max_tokens / max_completion_tokens.
+  // The Cloud Code server decides the output limit on its own.
+  const clientRequestedMaxTokens = body.max_tokens ?? body.max_completion_tokens;
+  if (clientRequestedMaxTokens === undefined && envelope.request?.generationConfig) {
+    delete envelope.request.generationConfig.maxOutputTokens;
+  }
+
+  return envelope;
 }
 
 // Register
