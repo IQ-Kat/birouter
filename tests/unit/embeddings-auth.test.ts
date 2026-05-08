@@ -82,18 +82,26 @@ test("POST /v1/embeddings authentication", async (t) => {
 
   await t.test("should NOT return 401 when a valid API key is provided", async () => {
     process.env.OMNIROUTE_API_KEY = "valid-key";
-    const req = new Request("http://localhost/v1/embeddings", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer valid-key",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ model: "mistral/mistral-embed", input: "test" }),
-    });
-    const res = await POST(req);
-    // It might be 400, 404, etc. because of downstream failure, but NOT 401.
-    assert.notStrictEqual(res.status, 401, "Should not be 401 Unauthorized");
-    delete process.env.OMNIROUTE_API_KEY;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response(JSON.stringify({ data: [] }), { status: 200 });
+
+    try {
+      const req = new Request("http://localhost/v1/embeddings", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer valid-key",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ model: "mistral/mistral-embed", input: "test" }),
+      });
+      const res = await POST(req);
+      const body = await res.text();
+      // It might be 400, 404, etc. because of downstream failure, but NOT 401.
+      assert.notStrictEqual(res.status, 401, "Should not be 401 Unauthorized");
+    } finally {
+      globalThis.fetch = originalFetch;
+      delete process.env.OMNIROUTE_API_KEY;
+    }
   });
 
   // Restore original env in case of failure

@@ -14,13 +14,13 @@ export function createSseHeartbeatTransform({
 
   const stop = () => {
     if (!intervalId) return;
-    clearInterval(intervalId);
+    globalThis.clearInterval(intervalId);
     intervalId = undefined;
   };
 
   return new TransformStream<Uint8Array, Uint8Array>({
     start(controller) {
-      intervalId = setInterval(() => {
+      intervalId = globalThis.setInterval(() => {
         if (signal?.aborted) {
           stop();
           return;

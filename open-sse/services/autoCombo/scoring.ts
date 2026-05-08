@@ -48,20 +48,6 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
   specificityMatch: 0.08,
 };
 
-export function calculateScore(factors: ScoringFactors, weights: ScoringWeights): number {
-  return (
-    weights.quota * factors.quota +
-    weights.health * factors.health +
-    weights.costInv * factors.costInv +
-    weights.latencyInv * factors.latencyInv +
-    weights.taskFit * factors.taskFit +
-    weights.stability * factors.stability +
-    weights.tierPriority * factors.tierPriority +
-    weights.tierAffinity * factors.tierAffinity +
-    weights.specificityMatch * factors.specificityMatch
-  );
-}
-
 export interface ProviderCandidate {
   provider: string;
   model: string;

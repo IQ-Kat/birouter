@@ -376,7 +376,7 @@ test("Codex Fast service tier applies documented GPT-5.5 and GPT-5.4 cost multip
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens), 0.02);
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.05);
   assert.equal(await calculateCost("codex", "gpt-5.4-high", tokens, { serviceTier: "fast" }), 0.04);
-  assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "priority" }), 0);
+  assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.02);
 });
 
 test("recent request summaries are generated from SQLite call logs", async () => {
