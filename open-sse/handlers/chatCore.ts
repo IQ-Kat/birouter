@@ -10,6 +10,7 @@ import {
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
+import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
@@ -32,6 +33,7 @@ import {
   HTTP_STATUS,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
+  STREAM_READINESS_TIMEOUT_MS,
 } from "../config/constants.ts";
 import {
   classifyProviderError,
@@ -3941,7 +3943,7 @@ export async function handleChatCore({
 
   // Streaming response
   const streamReadiness = await ensureStreamReadiness(providerResponse, {
-    timeoutMs: STREAM_IDLE_TIMEOUT_MS,
+    timeoutMs: STREAM_READINESS_TIMEOUT_MS,
     provider,
     model,
     log,
@@ -3990,8 +3992,9 @@ export async function handleChatCore({
 
   const responseHeaders = {
     "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
+    "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
     [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
     ...buildOmniRouteResponseMetaHeaders({
       provider,
@@ -4236,6 +4239,9 @@ export async function handleChatCore({
   } else {
     finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
   }
+  finalStream = finalStream.pipeThrough(
+    createSseHeartbeatTransform({ signal: streamController.signal })
+  );
 
   return {
     success: true,
