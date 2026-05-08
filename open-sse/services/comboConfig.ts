@@ -9,14 +9,15 @@ const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
   maxRetries: 1,
   retryDelayMs: 2000,
-  concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
-  queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
+  concurrencyPerModel: 3,
+  queueTimeoutMs: 30000,
   handoffThreshold: 0.85,
   handoffModel: "",
   handoffProviders: ["codex"],
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
   trackMetrics: true,
+  manifestRouting: false,
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([

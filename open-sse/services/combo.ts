@@ -34,6 +34,8 @@ import {
 } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { getSessionConnection } from "./sessionManager.ts";
+import { generateRoutingHints } from "./manifestAdapter";
+import type { RoutingHint } from "./manifestAdapter";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
 import {
@@ -87,7 +89,7 @@ const DEFAULT_MODEL_P95_MS = {
 };
 const MIN_HISTORY_SAMPLES = 10;
 
-type ResolvedComboTarget = {
+export type ResolvedComboTarget = {
   kind: "model";
   stepId: string;
   executionKey: string;
@@ -1481,6 +1483,38 @@ export async function handleComboChat({
     log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);
   } else if (strategy === "cost-optimized") {
     orderedTargets = await sortTargetsByCost(orderedTargets);
+    if (config.manifestRouting === true) {
+      try {
+        const manifestHint = generateRoutingHints(
+          orderedTargets.filter((t) => t.kind === "model"),
+          {
+            messages: Array.isArray(body?.messages) ? body.messages : [],
+            tools: body?.tools,
+            model: body?.model,
+          }
+        );
+        if (manifestHint.strategyModifier === "require-premium") {
+          const eligible = orderedTargets.filter(
+            (t) =>
+              t.kind !== "model" ||
+              manifestHint.eligibleTargets.some(
+                (e) => e.provider === t.provider && e.modelStr === t.modelStr
+              )
+          );
+          if (eligible.length > 0) orderedTargets = eligible;
+        }
+        log.debug(
+          {
+            strategyModifier: manifestHint.strategyModifier,
+            specificityLevel: manifestHint.specificityLevel,
+            score: manifestHint.specificity.score,
+          },
+          "manifest routing applied"
+        );
+      } catch (err) {
+        log.warn({ err }, "manifest routing failed, falling back to standard strategy");
+      }
+    }
     log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
   } else if (strategy === "context-optimized") {
     orderedTargets = sortTargetsByContextSize(orderedTargets);
