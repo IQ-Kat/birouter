@@ -757,10 +757,19 @@ export class AntigravityExecutor extends BaseExecutor {
           );
         }
 
+        const getChunkedOrFixedBody = (bodyStr: string) => {
+          if (stream) {
+            return (async function* () {
+              yield new TextEncoder().encode(bodyStr);
+            })();
+          }
+          return bodyStr;
+        };
+
         let response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
-          body: serializedRequest.bodyString,
+          body: getChunkedOrFixedBody(serializedRequest.bodyString),
           signal,
         });
 
@@ -771,7 +780,7 @@ export class AntigravityExecutor extends BaseExecutor {
           response = await fetch(url, {
             method: "POST",
             headers: retryHeaders,
-            body: serializedRequest.bodyString,
+            body: getChunkedOrFixedBody(serializedRequest.bodyString),
             signal,
           });
           finalHeaders = retryHeaders;
@@ -840,7 +849,7 @@ export class AntigravityExecutor extends BaseExecutor {
                   const creditsResp = await fetch(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
-                    body: serializedCreditsRequest.bodyString,
+                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString),
                     signal,
                   });
                   if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {

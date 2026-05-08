@@ -136,6 +136,27 @@ function extractClientThoughtSignature(toolCall: unknown): string | null {
   return typeof signature === "string" && signature.length > 0 ? signature : null;
 }
 
+function deepCleanUndefined(value: unknown, depth = 0): void {
+  if (depth > 10 || !value || typeof value !== "object") {
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      deepCleanUndefined(item, depth + 1);
+    }
+  } else {
+    const obj = value as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      const val = obj[key];
+      if (typeof val === "string" && val === "[undefined]") {
+        delete obj[key];
+      } else {
+        deepCleanUndefined(val, depth + 1);
+      }
+    }
+  }
+}
+
 function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationConfig) {
   const config = { ...generationConfig };
   if (config.topK === undefined) {
@@ -359,8 +380,9 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
     ...toolNameOptions,
     toolNameMap,
   });
-  if (geminiTools) {
+  if (geminiTools && geminiTools.length > 0) {
     result.tools = geminiTools;
+    result.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
   }
 
   // Convert response_format to Gemini's responseMimeType/responseSchema
@@ -383,6 +405,8 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
   if (changedToolNameMap) {
     result._toolNameMap = changedToolNameMap;
   }
+
+  deepCleanUndefined(result);
 
   return result;
 }

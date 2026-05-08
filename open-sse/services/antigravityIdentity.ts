@@ -83,18 +83,25 @@ export function getAntigravitySessionId(
   );
 }
 
+import os from "node:os";
+
+const STABLE_MACHINE_ID = crypto
+  .createHash("sha256")
+  .update(`omniroute:machine_id:${os.hostname()}`)
+  .digest("hex");
+
+const FORMATTED_MACHINE_ID = [
+  STABLE_MACHINE_ID.slice(0, 8),
+  STABLE_MACHINE_ID.slice(8, 12),
+  STABLE_MACHINE_ID.slice(12, 16),
+  STABLE_MACHINE_ID.slice(16, 20),
+  STABLE_MACHINE_ID.slice(20, 32),
+].join("-");
+
 export function deriveAntigravityMachineId(
-  credentials?: AntigravityCredentialsLike | null
+  _credentials?: AntigravityCredentialsLike | null
 ): string {
-  const key = getAntigravityAccountKey(credentials) || PROCESS_SESSION_ID;
-  const hex = crypto.createHash("sha256").update(`antigravity:${key}`).digest("hex");
-  return [
-    hex.slice(0, 8),
-    hex.slice(8, 12),
-    hex.slice(12, 16),
-    hex.slice(16, 20),
-    hex.slice(20, 32),
-  ].join("-");
+  return FORMATTED_MACHINE_ID;
 }
 
 export function getAntigravityVscodeSessionId(): string {
