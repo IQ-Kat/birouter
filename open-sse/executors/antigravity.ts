@@ -733,6 +733,30 @@ export class AntigravityExecutor extends BaseExecutor {
           `[Antigravity] Execute - URL: ${url}, Model: ${model}, Target: ${getRequestTargetModel(transformedBody)}, RetryAttempt: ${retryAttemptsByUrl[urlIndex]}`
         );
 
+        // Dump outgoing headers (mask Authorization) and envelope shape for debugging
+        if (log?.debug) {
+          const safeHeaders = { ...finalHeaders };
+          if (safeHeaders["Authorization"]) safeHeaders["Authorization"] = "Bearer ***";
+          log.debug("AG_REQUEST_HEADERS", JSON.stringify(safeHeaders));
+
+          const envelope = transformedBody as Record<string, unknown>;
+          const requestInner = envelope.request as Record<string, unknown> | undefined;
+          log.debug(
+            "AG_REQUEST_ENVELOPE",
+            JSON.stringify({
+              fieldOrder: Object.keys(envelope),
+              project: envelope.project,
+              requestId: envelope.requestId,
+              model: envelope.model,
+              userAgent: envelope.userAgent,
+              requestType: envelope.requestType,
+              enabledCreditTypes: envelope.enabledCreditTypes,
+              sessionId: requestInner?.sessionId,
+              generationConfig: requestInner?.generationConfig,
+            })
+          );
+        }
+
         let response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
