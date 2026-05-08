@@ -21,6 +21,7 @@ interface ProviderStats {
   errorTime?: string | null;
   allDisabled?: boolean;
   expiryStatus?: "expired" | "expiring_soon" | string | null;
+  codexFastActive?: boolean;
 }
 
 interface ProviderCardProps {
@@ -204,6 +205,14 @@ export default function ProviderCard({
                     {stats.expiryStatus === "expiring_soon" && (
                       <Badge variant="warning" size="sm" dot>
                         {t("expiringSoonBadge")}
+                      </Badge>
+                    )}
+                    {providerId === "codex" && stats.codexFastActive && (
+                      <Badge variant="default" size="sm" title="Codex Fast tier is active">
+                        <span className="flex items-center gap-0.5">
+                          <span className="material-symbols-outlined text-[10px]">bolt</span>
+                          Fast
+                        </span>
                       </Badge>
                     )}
                     {isCompatible && (

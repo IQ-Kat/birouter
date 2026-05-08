@@ -81,6 +81,7 @@ import {
 } from "../utils/cacheControlPolicy.ts";
 import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
+import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 
@@ -1402,6 +1403,7 @@ export async function handleChatCore({
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader);
   const settings = await getCachedSettings();
+  credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
 
