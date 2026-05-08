@@ -849,6 +849,7 @@ function scoreResetAwareQuota(quota: unknown, config: ReturnType<typeof resolveR
 async function getQuotaAwareConnectionsForTarget(
   target: ResolvedComboTarget,
   connectionCache: Map<string, Array<Record<string, unknown>>>,
+  connectionLoadPromises: Map<string, Promise<Array<Record<string, unknown>>>>,
   comboName: string,
   log: { warn?: (...args: unknown[]) => void }
 ) {
@@ -861,25 +862,35 @@ async function getQuotaAwareConnectionsForTarget(
       return cached.connections;
     }
 
-    try {
-      const connections = await getProviderConnections({ provider, isActive: true });
-      const activeConnections = Array.isArray(connections)
-        ? (connections as Array<Record<string, unknown>>)
-        : [];
-      connectionCache.set(provider, activeConnections);
-      resetAwareConnectionCache.set(provider, {
-        connections: activeConnections,
-        fetchedAt: Date.now(),
-      });
-    } catch (error) {
-      log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
-        comboName,
-        err: error,
-        operation: "getProviderConnections",
+    if (!connectionLoadPromises.has(provider)) {
+      connectionLoadPromises.set(
         provider,
-      });
-      connectionCache.set(provider, []);
+        (async () => {
+          try {
+            const connections = await getProviderConnections({ provider, isActive: true });
+            const activeConnections = Array.isArray(connections)
+              ? (connections as Array<Record<string, unknown>>)
+              : [];
+            resetAwareConnectionCache.set(provider, {
+              connections: activeConnections,
+              fetchedAt: Date.now(),
+            });
+            return activeConnections;
+          } catch (error) {
+            log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
+              comboName,
+              err: error,
+              operation: "getProviderConnections",
+              provider,
+            });
+            return [];
+          }
+        })()
+      );
     }
+
+    const connections = await connectionLoadPromises.get(provider)!;
+    connectionCache.set(provider, connections);
   }
   return connectionCache.get(provider) || [];
 }
@@ -957,12 +968,20 @@ async function orderTargetsByResetAwareQuota(
 
   const config = resolveResetAwareConfig(configSource);
   const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
+  const quotaPromises = new Map<string, Promise<unknown>>();
   const connectionById = new Map<string, Record<string, unknown>>();
   const expandedTargets: ResolvedComboTarget[] = [];
 
   const targetsWithConnections = await Promise.all(
     targets.map(async (target) => ({
-      connections: await getQuotaAwareConnectionsForTarget(target, connectionCache, comboName, log),
+      connections: await getQuotaAwareConnectionsForTarget(
+        target,
+        connectionCache,
+        connectionLoadPromises,
+        comboName,
+        log
+      ),
       target,
     }))
   );
@@ -1008,17 +1027,23 @@ async function orderTargetsByResetAwareQuota(
       const provider = getResetAwareProvider(target);
       const fetcher = provider ? getQuotaFetcher(provider) : null;
       if (fetcher && provider && target.connectionId) {
-        try {
-          quota = await fetcher(target.connectionId, connectionById.get(target.connectionId));
-        } catch (error) {
-          log.warn?.("COMBO", "Reset-aware quota fetch failed.", {
-            comboName,
-            connectionId: target.connectionId,
-            err: error,
-            operation: "quotaFetch",
-            provider,
-          });
+        const quotaKey = `${provider}:${target.connectionId}`;
+        if (!quotaPromises.has(quotaKey)) {
+          quotaPromises.set(
+            quotaKey,
+            fetcher(target.connectionId, connectionById.get(target.connectionId)).catch((error) => {
+              log.warn?.("COMBO", "Reset-aware quota fetch failed.", {
+                comboName,
+                connectionId: target.connectionId,
+                err: error,
+                operation: "quotaFetch",
+                provider,
+              });
+              return null;
+            })
+          );
         }
+        quota = await quotaPromises.get(quotaKey)!;
       }
       const { score } = scoreResetAwareQuota(quota, config);
       return { target, score, index };

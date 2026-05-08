@@ -971,6 +971,7 @@ export async function handleChatCore({
   comboStepId = null,
   comboExecutionKey = null,
   disableEmergencyFallback = false,
+  cachedSettings = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
@@ -1424,7 +1425,7 @@ export async function handleChatCore({
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader);
-  const settings = await getCachedSettings();
+  const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
   effectiveServiceTier = resolveEffectiveServiceTier(body);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);

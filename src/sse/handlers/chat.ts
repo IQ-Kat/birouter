@@ -287,9 +287,18 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
     // Pre-check function used by combo routing. For explicit combo live tests,
     // avoid pre-skipping so each model gets a real execution attempt.
+    const comboPreselectedCredentials = new Map<string, any>();
+    const getComboCredentialCacheKey = (
+      modelString: string,
+      target?: { connectionId?: string | null; executionKey?: string | null }
+    ) => `${target?.executionKey || target?.connectionId || ""}:${modelString}`;
     const checkModelAvailable = async (
       modelString: string,
-      target?: { connectionId?: string | null; allowedConnectionIds?: string[] | null }
+      target?: {
+        connectionId?: string | null;
+        allowedConnectionIds?: string[] | null;
+        executionKey?: string | null;
+      }
     ) => {
       if (isComboLiveTest) return true;
 
@@ -321,6 +330,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       );
       if (!creds || creds.allRateLimited) return false;
 
+      comboPreselectedCredentials.set(getComboCredentialCacheKey(modelString, target), creds);
       return true;
     };
 
@@ -362,6 +372,10 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             allowedConnectionIds: target?.allowedConnectionIds ?? null,
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
+            preselectedCredentials: comboPreselectedCredentials.get(
+              getComboCredentialCacheKey(m, target)
+            ),
+            cachedSettings: settings,
           },
           combo.strategy,
           true
@@ -481,6 +495,8 @@ async function handleSingleModelChat(
     allowedConnectionIds?: string[] | null;
     comboStepId?: string | null;
     comboExecutionKey?: string | null;
+    preselectedCredentials?: any;
+    cachedSettings?: any;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -523,7 +539,7 @@ async function handleSingleModelChat(
 
   const userAgent = request?.headers?.get("user-agent") || "";
   const baseRetrySettings = resolveCooldownAwareRetrySettings(
-    await getCachedSettings().catch(() => ({}))
+    runtimeOptions.cachedSettings ?? (await getCachedSettings().catch(() => ({})))
   );
   const disableCooldownAwareRetry =
     isCombo || forceLiveComboTest || runtimeOptions.emergencyFallbackTried === true;
@@ -557,26 +573,31 @@ async function handleSingleModelChat(
     let lastError = requestRetryLastError;
     let lastStatus = requestRetryLastStatus;
     let lastCooldownMs = requestRetryLastCooldownMs;
+    let preselectedCredentials = runtimeOptions.preselectedCredentials;
 
     while (true) {
-      const credentials = await getProviderCredentialsWithQuotaPreflight(
-        provider,
-        null,
-        effectiveAllowedConnections,
-        model,
-        {
-          excludeConnectionIds: Array.from(excludedConnectionIds),
-          ...(forceLiveComboTest
-            ? {
-                allowSuppressedConnections: true,
-                bypassQuotaPolicy: true,
+      const credentials =
+        preselectedCredentials && excludedConnectionIds.size === 0
+          ? preselectedCredentials
+          : await getProviderCredentialsWithQuotaPreflight(
+              provider,
+              null,
+              effectiveAllowedConnections,
+              model,
+              {
+                excludeConnectionIds: Array.from(excludedConnectionIds),
+                ...(forceLiveComboTest
+                  ? {
+                      allowSuppressedConnections: true,
+                      bypassQuotaPolicy: true,
+                    }
+                  : {}),
+                ...(runtimeOptions.forcedConnectionId
+                  ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
+                  : {}),
               }
-            : {}),
-          ...(runtimeOptions.forcedConnectionId
-            ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
-            : {}),
-        }
-      );
+            );
+      preselectedCredentials = null;
 
       if (!credentials || "allRateLimited" in credentials) {
         if (credentials?.allRateLimited) {
@@ -710,6 +731,7 @@ async function handleSingleModelChat(
         comboExecutionKey: runtimeOptions.comboExecutionKey ?? runtimeOptions.comboStepId ?? null,
         extendedContext,
         providerProfile,
+        cachedSettings: runtimeOptions.cachedSettings,
       });
       if (telemetry) telemetry.endPhase();
 

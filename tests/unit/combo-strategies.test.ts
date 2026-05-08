@@ -375,6 +375,39 @@ test("reset-aware strategy uses registered quota fetchers for non-Codex provider
   assert.equal(await selectedConnectionFor(combo), soon);
 });
 
+test("reset-aware strategy deduplicates quota fetches for repeated connection targets", async () => {
+  const provider = `dedupe-provider-${randomUUID()}`;
+  const connectionId = `shared-${randomUUID()}`;
+  let fetchCount = 0;
+
+  registerQuotaFetcher(provider, async (id) => {
+    fetchCount++;
+    assert.equal(id, connectionId);
+    return {
+      used: 20,
+      total: 100,
+      percentUsed: 0.2,
+      resetAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+    };
+  });
+
+  const combo = {
+    name: `reset-aware-dedupe-${randomUUID()}`,
+    strategy: "reset-aware",
+    models: ["model-a", "model-b"].map((model, index) => ({
+      kind: "model",
+      provider,
+      providerId: provider,
+      model,
+      connectionId,
+      id: `dedupe-${index}`,
+    })),
+  };
+
+  assert.equal(await selectedConnectionFor(combo), connectionId);
+  assert.equal(fetchCount, 1);
+});
+
 test("reset-aware strategy respects API-key allowed connections during expansion", async () => {
   const provider = `limited-provider-${randomUUID()}`;
   const disallowed = await providersDb.createProviderConnection({

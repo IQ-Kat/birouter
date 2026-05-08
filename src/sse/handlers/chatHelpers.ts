@@ -186,6 +186,7 @@ export async function executeChatWithBreaker({
   comboExecutionKey,
   extendedContext,
   providerProfile,
+  cachedSettings,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
 
@@ -206,6 +207,7 @@ export async function executeChatWithBreaker({
           isCombo,
           comboStepId,
           comboExecutionKey,
+          cachedSettings,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
