@@ -584,6 +584,20 @@ export class BaseExecutor {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
+          } else if (!headerThinking && !headerEffort) {
+            // Default CC logic when no override headers are present
+            const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
+            if (isHaiku) {
+              delete tb.thinking;
+              delete tb.output_config;
+              delete tb.context_management;
+            } else if (tb.thinking === undefined && tb.output_config === undefined) {
+              tb.thinking = { type: "adaptive" };
+              tb.context_management = {
+                edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+              };
+              tb.output_config = { effort: "high" };
+            }
           }
 
           // Real CLI always pairs context_management with thinking. Mirror
