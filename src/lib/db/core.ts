@@ -261,7 +261,6 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_uh_timestamp ON usage_history(timestamp);
   CREATE INDEX IF NOT EXISTS idx_uh_provider ON usage_history(provider);
   CREATE INDEX IF NOT EXISTS idx_uh_model ON usage_history(model);
-  CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier);
 
   CREATE TABLE IF NOT EXISTS call_logs (
     id TEXT PRIMARY KEY,
@@ -543,6 +542,11 @@ function ensureUsageHistoryColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE usage_history ADD COLUMN error_code TEXT");
       console.log("[DB] Added usage_history.error_code column");
     }
+    if (!columnNames.has("service_tier")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN service_tier TEXT DEFAULT 'standard'");
+      console.log("[DB] Added usage_history.service_tier column");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);

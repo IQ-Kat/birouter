@@ -285,6 +285,8 @@ function isSchemaAlreadyApplied(
       );
     case "045":
       return hasColumn(db, "call_logs", "tokens_compressed");
+    case "051":
+      return hasColumn(db, "usage_history", "service_tier");
     default:
       return false;
   }
