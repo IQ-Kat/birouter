@@ -30,6 +30,7 @@ import {
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
+  MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
 } from "../config/constants.ts";
@@ -83,6 +84,12 @@ import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
+import {
+  getEffectiveToolLimit,
+  setDetectedToolLimit,
+  parseToolLimitFromError,
+  shouldDetectLimit,
+} from "../services/toolLimitDetector.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -2314,6 +2321,19 @@ export async function handleChatCore({
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
 
+      // Migrate deprecated top-level `output_format` → `output_config.format`.
+      // Anthropic returns a 400 on the legacy field; some clients (e.g. ForgeCode)
+      // still emit it. Preserves an existing output_config.format if present.
+      if (translatedBody.output_format !== undefined) {
+        const oc =
+          translatedBody.output_config && typeof translatedBody.output_config === "object"
+            ? (translatedBody.output_config as Record<string, unknown>)
+            : {};
+        if (oc.format === undefined) oc.format = translatedBody.output_format;
+        translatedBody.output_config = oc;
+        delete translatedBody.output_format;
+      }
+
       // Fix #1719: Strip output_config.format for non-Anthropic Claude-compatible providers.
       // Third-party Claude endpoints (MiniMax, DeepSeek via aggregators) reject this field
       // with 400 errors since they don't support Anthropic's structured output / json_schema.
@@ -2665,6 +2685,20 @@ export async function handleChatCore({
         log?.debug?.(
           "PAYLOAD_RULES",
           `Applied ${payloadRuleResult.applied.length} rule(s) for ${payloadRuleModel} (${payloadRuleProtocols.join(", ")}): ${appliedSummary}`
+        );
+      }
+
+      const effectiveToolLimit = getEffectiveToolLimit(provider);
+      if (
+        effectiveToolLimit < MAX_TOOLS_LIMIT &&
+        Array.isArray(bodyToSend.tools) &&
+        bodyToSend.tools.length > effectiveToolLimit
+      ) {
+        const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
+        bodyToSend = { ...bodyToSend, tools: truncatedTools };
+        log?.debug?.(
+          "TOOL_LIMIT",
+          `Truncated ${bodyToSend.tools.length} tools to ${effectiveToolLimit} for ${provider}`
         );
       }
 
@@ -3037,6 +3071,18 @@ export async function handleChatCore({
     parsedRetryAfterMs = errorDetails.retryAfterMs;
     upstreamErrorBody = errorDetails.responseBody;
     upstreamErrorParsed = true;
+  }
+
+  const errorMessageForToolDetection =
+    typeof upstreamErrorBody === "string"
+      ? upstreamErrorBody
+      : JSON.stringify(upstreamErrorBody ?? {});
+  if (shouldDetectLimit(errorMessageForToolDetection, parsedStatusCode)) {
+    const detectedLimit = parseToolLimitFromError(errorMessageForToolDetection);
+    if (detectedLimit) {
+      setDetectedToolLimit(provider, detectedLimit);
+      log?.info?.("TOOL_LIMIT", `Detected tool limit ${detectedLimit} for ${provider}`);
+    }
   }
 
   const isQwenExpiredError =

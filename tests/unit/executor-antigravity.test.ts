@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
@@ -9,7 +9,11 @@ import {
   seedAntigravityVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
-async function withEnv(name, value, fn) {
+async function withEnv<T>(
+  name: string,
+  value: string | undefined,
+  fn: () => T | Promise<T>
+): Promise<T> {
   const previous = process.env[name];
   if (value === undefined) {
     delete process.env[name];
@@ -95,6 +99,7 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
     projectId: "project-1",
   });
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "gemini-3.1-pro-low");
   assert.deepEqual(Object.keys(result), [
@@ -138,8 +143,12 @@ test("AntigravityExecutor.transformRequest strips thinking config for Cloud Code
     projectId: "project-1",
   });
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  const generationConfig = result.request.generationConfig as {
+    thinkingConfig?: { thinkingBudget?: number; includeThoughts?: boolean };
+  };
   assert.equal(result.reasoning_effort, undefined);
-  assert.equal(result.request.generationConfig.thinkingConfig, undefined);
+  assert.equal(generationConfig.thinkingConfig, undefined);
 });
 
 test("AntigravityExecutor.transformRequest preserves thinking config for supported Gemini models", async () => {
@@ -160,8 +169,12 @@ test("AntigravityExecutor.transformRequest preserves thinking config for support
     projectId: "project-1",
   });
 
-  assert.equal(result.request.generationConfig.thinkingConfig.thinkingBudget, 8192);
-  assert.equal(result.request.generationConfig.thinkingConfig.includeThoughts, true);
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  const generationConfig = result.request.generationConfig as {
+    thinkingConfig: { thinkingBudget?: number; includeThoughts?: boolean };
+  };
+  assert.equal(generationConfig.thinkingConfig.thinkingBudget, 8192);
+  assert.equal(generationConfig.thinkingConfig.includeThoughts, true);
 });
 
 test("AntigravityExecutor.transformRequest tolerates a missing body when projectId is present", async () => {
@@ -171,6 +184,7 @@ test("AntigravityExecutor.transformRequest tolerates a missing body when project
     projectId: "project-1",
   });
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "gemini-3.1-pro-low");
   assert.ok(result.request.sessionId);
@@ -208,6 +222,7 @@ test("AntigravityExecutor.transformRequest allows body project overrides when th
       { projectId: "credential-project" }
     );
 
+    if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
     assert.equal(result.project, "body-project");
     assert.equal(result.request.sessionId, "session-fixed");
     assert.equal(result.model, "gemini-2.5-pro");
@@ -399,7 +414,7 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
     );
   };
   globalThis.setTimeout = ((callback) => {
-    callback();
+    (callback as () => void)();
     return 0;
   }) as typeof setTimeout;
 
@@ -516,7 +531,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
   }
 });
 
-test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for claude models", async () => {
+test("AntigravityExecutor.transformRequest maps Claude models through Gemini contents schema", async () => {
   const executor = new AntigravityExecutor();
   const body = {
     project: "project-1",
@@ -525,12 +540,17 @@ test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for 
     requestId: "agent-123",
     requestType: "agent",
     request: {
-      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
-      system: [{ type: "text", text: "System prompt" }],
+      contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      systemInstruction: { role: "system", parts: [{ text: "System prompt" }] },
       generationConfig: {
         temperature: 1,
         maxOutputTokens: 16384,
       },
+      messages: [{ role: "user", content: [{ type: "text", text: "Legacy Anthropic field" }] }],
+      system: [{ type: "text", text: "Legacy system field" }],
+      max_tokens: 16384,
+      stream: true,
+      temperature: 1,
     },
   };
 
@@ -543,10 +563,21 @@ test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for 
   assert.equal(result.requestType, "agent");
   assert.ok(result.request.sessionId);
   assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
-  assert.deepEqual(result.request.messages, [
-    { role: "user", content: [{ type: "text", text: "Hello" }] },
-  ]);
-  assert.deepEqual(result.request.system, [{ type: "text", text: "System prompt" }]);
-  assert.equal(result.request.contents, undefined);
+  assert.deepEqual(result.request.contents, [{ role: "user", parts: [{ text: "Hello" }] }]);
+  assert.deepEqual(result.request.systemInstruction, {
+    role: "system",
+    parts: [{ text: "System prompt" }],
+  });
+  assert.deepEqual(result.request.generationConfig, {
+    temperature: 1,
+    maxOutputTokens: 16384,
+    topK: 40,
+    topP: 1.0,
+  });
+  assert.equal(result.request.messages, undefined);
+  assert.equal(result.request.system, undefined);
+  assert.equal(result.request.max_tokens, undefined);
+  assert.equal(result.request.stream, undefined);
+  assert.equal(result.request.temperature, undefined);
   assert.equal(result.request.toolConfig, undefined);
 });

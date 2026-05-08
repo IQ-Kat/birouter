@@ -3,7 +3,6 @@ import { FORMATS } from "../formats.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
 import { resolveGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
-import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
 import {
   generateAntigravityRequestId,
   getAntigravityEnvelopeUserAgent,
@@ -534,63 +533,15 @@ function getAntigravityClaudeOutputTokens(body: Record<string, unknown>): number
   return ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS;
 }
 
-function wrapInCloudCodeEnvelopeForClaude(
-  model,
-  claudeRequest,
-  credentials = null,
-  sourceBody = {}
-) {
-  let projectId = credentials?.projectId;
-
-  if (!projectId) {
-    console.warn(
-      `[OmniRoute] Antigravity/Claude account is missing projectId. ` +
-        `Attempting request with empty project — reconnect OAuth to resolve.`
-    );
-    projectId = "";
-  }
-
-  const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
-
-  // Keep Antigravity's default and caller-provided system rules
-  let systemText = ANTIGRAVITY_DEFAULT_SYSTEM;
-  if (claudeRequest.system) {
-    if (Array.isArray(claudeRequest.system)) {
-      const texts = claudeRequest.system.map((b) => b.text).filter(Boolean);
-      if (texts.length > 0) systemText += "\n" + texts.join("\n");
-    } else if (typeof claudeRequest.system === "string") {
-      systemText += "\n" + claudeRequest.system;
-    }
-  }
-
-  const envelope: CloudCodeEnvelope = {
-    project: projectId,
-    requestId: generateAntigravityRequestId(),
-    request: {
-      ...claudeRequest,
-      system: systemText,
-      max_tokens: getAntigravityClaudeOutputTokens(sourceBody),
-      sessionId: getAntigravitySessionId(credentials),
-    },
-    model: cleanModel,
-    userAgent: getAntigravityEnvelopeUserAgent(credentials),
-    requestType: "agent",
-    enabledCreditTypes: ["GOOGLE_ONE_AI"],
-  };
-
-  return envelope;
-}
-
 // OpenAI -> Antigravity (Sandbox Cloud Code with wrapper)
 export function openaiToAntigravityRequest(model, body, stream, credentials = null) {
   const isClaude = model.toLowerCase().includes("claude");
+  const geminiCLI = openaiToGeminiCLIRequest(model, body, stream);
 
   if (isClaude) {
-    const claudeRequest = openaiToClaudeRequestForAntigravity(model, body, stream);
-    return wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials, body);
+    geminiCLI.generationConfig.maxOutputTokens = getAntigravityClaudeOutputTokens(body);
   }
 
-  const geminiCLI = openaiToGeminiCLIRequest(model, body, stream);
   const envelope = wrapInCloudCodeEnvelope(model, geminiCLI, credentials, true);
 
   // Match real Antigravity client: don't send maxOutputTokens when the user

@@ -44,6 +44,7 @@ function loadEnvFile() {
   }
 
   envPaths.push(join(process.cwd(), ".env"));
+  envPaths.push(join(ROOT, ".env"));
 
   for (const envPath of envPaths) {
     try {

@@ -130,7 +130,6 @@ const KIMI_CODING_SHARED = {
   authHeader: "x-api-key",
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.6", name: "Kimi K2.6" },
@@ -274,6 +273,31 @@ function mapStainlessArch() {
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   // ─── OAuth Providers ───────────────────────────────────────────────────
+  kie: {
+    id: "kie",
+    alias: "kie",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.kie.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "gpt-5-2", name: "GPT 5.2" },
+      { id: "gpt-5-4", name: "GPT 5.4" },
+      { id: "gpt-codex", name: "GPT Codex" },
+      { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku" },
+      { id: "claude-opus-4-5", name: "Claude 4.5 Opus" },
+      { id: "claude-opus-4-6", name: "Claude 4.6 Opus" },
+      { id: "claude-sonnet-4-5", name: "Claude 4.5 Sonnet" },
+      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
+      { id: "gemini-2-5-pro", name: "Gemini 2.5 Pro" },
+      { id: "gemini-3-pro", name: "Gemini 3 Pro" },
+      { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-2-5-flash", name: "Gemini 2.5 Flash" },
+      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+    ],
+  },
   claude: {
     id: "claude",
     alias: "cc",
@@ -383,6 +407,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
+      { id: "gpt-5.5", name: "GPT 5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
@@ -760,7 +785,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
-    defaultContextLength: 128000,
+    defaultContextLength: 200000,
     models: [{ id: "glm-5.1", name: "GLM-5.1" }],
     passthroughModels: true,
   },
@@ -793,7 +818,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
@@ -818,7 +842,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5.1", name: "GLM 5.1" },
@@ -939,7 +962,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -961,7 +983,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
@@ -1105,8 +1126,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi Agent" },
       { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
       { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20" },
-      { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast Reasoning" },
-      { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast" },
     ],
   },
 
@@ -1145,7 +1164,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "fast", name: "Grok 4.20", toolCalling: true },
       { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
       { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
       { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
@@ -1162,7 +1181,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "mistral-large-latest", name: "Mistral Large 3" },
-      { id: "mistral-medium-latest", name: "Mistral Medium 3.1" },
+      { id: "mistral-medium-3-5", name: "Mistral Medium 3.5" },
       { id: "mistral-small-latest", name: "Mistral Small 4" },
       { id: "devstral-latest", name: "Devstral 2" },
       { id: "codestral-latest", name: "Codestral" },
