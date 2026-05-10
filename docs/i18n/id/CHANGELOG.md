@@ -31,6 +31,7 @@
 - **fix(embeddings):** add Google Gemini embeddings compatibility via OpenAI-compatible endpoint mapping (#2006)
 - **fix:** remove Anthropic-Beta header from non-Anthropic providers to fix identity contamination (#1989)
 - **fix(cli):** resolve .env loading failure for global npm installations
+- **fix(export):** exclude telemetry/usage-history tables from JSON config backups by default to prevent unbounded file growth (#2125)
 
 ### Keamanan
 
