@@ -775,6 +775,11 @@ const connectionCooldownProfileSchema = z
   .object({
     baseCooldownMs: z.number().int().min(0).optional(),
     useUpstreamRetryHints: z.boolean().optional(),
+    // Issue #2100 follow-up: per-profile toggle for upstream 429 hint trust.
+    // `null` is an explicit unset sentinel — PATCH handler deletes the key
+    // from stored settings so the per-provider default resolves at runtime.
+    // `undefined` (key omitted) means "leave existing value unchanged".
+    useUpstream429BreakerHints: z.boolean().nullable().optional(),
     maxBackoffSteps: z.number().int().min(0).optional(),
   })
   .strict();

@@ -22,6 +22,12 @@ import {
   getCircuitBreaker,
   STATE,
 } from "../../src/shared/utils/circuitBreaker";
+import {
+  classify429FromError,
+  type FailureKind,
+} from "../../src/shared/utils/classify429";
+import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
+
 
 type ProviderProfile = {
   baseCooldownMs: number;
@@ -532,9 +538,24 @@ function configureProviderBreaker(
   if (!provider) return null;
 
   const resolvedProfile = { ...getProviderProfile(provider), ...(profile ?? {}) };
+  // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the
+  // provider profile (stored override) or fall back to per-provider default.
+  // Stored value type is `boolean | undefined` — never `null` after PATCH.
+  const userValue = (resolvedProfile as { useUpstream429BreakerHints?: boolean })
+    .useUpstream429BreakerHints;
+  const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
   return getCircuitBreaker(provider, {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
     resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
+    ...(useHints
+      ? {
+          cooldownByKind: {
+            rate_limit: 60_000,
+            quota_exhausted: 3_600_000,
+          } satisfies Partial<Record<FailureKind, number>>,
+          classifyError: classify429FromError,
+        }
+      : {}),
   });
 }
 

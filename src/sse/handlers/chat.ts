@@ -45,6 +45,11 @@ import {
 } from "./chatHelpers";
 
 // Pipeline integration — wired modules
+import {
+  classify429FromError,
+  type FailureKind,
+} from "@/shared/utils/classify429";
+import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
 import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
@@ -627,11 +632,25 @@ async function handleSingleModelChat(
   });
   if (gate) return gate;
 
+  // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
+  const useHints429 = resolveUseUpstream429BreakerHints(
+    provider,
+    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints,
+  );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold,
     resetTimeout: providerProfile.resetTimeoutMs,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
+    ...(useHints429
+      ? {
+          cooldownByKind: {
+            rate_limit: 60_000,
+            quota_exhausted: 3_600_000,
+          } satisfies Partial<Record<FailureKind, number>>,
+          classifyError: classify429FromError,
+        }
+      : {}),
   });
 
   const userAgent = request?.headers?.get("user-agent") || "";
