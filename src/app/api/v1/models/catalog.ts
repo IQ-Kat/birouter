@@ -839,7 +839,13 @@ export async function getUnifiedModelsResponse(
       const provider = typeof model.owned_by === "string" ? model.owned_by : null;
       if (!provider) return undefined;
       const canonicalId = aliasToProviderId[provider] || provider;
-      return REGISTRY[canonicalId]?.defaultContextLength;
+
+      const registryFallback = REGISTRY[canonicalId]?.defaultContextLength;
+      if (registryFallback) return registryFallback;
+
+      const modelId =
+        model.root || (typeof model.id === "string" ? model.id.split("/").pop() : undefined);
+      return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
     };
 
     const enrichedModels = finalModels.map((model) => {

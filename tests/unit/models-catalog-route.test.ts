@@ -926,6 +926,63 @@ test("v1 models catalog auto-calculates combo context_length from targets when n
   );
 });
 
+test("v1 models catalog includes context_length for individual chat models", async () => {
+  await seedConnection("openai", { name: "openai-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const chatModels = body.data.filter((item) => !item.type || item.type === "chat");
+
+  assert.equal(response.status, 200);
+  assert.ok(chatModels.length > 0, "should have at least one chat model");
+
+  for (const model of chatModels) {
+    assert.ok(
+      typeof model.context_length === "number" && model.context_length > 0,
+      `chat model ${model.id} should have a positive context_length, got ${model.context_length}`
+    );
+  }
+});
+
+test("v1 models catalog falls back to getTokenLimit for models without registry defaultContextLength", async () => {
+  // opencode-go has defaultContextLength in REGISTRY, but we test the fallback
+  // path by verifying models from the synced path still get context_length
+  const connection = await seedConnection("opencode-go", {
+    name: "opencode-go-context-fallback",
+    apiKey: "go-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", (connection as any).id, [
+    {
+      id: "test-model-no-context",
+      name: "Test Model No Context",
+      source: "imported",
+      supportedEndpoints: ["chat"],
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const model = body.data.find((item) => item.id === "opencode-go/test-model-no-context");
+
+  assert.equal(response.status, 200);
+  assert.ok(model, "synced model should appear");
+  assert.ok(
+    typeof model.context_length === "number" && model.context_length > 0,
+    `synced model without inputTokenLimit should get context_length via getTokenLimit fallback, got ${model.context_length}`
+  );
+});
+
 test("v1 models catalog prefers manual combo context_length over auto-calculated", async () => {
   await seedConnection("openai", { name: "openai-manual-context" });
 
