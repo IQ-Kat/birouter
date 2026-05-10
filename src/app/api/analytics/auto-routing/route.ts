@@ -59,22 +59,14 @@ export async function GET(request: Request) {
         GROUP BY provider
         ORDER BY count DESC
         LIMIT 10
-      `
+        `
       )
       .all() as Array<{ provider: string; count: number }>;
-
-    // Mock metrics (would need actual scoring data from auto-combo engine)
-    const mockMetrics = {
-      avgSelectionScore: 0.85,
-      explorationRate: 0.05,
-      lkgpHitRate: 0.72,
-    };
 
     return NextResponse.json({
       totalRequests: totalRequests.count,
       variantBreakdown,
       topProviders,
-      ...mockMetrics,
     });
   } catch (error) {
     console.error("Auto-routing analytics error:", error);
@@ -82,9 +74,6 @@ export async function GET(request: Request) {
       totalRequests: 0,
       variantBreakdown: {},
       topProviders: [],
-      avgSelectionScore: 0,
-      explorationRate: 0.05,
-      lkgpHitRate: 0,
     });
   }
 }

@@ -34,7 +34,12 @@ export async function createVirtualAutoCombo(
 
   const validConnections = connections.filter((conn) => {
     const hasApiKey = !!conn.apiKey;
-    const expiresAt = Number(conn.oauthExpiresAt) || 0;
+    let expiresAt: number;
+    if (typeof conn.oauthExpiresAt === "string") {
+      expiresAt = new Date(conn.oauthExpiresAt).getTime();
+    } else {
+      expiresAt = Number(conn.oauthExpiresAt) || 0;
+    }
     const hasOAuthToken = !!conn.oauthToken && new Date(expiresAt) > new Date();
     return hasApiKey || hasOAuthToken;
   });

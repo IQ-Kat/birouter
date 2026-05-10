@@ -32,7 +32,7 @@ describe("AutoRoutingBanner", () => {
   });
 
   it("renders banner on first mount", async () => {
-    const { default: AutoRoutingBanner } = await import("./AutoRoutingBanner");
+    const { default: AutoRoutingBanner } = await import("@/shared/components/AutoRoutingBanner");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -43,7 +43,7 @@ describe("AutoRoutingBanner", () => {
   });
 
   it("includes link to Combos page", async () => {
-    const { default: AutoRoutingBanner } = await import("./AutoRoutingBanner");
+    const { default: AutoRoutingBanner } = await import("@/shared/components/AutoRoutingBanner");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -54,7 +54,7 @@ describe("AutoRoutingBanner", () => {
   });
 
   it("can be dismissed by clicking close button", async () => {
-    const { default: AutoRoutingBanner } = await import("./AutoRoutingBanner");
+    const { default: AutoRoutingBanner } = await import("@/shared/components/AutoRoutingBanner");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -70,7 +70,7 @@ describe("AutoRoutingBanner", () => {
   });
 
   it("persists dismissal to localStorage", async () => {
-    const { default: AutoRoutingBanner } = await import("./AutoRoutingBanner");
+    const { default: AutoRoutingBanner } = await import("@/shared/components/AutoRoutingBanner");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -85,7 +85,7 @@ describe("AutoRoutingBanner", () => {
 
   it("remains hidden after dismissal on remount", async () => {
     localStorage.setItem("auto-routing-banner-dismissed", "true");
-    const { default: AutoRoutingBanner } = await import("./AutoRoutingBanner");
+    const { default: AutoRoutingBanner } = await import("@/shared/components/AutoRoutingBanner");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {

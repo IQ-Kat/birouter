@@ -352,7 +352,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   }
 
   // Auto-prefix short-circuit: if auto/ prefix was detected, replace combo with virtual one
-  if (autoVariant !== undefined && combo === null) {
+  if (isAutoRouting && combo === null) {
     try {
       const { createVirtualAutoCombo } =
         await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
