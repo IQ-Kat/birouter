@@ -19,7 +19,11 @@ const VALID_VARIANTS: AutoVariant[] = ["coding", "fast", "cheap", "offline", "sm
  * - "autocoding"   -> { valid: false, error: "Invalid auto prefix format" }
  * - "otherModel"   -> { valid: false, error: "Not an auto-prefixed model" }
  */
-export function parseAutoPrefix(model: string): AutoPrefixParseResult {
+export function parseAutoPrefix(model: string | null | undefined): AutoPrefixParseResult {
+  // Guard against null/undefined (called with non-string inputs)
+  if (typeof model !== "string") {
+    return { valid: false, error: "Not an auto-prefixed model" };
+  }
   if (!model.startsWith("auto")) {
     return { valid: false, error: "Not an auto-prefixed model" };
   }
@@ -38,11 +42,11 @@ export function parseAutoPrefix(model: string): AutoPrefixParseResult {
     if (parts[0] !== "auto") {
       return { valid: false, error: "Invalid auto prefix format" };
     }
-    const variant = parts[1] as AutoVariant;
-    if (variant === "" || VALID_VARIANTS.includes(variant)) {
-      return { valid: true, variant: variant === "" ? undefined : variant };
+    const variantStr: string = parts[1];
+    if (variantStr === "" || VALID_VARIANTS.includes(variantStr as AutoVariant)) {
+      return { valid: true, variant: variantStr === "" ? undefined : (variantStr as AutoVariant) };
     } else {
-      return { valid: false, error: `Invalid auto variant: ${variant}` };
+      return { valid: false, error: `Invalid auto variant: ${variantStr}` };
     }
   }
 

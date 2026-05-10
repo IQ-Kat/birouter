@@ -1880,6 +1880,20 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
+// ── System Providers (virtual, not user-connectable) ──────────────────────────
+export const SYSTEM_PROVIDERS = {
+  auto: {
+    id: "auto",
+    alias: "auto",
+    name: "Auto (Zero-Config)",
+    icon: "auto_awesome",
+    color: "#6366F1",
+    textIcon: "Auto",
+    systemOnly: true,
+    description: "Zero-config auto-routing with LKGP across all connected providers",
+  },
+};
+
 // All providers (combined)
 export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,
@@ -1890,6 +1904,7 @@ export const AI_PROVIDERS = {
   ...SEARCH_PROVIDERS,
   ...AUDIO_ONLY_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
+  ...SYSTEM_PROVIDERS, // <-- system providers included
 };
 
 export type AiProviderId = keyof typeof AI_PROVIDERS;
