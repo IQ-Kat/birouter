@@ -205,6 +205,10 @@ export class BaseExecutor {
     return Math.max(1, Math.floor(configured));
   }
 
+  getCountTokensTimeoutMs() {
+    return this.getTimeoutMs();
+  }
+
   buildUrl(
     model: string,
     stream: boolean,
@@ -228,7 +232,7 @@ export class BaseExecutor {
       return `${normalized}${path}`;
     }
     const baseUrls = this.getBaseUrls();
-    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl;
+    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl || "";
   }
 
   buildHeaders(
@@ -333,7 +337,10 @@ export class BaseExecutor {
   static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
-  async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
+  async refreshCredentials(
+    credentials: ProviderCredentials,
+    log: ExecutorLog | null
+  ): Promise<Partial<ProviderCredentials> | null> {
     void credentials;
     void log;
     return null;
@@ -379,12 +386,12 @@ export class BaseExecutor {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let activeSignal = signal || null;
     let controller: AbortController | null = null;
-    const timeoutMs = this.getTimeoutMs();
+    const timeoutMs = this.getCountTokensTimeoutMs();
 
-    if (!activeSignal) {
+    if (timeoutMs > 0) {
       controller = new AbortController();
       timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
-      activeSignal = controller.signal;
+      activeSignal = signal ? mergeAbortSignals(signal, controller.signal) : controller.signal;
     }
 
     try {
