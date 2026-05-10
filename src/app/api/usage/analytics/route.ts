@@ -87,6 +87,7 @@ function uniqueValues(values: Array<string | null | undefined>): string[] {
   return result;
 }
 
+
 function makeApiKeyUsageGroup(apiKeyId: string, fallbackName: string): string {
   return apiKeyId ? `id:${apiKeyId}` : `name:${fallbackName}`;
 }
@@ -96,6 +97,7 @@ function addApiKeyAlias(target: Set<string>, value: unknown): void {
   const trimmed = value.trim();
   if (trimmed) target.add(trimmed);
 }
+
 
 function stripCodexEffortSuffix(model: string): string {
   return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
