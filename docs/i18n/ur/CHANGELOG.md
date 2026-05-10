@@ -11,8 +11,32 @@
 
 ### ✨ New Features
 
-- **feat(antigravity):** integrate Antigravity provider with dynamic `maxOutputTokens` calculation (bumping to `thinkingBudget + 1`) and standard Cloud Code envelope payload sanitization (#2055, #2063)
+- **feat(antigravity):** integrate Antigravity provider with dynamic `maxOutputTokens` calculation, identity fingerprinting overhaul, and Cloud Code envelope payload sanitization (#2055, #2063)
 - **feat(gemini-cli):** add custom projectId support for Gemini CLI transport (UI, DB, executor) (#1991)
+- **feat(providers):** add KIE media provider support with dynamic polling, text models, and expanded video models catalog
+- **feat(providers):** add Z.AI provider support with GLM quota handling and new quota labels
+- **feat(providers):** add 9 new free AI providers — LLM7, Lepton, Kluster, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi (#2096)
+- **feat(providers):** batch delete provider connections via checkbox multi-select (#2094)
+- **feat(cursor):** full OpenAI parity — tool calls, streaming, and session management (#2082)
+- **feat(cli):** comprehensive CLI enhancement suite with 20+ new commands including `omniroute providers`, `omniroute combos`, `omniroute doctor` (#2074)
+- **feat(cli):** add modular CLI setup and provider management commands (#2046)
+- **feat(mcp):** add DeepSeek quota and limit monitoring feature (#2089)
+- **feat(circuit-breaker):** classify 429 errors and apply per-kind cooldowns (#2116)
+- **feat(multi):** manifest-aware tier routing — W1-W4 complete (#2014)
+- **feat(combos):** add reset-aware routing strategy for quota-based providers
+- **feat(combo):** add context_length input field to combo edit form (#2047)
+- **feat(chat):** dynamic tool limit detection with proactive truncation (#2061)
+- **feat(sse):** refresh Claude OAuth wire image to claude-cli/2.1.131 (#2011)
+- **feat(github):** add `targetFormat: openai-responses` to all GitHub models (#2122)
+- **feat(api):** allow configuration via API calls — open management routes to Bearer keys with manage scope (#2103)
+- **feat(api):** update API bridge proxy timeout to 600,000ms (#2019)
+- **feat(usage):** add service tier breakdown, codex fast service tier analytics, and account for fast tier
+- **feat(chat):** add `STREAM_READINESS_TIMEOUT_MS` and integrate into chat handling
+- **feat(combo):** add `fallbackDelayMs` to combo configuration and related settings
+- **feat(chat):** enhance error handling for semaphore capacity with fallback logic
+- **feat(qdrant):** embedding model discovery (#2086)
+- **feat(auth):** per-session sticky routing for Codex (#1887)
+- **feat(inworld):** enhance Inworld TTS support (#2123)
 
 ### 🐛 Bug Fixes
 
@@ -20,18 +44,49 @@
 - **fix(gemini):** prevent `functionDeclarations` from being dropped by the sanitizer when `googleSearch` tool is present (#2077)
 - **fix(pollinations):** add `jsonMode: true` flag in the request transformation to enforce correct JSON structure from Pollinations API (#2109)
 - **fix(docker):** update Dockerfile to copy `/docs` directory during build ensuring API catalog availability at runtime (#2083)
+- **fix(docker):** include OpenAPI spec in runtime image (#2007)
 - **fix(providers):** strip OpenAI-specific fields in Kiro translator to prevent 400 errors (#2037)
+- **fix(kiro):** normalize tool-use payloads to prevent 400 errors from agents (#2104)
+- **fix(kiro):** merge adjacent user history turns after role normalization (#2105)
 - **fix(ui):** resolve text contrast issues for zero-config warning banner in light mode (#2050)
 - **fix(core):** inject global system prompt correctly into downstream chat completions pipeline (#2080)
+- **fix(core):** restore Claude Code adaptive thinking defaults and resolve audio transcription CORS regression
 - **fix(routing):** add missing v1beta rewrites to next.config to resolve 404 on Gemini models endpoint (#2102)
+- **fix(routing):** fix bare GPT-5.5 routing for Codex-only installations (#2054)
+- **fix(routing):** add fuzzy auto-combo routing for `auto/*` model prefix (#2010)
 - **fix(cache):** optimize cache_control preservation logic and explicitly align tool schema with upstream Claude Code expectations
 - **fix(db):** preserve legacy SQLite database path on Windows to prevent data loss (#1973)
+- **fix(db):** reduce hot-path persistence overhead (#2039)
+- **fix(db):** resolve migration conflict by renumbering overlapping migration entries (#2041)
 - **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)
 - **fix(routing):** dynamically filter bare model auto-resolution by active provider connections to prevent dead-routing (#2029)
 - **fix(embeddings):** add Google Gemini embeddings compatibility via OpenAI-compatible endpoint mapping (#2006)
+- **fix(sse):** prevent Claude OAuth multi-account correlation via metadata.user_id (#2053)
+- **fix(sse):** prevent Claude Code identity cloak overrides and fix fallback resilience (#2053)
+- **fix(sse):** classify hour quota errors as QUOTA_EXHAUSTED (#2119)
+- **fix(sse):** fix CC-compatible streaming bridge (#2118)
+- **fix(antigravity):** sanitize Claude Cloud Code payloads (#2090)
+- **fix(antigravity):** add duplex half for streaming bodies
+- **fix(antigravity):** align identity protocol and behavior with official AM
+- **fix(chatgpt-web):** plumb proxy through to native tls-client (#2022, #2023)
+- **fix(codex):** expose native model IDs in catalog (#2012)
+- **fix(glm):** add dedicated coding transport (#2087)
+- **fix(compression):** support Responses input and expand Spanish compression rules (#2028)
+- **fix(catalog):** auto-calculate combo context_length from target model limits (#2030)
+- **fix(api):** fix usage analytics and API key identity (#2008, #2092)
+- **fix(api-key):** allow Unicode letters in API key name validation (#1996)
+- **fix(auth):** allow bootstrap without password (#2048)
+- **fix(proxy):** clean up proxy page redundancy and fix 1proxy sync empty body error (#2052)
+- **fix(dashboard):** resolve Unknown plan display in Provider Limits
+- **fix(usage):** add extensible CURRENCY_SYMBOLS mapping for deepseek currencies
+- **fix(runtime):** harden timer handling and model pricing fallback
+- **fix(i18n):** complete Simplified Chinese translations (#2115)
+- **fix(mitm):** add Linux cert install and skip sudo password when root (#1999)
+- **fix(mitm):** prevent stub from loading at runtime via bypass module
 - **fix:** remove Anthropic-Beta header from non-Anthropic providers to fix identity contamination (#1989)
 - **fix(cli):** resolve .env loading failure for global npm installations
 - **fix(export):** exclude telemetry/usage-history tables from JSON config backups by default to prevent unbounded file growth (#2125)
+- **fix:** Follow OpenAI specification, handle throttling in batch and fix UI (#2045)
 
 ### Seguridad
 
@@ -42,10 +97,16 @@
 ### Documentación
 
 - **docs:** add competitive marketing tables and SEO/AEO optimizations to README (#2091)
+- **docs:** refresh providers, model catalogs, and docs for v3.8.0 (#2088)
+- **docs:** update Claude MD and update GLM-CN max context to 200k (#2027)
+- **docs(env):** add `GITLAB_DUO_OAUTH_CLIENT_ID` to `.env.example` (#2031)
 
 ### 🧹 Chores & Maintenance
 
 - **chore(providers):** prune redundant local provider icon assets in favor of `@lobehub/icons` web fonts (#1992)
+- **chore(providers):** remove deprecated models (#2033)
+- **deps:** bump `fast-uri` from 3.1.0 to 3.1.2 (#2078)
+- **deps:** bump `hono` from 4.12.14 to 4.12.18 (#2079)
 - **ci:** skip SonarCloud scan on main pushes to optimize CI time
 - **test:** stabilize cooldown abort coverage case in integration testing
 
