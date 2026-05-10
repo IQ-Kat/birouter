@@ -403,7 +403,7 @@ function parseRateLimits(value: unknown): RateLimitRule[] | null {
     const parsed = JSON.parse(value);
     if (!Array.isArray(parsed)) return null;
     return parsed.filter(
-      (rule: any) =>
+      (rule: RateLimitRule) =>
         typeof rule === "object" &&
         rule !== null &&
         typeof rule.limit === "number" &&

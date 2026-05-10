@@ -644,10 +644,13 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
         resetAt,
         displayName: getGlmQuotaDisplayName(quotaName),
         details: Array.isArray(src.models)
-          ? src.models.map((m: any) => ({
-              name: String(m.model || ""),
-              used: toNumber(m.percentage, 0),
-            }))
+          ? (src.models as unknown[]).map((m) => {
+              const modelInfo = toRecord(m);
+              return {
+                name: String(modelInfo.model || ""),
+                used: toNumber(modelInfo.percentage, 0),
+              };
+            })
           : [],
         unlimited: false,
       };

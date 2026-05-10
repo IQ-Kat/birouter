@@ -1894,6 +1894,19 @@ export const SYSTEM_PROVIDERS = {
   },
 };
 
+// Cloud Agent Providers
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: { id: "jules", alias: "jules", name: "Jules AI", icon: "smart_toy", color: "#6366F1" },
+  devin: { id: "devin", alias: "devin", name: "Devin AI", icon: "auto_fix_high", color: "#10B981" },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "codex-cloud",
+    name: "Codex Cloud",
+    icon: "cloud",
+    color: "#3B82F6",
+  },
+};
+
 // All providers (combined)
 export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,

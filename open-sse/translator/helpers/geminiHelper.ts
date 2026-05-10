@@ -89,52 +89,58 @@ export const DEFAULT_SAFETY_SETTINGS = [
 ];
 
 // Convert OpenAI content to Gemini parts
-export function convertOpenAIContentToParts(content: any) {
-  const parts: any[] = [];
+export function convertOpenAIContentToParts(content: unknown) {
+  const parts: Record<string, unknown>[] = [];
 
   if (typeof content === "string") {
     parts.push({ text: content });
   } else if (Array.isArray(content)) {
     for (const item of content) {
-      if (item.type === "text") {
-        parts.push({ text: item.text });
+      const rec = toRecord(item);
+      if (rec.type === "text") {
+        parts.push({ text: rec.text });
       } else {
         // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
-        const geminiInline = item.inline_data || item.inlineData;
+        const geminiInline = toRecord(rec.inline_data || rec.inlineData);
         if (geminiInline?.data) {
           parts.push({
             inlineData: {
-              mimeType: geminiInline.mime_type || geminiInline.mimeType || "application/pdf",
-              data: geminiInline.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+              mimeType: String(
+                geminiInline.mime_type || geminiInline.mimeType || "application/pdf"
+              ),
+              data: String(geminiInline.data).replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
             },
           });
           continue;
         }
 
         // 2. Handle Claude-style source blocks commonly used by AI clients
-        if (item.source?.type === "base64" && item.source?.data) {
+        const source = toRecord(rec.source);
+        if (source?.type === "base64" && source?.data) {
           parts.push({
             inlineData: {
-              mimeType: item.source.media_type || "application/pdf",
-              data: item.source.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+              mimeType: String(source.media_type || "application/pdf"),
+              data: String(source.data).replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
             },
           });
           continue;
         }
 
         // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."})
-        const rawDataStr = item.data || item.file?.data || item.document?.data;
+        const file = toRecord(rec.file);
+        const doc = toRecord(rec.document);
+        const rawDataStr = rec.data || file?.data || doc?.data;
         const mimeTypeFallback =
-          item.mime_type ||
-          item.media_type ||
-          item.file?.mime_type ||
-          item.document?.mime_type ||
+          rec.mime_type ||
+          rec.media_type ||
+          file?.mime_type ||
+          doc?.mime_type ||
           "application/octet-stream";
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
             inlineData: {
-              mimeType: mimeTypeFallback,
+              mimeType: String(mimeTypeFallback),
               data: rawData,
             },
           });
@@ -142,8 +148,11 @@ export function convertOpenAIContentToParts(content: any) {
         }
 
         // 4. Standard OpenAI Data URIs
-        const fileData =
-          item.image_url?.url || item.file_url?.url || item.file?.url || item.document?.url;
+        const imageUrl = toRecord(rec.image_url);
+        const fileUrl = toRecord(rec.file_url);
+        const fileObj = toRecord(rec.file);
+        const docObj = toRecord(rec.document);
+        const fileData = imageUrl?.url || fileUrl?.url || fileObj?.url || docObj?.url;
         if (typeof fileData === "string" && fileData.startsWith("data:")) {
           const commaIndex = fileData.indexOf(",");
           if (commaIndex !== -1) {

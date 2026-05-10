@@ -495,12 +495,21 @@ export function getModelLockoutInfo(provider, connectionId, model) {
   };
 }
 
+type ModelLockoutInfo = {
+  provider: string;
+  connectionId: string;
+  model: string;
+  reason: string;
+  remainingMs: number;
+  failureCount: number;
+};
+
 /**
  * Get all active model lockouts (for dashboard)
  */
-export function getAllModelLockouts() {
+export function getAllModelLockouts(): ModelLockoutInfo[] {
   const now = Date.now();
-  const active: any[] = [];
+  const active: ModelLockoutInfo[] = [];
   for (const key of modelLockouts.keys()) {
     cleanupModelLockKey(key, now);
   }
@@ -908,7 +917,7 @@ export function checkFallbackError(
   backoffLevel: number = 0,
   _model: string | null = null,
   provider: string | null = null,
-  headers: any = null,
+  headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null
 ): {
   shouldFallback: boolean;
