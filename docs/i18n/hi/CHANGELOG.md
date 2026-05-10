@@ -48,6 +48,49 @@
 - **ci:** skip SonarCloud scan on main pushes to optimize CI time
 - **test:** stabilize cooldown abort coverage case in integration testing
 
+### 🏆 v3.8.0 Community Contributors
+
+Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
+
+| Contributor | PRs | Contributions |
+| :--- | :---: | :--- |
+| [@oyi77](https://github.com/oyi77) | 7 | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096 |
+| [@backryun](https://github.com/backryun) | 4 | #1992, #2033, #2088, #2123 |
+| [@dhaern](https://github.com/dhaern) | 4 | #2028, #2039, #2087, #2090 |
+| [@Tentoxa](https://github.com/Tentoxa) | 2 | #2011, #2053 |
+| [@wauputr4](https://github.com/wauputr4) | 2 | #2009, #2046 |
+| [@payne0420](https://github.com/payne0420) | 1 | #2082 |
+| [@Tr0sT](https://github.com/Tr0sT) | 1 | #2012 |
+| [@AveryanAlex](https://github.com/AveryanAlex) | 1 | #2008 |
+| [@nickwizard](https://github.com/nickwizard) | 1 | #1991 |
+| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) | 1 | #1996 |
+| [@NekoMonci12](https://github.com/NekoMonci12) | 1 | #1999 |
+| [@congvc-dev](https://github.com/congvc-dev) | 1 | #2004 |
+| [@tatsster](https://github.com/tatsster) | 1 | #2007 |
+| [@xssdem](https://github.com/xssdem) | 1 | #2023 |
+| [@bypanghu](https://github.com/bypanghu) | 1 | #2027 |
+| [@herjarsa](https://github.com/herjarsa) | 1 | #2030 |
+| [@wucm667](https://github.com/wucm667) | 1 | #2031 |
+| [@hartmark](https://github.com/hartmark) | 1 | #2045 |
+| [@ddarkr](https://github.com/ddarkr) | 1 | #2047 |
+| [@tces1](https://github.com/tces1) | 1 | #2048 |
+| [@guanbear](https://github.com/guanbear) | 1 | #2054 |
+| [@Gi99lin](https://github.com/Gi99lin) | 1 | #2055 |
+| [@ivan-mezentsev](https://github.com/ivan-mezentsev) | 1 | #2063 |
+| [@JxnLexn](https://github.com/JxnLexn) | 1 | #2019 |
+| [@yoviarpauzi](https://github.com/yoviarpauzi) | 1 | #2092 |
+| [@rafacpti23](https://github.com/rafacpti23) | 1 | #2086 |
+| [@gleber](https://github.com/gleber) | 1 | #2103 |
+| [@rilham97](https://github.com/rilham97) | 1 | #2104 |
+| [@Gioxaa](https://github.com/Gioxaa) | 1 | #2105 |
+| [@boa-z](https://github.com/boa-z) | 1 | #2115 |
+| [@eleata](https://github.com/eleata) | 1 | #2116 |
+| [@rdself](https://github.com/rdself) | 1 | #2118 |
+| [@clousky2020](https://github.com/clousky2020) | 1 | #2119 |
+| [@abhinavjnu](https://github.com/abhinavjnu) | 1 | #2122 |
+| [@HoaPham98](https://github.com/HoaPham98) | 1 | #2089 |
+| [@05dunski](https://github.com/05dunski) | 1 | #1978 (cherry-picked) |
+
 ## [3.7.9] — 2026-05-03
 
 ### ✨ New Features
@@ -368,7 +411,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(proxy):** implement bulk proxy import via pipe-delimited parser with update-or-create (upsert) logic and real-time preview table
 - **feat(pwa):** add fullscreen installable PWA with manifest, service worker, and cross-platform app icons (#1728)
 
-### 🔒 Security
+### सुरक्षा
 
 - **security:** replace insecure `Math.random` with `crypto.getRandomValues` for fallback UUID generation to resolve CodeQL CWE-338 finding (#182)
 
@@ -533,7 +576,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **fix(transport):** Prevent memory bloat and database exhaustion from large, fragmented streaming responses. Implemented `ByteQueue` in `kiro.ts` for zero-copy binary accumulation, refactored `antigravity.ts` for incremental SSE parsing, and enforced a strict 512KB tiered truncation limit (`MAX_CALL_LOG_ARTIFACT_BYTES`) on stream request logs and call artifacts (#1647).
 - **chore(ci):** Update build environment dependencies — bump Node to `24.15.0`, `actions/checkout@v6`, `docker/build-push-action@v7`, pin `actions/setup-python` to major tag (#1646 — thanks @backryun).
 
-### 📝 Documentation
+### दस्तावेज़
 
 - **docs(env):** Add `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` to `.env.example` with documentation for LM Studio and other local provider use cases (#1623).
 
@@ -683,7 +726,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **test(next):** Align transpile package expectations for the Next.js standalone build.
 - **test(ci):** Fix CI-only test failures from environment differences — clear `INITIAL_PASSWORD` and `JWT_SECRET` in integration tests, handle `XDG_CONFIG_HOME` for guide-settings tests.
 
-### 📚 Documentation
+### दस्तावेज़
 
 - **docs:** Update the root changelog with all release-branch changes through 2026-04-24, including PRs #1544, #1555, #1551, #1550, #1548, #1547, #1541, #1538, #1536, and #1527.
 - **docs:** Fix broken README and localized documentation links. (#1536)
@@ -825,7 +868,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(providers):** Expand image provider registry with extended model support including SD3.5, FLUX, and DALL-E 3 HD configurations
 - **feat(combos):** Add new routing strategies and full i18n support for agent features section across 31 languages
 
-### 🔒 Security
+### सुरक्षा
 
 - **security:** Resolve 18 GitHub CodeQL scan alerts including ReDoS, incomplete sanitization, and bad HTML filtering regexp patterns
 - **fix(auth):** Seal privilege escalation vector by enforcing JWT session checking exclusively on `/api/keys` management endpoints (#1353)
@@ -1092,7 +1135,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Duplicate `auto` in Combo Strategy Schema:** Removed duplicate `"auto"` entry from `comboStrategySchema` (was listed on both line 104 and 108). Harmless to Zod runtime but cleaned up to avoid confusion. Schema now has exactly 13 unique strategy values
 - **Legacy Combo Refs Normalization:** Fixed combo step normalization to preserve legacy string combo references during CRUD operations, preventing data loss when editing combos created before the v2 step architecture
 
-### 🔒 Security
+### सुरक्षा
 
 - **Auth Bypass on Backup Routes (Critical):** Added `isAuthenticated` guards to `/api/db-backups/exportAll` (full database export) and `/api/db-backups` (list, create, and restore backups) — both were previously accessible without authentication
 - **Auth Guard on Translator Save:** Added `isAuthenticated` guard to `/api/translator/save` for defense-in-depth consistency
@@ -1497,7 +1540,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Updated Sub-dependencies:** Bumped `hono` to `4.12.12` and `@hono/node-server` to `1.19.13` to patch critical security gaps (#1063, #1064, #1067, #1068).
 
-### 📚 Documentation
+### दस्तावेज़
 
 - **Documentation Synchronization:** Updated system documentation (README, Architecture, Features, Tools, Troubleshooting) and synced `i18n` configurations to match the v3.5.5 context relay patterns and proxy troubleshooting steps.
 - **Context Relay Delivery Notes:** Documented the current architecture, runtime flow, and Codex-focused scope in the feature docs, changelog, and agent guidance.
@@ -1573,7 +1616,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.5.3] - 2026-04-07
 
-### Security
+### सुरक्षा
 
 - **Vulnerabilities:** Fully remediated 12 High-Severity CodeQL vulnerabilities by migrating from Math.random to `crypto.randomUUID()`, wrapping SSE injection points with aggressive backslash escaping, sanitizing trailing HTTP fragments, and enforcing rigid SSRF HTTP verification schemes across internal routes.
 - **Dependencies:** Upgraded Next.js to `^16.2.2` and Vite to `>=8.0.5` resolving critical DoS, arbitrary file reads and CSRF vectors in the build/server environments.
@@ -1589,7 +1632,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **CI/CD Stabilization:** Prevented random GitHub Runner freezes by decoupling sharded processes, adjusting test concurrencies, unref-ing active connections on server teardown, and strictly capping job timeout durations.
 
-### Documentation
+### दस्तावेज़
 
 - **I18n Engine:** Synchronized and pushed deep Machine Translation updates across all 32 natively-supported languages (682 translation nodes aligned).
 
@@ -1750,7 +1793,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.4.8] — 2026-04-03
 
-### Security
+### सुरक्षा
 
 - Fully remediated all outstanding Github Advanced Security (CodeQL) findings and Dependabot alerts.
 - Fixed insecure randomness vulnerabilities by migrating from `Math.random` to `crypto.randomUUID()`.
@@ -1762,7 +1805,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.4.7] — 2026-04-03
 
-### Features
+### विशेषताएं
 
 - Added `Cryptography` node to Monitoring and MCP health checks (#798)
 - Hardened model-catalog route permissions mapping (`/models`) (#781)
@@ -1778,7 +1821,7 @@ We identified that **155 community PRs** across the entire project history (from
 - Fixed MCP standalone module-resolution (`ERR_MODULE_NOT_FOUND`) via `esbuild` (#936)
 - Fixed NVIDIA NIM routing credential resolution alias mismatch (#931)
 
-### Security
+### सुरक्षा
 
 - Added safe strict input boundary protection against raw `shell: true` remote-code execution injections.
 
@@ -2025,7 +2068,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.4.0] - 2026-03-31
 
-### 🚀 Features
+### विशेषताएं
 
 - **Subscription Utilization Analytics:** Added quota snapshot time-series tracking, Provider Utilization and Combo Health tabs with recharts visualizations, and corresponding API endpoints (#847)
 - **SQLite Backup Control:** New `OMNIROUTE_DISABLE_AUTO_BACKUP` env flag to disable automatic SQLite backups (#846)
@@ -2077,7 +2120,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.3.8] - 2026-03-30
 
-### 🚀 Features
+### विशेषताएं
 
 - **Models API Filtering:** Endpoint `/v1/models` now dynamically filters its list based on the permissions tied to the `Authorization: Bearer <token>` when restricted access is on (#781)
 - **Qoder Integration:** Native integration for Qoder AI natively replacing the legacy iFlow platform mappings (#660)
@@ -2903,7 +2946,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **NaN tokens in Claude Code / client responses (#617):**
   - `sanitizeUsage()` now cross-maps `input_tokens`→`prompt_tokens` and `output_tokens`→`completion_tokens` before the whitelist filter, fixing responses showing NaN/0 token counts when providers return Claude-style usage field names
 
-### 🔒 Security
+### सुरक्षा
 
 - Updated `yaml` package to fix stack overflow vulnerability (GHSA-48c2-rrv3-qjmp)
 
@@ -3579,7 +3622,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 - **SVG fallback**: `ProviderIcon` component updated with 4-tier strategy: Lobehub → PNG → SVG → Generic icon
 - **Agents fingerprinting**: Synced with CLI tools — added droid, openclaw, copilot, opencode to fingerprint list (14 total)
 
-### 🔒 Security
+### सुरक्षा
 
 - **CVE fix**: Resolved dompurify XSS vulnerability (GHSA-v2wj-7wpq-c8vv) via npm overrides forcing `dompurify@^3.3.2`
 - `npm audit` now reports **0 vulnerabilities**
@@ -3942,7 +3985,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **#510** — Windows: MSYS2/Git-Bash paths (`/c/Program Files/...`) are now normalized to `C:\Program Files\...`
 - **#492** — `omniroute` CLI now detects `mise`/`nvm` when `app/server.js` is missing and shows targeted fix
 
-### 📖 Documentation
+### दस्तावेज़
 
 - **#513** — Docker password reset: `INITIAL_PASSWORD` env var workaround documented
 - **#520** — pnpm: `pnpm approve-builds better-sqlite3` documented
@@ -4039,7 +4082,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **feat(executors/cloudflare-ai)**: New `CloudflareAIExecutor` — dynamic URL construction requires `accountId` in provider credentials
 - **feat(executors)**: Register `pollinations`, `pol`, `cloudflare-ai`, `cf` executor mappings
 
-### 📝 Documentation
+### दस्तावेज़
 
 - **docs(readme)**: Expanded free combo stack to 11 providers ($0 forever)
 - **docs(readme)**: Added 4 new free provider sections (LongCat, Pollinations, Cloudflare AI, Scaleway) with model tables
@@ -4191,7 +4234,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 - **OAuth batch test crash** (ERR_CONNECTION_REFUSED): Replaced sequential for-loop with 5-connection concurrency limit + 30s per-connection timeout via `Promise.race()` + `Promise.allSettled()`. Prevents server crash when testing large OAuth provider groups (~30+ connections).
 
-### Features
+### विशेषताएं
 
 - **"Test All" button on provider pages**: Individual provider pages (e.g., `/providers/codex`) now show a "Test All" button in the Connections header when there are 2+ connections. Uses `POST /api/providers/test-batch` with `{mode: "provider", providerId}`. Results displayed in a modal with pass/fail summary and per-connection diagnosis.
 
@@ -4219,7 +4262,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Merge PR #494 (MiniMax role fix), fix KIRO MITM dashboard, triage 8 issues.
 
-### Features
+### विशेषताएं
 
 - **MiniMax developer→system role fix** (PR #494 by @zhangqiang8vip): Per-model `preserveDeveloperRole` toggle. Adds "Compatibility" UI in providers page. Fixes 422 "role param error" for MiniMax and similar gateways.
 - **roleNormalizer**: `normalizeDeveloperRole()` now accepts `preserveDeveloperRole` parameter with tri-state behavior (undefined=keep, true=keep, false=convert).
@@ -4275,7 +4318,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Gemini CLI deprecation, VM guide i18n fix, dependabot security fix, provider schema expansion.
 
-### Features
+### विशेषताएं
 
 - **Gemini CLI Deprecation** (#462): Mark `gemini-cli` provider as deprecated with warning — Google restricts third-party OAuth usage from March 2026
 - **Provider Schema** (#462): Expand Zod validation with `deprecated`, `deprecationReason`, `hasFree`, `freeNote`, `authHint`, `apiHint` optional fields
@@ -4284,7 +4327,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 - **VM Guide i18n** (#471): Add `VM_DEPLOYMENT_GUIDE.md` to i18n translation pipeline, regenerate all 30 locale translations from English source (were stuck in Portuguese)
 
-### Security
+### सुरक्षा
 
 - **deps**: Bump `flatted` 3.3.3 → 3.4.2 — fixes CWE-1321 prototype pollution (#484, @dependabot)
 
@@ -4304,7 +4347,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Czech i18n, SSE protocol fix, VM guide translation.
 
-### Features
+### विशेषताएं
 
 - **Czech Language** (#482): Full Czech (cs) i18n — 22 docs, 2606 UI strings, language switcher updates (@zen0bit)
 - **VM Deployment Guide**: Translated from Portuguese to English as the source document (@zen0bit)
@@ -4323,7 +4366,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: 2 merged PRs, model aliases routing fix, log export, and issue triage.
 
-### Features
+### विशेषताएं
 
 - **Log Export**: New Export button on `/dashboard/logs` with time range dropdown (1h, 6h, 12h, 24h). Downloads JSON of request/proxy/call logs via `/api/logs/export` API (#user-request)
 
@@ -4343,7 +4386,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Five community PRs — streaming call log fixes, Kiro compatibility, cache token analytics, Chinese translation, and configurable tool call IDs.
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(logs)**: Call log response content now correctly accumulated from raw provider chunks (OpenAI/Claude/Gemini) before translation, fixing empty response payloads in streaming mode (#470, @zhangqiang8vip)
 - **feat(providers)**: Per-model configurable 9-char tool call ID normalization (Mistral-style) — only models with the option enabled get truncated IDs (#470)
@@ -4373,7 +4416,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Bailian Coding Plan provider with editable base URLs, plus community contributions for Alibaba Cloud and Kimi Coding.
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(providers)**: Added Bailian Coding Plan (`bailian-coding-plan`) — Alibaba Model Studio with Anthropic-compatible API. Static catalog of 8 models including Qwen3.5 Plus, Qwen3 Coder, MiniMax M2.5, GLM 5, and Kimi K2.5. Includes custom auth validation (400=valid, 401/403=invalid) (#467, @Mind-Dragon)
 - **feat(admin)**: Editable default URL in Provider Admin create/edit flows — users can configure custom base URLs per connection. Persisted in `providerSpecificData.baseUrl` with Zod schema validation rejecting non-http(s) schemes (#467)
@@ -4388,7 +4431,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Two new community-contributed providers (Alibaba Cloud Coding, Kimi Coding API-key) and Docker pino fix.
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(providers)**: Added Alibaba Cloud Coding Plan support with two OpenAI-compatible endpoints — `alicode` (China) and `alicode-intl` (International), each with 8 models (#465, @dtk1985)
 - **feat(providers)**: Added dedicated `kimi-coding-apikey` provider path — API-key-based Kimi Coding access is no longer forced through OAuth-only `kimi-coding` route. Includes registry, constants, models API, config, and validation test (#463, @Mind-Dragon)
@@ -4413,7 +4456,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Codex responses subpath passthrough natively supported, Windows MITM crash fixed, and Combos agent schemas adjusted.
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(codex)**: Native responses subpath passthrough for Codex — natively routes `POST /v1/responses/compact` to Codex upstream, maintaining Claude Code compatibility without stripping the `/compact` suffix (#457)
 
@@ -4453,7 +4496,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **fix(budget)**: "Save Limits" no longer returns 422 — `warningThreshold` is now correctly sent as fraction (0–1) instead of percentage (0–100) (#451)
 - **fix(combos)**: `<omniModel>` internal cache tag is now stripped before forwarding requests to providers, preventing cache session breaks (#454)
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(combos)**: Agent Features section added to combo create/edit modal — expose `system_message` override, `tool_filter_regex`, and `context_cache_protection` directly from the dashboard (#454)
 
@@ -4509,7 +4552,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Search Tools dashboard, i18n fixes, Copilot limits, Serper validation fix.
 
-### 🚀 Features
+### विशेषताएं
 
 - **feat(search)**: Add Search Playground (10th endpoint), Search Tools page with Compare Providers/Rerank Pipeline/Search History, local rerank routing, auth guards on search API (#443 by @Regis-RCR)
   - New route: `/dashboard/search-tools`
@@ -4609,7 +4652,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
   - DB migration: `request_type` column on `call_logs` for non-chat request tracking
   - Zod validation (`v1SearchSchema`), auth-gated, cost recorded via `recordCost()`
 
-### 🔒 Security
+### सुरक्षा
 
 - **deps**: Next.js 16.1.6 → 16.1.7 — fixes 6 CVEs:
   - **Critical**: CVE-2026-29057 (HTTP request smuggling via http-proxy)
@@ -4739,7 +4782,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0`
 - **006_detailed_request_logs.sql**: New `request_detail_logs` table with 500-entry ring-buffer trigger, opt-in via settings toggle
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(combo)**: System Message Override per Combo (#399 — `system_message` field replaces or injects system prompt before forwarding to provider)
 - **feat(combo)**: Tool Filter Regex per Combo (#399 — `tool_filter_regex` keeps only tools matching pattern; supports OpenAI + Anthropic formats)
@@ -4754,7 +4797,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: SSE improvements, local provider_nodes extensions, proxy registry, Claude passthrough fixes.
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(health)**: Background health check for local `provider_nodes` with exponential backoff (30s→300s) and `Promise.allSettled` to avoid blocking (#423, @Regis-RCR)
 - **feat(embeddings)**: Route `/v1/embeddings` to local `provider_nodes` — `buildDynamicEmbeddingProvider()` with hostname validation (#422, @Regis-RCR)
@@ -4896,7 +4939,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **fix(build)**: Turbopack hash-strip now runs at **compile time** for ALL packages — not just `better-sqlite3`. Step 5.6 in `prepublish.mjs` walks every `.js` in `app/.next/server/` and strips the 16-char hex suffix from any hashed `require()`. Fixes `zod-dcb22c...`, `pino-...`, etc. MODULE_NOT_FOUND on global npm installs. Closes #398
 - **fix(deploy)**: PM2 on both VPS was pointing to stale git-clone directories. Reconfigured to `app/server.js` in the npm global package. Updated `/deploy-vps` workflow to use `npm pack + scp` (npm registry rejects 299MB packages).
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(provider)**: Synthetic ([synthetic.new](https://synthetic.new)) — privacy-focused OpenAI-compatible inference. `passthroughModels: true` for dynamic HuggingFace model catalog. Initial models: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2. (PR #404 by @Regis-RCR)
 
@@ -4926,7 +4969,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **fix(build)**: Extended webpack `externals` hash-strip to cover ALL `serverExternalPackages`, not just `better-sqlite3`. Next.js 16 Turbopack hashes `zod`, `pino`, and every other server-external package into names like `zod-dcb22c6336e0bc69` that don't exist in `node_modules` at runtime. A HASH_PATTERN regex catch-all now strips the 16-char suffix and falls back to the base package name. Also added `NEXT_PRIVATE_BUILD_WORKER=0` in `prepublish.mjs` to reinforce webpack mode, plus a post-build scan that reports any remaining hashed refs. (#396, #398, PR #403)
 - **fix(chat)**: Anthropic-format tool names (`tool.name` without `.function` wrapper) were silently dropped by the empty-name filter introduced in #346. LiteLLM proxies requests with `anthropic/` prefix in Anthropic Messages API format, causing all tools to be filtered and Anthropic to return `400: tool_choice.any may only be specified while providing tools`. Fixed by falling back to `tool.name` when `tool.function.name` is absent. Added 8 regression unit tests. (PR #397)
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(api)**: Custom endpoint paths for OpenAI-compatible provider nodes — configure `chatPath` and `modelsPath` per node (e.g. `/v4/chat/completions`) in the provider connection UI. Includes a DB migration (`003_provider_node_custom_paths.sql`) and URL path sanitization (no `..` traversal, must start with `/`). (PR #400)
 - **feat(provider)**: Alibaba Cloud DashScope added as OpenAI-compatible provider. International endpoint: `dashscope-intl.aliyuncs.com/compatible-mode/v1`. 12 models: `qwen-max`, `qwen-plus`, `qwen-turbo`, `qwen3-coder-plus/flash`, `qwq-plus`, `qwq-32b`, `qwen3-32b`, `qwen3-235b-a22b`. Auth: Bearer API key.
@@ -4985,7 +5028,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **fix(oauth)**: Qoder (and other providers that redirect to their own UI) no longer leave the OAuth modal stuck at "Waiting for Authorization" — popup-closed detector auto-transitions to manual URL input mode (#344)
 - **fix(logs)**: Request log table is now readable in light mode — status badges, token counts, and combo tags use adaptive `dark:` color classes (#378)
 
-### ✨ Features
+### विशेषताएं
 
 - **feat(kiro)**: Kiro credit tracking added to usage fetcher — queries `getUserCredits` from AWS CodeWhisperer endpoint (#337)
 
@@ -5386,7 +5429,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > **Major release** — Free Stack ecosystem, transcription playground overhaul, 44+ providers, comprehensive free tier documentation, and UI improvements across the board.
 
-### ✨ Features
+### विशेषताएं
 
 - **Combos: Free Stack template** — New 4th template "Free Stack ($0)" using round-robin across Kiro + Qoder + Qwen + Gemini CLI. Suggests the pre-built zero-cost combo on first use.
 - **Media/Transcription: Deepgram as default** — Deepgram (Nova 3, $200 free) is now the default transcription provider. AssemblyAI ($50 free) and Groq Whisper (free forever) shown with free credit badges.
@@ -5397,7 +5440,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 ## [2.3.16] - 2026-03-13
 
-### 📖 Documentation
+### दस्तावेज़
 
 - **README: 44+ Providers** — Updated all 3 occurrences of "36+ providers" to "44+" reflecting the actual codebase count (44 providers in providers.ts)
 - **README: New Section "🆓 Free Models — What You Actually Get"** — Added 7-provider table with per-model rate limits for: Kiro (Claude unlimited via AWS Builder ID), Qoder (5 models unlimited), Qwen (4 models unlimited), Gemini CLI (180K/mo), NVIDIA NIM (~40 RPM dev-forever), Cerebras (1M tok/day / 60K TPM), Groq (30 RPM / 14.4K RPD). Includes the \/usr/bin/bash Ultimate Free Stack combo recommendation.
@@ -5407,7 +5450,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 ## [2.3.15] - 2026-03-13
 
-### ✨ Features
+### विशेषताएं
 
 - **Auto-Combo Dashboard (Tier Priority)**: Added `🏷️ Tier` as the 7th scoring factor label in the `/dashboard/auto-combo` factor breakdown display — all 7 Auto-Combo scoring factors are now visible.
 - **i18n — autoCombo section**: Added 20 new translation keys for the Auto-Combo dashboard (`title`, `status`, `modePack`, `providerScores`, `factorTierPriority`, etc.) to all 30 language files.
