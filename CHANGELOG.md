@@ -33,6 +33,9 @@
 - **feat(auth):** per-session sticky routing for Codex (#1887)
 - **feat(inworld):** enhance Inworld TTS support (#2123)
 - **feat(kiro):** headless auth via kiro-cli SQLite, image support, tool overflow handling, and model list sync (#2129 — thanks @christlau)
+- **feat(auto):** zero-config auto-routing with `auto/` prefix — dynamic virtual combo from connected providers with 6 variant profiles (coding, fast, cheap, offline, smart, lkgp), analytics tab, and settings UI (#2131 — thanks @oyi77)
+- **feat(resilience):** `useUpstream429BreakerHints` toggle — per-provider default policy for upstream 429 hint trust at the circuit-breaker cooldown layer with tri-state PATCH semantics (#2133 — thanks @eleata)
+- **feat(mitm):** dynamic Linux certificate path detection for multi-distro MITM cert trust (Debian, Arch/CachyOS, Fedora/RHEL, openSUSE) with NSS browser database injection (#2134 — thanks @flyingmongoose)
 
 ### 🐛 Bug Fixes
 
@@ -113,7 +116,7 @@ Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
 
 | Contributor                                                | PRs | Contributions                                                 |
 | :--------------------------------------------------------- | :-: | :------------------------------------------------------------ |
-| [@oyi77](https://github.com/oyi77)                         |  7  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096 |
+| [@oyi77](https://github.com/oyi77)                         |  8  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131 |
 | [@backryun](https://github.com/backryun)                   |  4  | #1992, #2033, #2088, #2123                                    |
 | [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                    |
 | [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                  |
@@ -143,12 +146,13 @@ Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
 | [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                         |
 | [@Gioxaa](https://github.com/Gioxaa)                       |  1  | #2105                                                         |
 | [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                         |
-| [@eleata](https://github.com/eleata)                       |  1  | #2116                                                         |
+| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                  |
 | [@rdself](https://github.com/rdself)                       |  1  | #2118                                                         |
 | [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                         |
 | [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                         |
 | [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                         |
 | [@christlau](https://github.com/christlau)                 |  1  | #2129                                                         |
+| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                         |
 | [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                         |
 
 ## [3.7.9] — 2026-05-03
