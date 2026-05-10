@@ -162,3 +162,84 @@ export function retryAfterFromResponse(response: {
 }): number | null {
   return parseRetryAfter(getHeader(response.headers, "retry-after"));
 }
+
+/**
+ * Normalize an unknown headers-like value into a plain `Record<string, string>`.
+ * Native `Headers` (from `fetch`) does NOT respond to `Object.entries` — it
+ * exposes `.entries()` instead. Without this normalization, `getHeader` would
+ * silently miss every header on a Headers instance.
+ */
+function normalizeHeaders(raw: unknown): Record<string, string> | undefined {
+  if (raw === null || typeof raw !== "object") return undefined;
+  const maybeIter = (raw as { entries?: unknown }).entries;
+  if (typeof maybeIter === "function") {
+    try {
+      return Object.fromEntries(
+        (raw as { entries: () => Iterable<[string, string]> }).entries(),
+      );
+    } catch {
+      // fall through to plain-object treatment
+    }
+  }
+  return raw as Record<string, string>;
+}
+
+/**
+ * Adapter that takes an error thrown by an HTTP client (fetch wrapper, axios,
+ * upstream SDK, etc.) and produces a {@link FailureKind} suitable for the
+ * `classifyError` option of the circuit breaker.
+ *
+ * Recognises the common error shapes:
+ * - `err.status` + `err.headers` + `err.body` (low-level fetch wrapper)
+ * - `err.response.status` + `err.response.headers` + `err.response.data` (axios-style)
+ * - `err.message` (last-resort body for keyword scan)
+ *
+ * Returns `undefined` when the error doesn't carry enough information to
+ * classify, so the breaker can decide what to do without a kind tag.
+ *
+ * Companion to issue #2100 follow-up.
+ */
+export function classify429FromError(err: unknown): FailureKind | undefined {
+  if (err === null || typeof err !== "object") return undefined;
+  const e = err as Record<string, unknown>;
+
+  let status: number | undefined;
+  let headers: Record<string, string> | undefined;
+  let body: unknown;
+
+  if (typeof e.status === "number") {
+    status = e.status;
+  }
+  if (typeof e.statusCode === "number" && status === undefined) {
+    status = e.statusCode;
+  }
+
+  if (e.response && typeof e.response === "object") {
+    const resp = e.response as Record<string, unknown>;
+    if (typeof resp.status === "number" && status === undefined) {
+      status = resp.status;
+    }
+    if (resp.headers && typeof resp.headers === "object") {
+      headers = normalizeHeaders(resp.headers);
+    }
+    if (resp.data !== undefined) {
+      body = resp.data;
+    } else if (typeof resp.body !== "undefined") {
+      body = resp.body;
+    }
+  }
+
+  if (headers === undefined && e.headers && typeof e.headers === "object") {
+    headers = normalizeHeaders(e.headers);
+  }
+  if (body === undefined) {
+    if (typeof e.body !== "undefined") {
+      body = e.body;
+    } else if (typeof e.message === "string") {
+      body = e.message;
+    }
+  }
+
+  if (typeof status !== "number") return undefined;
+  return classify429({ status, headers, body });
+}
