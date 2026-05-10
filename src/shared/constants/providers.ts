@@ -1979,6 +1979,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "github",
   "codex",
   "claude",
+  "cursor",
   "kimi-coding",
   "glm",
   "glm-cn",
