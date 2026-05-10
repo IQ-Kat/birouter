@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         `
         SELECT COUNT(*) as count 
         FROM usage_logs 
-        WHERE model LIKE 'auto%' OR model LIKE 'auto/%'
+        WHERE model = 'auto' OR model LIKE 'auto/%'
       `
       )
       .get() as { count: number };
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
           END as variant,
           COUNT(*) as count
         FROM usage_logs
-        WHERE model LIKE 'auto%'
+        WHERE model = 'auto' OR model LIKE 'auto/%'
         GROUP BY variant
         ORDER BY count DESC
       `
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
         `
         SELECT provider, COUNT(*) as count
         FROM usage_logs
-        WHERE model LIKE 'auto%'
+        WHERE model = 'auto' OR model LIKE 'auto/%'
         GROUP BY provider
         ORDER BY count DESC
         LIMIT 10
