@@ -1,5 +1,6 @@
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { detectFormatFromEndpoint, getTargetFormat } from "../services/provider.ts";
+import { injectSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import {
@@ -998,6 +999,7 @@ export async function handleChatCore({
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
   };
   let tokensCompressed: number | null = null;
+  body = injectSystemPrompt(body);
   let effectiveServiceTier: "standard" | "priority" = "standard";
   const resolveEffectiveServiceTier = (requestBody?: unknown): "standard" | "priority" => {
     if (provider !== "codex") return "standard";
