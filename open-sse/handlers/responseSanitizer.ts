@@ -285,7 +285,16 @@ function sanitizeMessage(msg: unknown): unknown {
   // Non-streaming responses should not expose both visible content and reasoning_content.
   // Some clients drop the visible assistant text or render duplicated panels when both fields
   // are present in the final payload. Keep reasoning_content only for reasoning-only messages.
-  if (sanitized.reasoning_content !== undefined && hasVisibleMessageContent(sanitized.content)) {
+  // EXCEPTION: When tool_calls (or legacy function_call) are present, reasoning_content
+  // must be preserved because thinking-enabled providers (e.g., Kimi) require it on
+  // assistant tool call messages. Without it, subsequent requests fail with:
+  //   "thinking is enabled but reasoning_content is missing in assistant tool call message"
+  if (
+    sanitized.reasoning_content !== undefined &&
+    hasVisibleMessageContent(sanitized.content) &&
+    !msgRecord.tool_calls &&
+    !msgRecord.function_call
+  ) {
     delete sanitized.reasoning_content;
   }
 
