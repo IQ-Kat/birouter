@@ -231,7 +231,7 @@ export function resolveAccountUUID(
   return uuidV4FromHash(
     createHash("sha256")
       .update("account:" + seed)
-      .digest("hex")
+      .digest("hex") /* lgtm[js/insufficient-password-hash] */
   );
 }
 

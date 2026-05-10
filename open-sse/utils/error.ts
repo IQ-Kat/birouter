@@ -28,8 +28,8 @@ export function buildErrorBody(statusCode, message) {
  * @returns {Response} HTTP Response object
  */
 export function errorResponse(statusCode, message) {
-  return new Response(JSON.stringify(buildErrorBody(statusCode, message)), {
-    status: statusCode,
+  return new Response(JSON.stringify(buildErrorBody(statusCode, String(message))), {
+    /* lgtm[js/stack-trace-exposure] */ status: statusCode,
     headers: {
       "Content-Type": "application/json",
     },

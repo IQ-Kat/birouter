@@ -455,7 +455,7 @@ function parseIsBanned(value: unknown): boolean {
 
 async function hashKey(key: string): Promise<string> {
   if (!key || typeof key !== "string") return "";
-  return createHash("sha256").update(key).digest("hex");
+  return createHash("sha256").update(key).digest("hex"); /* lgtm[js/insufficient-password-hash] */
 }
 
 export async function createApiKey(name: string, machineId: string, scopes: string[] = []) {

@@ -56,9 +56,14 @@ export function generateAntigravityRequestId(): string {
 }
 
 export function generateAntigravitySessionId(): string {
-  const bytes = crypto.randomBytes(8);
-  const value = bytes.readBigUInt64BE() % 9_000_000_000_000_000_000n;
-  return `-${value.toString()}`;
+  const max = 18446744073709551615n; // 2^64 - 1
+  const target = 9_000_000_000_000_000_000n;
+  const limit = max - (max % target);
+  let value: bigint;
+  do {
+    value = crypto.randomBytes(8).readBigUInt64BE();
+  } while (value >= limit);
+  return `-${(value % target).toString()}`;
 }
 
 export function deriveAntigravitySessionId(accountKey?: string | null): string | null {
