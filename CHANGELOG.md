@@ -32,6 +32,7 @@
 - **feat(qdrant):** embedding model discovery (#2086)
 - **feat(auth):** per-session sticky routing for Codex (#1887)
 - **feat(inworld):** enhance Inworld TTS support (#2123)
+- **feat(kiro):** headless auth via kiro-cli SQLite, image support, tool overflow handling, and model list sync (#2129 — thanks @christlau)
 
 ### 🐛 Bug Fixes
 
@@ -81,6 +82,7 @@
 - **fix:** remove Anthropic-Beta header from non-Anthropic providers to fix identity contamination (#1989)
 - **fix(cli):** resolve .env loading failure for global npm installations
 - **fix(export):** exclude telemetry/usage-history tables from JSON config backups by default to prevent unbounded file growth (#2125)
+- **fix(translator):** preserve `body.system` in openai→claude translator when Claude Code sends native Anthropic system array through /chat/completions — fixes v3.7.9 regression where system prompt was silently dropped, triggering Anthropic 429 (#2130)
 - **fix:** Follow OpenAI specification, handle throttling in batch and fix UI (#2045)
 
 ### 🔒 Security
@@ -109,44 +111,45 @@
 
 Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
 
-| Contributor | PRs | Contributions |
-| :--- | :---: | :--- |
-| [@oyi77](https://github.com/oyi77) | 7 | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096 |
-| [@backryun](https://github.com/backryun) | 4 | #1992, #2033, #2088, #2123 |
-| [@dhaern](https://github.com/dhaern) | 4 | #2028, #2039, #2087, #2090 |
-| [@Tentoxa](https://github.com/Tentoxa) | 2 | #2011, #2053 |
-| [@wauputr4](https://github.com/wauputr4) | 2 | #2009, #2046 |
-| [@payne0420](https://github.com/payne0420) | 1 | #2082 |
-| [@Tr0sT](https://github.com/Tr0sT) | 1 | #2012 |
-| [@AveryanAlex](https://github.com/AveryanAlex) | 1 | #2008 |
-| [@nickwizard](https://github.com/nickwizard) | 1 | #1991 |
-| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) | 1 | #1996 |
-| [@NekoMonci12](https://github.com/NekoMonci12) | 1 | #1999 |
-| [@congvc-dev](https://github.com/congvc-dev) | 1 | #2004 |
-| [@tatsster](https://github.com/tatsster) | 1 | #2007 |
-| [@xssdem](https://github.com/xssdem) | 1 | #2023 |
-| [@bypanghu](https://github.com/bypanghu) | 1 | #2027 |
-| [@herjarsa](https://github.com/herjarsa) | 1 | #2030 |
-| [@wucm667](https://github.com/wucm667) | 1 | #2031 |
-| [@hartmark](https://github.com/hartmark) | 1 | #2045 |
-| [@ddarkr](https://github.com/ddarkr) | 1 | #2047 |
-| [@tces1](https://github.com/tces1) | 1 | #2048 |
-| [@guanbear](https://github.com/guanbear) | 1 | #2054 |
-| [@Gi99lin](https://github.com/Gi99lin) | 1 | #2055 |
-| [@ivan-mezentsev](https://github.com/ivan-mezentsev) | 1 | #2063 |
-| [@JxnLexn](https://github.com/JxnLexn) | 1 | #2019 |
-| [@yoviarpauzi](https://github.com/yoviarpauzi) | 1 | #2092 |
-| [@rafacpti23](https://github.com/rafacpti23) | 1 | #2086 |
-| [@gleber](https://github.com/gleber) | 1 | #2103 |
-| [@rilham97](https://github.com/rilham97) | 1 | #2104 |
-| [@Gioxaa](https://github.com/Gioxaa) | 1 | #2105 |
-| [@boa-z](https://github.com/boa-z) | 1 | #2115 |
-| [@eleata](https://github.com/eleata) | 1 | #2116 |
-| [@rdself](https://github.com/rdself) | 1 | #2118 |
-| [@clousky2020](https://github.com/clousky2020) | 1 | #2119 |
-| [@abhinavjnu](https://github.com/abhinavjnu) | 1 | #2122 |
-| [@HoaPham98](https://github.com/HoaPham98) | 1 | #2089 |
-| [@05dunski](https://github.com/05dunski) | 1 | #1978 (cherry-picked) |
+| Contributor                                                | PRs | Contributions                                                 |
+| :--------------------------------------------------------- | :-: | :------------------------------------------------------------ |
+| [@oyi77](https://github.com/oyi77)                         |  7  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096 |
+| [@backryun](https://github.com/backryun)                   |  4  | #1992, #2033, #2088, #2123                                    |
+| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                    |
+| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                  |
+| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                  |
+| [@payne0420](https://github.com/payne0420)                 |  1  | #2082                                                         |
+| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                         |
+| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                         |
+| [@nickwizard](https://github.com/nickwizard)               |  1  | #1991                                                         |
+| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                         |
+| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                         |
+| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                         |
+| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                         |
+| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                         |
+| [@bypanghu](https://github.com/bypanghu)                   |  1  | #2027                                                         |
+| [@herjarsa](https://github.com/herjarsa)                   |  1  | #2030                                                         |
+| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                         |
+| [@hartmark](https://github.com/hartmark)                   |  1  | #2045                                                         |
+| [@ddarkr](https://github.com/ddarkr)                       |  1  | #2047                                                         |
+| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                         |
+| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                         |
+| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                         |
+| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                         |
+| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                         |
+| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                         |
+| [@rafacpti23](https://github.com/rafacpti23)               |  1  | #2086                                                         |
+| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                         |
+| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                         |
+| [@Gioxaa](https://github.com/Gioxaa)                       |  1  | #2105                                                         |
+| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                         |
+| [@eleata](https://github.com/eleata)                       |  1  | #2116                                                         |
+| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                         |
+| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                         |
+| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                         |
+| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                         |
+| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                         |
+| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                         |
 
 ## [3.7.9] — 2026-05-03
 
