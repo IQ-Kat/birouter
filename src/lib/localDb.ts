@@ -13,6 +13,7 @@ export {
   createProviderConnection,
   updateProviderConnection,
   deleteProviderConnection,
+  deleteProviderConnections,
   deleteProviderConnectionsByProvider,
   reorderProviderConnections,
   cleanupProviderConnections,
