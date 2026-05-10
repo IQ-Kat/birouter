@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getApiKeys } from "@/lib/db/apiKeys";
 import { getDbInstance } from "@/lib/db/core";
 
@@ -87,7 +88,6 @@ function uniqueValues(values: Array<string | null | undefined>): string[] {
   return result;
 }
 
-
 function makeApiKeyUsageGroup(apiKeyId: string, fallbackName: string): string {
   return apiKeyId ? `id:${apiKeyId}` : `name:${fallbackName}`;
 }
@@ -97,7 +97,6 @@ function addApiKeyAlias(target: Set<string>, value: unknown): void {
   const trimmed = value.trim();
   if (trimmed) target.add(trimmed);
 }
-
 
 function stripCodexEffortSuffix(model: string): string {
   return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
@@ -263,6 +262,9 @@ function computeActivityStreak(activityMap: Record<string, number>): number {
 }
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
