@@ -1982,6 +1982,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "kimi-coding",
   "glm",
   "glm-cn",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",

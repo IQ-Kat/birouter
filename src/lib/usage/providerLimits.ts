@@ -47,6 +47,7 @@ interface ProviderConnectionLike {
 const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "glm",
   "glm-cn",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",
