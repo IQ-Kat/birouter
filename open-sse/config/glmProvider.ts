@@ -145,8 +145,9 @@ function asString(value: unknown): string | null {
 }
 
 function splitUrlQueryAndHash(url: string): { base: string; suffix: string } {
-  const match = url.match(/^([^?#]*)(.*)$/);
-  return { base: match?.[1] ?? url, suffix: match?.[2] ?? "" };
+  const idx = url.search(/[?#]/);
+  if (idx === -1) return { base: url, suffix: "" };
+  return { base: url.substring(0, idx), suffix: url.substring(idx) };
 }
 
 export function getGlmApiRegion(providerSpecificData: unknown): GlmApiRegion {
@@ -186,12 +187,21 @@ export function getGlmQuotaUrl(providerSpecificData: unknown): string {
 
 function stripKnownGlmEndpointSuffix(baseUrl: string): { base: string; suffix: string } {
   const parts = splitUrlQueryAndHash(baseUrl);
-  const base = parts.base
-    .replace(/\/+$/g, "")
-    .replace(/\/(?:v\d+\/)?messages\/count_tokens$/i, "")
-    .replace(/\/(?:v\d+\/)?messages$/i, "")
-    .replace(/\/chat\/completions$/i, "")
-    .replace(/\/models$/i, "");
+  let base = parts.base.replace(/\/+$/, "");
+
+  const countTokensMatch = base.match(/\/(?:v\d+\/)?messages\/count_tokens$/i);
+  if (countTokensMatch) {
+    base = base.substring(0, base.length - countTokensMatch[0].length);
+  } else {
+    const messagesMatch = base.match(/\/(?:v\d+\/)?messages$/i);
+    if (messagesMatch) {
+      base = base.substring(0, base.length - messagesMatch[0].length);
+    } else if (base.toLowerCase().endsWith("/chat/completions")) {
+      base = base.substring(0, base.length - "/chat/completions".length);
+    } else if (base.toLowerCase().endsWith("/models")) {
+      base = base.substring(0, base.length - "/models".length);
+    }
+  }
   return { base, suffix: parts.suffix };
 }
 
@@ -209,7 +219,7 @@ function joinGlmBaseAndPath(baseUrl: string, path: string): string {
 }
 
 function stripQueryAndTrailingSlash(baseUrl: string): string {
-  return splitUrlQueryAndHash(baseUrl).base.replace(/\/+$/g, "");
+  return splitUrlQueryAndHash(baseUrl).base.replace(/\/+$/, "");
 }
 
 function addBetaQuery(url: string): string {

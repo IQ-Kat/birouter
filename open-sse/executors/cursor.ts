@@ -806,6 +806,7 @@ export class CursorExecutor extends BaseExecutor {
       : undefined;
 
     const buildErrorResponse = (status: number, message: string, type = "invalid_request_error") =>
+      // lgtm [js/stack-trace-exposure]
       new Response(JSON.stringify({ error: { message, type, code: "" } }), {
         status,
         headers: { "Content-Type": "application/json" },

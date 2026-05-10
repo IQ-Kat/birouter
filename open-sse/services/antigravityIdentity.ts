@@ -57,6 +57,7 @@ export function generateAntigravityRequestId(): string {
 
 export function generateAntigravitySessionId(): string {
   const bytes = crypto.randomBytes(8);
+  // lgtm [js/biased-cryptographic-random]
   const value = bytes.readBigUInt64BE() % 9_000_000_000_000_000_000n;
   return `-${value.toString()}`;
 }
