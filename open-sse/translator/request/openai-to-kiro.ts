@@ -53,6 +53,7 @@ function convertMessages(messages, tools, model) {
   let pendingUserContent = [];
   let pendingAssistantContent = [];
   let pendingToolResults = [];
+  let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
 
   const flushPending = () => {
@@ -62,11 +63,13 @@ function convertMessages(messages, tools, model) {
         userInputMessage: {
           content: string;
           modelId: string;
+          images?: Array<{ format: string; source: { bytes: string } }>;
           userInputMessageContext?: {
             toolResults?: Array<Record<string, unknown>>;
             tools?: Array<Record<string, unknown>>;
           };
         };
+        _toolDocs?: string;
       } = {
         userInputMessage: {
           content: content,
@@ -80,17 +83,31 @@ function convertMessages(messages, tools, model) {
         };
       }
 
+      // Attach images to userInputMessage (NOT userInputMessageContext)
+      if (pendingImages.length > 0) {
+        userMsg.userInputMessage.images = pendingImages;
+      }
+
       // Add tools to first user message
       if (tools && tools.length > 0 && history.length === 0) {
         if (!userMsg.userInputMessage.userInputMessageContext) {
           userMsg.userInputMessage.userInputMessageContext = {};
         }
+        // Kiro API rejects requests with tool descriptions > ~10000 chars.
+        // Move long descriptions to system prompt (same approach as kiro-gateway).
+        const TOOL_DESC_MAX = 10000;
+        const toolDocs: string[] = [];
         userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
           const name = t.function?.name || t.name;
           let description = t.function?.description || t.description || "";
 
           if (!description.trim()) {
             description = `Tool: ${name}`;
+          }
+
+          if (description.length > TOOL_DESC_MAX) {
+            toolDocs.push(`## Tool: ${name}\n\n${description}`);
+            description = `[Full documentation in system prompt under '## Tool: ${name}']`;
           }
 
           return {
@@ -105,12 +122,17 @@ function convertMessages(messages, tools, model) {
             },
           };
         });
+        // Attach tool docs to message so buildKiroPayload can prepend to content
+        if (toolDocs.length > 0) {
+          userMsg._toolDocs = toolDocs.join("\n\n---\n\n");
+        }
       }
 
       history.push(userMsg);
       currentMessage = userMsg;
       pendingUserContent = [];
       pendingToolResults = [];
+      pendingImages = [];
     } else if (currentRole === "assistant") {
       const content = pendingAssistantContent.join("\n\n").trim() || "...";
       const assistantMsg = {
@@ -148,6 +170,24 @@ function convertMessages(messages, tools, model) {
           .filter((c) => c.type === "text" || c.text)
           .map((c) => c.text || "");
         content = textParts.join("\n");
+
+        // Extract images (OpenAI image_url and Anthropic image formats)
+        for (const block of msg.content) {
+          if (block.type === "image_url") {
+            const url: string = block.image_url?.url || "";
+            if (url.startsWith("data:")) {
+              // data:image/jpeg;base64,<data>
+              const [header, bytes] = url.split(",", 2);
+              const mediaType = header.split(";")[0].replace("data:", ""); // e.g. "image/jpeg"
+              const format = mediaType.split("/")[1] || "jpeg";
+              if (bytes) pendingImages.push({ format, source: { bytes } });
+            }
+          } else if (block.type === "image" && block.source?.type === "base64") {
+            const format = (block.source.media_type || "image/jpeg").split("/")[1] || "jpeg";
+            if (block.source.data)
+              pendingImages.push({ format, source: { bytes: block.source.data } });
+          }
+        }
 
         // Check for tool_result blocks
         const toolResultBlocks = msg.content.filter((c) => c.type === "tool_result");
@@ -338,19 +378,31 @@ function convertMessages(messages, tools, model) {
  * Build Kiro payload from OpenAI format
  */
 export function buildKiroPayload(model, body, stream, credentials) {
+  // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
+  // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
+  const normalizedModel = model.replace(
+    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d+)$/,
+    "$1.$2"
+  );
   const messages = body.messages || [];
   const tools = body.tools || [];
   const maxTokens = body.max_tokens ?? body.max_completion_tokens ?? 32000;
   const temperature = body.temperature;
   const topP = body.top_p;
 
-  const { history, currentMessage } = convertMessages(messages, tools, model);
+  const { history, currentMessage } = convertMessages(messages, tools, normalizedModel);
 
   const profileArn = credentials?.providerSpecificData?.profileArn || "";
 
   let finalContent = currentMessage?.userInputMessage?.content || "";
   const timestamp = new Date().toISOString();
   finalContent = `[Context: Current time is ${timestamp}]\n\n${finalContent}`;
+
+  // Prepend tool documentation for tools with long descriptions (moved from toolSpecification)
+  const toolDocs = (currentMessage as { _toolDocs?: string } | null)?._toolDocs;
+  if (toolDocs) {
+    finalContent = `# Tool Documentation\n\n${toolDocs}\n\n---\n\n${finalContent}`;
+  }
 
   const payload: {
     conversationState: {
@@ -361,6 +413,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
           content: string;
           modelId: string;
           origin: string;
+          images?: Array<{ format: string; source: { bytes: string } }>;
           userInputMessageContext?: Record<string, unknown>;
         };
       };
@@ -379,8 +432,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
       currentMessage: {
         userInputMessage: {
           content: finalContent,
-          modelId: model,
+          modelId: normalizedModel,
           origin: "AI_EDITOR",
+          ...(currentMessage?.userInputMessage?.images?.length && {
+            images: currentMessage.userInputMessage.images,
+          }),
           ...(currentMessage?.userInputMessage?.userInputMessageContext && {
             userInputMessageContext: currentMessage.userInputMessage.userInputMessageContext,
           }),
