@@ -1,5 +1,7 @@
 // Gemini helper functions for translator
 
+type JsonRecord = Record<string, unknown>;
+
 // Unsupported JSON Schema constraints that should be removed for Antigravity.
 // `additionalProperties` is handled separately so `true` can be preserved.
 export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
@@ -89,19 +91,20 @@ export const DEFAULT_SAFETY_SETTINGS = [
 ];
 
 // Convert OpenAI content to Gemini parts
-export function convertOpenAIContentToParts(content: any) {
-  const parts: any[] = [];
+export function convertOpenAIContentToParts(content: unknown) {
+  const parts: Array<Record<string, unknown>> = [];
 
   if (typeof content === "string") {
     parts.push({ text: content });
   } else if (Array.isArray(content)) {
-    for (const item of content) {
+    for (const rawItem of content) {
+      const item = toRecord(rawItem);
       if (item.type === "text") {
         parts.push({ text: item.text });
       } else {
         // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
-        const geminiInline = item.inline_data || item.inlineData;
-        if (geminiInline?.data) {
+        const geminiInline = toRecord(item.inline_data || item.inlineData);
+        if (typeof geminiInline.data === "string") {
           parts.push({
             inlineData: {
               mimeType: geminiInline.mime_type || geminiInline.mimeType || "application/pdf",
@@ -112,23 +115,26 @@ export function convertOpenAIContentToParts(content: any) {
         }
 
         // 2. Handle Claude-style source blocks commonly used by AI clients
-        if (item.source?.type === "base64" && item.source?.data) {
+        const source = toRecord(item.source);
+        if (source.type === "base64" && typeof source.data === "string") {
           parts.push({
             inlineData: {
-              mimeType: item.source.media_type || "application/pdf",
-              data: item.source.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+              mimeType: source.media_type || "application/pdf",
+              data: source.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
             },
           });
           continue;
         }
 
         // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."})
-        const rawDataStr = item.data || item.file?.data || item.document?.data;
+        const file = toRecord(item.file);
+        const document = toRecord(item.document);
+        const rawDataStr = item.data || file.data || document.data;
         const mimeTypeFallback =
           item.mime_type ||
           item.media_type ||
-          item.file?.mime_type ||
-          item.document?.mime_type ||
+          file.mime_type ||
+          document.mime_type ||
           "application/octet-stream";
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
@@ -142,8 +148,9 @@ export function convertOpenAIContentToParts(content: any) {
         }
 
         // 4. Standard OpenAI Data URIs
-        const fileData =
-          item.image_url?.url || item.file_url?.url || item.file?.url || item.document?.url;
+        const imageUrl = toRecord(item.image_url);
+        const fileUrl = toRecord(item.file_url);
+        const fileData = imageUrl.url || fileUrl.url || file.url || document.url;
         if (typeof fileData === "string" && fileData.startsWith("data:")) {
           const commaIndex = fileData.indexOf(",");
           if (commaIndex !== -1) {
@@ -164,19 +171,20 @@ export function convertOpenAIContentToParts(content: any) {
 }
 
 // Extract text content from OpenAI content
-export function extractTextContent(content) {
+export function extractTextContent(content: unknown): string {
   if (typeof content === "string") return content;
   if (Array.isArray(content)) {
     return content
+      .map((c) => toRecord(c))
       .filter((c) => c.type === "text")
-      .map((c) => c.text)
+      .map((c) => (typeof c.text === "string" ? c.text : ""))
       .join("");
   }
   return "";
 }
 
 // Try parse JSON safely
-export function tryParseJSON(str) {
+export function tryParseJSON(str: unknown): unknown {
   if (typeof str !== "string") return str;
   try {
     return JSON.parse(str);
@@ -198,9 +206,9 @@ export function generateSessionId() {
   return `-${num.toString()}`;
 }
 
-function cloneSchemaValue(value) {
+function cloneSchemaValue(value: unknown): unknown {
   if (Array.isArray(value)) {
-    return value.map((item) => cloneSchemaValue(item));
+    return value.map((item: unknown) => cloneSchemaValue(item));
   }
   if (value && typeof value === "object") {
     return Object.fromEntries(
@@ -210,18 +218,18 @@ function cloneSchemaValue(value) {
   return value;
 }
 
-function toRecord(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+function toRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-function decodeJsonPointerSegment(segment) {
+function decodeJsonPointerSegment(segment: string): string {
   return String(segment).replace(/~1/g, "/").replace(/~0/g, "~");
 }
 
-function resolveLocalReference(root, ref) {
+function resolveLocalReference(root: unknown, ref: unknown): unknown {
   if (typeof ref !== "string" || !ref.startsWith("#/")) return null;
 
-  let current = root;
+  let current: unknown = root;
   const segments = ref
     .slice(2)
     .split("/")
@@ -229,25 +237,30 @@ function resolveLocalReference(root, ref) {
     .map((segment) => decodeJsonPointerSegment(segment));
 
   for (const segment of segments) {
-    if (!current || typeof current !== "object" || !(segment in current)) {
+    const currentRecord = toRecord(current);
+    if (Object.keys(currentRecord).length === 0 || !(segment in currentRecord)) {
       return null;
     }
-    current = current[segment];
+    current = currentRecord[segment];
   }
 
   return current;
 }
 
-function inlineLocalSchemaRefs(node, root, activeRefs = new Set()) {
+function inlineLocalSchemaRefs(
+  node: unknown,
+  root: unknown,
+  activeRefs: Set<string> = new Set()
+): unknown {
   if (Array.isArray(node)) {
-    return node.map((item) => inlineLocalSchemaRefs(item, root, activeRefs));
+    return node.map((item: unknown) => inlineLocalSchemaRefs(item, root, activeRefs));
   }
 
   if (!node || typeof node !== "object") {
     return node;
   }
 
-  const record = { ...node };
+  const record = { ...toRecord(node) };
   const ref = typeof record.$ref === "string" ? record.$ref : "";
   if (ref.startsWith("#/$defs/") || ref.startsWith("#/definitions/")) {
     const rest = { ...record };
@@ -280,7 +293,7 @@ function inlineLocalSchemaRefs(node, root, activeRefs = new Set()) {
 }
 
 // Helper: Remove unsupported keywords recursively from object/array
-function removeUnsupportedKeywords(obj, keywords) {
+function removeUnsupportedKeywords(obj: unknown, keywords: Set<string>) {
   if (!obj || typeof obj !== "object") return;
 
   if (Array.isArray(obj)) {
@@ -288,14 +301,15 @@ function removeUnsupportedKeywords(obj, keywords) {
       removeUnsupportedKeywords(item, keywords);
     }
   } else {
+    const record = obj as JsonRecord;
     // Delete unsupported keys at current level
-    for (const key of Object.keys(obj)) {
+    for (const key of Object.keys(record)) {
       if (keywords.has(key) || key.startsWith("x-")) {
-        delete obj[key];
+        delete record[key];
       }
     }
     // Recurse into remaining values
-    for (const value of Object.values(obj)) {
+    for (const value of Object.values(record)) {
       if (value && typeof value === "object") {
         removeUnsupportedKeywords(value, keywords);
       }
@@ -303,7 +317,7 @@ function removeUnsupportedKeywords(obj, keywords) {
   }
 }
 
-function normalizeAdditionalProperties(obj) {
+function normalizeAdditionalProperties(obj: unknown) {
   if (!obj || typeof obj !== "object") return;
 
   if (Array.isArray(obj)) {
@@ -316,11 +330,12 @@ function normalizeAdditionalProperties(obj) {
   // Gemini API does not support `additionalProperties` at all in function_declarations
   // schemas (returns 400 "Unknown name"). Since Gemini defaults to allowing additional
   // properties anyway, stripping it unconditionally is safe and prevents errors (#1421).
-  if ("additionalProperties" in obj) {
-    delete obj.additionalProperties;
+  const record = obj as JsonRecord;
+  if ("additionalProperties" in record) {
+    delete record.additionalProperties;
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(record)) {
     if (value && typeof value === "object") {
       normalizeAdditionalProperties(value);
     }
@@ -328,15 +343,16 @@ function normalizeAdditionalProperties(obj) {
 }
 
 // Convert const to enum
-function convertConstToEnum(obj) {
+function convertConstToEnum(obj: unknown) {
   if (!obj || typeof obj !== "object") return;
 
-  if (obj.const !== undefined && !obj.enum) {
-    obj.enum = [obj.const];
-    delete obj.const;
+  const record = obj as JsonRecord;
+  if (record.const !== undefined && !record.enum) {
+    record.enum = [record.const];
+    delete record.const;
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(record)) {
     if (value && typeof value === "object") {
       convertConstToEnum(value);
     }
@@ -345,22 +361,23 @@ function convertConstToEnum(obj) {
 
 // Convert enum values to strings (Gemini requires string enum values)
 // For integer types, remove enum entirely as Gemini doesn't support it
-function convertEnumValuesToStrings(obj) {
+function convertEnumValuesToStrings(obj: unknown) {
   if (!obj || typeof obj !== "object") return;
 
-  if (obj.enum && Array.isArray(obj.enum)) {
+  const record = obj as JsonRecord;
+  if (record.enum && Array.isArray(record.enum)) {
     // Gemini only supports enum for string types, not integer
-    if (obj.type === "integer" || obj.type === "number") {
-      delete obj.enum;
+    if (record.type === "integer" || record.type === "number") {
+      delete record.enum;
     } else {
-      obj.enum = obj.enum.map((v) => String(v));
-      if (!obj.type) {
-        obj.type = "string";
+      record.enum = record.enum.map((v: unknown) => String(v));
+      if (!record.type) {
+        record.type = "string";
       }
     }
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(record)) {
     if (value && typeof value === "object") {
       convertEnumValuesToStrings(value);
     }
@@ -368,20 +385,24 @@ function convertEnumValuesToStrings(obj) {
 }
 
 // Merge allOf schemas
-function mergeAllOf(obj) {
+function mergeAllOf(obj: unknown) {
   if (!obj || typeof obj !== "object") return;
 
-  if (obj.allOf && Array.isArray(obj.allOf)) {
+  const record = obj as JsonRecord;
+  if (record.allOf && Array.isArray(record.allOf)) {
     const merged: { properties?: Record<string, unknown>; required?: string[] } = {};
 
-    for (const item of obj.allOf) {
+    for (const itemValue of record.allOf) {
+      const item = toRecord(itemValue);
       if (item.properties) {
         if (!merged.properties) merged.properties = {};
-        Object.assign(merged.properties, item.properties);
+        Object.assign(merged.properties, toRecord(item.properties));
       }
       if (item.required && Array.isArray(item.required)) {
         if (!merged.required) merged.required = [];
-        for (const req of item.required) {
+        for (const req of item.required.filter(
+          (value: unknown): value is string => typeof value === "string"
+        )) {
           if (!merged.required.includes(req)) {
             merged.required.push(req);
           }
@@ -389,12 +410,18 @@ function mergeAllOf(obj) {
       }
     }
 
-    delete obj.allOf;
-    if (merged.properties) obj.properties = { ...obj.properties, ...merged.properties };
-    if (merged.required) obj.required = [...(obj.required || []), ...merged.required];
+    delete record.allOf;
+    if (merged.properties)
+      record.properties = { ...toRecord(record.properties), ...merged.properties };
+    if (merged.required) {
+      const existingRequired = Array.isArray(record.required)
+        ? record.required.filter((value: unknown): value is string => typeof value === "string")
+        : [];
+      record.required = [...existingRequired, ...merged.required];
+    }
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(record)) {
     if (value && typeof value === "object") {
       mergeAllOf(value);
     }
@@ -402,12 +429,12 @@ function mergeAllOf(obj) {
 }
 
 // Select best schema from anyOf/oneOf
-function selectBest(items) {
+function selectBest(items: unknown[]): number {
   let bestIdx = 0;
   let bestScore = -1;
 
   for (let i = 0; i < items.length; i++) {
-    const item = items[i];
+    const item = toRecord(items[i]);
     let score = 0;
     const type = item.type;
 
@@ -429,30 +456,31 @@ function selectBest(items) {
 }
 
 // Flatten anyOf/oneOf
-function flattenAnyOfOneOf(obj) {
+function flattenAnyOfOneOf(obj: unknown) {
   if (!obj || typeof obj !== "object") return;
 
-  if (obj.anyOf && Array.isArray(obj.anyOf) && obj.anyOf.length > 0) {
-    const nonNullSchemas = obj.anyOf.filter((s) => s && s.type !== "null");
+  const record = obj as JsonRecord;
+  if (record.anyOf && Array.isArray(record.anyOf) && record.anyOf.length > 0) {
+    const nonNullSchemas = record.anyOf.filter((s: unknown) => toRecord(s).type !== "null");
     if (nonNullSchemas.length > 0) {
       const bestIdx = selectBest(nonNullSchemas);
       const selected = nonNullSchemas[bestIdx];
-      delete obj.anyOf;
-      Object.assign(obj, selected);
+      delete record.anyOf;
+      Object.assign(record, toRecord(selected));
     }
   }
 
-  if (obj.oneOf && Array.isArray(obj.oneOf) && obj.oneOf.length > 0) {
-    const nonNullSchemas = obj.oneOf.filter((s) => s && s.type !== "null");
+  if (record.oneOf && Array.isArray(record.oneOf) && record.oneOf.length > 0) {
+    const nonNullSchemas = record.oneOf.filter((s: unknown) => toRecord(s).type !== "null");
     if (nonNullSchemas.length > 0) {
       const bestIdx = selectBest(nonNullSchemas);
       const selected = nonNullSchemas[bestIdx];
-      delete obj.oneOf;
-      Object.assign(obj, selected);
+      delete record.oneOf;
+      Object.assign(record, toRecord(selected));
     }
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(record)) {
     if (value && typeof value === "object") {
       flattenAnyOfOneOf(value);
     }
@@ -460,15 +488,16 @@ function flattenAnyOfOneOf(obj) {
 }
 
 // Flatten type arrays
-function flattenTypeArrays(obj) {
+function flattenTypeArrays(obj: unknown) {
   if (!obj || typeof obj !== "object") return;
 
-  if (obj.type && Array.isArray(obj.type)) {
-    const nonNullTypes = obj.type.filter((t) => t !== "null");
-    obj.type = nonNullTypes.length > 0 ? nonNullTypes[0] : "string";
+  const record = obj as JsonRecord;
+  if (record.type && Array.isArray(record.type)) {
+    const nonNullTypes = record.type.filter((t: unknown) => t !== "null");
+    record.type = nonNullTypes.length > 0 ? nonNullTypes[0] : "string";
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(record)) {
     if (value && typeof value === "object") {
       flattenTypeArrays(value);
     }
@@ -477,7 +506,7 @@ function flattenTypeArrays(obj) {
 
 // Clean JSON Schema for Antigravity API compatibility - removes unsupported keywords recursively
 // Reference: CLIProxyAPI/internal/util/gemini_schema.go
-export function cleanJSONSchemaForAntigravity(schema) {
+export function cleanJSONSchemaForAntigravity(schema: unknown): unknown {
   if (!schema || typeof schema !== "object") return schema;
 
   const root = cloneSchemaValue(schema);
@@ -499,22 +528,25 @@ export function cleanJSONSchemaForAntigravity(schema) {
   removeUnsupportedKeywords(cleaned, GEMINI_UNSUPPORTED_SCHEMA_KEYS);
 
   // Phase 5: Cleanup required fields recursively.
-  function cleanupRequired(obj) {
+  function cleanupRequired(obj: unknown) {
     if (!obj || typeof obj !== "object") return;
 
-    if (obj.required && Array.isArray(obj.required) && obj.properties) {
-      const validRequired = obj.required.filter((field) =>
-        Object.prototype.hasOwnProperty.call(obj.properties, field)
+    const record = obj as JsonRecord;
+    if (record.required && Array.isArray(record.required) && record.properties) {
+      const properties = toRecord(record.properties);
+      const validRequired = record.required.filter(
+        (field: unknown): field is string =>
+          typeof field === "string" && Object.prototype.hasOwnProperty.call(properties, field)
       );
       if (validRequired.length === 0) {
-        delete obj.required;
+        delete record.required;
       } else {
-        obj.required = validRequired;
+        record.required = validRequired;
       }
     }
 
     // Recurse into nested objects
-    for (const value of Object.values(obj)) {
+    for (const value of Object.values(record)) {
       if (value && typeof value === "object") {
         cleanupRequired(value);
       }
@@ -524,23 +556,24 @@ export function cleanJSONSchemaForAntigravity(schema) {
   cleanupRequired(cleaned);
 
   // Phase 6: Add placeholder for empty object schemas (Antigravity requirement).
-  function addPlaceholders(obj) {
+  function addPlaceholders(obj: unknown) {
     if (!obj || typeof obj !== "object") return;
 
-    if (obj.type === "object") {
-      if (!obj.properties || Object.keys(obj.properties).length === 0) {
-        obj.properties = {
+    const record = obj as JsonRecord;
+    if (record.type === "object") {
+      if (!record.properties || Object.keys(toRecord(record.properties)).length === 0) {
+        record.properties = {
           reason: {
             type: "string",
             description: "Brief explanation of why you are calling this tool",
           },
         };
-        obj.required = ["reason"];
+        record.required = ["reason"];
       }
     }
 
     // Recurse into nested objects
-    for (const value of Object.values(obj)) {
+    for (const value of Object.values(record)) {
       if (value && typeof value === "object") {
         addPlaceholders(value);
       }

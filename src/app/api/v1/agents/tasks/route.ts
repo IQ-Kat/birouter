@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractApiKey } from "@/sse/services/auth";
 import { getAgent } from "@/lib/cloudAgent/registry";
 import {
+  createCloudAgentTaskTable,
   insertCloudAgentTask,
-  getCloudAgentTaskById,
   getAllCloudAgentTasks,
   getCloudAgentTasksByProvider,
   getCloudAgentTasksByStatus,
-  updateCloudAgentTask,
   deleteCloudAgentTask,
 } from "@/lib/cloudAgent/db";
 import { CreateCloudAgentTaskSchema } from "@/lib/cloudAgent/types";
-import { CLOUD_AGENT_PROVIDERS } from "@/shared/constants/providers";
-import { z } from "zod";
 import pino from "pino";
 
 const logger = pino({ name: "cloud-agents-api" });
@@ -25,12 +22,32 @@ function getCorsHeaders() {
   };
 }
 
+function apiKeyRequiredResponse() {
+  return NextResponse.json(
+    { error: "API key required" },
+    { status: 401, headers: getCorsHeaders() }
+  );
+}
+
+function getRequiredApiKey(request: NextRequest) {
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
+    return { apiKey: null, response: apiKeyRequiredResponse() };
+  }
+  return { apiKey, response: null };
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, { headers: getCorsHeaders() });
 }
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = getRequiredApiKey(request);
+    if (auth.response) return auth.response;
+
+    createCloudAgentTaskTable();
+
     const { searchParams } = new URL(request.url);
     const providerId = searchParams.get("provider");
     const status = searchParams.get("status");
@@ -75,16 +92,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const validated = CreateCloudAgentTaskSchema.parse(body);
+    const auth = getRequiredApiKey(request);
+    if (auth.response) return auth.response;
 
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
+    const body = await request.json();
+    const validation = CreateCloudAgentTaskSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "API key required" },
-        { status: 401, headers: getCorsHeaders() }
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400, headers: getCorsHeaders() }
       );
     }
+
+    const validated = validation.data;
 
     const agent = getAgent(validated.providerId);
     if (!agent) {
@@ -100,9 +120,10 @@ export async function POST(request: NextRequest) {
         source: validated.source,
         options: validated.options || {},
       },
-      { apiKey }
+      { apiKey: auth.apiKey }
     );
 
+    createCloudAgentTaskTable();
     insertCloudAgentTask({
       id: task.id,
       provider_id: task.providerId,
@@ -135,12 +156,6 @@ export async function POST(request: NextRequest) {
       { status: 201, headers: getCorsHeaders() }
     );
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation failed", details: error.errors },
-        { status: 400, headers: getCorsHeaders() }
-      );
-    }
     logger.error({ err: error }, "Failed to create cloud agent task");
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
@@ -151,6 +166,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = getRequiredApiKey(request);
+    if (auth.response) return auth.response;
+
+    createCloudAgentTaskTable();
+
     const { searchParams } = new URL(request.url);
     const taskId = searchParams.get("id");
 

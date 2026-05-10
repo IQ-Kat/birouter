@@ -272,7 +272,10 @@ export async function getPricingWithSources(): Promise<{
 export async function getPricingForModel(provider: string, model: string) {
   const pricing = await getPricing();
 
-  const findKeyInsensitive = (obj: Record<string, any> | undefined | null, key: string) => {
+  const findKeyInsensitive = <T>(
+    obj: Record<string, T> | undefined | null,
+    key: string
+  ): T | undefined => {
     if (!obj || !key) return undefined;
     const lowerKey = key.toLowerCase();
     for (const [k, v] of Object.entries(obj)) {
@@ -282,10 +285,10 @@ export async function getPricingForModel(provider: string, model: string) {
   };
 
   const pLower = (provider || "").toLowerCase();
-  let providerPricing = findKeyInsensitive(pricing, pLower);
+  let providerPricing = findKeyInsensitive<PricingModels>(pricing, pLower);
 
   if (!providerPricing) {
-    const alias = findKeyInsensitive(PROVIDER_ID_TO_ALIAS, pLower);
+    const alias = findKeyInsensitive<string>(PROVIDER_ID_TO_ALIAS, pLower);
     if (alias) providerPricing = findKeyInsensitive(pricing, alias);
   }
 
@@ -308,7 +311,7 @@ export async function getPricingForModel(provider: string, model: string) {
   if (!providerPricing) return null;
 
   const mLower = (model || "").toLowerCase();
-  let modelPricing = findKeyInsensitive(providerPricing, mLower);
+  let modelPricing = findKeyInsensitive<JsonRecord>(providerPricing, mLower);
 
   if (!modelPricing) {
     const hyphenModel = mLower.replace(/\./g, "-");

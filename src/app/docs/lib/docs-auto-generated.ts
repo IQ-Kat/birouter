@@ -296,7 +296,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "AUTO-COMBO.md",
     section: "Features",
     content:
-      "Self-managing model chains with adaptive scoring + zero-config auto-routing NEW: No combo creation required. Use auto/ prefix directly in any client. Model ID Variant Behavior ------------------ --------- ------------------------------------------------------------------------ auto default All conne",
+      "Self-managing model chains with adaptive scoring + zero-config auto-routing NEW: No combo creation required. Use auto/ prefix directly in any client. Model ID Variant Behavior -------------- ------- ------------------------------------------------------------------------ auto default All connected p",
     headings: [
       "Zero-Config Auto-Routing (auto/ prefix)",
       "Quick Examples",

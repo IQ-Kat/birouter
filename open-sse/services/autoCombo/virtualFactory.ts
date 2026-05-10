@@ -5,7 +5,9 @@ import { AutoVariant } from "./autoPrefix";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
-import { log } from "@omniroute/open-sse/utils/logger";
+import { createLogger } from "@omniroute/open-sse/utils/logger";
+
+const log = createLogger();
 
 /** Minimal connection shape needed for virtual auto-combo factory */
 interface VirtualFactoryConn extends ConnectionFields {

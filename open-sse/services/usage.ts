@@ -100,6 +100,15 @@ const MINIMAX_USAGE_CONFIG = {
 } as const;
 
 type JsonRecord = Record<string, unknown>;
+type ProviderUsageConnection = {
+  id?: string;
+  provider?: string;
+  accessToken?: string | null;
+  apiKey?: string | null;
+  providerSpecificData?: JsonRecord | null;
+  projectId?: string | null;
+  email?: string | null;
+};
 type UsageQuota = {
   used: number;
   total: number;
@@ -644,10 +653,13 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
         resetAt,
         displayName: getGlmQuotaDisplayName(quotaName),
         details: Array.isArray(src.models)
-          ? src.models.map((m: any) => ({
-              name: String(m.model || ""),
-              used: toNumber(m.percentage, 0),
-            }))
+          ? src.models.map((model) => {
+              const modelRecord = toRecord(model);
+              return {
+                name: String(modelRecord.model || ""),
+                used: toNumber(modelRecord.percentage, 0),
+              };
+            })
           : [],
         unlimited: false,
       };
@@ -1002,7 +1014,10 @@ async function getCursorUsage(accessToken: string, providerSpecificData?: unknow
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
  */
-export async function getUsageForProvider(connection, options: { forceRefresh?: boolean } = {}) {
+export async function getUsageForProvider(
+  connection: ProviderUsageConnection,
+  options: { forceRefresh?: boolean } = {}
+) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
 
   switch (provider) {
@@ -1015,9 +1030,9 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
-      return await getCodexUsage(accessToken, providerSpecificData);
+      return await getCodexUsage(accessToken, providerSpecificData || {});
     case "cursor":
-      return await getCursorUsage(accessToken, providerSpecificData);
+      return await getCursorUsage(accessToken || "", providerSpecificData);
     case "kiro":
     case "amazon-q":
       return await getKiroUsage(accessToken, providerSpecificData);
@@ -1031,21 +1046,25 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
     case "glm-cn":
     case "zai":
     case "glmt":
-      return await getGlmUsage(apiKey, {
+      return await getGlmUsage(apiKey || "", {
         ...(providerSpecificData || {}),
         ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
       });
     case "minimax":
     case "minimax-cn":
-      return await getMiniMaxUsage(apiKey, provider);
+      return await getMiniMaxUsage(apiKey || "", provider);
     case "crof":
-      return await getCrofUsage(apiKey);
+      return await getCrofUsage(apiKey || "");
     case "bailian-coding-plan":
-      return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
+      return await getBailianCodingPlanUsage(
+        id || "",
+        apiKey || "",
+        providerSpecificData || undefined
+      );
     case "nanogpt":
-      return await getNanoGptUsage(apiKey);
+      return await getNanoGptUsage(apiKey || "");
     case "deepseek":
-      return await getDeepseekUsage(id, apiKey);
+      return await getDeepseekUsage(id || "", apiKey || "");
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1055,7 +1074,7 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
  * Parse reset date/time to ISO string
  * Handles multiple formats: Unix timestamp (ms), ISO date string, etc.
  */
-function parseResetTime(resetValue) {
+function parseResetTime(resetValue: unknown): string | null {
   if (!resetValue) return null;
 
   try {
@@ -1083,7 +1102,10 @@ function parseResetTime(resetValue) {
  * GitHub Copilot Usage
  * Uses GitHub accessToken (not copilotToken) to call copilot_internal/user API
  */
-async function getGitHubUsage(accessToken, providerSpecificData) {
+async function getGitHubUsage(
+  accessToken?: string | null,
+  providerSpecificData: JsonRecord | null = null
+) {
   try {
     if (!accessToken) {
       throw new Error("No GitHub access token available. Please re-authorize the connection.");
@@ -1179,7 +1201,10 @@ async function getGitHubUsage(accessToken, providerSpecificData) {
   }
 }
 
-function formatGitHubQuotaSnapshot(quota, resetAt: string | null = null): UsageQuota | null {
+function formatGitHubQuotaSnapshot(
+  quota: unknown,
+  resetAt: string | null = null
+): UsageQuota | null {
   const source = toRecord(quota);
   if (Object.keys(source).length === 0) return null;
 
@@ -1275,7 +1300,7 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
 // ── Gemini CLI subscription info cache ──────────────────────────────────────
 // Prevents duplicate loadCodeAssist calls within the same quota cycle.
 // Key: accessToken → { data, fetchedAt }
-const _geminiCliSubCache = new Map();
+const _geminiCliSubCache = new Map<string, { data: unknown; fetchedAt: number }>();
 const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -1283,17 +1308,22 @@ const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
  * so this follows the same pattern as getAntigravityUsage().
  */
-async function getGeminiUsage(accessToken, providerSpecificData?, connectionProjectId?) {
+async function getGeminiUsage(
+  accessToken?: string | null,
+  providerSpecificData: JsonRecord | null = null,
+  connectionProjectId?: string | null
+) {
   if (!accessToken) {
     return { plan: "Free", message: "Gemini CLI access token not available." };
   }
 
   try {
     const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
+    const subscriptionRecord = toRecord(subscriptionInfo);
     const projectId =
       connectionProjectId ||
       providerSpecificData?.projectId ||
-      subscriptionInfo?.cloudaicompanionProject ||
+      subscriptionRecord.cloudaicompanionProject ||
       null;
 
     const plan = getGeminiCliPlanLabel(subscriptionInfo);
@@ -1354,7 +1384,7 @@ async function getGeminiUsage(accessToken, providerSpecificData?, connectionProj
 /**
  * Get Gemini CLI subscription info (cached, 5 min TTL)
  */
-async function getGeminiCliSubscriptionInfoCached(accessToken) {
+async function getGeminiCliSubscriptionInfoCached(accessToken: string) {
   const cacheKey = accessToken;
   const cached = _geminiCliSubCache.get(cacheKey);
 
@@ -1370,7 +1400,7 @@ async function getGeminiCliSubscriptionInfoCached(accessToken) {
 /**
  * Get Gemini CLI subscription info using correct headers.
  */
-async function getGeminiCliSubscriptionInfo(accessToken) {
+async function getGeminiCliSubscriptionInfo(accessToken: string): Promise<unknown> {
   try {
     const response = await fetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
       method: "POST",
@@ -1398,13 +1428,15 @@ async function getGeminiCliSubscriptionInfo(accessToken) {
 /**
  * Map Gemini CLI subscription tier to display label (same tiers as Antigravity).
  */
-function getGeminiCliPlanLabel(subscriptionInfo) {
-  if (!subscriptionInfo || Object.keys(subscriptionInfo).length === 0) return "Free";
+function getGeminiCliPlanLabel(subscriptionInfo: unknown) {
+  const subscription = toRecord(subscriptionInfo);
+  if (Object.keys(subscription).length === 0) return "Free";
 
   let tierId = "";
-  if (Array.isArray(subscriptionInfo.allowedTiers)) {
-    for (const tier of subscriptionInfo.allowedTiers) {
-      if (tier.isDefault && tier.id) {
+  if (Array.isArray(subscription.allowedTiers)) {
+    for (const tierValue of subscription.allowedTiers) {
+      const tier = toRecord(tierValue);
+      if (tier.isDefault && typeof tier.id === "string") {
         tierId = tier.id.trim().toUpperCase();
         break;
       }
@@ -1412,7 +1444,8 @@ function getGeminiCliPlanLabel(subscriptionInfo) {
   }
 
   if (!tierId) {
-    tierId = (subscriptionInfo.currentTier?.id || "").toUpperCase();
+    const currentTier = toRecord(subscription.currentTier);
+    tierId = typeof currentTier.id === "string" ? currentTier.id.toUpperCase() : "";
   }
 
   if (tierId) {
@@ -1425,12 +1458,13 @@ function getGeminiCliPlanLabel(subscriptionInfo) {
   }
 
   const tierName =
-    subscriptionInfo.currentTier?.name ||
-    subscriptionInfo.currentTier?.displayName ||
-    subscriptionInfo.subscriptionType ||
-    subscriptionInfo.tier ||
+    toRecord(subscription.currentTier).name ||
+    toRecord(subscription.currentTier).displayName ||
+    subscription.subscriptionType ||
+    subscription.tier ||
     "";
-  const upper = tierName.toUpperCase();
+  const tierNameString = typeof tierName === "string" ? tierName : "";
+  const upper = tierNameString.toUpperCase();
 
   if (upper.includes("ULTRA")) return "Ultra";
   if (upper.includes("PRO")) return "Pro";
@@ -1438,9 +1472,9 @@ function getGeminiCliPlanLabel(subscriptionInfo) {
   if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
   if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
 
-  if (subscriptionInfo.currentTier?.upgradeSubscriptionType) return "Free";
-  if (tierName) {
-    return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
+  if (toRecord(subscription.currentTier).upgradeSubscriptionType) return "Free";
+  if (tierNameString) {
+    return tierNameString.charAt(0).toUpperCase() + tierNameString.slice(1).toLowerCase();
   }
 
   return "Free";
@@ -1449,7 +1483,7 @@ function getGeminiCliPlanLabel(subscriptionInfo) {
 // ── Antigravity subscription info cache ──────────────────────────────────────
 // Prevents duplicate loadCodeAssist calls within the same quota cycle.
 // Key: truncated accessToken → { data, fetchedAt }
-const _antigravitySubCache = new Map();
+const _antigravitySubCache = new Map<string, { data: unknown; fetchedAt: number }>();
 const ANTIGRAVITY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const ANTIGRAVITY_MODELS_CACHE_TTL_MS = 60 * 1000;
 const ANTIGRAVITY_CREDIT_PROBE_TTL_MS = 5 * 60 * 1000;
@@ -1535,14 +1569,16 @@ async function fetchAntigravityAvailableModelsCached(
  * Extracts tier from allowedTiers[].isDefault (same logic as providers.js postExchange).
  * Falls back to currentTier.id → currentTier.name → "Free".
  */
-function getAntigravityPlanLabel(subscriptionInfo) {
-  if (!subscriptionInfo || Object.keys(subscriptionInfo).length === 0) return "Free";
+function getAntigravityPlanLabel(subscriptionInfo: unknown) {
+  const subscription = toRecord(subscriptionInfo);
+  if (Object.keys(subscription).length === 0) return "Free";
 
   // 1. Extract tier from allowedTiers (primary source — same as providers.js)
   let tierId = "";
-  if (Array.isArray(subscriptionInfo.allowedTiers)) {
-    for (const tier of subscriptionInfo.allowedTiers) {
-      if (tier.isDefault && tier.id) {
+  if (Array.isArray(subscription.allowedTiers)) {
+    for (const tierValue of subscription.allowedTiers) {
+      const tier = toRecord(tierValue);
+      if (tier.isDefault && typeof tier.id === "string") {
         tierId = tier.id.trim().toUpperCase();
         break;
       }
@@ -1551,7 +1587,8 @@ function getAntigravityPlanLabel(subscriptionInfo) {
 
   // 2. Fall back to currentTier.id
   if (!tierId) {
-    tierId = (subscriptionInfo.currentTier?.id || "").toUpperCase();
+    const currentTier = toRecord(subscription.currentTier);
+    tierId = typeof currentTier.id === "string" ? currentTier.id.toUpperCase() : "";
   }
 
   // 3. Map tier ID to display label
@@ -1566,12 +1603,13 @@ function getAntigravityPlanLabel(subscriptionInfo) {
 
   // 4. Try tier name fields as last resort
   const tierName =
-    subscriptionInfo.currentTier?.name ||
-    subscriptionInfo.currentTier?.displayName ||
-    subscriptionInfo.subscriptionType ||
-    subscriptionInfo.tier ||
+    toRecord(subscription.currentTier).name ||
+    toRecord(subscription.currentTier).displayName ||
+    subscription.subscriptionType ||
+    subscription.tier ||
     "";
-  const upper = tierName.toUpperCase();
+  const tierNameString = typeof tierName === "string" ? tierName : "";
+  const upper = tierNameString.toUpperCase();
 
   if (upper.includes("ULTRA")) return "Ultra";
   if (upper.includes("PRO")) return "Pro";
@@ -1580,11 +1618,11 @@ function getAntigravityPlanLabel(subscriptionInfo) {
   if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
 
   // 5. If upgradeSubscriptionType exists, account is on free tier
-  if (subscriptionInfo.currentTier?.upgradeSubscriptionType) return "Free";
+  if (toRecord(subscription.currentTier).upgradeSubscriptionType) return "Free";
 
   // 6. If we have a tier name that didn't match known patterns, return it title-cased
-  if (tierName) {
-    return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
+  if (tierNameString) {
+    return tierNameString.charAt(0).toUpperCase() + tierNameString.slice(1).toLowerCase();
   }
 
   return "Free";
@@ -1736,10 +1774,10 @@ async function probeAntigravityCreditBalanceUncached(
  * retrieveUserQuota only returns Gemini models — not suitable for Antigravity.
  */
 async function getAntigravityUsage(
-  accessToken,
-  providerSpecificData,
-  connectionProjectId?,
-  connectionId?,
+  accessToken?: string | null,
+  providerSpecificData: JsonRecord | null = null,
+  connectionProjectId?: string | null,
+  connectionId?: string | null,
   options: AntigravityUsageOptions = {}
 ) {
   if (!accessToken) {
@@ -1748,7 +1786,10 @@ async function getAntigravityUsage(
 
   try {
     const subscriptionInfo = await getAntigravitySubscriptionInfoCached(accessToken);
-    const projectId = connectionProjectId || subscriptionInfo?.cloudaicompanionProject || null;
+    const subscriptionProjectId = toRecord(subscriptionInfo).cloudaicompanionProject;
+    const projectId =
+      connectionProjectId ||
+      (typeof subscriptionProjectId === "string" ? subscriptionProjectId : null);
 
     // Derive accountId for credit balance cache.
     // Must match executor key: credentials.connectionId
@@ -1836,7 +1877,7 @@ async function getAntigravityUsage(
  * Get Antigravity subscription info (cached, 5 min TTL)
  * Prevents duplicate loadCodeAssist calls within the same quota cycle.
  */
-async function getAntigravitySubscriptionInfoCached(accessToken) {
+async function getAntigravitySubscriptionInfoCached(accessToken: string) {
   const cacheKey = accessToken.substring(0, 16);
   const cached = _antigravitySubCache.get(cacheKey);
 
@@ -1853,7 +1894,7 @@ async function getAntigravitySubscriptionInfoCached(accessToken) {
  * Get Antigravity subscription info using correct Antigravity headers.
  * Must match the headers used in providers.js postExchange (not CLI headers).
  */
-async function getAntigravitySubscriptionInfo(accessToken) {
+async function getAntigravitySubscriptionInfo(accessToken: string): Promise<unknown> {
   try {
     const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
       method: "POST",
@@ -1872,9 +1913,9 @@ async function getAntigravitySubscriptionInfo(accessToken) {
 /**
  * Claude Usage - Try to fetch from Anthropic API
  */
-async function getClaudeUsage(accessToken) {
+async function getClaudeUsage(accessToken?: string | null) {
   // Refresh bootstrap in parallel; best-effort, failure non-fatal.
-  const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
+  const bootstrapPromise = fetchClaudeBootstrap(accessToken || "").catch(() => null);
   try {
     // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
     // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
@@ -1977,7 +2018,7 @@ async function getClaudeUsage(accessToken) {
  * Legacy Claude usage fetcher for API key / org admin users.
  * Uses /v1/settings + /v1/organizations/{org_id}/usage endpoints.
  */
-async function getClaudeUsageLegacy(accessToken) {
+async function getClaudeUsageLegacy(accessToken?: string | null) {
   try {
     const settingsResponse = await fetch(CLAUDE_CONFIG.settingsUrl, {
       method: "GET",
@@ -2030,7 +2071,10 @@ async function getClaudeUsageLegacy(accessToken) {
  * IMPORTANT: Uses persisted workspaceId from OAuth to ensure correct workspace binding.
  * No fallback to other workspaces - strict binding to user's selected workspace.
  */
-async function getCodexUsage(accessToken, providerSpecificData: Record<string, unknown> = {}) {
+async function getCodexUsage(
+  accessToken?: string | null,
+  providerSpecificData: Record<string, unknown> = {}
+) {
   try {
     // Use persisted workspace ID from OAuth - NO FALLBACK
     const accountId =
@@ -2151,7 +2195,10 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, u
 /**
  * Kiro (AWS CodeWhisperer) Usage
  */
-async function getKiroUsage(accessToken, providerSpecificData) {
+async function getKiroUsage(
+  accessToken?: string | null,
+  providerSpecificData: JsonRecord | null = null
+) {
   try {
     const profileArn = providerSpecificData?.profileArn;
     if (!profileArn) {
@@ -2185,15 +2232,18 @@ async function getKiroUsage(accessToken, providerSpecificData) {
 
     // Parse usage data from usageBreakdownList
     const usageList = data.usageBreakdownList || [];
-    const quotaInfo = {};
+    const quotaInfo: Record<string, UsageQuota> = {};
 
     // Parse reset time - supports multiple formats (nextDateReset, resetDate, etc.)
     const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
 
-    usageList.forEach((breakdown) => {
-      const resourceType = breakdown.resourceType?.toLowerCase() || "unknown";
-      const used = breakdown.currentUsageWithPrecision || 0;
-      const total = breakdown.usageLimitWithPrecision || 0;
+    usageList.forEach((breakdown: JsonRecord) => {
+      const resourceType =
+        typeof breakdown.resourceType === "string"
+          ? breakdown.resourceType.toLowerCase()
+          : "unknown";
+      const used = toNumber(breakdown.currentUsageWithPrecision, 0);
+      const total = toNumber(breakdown.usageLimitWithPrecision, 0);
 
       quotaInfo[resourceType] = {
         used,
@@ -2205,8 +2255,9 @@ async function getKiroUsage(accessToken, providerSpecificData) {
 
       // Add free trial if available
       if (breakdown.freeTrialInfo) {
-        const freeUsed = breakdown.freeTrialInfo.currentUsageWithPrecision || 0;
-        const freeTotal = breakdown.freeTrialInfo.usageLimitWithPrecision || 0;
+        const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
+        const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
+        const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
 
         quotaInfo[`${resourceType}_freetrial`] = {
           used: freeUsed,
@@ -2232,10 +2283,10 @@ async function getKiroUsage(accessToken, providerSpecificData) {
  * LEVEL_BASIC = Moderato, LEVEL_INTERMEDIATE = Allegretto,
  * LEVEL_ADVANCED = Allegro, LEVEL_STANDARD = Vivace
  */
-function getKimiPlanName(level) {
-  if (!level) return "";
+function getKimiPlanName(level: unknown) {
+  if (typeof level !== "string" || !level) return "";
 
-  const levelMap = {
+  const levelMap: Record<string, string> = {
     LEVEL_BASIC: "Moderato",
     LEVEL_INTERMEDIATE: "Allegretto",
     LEVEL_ADVANCED: "Allegro",
@@ -2249,7 +2300,7 @@ function getKimiPlanName(level) {
  * Kimi Coding Usage - Fetch quota from Kimi API
  * Uses the official /v1/usages endpoint with custom X-Msh-* headers
  */
-async function getKimiUsage(accessToken) {
+async function getKimiUsage(accessToken?: string | null) {
   // Generate device info for headers (same as OAuth flow)
   const deviceId = "kimi-usage-" + Date.now();
   const platform = "omniroute";
@@ -2401,7 +2452,10 @@ async function getKimiUsage(accessToken) {
 /**
  * Qwen Usage
  */
-async function getQwenUsage(accessToken, providerSpecificData) {
+async function getQwenUsage(
+  accessToken?: string | null,
+  providerSpecificData: JsonRecord | null = null
+) {
   try {
     const resourceUrl = providerSpecificData?.resourceUrl;
     if (!resourceUrl) {
@@ -2418,7 +2472,7 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 /**
  * Qoder Usage
  */
-async function getQoderUsage(accessToken) {
+async function getQoderUsage(accessToken?: string | null) {
   try {
     // Qoder may have usage endpoint
     return { message: "Qoder connected. Usage tracked per request." };

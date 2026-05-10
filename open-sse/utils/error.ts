@@ -3,6 +3,14 @@ import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
+type ErrorResponseBody = {
+  error: {
+    message: string;
+    type: string;
+    code: string;
+  };
+};
+
 /**
  * Sanitize an error message to prevent stack trace exposure in API responses.
  * Strips stack traces and internal file paths from error messages before they
@@ -22,7 +30,7 @@ function sanitizeErrorMessage(message: unknown): string {
  * @param {string} message - Error message
  * @returns {object} Error response object
  */
-export function buildErrorBody(statusCode, message) {
+export function buildErrorBody(statusCode, message): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
 
   return {
@@ -220,10 +228,10 @@ export function createErrorResult(
 ) {
   const body = buildErrorBody(statusCode, message);
   if (errorCode) {
-    (body.error as any).code = errorCode;
+    body.error.code = errorCode;
   }
   if (errorType) {
-    (body.error as any).type = errorType;
+    body.error.type = errorType;
   }
 
   const result: {

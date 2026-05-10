@@ -4,6 +4,7 @@ export const RUNWAYML_API_VERSION = "2024-11-06";
 export const RUNWAYML_SUPPORTED_VIDEO_MODELS = [
   { id: "gen4.5", name: "Gen-4.5" },
   { id: "gen4_turbo", name: "Gen-4 Turbo" },
+  { id: "gen3a_turbo", name: "Gen-3 Alpha Turbo" },
   { id: "veo3.1", name: "Veo 3.1" },
   { id: "veo3.1_fast", name: "Veo 3.1 Fast" },
 ];

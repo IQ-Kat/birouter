@@ -122,6 +122,12 @@ const MAX_CACHE_SIZE = 1000;
 // Compiled regex cache for wildcard patterns
 const _regexCache = new Map<string, RegExp>();
 
+interface RedisAuthCacheClient {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, mode: "EX", ttlSeconds: number): Promise<unknown>;
+  del(...keys: string[]): Promise<unknown>;
+}
+
 const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_models", definition: "allowed_models TEXT" },
   { name: "no_log", definition: "no_log INTEGER NOT NULL DEFAULT 0" },
@@ -162,6 +168,65 @@ function invalidateCaches() {
   _keyMetadataCache.clear();
   _modelPermissionCache.clear();
   _lastUsedUpdateCache.clear();
+}
+
+function shouldUseRedisAuthCache(): boolean {
+  if (process.env.REDIS_URL && process.env.REDIS_URL.trim() !== "") return true;
+  return process.env.NODE_ENV !== "test" && process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true";
+}
+
+async function getRedisAuthCacheClient(): Promise<RedisAuthCacheClient | null> {
+  if (!shouldUseRedisAuthCache()) return null;
+
+  try {
+    const { getRedisClient } = await import("@/shared/utils/rateLimiter");
+    return getRedisClient() as RedisAuthCacheClient;
+  } catch {
+    return null;
+  }
+}
+
+async function getRedisAuthCache(hashedKey: string): Promise<string | null> {
+  const redis = await getRedisAuthCacheClient();
+  if (!redis) return null;
+
+  try {
+    return await redis.get(`auth:api_key:${hashedKey}`);
+  } catch {
+    return null;
+  }
+}
+
+async function setRedisAuthCache(
+  hashedKey: string,
+  value: JsonRecord,
+  ttlSeconds: number
+): Promise<void> {
+  const redis = await getRedisAuthCacheClient();
+  if (!redis) return;
+
+  try {
+    await redis.set(`auth:api_key:${hashedKey}`, JSON.stringify(value), "EX", ttlSeconds);
+  } catch {
+    // Redis is an optimization; SQLite remains authoritative.
+  }
+}
+
+async function deleteRedisAuthCacheKeys(...hashes: unknown[]): Promise<void> {
+  const redisKeys = hashes
+    .filter((hash): hash is string => typeof hash === "string" && hash.trim() !== "")
+    .map((hash) => `auth:api_key:${hash}`);
+
+  if (redisKeys.length === 0) return;
+
+  const redis = await getRedisAuthCacheClient();
+  if (!redis) return;
+
+  try {
+    await redis.del(...redisKeys);
+  } catch {
+    // Redis is an optimization; SQLite remains authoritative.
+  }
 }
 
 function toRecord(value: unknown): JsonRecord {
@@ -402,13 +467,11 @@ function parseRateLimits(value: unknown): RateLimitRule[] | null {
   try {
     const parsed = JSON.parse(value);
     if (!Array.isArray(parsed)) return null;
-    return parsed.filter(
-      (rule: any) =>
-        typeof rule === "object" &&
-        rule !== null &&
-        typeof rule.limit === "number" &&
-        typeof rule.window === "number"
-    ) as RateLimitRule[];
+    return parsed.filter((rule): rule is RateLimitRule => {
+      if (!rule || typeof rule !== "object") return false;
+      const candidate = rule as Record<string, unknown>;
+      return typeof candidate.limit === "number" && typeof candidate.window === "number";
+    });
   } catch {
     return null;
   }
@@ -526,15 +589,7 @@ export async function regenerateApiKey(id: string) {
   // Invalidate all caches
   clearApiKeyCaches();
 
-  // Redis invalidation
-  try {
-    const { getRedisClient } = await import("@/shared/utils/rateLimiter");
-    const redis = getRedisClient();
-    if (typeof row.key_hash === "string") await redis.del(`auth:api_key:${row.key_hash}`);
-    await redis.del(`auth:api_key:${newHash}`);
-  } catch (err) {
-    // Fail silent
-  }
+  await deleteRedisAuthCacheKeys(row.key_hash, newHash);
 
   const { logAuditEvent } = await import("@/lib/compliance");
   logAuditEvent({
@@ -737,12 +792,8 @@ export async function updateApiKeyPermissions(
     const row = db.prepare("SELECT key_hash FROM api_keys WHERE id = ?").get(id) as
       | { key_hash: string | null }
       | undefined;
-    if (row?.key_hash) {
-      const { getRedisClient } = await import("@/shared/utils/rateLimiter");
-      const redis = getRedisClient();
-      await redis.del(`auth:api_key:${row.key_hash}`);
-    }
-  } catch (err) {
+    await deleteRedisAuthCacheKeys(row?.key_hash);
+  } catch {
     // Fail silent
   }
 
@@ -753,6 +804,7 @@ export async function updateApiKeyPermissions(
 export async function deleteApiKey(id: string) {
   const db = getDbInstance() as ApiKeysDbLike;
   const stmt = getPreparedStatements(db);
+  const row = stmt.getKeyById.get(id) as ApiKeyRow | undefined;
   const result = stmt.deleteKey.run(id);
 
   if (result.changes === 0) return false;
@@ -763,6 +815,7 @@ export async function deleteApiKey(id: string) {
 
   // Invalidate caches since a key was removed
   invalidateCaches();
+  await deleteRedisAuthCacheKeys(row?.key_hash ?? row?.keyHash);
 
   backupDbFile("pre-write");
   return true;
@@ -786,6 +839,10 @@ export async function revokeApiKey(id: string): Promise<boolean> {
   if ((result.changes ?? 0) === 0) return false;
 
   invalidateCaches();
+  const row = db.prepare("SELECT key_hash FROM api_keys WHERE id = ?").get(id) as
+    | { key_hash: string | null }
+    | undefined;
+  await deleteRedisAuthCacheKeys(row?.key_hash);
   backupDbFile("pre-write");
   return true;
 }
@@ -804,6 +861,10 @@ export async function setApiKeyExpiry(id: string, expiresAt: string | null): Pro
   if ((result.changes ?? 0) === 0) return false;
 
   invalidateCaches();
+  const row = db.prepare("SELECT key_hash FROM api_keys WHERE id = ?").get(id) as
+    | { key_hash: string | null }
+    | undefined;
+  await deleteRedisAuthCacheKeys(row?.key_hash);
   backupDbFile("pre-write");
   return true;
 }
@@ -817,10 +878,8 @@ export async function setApiKeyExpiry(id: string, expiresAt: string | null): Pro
  *   - revoked_at IS NULL,
  *   - expires_at IS NULL OR expires_at > now.
  *
- * Cache TTL is short (CACHE_TTL) and the metadata cache is also invalidated
- * by revokeApiKey/updateApiKeyPermissions/deleteApiKey, so a revoke takes
- * effect within at most CACHE_TTL even without an explicit clear in the
- * caller.
+ * Cache TTL is short (CACHE_TTL), and every key lifecycle path invalidates
+ * both the in-process caches and the Redis auth fast path.
  */
 export async function validateApiKey(key: string | null | undefined) {
   if (!key || typeof key !== "string") return false;
@@ -836,13 +895,9 @@ export async function validateApiKey(key: string | null | undefined) {
     return cached.valid;
   }
 
-  // Try Redis cache for multi-instance consistency
-  try {
-    const { getRedisClient } = await import("@/shared/utils/rateLimiter");
-    const redis = getRedisClient();
-    const redisKey = `auth:api_key:${hashedKey}`;
-    const redisData = await redis.get(redisKey);
-    if (redisData) {
+  const redisData = await getRedisAuthCache(hashedKey);
+  if (redisData) {
+    try {
       const data = JSON.parse(redisData);
       const isBanned = !!data.isBanned;
       const isActive = !!data.isActive;
@@ -856,9 +911,9 @@ export async function validateApiKey(key: string | null | undefined) {
         if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
       }
       return true;
+    } catch {
+      await deleteRedisAuthCacheKeys(hashedKey);
     }
-  } catch (err) {
-    // Fail silent for Redis lookup
   }
 
   const db = getDbInstance() as ApiKeysDbLike;
@@ -885,26 +940,17 @@ export async function validateApiKey(key: string | null | undefined) {
   evictIfNeeded(_keyValidationCache);
   _keyValidationCache.set(cacheKey, { valid: true, timestamp: now });
 
-  // Update Redis cache for fast validation
-  try {
-    const { getRedisClient } = await import("@/shared/utils/rateLimiter");
-    const redis = getRedisClient();
-    const redisKey = `auth:api_key:${hashedKey}`;
-    await redis.set(
-      redisKey,
-      JSON.stringify({
-        id: row.id,
-        isBanned: parseIsBanned(row.is_banned),
-        isActive: parseIsActive(row.is_active),
-        expiresAt: row.expires_at,
-        revokedAt: row.revoked_at,
-      }),
-      "EX",
-      3600 // 1 hour cache
-    );
-  } catch (err) {
-    // Fail silent for Redis cache update
-  }
+  await setRedisAuthCache(
+    hashedKey,
+    {
+      id: row.id,
+      isBanned: parseIsBanned(row.is_banned),
+      isActive: parseIsActive(row.is_active),
+      expiresAt: row.expires_at,
+      revokedAt: row.revoked_at,
+    },
+    3600
+  );
 
   markApiKeyUsed(db, row.id, now);
 

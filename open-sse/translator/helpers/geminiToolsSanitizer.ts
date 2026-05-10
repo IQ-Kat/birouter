@@ -211,12 +211,12 @@ export function buildGeminiTools(
 
   const result: GeminiTool[] = [];
 
-  if (functionDeclarations.length > 0) {
-    result.push({ functionDeclarations });
+  if (googleSearchTool) {
+    return [googleSearchTool];
   }
 
-  if (googleSearchTool) {
-    result.push(googleSearchTool);
+  if (functionDeclarations.length > 0) {
+    result.push({ functionDeclarations });
   }
 
   return result.length > 0 ? result : undefined;
