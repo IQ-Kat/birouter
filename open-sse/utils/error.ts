@@ -116,6 +116,8 @@ export async function parseUpstreamError(response, provider = null) {
   let message = "";
   let retryAfterMs = null;
   let responseBody = null;
+  let errorCode = undefined;
+  let errorType = undefined;
 
   try {
     const text = await response.text();
@@ -125,6 +127,8 @@ export async function parseUpstreamError(response, provider = null) {
     try {
       const json = JSON.parse(text);
       message = json.error?.message || json.message || json.error || text;
+      errorCode = json.error?.code || json.code;
+      errorType = json.error?.type || json.type;
     } catch {
       message = text;
     }
@@ -179,6 +183,8 @@ export async function parseUpstreamError(response, provider = null) {
   return {
     statusCode: response.status,
     message: messageStr,
+    errorCode,
+    errorType,
     retryAfterMs,
     responseBody,
     responseHeaders,
@@ -195,19 +201,34 @@ export async function parseUpstreamError(response, provider = null) {
 export function createErrorResult(
   statusCode: number,
   message: string,
-  retryAfterMs: number | null = null
+  retryAfterMs: number | null = null,
+  errorCode?: string,
+  errorType?: string
 ) {
+  const body = buildErrorBody(statusCode, message);
+  if (errorCode) {
+    (body.error as any).code = errorCode;
+  }
+  if (errorType) {
+    (body.error as any).type = errorType;
+  }
+
   const result: {
     success: false;
     status: number;
     error: string;
+    errorType?: string;
     response: Response;
     retryAfterMs?: number;
   } = {
     success: false,
     status: statusCode,
     error: message,
-    response: errorResponse(statusCode, message),
+    errorType,
+    response: new Response(JSON.stringify(body), {
+      status: statusCode,
+      headers: { "Content-Type": "application/json" },
+    }),
   };
 
   // Add retryAfterMs if available (for Antigravity quota errors)

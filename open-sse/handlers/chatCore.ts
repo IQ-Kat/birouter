@@ -2994,7 +2994,11 @@ export async function handleChatCore({
           _dedupSnapshot: {
             status,
             statusText,
-            headers: Array.from(headers.entries()),
+            headers: (() => {
+              const arr: [string, string][] = [];
+              headers.forEach((v, k) => arr.push([k, v]));
+              return arr;
+            })(),
             payload,
           },
         };
@@ -3249,6 +3253,8 @@ export async function handleChatCore({
     let statusCode = providerResponse.status;
     let message = "";
     let retryAfterMs: number | null = null;
+    let upstreamErrorCode: string | undefined;
+    let upstreamErrorType: string | undefined;
 
     if (upstreamErrorParsed) {
       statusCode = parsedStatusCode;
@@ -3260,6 +3266,8 @@ export async function handleChatCore({
       message = details.message;
       retryAfterMs = details.retryAfterMs;
       upstreamErrorBody = details.responseBody;
+      upstreamErrorCode = details.errorCode;
+      upstreamErrorType = details.errorType;
     }
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
@@ -3428,7 +3436,13 @@ export async function handleChatCore({
               cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "model_unavailable");
-            return createErrorResult(statusCode, errMsg, retryAfterMs);
+            return createErrorResult(
+              statusCode,
+              errMsg,
+              retryAfterMs,
+              upstreamErrorCode,
+              upstreamErrorType
+            );
           }
         } catch {
           persistAttemptLogs({
@@ -3440,7 +3454,13 @@ export async function handleChatCore({
             cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "model_unavailable");
-          return createErrorResult(statusCode, errMsg, retryAfterMs);
+          return createErrorResult(
+            statusCode,
+            errMsg,
+            retryAfterMs,
+            upstreamErrorCode,
+            upstreamErrorType
+          );
         }
       } else {
         persistAttemptLogs({
@@ -3452,7 +3472,13 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "model_unavailable");
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType
+        );
       }
     } else if (isContextOverflowError(statusCode, message)) {
       const familyCandidates = getModelFamily(currentModel).filter(
@@ -3488,7 +3514,13 @@ export async function handleChatCore({
               cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "context_overflow");
-            return createErrorResult(statusCode, errMsg, retryAfterMs);
+            return createErrorResult(
+              statusCode,
+              errMsg,
+              retryAfterMs,
+              upstreamErrorCode,
+              upstreamErrorType
+            );
           }
         } catch {
           persistAttemptLogs({
@@ -3500,7 +3532,13 @@ export async function handleChatCore({
             cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "context_overflow");
-          return createErrorResult(statusCode, errMsg, retryAfterMs);
+          return createErrorResult(
+            statusCode,
+            errMsg,
+            retryAfterMs,
+            upstreamErrorCode,
+            upstreamErrorType
+          );
         }
       } else {
         persistAttemptLogs({
@@ -3512,7 +3550,13 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "context_overflow");
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType
+        );
       }
     } else {
       persistAttemptLogs({
@@ -3595,7 +3639,13 @@ export async function handleChatCore({
       }
 
       if (!emergencyFallbackServed) {
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType
+        );
       }
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
@@ -4067,9 +4117,11 @@ export async function handleChatCore({
 
   const responseHeaders: Record<string, string> = {
     ...Object.fromEntries(
-      Array.from(providerResponse.headers.entries()).filter(
-        ([k]) => k.toLowerCase() !== "content-type"
-      )
+      (() => {
+        const arr: [string, string][] = [];
+        providerResponse.headers.forEach((v, k) => arr.push([k, v]));
+        return arr;
+      })().filter(([k]) => k.toLowerCase() !== "content-type")
     ),
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
