@@ -28,6 +28,10 @@
 - **fix(security):** remediate regex validation backtracking path in core compression cleanup (#1990)
 - **fix(core):** harden input handling and stabilization for prompt compression edge cases
 
+### 📝 Documentation
+
+- **docs:** add competitive marketing tables and SEO/AEO optimizations to README (#2091)
+
 ### 🧹 Chores & Maintenance
 
 - **chore(providers):** prune redundant local provider icon assets in favor of `@lobehub/icons` web fonts (#1992)
