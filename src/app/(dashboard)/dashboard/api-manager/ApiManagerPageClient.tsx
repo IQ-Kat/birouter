@@ -71,6 +71,7 @@ interface ApiKey {
   isActive?: boolean;
   maxSessions?: number;
   accessSchedule?: AccessSchedule | null;
+  scopes?: string[];
   createdAt: string;
 }
 
@@ -332,7 +333,8 @@ export default function ApiManagerPageClient() {
     autoResolve: boolean,
     isActive: boolean,
     maxSessions: number,
-    accessSchedule: AccessSchedule | null
+    accessSchedule: AccessSchedule | null,
+    scopes: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -378,6 +380,7 @@ export default function ApiManagerPageClient() {
           isActive,
           maxSessions: normalizedMaxSessions,
           accessSchedule,
+          scopes,
         }),
       });
 
@@ -592,6 +595,7 @@ export default function ApiManagerPageClient() {
                 Array.isArray(key.allowedConnections) && key.allowedConnections.length > 0;
               const noLogEnabled = key.noLog === true;
               const keyIsActive = key.isActive !== false; // default true
+              const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
@@ -681,6 +685,14 @@ export default function ApiManagerPageClient() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
                           Sessions: {activeSessions}/{maxSessions}
+                        </span>
+                      )}
+                      {hasManageScope && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">
+                            admin_panel_settings
+                          </span>
+                          manage
                         </span>
                       )}
                       {!keyIsActive && (
@@ -909,7 +921,8 @@ const PermissionsModal = memo(function PermissionsModal({
     autoResolve: boolean,
     isActive: boolean,
     maxSessions: number,
-    accessSchedule: AccessSchedule | null
+    accessSchedule: AccessSchedule | null,
+    scopes: string[]
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -926,6 +939,9 @@ const PermissionsModal = memo(function PermissionsModal({
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
   const [autoResolveEnabled, setAutoResolveEnabled] = useState(apiKey?.autoResolve === true);
   const [keyIsActive, setKeyIsActive] = useState(apiKey?.isActive !== false);
+  const [manageEnabled, setManageEnabled] = useState(
+    Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("manage")
+  );
   const [maxSessions, setMaxSessions] = useState(
     typeof apiKey?.maxSessions === "number" && apiKey.maxSessions > 0 ? apiKey.maxSessions : 0
   );
@@ -1067,7 +1083,8 @@ const PermissionsModal = memo(function PermissionsModal({
       autoResolveEnabled,
       keyIsActive,
       maxSessions,
-      schedule
+      schedule,
+      manageEnabled ? ["manage"] : []
     );
   }, [
     onSave,
@@ -1080,6 +1097,7 @@ const PermissionsModal = memo(function PermissionsModal({
     autoResolveEnabled,
     keyIsActive,
     maxSessions,
+    manageEnabled,
     scheduleEnabled,
     scheduleFrom,
     scheduleUntil,
@@ -1368,6 +1386,31 @@ const PermissionsModal = memo(function PermissionsModal({
               {autoResolveEnabled ? "auto_fix_high" : "auto_fix_normal"}
             </span>
             {autoResolveEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+        </div>
+
+        {/* Management API Access Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">Management API Access</p>
+            <p className="text-xs text-text-muted">
+              Allow this key to call management routes (providers, combos, settings) via{" "}
+              <code className="font-mono">Authorization: Bearer</code>. Use for LLM agents only.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={manageEnabled}
+            onClick={() => setManageEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              manageEnabled
+                ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
+            {manageEnabled ? tc("enabled") : tc("disabled")}
           </button>
         </div>
 

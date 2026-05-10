@@ -292,6 +292,7 @@ export const createProviderSchema = z
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
+  scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
 });
 
 export const createSyncTokenSchema = z.object({
@@ -1466,6 +1467,7 @@ export const updateKeyPermissionsSchema = z
     isActive: z.boolean().optional(),
     maxSessions: z.number().int().min(0).max(10000).optional(),
     accessSchedule: z.union([accessScheduleSchema, z.null()]).optional(),
+    scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1476,7 +1478,8 @@ export const updateKeyPermissionsSchema = z
       value.autoResolve === undefined &&
       value.isActive === undefined &&
       value.maxSessions === undefined &&
-      value.accessSchedule === undefined
+      value.accessSchedule === undefined &&
+      value.scopes === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
