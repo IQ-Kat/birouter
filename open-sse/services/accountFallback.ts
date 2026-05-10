@@ -32,6 +32,8 @@ import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/provid
 type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
+  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
+  useUpstream429BreakerHints?: boolean;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -188,6 +190,9 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
+    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
+    // so the runtime resolver picks user setting first, then per-provider default.
+    useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
@@ -541,8 +546,7 @@ function configureProviderBreaker(
   // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the
   // provider profile (stored override) or fall back to per-provider default.
   // Stored value type is `boolean | undefined` — never `null` after PATCH.
-  const userValue = (resolvedProfile as { useUpstream429BreakerHints?: boolean })
-    .useUpstream429BreakerHints;
+  const userValue = resolvedProfile.useUpstream429BreakerHints;
   const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
   return getCircuitBreaker(provider, {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,

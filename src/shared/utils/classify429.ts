@@ -164,6 +164,27 @@ export function retryAfterFromResponse(response: {
 }
 
 /**
+ * Normalize an unknown headers-like value into a plain `Record<string, string>`.
+ * Native `Headers` (from `fetch`) does NOT respond to `Object.entries` — it
+ * exposes `.entries()` instead. Without this normalization, `getHeader` would
+ * silently miss every header on a Headers instance.
+ */
+function normalizeHeaders(raw: unknown): Record<string, string> | undefined {
+  if (raw === null || typeof raw !== "object") return undefined;
+  const maybeIter = (raw as { entries?: unknown }).entries;
+  if (typeof maybeIter === "function") {
+    try {
+      return Object.fromEntries(
+        (raw as { entries: () => Iterable<[string, string]> }).entries(),
+      );
+    } catch {
+      // fall through to plain-object treatment
+    }
+  }
+  return raw as Record<string, string>;
+}
+
+/**
  * Adapter that takes an error thrown by an HTTP client (fetch wrapper, axios,
  * upstream SDK, etc.) and produces a {@link FailureKind} suitable for the
  * `classifyError` option of the circuit breaker.
@@ -199,7 +220,7 @@ export function classify429FromError(err: unknown): FailureKind | undefined {
       status = resp.status;
     }
     if (resp.headers && typeof resp.headers === "object") {
-      headers = resp.headers as Record<string, string>;
+      headers = normalizeHeaders(resp.headers);
     }
     if (resp.data !== undefined) {
       body = resp.data;
@@ -209,7 +230,7 @@ export function classify429FromError(err: unknown): FailureKind | undefined {
   }
 
   if (headers === undefined && e.headers && typeof e.headers === "object") {
-    headers = e.headers as Record<string, string>;
+    headers = normalizeHeaders(e.headers);
   }
   if (body === undefined) {
     if (typeof e.body !== "undefined") {
