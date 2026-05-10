@@ -187,7 +187,10 @@ export function getGlmQuotaUrl(providerSpecificData: unknown): string {
 
 function stripKnownGlmEndpointSuffix(baseUrl: string): { base: string; suffix: string } {
   const parts = splitUrlQueryAndHash(baseUrl);
-  let base = parts.base.replace(/\/+$/, "");
+  let base = parts.base;
+  while (base.endsWith("/")) {
+    base = base.slice(0, -1);
+  }
 
   const countTokensMatch = base.match(/\/(?:v\d+\/)?messages\/count_tokens$/i);
   if (countTokensMatch) {
@@ -219,7 +222,11 @@ function joinGlmBaseAndPath(baseUrl: string, path: string): string {
 }
 
 function stripQueryAndTrailingSlash(baseUrl: string): string {
-  return splitUrlQueryAndHash(baseUrl).base.replace(/\/+$/, "");
+  let base = splitUrlQueryAndHash(baseUrl).base;
+  while (base.endsWith("/")) {
+    base = base.slice(0, -1);
+  }
+  return base;
 }
 
 function addBetaQuery(url: string): string {

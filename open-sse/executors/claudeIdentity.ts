@@ -229,10 +229,9 @@ export function resolveAccountUUID(
   if (accessToken) void backgroundFetchAccountUUID(accessToken, seed);
 
   return uuidV4FromHash(
-    // lgtm [js/insufficient-password-hash]
     createHash("sha256")
       .update("account:" + seed)
-      .digest("hex")
+      .digest("hex") /* lgtm[js/insufficient-password-hash] */
   );
 }
 
