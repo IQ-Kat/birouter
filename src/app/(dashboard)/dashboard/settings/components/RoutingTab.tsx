@@ -297,11 +297,7 @@ export default function RoutingTab() {
                 disabled={loading || forced}
                 aria-pressed={checked}
                 aria-disabled={forced || undefined}
-                title={
-                  checked
-                    ? t("disableFingerprintTitle", { provider: label })
-                    : t("enableFingerprintTitle", { provider: label })
-                }
+                title={titleText}
                 className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
                   checked
                     ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
