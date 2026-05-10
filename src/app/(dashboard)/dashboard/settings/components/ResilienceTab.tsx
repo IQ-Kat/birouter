@@ -365,9 +365,7 @@ function ConnectionCooldownCard({
             />
             <div className="flex flex-col gap-1">
               <label className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-text-muted">
-                  Use upstream 429 hints for breaker cooldown
-                </span>
+                <span className="text-text-muted">Use upstream 429 hints for breaker cooldown</span>
                 <select
                   className="rounded border border-border-default bg-surface-1 px-2 py-1 text-sm font-mono"
                   value={
@@ -384,9 +382,12 @@ function ConnectionCooldownCard({
                     setDraft((prev) => {
                       const profile = { ...prev[key] };
                       if (next === undefined) {
-                        delete (profile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints;
+                        delete (profile as { useUpstream429BreakerHints?: boolean })
+                          .useUpstream429BreakerHints;
                       } else {
-                        (profile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints = next;
+                        (
+                          profile as { useUpstream429BreakerHints?: boolean }
+                        ).useUpstream429BreakerHints = next;
                       }
                       return { ...prev, [key]: profile };
                     });
@@ -398,11 +399,10 @@ function ConnectionCooldownCard({
                 </select>
               </label>
               <p className="text-xs text-text-muted">
-                Apply Retry-After / quota-exhausted signals from 429 responses to
-                circuit-breaker cooldown duration. Default uses a per-provider
-                policy: direct cloud providers default on; reverse-proxy /
-                self-hosted / CLI-backed providers default off. Independent of
-                &quot;Use upstream retry hints&quot;.
+                Apply Retry-After / quota-exhausted signals from 429 responses to circuit-breaker
+                cooldown duration. Default uses a per-provider policy: direct cloud providers
+                default on; reverse-proxy / self-hosted / CLI-backed providers default off.
+                Independent of &quot;Use upstream retry hints&quot;.
               </p>
             </div>
             <NumberField

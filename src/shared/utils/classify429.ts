@@ -174,9 +174,7 @@ function normalizeHeaders(raw: unknown): Record<string, string> | undefined {
   const maybeIter = (raw as { entries?: unknown }).entries;
   if (typeof maybeIter === "function") {
     try {
-      return Object.fromEntries(
-        (raw as { entries: () => Iterable<[string, string]> }).entries(),
-      );
+      return Object.fromEntries((raw as { entries: () => Iterable<[string, string]> }).entries());
     } catch {
       // fall through to plain-object treatment
     }

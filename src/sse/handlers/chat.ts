@@ -25,6 +25,7 @@ import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
+import type { AutoVariant } from "@omniroute/open-sse/services/autoCombo/autoPrefix.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
@@ -45,10 +46,7 @@ import {
 } from "./chatHelpers";
 
 // Pipeline integration — wired modules
-import {
-  classify429FromError,
-  type FailureKind,
-} from "@/shared/utils/classify429";
+import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
 import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
@@ -237,9 +235,9 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   // Guardrail pre-call pipeline — prompt injection, PII masking, and future custom rules.
   telemetry.startPhase("validate");
   const preCallGuardrails = await guardrailRegistry.runPreCallHooks(body, {
-    apiKeyInfo,
+    apiKeyInfo: apiKeyInfo as any,
     disabledGuardrails: resolveDisabledGuardrails({
-      apiKeyInfo: apiKeyInfo as Record<string, unknown> | null,
+      apiKeyInfo: (apiKeyInfo ?? null) as any,
       body,
       headers: request.headers,
     }),
@@ -303,6 +301,44 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     telemetry.endPhase();
   }
 
+  // ── Zero-Config Auto-Routing (auto and auto/ prefix) ────────────────────────
+  // If the model ID is "auto" or starts with "auto/", bypass DB combo lookup
+  // entirely and generate a virtual auto-combo on-the-fly from connected providers.
+  let autoVariant: AutoVariant | undefined;
+  let isAutoRouting = resolvedModelStr === "auto" || resolvedModelStr.startsWith("auto/");
+  if (isAutoRouting) {
+    // C2: Enforce autoRoutingEnabled setting
+    const settings = await getSettings();
+    if (settings?.autoRoutingEnabled === false) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        "Auto routing is disabled. Enable it in Settings > Routing."
+      );
+    }
+
+    try {
+      const { parseAutoPrefix } =
+        await import("@omniroute/open-sse/services/autoCombo/autoPrefix.ts");
+      const parsed = parseAutoPrefix(resolvedModelStr);
+      if (parsed.valid) {
+        autoVariant = parsed.variant;
+        // C3: Apply autoRoutingDefaultVariant from settings when bare "auto" is used
+        if (autoVariant === undefined && settings?.autoRoutingDefaultVariant) {
+          autoVariant = settings.autoRoutingDefaultVariant as AutoVariant;
+        }
+        log.info(
+          "AUTO",
+          `Zero-config routing variant: ${autoVariant || "default"} (model=${resolvedModelStr})`
+        );
+      } else {
+        log.warn("AUTO", `Invalid auto prefix format: ${resolvedModelStr}`);
+      }
+    } catch (err) {
+      log.error("AUTO", "Failed to load auto-prefix parser", { err });
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
   // Check if model is a combo (has multiple models with fallback)
   telemetry.startPhase("resolve");
   let combo: any = await getComboForModel(resolvedModelStr);
@@ -320,6 +356,23 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     }
   }
 
+  // Auto-prefix short-circuit: if auto/ prefix was detected, replace combo with virtual one
+  if (isAutoRouting && combo === null) {
+    try {
+      const { createVirtualAutoCombo } =
+        await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
+      const virtualCombo = await createVirtualAutoCombo(autoVariant);
+      virtualCombo.name = resolvedModelStr;
+      virtualCombo.id = resolvedModelStr;
+      combo = virtualCombo;
+      log.info(
+        "AUTO",
+        `Virtual auto-combo created: ${combo.name} (${virtualCombo.candidatePool?.length || 0} candidates)`
+      );
+    } catch (err) {
+      log.error("AUTO", "Failed to create virtual auto-combo", { err });
+    }
+  }
   if (combo) {
     log.info(
       "CHAT",
@@ -397,6 +450,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           connectionId?: string | null;
           executionKey?: string | null;
           stepId?: string | null;
+          allowedConnectionIds?: string[] | null;
         }
       ) =>
         handleSingleModelChat(
@@ -635,7 +689,7 @@ async function handleSingleModelChat(
   // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
   const useHints429 = resolveUseUpstream429BreakerHints(
     provider,
-    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints,
+    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints
   );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold,

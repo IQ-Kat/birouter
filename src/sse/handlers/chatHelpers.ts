@@ -25,10 +25,7 @@ import {
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
-import {
-  classify429FromError,
-  type FailureKind,
-} from "../../shared/utils/classify429";
+import { classify429FromError, type FailureKind } from "../../shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
 
 import { logProxyEvent } from "../../lib/proxyLogger";
@@ -247,7 +244,7 @@ export async function checkPipelineGates(
   // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
   const useHints429 = resolveUseUpstream429BreakerHints(
     provider,
-    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints,
+    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints
   );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,

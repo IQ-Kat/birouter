@@ -22,12 +22,8 @@ import {
   getCircuitBreaker,
   STATE,
 } from "../../src/shared/utils/circuitBreaker";
-import {
-  classify429FromError,
-  type FailureKind,
-} from "../../src/shared/utils/classify429";
+import { classify429FromError, type FailureKind } from "../../src/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
-
 
 type ProviderProfile = {
   baseCooldownMs: number;

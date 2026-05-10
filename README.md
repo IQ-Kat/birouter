@@ -1221,6 +1221,34 @@ Combo: "my-coding-stack"              Format Translation:
 
 ## 🎯 Use Cases — Ready-Made Combo Playbooks
 
+### Case 0: "I want zero-config, auto-routing NOW"
+
+**Problem:** Don't want to create combos manually. Just want AI routing to work immediately.
+
+```bash
+# No combo creation needed! Use auto/ prefix directly:
+model: "auto"           # Default LKGP routing across all connected providers
+model: "auto/coding"    # Quality-first weights for code generation
+model: "auto/fast"      # Low-latency routing (fastest provider first)
+model: "auto/cheap"     # Cost-optimized (cheapest per token)
+model: "auto/offline"   # High availability (most quota available)
+model: "auto/smart"     # Best discovery (10% exploration rate)
+```
+
+**How it works:**
+
+1. Add providers in Dashboard → Providers (OAuth or API key)
+2. Use `auto/` prefix in any AI tool — **no combo creation needed**
+3. OmniRoute dynamically builds a virtual combo from your active connections
+4. Routes using LKGP (Last Known Good Provider) + 6-factor scoring
+5. Session stickiness ensures consistent provider selection
+
+**Dashboard indicator:** A blue banner at the top shows "Auto-Routing Active" with a link to `/dashboard/combos` for configuration.
+
+**Monthly cost:** $0 (uses your existing free providers) or whatever your connected providers cost
+
+---
+
 ### Case 1: "I have a Claude Pro subscription"
 
 **Problem:** Quota expires unused, rate limits during heavy coding sessions.

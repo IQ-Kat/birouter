@@ -173,10 +173,7 @@ function normalizeConnectionCooldownProfile(
   //   - omitted  → leave existing fallback value unchanged (partial-merge)
   // Never coerce via `toBoolean(value, fallback)` because that would
   // collapse the unset state.
-  const hasHintsKey = Object.prototype.hasOwnProperty.call(
-    record,
-    "useUpstream429BreakerHints",
-  );
+  const hasHintsKey = Object.prototype.hasOwnProperty.call(record, "useUpstream429BreakerHints");
   const rawHints = record.useUpstream429BreakerHints;
   let useUpstream429BreakerHints: boolean | undefined;
   if (!hasHintsKey) {

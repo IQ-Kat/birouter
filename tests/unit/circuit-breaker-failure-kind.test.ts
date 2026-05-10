@@ -53,7 +53,7 @@ test("cooldownByKind: quota_exhausted gets longer cooldown than rate_limit", () 
   const tQuota = cb._timeUntilReset();
   assert.ok(
     tQuota > 3_599_000 && tQuota <= 3_600_000,
-    `quota_exhausted cooldown: expected ~3600s, got ${tQuota}`,
+    `quota_exhausted cooldown: expected ~3600s, got ${tQuota}`
   );
 
   cb.reset();
@@ -219,10 +219,7 @@ test("invalid cooldownByKind values (NaN, Infinity, negative) fall back to reset
     cb.reset();
     cb._onFailure(kind);
     const t = cb._timeUntilReset();
-    assert.ok(
-      t > 29_000 && t <= 30_000,
-      `expected resetTimeout fallback for ${kind}, got ${t}`,
-    );
+    assert.ok(t > 29_000 && t <= 30_000, `expected resetTimeout fallback for ${kind}, got ${t}`);
   }
   cb.reset();
 });

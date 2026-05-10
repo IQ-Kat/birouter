@@ -561,7 +561,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", targetFormat: "openai-responses" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5", targetFormat: "openai-responses" },
       { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6", targetFormat: "openai-responses" },
-      { id: "claude-opus-4-5-20251101", name: "Claude Opus 4.5 (Full ID)", targetFormat: "openai-responses" },
+      {
+        id: "claude-opus-4-5-20251101",
+        name: "Claude Opus 4.5 (Full ID)",
+        targetFormat: "openai-responses",
+      },
       { id: "claude-opus-4.6", name: "Claude Opus 4.6", targetFormat: "openai-responses" },
       { id: "claude-opus-4.7", name: "Claude Opus 4.7", targetFormat: "openai-responses" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", targetFormat: "openai-responses" },

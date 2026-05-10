@@ -64,7 +64,7 @@ export function defaultUseUpstream429BreakerHints(providerId: string): boolean {
  */
 export function resolveUseUpstream429BreakerHints(
   providerId: string,
-  userValue: boolean | undefined,
+  userValue: boolean | undefined
 ): boolean {
   if (userValue !== undefined) {
     return userValue;

@@ -7,11 +7,7 @@ import {
 
 test("defaultUseUpstream429BreakerHints: direct cloud providers default true", () => {
   for (const id of ["openai", "anthropic", "groq", "cerebras", "mistral", "google"]) {
-    assert.equal(
-      defaultUseUpstream429BreakerHints(id),
-      true,
-      `expected true for ${id}`,
-    );
+    assert.equal(defaultUseUpstream429BreakerHints(id), true, `expected true for ${id}`);
   }
 });
 
@@ -20,22 +16,26 @@ test("defaultUseUpstream429BreakerHints: cliproxyapi defaults false", () => {
 });
 
 test("defaultUseUpstream429BreakerHints: self-hosted chat providers default false", () => {
-  for (const id of ["lm-studio", "vllm", "lemonade", "llamafile", "triton", "xinference", "oobabooga"]) {
-    assert.equal(
-      defaultUseUpstream429BreakerHints(id),
-      false,
-      `expected false for ${id}`,
-    );
+  for (const id of [
+    "lm-studio",
+    "vllm",
+    "lemonade",
+    "llamafile",
+    "triton",
+    "xinference",
+    "oobabooga",
+  ]) {
+    assert.equal(defaultUseUpstream429BreakerHints(id), false, `expected false for ${id}`);
   }
 });
 
 test("defaultUseUpstream429BreakerHints: claude-code-* prefix defaults false", () => {
-  for (const id of ["anthropic-compatible-cc-direct", "anthropic-compatible-cc-bedrock", "anthropic-compatible-cc-vertex"]) {
-    assert.equal(
-      defaultUseUpstream429BreakerHints(id),
-      false,
-      `expected false for ${id}`,
-    );
+  for (const id of [
+    "anthropic-compatible-cc-direct",
+    "anthropic-compatible-cc-bedrock",
+    "anthropic-compatible-cc-vertex",
+  ]) {
+    assert.equal(defaultUseUpstream429BreakerHints(id), false, `expected false for ${id}`);
   }
 });
 

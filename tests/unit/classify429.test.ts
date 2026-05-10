@@ -22,20 +22,17 @@ test("classify429: 429 with no body or hints returns 'rate_limit'", () => {
 test("classify429: 429 with quota keyword in string body returns 'quota_exhausted'", () => {
   assert.equal(
     classify429({ status: 429, body: "You exceeded your daily limit." }),
-    "quota_exhausted",
+    "quota_exhausted"
   );
   assert.equal(
     classify429({ status: 429, body: "Monthly quota reached. Resets on the 1st." }),
-    "quota_exhausted",
+    "quota_exhausted"
   );
   assert.equal(
     classify429({ status: 429, body: "Out of credits — top up your account." }),
-    "quota_exhausted",
+    "quota_exhausted"
   );
-  assert.equal(
-    classify429({ status: 429, body: "plan limit reached" }),
-    "quota_exhausted",
-  );
+  assert.equal(classify429({ status: 429, body: "plan limit reached" }), "quota_exhausted");
 });
 
 test("classify429: 429 with quota keyword in nested object body returns 'quota_exhausted'", () => {
@@ -44,14 +41,14 @@ test("classify429: 429 with quota keyword in nested object body returns 'quota_e
       status: 429,
       body: { error: { message: "You have exceeded your monthly quota." } },
     }),
-    "quota_exhausted",
+    "quota_exhausted"
   );
   assert.equal(
     classify429({
       status: 429,
       body: { error: { type: "insufficient_quota", message: "..." } },
     }),
-    "quota_exhausted",
+    "quota_exhausted"
   );
 });
 
@@ -60,14 +57,14 @@ test("classify429: 429 without quota keyword returns 'rate_limit'", () => {
   // so classifier should default to "rate_limit" for any 429.
   assert.equal(
     classify429({ status: 429, body: "Too many requests. Try again in 60s." }),
-    "rate_limit",
+    "rate_limit"
   );
   assert.equal(
     classify429({
       status: 429,
       body: "Rate limit reached for requests. Please retry.",
     }),
-    "rate_limit",
+    "rate_limit"
   );
 });
 
@@ -107,13 +104,10 @@ test("ambiguous 'daily rate limit' messages classify as quota_exhausted (intenti
   // because daily/monthly caps semantically warrant a long cooldown — even
   // when the upstream calls them "rate limits". Locking it down here so a
   // future regex tweak doesn't silently change the behavior.
-  assert.equal(
-    classify429({ status: 429, body: "daily rate limit exceeded" }),
-    "quota_exhausted",
-  );
+  assert.equal(classify429({ status: 429, body: "daily rate limit exceeded" }), "quota_exhausted");
   assert.equal(
     classify429({ status: 429, body: "monthly rate limit exceeded" }),
-    "quota_exhausted",
+    "quota_exhausted"
   );
 });
 
