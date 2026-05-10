@@ -92,6 +92,7 @@ export {
   validateApiKey,
   getApiKeyMetadata,
   updateApiKeyPermissions,
+  regenerateApiKey,
   isModelAllowedForKey,
   clearApiKeyCaches,
   resetApiKeyState,

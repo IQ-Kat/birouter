@@ -69,8 +69,11 @@ interface ApiKey {
   noLog?: boolean;
   autoResolve?: boolean;
   isActive?: boolean;
+  isBanned?: boolean;
+  expiresAt?: string | null;
   maxSessions?: number;
   accessSchedule?: AccessSchedule | null;
+  rateLimits?: Array<{ limit: number; window: number }> | null;
   scopes?: string[];
   createdAt: string;
 }
@@ -177,28 +180,24 @@ export default function ApiManagerPageClient() {
         fetch("/api/usage/analytics?range=all"),
         fetch("/api/usage/call-logs?limit=1000"),
       ]);
-
       const analytics = analyticsRes.ok ? await analyticsRes.json() : null;
       const byApiKey: any[] = analytics?.byApiKey || [];
       const logs = logsRes.ok ? await logsRes.json() : [];
-
       const stats: Record<string, KeyUsageStats> = {};
-
       for (const key of apiKeys) {
-        const analyticsMatch = byApiKey.find(
-          (entry: any) =>
-            entry.apiKeyId === key.id || (!entry.apiKeyId && entry.apiKeyName === key.name)
-        );
+        // Match analytics entry by unique API Key ID (isolates usage to this specific key instance)
+        const matches = byApiKey.filter((entry: any) => entry.apiKeyId === key.id);
+        const totalRequests = matches.reduce((sum: number, entry: any) => sum + (Number(entry.requests) || 0), 0);
 
-        // The call-logs endpoint returns entries sorted by timestamp DESC,
-        // so the first match is the most recent one.
+        // Match call logs by unique ID as well for the lastUsed timestamp
         const lastUsed =
+          (logs || []).find((log: any) => log.apiKeyId === key.id)?.timestamp || null;
           (logs || []).find(
             (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
           )?.timestamp || null;
 
         stats[key.id] = {
-          totalRequests: analyticsMatch?.requests ?? 0,
+          totalRequests,
           lastUsed,
         };
       }
@@ -273,7 +272,6 @@ export default function ApiManagerPageClient() {
   };
 
   const handleDeleteKey = async (id: string) => {
-    // Validate ID format to prevent injection
     if (!id || typeof id !== "string" || !/^[a-zA-Z0-9_-]+$/.test(id)) {
       setPageError(t("invalidKeyId"));
       return;
@@ -295,6 +293,30 @@ export default function ApiManagerPageClient() {
     } catch (error) {
       console.error("Error deleting key:", error);
       setPageError(t("failedDeleteKeyRetry"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRegenerateKey = async (id: string) => {
+    if (!id) return;
+    if (!confirm(t("regenerateConfirm"))) return;
+
+    setIsSubmitting(true);
+    clearPageError();
+
+    try {
+      const res = await fetch(`/api/keys/${encodeURIComponent(id)}/regenerate`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setCreatedKey(data.key);
+        await fetchData();
+      } else {
+        setPageError(data.error || t("failedRegenerateKey"));
+      }
+    } catch (error) {
+      console.error("Error regenerating key:", error);
+      setPageError(t("failedRegenerateKeyRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -332,8 +354,11 @@ export default function ApiManagerPageClient() {
     allowedConnections: string[],
     autoResolve: boolean,
     isActive: boolean,
+    isBanned: boolean,
+    expiresAt: string | null,
     maxSessions: number,
     accessSchedule: AccessSchedule | null,
+    rateLimits: Array<{ limit: number; window: number }> | null
     scopes: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
@@ -378,8 +403,11 @@ export default function ApiManagerPageClient() {
           noLog,
           autoResolve,
           isActive,
+          isBanned,
+          expiresAt,
           maxSessions: normalizedMaxSessions,
           accessSchedule,
+          rateLimits,
           scopes,
         }),
       });
@@ -707,6 +735,18 @@ export default function ApiManagerPageClient() {
                           {t("scheduleActive")}
                         </span>
                       )}
+                      {key.isBanned && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600/10 text-red-700 dark:text-red-400 text-[11px] font-bold animate-pulse">
+                          <span className="material-symbols-outlined text-[12px]">gavel</span>
+                          BANNED
+                        </span>
+                      )}
+                      {key.expiresAt && new Date(key.expiresAt).getTime() < Date.now() && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-500/10 text-gray-600 dark:text-gray-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">event_busy</span>
+                          EXPIRED
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="col-span-2 flex flex-col justify-center">
@@ -726,6 +766,13 @@ export default function ApiManagerPageClient() {
                     {new Date(key.createdAt).toLocaleDateString()}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => handleRegenerateKey(key.id)}
+                      className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-all"
+                      title={t("regenerateKey")}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">refresh</span>
+                    </button>
                     <button
                       onClick={() => handleOpenPermissions(key)}
                       className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
@@ -920,8 +967,11 @@ const PermissionsModal = memo(function PermissionsModal({
     connections: string[],
     autoResolve: boolean,
     isActive: boolean,
+    isBanned: boolean,
+    expiresAt: string | null,
     maxSessions: number,
     accessSchedule: AccessSchedule | null,
+    rateLimits: Array<{ limit: number; window: number }> | null
     scopes: string[]
   ) => void;
 }) {
@@ -939,6 +989,8 @@ const PermissionsModal = memo(function PermissionsModal({
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
   const [autoResolveEnabled, setAutoResolveEnabled] = useState(apiKey?.autoResolve === true);
   const [keyIsActive, setKeyIsActive] = useState(apiKey?.isActive !== false);
+  const [keyIsBanned, setKeyIsBanned] = useState(apiKey?.isBanned === true);
+  const [expiresAt, setExpiresAt] = useState(apiKey?.expiresAt ?? "");
   const [manageEnabled, setManageEnabled] = useState(
     Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("manage")
   );
@@ -953,6 +1005,9 @@ const PermissionsModal = memo(function PermissionsModal({
   );
   const [scheduleTz, setScheduleTz] = useState(
     apiKey?.accessSchedule?.tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+  const [rateLimits, setRateLimits] = useState<Array<{ limit: number; window: number }>>(
+    Array.isArray(apiKey?.rateLimits) ? apiKey.rateLimits : []
   );
   const [nameError, setNameError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -1082,8 +1137,11 @@ const PermissionsModal = memo(function PermissionsModal({
       allowAllConnections ? [] : selectedConnections,
       autoResolveEnabled,
       keyIsActive,
+      keyIsBanned,
+      expiresAt || null,
       maxSessions,
       schedule,
+      rateLimits.length > 0 ? rateLimits : null
       manageEnabled ? ["manage"] : []
     );
   }, [
@@ -1096,6 +1154,8 @@ const PermissionsModal = memo(function PermissionsModal({
     selectedConnections,
     autoResolveEnabled,
     keyIsActive,
+    keyIsBanned,
+    expiresAt,
     maxSessions,
     manageEnabled,
     scheduleEnabled,
@@ -1103,6 +1163,7 @@ const PermissionsModal = memo(function PermissionsModal({
     scheduleUntil,
     scheduleDays,
     scheduleTz,
+    rateLimits,
     t,
   ]);
 
@@ -1238,6 +1299,72 @@ const PermissionsModal = memo(function PermissionsModal({
               }}
             />
           </div>
+        </div>
+
+        {/* Custom Rate Limits */}
+        <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-text-main">Custom Rate Limits</p>
+              <p className="text-xs text-text-muted">
+                Override global default limits. Leave empty to use defaults.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRateLimits((prev) => [...prev, { limit: 100, window: 60 }])}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
+            >
+              <span className="material-symbols-outlined text-[14px]">add</span>
+              Add Limit
+            </button>
+          </div>
+          {rateLimits.length > 0 && (
+            <div className="flex flex-col gap-2 pt-2">
+              {rateLimits.map((rl, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={String(rl.limit)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setRateLimits(prev => {
+                        const next = [...prev];
+                        next[index].limit = val;
+                        return next;
+                      });
+                    }}
+                    placeholder="Requests"
+                  />
+                  <span className="text-sm text-text-muted shrink-0">req /</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={String(rl.window)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setRateLimits(prev => {
+                        const next = [...prev];
+                        next[index].window = val;
+                        return next;
+                      });
+                    }}
+                    placeholder="Seconds"
+                  />
+                  <span className="text-sm text-text-muted shrink-0">sec</span>
+                  <button
+                    type="button"
+                    onClick={() => setRateLimits(prev => prev.filter((_, i) => i !== index))}
+                    className="p-2 text-red-500 hover:bg-red-500/10 rounded transition-colors shrink-0"
+                    title="Remove limit"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Access Schedule */}
@@ -1389,6 +1516,12 @@ const PermissionsModal = memo(function PermissionsModal({
           </button>
         </div>
 
+        {/* Ban Toggle (SECURITY) */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-red-500/20 bg-red-500/5">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-bold text-red-700 dark:text-red-400">Banned Status</p>
+            <p className="text-xs text-red-600 dark:text-red-300">
+              Immediately revoke all access. Used for suspected abuse or compromised keys.
         {/* Management API Access Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
@@ -1401,6 +1534,36 @@ const PermissionsModal = memo(function PermissionsModal({
           <button
             type="button"
             role="switch"
+            aria-checked={keyIsBanned}
+            onClick={() => setKeyIsBanned((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors ${
+              keyIsBanned
+                ? "bg-red-600 text-white shadow-lg shadow-red-500/20"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">gavel</span>
+            {keyIsBanned ? "BANNED" : "UNBANNED"}
+          </button>
+        </div>
+
+        {/* Expiration Date */}
+        <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">Expiration Date</p>
+            <p className="text-xs text-text-muted">Key will automatically stop working after this date.</p>
+          </div>
+          <input
+            type="datetime-local"
+            value={expiresAt ? expiresAt.slice(0, 16) : ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              setExpiresAt(val ? new Date(val).toISOString() : "");
+            }}
+            className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
+          />
+        </div>
+
             aria-checked={manageEnabled}
             onClick={() => setManageEnabled((prev) => !prev)}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${

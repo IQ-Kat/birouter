@@ -70,8 +70,11 @@ export async function PATCH(request, { params }) {
       noLog,
       autoResolve,
       isActive,
+      isBanned,
+      expiresAt,
       maxSessions,
       accessSchedule,
+      rateLimits,
       scopes,
     } = validation.data;
 
@@ -82,8 +85,11 @@ export async function PATCH(request, { params }) {
     if (noLog !== undefined) payload.noLog = noLog;
     if (autoResolve !== undefined) payload.autoResolve = autoResolve;
     if (isActive !== undefined) payload.isActive = isActive;
+    if (isBanned !== undefined) payload.isBanned = isBanned;
+    if (expiresAt !== undefined) payload.expiresAt = expiresAt;
     if (maxSessions !== undefined) payload.maxSessions = maxSessions;
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
+    if (rateLimits !== undefined) payload.rateLimits = rateLimits;
     if (scopes !== undefined) payload.scopes = scopes;
 
     const updated = await updateApiKeyPermissions(id, payload);
@@ -102,8 +108,11 @@ export async function PATCH(request, { params }) {
       ...(noLog !== undefined && { noLog }),
       ...(autoResolve !== undefined && { autoResolve }),
       ...(isActive !== undefined && { isActive }),
+      ...(isBanned !== undefined && { isBanned }),
+      ...(expiresAt !== undefined && { expiresAt }),
       ...(maxSessions !== undefined && { maxSessions }),
       ...(accessSchedule !== undefined && { accessSchedule }),
+      ...(rateLimits !== undefined && { rateLimits }),
       ...(scopes !== undefined && { scopes }),
     });
   } catch (error) {
