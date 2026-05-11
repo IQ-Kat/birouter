@@ -86,6 +86,10 @@
 - **fix(cli):** resolve .env loading failure for global npm installations
 - **fix(export):** exclude telemetry/usage-history tables from JSON config backups by default to prevent unbounded file growth (#2125)
 - **fix(translator):** preserve `body.system` in openai→claude translator when Claude Code sends native Anthropic system array through /chat/completions — fixes v3.7.9 regression where system prompt was silently dropped, triggering Anthropic 429 (#2130)
+- **fix(sanitizer):** preserve `reasoning_content` on assistant messages with `tool_calls` or `function_call` — fixes Kimi and other thinking-enabled providers returning 400 errors when reasoning_content was incorrectly stripped (#2140 — thanks @DavyMassoneto)
+- **fix(catalog):** ensure individual (non-combo) models expose `context_length` via `getTokenLimit()` fallback chain — prevents OpenCode and other clients from falling back to conservative ~4000 token limit (#2136 — thanks @herjarsa)
+- **fix(docker):** remove docs directory from `.dockerignore` so API catalog documentation is available at runtime inside containers (#2137, #2120 — thanks @hartmark)
+- **fix(types):** systematic `any` type elimination across 8 core files — `antigravity.ts`, `accountFallback.ts`, `usage.ts`, `geminiHelper.ts`, `error.ts`, `apiKeys.ts`, `settings.ts`, `logger.ts` (#2137 — thanks @hartmark)
 - **fix:** Follow OpenAI specification, handle throttling in batch and fix UI (#2045)
 
 ### 🔒 Security
@@ -112,12 +116,12 @@
 
 ### 🏆 v3.8.0 Community Contributors
 
-Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
+Thank you to all **40 community contributors** who made v3.8.0 possible! 🎉
 
 | Contributor                                                | PRs | Contributions                                                 |
 | :--------------------------------------------------------- | :-: | :------------------------------------------------------------ |
 | [@oyi77](https://github.com/oyi77)                         |  8  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131 |
-| [@backryun](https://github.com/backryun)                   |  4  | #1992, #2033, #2088, #2123                                    |
+| [@backryun](https://github.com/backryun)                   |  5  | #1992, #2033, #2088, #2123, #2138                             |
 | [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                    |
 | [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                  |
 | [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                  |
@@ -131,9 +135,9 @@ Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
 | [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                         |
 | [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                         |
 | [@bypanghu](https://github.com/bypanghu)                   |  1  | #2027                                                         |
-| [@herjarsa](https://github.com/herjarsa)                   |  1  | #2030                                                         |
+| [@herjarsa](https://github.com/herjarsa)                   |  2  | #2030, #2136                                                  |
 | [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                         |
-| [@hartmark](https://github.com/hartmark)                   |  1  | #2045                                                         |
+| [@hartmark](https://github.com/hartmark)                   |  2  | #2045, #2137                                                  |
 | [@ddarkr](https://github.com/ddarkr)                       |  1  | #2047                                                         |
 | [@tces1](https://github.com/tces1)                         |  1  | #2048                                                         |
 | [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                         |
@@ -154,6 +158,8 @@ Thank you to all **38 community contributors** who made v3.8.0 possible! 🎉
 | [@christlau](https://github.com/christlau)                 |  1  | #2129                                                         |
 | [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                         |
 | [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                         |
+| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                         |
+
 
 ## [3.7.9] — 2026-05-03
 
