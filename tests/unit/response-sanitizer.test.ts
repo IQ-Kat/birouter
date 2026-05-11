@@ -58,8 +58,6 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves re
   assert.equal((sanitized as any).choices[0].index, 2);
   assert.equal((sanitized as any).choices[0].finish_reason, "tool_calls");
   (assert as any).equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
-  // reasoning_content extracted from <think> tags is preserved when tool_calls exist
-  // because thinking-enabled providers require it on assistant tool call messages
   assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
   (assert as any).deepEqual((sanitized as any).choices[0].message.tool_calls, [{ id: "call_1" }]);
   assert.deepEqual((sanitized as any).choices[0].message.function_call, { name: "legacy" });
