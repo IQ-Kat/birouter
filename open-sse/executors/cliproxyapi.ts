@@ -133,6 +133,21 @@ export class CliproxyapiExecutor extends BaseExecutor {
       transformed.model = model;
     }
 
+    // For Anthropic-shape bodies routed to CPA's /v1/messages, strip the
+    // Capy/Anthropic-SDK premium extras that Anthropic gates with
+    // "Extra usage is required" / "out of extra usage" (400). CPA does its
+    // own Claude Code wire-image cloak (CCH, billing header, uTLS, metadata
+    // user_id, system sentinel) downstream — but it forwards client extras
+    // like output_config.effort=xhigh which trigger the extras-billing gate.
+    //
+    // Mirrors the runtime "Patch I2/I4" effect previously applied via patch.mjs.
+    // Strips are no-op when fields are absent (OpenAI-shape passthrough).
+    if (this.isAnthropicShape(transformed)) {
+      delete transformed.thinking;
+      delete transformed.output_config;
+      delete transformed.context_management;
+    }
+
     return transformed;
   }
 
