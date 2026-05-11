@@ -8,15 +8,15 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
-import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
-import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
-import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model.ts";
+import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
+import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
+import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
+import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
+import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
+import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
+import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
+import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
 import { getAllSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
@@ -26,8 +26,19 @@ import {
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
-import { parseModel } from "@omniroute/open-sse/services/model.ts";
-import { getTokenLimit } from "@omniroute/open-sse/services/contextManager.ts";
+import { parseModel } from "@omniroute/open-sse/services/model";
+import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import type { ComboModelStep } from "@/lib/combos/steps";
+
+interface CustomModelEntry {
+  id?: string;
+  name?: string;
+  source?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+  inputTokenLimit?: number;
+  isHidden?: boolean;
+}
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -322,10 +333,11 @@ export async function getUnifiedModelsResponse(
       // they fall back to a conservative ~4000 token limit, causing truncation.
       const comboContextLength = Array.isArray(combo.models)
         ? combo.models
-            .filter((step) => step && step.kind === "model" && step.model)
+            .filter((step): step is ComboModelStep => step?.kind === "model" && Boolean(step.model))
             .map((step) => {
               const parsed = parseModel(step.model);
-              const provider = parsed.provider || (step as any).providerId || "unknown";
+              const rawProvider = parsed.provider || step.providerId || "unknown";
+              const provider = resolveCanonicalProviderId(rawProvider);
               const model = parsed.model || step.model;
               return getTokenLimit(provider, model);
             })
@@ -685,9 +697,9 @@ export async function getUnifiedModelsResponse(
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
         if (providerId === "reka") continue;
-        const providerCustomModels = Array.isArray(rawProviderCustomModels)
+        const providerCustomModels: CustomModelEntry[] = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
-              (model): model is Record<string, unknown> =>
+              (model): model is CustomModelEntry =>
                 !!model && typeof model === "object" && !Array.isArray(model)
             )
           : [];
@@ -760,8 +772,8 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
-            ...(typeof (model as any).inputTokenLimit === "number"
-              ? { context_length: (model as any).inputTokenLimit }
+            ...(typeof model.inputTokenLimit === "number"
+              ? { context_length: model.inputTokenLimit }
               : {}),
             ...(visionFields || {}),
           });
@@ -785,8 +797,8 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
-              ...(typeof (model as any).inputTokenLimit === "number"
-                ? { context_length: (model as any).inputTokenLimit }
+              ...(typeof model.inputTokenLimit === "number"
+                ? { context_length: model.inputTokenLimit }
                 : {}),
               ...(providerVisionFields || {}),
             });
@@ -821,9 +833,7 @@ export async function getUnifiedModelsResponse(
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
         const contextLength =
-          typeof (model as any).contextLength === "number"
-            ? (model as any).contextLength
-            : undefined;
+          typeof model.contextLength === "number" ? model.contextLength : undefined;
 
         models.push({
           id: aliasId,
@@ -901,7 +911,7 @@ export async function getUnifiedModelsResponse(
     return Response.json(
       {
         error: {
-          message: (error as any).message,
+          message: error instanceof Error ? error.message : String(error),
           type: "server_error",
           code: INTERNAL_PROXY_ERROR,
         },
