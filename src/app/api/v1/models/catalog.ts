@@ -29,6 +29,16 @@ import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import type { ComboModelStep } from "@/lib/combos/steps";
 
+interface CustomModelEntry {
+  id?: string;
+  name?: string;
+  source?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+  inputTokenLimit?: number;
+  isHidden?: boolean;
+}
+
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
   cc: "claude",
@@ -659,9 +669,9 @@ export async function getUnifiedModelsResponse(
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
         if (providerId === "reka") continue;
-        const providerCustomModels = Array.isArray(rawProviderCustomModels)
+        const providerCustomModels: CustomModelEntry[] = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
-              (model): model is Record<string, unknown> =>
+              (model): model is CustomModelEntry =>
                 !!model && typeof model === "object" && !Array.isArray(model)
             )
           : [];
@@ -734,8 +744,8 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
-            ...(typeof model["inputTokenLimit"] === "number"
-              ? { context_length: model["inputTokenLimit"] as number }
+            ...(typeof model.inputTokenLimit === "number"
+              ? { context_length: model.inputTokenLimit }
               : {}),
             ...(visionFields || {}),
           });
@@ -759,8 +769,8 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
-              ...(typeof model["inputTokenLimit"] === "number"
-                ? { context_length: model["inputTokenLimit"] as number }
+              ...(typeof model.inputTokenLimit === "number"
+                ? { context_length: model.inputTokenLimit }
                 : {}),
               ...(providerVisionFields || {}),
             });
