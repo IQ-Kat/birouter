@@ -24,16 +24,19 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function seedConnection(provider, overrides = {}) {
+async function seedConnection(
+  provider: string,
+  overrides: Record<string, unknown> = {}
+) {
   return providersDb.createProviderConnection({
     provider,
-    authType: overrides.authType || "apikey",
-    name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: overrides.apiKey || "sk-test",
-    accessToken: overrides.accessToken,
-    isActive: overrides.isActive ?? true,
-    testStatus: overrides.testStatus || "active",
-    providerSpecificData: overrides.providerSpecificData || {},
+    authType: (overrides.authType as string) || "apikey",
+    name: (overrides.name as string) || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    apiKey: (overrides.apiKey as string) || "sk-test",
+    accessToken: overrides.accessToken as string | undefined,
+    isActive: (overrides.isActive as boolean) ?? true,
+    testStatus: (overrides.testStatus as string) || "active",
+    providerSpecificData: (overrides.providerSpecificData as Record<string, unknown>) || {},
   });
 }
 

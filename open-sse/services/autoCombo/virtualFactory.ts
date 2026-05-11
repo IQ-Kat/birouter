@@ -55,13 +55,6 @@ export async function createVirtualAutoCombo(
       weights: { ...DEFAULT_WEIGHTS },
       explorationRate: 0.05,
       routerStrategy: "lkgp",
-      config: {
-        candidatePool: emptyPool,
-        weights: { ...DEFAULT_WEIGHTS },
-        explorationRate: 0.05,
-        routingStrategy: "lkgp",
-      },
-      models: emptyPool,
     };
   }
 
@@ -122,20 +115,9 @@ export async function createVirtualAutoCombo(
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
     type: "auto",
-    // Root-level fields for AutoComboConfig type compatibility
     candidatePool: pool,
     weights: weights,
     explorationRate: explorationRate,
     routerStrategy: routerStrategy,
-    // Nested config for combo router's auto-type handler
-    // (reads via: combo?.autoConfig || combo?.config?.auto || combo?.config || {})
-    config: {
-      candidatePool: pool,
-      weights: weights,
-      explorationRate: explorationRate,
-      routingStrategy: routerStrategy,
-    },
-    // models array so resolveComboTargets doesn't get an empty array
-    models: pool,
   };
 }
