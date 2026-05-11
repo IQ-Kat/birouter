@@ -462,11 +462,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
-      { id: "gpt-5.5", name: "GPT 5.5", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", ...GPT_5_5_CODEX_CAPABILITIES },
+      // gpt-5.5 codex OAuth backend caps context at 400K (not the public-API
+      // 1.05M). Public refs : openai/codex#19208, #19319, #19464 ;
+      // opencode#24171. max_output_tokens is stripped server-side
+      // (litellm#21193, codex#4138) so 128K is informational only.
+      { id: "gpt-5.5",        name: "GPT 5.5",          ...GPT_5_5_CODEX_CAPABILITIES, contextLength: 400000, maxOutputTokens: 128000 },
+      { id: "gpt-5.5-xhigh",  name: "GPT 5.5 (xHigh)",  ...GPT_5_5_CODEX_CAPABILITIES, contextLength: 400000, maxOutputTokens: 128000 },
+      { id: "gpt-5.5-high",   name: "GPT 5.5 (High)",   ...GPT_5_5_CODEX_CAPABILITIES, contextLength: 400000, maxOutputTokens: 128000 },
+      { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES, contextLength: 400000, maxOutputTokens: 128000 },
+      { id: "gpt-5.5-low",    name: "GPT 5.5 (Low)",    ...GPT_5_5_CODEX_CAPABILITIES, contextLength: 400000, maxOutputTokens: 128000 },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
