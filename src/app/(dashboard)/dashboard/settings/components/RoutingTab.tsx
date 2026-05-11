@@ -15,6 +15,8 @@ export default function RoutingTab() {
     alwaysPreserveClientCache: "auto",
     antigravitySignatureCacheMode: "enabled",
     cliCompatProviders: [],
+    autoRoutingEnabled: true,
+    autoRoutingDefaultVariant: "lkgp",
   });
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
@@ -49,7 +51,9 @@ export default function RoutingTab() {
   const cliCompatProviders = useMemo(
     () =>
       Array.isArray(settings.cliCompatProviders)
-        ? settings.cliCompatProviders.map((providerId: string) => normalizeCliCompatProviderId(providerId))
+        ? settings.cliCompatProviders.map((providerId: string) =>
+            normalizeCliCompatProviderId(providerId)
+          )
         : [],
     [settings.cliCompatProviders]
   );
@@ -270,33 +274,54 @@ export default function RoutingTab() {
           {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
             const normalizedProviderId = normalizeCliCompatProviderId(providerId);
             const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
-            const checked = cliCompatProviderSet.has(normalizedProviderId);
+            // Claude OAuth force-applies the fingerprint regardless of this toggle
+            // (base.ts: shouldFingerprint), so render the tile as locked-on.
+            const forced = providerId === "claude";
+            const checked = forced || cliCompatProviderSet.has(normalizedProviderId);
             const label = providerDisplay?.name || providerId;
             const description = providerDisplay?.description || providerId;
+            const titleText = forced
+              ? t("forcedFingerprintTitle", { provider: label })
+              : checked
+                ? t("disableFingerprintTitle", { provider: label })
+                : t("enableFingerprintTitle", { provider: label });
 
             return (
               <button
                 key={providerId}
                 type="button"
-                onClick={() => toggleCliCompatProvider(providerId, !checked)}
-                disabled={loading}
+                onClick={() => {
+                  if (forced) return;
+                  toggleCliCompatProvider(providerId, !checked);
+                }}
+                disabled={loading || forced}
                 aria-pressed={checked}
-                title={checked ? t("disableFingerprintTitle", { provider: label }) : t("enableFingerprintTitle", { provider: label })}
+                aria-disabled={forced || undefined}
+                title={titleText}
                 className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
                   checked
                     ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
                     : "border-border/50 hover:border-border hover:bg-surface/30"
-                } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+                } ${loading || forced ? "cursor-not-allowed" : ""} ${loading ? "opacity-60" : ""}`}
               >
                 <span
                   className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
                   aria-hidden="true"
                 >
-                  {checked ? "check_circle" : "radio_button_unchecked"}
+                  {forced ? "lock" : checked ? "check_circle" : "radio_button_unchecked"}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}>
-                    {label}
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
+                    >
+                      {label}
+                    </span>
+                    {forced ? (
+                      <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-400">
+                        {t("forcedFingerprintBadge")}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="mt-1 block text-xs text-text-muted">{description}</span>
                 </span>
@@ -370,6 +395,81 @@ export default function RoutingTab() {
               <p className="text-xs text-text-muted ml-7">{option.desc}</p>
             </button>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                auto_awesome
+              </span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Zero-Config Auto-Routing</h3>
+              <p className="text-sm text-text-muted mt-1">
+                Enable automatic provider selection using the auto/ prefix. When enabled, requests
+                to auto, auto/coding, auto/fast, etc. will dynamically route across all connected
+                providers.
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={settings.autoRoutingEnabled !== false}
+                onChange={(e) => updateSetting({ autoRoutingEnabled: e.target.checked })}
+                disabled={loading}
+              />
+              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-border/30">
+          <label className="block text-sm font-medium mb-2">Default Auto Variant</label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              { value: "lkgp", label: "LKGP", desc: "Last Known Good Provider" },
+              { value: "coding", label: "Coding", desc: "Quality-first for code" },
+              { value: "fast", label: "Fast", desc: "Low-latency routing" },
+              { value: "cheap", label: "Cheap", desc: "Cost-optimized" },
+              { value: "offline", label: "Offline", desc: "High availability" },
+              { value: "smart", label: "Smart", desc: "Best discovery (10% explore)" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => updateSetting({ autoRoutingDefaultVariant: option.value })}
+                disabled={loading}
+                className={`p-2 rounded-lg border text-left transition-all ${
+                  settings.autoRoutingDefaultVariant === option.value
+                    ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                    : "border-border/50 hover:border-border hover:bg-surface/30"
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  <span
+                    className={`material-symbols-outlined text-[14px] ${
+                      settings.autoRoutingDefaultVariant === option.value
+                        ? "text-indigo-400"
+                        : "text-text-muted"
+                    }`}
+                  >
+                    {settings.autoRoutingDefaultVariant === option.value
+                      ? "check_circle"
+                      : "radio_button_unchecked"}
+                  </span>
+                  <span
+                    className={`text-xs font-medium ${settings.autoRoutingDefaultVariant === option.value ? "text-indigo-400" : ""}`}
+                  >
+                    {option.label}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </Card>
     </div>

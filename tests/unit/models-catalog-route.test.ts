@@ -24,16 +24,19 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function seedConnection(provider, overrides = {}) {
+async function seedConnection(
+  provider: string,
+  overrides: Record<string, unknown> = {}
+) {
   return providersDb.createProviderConnection({
     provider,
-    authType: overrides.authType || "apikey",
-    name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: overrides.apiKey || "sk-test",
-    accessToken: overrides.accessToken,
-    isActive: overrides.isActive ?? true,
-    testStatus: overrides.testStatus || "active",
-    providerSpecificData: overrides.providerSpecificData || {},
+    authType: (overrides.authType as string) || "apikey",
+    name: (overrides.name as string) || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    apiKey: (overrides.apiKey as string) || "sk-test",
+    accessToken: overrides.accessToken as string | undefined,
+    isActive: (overrides.isActive as boolean) ?? true,
+    testStatus: (overrides.testStatus as string) || "active",
+    providerSpecificData: (overrides.providerSpecificData as Record<string, unknown>) || {},
   });
 }
 
@@ -286,6 +289,36 @@ test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retir
     body.data.some((item) => item.id === "gh/claude-opus-4.1"),
     false
   );
+});
+
+test("v1 models catalog exposes bare Codex-preferred IDs for native Codex clients", async () => {
+  await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-native",
+    apiKey: null,
+    accessToken: "codex-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const getModel = (id: string) => body.data.find((item) => item.id === id);
+
+  assert.equal(response.status, 200);
+  const modelId = "codex-auto-review";
+  const bareModel = getModel(modelId);
+  const providerModel = getModel(`codex/${modelId}`);
+  const aliasModel = getModel(`cx/${modelId}`);
+  const openAiModel = getModel(`openai/${modelId}`);
+
+  assert.ok(bareModel, `expected bare ${modelId} model`);
+  assert.ok(providerModel, `expected codex/${modelId} model`);
+  assert.ok(aliasModel, `expected cx/${modelId} model`);
+  assert.equal(openAiModel, undefined);
+  assert.equal(bareModel.owned_by, "codex");
+  assert.equal(bareModel.parent, providerModel.id);
+  assert.equal(providerModel.parent, aliasModel.id);
 });
 
 test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
@@ -982,6 +1015,7 @@ test("v1 models catalog falls back to getTokenLimit for models without registry 
     `synced model without inputTokenLimit should get context_length via getTokenLimit fallback, got ${model.context_length}`
   );
 });
+
 
 test("v1 models catalog prefers manual combo context_length over auto-calculated", async () => {
   await seedConnection("openai", { name: "openai-manual-context" });
