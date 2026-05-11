@@ -44,6 +44,7 @@ type ProviderProfile = {
   providerCooldownMs: number;
 };
 type JsonRecord = Record<string, unknown>;
+type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
 type ModelLockoutEntry = {
   reason: string;
   until: number;
@@ -57,6 +58,17 @@ type ModelFailureState = {
   lastFailureAt: number;
   resetAfterMs: number;
 };
+type AccountState = JsonRecord & {
+  id?: string | null;
+  rateLimitedUntil?: string | null;
+  backoffLevel?: number | null;
+  lastError?: unknown;
+  status?: string;
+};
+
+function toJsonRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
 
 // Provider-level failure tracking for circuit breaker behavior
 // Error codes that count toward provider-level failure threshold
@@ -210,7 +222,7 @@ function buildProviderProfile(
  * Get the resilience profile for a provider (oauth or apikey).
  * @param {string} provider - Provider ID or alias
  */
-export function getProviderProfile(provider) {
+export function getProviderProfile(provider: string): ProviderProfile {
   const category = getProviderCategory(provider);
   return buildProviderProfile(category);
 }
@@ -227,7 +239,7 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
     const category = getProviderCategory(provider || "");
     return buildProviderProfile(category, settings);
   } catch {
-    return getProviderProfile(provider);
+    return getProviderProfile(provider || "");
   }
 }
 
@@ -310,13 +322,13 @@ function ensureCleanupTimer() {
  * @param {number} cooldownMs
  */
 export function lockModel(
-  provider,
-  connectionId,
-  model,
-  reason,
-  cooldownMs,
+  provider: string,
+  connectionId: string,
+  model: string | null | undefined,
+  reason: string,
+  cooldownMs: number,
   metadata: Partial<ModelLockoutEntry> = {}
-) {
+): void {
   if (!model) return; // No model → skip model-level locking
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model);
@@ -400,7 +412,11 @@ export function recordModelLockoutFailure(
   };
 }
 
-export function clearModelLock(provider, connectionId, model) {
+export function clearModelLock(
+  provider: string,
+  connectionId: string,
+  model: string | null | undefined
+): boolean {
   if (!model) return false;
   const key = getModelLockKey(provider, connectionId, model);
   const hadLock = modelLockouts.delete(key);
@@ -470,7 +486,11 @@ export function shouldMarkAccountExhaustedFrom429(
  * Check if a specific model on a specific account is locked
  * @returns {boolean}
  */
-export function isModelLocked(provider, connectionId, model) {
+export function isModelLocked(
+  provider: string,
+  connectionId: string,
+  model: string | null | undefined
+): boolean {
   if (!model) return false;
   const key = getModelLockKey(provider, connectionId, model);
   cleanupModelLockKey(key);
@@ -481,7 +501,11 @@ export function isModelLocked(provider, connectionId, model) {
 /**
  * Get model lockout info (for debugging/dashboard)
  */
-export function getModelLockoutInfo(provider, connectionId, model) {
+export function getModelLockoutInfo(
+  provider: string,
+  connectionId: string,
+  model: string | null | undefined
+) {
   if (!model) return null;
   const key = getModelLockKey(provider, connectionId, model);
   cleanupModelLockKey(key);
@@ -677,29 +701,36 @@ export function isProviderFailureCode(status: number): boolean {
  * @param {string|object} responseBody - Raw response body or parsed JSON
  * @returns {{ retryAfterMs: number|null, reason: string }}
  */
-export function parseRetryAfterFromBody(responseBody) {
-  let body;
+export function parseRetryAfterFromBody(responseBody: unknown): {
+  retryAfterMs: number | null;
+  reason: RateLimitReasonValue;
+} {
+  let body: JsonRecord;
   try {
-    body = typeof responseBody === "string" ? JSON.parse(responseBody) : responseBody;
+    body = toJsonRecord(typeof responseBody === "string" ? JSON.parse(responseBody) : responseBody);
   } catch {
     return { retryAfterMs: null, reason: RateLimitReason.UNKNOWN };
   }
 
-  if (!body) return { retryAfterMs: null, reason: RateLimitReason.UNKNOWN };
+  if (Object.keys(body).length === 0) {
+    return { retryAfterMs: null, reason: RateLimitReason.UNKNOWN };
+  }
 
   // Gemini: { error: { details: [{ retryDelay: "33s" }] } }
-  const details = body.error?.details || body.details || [];
+  const error = toJsonRecord(body.error);
+  const details = error.details || body.details || [];
   for (const detail of Array.isArray(details) ? details : []) {
-    if (detail.retryDelay) {
+    const detailRecord = toJsonRecord(detail);
+    if (detailRecord.retryDelay) {
       return {
-        retryAfterMs: parseDelayString(detail.retryDelay),
+        retryAfterMs: parseDelayString(detailRecord.retryDelay),
         reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
       };
     }
   }
 
   // OpenAI: "Please retry after 20s" in message
-  const msg = body.error?.message || body.message || "";
+  const msg = String(error.message || body.message || "");
   const retryMatch = msg.match(/retry\s+after\s+(\d+)\s*s/i);
   if (retryMatch) {
     return {
@@ -709,7 +740,7 @@ export function parseRetryAfterFromBody(responseBody) {
   }
 
   // Anthropic: error type classification
-  const errorType = body.error?.type || body.type || "";
+  const errorType = String(error.type || body.type || "");
   if (errorType === "rate_limit_error") {
     return { retryAfterMs: null, reason: RateLimitReason.RATE_LIMIT_EXCEEDED };
   }
@@ -722,7 +753,7 @@ export function parseRetryAfterFromBody(responseBody) {
 /**
  * Parse delay strings like "33s", "2m", "1h", "1500ms"
  */
-function parseDelayString(value) {
+function parseDelayString(value: unknown): number | null {
   if (!value) return null;
   const str = String(value).trim();
   const msMatch = str.match(/^(\d+)\s*ms$/i);
@@ -746,7 +777,7 @@ function parseDelayString(value) {
  * @param {string} errorText - Error message text from response body
  * @returns {number|null} Retry duration in milliseconds
  */
-export function parseRetryFromErrorText(errorText) {
+export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
 
   const match = errorText.match(/reset after (\d+h)?(\d+m)?(\d+s)?/i);
@@ -763,7 +794,7 @@ export function parseRetryFromErrorText(errorText) {
 /**
  * Compute total milliseconds from regex match groups (Xh)(Ym)(Zs)
  */
-function computeDurationMs(match) {
+function computeDurationMs(match: RegExpMatchArray): number | null {
   let totalMs = 0;
   if (match[1]) totalMs += parseInt(match[1], 10) * 3600 * 1000; // hours
   if (match[2]) totalMs += parseInt(match[2], 10) * 60 * 1000; // minutes
@@ -776,7 +807,7 @@ function computeDurationMs(match) {
 /**
  * Classify error text into RateLimitReason
  */
-export function classifyErrorText(errorText) {
+export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
   if (!errorText) return RateLimitReason.UNKNOWN;
   const lower = String(errorText).toLowerCase();
 
@@ -792,11 +823,11 @@ export function classifyErrorText(errorText) {
     return RateLimitReason.QUOTA_EXHAUSTED;
   }
   // T10: credits_exhausted signals
-  if (isCreditsExhausted(errorText)) {
+  if (isCreditsExhausted(lower)) {
     return RateLimitReason.QUOTA_EXHAUSTED;
   }
   // T06: account_deactivated signals
-  if (isAccountDeactivated(errorText)) {
+  if (isAccountDeactivated(lower)) {
     return RateLimitReason.AUTH_ERROR;
   }
   const configuredRule = matchErrorRuleByText(errorText);
@@ -819,7 +850,7 @@ export function classifyErrorText(errorText) {
 /**
  * Classify HTTP status + error text into RateLimitReason
  */
-export function classifyError(status, errorText) {
+export function classifyError(status: number, errorText: unknown): RateLimitReasonValue {
   // Text classification takes priority (more specific)
   const textReason = classifyErrorText(errorText);
   if (textReason !== RateLimitReason.UNKNOWN) return textReason;
@@ -885,7 +916,7 @@ export function isDailyQuotaExhausted(errorText: string): boolean {
  * @param {number} failureCount - Number of consecutive failures
  * @returns {number} Duration in ms
  */
-export function getBackoffDuration(failureCount) {
+export function getBackoffDuration(failureCount: number): number {
   const idx = Math.min(failureCount, BACKOFF_STEPS_MS.length - 1);
   return BACKOFF_STEPS_MS[idx];
 }
@@ -942,14 +973,15 @@ export function checkFallbackError(
     HTTP_STATUS.GATEWAY_TIMEOUT,
   ]);
 
-  function parseResetFromHeaders(headers) {
+  function parseResetFromHeaders(headers: Headers | Record<string, string> | null): number | null {
     if (!headers) return null;
+    const recordHeaders = headers as Record<string, string>;
 
     // Retry-After header
     const retryAfter =
-      typeof headers.get === "function"
-        ? headers.get("retry-after")
-        : headers["retry-after"] || headers["Retry-After"];
+      typeof (headers as Headers).get === "function"
+        ? (headers as Headers).get("retry-after")
+        : recordHeaders["retry-after"] || recordHeaders["Retry-After"];
 
     if (retryAfter) {
       const seconds = parseInt(retryAfter, 10);
@@ -962,9 +994,9 @@ export function checkFallbackError(
 
     // X-RateLimit-Reset
     const rlReset =
-      typeof headers.get === "function"
-        ? headers.get("x-ratelimit-reset")
-        : headers["x-ratelimit-reset"] || headers["X-RateLimit-Reset"];
+      typeof (headers as Headers).get === "function"
+        ? (headers as Headers).get("x-ratelimit-reset")
+        : recordHeaders["x-ratelimit-reset"] || recordHeaders["X-RateLimit-Reset"];
 
     if (rlReset) {
       const ts = parseInt(rlReset, 10);
@@ -991,7 +1023,8 @@ export function checkFallbackError(
     return null;
   }
 
-  function getScaledBaseCooldown(reason, level = backoffLevel) {
+  function getScaledBaseCooldown(reason: RateLimitReasonValue, level = backoffLevel) {
+    void reason;
     const baseCooldownMs =
       typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0
         ? profile.baseCooldownMs
@@ -1003,7 +1036,7 @@ export function checkFallbackError(
     };
   }
 
-  function buildRetryableFallback(reason) {
+  function buildRetryableFallback(reason: RateLimitReasonValue) {
     const upstreamRetryHintMs = getUpstreamRetryHintMs();
     if (typeof upstreamRetryHintMs === "number" && upstreamRetryHintMs > 0) {
       return {
@@ -1131,7 +1164,7 @@ export function checkFallbackError(
 /**
  * Check if account is currently unavailable (cooldown not expired)
  */
-export function isAccountUnavailable(unavailableUntil) {
+export function isAccountUnavailable(unavailableUntil: string | Date | null | undefined): boolean {
   if (!unavailableUntil) return false;
   return new Date(unavailableUntil).getTime() > Date.now();
 }
@@ -1139,14 +1172,16 @@ export function isAccountUnavailable(unavailableUntil) {
 /**
  * Calculate unavailable until timestamp
  */
-export function getUnavailableUntil(cooldownMs) {
+export function getUnavailableUntil(cooldownMs: number): string {
   return new Date(Date.now() + cooldownMs).toISOString();
 }
 
 /**
  * Get the earliest rateLimitedUntil from a list of accounts
  */
-export function getEarliestRateLimitedUntil(accounts) {
+export function getEarliestRateLimitedUntil(
+  accounts: Array<{ rateLimitedUntil?: string | null }>
+): string | null {
   let earliest: number | null = null;
   const now = Date.now();
   for (const acc of accounts) {
@@ -1162,7 +1197,7 @@ export function getEarliestRateLimitedUntil(accounts) {
 /**
  * Format rateLimitedUntil to human-readable "reset after Xm Ys"
  */
-export function formatRetryAfter(rateLimitedUntil) {
+export function formatRetryAfter(rateLimitedUntil: string | Date | null | undefined): string {
   if (!rateLimitedUntil) return "";
   const diffMs = new Date(rateLimitedUntil).getTime() - Date.now();
   if (diffMs <= 0) return "reset after 0s";
@@ -1180,7 +1215,10 @@ export function formatRetryAfter(rateLimitedUntil) {
 /**
  * Filter available accounts (not in cooldown)
  */
-export function filterAvailableAccounts(accounts, excludeId = null) {
+export function filterAvailableAccounts<T extends AccountState>(
+  accounts: T[],
+  excludeId: string | null = null
+): T[] {
   const now = Date.now();
   return accounts.filter((acc) => {
     if (excludeId && acc.id === excludeId) return false;
@@ -1195,7 +1233,9 @@ export function filterAvailableAccounts(accounts, excludeId = null) {
 /**
  * Reset account state when request succeeds
  */
-export function resetAccountState(account) {
+export function resetAccountState<T extends AccountState | null | undefined>(
+  account: T
+): T | AccountState {
   if (!account) return account;
   return {
     ...account,
@@ -1209,7 +1249,12 @@ export function resetAccountState(account) {
 /**
  * Apply error state to account
  */
-export function applyErrorState(account, status, errorText, provider = null) {
+export function applyErrorState<T extends AccountState | null | undefined>(
+  account: T,
+  status: number,
+  errorText: string | null,
+  provider: string | null = null
+): T | AccountState {
   if (!account) return account;
 
   const backoffLevel = account.backoffLevel || 0;
@@ -1232,7 +1277,10 @@ export function applyErrorState(account, status, errorText, provider = null) {
  * @param {object} account
  * @returns {number} score 0 = unhealthy, 100 = perfectly healthy
  */
-export function getAccountHealth(account, model?: unknown) {
+export function getAccountHealth(
+  account: AccountState | null | undefined,
+  model?: unknown
+): number {
   if (!account) return 0;
   let score = 100;
   score -= (account.backoffLevel || 0) * 10;

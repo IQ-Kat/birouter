@@ -27,6 +27,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, platform, release } from "node:os";
 import { execSync, spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1225,9 +1226,12 @@ async function runStop(args) {
     log("No PID file, trying port-based cleanup...", "dim");
 
     try {
-      // Try multiple methods
-      execCommand("lsof -ti:20128 | xargs kill -9 2>/dev/null || true", 2000);
-      execCommand("lsof -ti:20129 | xargs kill -9 2>/dev/null || true", 2000);
+      // Send SIGTERM first for graceful shutdown, then SIGKILL if still running
+      execCommand("lsof -ti:20128 | xargs -r kill -15 2>/dev/null || true", 2000);
+      execCommand("lsof -ti:20129 | xargs -r kill -15 2>/dev/null || true", 2000);
+      await sleep(1000);
+      execCommand("lsof -ti:20128 | xargs -r kill -9 2>/dev/null || true", 2000);
+      execCommand("lsof -ti:20129 | xargs -r kill -9 2>/dev/null || true", 2000);
       cleanupPidFile();
       log("Server stopped (port-based)", "green");
     } catch {
@@ -1370,19 +1374,19 @@ async function runKeysAdd(args) {
 
     // Check if connection exists
     const existing = db
-      .prepare("SELECT id FROM provider_connections WHERE provider_id = ?")
+      .prepare("SELECT id FROM provider_connections WHERE provider = ?")
       .get(providerLower);
 
     if (existing) {
-      db.prepare("UPDATE provider_connections SET api_key = ? WHERE provider_id = ?").run(
+      db.prepare("UPDATE provider_connections SET api_key = ? WHERE provider = ?").run(
         apiKey,
         providerLower
       );
       log(`API key for ${provider} updated`, "green");
     } else {
       db.prepare(
-        "INSERT INTO provider_connections (provider_id, api_key, name, enabled) VALUES (?, ?, ?, 1)"
-      ).run(providerLower, apiKey, provider);
+        "INSERT INTO provider_connections (id, provider, api_key, name, is_active) VALUES (?, ?, ?, ?, 1)"
+      ).run(randomUUID(), providerLower, apiKey, provider);
       log(`API key for ${provider} added`, "green");
     }
 
@@ -2192,12 +2196,28 @@ async function runBackup(args) {
     let backedUp = 0;
     let skipped = 0;
 
+    const { createRequire } = await import("node:module");
+    const require = createRequire(import.meta.url);
+    let Database;
+    try {
+      Database = require("better-sqlite3");
+    } catch {
+      Database = null;
+    }
+
     for (const file of filesToBackup) {
       const sourcePath = join(dataDir, file.name);
       if (existsSync(sourcePath)) {
         const destPath = join(backupPath, file.dest);
         mkdirSync(dirname(destPath), { recursive: true });
-        copyFileSync(sourcePath, destPath);
+        if (file.name.endsWith(".sqlite") && Database) {
+          // Use better-sqlite3 backup API for a consistent snapshot (safe with WAL)
+          const db = new Database(sourcePath, { readonly: true });
+          await db.backup(destPath);
+          db.close();
+        } else {
+          copyFileSync(sourcePath, destPath);
+        }
         backedUp++;
       } else {
         skipped++;

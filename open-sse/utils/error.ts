@@ -64,7 +64,7 @@ export function errorResponse(statusCode, message) {
  * @param {string} message - Error message
  */
 export async function writeStreamError(writer, statusCode, message) {
-  const errorBody = buildErrorBody(statusCode, message);
+  const errorBody = buildErrorBody(statusCode, sanitizeErrorMessage(message));
   const encoder = new TextEncoder();
   await writer.write(encoder.encode(`data: ${JSON.stringify(errorBody)}\n\n`));
 }
