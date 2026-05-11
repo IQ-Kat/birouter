@@ -1,9 +1,11 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { Button, Card } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
+import AutoDisableCard from "./AutoDisableCard";
+import ModelCooldownsCard from "./ModelCooldownsCard";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -788,6 +790,8 @@ export default function ResilienceTab() {
 
   return (
     <div className="space-y-6">
+      <ModelCooldownsCard />
+      <AutoDisableCard />
       <Card className="p-6">
         <div className="flex items-start gap-3">
           <span className="material-symbols-outlined text-xl text-primary">info</span>
