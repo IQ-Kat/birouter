@@ -229,6 +229,8 @@ In ALL cases:
   - Note it will be included in the upcoming release.
   - Be friendly, professional, and encouraging.
 
+> **⚠️ MANDATORY CHANGELOG CREDIT**: When cherry-picking is used (because the PR branch couldn't be pushed to or `gh pr merge` failed), the contributor does NOT get the automatic GitHub "Merged" badge. In this case, you MUST compensate by adding an explicit entry to `CHANGELOG.md` in the `[Unreleased]` section with `(#PR_NUMBER — thanks @username)` format. This ensures the contributor gets public credit in the release notes even if GitHub doesn't auto-detect the cherry-pick. This is NOT optional — skipping it effectively erases the contributor's work from the release record.
+
 ### 9. Sync Local Release Branch
 
 After merging PRs, sync the local release branch to include the new changes:
