@@ -17,6 +17,7 @@ import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
+  providerAllowsOptionalApiKey,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -2967,12 +2968,7 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  const requiresApiKey =
-    provider !== "searxng-search" &&
-    provider !== "petals" &&
-    !isSelfHostedChatProvider(provider) &&
-    !isOpenAICompatibleProvider(provider) &&
-    !isAnthropicCompatibleProvider(provider);
+  const requiresApiKey = !providerAllowsOptionalApiKey(provider);
 
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
