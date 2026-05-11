@@ -90,6 +90,7 @@
 - **fix(catalog):** ensure individual (non-combo) models expose `context_length` via `getTokenLimit()` fallback chain — prevents OpenCode and other clients from falling back to conservative ~4000 token limit (#2136 — thanks @herjarsa)
 - **fix(docker):** remove docs directory from `.dockerignore` so API catalog documentation is available at runtime inside containers (#2137, #2120 — thanks @hartmark)
 - **fix(types):** systematic `any` type elimination across 8 core files — `antigravity.ts`, `accountFallback.ts`, `usage.ts`, `geminiHelper.ts`, `error.ts`, `apiKeys.ts`, `settings.ts`, `logger.ts` (#2137 — thanks @hartmark)
+- **fix(providers):** remove duplicate `CLOUD_AGENT_PROVIDERS` declaration, move Kiro dash→dot Claude model aliases to `PROVIDER_MODEL_ALIASES`, and trim deprecated Kiro registry entries (#2141 — thanks @backryun)
 - **fix:** Follow OpenAI specification, handle throttling in batch and fix UI (#2045)
 
 ### 🔒 Security
@@ -121,7 +122,7 @@ Thank you to all **40 community contributors** who made v3.8.0 possible! 🎉
 | Contributor                                                | PRs | Contributions                                                 |
 | :--------------------------------------------------------- | :-: | :------------------------------------------------------------ |
 | [@oyi77](https://github.com/oyi77)                         |  8  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131 |
-| [@backryun](https://github.com/backryun)                   |  5  | #1992, #2033, #2088, #2123, #2138                             |
+| [@backryun](https://github.com/backryun)                   |  6  | #1992, #2033, #2088, #2123, #2138, #2141                      |
 | [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                    |
 | [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                  |
 | [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                  |
