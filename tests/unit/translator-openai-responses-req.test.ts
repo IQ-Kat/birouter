@@ -110,7 +110,7 @@ test("Responses -> Chat filters orphan tool outputs and supports role-based mess
   });
 });
 
-test("Responses -> Chat rejects unsupported built-in tools and background mode", () => {
+test("Responses -> Chat rejects unsupported built-in tools", () => {
   assert.throws(
     () =>
       openaiResponsesToOpenAIRequest(
@@ -124,20 +124,26 @@ test("Responses -> Chat rejects unsupported built-in tools and background mode",
       ),
     (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
+});
 
-  assert.throws(
-    () =>
-      openaiResponsesToOpenAIRequest(
-        "gpt-4o",
-        {
-          input: [],
-          background: true,
-        },
-        false,
-        null
-      ),
-    (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
+test("Responses -> Chat strips background flag and degrades to synchronous execution", () => {
+  // Previously this threw 400 unsupported_feature. OmniRoute is a forward proxy
+  // and cannot host the deferred run + poll contract, so background=true is
+  // silently dropped and the request runs synchronously. Clients that set the
+  // flag opportunistically (Capy Captain Pro, Codex agents) work unchanged.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-5.5",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      background: true,
+    },
+    true,
+    null
   );
+  const r = result as Record<string, unknown>;
+  assert.equal(r.background, undefined, "background flag must be stripped from output");
+  assert.ok(Array.isArray(r.messages), "translation must complete and produce messages");
+  assert.equal((r.messages as unknown[]).length, 1, "user message must be preserved");
 });
 
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
