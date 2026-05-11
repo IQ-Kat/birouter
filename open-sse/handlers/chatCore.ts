@@ -4200,7 +4200,6 @@ export async function handleChatCore({
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
         headers: {
-          ...Object.fromEntries(providerHeaders.entries()),
           "Content-Type": "application/json",
           [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
           ...buildOmniRouteResponseMetaHeaders({

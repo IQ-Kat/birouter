@@ -1854,6 +1854,39 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
 };
 
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: {
+    id: "jules",
+    alias: "jules",
+    name: "Google Jules",
+    icon: "engineering",
+    color: "#4285F4",
+    textIcon: "JL",
+    website: "https://jules.google",
+    authHint: "Jules API key for creating and managing cloud coding tasks.",
+  },
+  devin: {
+    id: "devin",
+    alias: "devin",
+    name: "Devin",
+    icon: "smart_toy",
+    color: "#111827",
+    textIcon: "DV",
+    website: "https://devin.ai",
+    authHint: "Devin API key for cloud agent sessions.",
+  },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "codex-cloud",
+    name: "Codex Cloud",
+    icon: "cloud",
+    color: "#10A37F",
+    textIcon: "CC",
+    website: "https://openai.com/codex",
+    authHint: "OpenAI API key with Codex Cloud task access.",
+  },
+};
+
 export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
@@ -1879,6 +1912,37 @@ export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
 export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
+
+// ── Cloud Agent Providers ───────────────────────────────────────────────────
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: {
+    id: "jules",
+    alias: "jules",
+    name: "Jules",
+    icon: "engineering",
+    color: "#EAB308",
+    textIcon: "JU",
+    website: "https://jules.google.com",
+  },
+  devin: {
+    id: "devin",
+    alias: "devin",
+    name: "Devin",
+    icon: "smart_toy",
+    color: "#2563EB",
+    textIcon: "DV",
+    website: "https://devin.ai",
+  },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "codex-cloud",
+    name: "Codex Cloud",
+    icon: "code",
+    color: "#10B981",
+    textIcon: "CX",
+    website: "https://chatgpt.com/codex",
+  },
+};
 
 // ── System Providers (virtual, not user-connectable) ──────────────────────────
 export const SYSTEM_PROVIDERS = {

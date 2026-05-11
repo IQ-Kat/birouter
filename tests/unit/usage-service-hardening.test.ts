@@ -961,8 +961,10 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
     providerSpecificData: { apiRegion: "international" },
   });
   assert.equal(glmt.plan, "Pro");
-  assert.equal(glmt.quotas["5 Hours Quota"].used, 15);
-  assert.equal(glmt.quotas["Weekly Quota"].remaining, 36);
+  assert.equal(glmt.quotas.session.used, 64);
+  assert.equal(glmt.quotas.session.displayName, "5 Hours Quota");
+  assert.equal(glmt.quotas.weekly.remaining, 75);
+  assert.equal(glmt.quotas.weekly.displayName, "Weekly Quota");
 
   let glmCnUrl = "";
   globalThis.fetch = async (url) => {

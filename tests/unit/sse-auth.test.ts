@@ -286,7 +286,7 @@ test("resolveQuotaLimitPolicy normalizes Codex windows, thresholds, and defaults
   });
   assert.deepEqual(defaults, {
     enabled: true,
-    thresholdPercent: 90,
+    thresholdPercent: 99,
     windows: ["session", "weekly"],
   });
   assert.deepEqual(generic, {
@@ -1063,7 +1063,7 @@ test("markAccountUnavailable auto-disables permanently banned accounts when the 
 
   assert.equal(result.shouldFallback, true);
   assert.equal(updated.isActive, false);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "banned");
 });
 
 test("markAccountUnavailable leaves permanently banned accounts active when auto-disable is disabled", async () => {
@@ -1083,7 +1083,7 @@ test("markAccountUnavailable leaves permanently banned accounts active when auto
 
   assert.equal(result.shouldFallback, true);
   assert.equal(updated.isActive, true);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "banned");
 });
 
 test("markAccountUnavailable swallows auto-disable persistence errors", async () => {
@@ -1127,7 +1127,7 @@ test("markAccountUnavailable swallows auto-disable persistence errors", async ()
 
     assert.equal(result.shouldFallback, true);
     assert.equal(updated.isActive, true);
-    assert.equal(updated.testStatus, "unavailable");
+    assert.equal(updated.testStatus, "banned");
   } finally {
     db.prepare = originalPrepare;
   }

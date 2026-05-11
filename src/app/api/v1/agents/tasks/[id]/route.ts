@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractApiKey } from "@/sse/services/auth";
 import { getAgent } from "@/lib/cloudAgent/registry";
-import { getCloudAgentTaskById, updateCloudAgentTask } from "@/lib/cloudAgent/db";
+import {
+  createCloudAgentTaskTable,
+  getCloudAgentTaskById,
+  updateCloudAgentTask,
+} from "@/lib/cloudAgent/db";
 import { z } from "zod";
 import pino from "pino";
 
@@ -32,8 +36,34 @@ const CancelSchema = z.object({
   action: z.literal("cancel"),
 });
 
+const TaskActionSchema = z.discriminatedUnion("action", [
+  ApproveSchema,
+  MessageSchema,
+  CancelSchema,
+]);
+
+function apiKeyRequiredResponse() {
+  return NextResponse.json(
+    { error: "API key required" },
+    { status: 401, headers: getCorsHeaders() }
+  );
+}
+
+function getRequiredApiKey(request: NextRequest) {
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
+    return { apiKey: null, response: apiKeyRequiredResponse() };
+  }
+  return { apiKey, response: null };
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = getRequiredApiKey(request);
+    if (auth.response) return auth.response;
+
+    createCloudAgentTaskTable();
+
     const { id } = await params;
     const task = getCloudAgentTaskById(id);
 
@@ -44,18 +74,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "API key required" },
-        { status: 401, headers: getCorsHeaders() }
-      );
-    }
-
     const agent = getAgent(task.provider_id);
     if (agent && task.external_id) {
       try {
-        const statusResult = await agent.getStatus(task.external_id, { apiKey });
+        const statusResult = await agent.getStatus(task.external_id, { apiKey: auth.apiKey });
 
         updateCloudAgentTask(id, {
           status: statusResult.status,
@@ -104,8 +126,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = getRequiredApiKey(request);
+    if (auth.response) return auth.response;
+
     const { id } = await params;
     const body = await request.json();
+    const validation = TaskActionSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400, headers: getCorsHeaders() }
+      );
+    }
+
+    createCloudAgentTaskTable();
 
     const task = getCloudAgentTaskById(id);
     if (!task) {
@@ -115,27 +149,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "API key required" },
-        { status: 401, headers: getCorsHeaders() }
-      );
-    }
-
-    let validated;
-    if (body.action === "approve") {
-      validated = ApproveSchema.parse(body);
-    } else if (body.action === "message") {
-      validated = MessageSchema.parse(body);
-    } else if (body.action === "cancel") {
-      validated = CancelSchema.parse(body);
-    } else {
-      return NextResponse.json(
-        { error: "Invalid action" },
-        { status: 400, headers: getCorsHeaders() }
-      );
-    }
+    const validated = validation.data;
 
     const agent = getAgent(task.provider_id);
     if (!agent) {
@@ -152,7 +166,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           { status: 400, headers: getCorsHeaders() }
         );
       }
-      await agent.approvePlan(task.external_id, { apiKey });
+      await agent.approvePlan(task.external_id, { apiKey: auth.apiKey });
       updateCloudAgentTask(id, { status: "running" });
     } else if (validated.action === "message") {
       if (!task.external_id) {
@@ -161,7 +175,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           { status: 400, headers: getCorsHeaders() }
         );
       }
-      const activity = await agent.sendMessage(task.external_id, validated.message, { apiKey });
+      const activity = await agent.sendMessage(task.external_id, validated.message, {
+        apiKey: auth.apiKey,
+      });
       const activities = JSON.parse(task.activities);
       activities.push(activity);
       updateCloudAgentTask(id, { activities: JSON.stringify(activities) });
@@ -171,12 +187,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ success: true }, { headers: getCorsHeaders() });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation failed", details: error.errors },
-        { status: 400, headers: getCorsHeaders() }
-      );
-    }
     logger.error({ err: error }, "Failed to process task action");
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },

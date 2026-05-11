@@ -148,7 +148,7 @@ export class CircuitBreaker {
    * @returns {Promise<T>}
    * @throws {Error} If circuit is OPEN
    */
-  async execute(fn) {
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
     this._refreshOpenState();
 
     if (this.state === STATE.OPEN) {
@@ -319,7 +319,7 @@ export class CircuitBreaker {
     }
   }
 
-  _transition(newState) {
+  _transition(newState: CircuitState) {
     const oldState = this.state;
     this.state = newState;
     if (newState === STATE.HALF_OPEN) {
