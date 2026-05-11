@@ -264,6 +264,29 @@ export const CURSOR_CONFIG = {
   },
 };
 
+// Windsurf (Devin CLI / Codeium) Configuration
+// Authentication supports two methods:
+// 1. Token import: user visits windsurf.com/show-auth-token, copies Codeium API key
+// 2. Device code flow: Codeium's own gRPC device flow (poll-based, no browser redirect needed)
+export const WINDSURF_CONFIG = {
+  // API server for device-code flow and user registration
+  apiServerUrl: "https://server.codeium.com",
+  // Inference server URL (gRPC-web requests go here)
+  inferenceUrl: "https://server.self-serve.windsurf.com",
+  // User-friendly token page — the "link" integration
+  showAuthTokenUrl: "https://windsurf.com/show-auth-token",
+  // Token refresh via Firebase Secure Token Service
+  firebaseApiKey:
+    process.env.WINDSURF_FIREBASE_API_KEY || "AIzaSyBpLTEGSt59AUPKxBb7lIWjSE2ZXQH7mgU",
+  firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
+  // Auth method flag
+  authMethods: ["import", "device-code"] as const,
+  // IDE identity sent with every gRPC request
+  ideName: "windsurf",
+  ideVersion: "3.14.0",
+  extensionVersion: "3.14.0",
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -284,4 +307,6 @@ export const PROVIDERS = {
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  WINDSURF: "windsurf",
+  DEVIN_CLI: "devin-cli",
 };
