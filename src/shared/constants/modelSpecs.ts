@@ -79,6 +79,27 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
   },
 
+  // ── Claude Opus 4.5 (full ID — overrides prefix match on claude-opus-4-5) ──
+  "claude-opus-4-5-20251101": {
+    maxOutputTokens: 64000,
+    contextWindow: 200000,
+    defaultThinkingBudget: 10000,
+    thinkingBudgetCap: 32000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
+  // ── Claude Opus 4.6 (1M context tier) ───────────────────────────
+  "claude-opus-4-6": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["claude-opus-4.6"],
+  },
+
   // ── Claude Opus 4.7 ─────────────────────────────────────────────
   "claude-opus-4-7": {
     maxOutputTokens: 128000,
@@ -87,6 +108,67 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: ["claude-opus-4.7"],
+  },
+
+  // ── Claude Sonnet 4.6 ───────────────────────────────────────────
+  "claude-sonnet-4-6": {
+    maxOutputTokens: 64000,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["claude-sonnet-4.6"],
+  },
+
+  // ── Claude Sonnet 4.5 ───────────────────────────────────────────
+  "claude-sonnet-4-5-20250929": {
+    maxOutputTokens: 64000,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["claude-sonnet-4.5"],
+  },
+
+  // ── Claude Haiku 4.5 ────────────────────────────────────────────
+  "claude-haiku-4-5-20251001": {
+    maxOutputTokens: 64000,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["claude-haiku-4.5"],
+  },
+
+  // ── Kimi K2.6 (Moonshot Kimi Code OAuth — 262K native) ──────────
+  "kimi-k2.6": {
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsThinking: true,
+    supportsTools: true,
+    aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
+  },
+
+  // ── Xiaomi MiMo V2.5 (1M context, consensus across 7+ sync sources) ──
+  "mimo-v2.5-pro": {
+    maxOutputTokens: 131072,
+    contextWindow: 1048576,
+    supportsTools: true,
+  },
+  "mimo-v2.5": {
+    maxOutputTokens: 131072,
+    contextWindow: 1048576,
+    supportsTools: true,
+  },
+  "mimo-v2-omni": {
+    maxOutputTokens: 131072,
+    contextWindow: 262144,
+    supportsTools: true,
+  },
+  "mimo-v2-flash": {
+    maxOutputTokens: 65536,
+    contextWindow: 262144,
+    supportsTools: true,
   },
 
   // Defaults
