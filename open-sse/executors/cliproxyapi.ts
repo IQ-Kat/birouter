@@ -64,9 +64,43 @@ export class CliproxyapiExecutor extends BaseExecutor {
     _urlIndex = 0,
     _credentials: ProviderCredentials | null = null
   ): string {
-    // Always OpenAI-compatible. CLIProxyAPI detects Claude models internally
-    // and applies full emulation (CCH, billing header, system prompt, uTLS).
+    // Default endpoint when called without body context (kept for back-compat).
+    // execute() picks the right endpoint from the body shape; see selectEndpoint().
     return `${this.upstreamBaseUrl}/v1/chat/completions`;
+  }
+
+  /**
+   * Returns true when the body matches the Anthropic Messages wire shape.
+   *
+   * chatCore detects target=claude when the request comes from a Claude-source
+   * client (`/v1/messages`, Anthropic-version header, claude/* model). In that
+   * case no openai translation is applied and the executor sees the original
+   * Anthropic body: top-level `system` as an array of content blocks, and
+   * `messages[].content` as arrays. Routing those bodies to CPA's
+   * /v1/chat/completions causes CPA to emit OpenAI-style SSE chunks, which
+   * Anthropic SDK clients (Capy, claude-cli, etc.) cannot parse — the result
+   * looks like a 200 server-side with "0 chunks received" client-side.
+   *
+   * CPA exposes /v1/messages natively (claude executor with uTLS spoof,
+   * billing header, CCH signing, etc.) and emits proper Anthropic SSE:
+   * `event: message_start`, `content_block_delta`, etc.
+   */
+  private isAnthropicShape(body: unknown): boolean {
+    if (!body || typeof body !== "object") return false;
+    const b = body as Record<string, unknown>;
+    // Strong signal: Claude Code cloak emits system as an array of content blocks
+    if (Array.isArray(b.system)) return true;
+    // Strong signal: messages[0].content is an array of Anthropic content blocks
+    const msgs = b.messages;
+    if (Array.isArray(msgs) && msgs.length > 0) {
+      const first = msgs[0] as Record<string, unknown>;
+      if (Array.isArray(first?.content)) return true;
+    }
+    return false;
+  }
+
+  private selectEndpoint(body: unknown): string {
+    return this.isAnthropicShape(body) ? "/v1/messages" : "/v1/chat/completions";
   }
 
   buildHeaders(credentials: ProviderCredentials | null, stream = true): Record<string, string> {
@@ -111,7 +145,9 @@ export class CliproxyapiExecutor extends BaseExecutor {
     log?: any;
     upstreamExtraHeaders?: Record<string, string> | null;
   }) {
-    const url = this.buildUrl(input.model, input.stream, 0, input.credentials);
+    const endpoint = this.selectEndpoint(input.body);
+    const url = `${this.upstreamBaseUrl}${endpoint}`;
+    const shape = endpoint === "/v1/messages" ? "anthropic" : "openai";
     const headers = this.buildHeaders(input.credentials, input.stream);
     const transformedBody = this.transformRequest(
       input.model,
@@ -126,7 +162,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
       ? mergeAbortSignals(input.signal, timeoutSignal)
       : timeoutSignal;
 
-    input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model})`);
+    input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model}, shape: ${shape})`);
 
     const response = await fetch(url, {
       method: "POST",
