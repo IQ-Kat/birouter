@@ -130,6 +130,15 @@ const KIMI_CODING_SHARED = {
   executor: "default",
   baseUrl: "https://api.kimi.com/coding/v1/messages",
   authHeader: "x-api-key",
+  // Kimi K2.6 native context per Moonshot platform docs and cross-provider
+  // catalog (openrouter, moonshot, ali, deepinfra, etc. all advertise 262144).
+  // Without this, contextManager.ts:getTokenLimit falls back to
+  // DEFAULT_LIMITS.default = 128000 because the Kimi Code OAuth product is
+  // not synced via models.dev. The under-reported value cascades into
+  // /v1/models advertised context_length=128000 and downstream client
+  // assumptions about prompt budget (e.g. Capy computing
+  // prompt_cap = context_length - request.max_tokens).
+  defaultContextLength: 262144,
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },
