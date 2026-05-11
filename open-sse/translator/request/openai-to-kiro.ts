@@ -55,6 +55,7 @@ function convertMessages(messages, tools, model) {
   let pendingToolResults = [];
   let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
+  let toolsAttached = false;
 
   const flushPending = () => {
     if (currentRole === "user") {
@@ -88,8 +89,12 @@ function convertMessages(messages, tools, model) {
         userMsg.userInputMessage.images = pendingImages;
       }
 
-      // Add tools to first user message
-      if (tools && tools.length > 0 && history.length === 0) {
+      // Add tools to the first emitted user turn. We track a flag instead of
+      // relying on `history.length === 0` because the first few messages may
+      // be assistant turns (e.g. when role=undefined collapses to a prior
+      // assistant turn), in which case the first user flush would already see
+      // a non-empty history and lose the tools schema.
+      if (tools && tools.length > 0 && !toolsAttached) {
         if (!userMsg.userInputMessage.userInputMessageContext) {
           userMsg.userInputMessage.userInputMessageContext = {};
         }
@@ -126,6 +131,7 @@ function convertMessages(messages, tools, model) {
         if (toolDocs.length > 0) {
           userMsg._toolDocs = toolDocs.join("\n\n---\n\n");
         }
+        toolsAttached = true;
       }
 
       history.push(userMsg);
@@ -298,16 +304,51 @@ function convertMessages(messages, tools, model) {
     };
   }
 
-  const firstHistoryItem = history[0];
+  // Promote the tools schema to currentMessage. Tools may have been attached
+  // to any user turn in history (e.g. when the first message was assistant or
+  // had an undefined role, the first user flush lands further down). Scan the
+  // whole history so we never lose the schema.
+  if (!currentMessage?.userInputMessage?.userInputMessageContext?.tools) {
+    const carrier = history.find((item) => item?.userInputMessage?.userInputMessageContext?.tools);
+    if (carrier?.userInputMessage?.userInputMessageContext?.tools) {
+      if (!currentMessage.userInputMessage.userInputMessageContext) {
+        currentMessage.userInputMessage.userInputMessageContext = {};
+      }
+      currentMessage.userInputMessage.userInputMessageContext.tools =
+        carrier.userInputMessage.userInputMessageContext.tools;
+    }
+  }
+
+  // Fallback: if the schema was never attached to any user turn (e.g. the
+  // input contained no user messages and currentMessage is a synthesized
+  // "Continue" turn), attach the provided tools directly to currentMessage so
+  // Kiro still sees the schema it needs to validate assistant.toolUses in
+  // history.
   if (
-    firstHistoryItem?.userInputMessage?.userInputMessageContext?.tools &&
+    !toolsAttached &&
+    tools &&
+    tools.length > 0 &&
     !currentMessage?.userInputMessage?.userInputMessageContext?.tools
   ) {
     if (!currentMessage.userInputMessage.userInputMessageContext) {
       currentMessage.userInputMessage.userInputMessageContext = {};
     }
-    currentMessage.userInputMessage.userInputMessageContext.tools =
-      firstHistoryItem.userInputMessage.userInputMessageContext.tools;
+    currentMessage.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
+      const name = t.function?.name || t.name;
+      const description = t.function?.description || t.description || `Tool: ${name}`;
+      return {
+        toolSpecification: {
+          name,
+          description,
+          inputSchema: {
+            json: normalizeKiroToolSchema(
+              t.function?.parameters || t.parameters || t.input_schema || {}
+            ),
+          },
+        },
+      };
+    });
+    toolsAttached = true;
   }
 
   // Clean up history for Kiro API compatibility
@@ -371,7 +412,7 @@ function convertMessages(messages, tools, model) {
     }
   }
 
-  return { history: mergedHistory, currentMessage };
+  return { history: mergedHistory, currentMessage, toolsAttached };
 }
 
 /**
@@ -385,12 +426,60 @@ export function buildKiroPayload(model, body, stream, credentials) {
     "$1.$2"
   );
   const messages = body.messages || [];
-  const tools = body.tools || [];
+  let tools = body.tools || [];
   const maxTokens = body.max_tokens ?? body.max_completion_tokens ?? 32000;
   const temperature = body.temperature;
   const topP = body.top_p;
 
-  const { history, currentMessage } = convertMessages(messages, tools, normalizedModel);
+  // Kiro rejects history that references toolUses/toolResults without a tools
+  // schema in userInputMessageContext. When callers omit body.tools but the
+  // message history still contains assistant.tool_calls / role=tool turns,
+  // synthesize a minimal tool schema from the tool names present in history
+  // so Kiro accepts the request instead of returning `Improperly formed
+  // request`. This preserves tool-call history and is a no-op when body.tools
+  // is already populated.
+  if (tools.length === 0) {
+    const seen = new Set<string>();
+    const synthesized: Array<Record<string, unknown>> = [];
+    const pushName = (name: unknown) => {
+      if (typeof name === "string" && name && !seen.has(name)) {
+        seen.add(name);
+        synthesized.push({
+          type: "function",
+          function: {
+            name,
+            description: `Tool: ${name}`,
+            parameters: { type: "object", properties: {}, required: [] },
+          },
+        });
+      }
+    };
+    for (const msg of messages) {
+      if (msg?.role !== "assistant") continue;
+      if (Array.isArray(msg.tool_calls)) {
+        for (const tc of msg.tool_calls) {
+          pushName(tc?.function?.name || tc?.name);
+        }
+      }
+      // Anthropic-style assistant blocks: content:[{type:"tool_use", name, ...}]
+      if (Array.isArray(msg.content)) {
+        for (const block of msg.content) {
+          if (block?.type === "tool_use") {
+            pushName(block.name);
+          }
+        }
+      }
+    }
+    if (synthesized.length > 0) {
+      tools = synthesized;
+    }
+  }
+
+  const { history, currentMessage, toolsAttached } = convertMessages(
+    messages,
+    tools,
+    normalizedModel
+  );
 
   const profileArn = credentials?.providerSpecificData?.profileArn || "";
 
