@@ -27,6 +27,73 @@ const DEFAULT_PORT = 8317;
 const DEFAULT_HOST = "127.0.0.1";
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
 
+// Anthropic's reserved tool-name namespace: ^mcp_[^_].* triggers their
+// server-side MCP connector billing gate, returning a misleading
+// "out of extra usage" 400. Two-underscore (mcp__X) and capitalized
+// (Mcp_X) variants pass cleanly.
+const MCP_RESERVED_PREFIX_RE = /^mcp_(?=[^_])/;
+
+function rewriteMcpToolName(name: string): string | null {
+  if (typeof name !== "string" || !MCP_RESERVED_PREFIX_RE.test(name)) return null;
+  return "M" + name.slice(1); // mcp_call → Mcp_call
+}
+
+function applyMcpToolNameRewrite(body: Record<string, unknown>): Map<string, string> {
+  const reverseMap = new Map<string, string>();
+  const remember = (original: string, rewritten: string) => {
+    reverseMap.set(rewritten, original);
+  };
+
+  const tools = body.tools;
+  if (Array.isArray(tools)) {
+    for (const tool of tools) {
+      if (!tool || typeof tool !== "object") continue;
+      const t = tool as Record<string, unknown>;
+      const original = typeof t.name === "string" ? t.name : "";
+      const rewritten = rewriteMcpToolName(original);
+      if (rewritten) {
+        t.name = rewritten;
+        remember(original, rewritten);
+      }
+    }
+  }
+
+  const messages = body.messages;
+  if (Array.isArray(messages)) {
+    for (const msg of messages) {
+      if (!msg || typeof msg !== "object") continue;
+      const content = (msg as Record<string, unknown>).content;
+      if (!Array.isArray(content)) continue;
+      for (const block of content) {
+        if (!block || typeof block !== "object") continue;
+        const b = block as Record<string, unknown>;
+        if (b.type !== "tool_use") continue;
+        const original = typeof b.name === "string" ? b.name : "";
+        const rewritten = rewriteMcpToolName(original);
+        if (rewritten) {
+          b.name = rewritten;
+          remember(original, rewritten);
+        }
+      }
+    }
+  }
+
+  const toolChoice = body.tool_choice;
+  if (toolChoice && typeof toolChoice === "object") {
+    const tc = toolChoice as Record<string, unknown>;
+    if (tc.type === "tool" && typeof tc.name === "string") {
+      const rewritten = rewriteMcpToolName(tc.name);
+      if (rewritten) {
+        const original = tc.name;
+        tc.name = rewritten;
+        remember(original, rewritten);
+      }
+    }
+  }
+
+  return reverseMap;
+}
+
 function resolveCliproxyapiBaseUrl(): string {
   const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
   const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
@@ -146,6 +213,24 @@ export class CliproxyapiExecutor extends BaseExecutor {
       delete transformed.thinking;
       delete transformed.output_config;
       delete transformed.context_management;
+
+      // Rewrite tool names matching Anthropic's reserved ^mcp_[^_] namespace.
+      // Anthropic returns "out of extra usage" / "Extra usage required" 400
+      // when a client-declared tool name collides with their server-side MCP
+      // connector tools. Bisected character-by-character against the real
+      // Anthropic API via CPA (uTLS spoof, Claude OAuth):
+      //   mcp_call, mcp_query, mcp_x, mcp_test  → 400 (gate hit)
+      //   Mcp_call, _mcp_call, mcp__call, mcp-call, mcpcall, my_mcp_call → 200
+      // The "Mcp_" capitalization is the smallest stable rewrite that
+      // preserves readability. The reverse map below is propagated to
+      // chatCore via body._toolNameMap, which the SSE passthrough stream
+      // uses (utils/stream.ts:restoreClaudePassthroughToolUseName) to
+      // rewrite tool_use.name back to the client's original namespace on
+      // the response side. Capy sees mcp_call back in tool_use blocks.
+      const toolNameMap = applyMcpToolNameRewrite(transformed);
+      if (toolNameMap.size > 0) {
+        transformed._toolNameMap = toolNameMap;
+      }
     }
 
     return transformed;
@@ -179,10 +264,19 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
     input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model}, shape: ${shape})`);
 
+    // _toolNameMap is an in-memory channel to chatCore for response-side
+    // tool name restoration; never send it over the wire.
+    const wireBody =
+      transformedBody && typeof transformedBody === "object"
+        ? JSON.stringify(transformedBody, (key, value) =>
+            key === "_toolNameMap" ? undefined : value
+          )
+        : JSON.stringify(transformedBody);
+
     const response = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify(transformedBody),
+      body: wireBody,
       signal: combinedSignal,
     });
 
