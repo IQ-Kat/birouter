@@ -199,10 +199,11 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
   git push
   ```
 
-- **Fallback (For external forks without maintainer edit access or severe conflicts):**
-  If `git push` fails because the PR comes from an external fork without write access, or there are extreme conflicts, you MUST NOT CLOSE THE PR.
-  Instead, use `git cherry-pick`, or a reverse merge to bring their changes into the release branch, fix the issues locally, and commit them. Ensure you preserve the contributor's authorship (`git commit --author="Contributor Name <email>"` if creating new commits).
-  Once you have integrated their work into the release branch, DO NOT close their PR. Instead, leave it open or try to merge it using the CLI if possible. Under NO CIRCUMSTANCES should you use `gh pr close`. Leave it open so the contributor retains credit.
+- **Fallback (ONLY for external forks without maintainer edit access):**
+  Using `cherry-pick` instead of fixing the contributor's PR directly is a **LAST RESORT**. You MUST ALWAYS attempt to `git push` your fixes to their branch first. 
+  **ONLY if `git push` explicitly fails with a permission/access error** (meaning the contributor unchecked "Allow edits from maintainers" or it's a locked fork), you may use `git cherry-pick` to bring their changes into the release branch and fix the issues locally.
+  Even then, ensure you preserve the contributor's authorship (`git commit --author="Contributor Name <email>"` if creating new commits).
+  Once you have integrated their work into the release branch, **DO NOT close their PR**. Leave it open so the contributor retains credit. Under NO CIRCUMSTANCES should you use `gh pr close`.
 
 - Run the project's test suite locally to verify nothing breaks:
   // turbo
@@ -211,7 +212,7 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
 ### 8. Merge into Release Branch (NEVER CLOSE!)
 
 > **⚠️ CRITICAL**: NEVER use `gh pr close` for a PR whose idea or code was accepted. Closing a PR in a contributor's face after taking their idea—or closing it just because it had conflicts—is unacceptable.
-> You MUST ALWAYS resolve conflicts and apply fixes on the author's PR branch, and then merge the PR using GitHub so the contributor gets the official "Merged" badge and proper credit on their profile.
+> You MUST ALWAYS resolve conflicts and apply fixes ON THE AUTHOR'S PR BRANCH (unless explicitly locked from edits), and then merge the PR using GitHub so the contributor gets the official "Merged" badge and proper credit on their profile. **Do not use cherry-pick just because it is "easier" than resolving conflicts on their branch.**
 
 Even if the PR had severe conflicts or required significant architectural adjustments, you MUST:
 
