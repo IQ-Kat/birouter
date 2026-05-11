@@ -129,6 +129,65 @@ describe("CliproxyapiExecutor", () => {
       const result = exec.transformRequest("model", null, true, {});
       assert.equal(result, null);
     });
+
+    it("preserves Anthropic-valid thinking shape on /v1/messages routing", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "Be helpful" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "enabled", budget_tokens: 10240 },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.deepEqual(result.thinking, { type: "enabled", budget_tokens: 10240 });
+    });
+
+    it("preserves disabled thinking shape on /v1/messages routing", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "disabled", budget_tokens: 0 },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.deepEqual(result.thinking, { type: "disabled", budget_tokens: 0 });
+    });
+
+    it("strips Capy-style adaptive thinking on /v1/messages routing", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "adaptive", display: "summarized" },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.equal(result.thinking, undefined);
+    });
+
+    it("strips thinking carrying display field even with enabled type", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "enabled", budget_tokens: 10240, display: "summarized" },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.equal(result.thinking, undefined);
+    });
+
+    it("does not touch thinking on OpenAI-shape bodies", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "gpt-5.5",
+        messages: [{ role: "user", content: "hi" }],
+        thinking: { type: "adaptive", display: "summarized" },
+      };
+      const result = exec.transformRequest("gpt-5.5", body, true, {});
+      assert.deepEqual(result.thinking, { type: "adaptive", display: "summarized" });
+    });
   });
 
   describe("execute", () => {

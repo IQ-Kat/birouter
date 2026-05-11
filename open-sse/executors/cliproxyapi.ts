@@ -231,13 +231,29 @@ export class CliproxyapiExecutor extends BaseExecutor {
     // Mirrors the runtime "Patch I2/I4" effect previously applied via patch.mjs.
     // Strips are no-op when fields are absent (OpenAI-shape passthrough).
     if (this.isAnthropicShape(transformed)) {
-      delete transformed.thinking;
       delete transformed.output_config;
       delete transformed.context_management;
       delete transformed.client_info;
       delete transformed.prompt_cache_key;
       delete transformed.safety_identifier;
       delete transformed.metadata;
+
+      // Conditional thinking strip: preserve Anthropic-valid shapes
+      // ({type:"enabled"|"disabled", budget_tokens:N}) that applyThinkingBudget
+      // already normalized. Strip non-Anthropic shapes (e.g. Capy's
+      // {type:"adaptive", display:"summarized"}) which trigger Anthropic 400
+      // "Extra usage required" / "out of extra usage". The `display` field is
+      // a Capy-specific hint Anthropic doesn't accept.
+      const thinking = transformed.thinking;
+      if (thinking && typeof thinking === "object") {
+        const t = thinking as Record<string, unknown>;
+        const validType = t.type === "enabled" || t.type === "disabled";
+        const hasValidBudget = typeof t.budget_tokens === "number" && t.budget_tokens >= 0;
+        const hasInvalidExtras = "display" in t;
+        if (!validType || !hasValidBudget || hasInvalidExtras) {
+          delete transformed.thinking;
+        }
+      }
 
       // Rewrite tool names matching Anthropic's reserved ^mcp_[^_] namespace.
       // Anthropic returns "out of extra usage" / "Extra usage required" 400
