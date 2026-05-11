@@ -190,6 +190,8 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
  * Models that genuinely support xhigh (registry flag supportsXHighEffort)
  * pass through unchanged.
  */
+const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
+const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
 export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
@@ -199,7 +201,7 @@ export function sanitizeReasoningEffortForProvider(
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const b = body as Record<string, unknown>;
   const reasoning =
-    b.reasoning && typeof b.reasoning === "object"
+    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
       ? (b.reasoning as Record<string, unknown>)
       : null;
   const effort = b.reasoning_effort ?? reasoning?.effort;
@@ -220,8 +222,8 @@ export function sanitizeReasoningEffortForProvider(
   }
 
   const rejecting =
-    (provider === "mistral" && /devstral/i.test(modelStr)) ||
-    (provider === "github" && /(claude|haiku|oswe)/i.test(modelStr));
+    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
+    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
   if (rejecting) {
     log?.info?.(
       "REASONING_SANITIZE",
