@@ -793,8 +793,9 @@ export const APIKEY_PROVIDERS = {
     color: "#4CAF50",
     textIcon: "PO",
     website: "https://pollinations.ai",
-    hasFree: false,
-    freeNote: "API key required. Spore tier: ~0.01 pollen/hour ($0.01/hr).",
+    hasFree: true,
+    freeNote:
+      "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },
   puter: {
     id: "puter",
