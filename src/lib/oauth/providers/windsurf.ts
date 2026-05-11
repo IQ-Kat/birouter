@@ -1,57 +1,120 @@
 import { WINDSURF_CONFIG } from "../constants/oauth";
 
 /**
- * Windsurf (Devin CLI / Codeium) OAuth Provider
+ * Windsurf / Devin CLI OAuth Provider
  *
- * Supports two authentication methods:
+ * Uses PKCE Authorization Code Flow — same pattern as Codex CLI.
+ * Extracted from Devin CLI binary (devin.exe string analysis):
  *
- * 1. **Token Import** (recommended, "link" integration):
- *    User visits windsurf.com/show-auth-token after signing into Windsurf,
- *    copies their Codeium API token, and pastes it here. The token is stored
- *    directly as `accessToken` and sent in gRPC request Metadata.api_key.
+ *   1. OmniRoute starts a local callback server (random port, 127.0.0.1)
+ *   2. Browser opens:
+ *        https://app.devin.ai/editor/signin
+ *          ?response_type=code
+ *          &redirect_uri=http://127.0.0.1:PORT/auth/callback
+ *          &code_challenge=<S256_CHALLENGE>
+ *          &code_challenge_method=S256
+ *   3. User logs in (Google / GitHub / Windsurf Enterprise)
+ *   4. Browser redirects back to callback server with `code`
+ *   5. Exchange code via Windsurf Connect JSON:
+ *        POST https://server.codeium.com/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode
+ *        { "code": "...", "codeVerifier": "...", "redirectUri": "..." }
+ *   6. Response: { "windsurfApiKey": "...", "apiServerUrl": "...", ... }
+ *   7. `windsurfApiKey` stored as `accessToken` (= WINDSURF_API_KEY)
  *
- * 2. **Device-Code Flow** (via Codeium's gRPC ExtensionServerService):
- *    The executor calls StartDeviceFlow → user visits a verification URL →
- *    poll GetDeviceFlowState until the Firebase ID token is returned. The
- *    Firebase token is then exchanged for a Codeium API key via RegisterUser.
- *    This mirrors how `devin auth login` opens a browser link.
- *
- * Token lifetime:
- *   - Import tokens (Codeium API keys) are long-lived and do not expire.
- *   - Device-code Firebase tokens expire after ~1 hour; the refresh token is
- *     persisted and exchanged against Firebase STS for a new ID token when
- *     the existing one is near expiry.
+ * Fallback (import_token): user visits windsurf.com/show-auth-token,
+ * copies their API key, and pastes it into the connection form.
  */
 export const windsurf = {
   config: WINDSURF_CONFIG,
-  flowType: "import_token",
+  flowType: "authorization_code_pkce",
+  // Fixed callback path expected by Devin CLI auth flow
+  callbackPath: WINDSURF_CONFIG.callbackPath,
+  // Port 0 = OS assigns a free port (we use the globalThis devin callback state)
+  callbackPort: WINDSURF_CONFIG.callbackPort,
+
+  buildAuthUrl: (
+    config: typeof WINDSURF_CONFIG,
+    redirectUri: string,
+    state: string,
+    codeChallenge: string
+  ) => {
+    const params = new URLSearchParams({
+      response_type: "code",
+      redirect_uri: redirectUri,
+      code_challenge: codeChallenge,
+      code_challenge_method: config.codeChallengeMethod,
+      state,
+    });
+    return `${config.authorizeUrl}?${params.toString()}`;
+  },
 
   /**
-   * Map imported/exchanged token data to OmniRoute connection fields.
-   * Called after the user pastes their token or after a device-code exchange.
+   * Exchange authorization code for Windsurf API key.
+   * Uses the Windsurf Connect JSON protocol (not standard OAuth token endpoint).
+   */
+  exchangeToken: async (
+    config: typeof WINDSURF_CONFIG,
+    code: string,
+    redirectUri: string,
+    codeVerifier: string
+  ) => {
+    const url = `${config.apiServerUrl}${config.exchangePath}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // Connect protocol version header
+        "Connect-Protocol-Version": "1",
+      },
+      body: JSON.stringify({
+        code,
+        codeVerifier,
+        redirectUri,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Windsurf token exchange failed (${response.status}): ${error}`);
+    }
+
+    const data = await response.json();
+    return data;
+  },
+
+  /**
+   * Map exchange response to OmniRoute connection fields.
+   * The Windsurf Connect response uses camelCase JSON:
+   *   windsurfApiKey, apiServerUrl, devinWebappHost, devinApiUrl
    */
   mapTokens: (tokens: {
+    windsurfApiKey?: string;
+    apiServerUrl?: string;
+    devinWebappHost?: string;
+    devinApiUrl?: string;
+    // Fallback import-token fields
     accessToken?: string;
     apiKey?: string;
     refreshToken?: string;
     expiresIn?: number;
     email?: string;
     authMethod?: string;
-    firebaseToken?: string;
   }) => {
-    // Accept either `accessToken` (UI import flow) or `apiKey` (device-code result)
-    const token = tokens.accessToken || tokens.apiKey || "";
-    const isFirebaseToken = tokens.authMethod === "device-code" || Boolean(tokens.firebaseToken);
+    // PKCE flow: token is in windsurfApiKey
+    const token = tokens.windsurfApiKey || tokens.accessToken || tokens.apiKey || "";
 
     return {
       accessToken: token,
+      // Windsurf API keys are long-lived — no refresh token needed
       refreshToken: tokens.refreshToken || null,
-      expiresIn: tokens.expiresIn || (isFirebaseToken ? 3600 : 0),
+      expiresIn: tokens.expiresIn || 0,
       email: tokens.email || null,
       providerSpecificData: {
-        authMethod: tokens.authMethod || "import",
-        // If the original firebase ID token is separate from the API key, store it too
-        firebaseToken: tokens.firebaseToken || null,
+        authMethod: tokens.authMethod || (tokens.windsurfApiKey ? "browser" : "import"),
+        apiServerUrl: tokens.apiServerUrl || null,
+        devinWebappHost: tokens.devinWebappHost || null,
+        devinApiUrl: tokens.devinApiUrl || null,
       },
     };
   },

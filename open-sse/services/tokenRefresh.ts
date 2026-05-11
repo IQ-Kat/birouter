@@ -147,9 +147,16 @@ export async function refreshWindsurfToken(
     return null;
   }
 
-  // Firebase STS refresh for device-code tokens
-  const firebaseApiKey =
-    process.env.WINDSURF_FIREBASE_API_KEY || "AIzaSyBpLTEGSt59AUPKxBb7lIWjSE2ZXQH7mgU";
+  // Firebase STS refresh for browser-flow tokens.
+  // Key is read from WINDSURF_FIREBASE_API_KEY env var (set in .env.example).
+  const firebaseApiKey = process.env.WINDSURF_FIREBASE_API_KEY || "";
+  if (!firebaseApiKey) {
+    log?.warn?.(
+      "TOKEN_REFRESH",
+      "WINDSURF_FIREBASE_API_KEY not set — skipping Windsurf Firebase token refresh"
+    );
+    return null;
+  }
   const tokenUrl = `https://securetoken.googleapis.com/v1/token?key=${firebaseApiKey}`;
 
   try {
