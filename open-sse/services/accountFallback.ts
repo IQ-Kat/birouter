@@ -22,10 +22,14 @@ import {
   getCircuitBreaker,
   STATE,
 } from "../../src/shared/utils/circuitBreaker";
+import { classify429FromError, type FailureKind } from "../../src/shared/utils/classify429";
+import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 
 type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
+  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
+  useUpstream429BreakerHints?: boolean;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -182,6 +186,9 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
+    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
+    // so the runtime resolver picks user setting first, then per-provider default.
+    useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
@@ -217,7 +224,7 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
   try {
     const { getCachedSettings } = await import("@/lib/db/readCache");
     const settings = await getCachedSettings();
-    const category = getProviderCategory(provider);
+    const category = getProviderCategory(provider || "");
     return buildProviderProfile(category, settings);
   } catch {
     return getProviderProfile(provider);
@@ -488,12 +495,21 @@ export function getModelLockoutInfo(provider, connectionId, model) {
   };
 }
 
+type ModelLockoutInfo = {
+  provider: string;
+  connectionId: string;
+  model: string;
+  reason: string;
+  remainingMs: number;
+  failureCount: number;
+};
+
 /**
  * Get all active model lockouts (for dashboard)
  */
-export function getAllModelLockouts() {
+export function getAllModelLockouts(): ModelLockoutInfo[] {
   const now = Date.now();
-  const active = [];
+  const active: ModelLockoutInfo[] = [];
   for (const key of modelLockouts.keys()) {
     cleanupModelLockKey(key, now);
   }
@@ -532,9 +548,23 @@ function configureProviderBreaker(
   if (!provider) return null;
 
   const resolvedProfile = { ...getProviderProfile(provider), ...(profile ?? {}) };
+  // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the
+  // provider profile (stored override) or fall back to per-provider default.
+  // Stored value type is `boolean | undefined` — never `null` after PATCH.
+  const userValue = resolvedProfile.useUpstream429BreakerHints;
+  const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
   return getCircuitBreaker(provider, {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
     resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
+    ...(useHints
+      ? {
+          cooldownByKind: {
+            rate_limit: 60_000,
+            quota_exhausted: 3_600_000,
+          } satisfies Partial<Record<FailureKind, number>>,
+          classifyError: classify429FromError,
+        }
+      : {}),
   });
 }
 
@@ -616,7 +646,7 @@ export function getProvidersInCooldown(): Array<{
   provider: string;
   failureCount: number;
   cooldownRemainingMs: number | null;
-  lastFailureAt: number;
+  lastFailureAt: number | null;
 }> {
   return getAllCircuitBreakerStatuses()
     .filter((status) => {
@@ -755,6 +785,8 @@ export function classifyErrorText(errorText) {
     lower.includes("quota depleted") ||
     lower.includes("quota will reset") ||
     lower.includes("your quota will reset") ||
+    lower.includes("quota has been exceeded") ||
+    lower.includes("hour quota") ||
     lower.includes("billing")
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
@@ -880,14 +912,24 @@ export function getQuotaCooldown(backoffLevel = 0) {
  * @returns {{ shouldFallback: boolean, cooldownMs: number, newBackoffLevel?: number, reason?: string }}
  */
 export function checkFallbackError(
-  status,
-  errorText,
-  backoffLevel = 0,
-  _model = null,
-  provider = null,
-  headers = null,
+  status: number,
+  errorText: string | null,
+  backoffLevel: number = 0,
+  _model: string | null = null,
+  provider: string | null = null,
+  headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null
-) {
+): {
+  shouldFallback: boolean;
+  cooldownMs: number;
+  baseCooldownMs?: number;
+  newBackoffLevel?: number;
+  usedUpstreamRetryHint?: boolean;
+  reason?: string;
+  permanent?: boolean;
+  creditsExhausted?: boolean;
+  dailyQuotaExhausted?: boolean;
+} {
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
@@ -1028,7 +1070,9 @@ export function checkFallbackError(
       status === HTTP_STATUS.FORBIDDEN &&
       provider &&
       getProviderCategory(provider) === "apikey" &&
-      !errorStr.toLowerCase().includes("has not been used in project")
+      !errorStr.toLowerCase().includes("has not been used in project") &&
+      !errorStr.toLowerCase().includes("hour quota") &&
+      !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
     }
@@ -1103,7 +1147,7 @@ export function getUnavailableUntil(cooldownMs) {
  * Get the earliest rateLimitedUntil from a list of accounts
  */
 export function getEarliestRateLimitedUntil(accounts) {
-  let earliest = null;
+  let earliest: number | null = null;
   const now = Date.now();
   for (const acc of accounts) {
     if (!acc.rateLimitedUntil) continue;
@@ -1126,7 +1170,7 @@ export function formatRetryAfter(rateLimitedUntil) {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  const parts = [];
+  const parts: string[] = [];
   if (h > 0) parts.push(`${h}h`);
   if (m > 0) parts.push(`${m}m`);
   if (s > 0 || parts.length === 0) parts.push(`${s}s`);

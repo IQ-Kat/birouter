@@ -2,7 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import crypto from "node:crypto";
 import { PROVIDERS } from "../config/constants.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
@@ -10,16 +9,12 @@ import {
 } from "../config/antigravityUpstream.ts";
 import { isUserCallableAntigravityModelId } from "../config/antigravityModelAliases.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
-import {
-  CURSOR_REGISTRY_VERSION,
-  getCursorUsageHeaders,
-  getGitHubCopilotInternalUserHeaders,
-} from "../config/providerHeaderProfiles.ts";
+import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
+import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
@@ -28,11 +23,19 @@ import {
   updateAntigravityRemainingCredits,
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
+import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
+import {
+  deriveAntigravityMachineId,
+  generateAntigravityRequestId,
+  getAntigravitySessionId,
+  getAntigravityVscodeSessionId,
+} from "./antigravityIdentity.ts";
+import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
   quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
-  loadProjectApiUrl: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+  loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
     return PROVIDERS.antigravity.clientId;
@@ -65,15 +68,20 @@ const KIMI_CONFIG = {
   apiVersion: "2023-06-01",
 };
 
-const CURSOR_USAGE_CONFIG = {
-  usageUrl: "https://www.cursor.com/api/usage",
-  userMetaUrl: "https://www.cursor.com/api/auth/me",
-  subscriptionUrl: "https://www.cursor.com/api/subscription",
-  clientVersion: CURSOR_REGISTRY_VERSION,
-};
-
 const NANOGPT_CONFIG = {
   usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
+};
+
+// Cursor dashboard usage API config
+// The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
+// session via the WorkosCursorSessionToken cookie (format: `${userId}::${jwt}`) and
+// rejects requests without a matching Origin/Referer (Invalid origin for state-changing request).
+const CURSOR_USAGE_CONFIG = {
+  usageUrl: "https://cursor.com/api/dashboard/get-current-period-usage",
+  origin: "https://cursor.com",
+  referer: "https://cursor.com/dashboard/spending",
+  userAgent:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
 };
 
 const MINIMAX_USAGE_CONFIG = {
@@ -100,6 +108,13 @@ type UsageQuota = {
   resetAt: string | null;
   unlimited: boolean;
   displayName?: string;
+  details?: Array<{
+    name: string;
+    used: number;
+  }>;
+  currency?: string;
+  grantedBalance?: number;
+  toppedUpBalance?: number;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -114,6 +129,38 @@ function toNumber(value: unknown, fallback = 0): number {
         ? Number(value)
         : Number.NaN;
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toPercentage(value: unknown): number {
+  return Math.max(0, Math.min(100, toNumber(value, 0)));
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .trim()
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function getGlmTokenQuotaName(
+  limit: JsonRecord,
+  existingQuotas: Record<string, UsageQuota>
+): string {
+  const unit = toNumber(limit.unit, 0);
+  const number = toNumber(limit.number, 0);
+
+  if (unit === 3 && number === 5) return "session";
+  if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
+
+  return existingQuotas.session ? "weekly" : "session";
+}
+
+function getGlmQuotaDisplayName(quotaName: string): string {
+  if (quotaName === "session") return "5 Hours Quota";
+  if (quotaName === "weekly") return "Weekly Quota";
+  return quotaName;
 }
 
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
@@ -515,7 +562,46 @@ async function getCrofUsage(apiKey: string) {
   return { quotas };
 }
 
+const GLM_QUOTA_ORDER = ["5 Hours Quota", "Weekly Quota", "Monthly Tools", "Tokens", "Time Limit"];
+
+function getGlmQuotaLabel(type: unknown, unit: unknown): string | null {
+  const normalized = typeof type === "string" ? type.trim().toUpperCase() : "";
+  const unitValue = toNumber(unit, -1);
+
+  switch (normalized) {
+    case "TOKENS_LIMIT":
+    case "TOKEN_LIMIT":
+      if (unitValue === 3) return "5 Hours Quota";
+      if (unitValue === 6) return "Weekly Quota";
+      return "Tokens";
+    case "TIME_LIMIT":
+    case "TIME_USAGE_LIMIT":
+      if (unitValue === 5) return "Monthly Tools";
+      return "Time Limit";
+    default:
+      return null;
+  }
+}
+
+function orderGlmQuotas(quotas: Record<string, UsageQuota>): Record<string, UsageQuota> {
+  const ordered: Record<string, UsageQuota> = {};
+
+  for (const key of GLM_QUOTA_ORDER) {
+    if (quotas[key]) ordered[key] = quotas[key];
+  }
+
+  for (const [key, quota] of Object.entries(quotas)) {
+    if (!ordered[key]) ordered[key] = quota;
+  }
+
+  return ordered;
+}
+
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
+  if (!apiKey) {
+    return { message: "API key not available. Add a coding plan API key to view usage." };
+  }
+
   const quotaUrl = getGlmQuotaUrl(providerSpecificData);
 
   const res = await fetch(quotaUrl, {
@@ -531,34 +617,83 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
   }
 
   const json = await res.json();
+  if (toNumber(json.code, 200) === 401 || json.success === false) {
+    throw new Error("Invalid API key");
+  }
+
   const data = toRecord(json.data);
   const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 
   for (const limit of limits) {
     const src = toRecord(limit);
-    if (src.type !== "TOKENS_LIMIT") continue;
-
-    const usedPercent = toNumber(src.percentage, 0);
+    const type = String(src.type || "").toUpperCase();
     const resetMs = toNumber(src.nextResetTime, 0);
-    const remaining = Math.max(0, 100 - usedPercent);
+    const resetAt = resetMs > 0 ? new Date(resetMs).toISOString() : null;
 
-    quotas["session"] = {
-      used: usedPercent,
-      total: 100,
-      remaining,
-      remainingPercentage: remaining,
-      resetAt: resetMs > 0 ? new Date(resetMs).toISOString() : null,
-      unlimited: false,
-    };
+    if (type === "TOKENS_LIMIT") {
+      const quotaName = getGlmTokenQuotaName(src, quotas);
+      const usedPercent = toPercentage(src.percentage);
+      const remaining = Math.max(0, 100 - usedPercent);
+
+      quotas[quotaName] = {
+        used: usedPercent,
+        total: 100,
+        remaining,
+        remainingPercentage: remaining,
+        resetAt,
+        displayName: getGlmQuotaDisplayName(quotaName),
+        details: Array.isArray(src.models)
+          ? (src.models as unknown[]).map((m) => {
+              const modelInfo = toRecord(m);
+              return {
+                name: String(modelInfo.model || ""),
+                used: toNumber(modelInfo.percentage, 0),
+              };
+            })
+          : [],
+        unlimited: false,
+      };
+      continue;
+    }
+
+    if (type === "TIME_LIMIT") {
+      const total = toNumber(src.usage, toNumber(src.total, 0));
+      const remaining = toNumber(src.remaining, Math.max(0, 100 - toPercentage(src.percentage)));
+      const used = toNumber(src.currentValue, Math.max(0, total - remaining));
+      const remainingPercentage =
+        total > 0 ? Math.max(0, Math.min(100, Math.round((remaining / total) * 100))) : 0;
+
+      quotas["mcp_monthly"] = {
+        used,
+        total,
+        remaining,
+        remainingPercentage,
+        resetAt,
+        unlimited: false,
+        displayName: "Monthly",
+        details: Array.isArray(src.usageDetails)
+          ? src.usageDetails.map((item) => {
+              const detail = toRecord(item);
+              return {
+                name: String(detail.modelCode || detail.name || "usage"),
+                used: toNumber(detail.usage, 0),
+              };
+            })
+          : undefined,
+      };
+    }
   }
 
-  const levelRaw = typeof data.level === "string" ? data.level : "";
-  const plan = levelRaw
-    ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
-    : "Unknown";
+  const levelRaw =
+    typeof data.planName === "string"
+      ? data.planName
+      : typeof data.level === "string"
+        ? data.level
+        : "";
+  const plan = levelRaw ? toTitleCase(levelRaw.replace(/\s*plan$/i, "")) : null;
 
-  return { plan, quotas };
+  return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
 /**
@@ -596,6 +731,55 @@ async function getBailianCodingPlanUsage(
     };
   } catch (error) {
     return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * DeepSeek Usage
+ * Fetches balance from the DeepSeek balance API.
+ * Returns all balances (USD and CNY) as "credits" for credits-style UI display.
+ */
+async function getDeepseekUsage(connectionId: string, apiKey: string) {
+  try {
+    const connection = { apiKey };
+    const quota = await fetchDeepseekQuota(connectionId, connection);
+
+    if (!quota) {
+      return { message: "DeepSeek API key not available. Add a key to view usage." };
+    }
+
+    const deepseekQuota = quota as DeepseekQuota;
+    const { balances, isAvailable, limitReached } = deepseekQuota;
+
+    const quotas: Record<string, UsageQuota> = {};
+
+    // Show all balances as credits-style entries (e.g., credits_usd, credits_cny)
+    // The UI will display them as "🪙 Balance (USD) $50.00"
+    for (const balanceInfo of balances) {
+      const key = `credits_${balanceInfo.currency.toLowerCase()}`;
+      quotas[key] = {
+        used: 0,
+        total: 0,
+        remaining: balanceInfo.balance,
+        remainingPercentage: 100,
+        resetAt: null,
+        unlimited: true,
+        currency: balanceInfo.currency,
+        grantedBalance: balanceInfo.grantedBalance,
+        toppedUpBalance: balanceInfo.toppedUpBalance,
+      };
+    }
+
+    const plan = isAvailable ? "DeepSeek" : "DeepSeek (Insufficient Balance)";
+
+    return {
+      plan,
+      quotas,
+      isAvailable,
+      limitReached,
+    };
+  } catch (error) {
+    return { message: `DeepSeek error: ${(error as Error).message}` };
   }
 }
 
@@ -680,6 +864,143 @@ async function getNanoGptUsage(apiKey: string) {
 }
 
 /**
+ * Decode the `sub` claim of a Cursor JWT (the WorkOS user id).
+ * Returns null if the token is not a parseable JWT.
+ */
+function decodeCursorJwtSub(token: string): string | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (payload.length % 4 !== 0) payload += "=";
+    const decoded = JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
+    const sub = decoded?.sub;
+    return typeof sub === "string" && sub.length > 0 ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cursor Pro Plan Usage
+ * Fetches current-billing-cycle spend from the cursor.com dashboard API and exposes three
+ * windows that mirror the cursor.com/dashboard/spending UI: Total / Auto + Composer / API.
+ */
+async function getCursorUsage(accessToken: string, providerSpecificData?: unknown) {
+  if (!accessToken) {
+    return { message: "Cursor access token missing. Re-import the connection from Cursor IDE." };
+  }
+
+  const storedUserId = (() => {
+    const raw = toRecord(providerSpecificData).userId;
+    return typeof raw === "string" && raw.length > 0 ? raw : null;
+  })();
+  const userId = storedUserId || decodeCursorJwtSub(accessToken);
+
+  if (!userId) {
+    return {
+      message: "Cursor token missing user id. Re-import the connection from Cursor IDE.",
+    };
+  }
+
+  try {
+    const response = await fetch(CURSOR_USAGE_CONFIG.usageUrl, {
+      method: "POST",
+      redirect: "manual",
+      headers: {
+        Cookie: `WorkosCursorSessionToken=${userId}::${accessToken}`,
+        Origin: CURSOR_USAGE_CONFIG.origin,
+        Referer: CURSOR_USAGE_CONFIG.referer,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": CURSOR_USAGE_CONFIG.userAgent,
+      },
+      body: "{}",
+    });
+
+    // 3xx redirect to WorkOS authkit means the session cookie was rejected.
+    if (response.status >= 300 && response.status < 400) {
+      return {
+        plan: "Cursor",
+        message: "Cursor session expired. Re-import the token from Cursor IDE.",
+      };
+    }
+
+    if (!response.ok) {
+      const errorText = (await response.text()).slice(0, 200);
+      if (response.status === 401 || response.status === 403) {
+        return {
+          plan: "Cursor",
+          message: "Cursor session unauthorized. Re-import the token from Cursor IDE.",
+        };
+      }
+      return {
+        plan: "Cursor",
+        message: `Cursor usage endpoint error (${response.status}): ${errorText}`,
+      };
+    }
+
+    const data = toRecord(await response.json());
+    const planUsage = toRecord(data.planUsage);
+
+    if (Object.keys(planUsage).length === 0) {
+      return {
+        plan: "Cursor",
+        message: "Cursor connected. No active plan usage returned.",
+      };
+    }
+
+    const limitCents = Math.max(0, toNumber(planUsage.limit, 0));
+    const totalSpendCents = Math.max(0, toNumber(planUsage.totalSpend, 0));
+    const autoPercentUsed = clampPercentage(toNumber(planUsage.autoPercentUsed, 0));
+    const apiPercentUsed = clampPercentage(toNumber(planUsage.apiPercentUsed, 0));
+    const totalPercentUsed = clampPercentage(toNumber(planUsage.totalPercentUsed, 0));
+
+    // billingCycleEnd is a numeric-string in ms; coerce so parseResetTime sees a number.
+    const billingCycleEndMs = toNumber(data.billingCycleEnd, 0);
+    const resetAt = billingCycleEndMs > 0 ? parseResetTime(billingCycleEndMs) : null;
+
+    // Convert cents → dollars rounded to 2 decimal places.
+    const toDollars = (cents: number) => Math.round(cents) / 100;
+
+    const limitDollars = toDollars(limitCents);
+    const buildWindow = (percentUsed: number, usedCentsOverride?: number): UsageQuota => {
+      const usedCents =
+        typeof usedCentsOverride === "number"
+          ? usedCentsOverride
+          : Math.round((limitCents * percentUsed) / 100);
+      const used = toDollars(Math.min(usedCents, limitCents));
+      const remaining = toDollars(Math.max(limitCents - Math.min(usedCents, limitCents), 0));
+      return {
+        used,
+        total: limitDollars,
+        remaining,
+        remainingPercentage: clampPercentage(100 - percentUsed),
+        resetAt,
+        unlimited: false,
+      };
+    };
+
+    const quotas: Record<string, UsageQuota> = {
+      Total: buildWindow(totalPercentUsed, totalSpendCents),
+      "Auto + Composer": buildWindow(autoPercentUsed),
+      API: buildWindow(apiPercentUsed),
+    };
+
+    return {
+      plan: "Cursor Pro",
+      quotas,
+    };
+  } catch (error) {
+    return {
+      plan: "Cursor",
+      message: `Cursor connected. Unable to fetch usage: ${(error as Error).message}`,
+    };
+  }
+}
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
@@ -698,6 +1019,8 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getClaudeUsage(accessToken);
     case "codex":
       return await getCodexUsage(accessToken, providerSpecificData);
+    case "cursor":
+      return await getCursorUsage(accessToken, providerSpecificData);
     case "kiro":
     case "amazon-q":
       return await getKiroUsage(accessToken, providerSpecificData);
@@ -708,19 +1031,24 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
     case "qoder":
       return await getQoderUsage(accessToken);
     case "glm":
+    case "glm-cn":
+    case "zai":
     case "glmt":
-      return await getGlmUsage(apiKey, providerSpecificData);
+      return await getGlmUsage(apiKey, {
+        ...(providerSpecificData || {}),
+        ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
+      });
     case "minimax":
     case "minimax-cn":
       return await getMiniMaxUsage(apiKey, provider);
     case "crof":
       return await getCrofUsage(apiKey);
-    case "cursor":
-      return await getCursorUsage(accessToken);
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
     case "nanogpt":
       return await getNanoGptUsage(apiKey);
+    case "deepseek":
+      return await getDeepseekUsage(id, apiKey);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -945,172 +1273,6 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     return label ? `Copilot ${label}` : "GitHub Copilot";
   }
   return "GitHub Copilot";
-}
-
-function buildCursorUsageHeaders(accessToken: string): Record<string, string> {
-  return getCursorUsageHeaders(accessToken, CURSOR_USAGE_CONFIG.clientVersion);
-}
-
-function getFirstPositiveNumber(...values: unknown[]): number {
-  for (const value of values) {
-    const parsed = toNumber(value, Number.NaN);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
-  return 0;
-}
-
-function getCursorMonthlyRequestLimit(usageData: JsonRecord, subscriptionData: JsonRecord): number {
-  return getFirstPositiveNumber(
-    getFieldValue(subscriptionData, "team_max_monthly_requests", "teamMaxMonthlyRequests"),
-    getFieldValue(usageData, "team_max_request_usage", "teamMaxRequestUsage"),
-    getFieldValue(subscriptionData, "team_max_request_usage", "teamMaxRequestUsage"),
-    getFieldValue(usageData, "hard_limit", "hardLimit"),
-    getFieldValue(subscriptionData, "max_monthly_requests", "maxMonthlyRequests")
-  );
-}
-
-function getCursorOnDemandLimit(usageData: JsonRecord, subscriptionData: JsonRecord): number {
-  const onDemand = toRecord(getFieldValue(usageData, "on_demand", "onDemand"));
-  return getFirstPositiveNumber(
-    getFieldValue(onDemand, "max_requests", "maxRequests"),
-    getCursorMonthlyRequestLimit(usageData, subscriptionData)
-  );
-}
-
-function formatCursorQuota(
-  usedValue: unknown,
-  totalValue: unknown,
-  resetValue: unknown
-): UsageQuota {
-  const total = Math.max(0, toNumber(totalValue, 0));
-  const rawUsed = Math.max(0, toNumber(usedValue, 0));
-  const used = total > 0 ? Math.min(rawUsed, total) : rawUsed;
-  const remaining = total > 0 ? Math.max(total - used, 0) : 0;
-
-  return {
-    used,
-    total,
-    remaining,
-    remainingPercentage: total > 0 ? clampPercentage((remaining / total) * 100) : 0,
-    resetAt: parseResetTime(resetValue),
-    unlimited: false,
-  };
-}
-
-function inferCursorPlanName(userMeta: JsonRecord, subscriptionData: JsonRecord): string {
-  const teamInfo = toRecord(getFieldValue(userMeta, "team_info", "teamInfo"));
-  const candidates = [
-    getFieldValue(userMeta, "plan", "plan"),
-    getFieldValue(userMeta, "subscription_type", "subscriptionType"),
-    getFieldValue(subscriptionData, "subscription_type", "subscriptionType"),
-    getFieldValue(subscriptionData, "plan", "plan"),
-  ];
-  const planText = candidates.find((value) => typeof value === "string" && value.trim().length > 0);
-  const normalized = typeof planText === "string" ? planText.trim().toLowerCase() : "";
-
-  if (Object.keys(teamInfo).length > 0 || normalized.includes("team")) return "Cursor Team";
-  if (normalized.includes("enterprise")) return "Cursor Enterprise";
-  if (normalized.includes("pro")) return "Cursor Pro";
-  if (normalized.includes("free")) return "Cursor Free";
-  return "Cursor";
-}
-
-async function fetchCursorUsageDocument(url: string, accessToken: string) {
-  const response = await fetch(url, {
-    method: "GET",
-    headers: buildCursorUsageHeaders(accessToken),
-  });
-
-  const text = await response.text();
-  if (!response.ok) {
-    return {
-      ok: false,
-      status: response.status,
-      data: {} as JsonRecord,
-      text,
-    };
-  }
-
-  try {
-    const parsed = text ? JSON.parse(text) : {};
-    return {
-      ok: true,
-      status: response.status,
-      data: toRecord(parsed),
-      text,
-    };
-  } catch {
-    return {
-      ok: false,
-      status: response.status,
-      data: {} as JsonRecord,
-      text,
-    };
-  }
-}
-
-async function getCursorUsage(accessToken: string) {
-  try {
-    if (!accessToken) {
-      return {
-        message: "Cursor token expired or unavailable. Please re-authenticate the connection.",
-      };
-    }
-
-    const [usageSummary, userMeta, subscription] = await Promise.all([
-      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.usageUrl, accessToken),
-      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.userMetaUrl, accessToken),
-      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.subscriptionUrl, accessToken),
-    ]);
-
-    const authDenied = [usageSummary, userMeta, subscription].some(
-      (result) => result.status === 401 || result.status === 403
-    );
-    if (authDenied) {
-      return {
-        message:
-          "Cursor token expired or permission denied. Please re-authenticate the connection.",
-      };
-    }
-
-    const usageData = usageSummary.data;
-    const userMetaData = userMeta.data;
-    const subscriptionData = subscription.data;
-    const plan = inferCursorPlanName(userMetaData, subscriptionData);
-
-    const quotas: Record<string, UsageQuota> = {};
-    const totalUsed = getFieldValue(usageData, "num_requests_total", "numRequestsTotal");
-    const totalLimit = getCursorMonthlyRequestLimit(usageData, subscriptionData);
-    const totalReset =
-      getFieldValue(usageData, "reset_date", "resetDate") ||
-      getFieldValue(subscriptionData, "reset_date", "resetDate");
-
-    if (toNumber(totalUsed, 0) > 0 || totalLimit > 0) {
-      quotas.requests = formatCursorQuota(totalUsed, totalLimit, totalReset);
-    }
-
-    const onDemand = toRecord(getFieldValue(usageData, "on_demand", "onDemand"));
-    const onDemandUsed = getFieldValue(onDemand, "num_requests", "numRequests");
-    const onDemandLimit = getCursorOnDemandLimit(usageData, subscriptionData);
-    const onDemandReset =
-      getFieldValue(onDemand, "reset_date", "resetDate") ||
-      getFieldValue(usageData, "reset_date", "resetDate") ||
-      getFieldValue(subscriptionData, "reset_date", "resetDate");
-
-    if (toNumber(onDemandUsed, 0) > 0 || onDemandLimit > 0) {
-      quotas.on_demand = formatCursorQuota(onDemandUsed, onDemandLimit, onDemandReset);
-    }
-
-    if (Object.keys(quotas).length > 0) {
-      return { plan, quotas };
-    }
-
-    return { plan, message: "Cursor connected. Unable to parse quota data." };
-  } catch (error) {
-    return { message: `Unable to fetch Cursor usage: ${(error as Error).message}` };
-  }
 }
 
 // ── Gemini CLI subscription info cache ──────────────────────────────────────
@@ -1493,13 +1655,13 @@ async function probeAntigravityCreditBalanceUncached(
     for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
       const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
-      const sessionId = `-${crypto.randomUUID()}`;
+      const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
       const body = {
         project: projectId,
         model: "gemini-2-flash",
         userAgent: "antigravity",
         requestType: "agent",
-        requestId: `credits-probe-${Date.now()}`,
+        requestId: generateAntigravityRequestId(),
         enabledCreditTypes: ["GOOGLE_ONE_AI"],
         request: {
           model: "gemini-2-flash",
@@ -1513,7 +1675,11 @@ async function probeAntigravityCreditBalanceUncached(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
+        "x-client-name": "antigravity",
+        "x-client-version": getCachedAntigravityVersion(),
+        "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
+        "x-vscode-sessionid": getAntigravityVscodeSessionId(),
+        "x-goog-user-project": projectId,
         Accept: "text/event-stream",
       };
 
@@ -1710,17 +1876,30 @@ async function getAntigravitySubscriptionInfo(accessToken) {
  * Claude Usage - Try to fetch from Anthropic API
  */
 async function getClaudeUsage(accessToken) {
+  // Refresh bootstrap in parallel; best-effort, failure non-fatal.
+  const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
   try {
-    // Primary: Try OAuth usage endpoint (works with Claude Code consumer OAuth tokens)
-    // Requires anthropic-beta: oauth-2025-04-20 header
-    const oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "anthropic-beta": "oauth-2025-04-20",
-        "anthropic-version": CLAUDE_CONFIG.apiVersion,
-      },
-    });
+    // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
+    // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    let oauthResponse;
+    try {
+      oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Accept-Encoding": "gzip, compress, deflate, br",
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": `claude-code/${CLAUDE_CODE_VERSION}`,
+          "anthropic-beta": "oauth-2025-04-20",
+        },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (oauthResponse.ok) {
       const data = await oauthResponse.json();
@@ -1752,11 +1931,15 @@ async function getClaudeUsage(accessToken) {
         quotas["weekly (7d)"] = createQuotaObject(data.seven_day);
       }
 
-      // Parse model-specific weekly windows (e.g., seven_day_sonnet, seven_day_opus)
+      // Map Anthropic's internal codenames (e.g., omelette → Designer) for display.
+      const MODEL_DISPLAY_NAMES: Record<string, string> = {
+        omelette: "designer",
+      };
       for (const [key, value] of Object.entries(data)) {
         const valueRecord = toRecord(value);
         if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
-          const modelName = key.replace("seven_day_", "");
+          const codename = key.replace("seven_day_", "");
+          const modelName = MODEL_DISPLAY_NAMES[codename] || codename;
           quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
         }
       }
@@ -1775,6 +1958,7 @@ async function getClaudeUsage(accessToken) {
         plan: planRaw || "Claude Code",
         quotas,
         extraUsage: data.extra_usage ?? null,
+        bootstrap: await bootstrapPromise,
       };
     }
 
@@ -1782,9 +1966,13 @@ async function getClaudeUsage(accessToken) {
     console.warn(
       `[Claude Usage] OAuth endpoint returned ${oauthResponse.status}, falling back to legacy`
     );
-    return await getClaudeUsageLegacy(accessToken);
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
   } catch (error) {
-    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
+    return {
+      message: `Claude connected. Unable to fetch usage: ${(error as Error).message}`,
+      bootstrap: await bootstrapPromise,
+    };
   }
 }
 
@@ -2246,11 +2434,6 @@ export const __testing = {
   parseResetTime,
   formatGitHubQuotaSnapshot,
   inferGitHubPlanName,
-  buildCursorUsageHeaders,
-  formatCursorQuota,
-  getCursorMonthlyRequestLimit,
-  getCursorOnDemandLimit,
-  inferCursorPlanName,
   getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
 };
