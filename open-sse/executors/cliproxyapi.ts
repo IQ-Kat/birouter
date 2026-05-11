@@ -38,6 +38,18 @@ function rewriteMcpToolName(name: string): string | null {
   return "M" + name.slice(1); // mcp_call → Mcp_call
 }
 
+/**
+ * Rewrite ^mcp_[^_] tool names on a body destined for Anthropic's
+ * /v1/messages. Returns a reverse map (rewritten → original) that the SSE
+ * response stream uses to restore the client's original names on tool_use
+ * blocks coming back.
+ *
+ * Non-mutating: replaces nested array elements with cloned objects rather
+ * than mutating in place, so the caller's input body is not affected. The
+ * outer `body` reference itself is the cloned `transformed` object from
+ * `transformRequest` — we mutate its top-level `tools`, `messages`, and
+ * `tool_choice` properties to point at the new clones.
+ */
 function applyMcpToolNameRewrite(body: Record<string, unknown>): Map<string, string> {
   const reverseMap = new Map<string, string>();
   const remember = (original: string, rewritten: string) => {
@@ -46,36 +58,42 @@ function applyMcpToolNameRewrite(body: Record<string, unknown>): Map<string, str
 
   const tools = body.tools;
   if (Array.isArray(tools)) {
-    for (const tool of tools) {
-      if (!tool || typeof tool !== "object") continue;
+    body.tools = tools.map((tool) => {
+      if (!tool || typeof tool !== "object") return tool;
       const t = tool as Record<string, unknown>;
       const original = typeof t.name === "string" ? t.name : "";
       const rewritten = rewriteMcpToolName(original);
       if (rewritten) {
-        t.name = rewritten;
         remember(original, rewritten);
+        return { ...t, name: rewritten };
       }
-    }
+      return tool;
+    });
   }
 
   const messages = body.messages;
   if (Array.isArray(messages)) {
-    for (const msg of messages) {
-      if (!msg || typeof msg !== "object") continue;
-      const content = (msg as Record<string, unknown>).content;
-      if (!Array.isArray(content)) continue;
-      for (const block of content) {
-        if (!block || typeof block !== "object") continue;
+    body.messages = messages.map((msg) => {
+      if (!msg || typeof msg !== "object") return msg;
+      const m = msg as Record<string, unknown>;
+      const content = m.content;
+      if (!Array.isArray(content)) return msg;
+      let mutated = false;
+      const newContent = content.map((block) => {
+        if (!block || typeof block !== "object") return block;
         const b = block as Record<string, unknown>;
-        if (b.type !== "tool_use") continue;
+        if (b.type !== "tool_use") return block;
         const original = typeof b.name === "string" ? b.name : "";
         const rewritten = rewriteMcpToolName(original);
         if (rewritten) {
-          b.name = rewritten;
+          mutated = true;
           remember(original, rewritten);
+          return { ...b, name: rewritten };
         }
-      }
-    }
+        return block;
+      });
+      return mutated ? { ...m, content: newContent } : msg;
+    });
   }
 
   const toolChoice = body.tool_choice;
@@ -85,7 +103,7 @@ function applyMcpToolNameRewrite(body: Record<string, unknown>): Map<string, str
       const rewritten = rewriteMcpToolName(tc.name);
       if (rewritten) {
         const original = tc.name;
-        tc.name = rewritten;
+        body.tool_choice = { ...tc, name: rewritten };
         remember(original, rewritten);
       }
     }
@@ -155,8 +173,11 @@ export class CliproxyapiExecutor extends BaseExecutor {
   private isAnthropicShape(body: unknown): boolean {
     if (!body || typeof body !== "object") return false;
     const b = body as Record<string, unknown>;
-    // Strong signal: Claude Code cloak emits system as an array of content blocks
-    if (Array.isArray(b.system)) return true;
+    // Strong signal: top-level `system` field is unique to the Anthropic
+    // Messages API. OpenAI Chat Completions encodes system as a role:"system"
+    // entry inside messages[], not at body level. Accept both string and
+    // array-of-content-blocks forms (Anthropic supports both per the docs).
+    if (b.system !== undefined) return true;
     // Strong signal: messages[0].content is an array of Anthropic content blocks
     const msgs = b.messages;
     if (Array.isArray(msgs) && msgs.length > 0) {
@@ -213,6 +234,10 @@ export class CliproxyapiExecutor extends BaseExecutor {
       delete transformed.thinking;
       delete transformed.output_config;
       delete transformed.context_management;
+      delete transformed.client_info;
+      delete transformed.prompt_cache_key;
+      delete transformed.safety_identifier;
+      delete transformed.metadata;
 
       // Rewrite tool names matching Anthropic's reserved ^mcp_[^_] namespace.
       // Anthropic returns "out of extra usage" / "Extra usage required" 400
