@@ -42,11 +42,20 @@ const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
 
-function getChunkedOrFixedBody(bodyStr: string, stream: boolean) {
+interface AntigravityContent {
+  role: string;
+  parts: unknown[];
+  [key: string]: unknown;
+}
+
+function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
   if (stream) {
-    return (async function* () {
-      yield new TextEncoder().encode(bodyStr);
-    })();
+    return new ReadableStream({
+      async start(controller) {
+        controller.enqueue(new TextEncoder().encode(bodyStr));
+        controller.close();
+      },
+    });
   }
   return bodyStr;
 }
@@ -453,7 +462,7 @@ export class AntigravityExecutor extends BaseExecutor {
         return { ...c, role, parts };
       }) || [];
 
-    const contents: any[] = [];
+    const contents: AntigravityContent[] = [];
     for (const c of normalizedContents) {
       if (!Array.isArray(c.parts) || c.parts.length === 0) continue;
       if (contents.length > 0 && contents[contents.length - 1].role === c.role) {
@@ -802,7 +811,7 @@ export class AntigravityExecutor extends BaseExecutor {
         let response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
-          body: getChunkedOrFixedBody(serializedRequest.bodyString, stream) as any,
+          body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
           ...(stream ? { duplex: "half" } : {}),
           signal,
         });
@@ -814,7 +823,7 @@ export class AntigravityExecutor extends BaseExecutor {
           response = await fetch(url, {
             method: "POST",
             headers: retryHeaders,
-            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream) as any,
+            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
             ...(stream ? { duplex: "half" } : {}),
             signal,
           });
@@ -884,7 +893,7 @@ export class AntigravityExecutor extends BaseExecutor {
                   const creditsResp = await fetch(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
-                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream) as any,
+                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
                     ...(stream ? { duplex: "half" } : {}),
                     signal,
                   });

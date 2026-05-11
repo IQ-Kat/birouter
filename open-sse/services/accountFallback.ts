@@ -22,10 +22,14 @@ import {
   getCircuitBreaker,
   STATE,
 } from "../../src/shared/utils/circuitBreaker";
+import { classify429FromError, type FailureKind } from "../../src/shared/utils/classify429";
+import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 
 type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
+  /** Issue #2100 follow-up. Stored override; undefined → per-provider default. */
+  useUpstream429BreakerHints?: boolean;
   maxBackoffSteps: number;
   failureThreshold: number;
   resetTimeoutMs: number;
@@ -182,6 +186,9 @@ function buildProviderProfile(
   return {
     baseCooldownMs: connectionCooldown.baseCooldownMs,
     useUpstreamRetryHints: connectionCooldown.useUpstreamRetryHints,
+    // Issue #2100 follow-up: propagate stored override (boolean | undefined)
+    // so the runtime resolver picks user setting first, then per-provider default.
+    useUpstream429BreakerHints: connectionCooldown.useUpstream429BreakerHints,
     maxBackoffSteps: connectionCooldown.maxBackoffSteps,
     failureThreshold: providerBreaker.failureThreshold,
     resetTimeoutMs: providerBreaker.resetTimeoutMs,
@@ -488,12 +495,21 @@ export function getModelLockoutInfo(provider, connectionId, model) {
   };
 }
 
+type ModelLockoutInfo = {
+  provider: string;
+  connectionId: string;
+  model: string;
+  reason: string;
+  remainingMs: number;
+  failureCount: number;
+};
+
 /**
  * Get all active model lockouts (for dashboard)
  */
-export function getAllModelLockouts() {
+export function getAllModelLockouts(): ModelLockoutInfo[] {
   const now = Date.now();
-  const active: any[] = [];
+  const active: ModelLockoutInfo[] = [];
   for (const key of modelLockouts.keys()) {
     cleanupModelLockKey(key, now);
   }
@@ -532,9 +548,23 @@ function configureProviderBreaker(
   if (!provider) return null;
 
   const resolvedProfile = { ...getProviderProfile(provider), ...(profile ?? {}) };
+  // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the
+  // provider profile (stored override) or fall back to per-provider default.
+  // Stored value type is `boolean | undefined` — never `null` after PATCH.
+  const userValue = resolvedProfile.useUpstream429BreakerHints;
+  const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
   return getCircuitBreaker(provider, {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
     resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
+    ...(useHints
+      ? {
+          cooldownByKind: {
+            rate_limit: 60_000,
+            quota_exhausted: 3_600_000,
+          } satisfies Partial<Record<FailureKind, number>>,
+          classifyError: classify429FromError,
+        }
+      : {}),
   });
 }
 
@@ -755,6 +785,8 @@ export function classifyErrorText(errorText) {
     lower.includes("quota depleted") ||
     lower.includes("quota will reset") ||
     lower.includes("your quota will reset") ||
+    lower.includes("quota has been exceeded") ||
+    lower.includes("hour quota") ||
     lower.includes("billing")
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
@@ -885,7 +917,7 @@ export function checkFallbackError(
   backoffLevel: number = 0,
   _model: string | null = null,
   provider: string | null = null,
-  headers: any = null,
+  headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null
 ): {
   shouldFallback: boolean;
@@ -1038,7 +1070,9 @@ export function checkFallbackError(
       status === HTTP_STATUS.FORBIDDEN &&
       provider &&
       getProviderCategory(provider) === "apikey" &&
-      !errorStr.toLowerCase().includes("has not been used in project")
+      !errorStr.toLowerCase().includes("has not been used in project") &&
+      !errorStr.toLowerCase().includes("hour quota") &&
+      !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
     }

@@ -9,11 +9,7 @@ import {
 } from "../config/antigravityUpstream.ts";
 import { isUserCallableAntigravityModelId } from "../config/antigravityModelAliases.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
-import {
-  CURSOR_REGISTRY_VERSION,
-  getCursorUsageHeaders,
-  getGitHubCopilotInternalUserHeaders,
-} from "../config/providerHeaderProfiles.ts";
+import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
@@ -72,15 +68,20 @@ const KIMI_CONFIG = {
   apiVersion: "2023-06-01",
 };
 
-const CURSOR_USAGE_CONFIG = {
-  usageUrl: "https://www.cursor.com/api/usage",
-  userMetaUrl: "https://www.cursor.com/api/auth/me",
-  subscriptionUrl: "https://www.cursor.com/api/subscription",
-  clientVersion: CURSOR_REGISTRY_VERSION,
-};
-
 const NANOGPT_CONFIG = {
   usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
+};
+
+// Cursor dashboard usage API config
+// The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
+// session via the WorkosCursorSessionToken cookie (format: `${userId}::${jwt}`) and
+// rejects requests without a matching Origin/Referer (Invalid origin for state-changing request).
+const CURSOR_USAGE_CONFIG = {
+  usageUrl: "https://cursor.com/api/dashboard/get-current-period-usage",
+  origin: "https://cursor.com",
+  referer: "https://cursor.com/dashboard/spending",
+  userAgent:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
 };
 
 const MINIMAX_USAGE_CONFIG = {
@@ -154,6 +155,12 @@ function getGlmTokenQuotaName(
   if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
 
   return existingQuotas.session ? "weekly" : "session";
+}
+
+function getGlmQuotaDisplayName(quotaName: string): string {
+  if (quotaName === "session") return "5 Hours Quota";
+  if (quotaName === "weekly") return "Weekly Quota";
+  return quotaName;
 }
 
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
@@ -635,6 +642,16 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
         remaining,
         remainingPercentage: remaining,
         resetAt,
+        displayName: getGlmQuotaDisplayName(quotaName),
+        details: Array.isArray(src.models)
+          ? (src.models as unknown[]).map((m) => {
+              const modelInfo = toRecord(m);
+              return {
+                name: String(modelInfo.model || ""),
+                used: toNumber(modelInfo.percentage, 0),
+              };
+            })
+          : [],
         unlimited: false,
       };
       continue;
@@ -847,6 +864,143 @@ async function getNanoGptUsage(apiKey: string) {
 }
 
 /**
+ * Decode the `sub` claim of a Cursor JWT (the WorkOS user id).
+ * Returns null if the token is not a parseable JWT.
+ */
+function decodeCursorJwtSub(token: string): string | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (payload.length % 4 !== 0) payload += "=";
+    const decoded = JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
+    const sub = decoded?.sub;
+    return typeof sub === "string" && sub.length > 0 ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cursor Pro Plan Usage
+ * Fetches current-billing-cycle spend from the cursor.com dashboard API and exposes three
+ * windows that mirror the cursor.com/dashboard/spending UI: Total / Auto + Composer / API.
+ */
+async function getCursorUsage(accessToken: string, providerSpecificData?: unknown) {
+  if (!accessToken) {
+    return { message: "Cursor access token missing. Re-import the connection from Cursor IDE." };
+  }
+
+  const storedUserId = (() => {
+    const raw = toRecord(providerSpecificData).userId;
+    return typeof raw === "string" && raw.length > 0 ? raw : null;
+  })();
+  const userId = storedUserId || decodeCursorJwtSub(accessToken);
+
+  if (!userId) {
+    return {
+      message: "Cursor token missing user id. Re-import the connection from Cursor IDE.",
+    };
+  }
+
+  try {
+    const response = await fetch(CURSOR_USAGE_CONFIG.usageUrl, {
+      method: "POST",
+      redirect: "manual",
+      headers: {
+        Cookie: `WorkosCursorSessionToken=${userId}::${accessToken}`,
+        Origin: CURSOR_USAGE_CONFIG.origin,
+        Referer: CURSOR_USAGE_CONFIG.referer,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": CURSOR_USAGE_CONFIG.userAgent,
+      },
+      body: "{}",
+    });
+
+    // 3xx redirect to WorkOS authkit means the session cookie was rejected.
+    if (response.status >= 300 && response.status < 400) {
+      return {
+        plan: "Cursor",
+        message: "Cursor session expired. Re-import the token from Cursor IDE.",
+      };
+    }
+
+    if (!response.ok) {
+      const errorText = (await response.text()).slice(0, 200);
+      if (response.status === 401 || response.status === 403) {
+        return {
+          plan: "Cursor",
+          message: "Cursor session unauthorized. Re-import the token from Cursor IDE.",
+        };
+      }
+      return {
+        plan: "Cursor",
+        message: `Cursor usage endpoint error (${response.status}): ${errorText}`,
+      };
+    }
+
+    const data = toRecord(await response.json());
+    const planUsage = toRecord(data.planUsage);
+
+    if (Object.keys(planUsage).length === 0) {
+      return {
+        plan: "Cursor",
+        message: "Cursor connected. No active plan usage returned.",
+      };
+    }
+
+    const limitCents = Math.max(0, toNumber(planUsage.limit, 0));
+    const totalSpendCents = Math.max(0, toNumber(planUsage.totalSpend, 0));
+    const autoPercentUsed = clampPercentage(toNumber(planUsage.autoPercentUsed, 0));
+    const apiPercentUsed = clampPercentage(toNumber(planUsage.apiPercentUsed, 0));
+    const totalPercentUsed = clampPercentage(toNumber(planUsage.totalPercentUsed, 0));
+
+    // billingCycleEnd is a numeric-string in ms; coerce so parseResetTime sees a number.
+    const billingCycleEndMs = toNumber(data.billingCycleEnd, 0);
+    const resetAt = billingCycleEndMs > 0 ? parseResetTime(billingCycleEndMs) : null;
+
+    // Convert cents → dollars rounded to 2 decimal places.
+    const toDollars = (cents: number) => Math.round(cents) / 100;
+
+    const limitDollars = toDollars(limitCents);
+    const buildWindow = (percentUsed: number, usedCentsOverride?: number): UsageQuota => {
+      const usedCents =
+        typeof usedCentsOverride === "number"
+          ? usedCentsOverride
+          : Math.round((limitCents * percentUsed) / 100);
+      const used = toDollars(Math.min(usedCents, limitCents));
+      const remaining = toDollars(Math.max(limitCents - Math.min(usedCents, limitCents), 0));
+      return {
+        used,
+        total: limitDollars,
+        remaining,
+        remainingPercentage: clampPercentage(100 - percentUsed),
+        resetAt,
+        unlimited: false,
+      };
+    };
+
+    const quotas: Record<string, UsageQuota> = {
+      Total: buildWindow(totalPercentUsed, totalSpendCents),
+      "Auto + Composer": buildWindow(autoPercentUsed),
+      API: buildWindow(apiPercentUsed),
+    };
+
+    return {
+      plan: "Cursor Pro",
+      quotas,
+    };
+  } catch (error) {
+    return {
+      plan: "Cursor",
+      message: `Cursor connected. Unable to fetch usage: ${(error as Error).message}`,
+    };
+  }
+}
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
@@ -865,6 +1019,8 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getClaudeUsage(accessToken);
     case "codex":
       return await getCodexUsage(accessToken, providerSpecificData);
+    case "cursor":
+      return await getCursorUsage(accessToken, providerSpecificData);
     case "kiro":
     case "amazon-q":
       return await getKiroUsage(accessToken, providerSpecificData);
@@ -876,6 +1032,7 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getQoderUsage(accessToken);
     case "glm":
     case "glm-cn":
+    case "zai":
     case "glmt":
       return await getGlmUsage(apiKey, {
         ...(providerSpecificData || {}),
@@ -886,8 +1043,6 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getMiniMaxUsage(apiKey, provider);
     case "crof":
       return await getCrofUsage(apiKey);
-    case "cursor":
-      return await getCursorUsage(accessToken);
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
     case "nanogpt":
@@ -1118,172 +1273,6 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     return label ? `Copilot ${label}` : "GitHub Copilot";
   }
   return "GitHub Copilot";
-}
-
-function buildCursorUsageHeaders(accessToken: string): Record<string, string> {
-  return getCursorUsageHeaders(accessToken, CURSOR_USAGE_CONFIG.clientVersion);
-}
-
-function getFirstPositiveNumber(...values: unknown[]): number {
-  for (const value of values) {
-    const parsed = toNumber(value, Number.NaN);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
-  return 0;
-}
-
-function getCursorMonthlyRequestLimit(usageData: JsonRecord, subscriptionData: JsonRecord): number {
-  return getFirstPositiveNumber(
-    getFieldValue(subscriptionData, "team_max_monthly_requests", "teamMaxMonthlyRequests"),
-    getFieldValue(usageData, "team_max_request_usage", "teamMaxRequestUsage"),
-    getFieldValue(subscriptionData, "team_max_request_usage", "teamMaxRequestUsage"),
-    getFieldValue(usageData, "hard_limit", "hardLimit"),
-    getFieldValue(subscriptionData, "max_monthly_requests", "maxMonthlyRequests")
-  );
-}
-
-function getCursorOnDemandLimit(usageData: JsonRecord, subscriptionData: JsonRecord): number {
-  const onDemand = toRecord(getFieldValue(usageData, "on_demand", "onDemand"));
-  return getFirstPositiveNumber(
-    getFieldValue(onDemand, "max_requests", "maxRequests"),
-    getCursorMonthlyRequestLimit(usageData, subscriptionData)
-  );
-}
-
-function formatCursorQuota(
-  usedValue: unknown,
-  totalValue: unknown,
-  resetValue: unknown
-): UsageQuota {
-  const total = Math.max(0, toNumber(totalValue, 0));
-  const rawUsed = Math.max(0, toNumber(usedValue, 0));
-  const used = total > 0 ? Math.min(rawUsed, total) : rawUsed;
-  const remaining = total > 0 ? Math.max(total - used, 0) : 0;
-
-  return {
-    used,
-    total,
-    remaining,
-    remainingPercentage: total > 0 ? clampPercentage((remaining / total) * 100) : 0,
-    resetAt: parseResetTime(resetValue),
-    unlimited: false,
-  };
-}
-
-function inferCursorPlanName(userMeta: JsonRecord, subscriptionData: JsonRecord): string {
-  const teamInfo = toRecord(getFieldValue(userMeta, "team_info", "teamInfo"));
-  const candidates = [
-    getFieldValue(userMeta, "plan", "plan"),
-    getFieldValue(userMeta, "subscription_type", "subscriptionType"),
-    getFieldValue(subscriptionData, "subscription_type", "subscriptionType"),
-    getFieldValue(subscriptionData, "plan", "plan"),
-  ];
-  const planText = candidates.find((value) => typeof value === "string" && value.trim().length > 0);
-  const normalized = typeof planText === "string" ? planText.trim().toLowerCase() : "";
-
-  if (Object.keys(teamInfo).length > 0 || normalized.includes("team")) return "Cursor Team";
-  if (normalized.includes("enterprise")) return "Cursor Enterprise";
-  if (normalized.includes("pro")) return "Cursor Pro";
-  if (normalized.includes("free")) return "Cursor Free";
-  return "Cursor";
-}
-
-async function fetchCursorUsageDocument(url: string, accessToken: string) {
-  const response = await fetch(url, {
-    method: "GET",
-    headers: buildCursorUsageHeaders(accessToken),
-  });
-
-  const text = await response.text();
-  if (!response.ok) {
-    return {
-      ok: false,
-      status: response.status,
-      data: {} as JsonRecord,
-      text,
-    };
-  }
-
-  try {
-    const parsed = text ? JSON.parse(text) : {};
-    return {
-      ok: true,
-      status: response.status,
-      data: toRecord(parsed),
-      text,
-    };
-  } catch {
-    return {
-      ok: false,
-      status: response.status,
-      data: {} as JsonRecord,
-      text,
-    };
-  }
-}
-
-async function getCursorUsage(accessToken: string) {
-  try {
-    if (!accessToken) {
-      return {
-        message: "Cursor token expired or unavailable. Please re-authenticate the connection.",
-      };
-    }
-
-    const [usageSummary, userMeta, subscription] = await Promise.all([
-      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.usageUrl, accessToken),
-      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.userMetaUrl, accessToken),
-      fetchCursorUsageDocument(CURSOR_USAGE_CONFIG.subscriptionUrl, accessToken),
-    ]);
-
-    const authDenied = [usageSummary, userMeta, subscription].some(
-      (result) => result.status === 401 || result.status === 403
-    );
-    if (authDenied) {
-      return {
-        message:
-          "Cursor token expired or permission denied. Please re-authenticate the connection.",
-      };
-    }
-
-    const usageData = usageSummary.data;
-    const userMetaData = userMeta.data;
-    const subscriptionData = subscription.data;
-    const plan = inferCursorPlanName(userMetaData, subscriptionData);
-
-    const quotas: Record<string, UsageQuota> = {};
-    const totalUsed = getFieldValue(usageData, "num_requests_total", "numRequestsTotal");
-    const totalLimit = getCursorMonthlyRequestLimit(usageData, subscriptionData);
-    const totalReset =
-      getFieldValue(usageData, "reset_date", "resetDate") ||
-      getFieldValue(subscriptionData, "reset_date", "resetDate");
-
-    if (toNumber(totalUsed, 0) > 0 || totalLimit > 0) {
-      quotas.requests = formatCursorQuota(totalUsed, totalLimit, totalReset);
-    }
-
-    const onDemand = toRecord(getFieldValue(usageData, "on_demand", "onDemand"));
-    const onDemandUsed = getFieldValue(onDemand, "num_requests", "numRequests");
-    const onDemandLimit = getCursorOnDemandLimit(usageData, subscriptionData);
-    const onDemandReset =
-      getFieldValue(onDemand, "reset_date", "resetDate") ||
-      getFieldValue(usageData, "reset_date", "resetDate") ||
-      getFieldValue(subscriptionData, "reset_date", "resetDate");
-
-    if (toNumber(onDemandUsed, 0) > 0 || onDemandLimit > 0) {
-      quotas.on_demand = formatCursorQuota(onDemandUsed, onDemandLimit, onDemandReset);
-    }
-
-    if (Object.keys(quotas).length > 0) {
-      return { plan, quotas };
-    }
-
-    return { plan, message: "Cursor connected. Unable to parse quota data." };
-  } catch (error) {
-    return { message: `Unable to fetch Cursor usage: ${(error as Error).message}` };
-  }
 }
 
 // ── Gemini CLI subscription info cache ──────────────────────────────────────
@@ -2445,11 +2434,6 @@ export const __testing = {
   parseResetTime,
   formatGitHubQuotaSnapshot,
   inferGitHubPlanName,
-  buildCursorUsageHeaders,
-  formatCursorQuota,
-  getCursorMonthlyRequestLimit,
-  getCursorOnDemandLimit,
-  inferCursorPlanName,
   getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
 };
