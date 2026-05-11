@@ -131,19 +131,70 @@ test("Responses -> Chat strips background flag and degrades to synchronous execu
   // and cannot host the deferred run + poll contract, so background=true is
   // silently dropped and the request runs synchronously. Clients that set the
   // flag opportunistically (Capy Captain Pro, Codex agents) work unchanged.
-  const result = openaiResponsesToOpenAIRequest(
-    "gpt-5.5",
-    {
-      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
-      background: true,
-    },
-    true,
-    null
-  );
-  const r = result as Record<string, unknown>;
-  assert.equal(r.background, undefined, "background flag must be stripped from output");
-  assert.ok(Array.isArray(r.messages), "translation must complete and produce messages");
-  assert.equal((r.messages as unknown[]).length, 1, "user message must be preserved");
+  const warnLog: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (msg: unknown) => warnLog.push(String(msg));
+  try {
+    const result = openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        background: true,
+      },
+      true,
+      { provider: "codex" }
+    );
+    const r = result as Record<string, unknown>;
+    assert.equal(r.background, undefined, "background flag must be stripped from output");
+    assert.ok(Array.isArray(r.messages), "translation must complete and produce messages");
+    assert.equal((r.messages as unknown[]).length, 1, "user message must be preserved");
+    assert.ok(
+      warnLog.some((m) => m.startsWith("BACKGROUND_DEGRADE provider=codex model=gpt-5.5")),
+      "BACKGROUND_DEGRADE warning log must be emitted when background=true"
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("Responses -> Chat passes through when background flag is unset or false (no degrade log)", () => {
+  // Verifies the inverse of the degradation case: when background is absent or
+  // explicitly false, no warning should be emitted and the request body should
+  // not carry a residual background field. Guards against accidental log spam
+  // and confirms the degradation logic is conditional on background === true.
+  const warnLog: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (msg: unknown) => warnLog.push(String(msg));
+  try {
+    // Case 1: background unset
+    const r1 = openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      { input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }] },
+      true,
+      { provider: "codex" }
+    ) as Record<string, unknown>;
+    assert.equal(r1.background, undefined, "background must be absent on output (unset case)");
+
+    // Case 2: background explicitly false
+    const r2 = openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        background: false,
+      },
+      true,
+      { provider: "codex" }
+    ) as Record<string, unknown>;
+    assert.equal(r2.background, undefined, "background must be stripped on output (false case)");
+
+    assert.equal(
+      warnLog.filter((m) => m.startsWith("BACKGROUND_DEGRADE")).length,
+      0,
+      "BACKGROUND_DEGRADE must NOT be emitted for unset or false values"
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
