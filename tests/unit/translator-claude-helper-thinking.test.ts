@@ -1,12 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { prepareClaudeRequest } = await import(
-  "../../open-sse/translator/helpers/claudeHelper.ts"
-);
-const { DEFAULT_THINKING_CLAUDE_SIGNATURE } = await import(
-  "../../open-sse/config/defaultThinkingSignature.ts"
-);
+const { prepareClaudeRequest } = await import("../../open-sse/translator/helpers/claudeHelper.ts");
+const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
+  await import("../../open-sse/config/defaultThinkingSignature.ts");
 
 function multiTurnBodyWithoutThinkingBlock() {
   return {
@@ -15,9 +12,7 @@ function multiTurnBodyWithoutThinkingBlock() {
       { role: "user", content: [{ type: "text", text: "hi" }] },
       {
         role: "assistant",
-        content: [
-          { type: "tool_use", id: "call_x", name: "ls", input: { path: "." } },
-        ],
+        content: [{ type: "tool_use", id: "call_x", name: "ls", input: { path: "." } }],
       },
       {
         role: "user",
@@ -72,9 +67,7 @@ test("prepareClaudeRequest: existing thinking block — redacted, signature repl
       },
       {
         role: "user",
-        content: [
-          { type: "tool_result", tool_use_id: "call_y", content: "ok" },
-        ],
+        content: [{ type: "tool_result", tool_use_id: "call_y", content: "ok" }],
       },
     ],
   };
@@ -94,15 +87,11 @@ test("prepareClaudeRequest: thinking disabled — no inject regardless of tool_u
       { role: "user", content: [{ type: "text", text: "hi" }] },
       {
         role: "assistant",
-        content: [
-          { type: "tool_use", id: "call_z", name: "ls", input: {} },
-        ],
+        content: [{ type: "tool_use", id: "call_z", name: "ls", input: {} }],
       },
       {
         role: "user",
-        content: [
-          { type: "tool_result", tool_use_id: "call_z", content: "ok" },
-        ],
+        content: [{ type: "tool_result", tool_use_id: "call_z", content: "ok" }],
       },
     ],
   };
@@ -115,9 +104,7 @@ test("prepareClaudeRequest: thinking disabled — no inject regardless of tool_u
 test("prepareClaudeRequest: thinking enabled + no tool_use — no inject (single-turn text)", () => {
   const body = {
     thinking: { type: "enabled", budget_tokens: 4096 },
-    messages: [
-      { role: "user", content: [{ type: "text", text: "hi" }] },
-    ],
+    messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
   };
   const result = prepareClaudeRequest(body as any, "kimi-coding");
   const userContent = (result as any).messages[0].content;

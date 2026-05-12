@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { providerAllowsOptionalApiKey, SELF_HOSTED_CHAT_PROVIDER_IDS } from "@/shared/constants/providers";
+import {
+  providerAllowsOptionalApiKey,
+  SELF_HOSTED_CHAT_PROVIDER_IDS,
+} from "@/shared/constants/providers";
 
 // ── Import test targets from connection test route ──────────────────────────
 

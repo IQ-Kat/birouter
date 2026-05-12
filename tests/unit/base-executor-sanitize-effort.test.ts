@@ -1,9 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { sanitizeReasoningEffortForProvider } = await import(
-  "../../open-sse/executors/base.ts"
-);
+const { sanitizeReasoningEffortForProvider } = await import("../../open-sse/executors/base.ts");
 
 function makeLog() {
   const messages: Array<[string, string]> = [];
@@ -20,12 +18,7 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades xhigh → high"
     reasoning_effort: "xhigh",
     messages: [{ role: "user", content: "hi" }],
   };
-  const result = sanitizeReasoningEffortForProvider(
-    body,
-    "xiaomi-mimo",
-    "mimo-v2.5-pro",
-    log
-  );
+  const result = sanitizeReasoningEffortForProvider(body, "xiaomi-mimo", "mimo-v2.5-pro", log);
   assert.notEqual(result, body, "must return a new object when mutating");
   assert.equal((result as any).reasoning_effort, "high");
   assert.equal((result as any).model, "mimo-v2.5-pro", "other fields preserved");
