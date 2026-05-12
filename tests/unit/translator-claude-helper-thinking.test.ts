@@ -33,9 +33,10 @@ test("prepareClaudeRequest: claude provider — injects thinking before tool_use
   const result = prepareClaudeRequest(body as any, "claude");
   const assistantContent = (result as any).messages[1].content;
   assert.equal(assistantContent.length, 2, "thinking + tool_use");
-  assert.equal(assistantContent[0].type, "thinking");
-  assert.equal(assistantContent[0].thinking, ".");
-  assert.equal(assistantContent[0].signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantContent[0].type, "redacted_thinking");
+  assert.equal(assistantContent[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantContent[0].thinking, undefined);
+  assert.equal(assistantContent[0].signature, undefined);
   assert.equal(assistantContent[1].type, "tool_use");
 });
 
@@ -48,9 +49,10 @@ test("prepareClaudeRequest: kimi-coding provider — injects thinking before too
   const result = prepareClaudeRequest(body as any, "kimi-coding");
   const assistantContent = (result as any).messages[1].content;
   assert.equal(assistantContent.length, 2, "thinking + tool_use");
-  assert.equal(assistantContent[0].type, "thinking");
-  assert.equal(assistantContent[0].thinking, ".");
-  assert.equal(assistantContent[0].signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantContent[0].type, "redacted_thinking");
+  assert.equal(assistantContent[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantContent[0].thinking, undefined);
+  assert.equal(assistantContent[0].signature, undefined);
 });
 
 test("prepareClaudeRequest: existing thinking block — redacted, signature replaced, no double-inject", () => {
@@ -75,8 +77,9 @@ test("prepareClaudeRequest: existing thinking block — redacted, signature repl
   const assistantContent = (result as any).messages[1].content;
   assert.equal(assistantContent.length, 2, "no double-inject — exactly 2 blocks");
   assert.equal(assistantContent[0].type, "redacted_thinking", "thinking → redacted_thinking");
-  assert.equal(assistantContent[0].signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantContent[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
   assert.equal(assistantContent[0].thinking, undefined, "thinking field stripped");
+  assert.equal(assistantContent[0].signature, undefined, "signature field stripped");
   assert.equal(assistantContent[1].type, "tool_use");
 });
 

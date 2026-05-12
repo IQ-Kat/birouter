@@ -267,16 +267,28 @@ export function prepareClaudeRequest(
         let hasToolUse = false;
         let hasThinking = false;
 
-        // Convert thinking blocks to redacted_thinking and replace signature.
-        // When requests cross provider boundaries (e.g., combo fallback), the
-        // original thinking signature is invalid for the new provider, causing
-        // "Invalid signature in thinking block" 400 errors. redacted_thinking
-        // blocks are accepted without signature validation.
+        // Convert thinking blocks to redacted_thinking with synthetic `data`.
+        // When requests cross provider boundaries (e.g., combo fallback) or
+        // when client-stored signatures (Capy) replay back to Anthropic, the
+        // original `thinking.signature` no longer validates: "Invalid signature
+        // in thinking block" 400. redacted_thinking accepts without signature
+        // validation — but Anthropic REQUIRES a `data` field on it. Previous
+        // versions emitted `signature` on redacted_thinking (wrong field,
+        // belongs on regular `thinking`) and omitted `data`, causing:
+        //   messages.N.content.0.redacted_thinking.data: Field required (400)
+        //
+        // Fix: emit only the correct fields per type.
+        //   - redacted_thinking: { type, data }
+        //   - thinking: { type, thinking, signature }
+        // We use DEFAULT_THINKING_CLAUDE_SIGNATURE as the `data` placeholder
+        // — it's a proven Anthropic-format base64 blob accepted as a valid
+        // redacted_thinking payload (replay context).
         for (const block of content) {
           if (block.type === "thinking" || block.type === "redacted_thinking") {
             block.type = "redacted_thinking";
-            block.signature = DEFAULT_THINKING_CLAUDE_SIGNATURE;
+            block.data = DEFAULT_THINKING_CLAUDE_SIGNATURE;
             delete block.thinking;
+            delete block.signature;
             hasThinking = true;
           }
           if (block.type === "tool_use") hasToolUse = true;
@@ -285,14 +297,12 @@ export function prepareClaudeRequest(
         // Add thinking block if thinking enabled + has tool_use but no thinking.
         // Required for Anthropic-shape thinking-mode upstreams (claude, kimi,
         // glm) when the assistant turn's content[] needs a precursor thinking
-        // block in front of any tool_use. Placeholder content (".") is enough
-        // to satisfy shape validation; the upstream still runs its own
-        // reasoning on the current turn.
+        // block in front of any tool_use. Use redacted_thinking shape (with
+        // `data`) to match what we emit when converting real thinking blocks.
         if (thinkingEnabled && !hasThinking && hasToolUse) {
           content.unshift({
-            type: "thinking",
-            thinking: ".",
-            signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+            type: "redacted_thinking",
+            data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
           });
         }
       }
