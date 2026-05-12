@@ -41,8 +41,10 @@ export class PollinationsExecutor extends BaseExecutor {
     return headers;
   }
 
-  transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
+  transformRequest(model: string, body: any, stream: boolean, _credentials: any): any {
     if (typeof body === "object" && body !== null) {
+      body.model = model;
+      body.stream = stream;
       body.jsonMode = true;
     }
     return body;
