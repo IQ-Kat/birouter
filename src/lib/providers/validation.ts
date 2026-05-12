@@ -2360,6 +2360,14 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  "ollama-search": (apiKey) => ({
+    url: "https://ollama.com/api/web_search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated

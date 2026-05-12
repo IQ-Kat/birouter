@@ -1776,6 +1776,16 @@ export const SEARCH_PROVIDERS = {
     authHint:
       "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
+  "ollama-search": {
+    id: "ollama-search",
+    alias: "ollama-search",
+    name: "Ollama Search",
+    icon: "search",
+    color: "#58A6FF",
+    textIcon: "OS",
+    website: "https://ollama.com/settings/api-keys",
+    authHint: "Same API key as Ollama Cloud (from ollama.com/settings/api-keys)",
+  },
 };
 
 // Audio Only Providers
