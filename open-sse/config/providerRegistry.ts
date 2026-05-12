@@ -130,12 +130,26 @@ const KIMI_CODING_SHARED = {
   executor: "default",
   baseUrl: "https://api.kimi.com/coding/v1/messages",
   authHeader: "x-api-key",
+  // Kimi K2.6 native context per Moonshot platform docs and cross-provider
+  // catalog (openrouter, moonshot, ali, deepinfra, etc. all advertise 262144).
+  // Without this, contextManager.ts:getTokenLimit falls back to
+  // DEFAULT_LIMITS.default = 128000 because the Kimi Code OAuth product is
+  // not synced via models.dev. The under-reported value cascades into
+  // /v1/models advertised context_length=128000 and downstream client
+  // assumptions about prompt budget (e.g. Capy computing
+  // prompt_cap = context_length - request.max_tokens).
+  defaultContextLength: 262144,
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },
   models: [
-    { id: "kimi-k2.6", name: "Kimi K2.6" },
-    { id: "kimi-k2.6-thinking", name: "Kimi K2.6 Thinking" },
+    { id: "kimi-k2.6", name: "Kimi K2.6", contextLength: 262144, maxOutputTokens: 262144 },
+    {
+      id: "kimi-k2.6-thinking",
+      name: "Kimi K2.6 Thinking",
+      contextLength: 262144,
+      maxOutputTokens: 262144,
+    },
   ] as RegistryModel[],
 } as const;
 
@@ -272,7 +286,12 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro3", "solar-mini"]),
   maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
-  "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
+  "xiaomi-mimo": [
+    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
+    { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
+    { id: "mimo-v2-omni", name: "MiMo-V2-Omni", contextLength: 262144, maxOutputTokens: 131072 },
+    { id: "mimo-v2-flash", name: "MiMo-V2-Flash", contextLength: 262144, maxOutputTokens: 65536 },
+  ],
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",
@@ -370,11 +389,48 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://console.anthropic.com/v1/oauth/token",
     },
     models: [
-      { id: "claude-opus-4-7", name: "Claude Opus 4.7", supportsXHighEffort: true },
-      { id: "claude-opus-4-6", name: "Claude Opus 4.6", supportsXHighEffort: false },
-      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet", supportsXHighEffort: false },
-      { id: "claude-sonnet-4-5-20250929", name: "Claude 4.5 Sonnet", supportsXHighEffort: false },
-      { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku", supportsXHighEffort: false },
+      {
+        id: "claude-opus-4-7",
+        name: "Claude Opus 4.7",
+        supportsXHighEffort: true,
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "claude-opus-4-6",
+        name: "Claude Opus 4.6",
+        supportsXHighEffort: false,
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "claude-opus-4-5-20251101",
+        name: "Claude Opus 4.5",
+        supportsXHighEffort: false,
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
+      {
+        id: "claude-sonnet-4-6",
+        name: "Claude 4.6 Sonnet",
+        supportsXHighEffort: false,
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
+      {
+        id: "claude-sonnet-4-5-20250929",
+        name: "Claude 4.5 Sonnet",
+        supportsXHighEffort: false,
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
+      {
+        id: "claude-haiku-4-5-20251001",
+        name: "Claude 4.5 Haiku",
+        supportsXHighEffort: false,
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
     ],
   },
 
@@ -447,11 +503,45 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
-      { id: "gpt-5.5", name: "GPT 5.5", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", ...GPT_5_5_CODEX_CAPABILITIES },
+      // gpt-5.5 codex OAuth backend caps context at 400K (not the public-API
+      // 1.05M). Public refs : openai/codex#19208, #19319, #19464 ;
+      // opencode#24171. max_output_tokens is stripped server-side
+      // (litellm#21193, codex#4138) so 128K is informational only.
+      {
+        id: "gpt-5.5",
+        name: "GPT 5.5",
+        ...GPT_5_5_CODEX_CAPABILITIES,
+        contextLength: 400000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "gpt-5.5-xhigh",
+        name: "GPT 5.5 (xHigh)",
+        ...GPT_5_5_CODEX_CAPABILITIES,
+        contextLength: 400000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "gpt-5.5-high",
+        name: "GPT 5.5 (High)",
+        ...GPT_5_5_CODEX_CAPABILITIES,
+        contextLength: 400000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "gpt-5.5-medium",
+        name: "GPT 5.5 (Medium)",
+        ...GPT_5_5_CODEX_CAPABILITIES,
+        contextLength: 400000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "gpt-5.5-low",
+        name: "GPT 5.5 (Low)",
+        ...GPT_5_5_CODEX_CAPABILITIES,
+        contextLength: 400000,
+        maxOutputTokens: 128000,
+      },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
@@ -558,16 +648,48 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", targetFormat: "openai-responses" },
-      { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5", targetFormat: "openai-responses" },
-      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6", targetFormat: "openai-responses" },
+      {
+        id: "claude-haiku-4.5",
+        name: "Claude Haiku 4.5",
+        targetFormat: "openai-responses",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
+      {
+        id: "claude-sonnet-4.5",
+        name: "Claude Sonnet 4.5",
+        targetFormat: "openai-responses",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
+      {
+        id: "claude-sonnet-4.6",
+        name: "Claude Sonnet 4.6",
+        targetFormat: "openai-responses",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
       {
         id: "claude-opus-4-5-20251101",
         name: "Claude Opus 4.5 (Full ID)",
         targetFormat: "openai-responses",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
       },
-      { id: "claude-opus-4.6", name: "Claude Opus 4.6", targetFormat: "openai-responses" },
-      { id: "claude-opus-4.7", name: "Claude Opus 4.7", targetFormat: "openai-responses" },
+      {
+        id: "claude-opus-4.6",
+        name: "Claude Opus 4.6",
+        targetFormat: "openai-responses",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "claude-opus-4.7",
+        name: "Claude Opus 4.7",
+        targetFormat: "openai-responses",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", targetFormat: "openai-responses" },
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", targetFormat: "openai-responses" },
       { id: "oswe-vscode-prime", name: "Raptor Mini", targetFormat: "openai-responses" },
@@ -591,12 +713,37 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       { id: "auto-kiro", name: "Auto (Kiro picks best model)" },
-      { id: "claude-opus-4.7", name: "Claude Opus 4.7" },
-      { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
-      { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+      {
+        id: "claude-opus-4.7",
+        name: "Claude Opus 4.7",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "claude-opus-4.6",
+        name: "Claude Opus 4.6",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
+        id: "claude-sonnet-4.6",
+        name: "Claude Sonnet 4.6",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
       // models for kiro free tier
-      { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
-      { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
+      {
+        id: "claude-sonnet-4.5",
+        name: "Claude Sonnet 4.5",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
+      {
+        id: "claude-haiku-4.5",
+        name: "Claude Haiku 4.5",
+        contextLength: 200000,
+        maxOutputTokens: 64000,
+      },
       { id: "deepseek-3.2", name: "DeepSeek V3.2" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "minimax-m2.1", name: "MiniMax M2.1" },
