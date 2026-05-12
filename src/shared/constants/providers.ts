@@ -90,6 +90,28 @@ export const OAUTH_PROVIDERS = {
     color: "#5B9BD5",
     textIcon: "CL",
   },
+  windsurf: {
+    id: "windsurf",
+    alias: "ws",
+    name: "Windsurf (Devin CLI)",
+    icon: "air",
+    color: "#00C5A0",
+    textIcon: "WS",
+    authHint:
+      "Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.",
+    website: "https://windsurf.com",
+  },
+  "devin-cli": {
+    id: "devin-cli",
+    alias: "dv",
+    name: "Devin CLI (Official)",
+    icon: "terminal",
+    color: "#6366F1",
+    textIcon: "DV",
+    authHint:
+      "Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai",
+    website: "https://cli.devin.ai",
+  },
 };
 
 // Web / Cookie Providers
@@ -1922,6 +1944,16 @@ export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
 
 export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
+}
+
+export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
+  return (
+    providerId === "searxng-search" ||
+    providerId === "petals" ||
+    isSelfHostedChatProvider(providerId) ||
+    isOpenAICompatibleProvider(providerId) ||
+    isAnthropicCompatibleProvider(providerId)
+  );
 }
 
 // ── System Providers (virtual, not user-connectable) ──────────────────────────
