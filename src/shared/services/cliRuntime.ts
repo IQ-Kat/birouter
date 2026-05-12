@@ -76,13 +76,15 @@ const CLI_TOOLS: Record<string, any> = {
     paths: {
       // %APPDATA%\devin\config.json  (Windows)
       // ~/.config/devin/config.json  (Linux/macOS)
-      config: isWindows()
-        ? path.join(
-            process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
-            "devin",
-            "config.json"
-          )
-        : path.join(os.homedir(), ".config", "devin", "config.json"),
+      get config() {
+        return isWindows()
+          ? path.join(
+              process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
+              "devin",
+              "config.json"
+            )
+          : path.join(os.homedir(), ".config", "devin", "config.json");
+      },
     },
   },
   cline: {
@@ -205,6 +207,13 @@ const runProcess = (
   } = {}
 ): Promise<any> =>
   new Promise((resolve) => {
+    // Guard: reject commands with shell metacharacters — command comes from
+    // server-controlled env vars/config, not HTTP input, but belt-and-suspenders.
+    if (/[;&|`$<>\n\r]/.test(command)) {
+      resolve({ ok: false, stdout: "", stderr: "rejected: unsafe command path", exitCode: -1 });
+      return;
+    }
+
     let stdout = "";
     let stderr = "";
     let timedOut = false;
