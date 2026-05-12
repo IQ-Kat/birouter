@@ -9,6 +9,12 @@ description: Analyze open feature request issues, implement viable ones on dedic
 
 A **5-phase** workflow that systematically harvests feature requests from GitHub issues, creates structured idea files, researches solutions across the internet and Git repositories, presents a consolidated report for user approval, then generates detailed implementation plans and executes them.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` for independent reads, checks, and GitHub calls.
+- Approval gates are hard stops. Present the report/plan in the final response and do not move to implementation phases until the user explicitly approves.
+- Keep harvest/research bounded enough to produce the approval report quickly; do not start implementation while still in report phases.
+
 **Output directory structure:**
 
 ```

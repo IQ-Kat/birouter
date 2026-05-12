@@ -16,6 +16,12 @@ Deploy OmniRoute to the production VPSs using `npm pack + scp` + PM2.
 > [!IMPORTANT]
 > The npm registry rejects packages > 100MB, so deployment uses **npm pack + scp**.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` only for independent commands.
+- Build/package once first. After the artifact exists, copy/install/verify on Akamai and Local may run in parallel if they do not depend on each other.
+- Report each VPS result explicitly before finishing.
+
 ## Steps
 
 ### 1. Build + pack locally

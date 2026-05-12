@@ -9,6 +9,11 @@ description: Read all open GitHub Discussions, summarize them, respond to pendin
 
 This workflow reads all open GitHub Discussions, generates a categorized summary, identifies which ones need a response, drafts and posts replies, and optionally creates issues from actionable feature requests. It follows the same flow used for Issues but adapted for the Discussions forum.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` for independent reads and GitHub/browser fetches.
+- The summary report is a hard stop. Do not post discussion replies or create issues until the user explicitly approves.
+
 // turbo-all
 
 ## Steps

@@ -30,6 +30,17 @@ This workflow fetches all open PRs from the project's GitHub repository, perform
 
 > **BRANCH RULE**: PRs are ALWAYS merged into the current `release/vX.Y.Z` branch, NEVER directly into `main`. The release branch acts as a staging area — only after all PRs are integrated and tests pass does the release branch get merged into `main` via the `/generate-release` workflow.
 
+## Codex Execution Notes
+
+The source Claude command uses `// turbo` and `// turbo-all` as execution hints. In Codex, treat them explicitly as follows:
+
+- `// turbo`: batch independent local reads and small `gh`/`git` calls with `multi_tool_use.parallel`.
+- `// turbo-all`: fan out independent per-PR/per-issue calls in practical batches, usually up to 4 GitHub calls at a time.
+- Do not expand Step 4 into exhaustive CI-log debugging before Step 6. Fetch numbers, metadata, diffs/review comments, quick merge/conflict status, and only inspect extra logs when they directly affect the verdict.
+- Step 6 is a hard stop. In Codex, present the report in the final response and wait for the user before Step 7/8.
+- Do not checkout PR branches, edit files, post PR comments, close PRs, merge, cherry-pick, or run broad fix/test loops until the user explicitly approves the report.
+- If `gh pr diff` is too large, record the limit and use `gh pr view --json files` plus `git fetch refs/pull/...` with `git diff --stat` / `git diff --name-status`; only read targeted hunks needed for confirmed findings.
+
 ## Steps
 
 ### 1. Identify the GitHub Repository

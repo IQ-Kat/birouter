@@ -9,6 +9,12 @@ description: Fetch all open GitHub issues, analyze bugs, resolve what's possible
 
 This workflow fetches all open issues from the project's GitHub repository, classifies them, analyzes bugs, proposes a resolution plan, waits for user validation, and ONLY THEN implements the fixes, commits, and closes the issues on the current release branch (`release/vX.Y.Z`). It does NOT merge or release automatically — the release branch is later merged via PR to main.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` for independent reads, checks, and GitHub calls.
+- The initial report/plan is a hard stop. Do not edit code, close issues, or commit until the user explicitly approves the report.
+- Keep classification and bug analysis bounded enough to produce the user-facing report before deep implementation work.
+
 > **BRANCH RULE**: All work MUST happen on the current `release/vX.Y.Z` branch. Never create separate `fix/` branches. If no release branch exists yet, create one first using `/generate-release` Phase 1 steps 1–5.
 
 > **⛔ PR PROHIBITION**: If a fix is associated with a contributor's PR, you MUST merge their PR — NEVER close it and re-implement the fix yourself. See `/review-prs` workflow for the full policy. The `gh pr close` command is FORBIDDEN unless the repository owner explicitly requests it.

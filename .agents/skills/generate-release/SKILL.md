@@ -7,6 +7,11 @@ description: Create a new release, bump version up to 1.x.10 threshold, update c
 
 Bump version, finalize CHANGELOG, commit, open a **PR to main** and wait for user confirmation before tagging, publishing, and deploying.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` for independent reads, checks, and GitHub calls.
+- When the workflow says `notify_user` or `BlockedOnUser: true`, present the report/status in the final response and stop. Do not continue into the next phase until the user explicitly approves.
+
 > **VERSION RULE: Always use PATCH bumps (2.x.y → 2.x.y+1)**
 > NEVER use `npm version minor` or `npm version major`.
 > Always use: `npm version patch --no-git-tag-version`

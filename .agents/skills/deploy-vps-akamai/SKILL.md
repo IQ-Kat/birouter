@@ -7,6 +7,11 @@ description: Deploy the latest OmniRoute code to the Akamai VPS (69.164.221.35)
 
 Deploy OmniRoute to the Akamai VPS using `npm pack + scp` + PM2.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` only for independent commands. Do not parallelize dependent build, copy, install, restart, and verification steps.
+- Report each remote result explicitly before finishing.
+
 **Akamai VPS:** `69.164.221.35`
 **Process manager:** PM2 (`omniroute`)
 **Port:** `20128`

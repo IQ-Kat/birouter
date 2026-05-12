@@ -7,6 +7,11 @@ description: Deploy the latest OmniRoute code to the Local VPS (192.168.0.15)
 
 Deploy OmniRoute to the Local VPS using `npm pack + scp` + PM2.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` only for independent commands. Do not parallelize dependent build, copy, install, restart, and verification steps.
+- Report each remote result explicitly before finishing.
+
 **Local VPS:** `192.168.0.15`
 **Process manager:** PM2 (`omniroute`)
 **Port:** `20128`

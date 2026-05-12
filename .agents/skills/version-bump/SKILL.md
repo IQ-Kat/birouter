@@ -7,6 +7,11 @@ description: Bump version, auto-generate CHANGELOG from git commits, update all 
 
 Automatically bump the project version, generate CHANGELOG entries from git history since the last tag, update every file that references the version, and refresh project documentation to reflect the current state.
 
+## Codex Execution Notes
+
+- Treat `// turbo` / `// turbo-all` as instructions to use `multi_tool_use.parallel` for independent reads, checks, and GitHub calls.
+- Any user-approval phase is a hard stop: present the report/status in the final response and wait before committing, pushing, tagging, publishing, or deploying.
+
 > **VERSION RULE: Always use PATCH bumps (3.x.y → 3.x.y+1)**
 > NEVER use `npm version minor` or `npm version major`.
 > Always use: `npm version patch --no-git-tag-version`
