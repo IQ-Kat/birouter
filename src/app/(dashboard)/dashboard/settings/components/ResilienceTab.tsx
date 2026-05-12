@@ -18,6 +18,9 @@ type RequestQueueSettings = {
 type ConnectionCooldownProfileSettings = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
+  // Issue #2100 follow-up. Optional / undefined when unset; the per-provider
+  // default in src/shared/utils/providerHints.ts resolves at runtime.
+  useUpstream429BreakerHints?: boolean;
   maxBackoffSteps: number;
 };
 
@@ -363,6 +366,48 @@ function ConnectionCooldownCard({
                 }))
               }
             />
+            <div className="flex flex-col gap-1">
+              <label className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-text-muted">Use upstream 429 hints for breaker cooldown</span>
+                <select
+                  className="rounded border border-border-default bg-surface-1 px-2 py-1 text-sm font-mono"
+                  value={
+                    current.useUpstream429BreakerHints === true
+                      ? "on"
+                      : current.useUpstream429BreakerHints === false
+                        ? "off"
+                        : "default"
+                  }
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const next: boolean | undefined =
+                      v === "on" ? true : v === "off" ? false : undefined;
+                    setDraft((prev) => {
+                      const profile = { ...prev[key] };
+                      if (next === undefined) {
+                        delete (profile as { useUpstream429BreakerHints?: boolean })
+                          .useUpstream429BreakerHints;
+                      } else {
+                        (
+                          profile as { useUpstream429BreakerHints?: boolean }
+                        ).useUpstream429BreakerHints = next;
+                      }
+                      return { ...prev, [key]: profile };
+                    });
+                  }}
+                >
+                  <option value="default">Default (per provider)</option>
+                  <option value="on">Always on</option>
+                  <option value="off">Always off</option>
+                </select>
+              </label>
+              <p className="text-xs text-text-muted">
+                Apply Retry-After / quota-exhausted signals from 429 responses to circuit-breaker
+                cooldown duration. Default uses a per-provider policy: direct cloud providers
+                default on; reverse-proxy / self-hosted / CLI-backed providers default off.
+                Independent of &quot;Use upstream retry hints&quot;.
+              </p>
+            </div>
             <NumberField
               label="Máximo de passos de backoff"
               value={current.maxBackoffSteps}
@@ -382,6 +427,16 @@ function ConnectionCooldownCard({
               <span className="text-text-muted">Usar dicas de retry do upstream</span>
               <span className="font-mono text-text-main">
                 {current.useUpstreamRetryHints ? "Sim" : "Não"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-muted">Use upstream 429 hints (breaker)</span>
+              <span className="font-mono text-text-main">
+                {current.useUpstream429BreakerHints === true
+                  ? "Yes"
+                  : current.useUpstream429BreakerHints === false
+                    ? "No"
+                    : "Default"}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -417,7 +472,26 @@ function ConnectionCooldownCard({
             setEditing(false);
           }}
           onSave={async () => {
-            await onSave(draft);
+            // Build PATCH-ready payload: convert undefined useUpstream429BreakerHints
+            // to explicit null sentinel so the server treats it as unset (not as
+            // partial-merge "leave unchanged"). JSON.stringify drops undefined keys.
+            const payload = {
+              oauth: {
+                ...draft.oauth,
+                useUpstream429BreakerHints:
+                  draft.oauth.useUpstream429BreakerHints === undefined
+                    ? (null as unknown as boolean | undefined)
+                    : draft.oauth.useUpstream429BreakerHints,
+              },
+              apikey: {
+                ...draft.apikey,
+                useUpstream429BreakerHints:
+                  draft.apikey.useUpstream429BreakerHints === undefined
+                    ? (null as unknown as boolean | undefined)
+                    : draft.apikey.useUpstream429BreakerHints,
+              },
+            };
+            await onSave(payload as typeof draft);
             setEditing(false);
           }}
         />

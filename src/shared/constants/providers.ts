@@ -793,8 +793,9 @@ export const APIKEY_PROVIDERS = {
     color: "#4CAF50",
     textIcon: "PO",
     website: "https://pollinations.ai",
-    hasFree: false,
-    freeNote: "API key required. Spore tier: ~0.01 pollen/hour ($0.01/hr).",
+    hasFree: true,
+    freeNote:
+      "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },
   puter: {
     id: "puter",
@@ -1854,6 +1855,39 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
 };
 
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: {
+    id: "jules",
+    alias: "jules",
+    name: "Google Jules",
+    icon: "engineering",
+    color: "#4285F4",
+    textIcon: "JL",
+    website: "https://jules.google",
+    authHint: "Jules API key for creating and managing cloud coding tasks.",
+  },
+  devin: {
+    id: "devin",
+    alias: "devin",
+    name: "Devin",
+    icon: "smart_toy",
+    color: "#111827",
+    textIcon: "DV",
+    website: "https://devin.ai",
+    authHint: "Devin API key for cloud agent sessions.",
+  },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "codex-cloud",
+    name: "Codex Cloud",
+    icon: "cloud",
+    color: "#10A37F",
+    textIcon: "CC",
+    website: "https://openai.com/codex",
+    authHint: "OpenAI API key with Codex Cloud task access.",
+  },
+};
+
 export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
@@ -1880,6 +1914,30 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
+export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
+  return (
+    providerId === "searxng-search" ||
+    providerId === "petals" ||
+    isSelfHostedChatProvider(providerId) ||
+    isOpenAICompatibleProvider(providerId) ||
+    isAnthropicCompatibleProvider(providerId)
+  );
+}
+
+// ── System Providers (virtual, not user-connectable) ──────────────────────────
+export const SYSTEM_PROVIDERS = {
+  auto: {
+    id: "auto",
+    alias: "auto",
+    name: "Auto (Zero-Config)",
+    icon: "auto_awesome",
+    color: "#6366F1",
+    textIcon: "Auto",
+    systemOnly: true,
+    description: "Zero-config auto-routing with LKGP across all connected providers",
+  },
+};
+
 // All providers (combined)
 export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,
@@ -1890,6 +1948,8 @@ export const AI_PROVIDERS = {
   ...SEARCH_PROVIDERS,
   ...AUDIO_ONLY_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
+  ...CLOUD_AGENT_PROVIDERS,
+  ...SYSTEM_PROVIDERS, // <-- system providers included
 };
 
 export type AiProviderId = keyof typeof AI_PROVIDERS;
@@ -1946,9 +2006,11 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "github",
   "codex",
   "claude",
+  "cursor",
   "kimi-coding",
   "glm",
   "glm-cn",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",
@@ -1968,3 +2030,4 @@ validateProviders(LOCAL_PROVIDERS, "LOCAL_PROVIDERS");
 validateProviders(SEARCH_PROVIDERS, "SEARCH_PROVIDERS");
 validateProviders(AUDIO_ONLY_PROVIDERS, "AUDIO_ONLY_PROVIDERS");
 validateProviders(UPSTREAM_PROXY_PROVIDERS, "UPSTREAM_PROXY_PROVIDERS");
+validateProviders(CLOUD_AGENT_PROVIDERS, "CLOUD_AGENT_PROVIDERS");
