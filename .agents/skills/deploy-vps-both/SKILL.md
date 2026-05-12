@@ -1,5 +1,5 @@
 ---
-name: deploy-vps-both
+name: deploy-vps-both-cx
 description: Deploy the latest OmniRoute code to BOTH the Akamai VPS and the Local VPS
 ---
 

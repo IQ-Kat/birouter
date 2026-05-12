@@ -1,5 +1,5 @@
 ---
-name: issue-triage
+name: issue-triage-cx
 description: How to respond to GitHub issues with insufficient information
 ---
 

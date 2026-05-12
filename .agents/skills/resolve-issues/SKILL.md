@@ -1,5 +1,5 @@
 ---
-name: resolve-issues
+name: resolve-issues-cx
 description: Fetch all open GitHub issues, analyze bugs, resolve what's possible, triage the rest, wait for user validation, then commit and release
 ---
 

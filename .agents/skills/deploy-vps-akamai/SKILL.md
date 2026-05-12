@@ -1,5 +1,5 @@
 ---
-name: deploy-vps-akamai
+name: deploy-vps-akamai-cx
 description: Deploy the latest OmniRoute code to the Akamai VPS (69.164.221.35)
 ---
 

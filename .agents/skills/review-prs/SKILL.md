@@ -1,5 +1,5 @@
 ---
-name: review-prs
+name: review-prs-cx
 description: Analyze open Pull Requests from the project's GitHub repository, generate a critical report, and optionally implement approved changes
 ---
 

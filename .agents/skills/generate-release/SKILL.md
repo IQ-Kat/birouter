@@ -1,5 +1,5 @@
 ---
-name: generate-release
+name: generate-release-cx
 description: Create a new release, bump version up to 1.x.10 threshold, update changelog, and manage Pull Requests
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: review-discussions
+name: review-discussions-cx
 description: Read all open GitHub Discussions, summarize them, respond to pending ones, and create issues from actionable feature requests
 ---
 

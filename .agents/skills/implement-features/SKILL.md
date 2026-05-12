@@ -1,5 +1,5 @@
 ---
-name: implement-features
+name: implement-features-cx
 description: Analyze open feature request issues, implement viable ones on dedicated branches, and respond to authors
 ---
 

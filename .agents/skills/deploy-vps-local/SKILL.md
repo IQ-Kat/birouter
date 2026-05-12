@@ -1,5 +1,5 @@
 ---
-name: deploy-vps-local
+name: deploy-vps-local-cx
 description: Deploy the latest OmniRoute code to the Local VPS (192.168.0.15)
 ---
 

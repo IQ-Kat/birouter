@@ -1,5 +1,5 @@
 ---
-name: version-bump
+name: version-bump-cx
 description: Bump version, auto-generate CHANGELOG from git commits, update all versioned files, and refresh root + docs/ documentation to reflect the current project state
 ---
 
