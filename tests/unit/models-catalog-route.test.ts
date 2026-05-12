@@ -24,16 +24,16 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function seedConnection(provider, overrides = {}) {
+async function seedConnection(provider: string, overrides: Record<string, unknown> = {}) {
   return providersDb.createProviderConnection({
     provider,
-    authType: overrides.authType || "apikey",
-    name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: overrides.apiKey || "sk-test",
-    accessToken: overrides.accessToken,
-    isActive: overrides.isActive ?? true,
-    testStatus: overrides.testStatus || "active",
-    providerSpecificData: overrides.providerSpecificData || {},
+    authType: (overrides.authType as string) || "apikey",
+    name: (overrides.name as string) || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    apiKey: (overrides.apiKey as string) || "sk-test",
+    accessToken: overrides.accessToken as string | undefined,
+    isActive: (overrides.isActive as boolean) ?? true,
+    testStatus: (overrides.testStatus as string) || "active",
+    providerSpecificData: (overrides.providerSpecificData as Record<string, unknown>) || {},
   });
 }
 
@@ -566,6 +566,36 @@ test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retir
     body.data.some((item) => item.id === "gh/claude-opus-4.1"),
     false
   );
+});
+
+test("v1 models catalog exposes bare Codex-preferred IDs for native Codex clients", async () => {
+  await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-native",
+    apiKey: null,
+    accessToken: "codex-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const getModel = (id: string) => body.data.find((item) => item.id === id);
+
+  assert.equal(response.status, 200);
+  const modelId = "codex-auto-review";
+  const bareModel = getModel(modelId);
+  const providerModel = getModel(`codex/${modelId}`);
+  const aliasModel = getModel(`cx/${modelId}`);
+  const openAiModel = getModel(`openai/${modelId}`);
+
+  assert.ok(bareModel, `expected bare ${modelId} model`);
+  assert.ok(providerModel, `expected codex/${modelId} model`);
+  assert.ok(aliasModel, `expected cx/${modelId} model`);
+  assert.equal(openAiModel, undefined);
+  assert.equal(bareModel.owned_by, "codex");
+  assert.equal(bareModel.parent, providerModel.id);
+  assert.equal(providerModel.parent, aliasModel.id);
 });
 
 test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
@@ -1171,4 +1201,115 @@ test("v1 models catalog adds managed fallback models for Claude-compatible provi
   assert.ok(ids.has("ccdemo/claude-opus-4-7"));
   assert.ok(ids.has("ccdemo/claude-opus-4-6"));
   assert.equal(ids.has("ccdemo/claude-sonnet-4-6"), false);
+});
+
+test("v1 models catalog auto-calculates combo context_length from targets when not set manually", async () => {
+  await seedConnection("openai", { name: "openai-auto-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-auto-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  // Create a combo with targets having different context limits.
+  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 200000.
+  // The combo should expose context_length = min = 128000.
+  const combo = await combosDb.createCombo({
+    name: "auto-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o", "claude/claude-sonnet-4-6"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "auto-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(
+    comboModel.context_length,
+    128000,
+    "combo context_length should be the MIN of all target model limits"
+  );
+});
+
+test("v1 models catalog includes context_length for individual chat models", async () => {
+  await seedConnection("openai", { name: "openai-context" });
+  await seedConnection("claude", {
+    authType: "oauth",
+    name: "claude-context",
+    apiKey: null,
+    accessToken: "claude-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const chatModels = body.data.filter((item) => !item.type || item.type === "chat");
+
+  assert.equal(response.status, 200);
+  assert.ok(chatModels.length > 0, "should have at least one chat model");
+
+  for (const model of chatModels) {
+    assert.ok(
+      typeof model.context_length === "number" && model.context_length > 0,
+      `chat model ${model.id} should have a positive context_length, got ${model.context_length}`
+    );
+  }
+});
+
+test("v1 models catalog falls back to getTokenLimit for models without registry defaultContextLength", async () => {
+  // opencode-go has defaultContextLength in REGISTRY, but we test the fallback
+  // path by verifying models from the synced path still get context_length
+  const connection = await seedConnection("opencode-go", {
+    name: "opencode-go-context-fallback",
+    apiKey: "go-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", (connection as any).id, [
+    {
+      id: "test-model-no-context",
+      name: "Test Model No Context",
+      source: "imported",
+      supportedEndpoints: ["chat"],
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const model = body.data.find((item) => item.id === "opencode-go/test-model-no-context");
+
+  assert.equal(response.status, 200);
+  assert.ok(model, "synced model should appear");
+  assert.ok(
+    typeof model.context_length === "number" && model.context_length > 0,
+    `synced model without inputTokenLimit should get context_length via getTokenLimit fallback, got ${model.context_length}`
+  );
+});
+
+test("v1 models catalog prefers manual combo context_length over auto-calculated", async () => {
+  await seedConnection("openai", { name: "openai-manual-context" });
+
+  const combo = await combosDb.createCombo({
+    name: "manual-context-combo",
+    strategy: "priority",
+    models: ["openai/gpt-4o"],
+  });
+  await combosDb.updateCombo((combo as any).id, { context_length: 64000 });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const comboModel = body.data.find((item) => item.id === "manual-context-combo");
+
+  assert.equal(response.status, 200);
+  assert.ok(comboModel);
+  assert.equal(comboModel.context_length, 64000, "manual context_length should override auto-calc");
 });
