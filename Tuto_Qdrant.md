@@ -2,11 +2,11 @@
 
 > ⚠️ **Status (v3.8.0):** Integração Qdrant está **dormente** no pipeline. As funções de upsert/search/delete existem em `src/lib/memory/qdrant.ts` e a UI de configuração está pronta (`MemorySkillsTab.tsx` + endpoint `/api/settings/qdrant/embedding-models`), mas:
 >
-> - `upsertSemanticMemoryPoint`, `searchSemanticMemory` e `deleteSemanticMemoryPoint` **não são chamadas** pelo pipeline de chat — busca semântica corrente usa apenas o store local em SQLite (ver `docs/MEMORY.md`).
+> - `upsertSemanticMemoryPoint`, `searchSemanticMemory` e `deleteSemanticMemoryPoint` **não são chamadas** pelo pipeline de chat — busca semântica corrente usa apenas o store local em SQLite (ver `docs/frameworks/MEMORY.md`).
 > - As rotas `/api/settings/qdrant/health`, `/api/settings/qdrant/search` e `/api/settings/qdrant/cleanup` mencionadas neste tutorial **ainda não foram implementadas**.
 > - Os botões "Testar conexão" e "Teste de busca" no painel exigem que essas rotas existam; até lá, são placeholders.
 >
-> Este documento descreve a UX/configuração planejada. Para o sistema de memória ativo hoje, consulte [`docs/MEMORY.md`](docs/MEMORY.md). Acompanhe o status da ativação em issues marcadas com `area:qdrant`.
+> Este documento descreve a UX/configuração planejada. Para o sistema de memória ativo hoje, consulte [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md). Acompanhe o status da ativação em issues marcadas com `area:qdrant`.
 
 ## 1) O que é o Qdrant no OmniRoute
 
@@ -163,7 +163,7 @@ Mensagem final para a galera:
 - Wire-up no fluxo de chat: `src/lib/memory/retrieval.ts` e `open-sse/handlers/chatCore.ts` precisam chamar `searchSemanticMemory` quando Qdrant estiver habilitado nas settings
 - Wire-up no save de memória: `src/lib/memory/extraction.ts` (ou camada equivalente) precisa chamar `upsertSemanticMemoryPoint` após persistir cada memória
 
-Para o sistema de memória ativo hoje (SQLite-only), ver [`docs/MEMORY.md`](docs/MEMORY.md).
+Para o sistema de memória ativo hoje (SQLite-only), ver [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md).
 
 ---
 

@@ -45,8 +45,8 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **OAuth 2.0 + PKCE** | 14 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Windsurf, GitLab Duo) |
 | **Token Refresh**    | Automatic OAuth token refresh before expiry                                                                                               |
 | **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
-| **Authz Pipeline**   | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/AUTHZ_GUIDE.md`                                                       |
-| **MCP Scopes**       | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/MCP-SERVER.md`                                     |
+| **Authz Pipeline**   | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
+| **MCP Scopes**       | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                          |
 
 ### 🛡️ Encryption at Rest
 
@@ -71,7 +71,7 @@ OmniRoute ships a hot-reloadable **guardrails registry** (`src/lib/guardrails/`)
 | `pii-masker`       | 10       | Pre+post call PII redaction (emails, phone, CPF, CNPJ, credit cards, SSN)               |
 | `prompt-injection` | 20       | Detects override/role-hijack/jailbreak/leak patterns                                    |
 
-Custom guardrails register via `registerGuardrail(new MyGuardrail())`. The model is fail-open (exceptions never block traffic). Per-request opt-out via `x-omniroute-disabled-guardrails` header. → See [`docs/GUARDRAILS.md`](docs/GUARDRAILS.md).
+Custom guardrails register via `registerGuardrail(new MyGuardrail())`. The model is fail-open (exceptions never block traffic). Per-request opt-out via `x-omniroute-disabled-guardrails` header. → See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
 ### 🧠 Prompt Injection Guard
 
@@ -204,9 +204,9 @@ These rules are enforced by tooling and reviewers:
 
 ## References
 
-- [`docs/AUTHZ_GUIDE.md`](docs/AUTHZ_GUIDE.md) — authorization pipeline
-- [`docs/GUARDRAILS.md`](docs/GUARDRAILS.md) — guardrails framework
-- [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — audit log and retention
-- [`docs/RESILIENCE_GUIDE.md`](docs/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
-- [`docs/STEALTH_GUIDE.md`](docs/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
 - [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents

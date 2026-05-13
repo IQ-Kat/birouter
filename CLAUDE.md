@@ -72,7 +72,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 14 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized, context-relay). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. See `docs/AUTO-COMBO.md` for the 9-factor Auto-Combo scoring and `docs/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 14 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized, context-relay). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. See `docs/routing/AUTO-COMBO.md` for the 9-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -285,7 +285,7 @@ connection continue serving other models.
 3. Register in `A2A_SKILL_HANDLERS` in `src/lib/a2a/taskExecution.ts`
 4. Expose in `src/app/.well-known/agent.json/route.ts` (Agent Card)
 5. Write tests in `tests/unit/`
-6. Document in `docs/A2A-SERVER.md` skill table
+6. Document in `docs/frameworks/A2A-SERVER.md` skill table
 
 ### Adding a New Cloud Agent
 
@@ -293,14 +293,14 @@ connection continue serving other models.
 2. Implement `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
 3. Register in `src/lib/cloudAgent/registry.ts`
 4. Add OAuth/credentials handling if needed (`src/lib/oauth/providers/`)
-5. Tests + document in `docs/CLOUD_AGENT.md`
+5. Tests + document in `docs/frameworks/CLOUD_AGENT.md`
 
 ### Adding a New Guardrail / Eval / Skill / Webhook event
 
-- Guardrail: `src/lib/guardrails/` → docs: `docs/GUARDRAILS.md`
-- Eval suite: `src/lib/evals/` → docs: `docs/EVALS.md`
-- Skill (sandbox): `src/lib/skills/` → docs: `docs/SKILLS.md`
-- Webhook event: `src/lib/webhookDispatcher.ts` → docs: `docs/WEBHOOKS.md`
+- Guardrail: `src/lib/guardrails/` → docs: `docs/security/GUARDRAILS.md`
+- Eval suite: `src/lib/evals/` → docs: `docs/frameworks/EVALS.md`
+- Skill (sandbox): `src/lib/skills/` → docs: `docs/frameworks/SKILLS.md`
+- Webhook event: `src/lib/webhookDispatcher.ts` → docs: `docs/frameworks/WEBHOOKS.md`
 
 ---
 
@@ -308,29 +308,29 @@ connection continue serving other models.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                         | Doc                                           |
-| -------------------------------------------- | --------------------------------------------- |
-| Repo navigation                              | `docs/REPOSITORY_MAP.md`                      |
-| Architecture                                 | `docs/ARCHITECTURE.md`                        |
-| Engineering reference                        | `docs/CODEBASE_DOCUMENTATION.md`              |
-| Auto-Combo (9-factor scoring, 14 strategies) | `docs/AUTO-COMBO.md`                          |
-| Resilience (3 mechanisms)                    | `docs/RESILIENCE_GUIDE.md`                    |
-| Reasoning replay                             | `docs/REASONING_REPLAY.md`                    |
-| Skills framework                             | `docs/SKILLS.md`                              |
-| Memory system (FTS5 + Qdrant)                | `docs/MEMORY.md`                              |
-| Cloud agents                                 | `docs/CLOUD_AGENT.md`                         |
-| Guardrails (PII / injection / vision)        | `docs/GUARDRAILS.md`                          |
-| Evals                                        | `docs/EVALS.md`                               |
-| Compliance / audit                           | `docs/COMPLIANCE.md`                          |
-| Webhooks                                     | `docs/WEBHOOKS.md`                            |
-| Authorization pipeline                       | `docs/AUTHZ_GUIDE.md`                         |
-| Stealth (TLS / fingerprint)                  | `docs/STEALTH_GUIDE.md`                       |
-| Agent protocols (A2A / ACP / Cloud)          | `docs/AGENT_PROTOCOLS_GUIDE.md`               |
-| MCP server                                   | `docs/MCP-SERVER.md`                          |
-| A2A server                                   | `docs/A2A-SERVER.md`                          |
-| API reference + OpenAPI                      | `docs/API_REFERENCE.md` + `docs/openapi.yaml` |
-| Provider catalog (auto-generated)            | `docs/PROVIDER_REFERENCE.md`                  |
-| Release flow                                 | `docs/RELEASE_CHECKLIST.md`                   |
+| Area                                         | Doc                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| Repo navigation                              | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Architecture                                 | `docs/architecture/ARCHITECTURE.md`                               |
+| Engineering reference                        | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (9-factor scoring, 14 strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| Resilience (3 mechanisms)                    | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Reasoning replay                             | `docs/routing/REASONING_REPLAY.md`                                |
+| Skills framework                             | `docs/frameworks/SKILLS.md`                                       |
+| Memory system (FTS5 + Qdrant)                | `docs/frameworks/MEMORY.md`                                       |
+| Cloud agents                                 | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Guardrails (PII / injection / vision)        | `docs/security/GUARDRAILS.md`                                     |
+| Evals                                        | `docs/frameworks/EVALS.md`                                        |
+| Compliance / audit                           | `docs/security/COMPLIANCE.md`                                     |
+| Webhooks                                     | `docs/frameworks/WEBHOOKS.md`                                     |
+| Authorization pipeline                       | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / fingerprint)                  | `docs/security/STEALTH_GUIDE.md`                                  |
+| Agent protocols (A2A / ACP / Cloud)          | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                   | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                   | `docs/frameworks/A2A-SERVER.md`                                   |
+| API reference + OpenAPI                      | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Provider catalog (auto-generated)            | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Release flow                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 
