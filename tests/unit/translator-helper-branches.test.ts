@@ -492,7 +492,7 @@ test("toolCallHelper normalizes ids, links tool responses and inserts missing to
 test("translateRequest replays cached DeepSeek reasoning messages without tool calls", () => {
   clearReasoningCacheAll();
   cacheReasoningByKey(
-    "request:req_reasoning_only:message:1",
+    "request:req_reasoning_only:message:0",
     "deepseek",
     "deepseek-reasoner",
     "cached reasoning only"
@@ -522,7 +522,7 @@ test("translateRequest replays cached DeepSeek reasoning messages without tool c
 test("translateRequest does not replay reasoning-only messages for non-DeepSeek models", () => {
   clearReasoningCacheAll();
   cacheReasoningByKey(
-    "request:req_kimi_reasoning_only:message:1",
+    "request:req_kimi_reasoning_only:message:0",
     "kimi",
     "kimi-k2.5",
     "cached kimi reasoning"
