@@ -30,11 +30,41 @@
  *   OMNIROUTE_TRANSLATION_CONCURRENCY optional, default 4
  */
 
-import { promises as fs, existsSync } from "node:fs";
+import { promises as fs, existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+// ----- .env loader --------------------------------------------------------
+// Loads variables from a local `.env` (gitignored) into process.env without
+// pulling dotenv as a dependency. Already-set env vars take precedence so the
+// shell / CI environment can still override.
+(function loadDotEnv() {
+  const envPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", ".env");
+  if (!existsSync(envPath)) return;
+  try {
+    const raw = readFileSync(envPath, "utf8");
+    for (const rawLine of raw.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith("#")) continue;
+      const eq = line.indexOf("=");
+      if (eq <= 0) continue;
+      const key = line.slice(0, eq).trim();
+      if (!key || process.env[key] !== undefined) continue;
+      let value = line.slice(eq + 1);
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      process.env[key] = value;
+    }
+  } catch {
+    /* ignore — script will fall back to the requireEnv error path */
+  }
+})();
 
 // Prettier is loaded lazily on first use so the script still runs (with a
 // warning) in environments where node_modules has not been installed. The
