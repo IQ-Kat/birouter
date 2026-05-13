@@ -1,15 +1,15 @@
 ---
-description: Create a new release, bump version up to 1.x.10 threshold, update changelog, and manage Pull Requests
+description: Create a new release, bump version up to the .10 patch threshold, update changelog, and manage Pull Requests
 ---
 
 # Generate Release Workflow
 
 Bump version, finalize CHANGELOG, commit, open a **PR to main** and wait for user confirmation before tagging, publishing, and deploying.
 
-> **VERSION RULE: Always use PATCH bumps (2.x.y → 2.x.y+1)**
+> **VERSION RULE: Always use PATCH bumps (3.x.y → 3.x.y+1)**
 > NEVER use `npm version minor` or `npm version major`.
 > Always use: `npm version patch --no-git-tag-version`
-> The threshold rule: when `y` reaches 10, bump to `2.(x+1).0` — e.g. `2.1.10` → `2.2.0`.
+> The threshold rule: when `y` reaches 10, bump to `3.(x+1).0` — e.g. `3.8.10` → `3.9.0`.
 
 > **🔴 SINGLE BRANCH RULE**: The `release/vX.Y.Z` branch is the **ONLY** development branch for the entire release cycle. ALL work — bug fixes, feature implementations, PR integrations, issue resolutions — MUST be committed directly on this branch. Never create separate `fix/`, `feat/`, or topic branches. When running `/resolve-issues`, `/implement-features`, or `/review-prs`, always work on the current release branch.
 
@@ -49,7 +49,7 @@ Before creating the release, you must ensure the codebase and supply chain are s
 ### 1. Create release branch
 
 ```bash
-git checkout -b release/v2.x.y
+git checkout -b release/v3.x.y
 ```
 
 ### 2. Determine and sync version
@@ -72,19 +72,19 @@ grep '"version"' package.json
 >
 > 1. `npm version patch --no-git-tag-version` ← bump first
 > 2. implement features / fix bugs
-> 3. `git add -A && git commit -m "chore(release): v2.x.y — all changes in ONE commit"`
+> 3. `git add -A && git commit -m "chore(release): v3.x.y — all changes in ONE commit"`
 >
 > **OR if features are already staged:**
 >
 > 1. implement features (do NOT commit yet)
 > 2. `npm version patch --no-git-tag-version` ← bump before committing
-> 3. `git add -A && git commit -m "chore(release): v2.x.y — all changes in ONE commit"`
+> 3. `git add -A && git commit -m "chore(release): v3.x.y — all changes in ONE commit"`
 >
 > **NEVER do this (creates version mismatch in git history):**
 >
 > - ~~commit features → then bump version → commit package.json separately~~
 >
-> This ensures that `git show v2.x.y` always contains both code changes and the version bump together.
+> This ensures that `git show v3.x.y` always contains both code changes and the version bump together.
 > The GitHub release tag will point to a commit that includes ALL changes for that version.
 
 ### 3. Regenerate lock file (REQUIRED after version bump)
@@ -145,11 +145,12 @@ npm install
 
 ### 6. Update README.md and i18n docs
 
-Run `/update-docs` workflow steps to:
+Manually perform these documentation updates (there is no `/update-docs` slash command — it was deprecated in v3.8):
 
-- Update feature table rows in `README.md`
-- Sync changes to all 29 language `docs/i18n/*/README.md` files
-- Update `docs/FEATURES.md` if Settings section changed
+- Update feature table rows and "What's new in vX.Y.Z" section in `README.md`
+- Sync feature changes to all 40 language `docs/i18n/*/README.md` files (use the same row edits across each translated README)
+- Update the relevant `docs/<AREA>.md` if architecture or counts changed (e.g. `docs/MCP-SERVER.md` when MCP tools change)
+- Re-run `npm run check:docs-sync` and `npm run check:docs-all` to catch drift
 
 ### 7. Run tests
 
@@ -167,8 +168,8 @@ All tests must pass before creating the PR.
 
 ```bash
 git add -A
-git commit -m "chore(release): v2.x.y — summary of changes"
-git push origin release/v2.x.y
+git commit -m "chore(release): v3.x.y — summary of changes"
+git push origin release/v3.x.y
 ```
 
 ### 9. Open PR to main
@@ -200,7 +201,7 @@ gh pr create \
 
 ### 10. 🛑 STOP — Notify User & Await PR Confirmation
 
-**This is a mandatory stop point.** Use `notify_user` with `BlockedOnUser: true`:
+**This is a mandatory stop point.** Present the report in the final response and stop. Do not continue to the next phase until the user explicitly approves.
 
 Inform the user:
 
@@ -333,7 +334,7 @@ If a workflow fails:
 
 - Use `gh run view <RUN_ID> --log-failed` to identify the error.
 - Apply the fix on the `main` branch.
-- If necessary, re-trigger the workflow using `gh workflow run <workflow_name.yml> --repo diegosouzapw/OmniRoute --ref v2.x.y`
+- If necessary, re-trigger the workflow using `gh workflow run <workflow_name.yml> --repo diegosouzapw/OmniRoute --ref v3.x.y`
 
 ### 20. Preserve release branch
 
@@ -345,7 +346,7 @@ If a workflow fails:
 
 ## Notes
 
-- Always run `/update-docs` BEFORE this workflow (ensures CHANGELOG and README are current)
+- Ensure CHANGELOG, README and `docs/*` are current BEFORE this workflow — run `npm run check:docs-all` and `/version-bump` first (there is no `/update-docs` slash command anymore)
 - The `prepublishOnly` script runs `npm run build:cli` automatically during `npm publish`
 - After npm publish, verify with `npm info omniroute version`
 - Lock file sync errors are caused by skipping `npm install` after version bump

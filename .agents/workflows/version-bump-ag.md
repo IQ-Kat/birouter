@@ -208,22 +208,36 @@ For each file below, read the current content and determine if the CHANGELOG ent
 
 For each file in `docs/` (excluding `docs/i18n/`), review if CHANGELOG changes affect it:
 
-| File                             | When to update                                      |
-| -------------------------------- | --------------------------------------------------- |
-| `docs/API_REFERENCE.md`          | New API endpoints, changed request/response formats |
-| `docs/ARCHITECTURE.md`           | New modules, new services, changed data flow        |
-| `docs/CLI-TOOLS.md`              | New CLI tool integrations, config format changes    |
-| `docs/FEATURES.md`               | New features, removed features, changed settings    |
-| `docs/MCP-SERVER.md`             | New MCP tools, changed tool signatures              |
-| `docs/A2A-SERVER.md`             | New A2A skills, protocol changes                    |
-| `docs/USER_GUIDE.md`             | UX changes, new dashboard pages, settings changes   |
-| `docs/VM_DEPLOYMENT_GUIDE.md`    | Deployment changes, new env vars                    |
-| `docs/TROUBLESHOOTING.md`        | New known issues, resolved problems                 |
-| `docs/AUTO-COMBO.md`             | Routing changes, new strategies                     |
-| `docs/CODEBASE_DOCUMENTATION.md` | New files, architectural changes                    |
-| `docs/RELEASE_CHECKLIST.md`      | Process changes                                     |
-| `docs/COVERAGE_PLAN.md`          | Test changes                                        |
-| `docs/openapi.yaml`              | Already updated in step 7                           |
+| File                             | When to update                                                     |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `docs/API_REFERENCE.md`          | New API endpoints, changed request/response formats                |
+| `docs/ARCHITECTURE.md`           | New modules, new services, changed data flow                       |
+| `docs/CODEBASE_DOCUMENTATION.md` | New files, architectural changes, module reorganization            |
+| `docs/REPOSITORY_MAP.md`         | New folders / files / one-line descriptions                        |
+| `docs/CLI-TOOLS.md`              | New CLI tool integrations, config format changes                   |
+| `docs/USER_GUIDE.md`             | UX changes, new dashboard pages, settings changes                  |
+| `docs/PROVIDER_REFERENCE.md`     | New providers (regenerate via `scripts/gen-provider-reference.ts`) |
+| `docs/MCP-SERVER.md`             | New MCP tools, changed tool signatures, scope changes              |
+| `docs/A2A-SERVER.md`             | New A2A skills, protocol changes                                   |
+| `docs/AGENT_PROTOCOLS_GUIDE.md`  | New external agent protocols supported                             |
+| `docs/CLOUD_AGENT.md`            | Cloud agent additions (codex-cloud, devin, jules) or API changes   |
+| `docs/AUTHZ_GUIDE.md`            | New route classifications, policy changes                          |
+| `docs/GUARDRAILS.md`             | New guardrails registered, priority/order changes                  |
+| `docs/COMPLIANCE.md`             | Audit log / retention / no-log policy changes                      |
+| `docs/SKILLS.md`                 | Skill framework / registry / built-in skill changes                |
+| `docs/MEMORY.md`                 | Memory pipeline / extraction / injection / Qdrant changes          |
+| `docs/EVALS.md`                  | Evaluation framework changes, new evaluators                       |
+| `docs/WEBHOOKS.md`               | New webhook events, payload schema changes                         |
+| `docs/REASONING_REPLAY.md`       | Reasoning capture/replay pipeline changes                          |
+| `docs/AUTO-COMBO.md`             | Routing changes, new strategies, scoring weight changes            |
+| `docs/RESILIENCE_GUIDE.md`       | Circuit breaker / cooldown / lockout behavior changes              |
+| `docs/STEALTH_GUIDE.md`          | TLS / CLI fingerprint changes                                      |
+| `docs/TUNNELS_GUIDE.md`          | Cloudflare tunnel feature changes                                  |
+| `docs/ELECTRON_GUIDE.md`         | Electron build / signing / packaging changes                       |
+| `docs/TROUBLESHOOTING.md`        | New known issues, resolved problems                                |
+| `docs/RELEASE_CHECKLIST.md`      | Process changes                                                    |
+| `docs/COVERAGE_PLAN.md`          | Coverage gate adjustments, target metrics                          |
+| `docs/openapi.yaml`              | Already updated in step 7                                          |
 
 **Only update files where the CHANGELOG entries directly affect the documented content.** Do NOT update files just to bump a version number — only when the documented behavior, features, or architecture has actually changed.
 
@@ -310,7 +324,7 @@ git commit -m "chore(release): bump to v$VERSION — changelog, docs, version sy
 ## Notes
 
 - This workflow does **NOT** create tags, releases, or deploy. Use `/generate-release` for the full release cycle after this.
-- This workflow does **NOT** update `docs/i18n/` translations. Use `/update-i18n` separately after committing.
+- This workflow does **NOT** update `docs/i18n/` translations. Translation updates are handled manually or via release tooling — there is no `/update-i18n` workflow shipped in this repo.
 - The CHANGELOG generation is based on git commits since the last tag. If there are no new commits, the workflow should inform the user and stop.
 - Always verify the generated CHANGELOG entries make sense — raw commit messages may need rewriting for clarity.
 - If the version was already bumped (e.g. you're on a `release/vX.Y.Z` branch), skip the `npm version` step and use the existing version.

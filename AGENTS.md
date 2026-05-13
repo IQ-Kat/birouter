@@ -127,13 +127,18 @@ Always run `prettier --write` on changed files.
 
 ### Data Layer (`src/lib/db/`)
 
-All persistence uses SQLite through domain-specific modules:
-`core.ts`, `providers.ts`, `models.ts`, `combos.ts`, `apiKeys.ts`, `settings.ts`,
-`backup.ts`, `proxies.ts`, `prompts.ts`, `webhooks.ts`, `detailedLogs.ts`,
-`domainState.ts`, `registeredKeys.ts`, `quotaSnapshots.ts`, `modelComboMappings.ts`,
-`cliToolState.ts`, `encryption.ts`, `readCache.ts`, `secrets.ts`, `stateReset.ts`,
-`contextHandoffs.ts`, `compression.ts`.
-Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
+All persistence uses SQLite through **45+ domain-specific modules** in `src/lib/db/`. Top modules:
+
+- Core: `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`
+- Providers / catalog: `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`
+- Routing: `combos.ts`, `modelComboMappings.ts`, `domainState.ts`, `commandCodeAuth.ts`
+- Auth: `apiKeys.ts`, `secrets.ts`, `registeredKeys.ts`, `sessionAccountAffinity.ts`
+- Usage / billing: `quotaSnapshots.ts`, `creditBalance.ts`, `usage*.ts`, `compressionCacheStats.ts`
+- Storage: `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`
+- Extension modules: `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts`
+
+Live count: `ls src/lib/db/*.ts | wc -l` (currently 45).
+Schema migrations live in `db/migrations/` (55 files) and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
 #### DB Internals
@@ -142,8 +147,8 @@ Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
   journaling. `SCHEMA_SQL` defines 15 base tables. Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 22 files (`001_initial_schema.sql` → `022_compression_settings.sql`).
-  Each migration is idempotent and runs in a transaction.
+- **Migrations**: 55 files (`001_initial_schema.sql` → `055_command_code_auth_sessions.sql`).
+  Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
   `combos.ts` → `combos`). Encryption helpers protect sensitive fields at rest.
@@ -212,7 +217,7 @@ Zod schemas, and unit tests aligned when editing.
 ### Provider Categories
 
 - **Free** (4): Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
-- **OAuth** (8): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline
+- **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
   Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
   HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
@@ -321,7 +326,7 @@ Modular prompt compression that runs proactively before the existing reactive co
   and iterates through targets in order until one succeeds or all fail.
 - **`resolveComboTargets()`**: Expands a combo configuration into an ordered array of
   `ResolvedComboTarget[]`, each specifying provider + model + account + credentials.
-- **Strategies** (13): priority, weighted, fill-first, round-robin, P2C, random, least-used,
+- **Strategies** (14): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
   cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay.
 - Each target calls **`handleSingleModel()`** which wraps `handleChatCore()` with
   per-target error handling and circuit breaker checks.
@@ -334,7 +339,7 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-37 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
+37 tools (30 base + 3 memory + 4 skills), 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (~13 scopes), Zod schemas. See [`docs/MCP-SERVER.md`](docs/MCP-SERVER.md).
 
 **Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
 route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
@@ -369,7 +374,7 @@ handler: async (args) => {...} }`. Zod validates inputs before the handler fires
 
 JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
 Agent Card at `/.well-known/agent.json`.
-Skills: `quotaManagement.ts`, `smartRouting.ts`.
+Skills (5): `smartRouting.ts`, `quotaManagement.ts`, `providerDiscovery.ts`, `costAnalysis.ts`, `healthReport.ts`.
 
 #### A2A Internals
 
@@ -422,6 +427,34 @@ MITM proxy capability with certificate management, DNS handling, and target rout
 
 Request middleware including `promptInjectionGuard.ts`.
 
+### Guardrails (`src/lib/guardrails/`)
+
+Hot-reloadable guardrails framework (3 built-in: pii-masker, prompt-injection, vision-bridge). Fail-open; per-request opt-out via header. See [`docs/GUARDRAILS.md`](docs/GUARDRAILS.md).
+
+### Cloud Agents (`src/lib/cloudAgent/`)
+
+`CloudAgentBase` abstract class + 3 agents (codex-cloud, devin, jules). Tasks persisted in `cloud_agent_tasks`; management auth required. See [`docs/CLOUD_AGENT.md`](docs/CLOUD_AGENT.md).
+
+### Evals (`src/lib/evals/`)
+
+Generic eval framework: `evalRunner.ts`, `runtime.ts`. Targets: combo / model / suite-default. See [`docs/EVALS.md`](docs/EVALS.md).
+
+### Webhooks (`src/lib/webhookDispatcher.ts`)
+
+HMAC-signed delivery, exponential backoff, auto-disable after 10 failures. 7 event types. See [`docs/WEBHOOKS.md`](docs/WEBHOOKS.md).
+
+### Authorization Pipeline (`src/server/authz/`)
+
+`classify → policies → enforce`. 3 route classes (PUBLIC / CLIENT_API / MANAGEMENT). See [`docs/AUTHZ_GUIDE.md`](docs/AUTHZ_GUIDE.md).
+
+### Reasoning Replay (`src/lib/db/reasoningCache.ts` + `open-sse/services/reasoningCache.ts`)
+
+Hybrid in-memory + SQLite cache for `reasoning_content`. Re-injects on multi-turn for strict providers (DeepSeek V4, Kimi K2, Qwen-Thinking, GLM, xiaomi-mimo). See [`docs/REASONING_REPLAY.md`](docs/REASONING_REPLAY.md).
+
+### Tunnels (`src/lib/{cloudflaredTunnel,ngrokTunnel}.ts` + `src/app/api/tunnels/`)
+
+Cloudflare Quick/Named, ngrok, Tailscale Funnel. See [`docs/TUNNELS_GUIDE.md`](docs/TUNNELS_GUIDE.md).
+
 ### Adding a New Provider
 
 1. Register in `src/shared/constants/providers.ts`
@@ -437,6 +470,36 @@ Request middleware including `promptInjectionGuard.ts`.
 - **[`open-sse/AGENTS.md`](open-sse/AGENTS.md)** — Streaming engine, request pipeline, handlers, and executors
 - **[`src/lib/db/AGENTS.md`](src/lib/db/AGENTS.md)** — SQLite persistence, domain modules, migrations
 - **[`open-sse/services/AGENTS.md`](open-sse/services/AGENTS.md)** — Routing engine, combo resolution, strategy selection
+
+## Reference Documentation (docs/)
+
+For any non-trivial change, read the matching deep-dive first:
+
+| Area                                 | Doc                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Repo navigation                      | [`docs/REPOSITORY_MAP.md`](docs/REPOSITORY_MAP.md)                                          |
+| Architecture                         | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)                                              |
+| Engineering reference                | [`docs/CODEBASE_DOCUMENTATION.md`](docs/CODEBASE_DOCUMENTATION.md)                          |
+| Auto-Combo (9-factor, 14 strategies) | [`docs/AUTO-COMBO.md`](docs/AUTO-COMBO.md)                                                  |
+| Resilience (3 layers)                | [`docs/RESILIENCE_GUIDE.md`](docs/RESILIENCE_GUIDE.md)                                      |
+| Skills                               | [`docs/SKILLS.md`](docs/SKILLS.md)                                                          |
+| Memory                               | [`docs/MEMORY.md`](docs/MEMORY.md)                                                          |
+| Cloud agents                         | [`docs/CLOUD_AGENT.md`](docs/CLOUD_AGENT.md)                                                |
+| Guardrails                           | [`docs/GUARDRAILS.md`](docs/GUARDRAILS.md)                                                  |
+| Evals                                | [`docs/EVALS.md`](docs/EVALS.md)                                                            |
+| Compliance                           | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)                                                  |
+| Webhooks                             | [`docs/WEBHOOKS.md`](docs/WEBHOOKS.md)                                                      |
+| Authz                                | [`docs/AUTHZ_GUIDE.md`](docs/AUTHZ_GUIDE.md)                                                |
+| Stealth                              | [`docs/STEALTH_GUIDE.md`](docs/STEALTH_GUIDE.md)                                            |
+| Reasoning replay                     | [`docs/REASONING_REPLAY.md`](docs/REASONING_REPLAY.md)                                      |
+| Agent protocols (A2A / ACP / Cloud)  | [`docs/AGENT_PROTOCOLS_GUIDE.md`](docs/AGENT_PROTOCOLS_GUIDE.md)                            |
+| MCP server                           | [`docs/MCP-SERVER.md`](docs/MCP-SERVER.md)                                                  |
+| A2A server                           | [`docs/A2A-SERVER.md`](docs/A2A-SERVER.md)                                                  |
+| API reference                        | [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) + [`docs/openapi.yaml`](docs/openapi.yaml) |
+| Provider catalog (auto-generated)    | [`docs/PROVIDER_REFERENCE.md`](docs/PROVIDER_REFERENCE.md)                                  |
+| Tunnels                              | [`docs/TUNNELS_GUIDE.md`](docs/TUNNELS_GUIDE.md)                                            |
+| Electron desktop                     | [`docs/ELECTRON_GUIDE.md`](docs/ELECTRON_GUIDE.md)                                          |
+| Release flow                         | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md)                                    |
 
 ---
 
