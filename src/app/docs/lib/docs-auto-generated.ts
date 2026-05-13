@@ -294,6 +294,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
     headings: [
       "Executive Summary",
+      "Reference Diagrams",
       "Scope and Boundaries",
       "In Scope",
       "Out of Scope",
@@ -302,7 +303,6 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Core Runtime Components",
       "1) API and Routing Layer (Next.js App Routes)",
       "2) SSE + Translation Core",
-      "Major Subsystems (v3.8.0)",
     ],
   },
   {
@@ -371,7 +371,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "architecture/RESILIENCE_GUIDE.md",
     section: "Architecture",
     content:
-      "OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior. Scope: entire provider (e.g., glm, openai, anthropic). Purpose: stop sending traffic to a provider that is repeatedly failing at the upstream/se",
+      "OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior. Source: diagrams/resilience-3layers.mmd Scope: entire provider (e.g., glm, openai, anthropic). Purpose: stop sending traffic to a provider that ",
     headings: [
       "1. Provider Circuit Breaker",
       "2. Connection Cooldown",
@@ -629,7 +629,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "reference/ENVIRONMENT.md",
     section: "Reference",
     content:
-      "Complete reference for every environment variable recognized by OmniRoute. For a quick-start template, see .env.example. These must be set before the first run. Without them, the application will either refuse to start or operate with insecure defaults. Variable Required Default Source File Descript",
+      "Complete reference for every environment variable recognized by OmniRoute. For a quick-start template, see .env.example. [!IMPORTANT] Every variable documented here must also appear in .env.example, and every variable in .env.example must appear here. npm run check:env-doc-sync enforces this on comm",
     headings: [
       "Table of Contents",
       "1. Required Secrets",
