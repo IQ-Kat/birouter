@@ -3,7 +3,7 @@
  * Strict environment variable contract checker.
  *
  * Enforces that every env var referenced in OmniRoute source code appears in
- * both `.env.example` and `docs/ENVIRONMENT.md`, and that the two files agree
+ * both `.env.example` and `docs/reference/ENVIRONMENT.md`, and that the two files agree
  * on the documented var set. Falls back to a small allowlist for variables
  * that are intentionally documented but not literally referenced (legacy
  * aliases, future-supported hooks) or vice versa.
@@ -199,7 +199,7 @@ export function runEnvDocSync(options = {}) {
     options.envDocText ??
     (options.envDocPath
       ? fs.readFileSync(options.envDocPath, "utf8")
-      : fs.readFileSync(path.join(REPO_ROOT, "docs", "ENVIRONMENT.md"), "utf8"));
+      : fs.readFileSync(path.join(REPO_ROOT, "docs", "reference", "ENVIRONMENT.md"), "utf8"));
 
   const envVars = parseEnvExampleVars(envExampleText);
   const docVars = parseEnvDocVars(envDocText);
@@ -250,7 +250,7 @@ function main() {
   console.log("============================");
   console.log(`Code references:          ${result.summary.code} unique vars`);
   console.log(`In .env.example:          ${result.summary.envExample} unique vars`);
-  console.log(`In docs/ENVIRONMENT.md:   ${result.summary.doc} unique vars`);
+  console.log(`In docs/reference/ENVIRONMENT.md: ${result.summary.doc} unique vars`);
   console.log();
 
   printList("In code but missing from .env.example", result.problems.codeMissingEnv);
@@ -267,7 +267,9 @@ function main() {
     process.exit(0);
   }
 
-  console.log("\n✗ Env / docs contract is out of sync. Update .env.example, docs/ENVIRONMENT.md,");
+  console.log(
+    "\n✗ Env / docs contract is out of sync. Update .env.example, docs/reference/ENVIRONMENT.md,"
+  );
   console.log("  or the allowlists in scripts/check/check-env-doc-sync.mjs and try again.");
   process.exit(1);
 }

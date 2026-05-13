@@ -29,7 +29,7 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = [
 
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
-  "docs/openapi.yaml",
+  "docs/reference/openapi.yaml",
   "open-sse/mcp-server/server.js",
   "package.json",
   "responses-ws-proxy.mjs",
