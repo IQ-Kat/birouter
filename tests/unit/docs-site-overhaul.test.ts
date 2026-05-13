@@ -18,13 +18,14 @@ test("docsNavigation has expected sections", () => {
   assert.deepEqual(
     docsNavigation.map((section) => section.title),
     [
-      "Getting Started",
-      "Features",
-      "API & Protocols",
-      "Deployment",
-      "Operations",
-      "Development",
-      "Other",
+      "Architecture",
+      "Guides",
+      "Reference",
+      "Frameworks",
+      "Routing",
+      "Security",
+      "Compression",
+      "Ops",
     ]
   );
 });
@@ -55,7 +56,7 @@ test("getDocItemBySlug returns section title and item for known slug", () => {
   const result = getDocItemBySlug("setup-guide");
   assert.ok(result, "setup-guide should be found");
   assert.equal(result.item.slug, "setup-guide");
-  assert.equal(result.sectionTitle, "Getting Started");
+  assert.equal(result.sectionTitle, "Guides");
 });
 
 test("getDocItemBySlug returns null for unknown slug", () => {
