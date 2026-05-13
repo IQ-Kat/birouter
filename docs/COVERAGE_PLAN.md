@@ -156,7 +156,7 @@ Update `npm run test:coverage` thresholds only after the project actually exceed
 For ad-hoc threshold checks against the latest report use:
 
 ```bash
-node scripts/test-report-summary.mjs --threshold 75
+node scripts/check/test-report-summary.mjs --threshold 75
 ```
 
 Recommended ratchet sequence (order is `statements-lines / branches / functions`):

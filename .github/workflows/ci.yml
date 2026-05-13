@@ -71,7 +71,7 @@ jobs:
 
       - name: Validate ${{ matrix.lang }}
         run: |
-          python3 scripts/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
+          python3 scripts/i18n/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
 
       - name: Upload result
         if: always()
@@ -94,7 +94,7 @@ jobs:
       - name: Fetch base branch
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
       - name: Validate source changes include tests
-        run: node scripts/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
+        run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
       - name: Publish PR test policy summary
         if: always()
         run: |
@@ -255,7 +255,7 @@ jobs:
         run: |
           mkdir -p coverage
           if [ -f coverage/coverage-summary.json ]; then
-            node scripts/test-report-summary.mjs \
+            node scripts/check/test-report-summary.mjs \
               --input coverage/coverage-summary.json \
               --output coverage/coverage-report.md \
               --threshold 60
