@@ -11,12 +11,12 @@
       }
     },
     "docs/architecture/ARCHITECTURE.md": {
-      "source_hash": "573ccfe1a49d74999101460a3ee055bd07109c832d15dc9a4c6ef61ee8433302",
+      "source_hash": "7e691870a4f6f25a535a023206cff5ef88aed619c9734851ebdacdd3a3bafcc8",
       "locales": {
         "pt-BR": {
-          "source_hash": "573ccfe1a49d74999101460a3ee055bd07109c832d15dc9a4c6ef61ee8433302",
-          "target_hash": "6daa8b7db866dd2781efd9ae02a576cf9f2cce2a8597b02a808c341e1d1335c3",
-          "updated_at": "2026-05-13T20:09:25.192Z"
+          "source_hash": "7e691870a4f6f25a535a023206cff5ef88aed619c9734851ebdacdd3a3bafcc8",
+          "target_hash": "3e2a58f341f20b29cf245330b094bec40ffeede43526b4d416c660c37abca8db",
+          "updated_at": "2026-05-13T22:58:05.984Z"
         }
       }
     }
