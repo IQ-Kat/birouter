@@ -78,6 +78,21 @@ Primary runtime model:
 - Next.js app routes under `src/app/api/*` implement both dashboard APIs and compatibility APIs
 - A shared SSE/routing core in `src/sse/*` + `open-sse/*` handles provider execution, translation, streaming, fallback, and usage
 
+## Reference Diagrams
+
+Canonical, version-controlled Mermaid sources for the v3.8.0 platform live in
+[`docs/diagrams/`](../diagrams/README.md). Two are reproduced below for orientation;
+the rest are linked from their domain-specific guides.
+
+![Request pipeline (/v1/chat/completions)](../diagrams/exported/request-pipeline.svg)
+
+> Source: [diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
+
+![3-layer resilience model](../diagrams/exported/resilience-3layers.svg)
+
+> Source: [diagrams/resilience-3layers.mmd](../diagrams/resilience-3layers.mmd) — also linked from
+> [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) and the `CLAUDE.md` resilience reference.
+
 ## Scope and Boundaries
 
 ### In Scope

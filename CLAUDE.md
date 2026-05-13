@@ -79,7 +79,10 @@ API routes follow a consistent pattern: `Route → CORS preflight → Zod body v
 ## Resilience Runtime State
 
 OmniRoute has three related but distinct temporary-failure mechanisms. Keep their
-scope separate when debugging routing behavior.
+scope separate when debugging routing behavior. See the
+[3-layer resilience diagram](./docs/diagrams/exported/resilience-3layers.svg)
+(source: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+for an at-a-glance map.
 
 ### Provider Circuit Breaker
 

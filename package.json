@@ -87,6 +87,7 @@
     "check:docs-counts": "node scripts/check/check-docs-counts-sync.mjs",
     "check:deprecated-versions": "node scripts/check/check-deprecated-versions.mjs",
     "check:docs-all": "npm run check:docs-sync && npm run check:docs-counts && npm run check:env-doc-sync && npm run check:deprecated-versions",
+    "docs:render-diagrams": "node scripts/docs/render-diagrams.mjs",
     "check:node-runtime": "node --import tsx/esm scripts/check/check-supported-node-runtime.ts",
     "check:pack-artifact": "node --import tsx/esm scripts/build/validate-pack-artifact.ts",
     "audit:deps": "npm audit --audit-level=moderate && npm run audit:electron",

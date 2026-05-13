@@ -5,6 +5,10 @@
 
 OmniRoute has a route-aware authorization pipeline that gates every API request. Classification is **deterministic** and **fail-closed** — anything that cannot be classified ends up as `MANAGEMENT` and demands a session or management-grade token. This page explains the model for engineers maintaining routes or designing new endpoints.
 
+![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
+
+> Source: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
+
 ## Two Auth Modes
 
 ### 1. API Key (Bearer)

@@ -77,6 +77,10 @@ Auto-scoring selects best provider/model per request
 
 The Auto-Combo Engine dynamically selects the best provider/model for each request using a **9-factor scoring function** (defined in `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). All weights sum to **1.0**.
 
+![Auto-Combo 9-factor scoring](../diagrams/exported/auto-combo-9factor.svg)
+
+> Source: [diagrams/auto-combo-9factor.mmd](../diagrams/auto-combo-9factor.mmd)
+
 | Factor             | Default Weight | Description                                                             |
 | :----------------- | :------------- | :---------------------------------------------------------------------- |
 | `health`           | 0.22           | Health score from circuit breaker (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0) |

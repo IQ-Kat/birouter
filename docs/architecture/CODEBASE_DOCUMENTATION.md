@@ -286,6 +286,10 @@ Top-level files in `src/lib/`:
 Singleton SQLite database (`getDbInstance()` in `core.ts`, WAL journaling).
 **Never write raw SQL in routes or handlers** — go through these modules.
 
+![Database schema overview (selected core tables)](../diagrams/exported/db-schema-overview.svg)
+
+> Source: [diagrams/db-schema-overview.mmd](../diagrams/db-schema-overview.mmd)
+
 Domain modules (each owns one or more tables): `apiKeys.ts`, `backup.ts`,
 `batches.ts`, `cleanup.ts`, `cliToolState.ts`, `combos.ts`,
 `commandCodeAuth.ts`, `compression.ts`, `compressionAnalytics.ts`,
@@ -642,6 +646,10 @@ Organized into 6 subfolders by purpose.
 ---
 
 ## 9. Request Pipeline (Summary)
+
+![Request pipeline (/v1/chat/completions)](../diagrams/exported/request-pipeline.svg)
+
+> Source: [diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
 
 ```
 Client request

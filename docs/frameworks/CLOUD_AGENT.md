@@ -12,6 +12,10 @@ A Cloud Agent task is **not** a regular chat completion. It is a durable, multi-
 unit of work that may take minutes to hours, can produce a Pull Request as its
 artifact, and supports follow-up messages and (in some providers) plan approval gates.
 
+![Cloud Agent task lifecycle](../diagrams/exported/cloud-agent-flow.svg)
+
+> Source: [diagrams/cloud-agent-flow.mmd](../diagrams/cloud-agent-flow.mmd)
+
 ## Supported Agents
 
 | Provider ID   | Class             | Source                               | Upstream Base URL                       | Plan Approval |

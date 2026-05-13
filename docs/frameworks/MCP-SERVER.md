@@ -4,6 +4,10 @@
 >
 > Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
+![MCP tool inventory (37 tools by category)](../diagrams/exported/mcp-tools-37.svg)
+
+> Source: [diagrams/mcp-tools-37.mmd](../diagrams/mcp-tools-37.mmd)
+
 ## Installation
 
 OmniRoute MCP is built-in. Start it with:
