@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAgent } from "@/lib/cloudAgent/registry";
+import type { CloudAgentTaskRow } from "@/lib/cloudAgent/db";
 import {
   createCloudAgentTaskTable,
   insertCloudAgentTask,
@@ -19,8 +20,6 @@ import pino from "pino";
 
 const logger = pino({ name: "cloud-agents-api" });
 
-createCloudAgentTaskTable();
-
 function getLimit(value: string | null): number {
   const parsed = Number.parseInt(value || "50", 10);
   if (!Number.isFinite(parsed)) return 50;
@@ -36,12 +35,14 @@ export async function GET(request: NextRequest) {
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
+    createCloudAgentTaskTable();
+
     const { searchParams } = new URL(request.url);
     const providerId = searchParams.get("provider");
     const status = searchParams.get("status");
     const limit = getLimit(searchParams.get("limit"));
 
-    let tasks;
+    let tasks: CloudAgentTaskRow[];
     if (providerId) {
       tasks = getCloudAgentTasksByProvider(providerId, limit);
     } else if (status) {
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
       credentials
     );
 
+    createCloudAgentTaskTable();
     insertCloudAgentTask({
       id: task.id,
       provider_id: task.providerId,
@@ -151,6 +153,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
+
+    createCloudAgentTaskTable();
 
     const { searchParams } = new URL(request.url);
     const taskId = searchParams.get("id");

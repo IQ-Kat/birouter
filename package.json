@@ -95,7 +95,7 @@
     "test:protocols:e2e": "node scripts/run-protocol-clients-tests.mjs",
     "test:vitest": "vitest run --config vitest.mcp.config.ts",
     "test:ecosystem": "node scripts/run-ecosystem-tests.mjs",
-    "test:coverage": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true c8 --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 node --import tsx/esm --test --test-concurrency=1 tests/unit/*.test.ts",
+    "test:coverage": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true c8 --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 75 --lines 75 --functions 75 --branches 70 node --import tsx/esm --test --test-concurrency=1 tests/unit/*.test.ts",
     "test:coverage:legacy": "c8 --output-dir coverage --exclude=open-sse --check-coverage --lines 50 --functions 50 --branches 50 node --import tsx/esm --test tests/unit/*.test.ts",
     "coverage:report": "c8 report --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov",
     "coverage:summary": "node scripts/test-report-summary.mjs --input coverage/coverage-summary.json --output coverage/coverage-report.md --threshold 60",
