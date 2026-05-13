@@ -9,7 +9,7 @@ import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts"
 //   - reasoningCache has no entry for the corresponding tool_use.id
 // Must be non-empty: kimi-coding treats empty `thinking.thinking` as
 // `reasoning_content missing` and 400s.
-const NON_ANTHROPIC_THINKING_PLACEHOLDER = "(prior reasoning summary unavailable)";
+export const NON_ANTHROPIC_THINKING_PLACEHOLDER = "(prior reasoning summary unavailable)";
 
 type ClaudeContentBlock = {
   type?: string;
