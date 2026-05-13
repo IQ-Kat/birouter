@@ -53,7 +53,7 @@ Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI)
 
 ## 🎨 Combos
 
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+Create model routing combos with 14 strategies: priority, weighted, fill-first, round-robin, p2c (power-of-two-choices), random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp (last-known-good-provider), context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
 Recent combo improvements:
 

@@ -131,6 +131,36 @@ Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/
 | `omniroute_skills_execute`    | Execute a skill with provided input and return the execution record               |
 | `omniroute_skills_executions` | List recent skill execution history                                               |
 
+## Related Frameworks (v3.8.0)
+
+The MCP tool inventory above (37 tools = 30 base + 3 memory + 4 skills) is intentionally
+scoped to runtime routing/cache/compression/memory/skills/proxy operations. Two adjacent
+frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
+
+### Cloud Agents
+
+Cloud Agents are out-of-process AI coding agents (codex-cloud, devin, jules) wired into
+OmniRoute through the same connection model used for LLM providers. They are exposed via
+their own REST surface (`/api/v1/agents/*`) and are **not** part of the MCP tool catalog
+— calling a Cloud Agent does not consume an MCP scope.
+
+- Implementation: `src/lib/cloudAgent/` (`registry.ts`, `agents/codex-cloud.ts`, `agents/devin.ts`, `agents/jules.ts`).
+- Lifecycle: `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`.
+- Documentation: [docs/frameworks/CLOUD_AGENT.md](./CLOUD_AGENT.md).
+
+### Guardrails
+
+Guardrails are pre/post-execution filters (vision-bridge, pii-masker, prompt-injection)
+applied inside the chat pipeline. They run before the MCP tool/route layer is reached
+and emit structured violations to the audit pipeline; they are not invoked as MCP tools.
+
+- Implementation: `src/lib/guardrails/`.
+- Documentation: [docs/security/GUARDRAILS.md](../security/GUARDRAILS.md).
+
+When debugging an MCP call that appears blocked, check both the MCP audit log
+(`scope_denied:*` entries) and the guardrails audit trail — a request may be rejected by
+a guardrail **before** it ever reaches the MCP scope enforcement layer.
+
 ---
 
 ## REST API Endpoints
