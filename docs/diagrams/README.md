@@ -1,3 +1,9 @@
+---
+title: "Diagrams"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Diagrams
 
 Mermaid sources (`.mmd`) and exported SVGs for OmniRoute v3.8.0 architecture flows.

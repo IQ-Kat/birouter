@@ -1,3 +1,9 @@
+---
+title: "📖 Setup Guide — OmniRoute"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # 📖 Setup Guide — OmniRoute
 
 > Complete setup reference for OmniRoute. For the quick version, see the [Quick Start in README](../README.md#-quick-start).

@@ -1,3 +1,9 @@
+---
+title: "Compression Engines"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Compression Engines
 
 OmniRoute compression is built around engine contracts. A mode can run one engine directly

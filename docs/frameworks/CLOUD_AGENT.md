@@ -1,3 +1,9 @@
+---
+title: "Cloud Agents"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Cloud Agents
 
 > **Source of truth:** `src/lib/cloudAgent/` and `src/app/api/v1/agents/tasks/`

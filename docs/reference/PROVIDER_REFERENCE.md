@@ -1,3 +1,9 @@
+---
+title: "Provider Reference"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.

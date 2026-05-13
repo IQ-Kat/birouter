@@ -1,3 +1,9 @@
+---
+title: "Environment Variables Reference"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Environment Variables Reference
 
 > Complete reference for every environment variable recognized by OmniRoute.

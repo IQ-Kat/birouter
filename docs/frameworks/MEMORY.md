@@ -1,3 +1,9 @@
+---
+title: "Memory System"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Memory System
 
 > **Source of truth:** `src/lib/memory/` and `src/app/api/memory/`

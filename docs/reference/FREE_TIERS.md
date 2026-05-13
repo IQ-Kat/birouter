@@ -1,3 +1,9 @@
+---
+title: "Free Tiers"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Free Tiers
 
 > **Last consolidated:** 2026-05-13 — OmniRoute v3.8.0

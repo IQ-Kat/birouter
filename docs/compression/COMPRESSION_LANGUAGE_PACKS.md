@@ -1,3 +1,9 @@
+---
+title: "Compression Language Packs"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Compression Language Packs
 
 Caveman compression can load language-specific rule packs in addition to the built-in English rules.

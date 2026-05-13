@@ -1,3 +1,9 @@
+---
+title: "OmniRoute — Uninstall Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute — Uninstall Guide
 
 🌐 **Languages:** 🇺🇸 [English](./UNINSTALL.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/UNINSTALL.md) | 🇪🇸 [Español](i18n/es/UNINSTALL.md) | 🇫🇷 [Français](i18n/fr/UNINSTALL.md) | 🇮🇹 [Italiano](i18n/it/UNINSTALL.md) | 🇷🇺 [Русский](i18n/ru/UNINSTALL.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/UNINSTALL.md) | 🇩🇪 [Deutsch](i18n/de/UNINSTALL.md) | 🇮🇳 [हिन्दी](i18n/in/UNINSTALL.md) | 🇹🇭 [ไทย](i18n/th/UNINSTALL.md) | 🇺🇦 [Українська](i18n/uk-UA/UNINSTALL.md) | 🇸🇦 [العربية](i18n/ar/UNINSTALL.md) | 🇯🇵 [日本語](i18n/ja/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](i18n/vi/UNINSTALL.md) | 🇧🇬 [Български](i18n/bg/UNINSTALL.md) | 🇩🇰 [Dansk](i18n/da/UNINSTALL.md) | 🇫🇮 [Suomi](i18n/fi/UNINSTALL.md) | 🇮🇱 [עברית](i18n/he/UNINSTALL.md) | 🇭🇺 [Magyar](i18n/hu/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/UNINSTALL.md) | 🇰🇷 [한국어](i18n/ko/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/UNINSTALL.md) | 🇳🇱 [Nederlands](i18n/nl/UNINSTALL.md) | 🇳🇴 [Norsk](i18n/no/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](i18n/pt/UNINSTALL.md) | 🇷🇴 [Română](i18n/ro/UNINSTALL.md) | 🇵🇱 [Polski](i18n/pl/UNINSTALL.md) | 🇸🇰 [Slovenčina](i18n/sk/UNINSTALL.md) | 🇸🇪 [Svenska](i18n/sv/UNINSTALL.md) | 🇵🇭 [Filipino](i18n/phi/UNINSTALL.md) | 🇨🇿 [Čeština](i18n/cs/UNINSTALL.md)

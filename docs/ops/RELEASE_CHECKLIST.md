@@ -1,3 +1,9 @@
+---
+title: "Release Checklist"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Release Checklist
 
 > **Last updated:** 2026-05-13 — v3.8.0

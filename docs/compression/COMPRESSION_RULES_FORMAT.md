@@ -1,3 +1,9 @@
+---
+title: "Compression Rules Format"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Compression Rules Format
 
 Compression rules are JSON files loaded at runtime. They are intentionally data-only so new

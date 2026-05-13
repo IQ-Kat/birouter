@@ -1,3 +1,9 @@
+---
+title: "Evaluations (Evals)"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Evaluations (Evals)
 
 > **Source of truth:** `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`

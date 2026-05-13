@@ -1,3 +1,9 @@
+---
+title: "OmniRoute MCP Server Documentation"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute MCP Server Documentation
 
 > Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations.

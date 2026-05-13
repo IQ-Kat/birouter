@@ -1,3 +1,9 @@
+---
+title: "OmniRoute Codebase Documentation"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute Codebase Documentation
 
 > **Version:** v3.8.0

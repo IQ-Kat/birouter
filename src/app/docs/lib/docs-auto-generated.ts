@@ -57,7 +57,7 @@ export const autoNavSections: AutoGenNavSection[] = [
     items: [
       {
         slug: "docker-guide",
-        title: "🐳 Docker Guide",
+        title: "🐳 Docker Guide — OmniRoute",
         fileName: "guides/DOCKER_GUIDE.md",
       },
       {
@@ -82,7 +82,7 @@ export const autoNavSections: AutoGenNavSection[] = [
       },
       {
         slug: "setup-guide",
-        title: "Setup Guide",
+        title: "📖 Setup Guide — OmniRoute",
         fileName: "guides/SETUP_GUIDE.md",
       },
       {
@@ -227,7 +227,7 @@ export const autoNavSections: AutoGenNavSection[] = [
       },
       {
         slug: "compression-guide",
-        title: "🗜️ Prompt Compression Guide",
+        title: "🗜️ Prompt Compression Guide — OmniRoute",
         fileName: "compression/COMPRESSION_GUIDE.md",
       },
       {
@@ -262,7 +262,7 @@ export const autoNavSections: AutoGenNavSection[] = [
       },
       {
         slug: "proxy-guide",
-        title: "OmniRoute Proxy Guide",
+        title: "🌐 OmniRoute Proxy Guide",
         fileName: "ops/PROXY_GUIDE.md",
       },
       {
@@ -294,6 +294,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
     headings: [
       "Executive Summary",
+      "Reference Diagrams",
       "Scope and Boundaries",
       "In Scope",
       "Out of Scope",
@@ -302,7 +303,6 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Core Runtime Components",
       "1) API and Routing Layer (Next.js App Routes)",
       "2) SSE + Translation Core",
-      "Major Subsystems (v3.8.0)",
     ],
   },
   {
@@ -371,7 +371,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "architecture/RESILIENCE_GUIDE.md",
     section: "Architecture",
     content:
-      "OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior. Scope: entire provider (e.g., glm, openai, anthropic). Purpose: stop sending traffic to a provider that is repeatedly failing at the upstream/se",
+      "OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior. Source: diagrams/resilience-3layers.mmd Scope: entire provider (e.g., glm, openai, anthropic). Purpose: stop sending traffic to a provider that ",
     headings: [
       "1. Provider Circuit Breaker",
       "2. Connection Cooldown",
@@ -385,7 +385,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "docker-guide",
-    title: "🐳 Docker Guide",
+    title: "🐳 Docker Guide — OmniRoute",
     fileName: "guides/DOCKER_GUIDE.md",
     section: "Guides",
     content:
@@ -451,6 +451,8 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     content:
       "OmniRoute supports 30 languages with full dashboard UI translation, translated documentation, and RTL support for Arabic and Hebrew. 🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇩🇪 Deutsch 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇯🇵 日本語 🇰🇷 한국어 🇸🇦 العربية 🇮🇳 ",
     headings: [
+      "Translation pipeline (recommended — v3.8.0)",
+      "Legacy scripts (deprecated)",
       "Quick Reference",
       "Architecture",
       "Source of Truth",
@@ -459,8 +461,6 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Adding a New Language",
       "1. Register the Locale",
       "2. Add to Generator",
-      "3. Generate Initial Translation",
-      "4. Review & Fix Auto-Translations",
     ],
   },
   {
@@ -485,7 +485,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "setup-guide",
-    title: "Setup Guide",
+    title: "📖 Setup Guide — OmniRoute",
     fileName: "guides/SETUP_GUIDE.md",
     section: "Guides",
     content:
@@ -629,7 +629,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "reference/ENVIRONMENT.md",
     section: "Reference",
     content:
-      "Complete reference for every environment variable recognized by OmniRoute. For a quick-start template, see .env.example. These must be set before the first run. Without them, the application will either refuse to start or operate with insecure defaults. Variable Required Default Source File Descript",
+      "Complete reference for every environment variable recognized by OmniRoute. For a quick-start template, see .env.example. [!IMPORTANT] Every variable documented here must also appear in .env.example, and every variable in .env.example must appear here. npm run check:env-doc-sync enforces this on comm",
     headings: [
       "Table of Contents",
       "1. Required Secrets",
@@ -963,7 +963,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "compression-guide",
-    title: "🗜️ Prompt Compression Guide",
+    title: "🗜️ Prompt Compression Guide — OmniRoute",
     fileName: "compression/COMPRESSION_GUIDE.md",
     section: "Compression",
     content:
@@ -1073,7 +1073,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "proxy-guide",
-    title: "OmniRoute Proxy Guide",
+    title: "🌐 OmniRoute Proxy Guide",
     fileName: "ops/PROXY_GUIDE.md",
     section: "Ops",
     content:

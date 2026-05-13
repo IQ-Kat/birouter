@@ -1,3 +1,9 @@
+---
+title: "RTK Compression"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # RTK Compression
 
 RTK compression is OmniRoute's command-aware compression engine for terminal and tool output. It is

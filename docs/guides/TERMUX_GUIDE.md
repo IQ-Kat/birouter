@@ -1,3 +1,9 @@
+---
+title: "Termux Headless Setup"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Termux Headless Setup
 
 OmniRoute can run as a headless server on Android through Termux. The Electron desktop app is not supported in Termux, but the web dashboard and OpenAI-compatible API work from the local browser or from other devices on the same network.
