@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Validates that env vars referenced in code appear in .env.example AND in docs/ENVIRONMENT.md.
+// Validates that env vars referenced in code appear in .env.example AND in docs/reference/ENVIRONMENT.md.
 // Exits 0 on success, 1 on missing entries. Designed for use in pre-commit / CI.
 //
 // Run: node scripts/check-env-doc-sync.mjs
@@ -14,7 +14,7 @@ import { execSync } from "node:child_process";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const ENV_EXAMPLE = path.join(ROOT, ".env.example");
-const ENV_DOC = path.join(ROOT, "docs", "ENVIRONMENT.md");
+const ENV_DOC = path.join(ROOT, "docs", "reference", "ENVIRONMENT.md");
 
 const STRICT = process.argv.includes("--strict");
 
@@ -102,7 +102,7 @@ function main() {
   console.log("===================");
   console.log(`Code references:          ${codeVars.size} unique vars`);
   console.log(`In .env.example:          ${exampleVars.size} unique vars`);
-  console.log(`In docs/ENVIRONMENT.md:   ${docVars.size} unique vars (heuristic)`);
+  console.log(`In docs/reference/ENVIRONMENT.md:   ${docVars.size} unique vars (heuristic)`);
   console.log();
 
   function printList(label, list) {

@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * Build-time script: scans docs/*.md and generates
+ * Build-time script: scans docs/<subfolder>/*.md and generates
  * src/app/docs/lib/docs-auto-generated.ts with static navigation + search data.
  *
  * This file is imported by both client and server components — NO fs/path imports.
  * Run via: node scripts/generate-docs-index.mjs
  * Automatically runs as prebuild step.
+ *
+ * Sections come from the on-disk subfolder layout introduced in FASE 3 of the
+ * platform overhaul. Order is fixed by SECTION_ORDER below.
  */
 
 import fs from "node:fs";
@@ -19,64 +22,19 @@ const ROOT = path.resolve(__dirname, "..");
 const DOCS_DIR = path.join(ROOT, "docs");
 const OUT_FILE = path.join(ROOT, "src", "app", "docs", "lib", "docs-auto-generated.ts");
 
-const SECTION_CATEGORIES = {
-  "Getting Started": [
-    "SETUP_GUIDE",
-    "USER_GUIDE",
-    "CLI_TOOLS",
-    "ARCHITECTURE",
-    "QUICK_START",
-    "GETTING_STARTED",
-  ],
-  Features: [
-    "FEATURES",
-    "AUTO_COMBO",
-    "COMPRESSION_GUIDE",
-    "RTK_COMPRESSION",
-    "COMPRESSION_ENGINES",
-    "COMPRESSION_RULES_FORMAT",
-    "COMPRESSION_LANGUAGE_PACKS",
-    "FREE_TIERS",
-  ],
-  "API & Protocols": ["API_REFERENCE", "MCP_SERVER", "A2A_SERVER"],
-  Deployment: [
-    "DOCKER_GUIDE",
-    "VM_DEPLOYMENT_GUIDE",
-    "FLY_IO_DEPLOYMENT_GUIDE",
-    "TERMUX_GUIDE",
-    "PWA_GUIDE",
-  ],
-  Operations: ["PROXY_GUIDE", "RESILIENCE_GUIDE", "ENVIRONMENT", "TROUBLESHOOTING"],
-  Development: [
-    "CODEBASE_DOCUMENTATION",
-    "COVERAGE_PLAN",
-    "I18N",
-    "RELEASE_CHECKLIST",
-    "UNINSTALL",
-    "CONTRIBUTING",
-    "CHANGELOG",
-    "CODE_OF_CONDUCT",
-  ],
-};
+// Subfolder -> nav section title, in the order they should appear in the sidebar.
+const SECTION_ORDER = [
+  { dir: "architecture", title: "Architecture" },
+  { dir: "guides", title: "Guides" },
+  { dir: "reference", title: "Reference" },
+  { dir: "frameworks", title: "Frameworks" },
+  { dir: "routing", title: "Routing" },
+  { dir: "security", title: "Security" },
+  { dir: "compression", title: "Compression" },
+  { dir: "ops", title: "Ops" },
+];
 
-const SECTION_ORDER = {
-  "Getting Started": 1,
-  Features: 2,
-  "API & Protocols": 3,
-  Deployment: 4,
-  Operations: 5,
-  Development: 6,
-};
-
-function categorizeFile(fileName) {
-  const stem = fileName.replace(/\.md$/i, "").toUpperCase().replace(/-/g, "_");
-  for (const [section, patterns] of Object.entries(SECTION_CATEGORIES)) {
-    if (patterns.some((p) => stem === p)) {
-      return section;
-    }
-  }
-  return "Other";
-}
+const SECTION_INDEX = Object.fromEntries(SECTION_ORDER.map((s, i) => [s.title, i + 1]));
 
 function extractTitleFromContent(content) {
   const match = content.match(/^#\s+(.+)$/m);
@@ -114,16 +72,7 @@ function extractContentPreview(content) {
   return stripped.slice(0, 300);
 }
 
-// ---------- Main ----------
-
-if (!fs.existsSync(DOCS_DIR)) {
-  if (fs.existsSync(OUT_FILE)) {
-    console.warn(
-      `[generate-docs-index] ${DOCS_DIR} not found; keeping existing generated docs index.`
-    );
-    process.exit(0);
-  }
-
+function emitEmpty(reason) {
   fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
   fs.writeFileSync(
     OUT_FILE,
@@ -158,51 +107,88 @@ export const autoAllSlugs: string[] = [];
 `,
     "utf8"
   );
-  console.warn(`[generate-docs-index] ${DOCS_DIR} not found; generated empty docs index.`);
+  console.warn(`[generate-docs-index] ${reason}; generated empty docs index.`);
+}
+
+// ---------- Main ----------
+
+if (!fs.existsSync(DOCS_DIR)) {
+  if (fs.existsSync(OUT_FILE)) {
+    console.warn(
+      `[generate-docs-index] ${DOCS_DIR} not found; keeping existing generated docs index.`
+    );
+    process.exit(0);
+  }
+  emitEmpty(`${DOCS_DIR} not found`);
   process.exit(0);
 }
 
-const files = fs.readdirSync(DOCS_DIR).filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
-
 const docs = [];
-for (const fileName of files) {
-  const filePath = path.join(DOCS_DIR, fileName);
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  const { data: frontmatter, content } = matter(fileContent);
 
-  const slug =
-    frontmatter.slug ||
-    fileName
-      .replace(/\.mdx?$/i, "")
-      .toLowerCase()
-      .replace(/_/g, "-");
-  const title = frontmatter.title || extractTitleFromContent(content) || slug.replace(/-/g, " ");
-  const section = frontmatter.section || categorizeFile(fileName);
-  const order = frontmatter.order ?? 999;
-  const headings = extractHeadings(content);
-  const contentPreview = frontmatter.description || extractContentPreview(content);
+for (const { dir, title } of SECTION_ORDER) {
+  const fullDir = path.join(DOCS_DIR, dir);
+  if (!fs.existsSync(fullDir)) continue;
+  const entries = fs.readdirSync(fullDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    if (!entry.name.endsWith(".md") && !entry.name.endsWith(".mdx")) continue;
+    if (entry.name === "README.md") continue; // section index, not a doc page
 
-  docs.push({ slug, title, fileName, section, order, content: contentPreview, headings });
+    const absPath = path.join(fullDir, entry.name);
+    const fileContent = fs.readFileSync(absPath, "utf8");
+    const { data: frontmatter, content } = matter(fileContent);
+
+    const slug =
+      frontmatter.slug ||
+      entry.name
+        .replace(/\.mdx?$/i, "")
+        .toLowerCase()
+        .replace(/_/g, "-");
+
+    // fileName is relative to docs/ — used by the slug page to read content.
+    const fileName = path.posix.join(dir, entry.name);
+
+    const titleStr =
+      frontmatter.title || extractTitleFromContent(content) || slug.replace(/-/g, " ");
+    const section = frontmatter.section || title;
+    const order = frontmatter.order ?? 999;
+    const headings = extractHeadings(content);
+    const contentPreview = frontmatter.description || extractContentPreview(content);
+
+    docs.push({
+      slug,
+      title: titleStr,
+      fileName,
+      section,
+      order,
+      content: contentPreview,
+      headings,
+    });
+  }
+}
+
+if (docs.length === 0) {
+  emitEmpty("no docs discovered in subfolders");
+  process.exit(0);
 }
 
 docs.sort((a, b) => {
-  const sectionA = SECTION_ORDER[a.section] ?? 99;
-  const sectionB = SECTION_ORDER[b.section] ?? 99;
+  const sectionA = SECTION_INDEX[a.section] ?? 99;
+  const sectionB = SECTION_INDEX[b.section] ?? 99;
   if (sectionA !== sectionB) return sectionA - sectionB;
   return a.order - b.order;
 });
 
-// Build navigation sections
+// Build navigation sections in the configured order.
 const sectionMap = new Map();
 for (const doc of docs) {
   const items = sectionMap.get(doc.section) || [];
   items.push(doc);
   sectionMap.set(doc.section, items);
 }
-const orderedSections = [...new Set([...Object.keys(SECTION_ORDER), ...sectionMap.keys()])];
-const navSections = orderedSections
-  .filter((s) => sectionMap.has(s))
-  .sort((a, b) => (SECTION_ORDER[a] ?? 99) - (SECTION_ORDER[b] ?? 99))
+
+const navSections = SECTION_ORDER.map(({ title }) => title)
+  .filter((t) => sectionMap.has(t))
   .map((title) => ({
     title,
     items: sectionMap.get(title).map((doc) => ({
@@ -228,8 +214,8 @@ if (searchIndex.some((item) => item.slug === "api-reference")) {
     searchIndex.push({
       slug: "api-explorer",
       title: "API Explorer",
-      fileName: "API_REFERENCE.md",
-      section: "API & Protocols",
+      fileName: "reference/API_REFERENCE.md",
+      section: "Reference",
       content: "interactive try it live api explorer endpoint test request response curl example",
       headings: ["Try It", "Endpoints"],
     });

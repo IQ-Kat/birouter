@@ -59,31 +59,31 @@ const checks = [
     label: "Executors count",
     actual: countFiles("open-sse/executors"),
     docKey: "executors",
-    docs: ["ARCHITECTURE.md", "CODEBASE_DOCUMENTATION.md"],
+    docs: ["architecture/ARCHITECTURE.md", "architecture/CODEBASE_DOCUMENTATION.md"],
   },
   {
     label: "Routing strategies count",
     actual: countRoutingStrategies(),
     docKey: "strategies",
-    docs: ["AUTO-COMBO.md", "RESILIENCE_GUIDE.md"],
+    docs: ["routing/AUTO-COMBO.md", "architecture/RESILIENCE_GUIDE.md"],
   },
   {
     label: "OAuth providers count",
     actual: countFiles("src/lib/oauth/providers"),
     docKey: "OAuth providers",
-    docs: ["ARCHITECTURE.md"],
+    docs: ["architecture/ARCHITECTURE.md"],
   },
   {
     label: "A2A skills count",
     actual: countFiles("src/lib/a2a/skills"),
     docKey: "A2A skills",
-    docs: ["A2A-SERVER.md"],
+    docs: ["frameworks/A2A-SERVER.md"],
   },
   {
     label: "Cloud agents count",
     actual: countFiles("src/lib/cloudAgent/agents"),
     docKey: "cloud agents",
-    docs: ["CLOUD_AGENT.md", "AGENT_PROTOCOLS_GUIDE.md"],
+    docs: ["frameworks/CLOUD_AGENT.md", "frameworks/AGENT_PROTOCOLS_GUIDE.md"],
   },
 ];
 
