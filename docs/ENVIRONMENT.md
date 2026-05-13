@@ -608,20 +608,22 @@ Automatic model pricing data synchronization from external sources.
 
 ## 20. Provider-Specific Settings
 
-| Variable                                  | Default            | Source File                                | Description                                                                           |
-| ----------------------------------------- | ------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `OPENROUTER_CATALOG_TTL_MS`               | `86400000` (24h)   | `src/lib/catalog/openrouterCatalog.ts`     | OpenRouter model catalog cache TTL.                                                   |
-| `NANOBANANA_POLL_TIMEOUT_MS`              | `120000`           | `open-sse/handlers/imageGeneration.ts`     | Max wait for NanoBanana image generation jobs.                                        |
-| `NANOBANANA_POLL_INTERVAL_MS`             | `2500`             | `open-sse/handlers/imageGeneration.ts`     | NanoBanana job polling frequency.                                                     |
-| `CLOUDFLARE_ACCOUNT_ID`                   | _(unset)_          | `open-sse/executors/cloudflare-ai.ts`      | Account ID for Cloudflare Workers AI.                                                 |
-| `CLOUDFLARED_BIN`                         | auto-detect        | `src/lib/cloudflaredTunnel.ts`             | Custom path to `cloudflared` binary.                                                  |
-| `SEARCH_CACHE_TTL_MS`                     | `300000` (5 min)   | `open-sse/services/searchCache.ts`         | TTL for search API (Perplexity, Brave, etc.) response caching.                        |
-| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | `false`            | `src/app/api/providers/route.ts`           | Allow multiple simultaneous connections per OpenAI-compatible provider.               |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`         | Reveal the experimental CC-compatible provider UI for Claude Code-only relays.        |
-| `CLIPROXYAPI_HOST`                        | `127.0.0.1`        | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge host (legacy integration).                                         |
-| `CLIPROXYAPI_PORT`                        | `5544`             | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge port.                                                              |
-| `CLIPROXYAPI_CONFIG_DIR`                  | `~/.cli-proxy-api` | `src/lib/versionManager/processManager.ts` | CLIProxyAPI config directory.                                                         |
-| `LOCAL_HOSTNAMES`                         | _(empty)_          | `open-sse/config/providerRegistry.ts`      | Comma-separated additional hostnames treated as "local" (Docker service names, etc.). |
+| Variable                                  | Default            | Source File                                                           | Description                                                                           |
+| ----------------------------------------- | ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `OPENROUTER_CATALOG_TTL_MS`               | `86400000` (24h)   | `src/lib/catalog/openrouterCatalog.ts`                                | OpenRouter model catalog cache TTL.                                                   |
+| `NANOBANANA_POLL_TIMEOUT_MS`              | `120000`           | `open-sse/handlers/imageGeneration.ts`                                | Max wait for NanoBanana image generation jobs.                                        |
+| `NANOBANANA_POLL_INTERVAL_MS`             | `2500`             | `open-sse/handlers/imageGeneration.ts`                                | NanoBanana job polling frequency.                                                     |
+| `AWS_REGION`                              | _(unset)_          | `src/lib/providers/validation.ts`, `open-sse/handlers/audioSpeech.ts` | Region used to construct AWS Bedrock endpoints (Kiro, audio).                         |
+| `AWS_DEFAULT_REGION`                      | _(unset)_          | `src/lib/providers/validation.ts`, `open-sse/handlers/audioSpeech.ts` | Fallback when `AWS_REGION` is not set.                                                |
+| `CLOUDFLARE_ACCOUNT_ID`                   | _(unset)_          | `open-sse/executors/cloudflare-ai.ts`                                 | Account ID for Cloudflare Workers AI.                                                 |
+| `CLOUDFLARED_BIN`                         | auto-detect        | `src/lib/cloudflaredTunnel.ts`                                        | Custom path to `cloudflared` binary.                                                  |
+| `SEARCH_CACHE_TTL_MS`                     | `300000` (5 min)   | `open-sse/services/searchCache.ts`                                    | TTL for search API (Perplexity, Brave, etc.) response caching.                        |
+| `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | `false`            | `src/app/api/providers/route.ts`                                      | Allow multiple simultaneous connections per OpenAI-compatible provider.               |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`                                    | Reveal the experimental CC-compatible provider UI for Claude Code-only relays.        |
+| `CLIPROXYAPI_HOST`                        | `127.0.0.1`        | `open-sse/executors/cliproxyapi.ts`                                   | CLIProxyAPI bridge host (legacy integration).                                         |
+| `CLIPROXYAPI_PORT`                        | `5544`             | `open-sse/executors/cliproxyapi.ts`                                   | CLIProxyAPI bridge port.                                                              |
+| `CLIPROXYAPI_CONFIG_DIR`                  | `~/.cli-proxy-api` | `src/lib/versionManager/processManager.ts`                            | CLIProxyAPI config directory.                                                         |
+| `LOCAL_HOSTNAMES`                         | _(empty)_          | `open-sse/config/providerRegistry.ts`                                 | Comma-separated additional hostnames treated as "local" (Docker service names, etc.). |
 
 `ENABLE_CC_COMPATIBLE_PROVIDER` is only for third-party relays that accept Claude Code clients
 exclusively. OmniRoute rewrites requests so those relays accept them. If you only want to use
