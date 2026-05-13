@@ -6,8 +6,6 @@ const openaiHelper = await import("../../open-sse/translator/helpers/openaiHelpe
 const claudeHelper = await import("../../open-sse/translator/helpers/claudeHelper.ts");
 const geminiHelper = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const toolCallHelper = await import("../../open-sse/translator/helpers/toolCallHelper.ts");
-const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
-  await import("../../open-sse/config/defaultThinkingSignature.ts");
 
 const originalMathRandom = Math.random;
 
@@ -306,13 +304,24 @@ test("claudeHelper validates content, ordering and request preparation branches"
   assert.equal(prepared.messages.length, 6);
   assert.equal(prepared.messages[2].content.at(-1).cache_control.type, "ephemeral");
   assert.equal(prepared.messages[4].content[0].type, "tool_result");
+  // messages[5] is the latest (and last) assistant message; Anthropic enforces
+  // that its thinking blocks must remain verbatim — not rewritten to
+  // redacted_thinking. The guard in prepareClaudeRequest preserves them.
   assert.deepEqual(
     prepared.messages[5].content.map((block) => block.type),
-    ["redacted_thinking", "text"]
+    ["thinking", "text"]
   );
-  assert.equal(prepared.messages[5].content[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
-  assert.equal(prepared.messages[5].content[0].signature, undefined);
-  assert.equal(prepared.messages[5].content[0].thinking, undefined);
+  assert.equal(prepared.messages[5].content[0].thinking, "old", "thinking text preserved verbatim");
+  assert.equal(
+    prepared.messages[5].content[0].signature,
+    "replace",
+    "signature preserved verbatim"
+  );
+  assert.equal(
+    prepared.messages[5].content[0].data,
+    undefined,
+    "no data field on verbatim thinking"
+  );
   assert.equal(prepared.tools.length, 2);
   assert.equal(prepared.tools[0].cache_control, undefined);
   assert.deepEqual(prepared.tools[1].cache_control, { type: "ephemeral", ttl: "1h" });
