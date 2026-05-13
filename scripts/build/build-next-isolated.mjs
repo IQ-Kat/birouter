@@ -187,7 +187,7 @@ export async function main() {
     console.log("[build-next-isolated] Generating docs index...");
     try {
       const { execSync } = await import("node:child_process");
-      execSync("node scripts/generate-docs-index.mjs", { cwd: projectRoot, stdio: "inherit" });
+      execSync("node scripts/docs/generate-docs-index.mjs", { cwd: projectRoot, stdio: "inherit" });
     } catch (docGenErr) {
       console.warn(
         "[build-next-isolated] Docs index generation failed (non-fatal):",

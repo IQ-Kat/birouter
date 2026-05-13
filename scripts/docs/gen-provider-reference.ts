@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Generates docs/PROVIDER_REFERENCE.md from src/shared/constants/providers.ts.
-// Run: node --import tsx/esm scripts/gen-provider-reference.ts
+// Run: node --import tsx/esm scripts/docs/gen-provider-reference.ts
 
 import fs from "node:fs";
 import path from "node:path";
@@ -22,10 +22,10 @@ import {
   VIDEO_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
   SELF_HOSTED_CHAT_PROVIDER_IDS,
-} from "../src/shared/constants/providers.ts";
+} from "../../src/shared/constants/providers.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = path.resolve(__dirname, "..", "..");
 const OUT_FILE = path.join(ROOT, "docs", "PROVIDER_REFERENCE.md");
 
 type ProviderRecord = {

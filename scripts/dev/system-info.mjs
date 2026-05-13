@@ -3,7 +3,7 @@
  * system-info.mjs — OmniRoute System Information Reporter (#280)
  *
  * Collects system/environment info for bug reports.
- * Usage: node scripts/system-info.mjs [--output system-info.txt]
+ * Usage: node scripts/dev/system-info.mjs [--output system-info.txt]
  *
  * Output includes:
  *   - Node.js version
@@ -21,7 +21,7 @@ import { fileURLToPath } from "url";
 import os from "os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, "..");
+const ROOT = join(__dirname, "..", "..");
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 

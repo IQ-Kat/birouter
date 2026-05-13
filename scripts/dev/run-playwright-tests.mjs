@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { sanitizeColorEnv } from "./runtime-env.mjs";
+import { sanitizeColorEnv } from "../build/runtime-env.mjs";
 
 const defaultArgs = ["test", "tests/e2e/*.spec.ts"];
 const forwardedArgs = process.argv.slice(2);

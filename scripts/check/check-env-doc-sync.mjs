@@ -2,8 +2,8 @@
 // Validates that env vars referenced in code appear in .env.example AND in docs/ENVIRONMENT.md.
 // Exits 0 on success, 1 on missing entries. Designed for use in pre-commit / CI.
 //
-// Run: node scripts/check-env-doc-sync.mjs
-// Strict mode: node scripts/check-env-doc-sync.mjs --strict
+// Run: node scripts/check/check-env-doc-sync.mjs
+// Strict mode: node scripts/check/check-env-doc-sync.mjs --strict
 //   In strict mode, missing entries cause failure. In default mode, only summary is printed.
 
 import fs from "node:fs";
@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = path.resolve(__dirname, "..", "..");
 const ENV_EXAMPLE = path.join(ROOT, ".env.example");
 const ENV_DOC = path.join(ROOT, "docs", "ENVIRONMENT.md");
 

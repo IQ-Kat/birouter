@@ -6,7 +6,7 @@
  * Builds the Next.js app in standalone mode and copies output
  * into the `app/` directory that gets published to npm.
  *
- * Run with: node scripts/prepublish.mjs
+ * Run with: node scripts/build/prepublish.ts
  */
 
 import { execFileSync } from "node:child_process";
@@ -33,7 +33,7 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const ROOT = join(__dirname, "..");
+const ROOT = join(__dirname, "..", "..");
 const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
@@ -200,14 +200,14 @@ console.log("  📋 Copying standalone build to app/...");
 mkdirSync(APP_DIR, { recursive: true });
 cpSync(standaloneDir, APP_DIR, { recursive: true });
 
-const standaloneWsSrc = join(ROOT, "scripts", "standalone-server-ws.mjs");
-const responsesWsProxySrc = join(ROOT, "scripts", "responses-ws-proxy.mjs");
+const standaloneWsSrc = join(ROOT, "scripts", "dev", "standalone-server-ws.mjs");
+const responsesWsProxySrc = join(ROOT, "scripts", "dev", "responses-ws-proxy.mjs");
 if (existsSync(standaloneWsSrc) && existsSync(responsesWsProxySrc)) {
   console.log("  📋 Adding Responses WebSocket standalone wrapper...");
   cpSync(standaloneWsSrc, join(APP_DIR, "server-ws.mjs"));
   writeFileSync(
     join(APP_DIR, "responses-ws-proxy.mjs"),
-    'export * from "../scripts/responses-ws-proxy.mjs";\n'
+    'export * from "../scripts/dev/responses-ws-proxy.mjs";\n'
   );
 }
 

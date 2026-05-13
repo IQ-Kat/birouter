@@ -56,7 +56,7 @@ Confirmed from `electron/package.json`:
 
 The `electron/` workspace also exposes:
 
-- `npm run prepare:bundle` — runs `scripts/prepare-electron-standalone.mjs`
+- `npm run prepare:bundle` — runs `scripts/build/prepare-electron-standalone.mjs`
 - `npm run build:mac-x64` / `build:mac-arm64` — single-arch macOS builds
 - `npm run pack` — directory-only build for local testing (no installer)
 
@@ -73,8 +73,10 @@ electron/
 └── dist-electron/            # electron-builder output (gitignored)
 
 scripts/
-├── prepare-electron-standalone.mjs   # Stages .next/electron-standalone bundle
-└── smoke-electron-packaged.mjs       # Post-build smoke test
+├── build/
+│   └── prepare-electron-standalone.mjs   # Stages .next/electron-standalone bundle
+└── dev/
+    └── smoke-electron-packaged.mjs       # Post-build smoke test
 ```
 
 Both `main.js` and `preload.js` are **CommonJS `.js` files**, not TypeScript. The
@@ -202,7 +204,7 @@ NSIS settings: `oneClick: false`, lets the user choose the install directory, cr
 npm run electron:smoke:packaged
 ```
 
-`scripts/smoke-electron-packaged.mjs`:
+`scripts/dev/smoke-electron-packaged.mjs`:
 
 - Auto-discovers the packaged binary in `electron/dist-electron/` for the current platform.
 - Launches with isolated `HOME`/`APPDATA`/`XDG_*` directories so it doesn't touch developer data.
@@ -266,4 +268,4 @@ Releases are published to GitHub Releases (`diegosouzapw/OmniRoute`), which is a
 - [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 - [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
 - Source: `electron/main.js`, `electron/preload.js`, `electron/package.json`
-- Helpers: `scripts/prepare-electron-standalone.mjs`, `scripts/smoke-electron-packaged.mjs`
+- Helpers: `scripts/build/prepare-electron-standalone.mjs`, `scripts/dev/smoke-electron-packaged.mjs`

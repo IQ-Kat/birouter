@@ -4,9 +4,9 @@
 // invocation so cursor-agent prints "Available models: ..." on stderr.
 //
 // Usage:
-//   node scripts/sync-cursor-models.mjs              # spawn cursor-agent and apply
-//   node scripts/sync-cursor-models.mjs --dry-run    # print proposed block, don't write
-//   node scripts/sync-cursor-models.mjs --from-stdin # read the error message from stdin
+//   node scripts/ad-hoc/sync-cursor-models.mjs              # spawn cursor-agent and apply
+//   node scripts/ad-hoc/sync-cursor-models.mjs --dry-run    # print proposed block, don't write
+//   node scripts/ad-hoc/sync-cursor-models.mjs --from-stdin # read the error message from stdin
 
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";

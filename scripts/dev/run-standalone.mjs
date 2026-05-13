@@ -4,8 +4,8 @@ import {
   resolveRuntimePorts,
   withRuntimePortEnv,
   spawnWithForwardedSignals,
-} from "./runtime-env.mjs";
-import { bootstrapEnv } from "./bootstrap-env.mjs";
+} from "../build/runtime-env.mjs";
+import { bootstrapEnv } from "../build/bootstrap-env.mjs";
 
 const env = bootstrapEnv();
 const runtimePorts = resolveRuntimePorts(env);

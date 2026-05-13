@@ -30,8 +30,10 @@ NC = "\033[0m"
 
 # Configuration - find repo root relative to this script
 _script_dir = Path(__file__).parent.resolve()
-# If script is in scripts/ subfolder, go up one level to repo root
-if _script_dir.name == "scripts":
+# Walk up out of scripts/<group>/, scripts/, or stay at cwd
+if _script_dir.name == "i18n" and _script_dir.parent.name == "scripts":
+    SCRIPT_DIR = _script_dir.parent.parent
+elif _script_dir.name == "scripts":
     SCRIPT_DIR = _script_dir.parent
 else:
     SCRIPT_DIR = _script_dir

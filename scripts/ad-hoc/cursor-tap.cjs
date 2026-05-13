@@ -142,7 +142,7 @@ req.on("data", (chunk) => {
 });
 req.on("end", () => {
   const raw = Buffer.concat(collected);
-  const outDir = path.join(__dirname, "..", "tests", "fixtures", "cursor");
+  const outDir = path.join(__dirname, "..", "..", "tests", "fixtures", "cursor");
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, `${fixtureName}.bin`);
   fs.writeFileSync(outFile, raw);
@@ -168,7 +168,7 @@ setTimeout(() => {
   } catch {}
   const raw = Buffer.concat(collected);
   if (raw.length > 0) {
-    const outDir = path.join(__dirname, "..", "tests", "fixtures", "cursor");
+    const outDir = path.join(__dirname, "..", "..", "tests", "fixtures", "cursor");
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, `${fixtureName}.bin`), raw);
   }

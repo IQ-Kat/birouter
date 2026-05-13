@@ -9,8 +9,8 @@ import {
   sanitizeColorEnv,
   spawnWithForwardedSignals,
   withRuntimePortEnv,
-} from "./runtime-env.mjs";
-import { bootstrapEnv } from "./bootstrap-env.mjs";
+} from "../build/runtime-env.mjs";
+import { bootstrapEnv } from "../build/bootstrap-env.mjs";
 
 const mode = process.argv[2] === "start" ? "start" : "dev";
 const cwd = process.cwd();

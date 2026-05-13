@@ -3,15 +3,15 @@
 // Uses hardcoded regexes to avoid dynamic RegExp() (ReDoS concern flagged by semgrep).
 // Exits 0 if clean, 1 (in --strict mode) if drift detected.
 //
-// Run: node scripts/check-deprecated-versions.mjs
-// Strict: node scripts/check-deprecated-versions.mjs --strict
+// Run: node scripts/check/check-deprecated-versions.mjs
+// Strict: node scripts/check/check-deprecated-versions.mjs --strict
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = path.resolve(__dirname, "..", "..");
 const DOCS_DIR = path.join(ROOT, "docs");
 const PKG_JSON = path.join(ROOT, "package.json");
 const STRICT = process.argv.includes("--strict");

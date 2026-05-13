@@ -72,7 +72,7 @@ npm run test:e2e           # optional but recommended
 
 Husky hooks live in `.husky/` and run automatically on git operations.
 
-- **pre-commit:** `npx lint-staged + node scripts/check-docs-sync.mjs + npm run check:any-budget:t11`
+- **pre-commit:** `npx lint-staged + node scripts/check/check-docs-sync.mjs + npm run check:any-budget:t11`
 - **pre-push:** currently disabled (commented out). When re-enabled, runs `npm run test:unit`.
   - Run `npm run test:unit` manually before pushing release branches.
 

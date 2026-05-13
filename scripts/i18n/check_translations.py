@@ -4,9 +4,9 @@ Translation check script for OmniRoute.
 Checks if all translation keys used in code exist in en.json.
 
 Usage:
-    python scripts/check_translations.py
-    python scripts/check_translations.py --verbose
-    python scripts/check_translations.py --fix
+    python scripts/i18n/check_translations.py
+    python scripts/i18n/check_translations.py --verbose
+    python scripts/i18n/check_translations.py --fix
 """
 
 import json

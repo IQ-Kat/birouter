@@ -6,14 +6,17 @@ const SOURCE_ROOTS = ["src/", "open-sse/", "electron/", "bin/"];
 const TEST_PATTERNS = [/^tests\//, /(?:^|\/)__tests__\//, /\.(?:test|spec)\.[cm]?[jt]sx?$/];
 // Test files for specific source types (e.g., Python validation scripts for i18n)
 const TEST_FILE_PATTERNS = {
-  "src/i18n/messages/": [/\/scripts\/validate_translation\.py$/, /\/scripts\/check_translations\.py$/],
+  "src/i18n/messages/": [
+    /\/scripts\/validate_translation\.py$/,
+    /\/scripts\/check_translations\.py$/,
+  ],
 };
 // Exclude directories that don't require tests (i18n has Python validation, docs, config)
 const EXCLUDED_PATTERNS = [
-  /\/i18n\/messages\//,  // i18n files have their own Python test scripts
-  /\.md$/,              // Documentation
-  /\.yaml$/,           // Config files
-  /\.yml$/,            // Config files
+  /\/i18n\/messages\//, // i18n files have their own Python test scripts
+  /\.md$/, // Documentation
+  /\.yaml$/, // Config files
+  /\.yml$/, // Config files
 ];
 
 function getArg(name, fallbackValue = "") {
@@ -30,7 +33,7 @@ function runGit(args) {
 
 function isSourceFile(filePath) {
   // Exclude patterns that don't require tests
-  if (EXCLUDED_PATTERNS.some(pattern => pattern.test(filePath))) {
+  if (EXCLUDED_PATTERNS.some((pattern) => pattern.test(filePath))) {
     return false;
   }
   return SOURCE_ROOTS.some((root) => filePath.startsWith(root));

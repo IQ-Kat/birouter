@@ -33,7 +33,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/mcp-server/server.js",
   "package.json",
   "responses-ws-proxy.mjs",
-  "scripts/sync-env.mjs",
+  "scripts/dev/sync-env.mjs",
   "server.js",
   "server-ws.mjs",
 ];
@@ -74,13 +74,13 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/mcp-server/scopeEnforcement.ts",
   "open-sse/mcp-server/server.ts",
   "package.json",
-  "scripts/build-next-isolated.mjs",
-  "scripts/check-supported-node-runtime.ts",
-  "scripts/native-binary-compat.mjs",
-  "scripts/postinstall.mjs",
-  "scripts/postinstallSupport.mjs",
-  "scripts/responses-ws-proxy.mjs",
-  "scripts/sync-env.mjs",
+  "scripts/build/build-next-isolated.mjs",
+  "scripts/check/check-supported-node-runtime.ts",
+  "scripts/build/native-binary-compat.mjs",
+  "scripts/build/postinstall.mjs",
+  "scripts/build/postinstallSupport.mjs",
+  "scripts/dev/responses-ws-proxy.mjs",
+  "scripts/dev/sync-env.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 
@@ -103,9 +103,9 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   "package.json",
-  "scripts/native-binary-compat.mjs",
-  "scripts/postinstall.mjs",
-  "scripts/postinstallSupport.mjs",
+  "scripts/build/native-binary-compat.mjs",
+  "scripts/build/postinstall.mjs",
+  "scripts/build/postinstallSupport.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 

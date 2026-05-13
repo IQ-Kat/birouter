@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const ROOT = join(__dirname, "..");
+const ROOT = join(__dirname, "..", "..");
 
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_SETTLE_MS = 2_000;

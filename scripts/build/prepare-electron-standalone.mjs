@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const ROOT = join(__dirname, "..");
+const ROOT = join(__dirname, "..", "..");
 
 const STANDALONE_DIR = join(ROOT, ".next", "standalone");
 const ELECTRON_STANDALONE_DIR = join(ROOT, ".next", "electron-standalone");

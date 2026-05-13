@@ -312,7 +312,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   return merged;
 }
 
-// ── CLI usage: node scripts/bootstrap-env.mjs ──────────────────────────────
+// ── CLI usage: node scripts/build/bootstrap-env.mjs ──────────────────────────────
 if (process.argv[1] && process.argv[1].endsWith("bootstrap-env.mjs")) {
   const env = bootstrapEnv();
   process.stderr.write(`[bootstrap] Done. DATA_DIR resolved to: ${resolveDataDir()}\n`);

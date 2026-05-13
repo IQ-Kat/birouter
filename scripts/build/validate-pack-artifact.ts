@@ -14,7 +14,7 @@ import {
 
 const __filename: string = fileURLToPath(import.meta.url);
 const __dirname: string = dirname(__filename);
-const ROOT: string = join(__dirname, "..");
+const ROOT: string = join(__dirname, "..", "..");
 const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runPackDryRun(): any {

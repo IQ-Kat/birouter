@@ -3,7 +3,7 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { sanitizeColorEnv } from "./runtime-env.mjs";
+import { sanitizeColorEnv } from "../build/runtime-env.mjs";
 
 function parsePort(value, fallback) {
   const parsed = Number.parseInt(String(value), 10);

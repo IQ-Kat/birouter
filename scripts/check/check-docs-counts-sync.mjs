@@ -8,14 +8,14 @@
 //   - Cloud agents in src/lib/cloudAgent/agents/
 //
 // Exits 0 on success, 1 on detected drift.
-// Run: node scripts/check-docs-counts-sync.mjs
+// Run: node scripts/check/check-docs-counts-sync.mjs
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = path.resolve(__dirname, "..", "..");
 
 const COMMON_NON_IMPL_BASENAMES = new Set([
   "index.ts",
