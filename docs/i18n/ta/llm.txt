@@ -357,11 +357,11 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ### MCP Server (37 Tools)
 | Category   | Tools |
 |------------|-------|
-| Core (30)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing`, `cache_stats`, `cache_flush`, and advanced routing/diagnostics tools (see `docs/MCP-SERVER.md` for full inventory) |
+| Core (30)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing`, `cache_stats`, `cache_flush`, and advanced routing/diagnostics tools (see `docs/frameworks/MCP-SERVER.md` for full inventory) |
 | Memory (3) | `memory_search`, `memory_add`, `memory_clear` |
 | Skills (4) | `skills_list`, `skills_enable`, `skills_execute`, `skills_executions` |
 
-**MCP Auth Scopes (~13):** `read:health`, `read:combos`, `write:combos`, `read:quota`, `read:usage`, `read:models`, `execute:completions`, `execute:search`, `write:budget`, `write:resilience`, plus memory/skills scopes — full list in `docs/MCP-SERVER.md`.
+**MCP Auth Scopes (~13):** `read:health`, `read:combos`, `write:combos`, `read:quota`, `read:usage`, `read:models`, `execute:completions`, `execute:search`, `write:budget`, `write:resilience`, plus memory/skills scopes — full list in `docs/frameworks/MCP-SERVER.md`.
 
 ### Provider Categories
 
@@ -472,7 +472,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 20. **Guardrails framework** in `src/lib/guardrails/` — hot-reloadable registry. Built-ins (priority-ordered): `vision-bridge` (5) → `pii-masker` (10) → `prompt-injection` (20). Fail-open model: exceptions never block traffic. Per-request opt-out via `x-omniroute-disabled-guardrails` header.
 
-21. **Authz pipeline** (`src/server/authz/`): every request is classified as `PUBLIC`, `CLIENT_API`, or `MANAGEMENT`, then run through policy + enforce stages. See `docs/AUTHZ_GUIDE.md`.
+21. **Authz pipeline** (`src/server/authz/`): every request is classified as `PUBLIC`, `CLIENT_API`, or `MANAGEMENT`, then run through policy + enforce stages. See `docs/architecture/AUTHZ_GUIDE.md`.
 
 22. **Three resilience layers** are distinct (do not conflate them):
     - **Provider Circuit Breaker** (`src/shared/utils/circuitBreaker.ts`) — whole-provider scope.
@@ -489,11 +489,11 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **MCP server expanded to 37 tools** (30 base + 3 memory + 4 skills) across ~13 scopes
 - **OAuth providers expanded to 14**: added Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
 - **Coverage gate raised to 75/75/75/70** (was 60% across the board) — measured ~82%
-- **Reasoning replay** (`docs/REASONING_REPLAY.md`) — capture and inspect provider reasoning streams
+- **Reasoning replay** (`docs/routing/REASONING_REPLAY.md`) — capture and inspect provider reasoning streams
 - **Compliance + Evals + Webhooks** documentation introduced
-- **Stealth guide** (`docs/STEALTH_GUIDE.md`) — TLS / CLI fingerprint configuration
-- **Tunnels guide** (`docs/TUNNELS_GUIDE.md`) — Cloudflare tunnel management
-- **Electron guide** (`docs/ELECTRON_GUIDE.md`) — desktop app build + signing
+- **Stealth guide** (`docs/security/STEALTH_GUIDE.md`) — TLS / CLI fingerprint configuration
+- **Tunnels guide** (`docs/ops/TUNNELS_GUIDE.md`) — Cloudflare tunnel management
+- **Electron guide** (`docs/guides/ELECTRON_GUIDE.md`) — desktop app build + signing
 
 ## Links
 
@@ -505,11 +505,11 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ### Documentation Index
 
-- **Architecture & Reference**: `docs/ARCHITECTURE.md`, `docs/CODEBASE_DOCUMENTATION.md`, `docs/REPOSITORY_MAP.md`, `docs/API_REFERENCE.md`, `docs/PROVIDER_REFERENCE.md`, `docs/openapi.yaml`
-- **Operator guides**: `docs/USER_GUIDE.md`, `docs/CLI-TOOLS.md`, `docs/TROUBLESHOOTING.md`, `docs/COVERAGE_PLAN.md`
-- **Protocols**: `docs/MCP-SERVER.md`, `docs/A2A-SERVER.md`, `docs/AGENT_PROTOCOLS_GUIDE.md`, `docs/CLOUD_AGENT.md`
-- **Routing & resilience**: `docs/AUTO-COMBO.md`, `docs/RESILIENCE_GUIDE.md`
-- **Security**: `docs/AUTHZ_GUIDE.md`, `docs/GUARDRAILS.md`, `docs/COMPLIANCE.md`, `docs/STEALTH_GUIDE.md`
-- **Extensibility**: `docs/SKILLS.md`, `docs/MEMORY.md`, `docs/EVALS.md`, `docs/WEBHOOKS.md`, `docs/REASONING_REPLAY.md`
-- **Platform**: `docs/ELECTRON_GUIDE.md`, `docs/TUNNELS_GUIDE.md`
+- **Architecture & Reference**: `docs/architecture/ARCHITECTURE.md`, `docs/architecture/CODEBASE_DOCUMENTATION.md`, `docs/architecture/REPOSITORY_MAP.md`, `docs/reference/API_REFERENCE.md`, `docs/reference/PROVIDER_REFERENCE.md`, `docs/reference/openapi.yaml`
+- **Operator guides**: `docs/guides/USER_GUIDE.md`, `docs/reference/CLI-TOOLS.md`, `docs/guides/TROUBLESHOOTING.md`, `docs/ops/COVERAGE_PLAN.md`
+- **Protocols**: `docs/frameworks/MCP-SERVER.md`, `docs/frameworks/A2A-SERVER.md`, `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`, `docs/frameworks/CLOUD_AGENT.md`
+- **Routing & resilience**: `docs/routing/AUTO-COMBO.md`, `docs/architecture/RESILIENCE_GUIDE.md`
+- **Security**: `docs/architecture/AUTHZ_GUIDE.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/security/STEALTH_GUIDE.md`
+- **Extensibility**: `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`
+- **Platform**: `docs/guides/ELECTRON_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
 - **AI agents**: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`
