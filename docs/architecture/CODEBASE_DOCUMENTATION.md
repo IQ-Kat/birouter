@@ -689,7 +689,7 @@ Client request
 | Model lockout            | Provider + connection + model | `open-sse/services/accountFallback.ts`, persisted in `domain_lockout_state`                                  |
 
 See [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) and the dedicated section in
-[CLAUDE.md](../CLAUDE.md).
+[CLAUDE.md](../../CLAUDE.md).
 
 ---
 
@@ -800,7 +800,7 @@ See [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Skills l
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integrations.
 - [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (if present), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — deployment targets.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — common operational issues.
-- [CONTRIBUTING.md](../CONTRIBUTING.md) — contributor workflow.
-- [CLAUDE.md](../CLAUDE.md) — repo rules for Claude Code (the source of truth
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — contributor workflow.
+- [CLAUDE.md](../../CLAUDE.md) — repo rules for Claude Code (the source of truth
   for many of the conventions above).
-- [AGENTS.md](../AGENTS.md) — deeper architecture reference used by agents.
+- [AGENTS.md](../../AGENTS.md) — deeper architecture reference used by agents.

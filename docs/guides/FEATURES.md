@@ -6,7 +6,7 @@ lastUpdated: 2026-05-13
 
 # OmniRoute — Dashboard Features Gallery
 
-🌐 **Main README translations:** 🇺🇸 [English](../README.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/README.md) | 🇪🇸 [Español](i18n/es/README.md) | 🇫🇷 [Français](i18n/fr/README.md) | 🇮🇹 [Italiano](i18n/it/README.md) | 🇷🇺 [Русский](i18n/ru/README.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](i18n/de/README.md) | 🇮🇳 [हिन्दी](i18n/in/README.md) | 🇹🇭 [ไทย](i18n/th/README.md) | 🇺🇦 [Українська](i18n/uk-UA/README.md) | 🇸🇦 [العربية](i18n/ar/README.md) | 🇯🇵 [日本語](i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](i18n/vi/README.md) | 🇧🇬 [Български](i18n/bg/README.md) | 🇩🇰 [Dansk](i18n/da/README.md) | 🇫🇮 [Suomi](i18n/fi/README.md) | 🇮🇱 [עברית](i18n/he/README.md) | 🇭🇺 [Magyar](i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/README.md) | 🇰🇷 [한국어](i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/README.md) | 🇳🇱 [Nederlands](i18n/nl/README.md) | 🇳🇴 [Norsk](i18n/no/README.md) | 🇵🇹 [Português (Portugal)](i18n/pt/README.md) | 🇷🇴 [Română](i18n/ro/README.md) | 🇵🇱 [Polski](i18n/pl/README.md) | 🇸🇰 [Slovenčina](i18n/sk/README.md) | 🇸🇪 [Svenska](i18n/sv/README.md) | 🇵🇭 [Filipino](i18n/phi/README.md) | 🇨🇿 [Čeština](i18n/cs/README.md)
+🌐 **Main README translations:** 🇺🇸 [English](../README.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/README.md) | 🇪🇸 [Español](../i18n/es/README.md) | 🇫🇷 [Français](../i18n/fr/README.md) | 🇮🇹 [Italiano](../i18n/it/README.md) | 🇷🇺 [Русский](../i18n/ru/README.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](../i18n/de/README.md) | 🇮🇳 [हिन्दी](../i18n/in/README.md) | 🇹🇭 [ไทย](../i18n/th/README.md) | 🇺🇦 [Українська](../i18n/uk-UA/README.md) | 🇸🇦 [العربية](../i18n/ar/README.md) | 🇯🇵 [日本語](../i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/README.md) | 🇧🇬 [Български](../i18n/bg/README.md) | 🇩🇰 [Dansk](../i18n/da/README.md) | 🇫🇮 [Suomi](../i18n/fi/README.md) | 🇮🇱 [עברית](../i18n/he/README.md) | 🇭🇺 [Magyar](../i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/README.md) | 🇰🇷 [한국어](../i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/README.md) | 🇳🇱 [Nederlands](../i18n/nl/README.md) | 🇳🇴 [Norsk](../i18n/no/README.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/README.md) | 🇷🇴 [Română](../i18n/ro/README.md) | 🇵🇱 [Polski](../i18n/pl/README.md) | 🇸🇰 [Slovenčina](../i18n/sk/README.md) | 🇸🇪 [Svenska](../i18n/sv/README.md) | 🇵🇭 [Filipino](../i18n/phi/README.md) | 🇨🇿 [Čeština](../i18n/cs/README.md)
 
 Visual guide to every section of the OmniRoute dashboard.
 
@@ -53,7 +53,7 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 
 Manage AI provider connections: OAuth providers (Claude Code, Codex, Gemini CLI), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
-![Providers Dashboard](screenshots/01-providers.png)
+![Providers Dashboard](../screenshots/01-providers.png)
 
 ---
 
@@ -68,7 +68,7 @@ Recent combo improvements:
 - **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
 - **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
 
-![Combos Dashboard](screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
@@ -76,7 +76,7 @@ Recent combo improvements:
 
 Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
-![Analytics Dashboard](screenshots/03-analytics.png)
+![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
@@ -84,7 +84,7 @@ Comprehensive usage analytics with token consumption, cost estimates, activity h
 
 Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
-![Health Dashboard](screenshots/04-health.png)
+![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
@@ -92,7 +92,7 @@ Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99)
 
 Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
 
-![Translator Playground](screenshots/05-translator.png)
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
@@ -120,7 +120,7 @@ Comprehensive settings panel with **7 tabs**:
 - **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
 - **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
-![Settings Dashboard](screenshots/06-settings.png)
+![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
@@ -128,7 +128,7 @@ Comprehensive settings panel with **7 tabs**:
 
 One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
@@ -230,7 +230,7 @@ Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Tog
 
 Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
 
-![Usage Logs](screenshots/08-usage.png)
+![Usage Logs](../screenshots/08-usage.png)
 
 ---
 
@@ -238,7 +238,7 @@ Real-time request logging with filtering by provider, model, account, and API ke
 
 Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
 
 ---
 
@@ -269,7 +269,7 @@ Key features:
 - Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
 - **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+📖 See [`electron/README.md`](../../electron/README.md) for full documentation.
 
 ---
 

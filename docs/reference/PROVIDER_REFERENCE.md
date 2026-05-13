@@ -260,10 +260,10 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 ## Sources of truth
 
-- Catalog: [`src/shared/constants/providers.ts`](../src/shared/constants/providers.ts)
-- Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../open-sse/config/providerRegistry.ts)
-- Executors: [`open-sse/executors/`](../open-sse/executors/) (31 files)
-- Translators: [`open-sse/translator/`](../open-sse/translator/)
+- Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)
+- Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
+- Executors: [`open-sse/executors/`](../../open-sse/executors/) (31 files)
+- Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
 ## See Also
 

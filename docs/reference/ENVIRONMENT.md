@@ -7,7 +7,7 @@ lastUpdated: 2026-05-13
 # Environment Variables Reference
 
 > Complete reference for every environment variable recognized by OmniRoute.
-> For a quick-start template, see [`.env.example`](../.env.example).
+> For a quick-start template, see [`.env.example`](../../.env.example).
 
 > [!IMPORTANT]
 > Every variable documented here must also appear in `.env.example`, and
