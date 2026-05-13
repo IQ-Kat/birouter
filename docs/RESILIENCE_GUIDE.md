@@ -2,6 +2,10 @@
 
 OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior.
 
+![3-layer resilience model](./diagrams/exported/resilience-3layers.svg)
+
+> Source: [diagrams/resilience-3layers.mmd](./diagrams/resilience-3layers.mmd)
+
 ## 1. Provider Circuit Breaker
 
 **Scope:** entire provider (e.g., `glm`, `openai`, `anthropic`).
