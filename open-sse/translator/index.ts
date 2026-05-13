@@ -279,7 +279,7 @@ export function translateRequest(
 
       const cacheKey = hasToolCalls
         ? msg.tool_calls[0]?.id
-        : getAssistantMessageCacheKey(result, messageIndex);
+        : getAssistantMessageCacheKey(result, 0);
       if (cacheKey) {
         const cached = lookupReasoning(cacheKey);
         if (cached) {
