@@ -17,8 +17,10 @@ import pino from "pino";
 
 const logger = pino({ name: "cloud-agents-api" });
 
-export async function OPTIONS() {
-  return new NextResponse(null, { headers: getCloudAgentCorsHeaders() });
+createCloudAgentTaskTable();
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, { headers: getCloudAgentCorsHeaders(request) });
 }
 
 const ApproveSchema = z.object({
@@ -40,10 +42,10 @@ const TaskActionSchema = z.discriminatedUnion("action", [
   CancelSchema,
 ]);
 
-function cloudAgentCredentialsRequiredResponse(providerId: string) {
+function cloudAgentCredentialsRequiredResponse(providerId: string, request: NextRequest) {
   return NextResponse.json(
     { error: `No active credentials configured for cloud agent provider: ${providerId}` },
-    { status: 400, headers: getCloudAgentCorsHeaders() }
+    { status: 400, headers: getCloudAgentCorsHeaders(request) }
   );
 }
 
@@ -52,15 +54,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
-    createCloudAgentTaskTable();
-
     const { id } = await params;
     const task = getCloudAgentTaskById(id);
 
     if (!task) {
       return NextResponse.json(
         { error: "Task not found" },
-        { status: 404, headers: getCloudAgentCorsHeaders() }
+        { status: 404, headers: getCloudAgentCorsHeaders(request) }
       );
     }
 
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           });
         }
       } catch (err) {
-        console.error("Failed to sync task status:", err);
+        logger.error({ err }, "Failed to sync task status");
       }
     }
 
@@ -93,12 +93,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       {
         data: serializeCloudAgentTask(updatedTask!),
       },
-      { headers: getCloudAgentCorsHeaders() }
+      { headers: getCloudAgentCorsHeaders(request) }
     );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500, headers: getCloudAgentCorsHeaders() }
+      { status: 500, headers: getCloudAgentCorsHeaders(request) }
     );
   }
 }
@@ -114,17 +114,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!validation.success) {
       return NextResponse.json(
         { error: "Validation failed", details: validation.error.issues },
-        { status: 400, headers: getCloudAgentCorsHeaders() }
+        { status: 400, headers: getCloudAgentCorsHeaders(request) }
       );
     }
-
-    createCloudAgentTaskTable();
 
     const task = getCloudAgentTaskById(id);
     if (!task) {
       return NextResponse.json(
         { error: "Task not found" },
-        { status: 404, headers: getCloudAgentCorsHeaders() }
+        { status: 404, headers: getCloudAgentCorsHeaders(request) }
       );
     }
 
@@ -134,7 +132,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!agent) {
       return NextResponse.json(
         { error: "Agent not found" },
-        { status: 500, headers: getCloudAgentCorsHeaders() }
+        { status: 500, headers: getCloudAgentCorsHeaders(request) }
       );
     }
 
@@ -142,22 +140,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (!task.external_id) {
         return NextResponse.json(
           { error: "No external task to approve" },
-          { status: 400, headers: getCloudAgentCorsHeaders() }
+          { status: 400, headers: getCloudAgentCorsHeaders(request) }
         );
       }
       const credentials = await getCloudAgentCredentials(task.provider_id);
-      if (!credentials) return cloudAgentCredentialsRequiredResponse(task.provider_id);
+      if (!credentials) return cloudAgentCredentialsRequiredResponse(task.provider_id, request);
       await agent.approvePlan(task.external_id, credentials);
       updateCloudAgentTask(id, { status: "running" });
     } else if (validated.action === "message") {
       if (!task.external_id) {
         return NextResponse.json(
           { error: "No external task to message" },
-          { status: 400, headers: getCloudAgentCorsHeaders() }
+          { status: 400, headers: getCloudAgentCorsHeaders(request) }
         );
       }
       const credentials = await getCloudAgentCredentials(task.provider_id);
-      if (!credentials) return cloudAgentCredentialsRequiredResponse(task.provider_id);
+      if (!credentials) return cloudAgentCredentialsRequiredResponse(task.provider_id, request);
       const activity = await agent.sendMessage(task.external_id, validated.message, credentials);
       const activities: unknown[] = serializeCloudAgentTask(task).activities;
       activities.push(activity);
@@ -169,13 +167,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const updatedTask = getCloudAgentTaskById(id);
     return NextResponse.json(
       { success: true, data: updatedTask ? serializeCloudAgentTask(updatedTask) : null },
-      { headers: getCloudAgentCorsHeaders() }
+      { headers: getCloudAgentCorsHeaders(request) }
     );
   } catch (error) {
     logger.error({ err: error }, "Failed to process task action");
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500, headers: getCloudAgentCorsHeaders() }
+      { status: 500, headers: getCloudAgentCorsHeaders(request) }
     );
   }
 }
@@ -188,23 +186,21 @@ export async function DELETE(
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
-    createCloudAgentTaskTable();
-
     const { id } = await params;
     const task = getCloudAgentTaskById(id);
     if (!task) {
       return NextResponse.json(
         { error: "Task not found" },
-        { status: 404, headers: getCloudAgentCorsHeaders() }
+        { status: 404, headers: getCloudAgentCorsHeaders(request) }
       );
     }
 
     deleteCloudAgentTask(id);
-    return NextResponse.json({ success: true }, { headers: getCloudAgentCorsHeaders() });
+    return NextResponse.json({ success: true }, { headers: getCloudAgentCorsHeaders(request) });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500, headers: getCloudAgentCorsHeaders() }
+      { status: 500, headers: getCloudAgentCorsHeaders(request) }
     );
   }
 }

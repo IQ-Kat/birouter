@@ -52,7 +52,7 @@ test("createVirtualAutoCombo returns an executable auto combo for API-key connec
   assert.equal(combo.models[0].kind, "model");
   assert.equal(combo.models[0].model, "openai/gpt-4o-mini");
   assert.equal(combo.models[0].providerId, "openai");
-  assert.equal(combo.autoConfig.routingStrategy, "lkgp");
+  assert.equal(combo.autoConfig.routerStrategy, "lkgp");
   assert.deepEqual(combo.autoConfig.candidatePool, ["openai"]);
 });
 

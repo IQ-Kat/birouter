@@ -5,17 +5,19 @@ import type { CloudAgentTaskRow } from "./db.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-export function getCloudAgentCorsHeaders() {
+export function getCloudAgentCorsHeaders(request?: Request) {
+  const origin = request?.headers.get("origin");
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": origin || "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
   };
 }
 
-export function withCloudAgentCors(response: Response): Response {
+export function withCloudAgentCors(response: Response, request?: Request): Response {
   const headers = new Headers(response.headers);
-  for (const [key, value] of Object.entries(getCloudAgentCorsHeaders())) {
+  for (const [key, value] of Object.entries(getCloudAgentCorsHeaders(request))) {
     headers.set(key, value);
   }
 
@@ -28,7 +30,7 @@ export function withCloudAgentCors(response: Response): Response {
 
 export async function requireCloudAgentManagementAuth(request: Request): Promise<Response | null> {
   const authError = await requireManagementAuth(request);
-  return authError ? withCloudAgentCors(authError) : null;
+  return authError ? withCloudAgentCors(authError, request) : null;
 }
 
 function parseJson<T>(value: string | null | undefined, fallback: T): T {

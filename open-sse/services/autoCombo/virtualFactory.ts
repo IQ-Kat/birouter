@@ -14,8 +14,6 @@ interface VirtualFactoryConn extends ConnectionFields {
   defaultModel?: string;
   expiresAt?: number | string | null;
   tokenExpiresAt?: number | string | null;
-  oauthToken?: string | null;
-  oauthExpiresAt?: number | string | null; // legacy timestamp or ISO string
 }
 
 export interface VirtualAutoComboCandidate {
@@ -41,14 +39,14 @@ type VirtualAutoCombo = AutoComboConfig & {
     candidatePool: string[];
     weights: ScoringWeights;
     explorationRate: number;
-    routingStrategy: string;
+    routerStrategy: string;
   };
   config: {
     auto: {
       candidatePool: string[];
       weights: ScoringWeights;
       explorationRate: number;
-      routingStrategy: string;
+      routerStrategy: string;
     };
   };
 };
@@ -64,7 +62,7 @@ function toExpiryMs(value: unknown): number | null {
         : Number.NaN;
 
   if (Number.isFinite(parsed) && parsed > 0) {
-    return parsed < 1_000_000_000_000 ? parsed * 1000 : parsed;
+    return parsed < 10_000_000_000 ? parsed * 1000 : parsed;
   }
 
   if (typeof value === "string") {
@@ -76,19 +74,9 @@ function toExpiryMs(value: unknown): number | null {
 }
 
 function hasUsableOAuthToken(conn: VirtualFactoryConn): boolean {
-  const token =
-    typeof conn.accessToken === "string" && conn.accessToken.trim().length > 0
-      ? conn.accessToken
-      : typeof conn.oauthToken === "string" && conn.oauthToken.trim().length > 0
-        ? conn.oauthToken
-        : null;
+  if (typeof conn.accessToken !== "string" || conn.accessToken.trim().length === 0) return false;
 
-  if (!token) return false;
-
-  const expiryMs =
-    toExpiryMs(conn.tokenExpiresAt) ??
-    toExpiryMs(conn.expiresAt) ??
-    toExpiryMs(conn.oauthExpiresAt);
+  const expiryMs = toExpiryMs(conn.tokenExpiresAt) ?? toExpiryMs(conn.expiresAt);
 
   return expiryMs === null || expiryMs > Date.now();
 }
@@ -114,7 +102,7 @@ export async function createVirtualAutoCombo(
       candidatePool: emptyPool,
       weights: { ...DEFAULT_WEIGHTS },
       explorationRate: 0.05,
-      routingStrategy: "lkgp",
+      routerStrategy: "lkgp",
     };
     return {
       id: `virtual-auto-${variant || "default"}`,
@@ -125,7 +113,7 @@ export async function createVirtualAutoCombo(
       candidatePool: emptyPool,
       weights: autoConfig.weights,
       explorationRate: autoConfig.explorationRate,
-      routerStrategy: autoConfig.routingStrategy,
+      routerStrategy: autoConfig.routerStrategy,
       autoConfig,
       config: { auto: autoConfig },
     };
@@ -196,7 +184,7 @@ export async function createVirtualAutoCombo(
     candidatePool: providerPool,
     weights,
     explorationRate,
-    routingStrategy: routerStrategy,
+    routerStrategy,
   };
 
   return {
