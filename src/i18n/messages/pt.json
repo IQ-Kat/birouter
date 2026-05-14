@@ -2706,6 +2706,7 @@
     "allModelsNormal": "Todos os modelos estão respondendo normalmente.",
     "cooldownCleared": "Tempo de espera liberado para {model}",
     "failedClearCooldown": "Falha ao limpar o tempo de espera",
+    "freeTier": "Plano gratuito",
     "loadingAvailability": "Carregando disponibilidade do modelo...",
     "clearCooldown": "Limpar",
     "clearing": "Limpando...",

@@ -2706,6 +2706,7 @@
     "allModelsNormal": "Todos os modelos estão respondendo normalmente.",
     "cooldownCleared": "Cooldown limpo para {model}",
     "failedClearCooldown": "Falha ao limpar cooldown",
+    "freeTier": "Plano gratuito",
     "loadingAvailability": "Carregando disponibilidade dos modelos...",
     "clearCooldown": "Limpar",
     "clearing": "Limpando...",
