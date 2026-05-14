@@ -6,9 +6,7 @@ import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-search-"));
 
-const { handleSearch } = await import(
-  "../../open-sse/handlers/search.ts"
-);
+const { handleSearch } = await import("../../open-sse/handlers/search.ts");
 
 test("handleSearch builds Serper web requests and normalizes organic results", async () => {
   const originalFetch = globalThis.fetch;
@@ -794,8 +792,14 @@ test("handleSearch normalizes Ollama response fields and full_text content", asy
 
     assert.equal(result.data.results[0].title, "Ollama Web Search");
     assert.equal(result.data.results[0].url, "https://ollama.com/blog/web-search");
-    assert.equal(result.data.results[0].snippet, "Ollama now supports native web search capabilities");
-    assert.equal(result.data.results[0].content.text, "Ollama now supports native web search capabilities");
+    assert.equal(
+      result.data.results[0].snippet,
+      "Ollama now supports native web search capabilities"
+    );
+    assert.equal(
+      result.data.results[0].content.text,
+      "Ollama now supports native web search capabilities"
+    );
     assert.equal(result.data.results[0].content.format, "text");
     assert.equal(result.data.results[0].position, 1);
     assert.equal(result.data.results[0].citation.provider, "ollama-search");
@@ -813,10 +817,10 @@ test("handleSearch handles empty Ollama results array", async () => {
   const originalFetch = globalThis.fetch;
 
   globalThis.fetch = async () => {
-    return new Response(
-      JSON.stringify({ results: [] }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ results: [] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
   };
 
   try {
@@ -841,10 +845,10 @@ test("handleSearch handles Ollama response with missing results field", async ()
   const originalFetch = globalThis.fetch;
 
   globalThis.fetch = async () => {
-    return new Response(
-      JSON.stringify({ unrelated: "data" }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ unrelated: "data" }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
   };
 
   try {

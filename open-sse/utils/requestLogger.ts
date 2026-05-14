@@ -111,11 +111,7 @@ function truncateLogString(value: string, maxLength = MAX_LOG_STRING_LENGTH): st
  * recursing into an object's values, enabling the per-field exemption above.
  * Top-level arrays (no key context) remain subject to truncation.
  */
-export function cloneBoundedForLog(
-  value: unknown,
-  depth = 0,
-  key: string | null = null
-): unknown {
+export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null = null): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === "string") return truncateLogString(value);
   if (typeof value !== "object") return value;

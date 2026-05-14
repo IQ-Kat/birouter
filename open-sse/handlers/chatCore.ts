@@ -3029,11 +3029,7 @@ export async function handleChatCore({
                 }
               }
 
-              if (
-                isModelScope() &&
-                res.response.status === 429 &&
-                attempts < maxAttempts - 1
-              ) {
+              if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
                 const bodyPeek = await res.response
                   .clone()
                   .text()

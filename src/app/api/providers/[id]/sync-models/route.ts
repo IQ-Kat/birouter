@@ -187,9 +187,12 @@ export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): 
         // ECONNREFUSED). Using a synthetic connection id so no real DB lookup
         // is needed; the 404 is sufficient proof the server is dispatching.
         const probePort = process.env.OMNIROUTE_PORT || process.env.PORT || "20128";
-        const res = await f(`http://127.0.0.1:${probePort}/api/providers/__readiness_probe__/models`, {
-          signal: AbortSignal.timeout(2_000),
-        });
+        const res = await f(
+          `http://127.0.0.1:${probePort}/api/providers/__readiness_probe__/models`,
+          {
+            signal: AbortSignal.timeout(2_000),
+          }
+        );
         if (res.status >= 200 && res.status < 600) return;
       } catch (err) {
         lastErr = err;

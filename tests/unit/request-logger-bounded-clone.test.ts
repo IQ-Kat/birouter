@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { cloneBoundedForLog, MAX_LOG_ARRAY_ITEMS } = await import(
-  "../../open-sse/utils/requestLogger.ts"
-);
+const { cloneBoundedForLog, MAX_LOG_ARRAY_ITEMS } =
+  await import("../../open-sse/utils/requestLogger.ts");
 
 test("cloneBoundedForLog: tools array is exempt from truncation (debug-critical)", () => {
   const tools = Array.from({ length: 45 }, (_, i) => ({

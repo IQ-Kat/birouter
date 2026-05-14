@@ -597,6 +597,7 @@ interface EditConnectionModalConnection {
   provider?: string;
   providerSpecificData?: Record<string, unknown>;
   healthCheckInterval?: number;
+  projectId?: string | null;
 }
 
 interface EditConnectionModalProps {
@@ -6707,7 +6708,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
-    geminiProjectId: "",
+    cloudCodeProjectId: "",
     blockExtraUsage:
       connection?.provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
@@ -6734,6 +6735,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isCodex = connection?.provider === "codex";
   const isClaude = connection?.provider === "claude";
   const isGeminiCli = connection?.provider === "gemini-cli";
+  const isAntigravity = connection?.provider === "antigravity";
+  const supportsGoogleProjectId = isGeminiCli || isAntigravity;
   const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = connection?.provider === "google-pse-search";
@@ -6794,7 +6797,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
-        geminiProjectId: (connection.providerSpecificData?.projectId as string) || "",
+        cloudCodeProjectId:
+          (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         blockExtraUsage: isClaudeExtraUsageBlockEnabled(
           connection.provider,
           connection.providerSpecificData
@@ -6884,6 +6888,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     setSaveError(null);
     try {
       const trimmedMaxConcurrent = formData.maxConcurrent.trim();
+      const trimmedCloudCodeProjectId = formData.cloudCodeProjectId.trim();
       let parsedMaxConcurrent: number | null = null;
       if (trimmedMaxConcurrent) {
         const numericMaxConcurrent = Number(trimmedMaxConcurrent);
@@ -6901,8 +6906,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: formData.healthCheckInterval,
       };
 
-      if (isGeminiCli) {
-        updates.projectId = formData.geminiProjectId.trim() || null;
+      if (supportsGoogleProjectId) {
+        updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
       if (isGooglePse && !formData.cx.trim()) {
@@ -6992,6 +6997,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         } else if (isCloudflare && formData.accountId.trim()) {
           updates.providerSpecificData.accountId = formData.accountId.trim();
         }
+        if (supportsGoogleProjectId) {
+          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
+        }
         if (isCcCompatible) {
           const currentRequestDefaults =
             updates.providerSpecificData.requestDefaults &&
@@ -7026,8 +7034,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (isGeminiCli) {
-          updates.providerSpecificData.projectId = formData.geminiProjectId.trim() || undefined;
+        if (supportsGoogleProjectId) {
+          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
       const error = (await onSave(updates)) as void | unknown;
@@ -7123,14 +7131,18 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             />
           </div>
         )}
-        {isGeminiCli && (
+        {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             <Input
-              label={t("geminiCliProjectIdLabel")}
-              value={formData.geminiProjectId}
-              onChange={(e) => setFormData({ ...formData, geminiProjectId: e.target.value })}
-              placeholder={t("geminiCliProjectIdPlaceholder")}
-              hint={t("geminiCliProjectIdHint")}
+              label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
+              value={formData.cloudCodeProjectId}
+              onChange={(e) => setFormData({ ...formData, cloudCodeProjectId: e.target.value })}
+              placeholder={
+                isAntigravity
+                  ? t("antigravityProjectIdPlaceholder")
+                  : t("geminiCliProjectIdPlaceholder")
+              }
+              hint={isAntigravity ? t("antigravityProjectIdHint") : t("geminiCliProjectIdHint")}
               className="font-mono text-xs"
             />
           </div>
