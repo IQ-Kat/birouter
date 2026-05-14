@@ -2731,10 +2731,7 @@ export default function ProviderDetailPage() {
         notify.error(detail || t("failedSaveCustomModel"));
         return;
       }
-      await Promise.all([
-        fetchProviderModelMeta().catch(() => {}),
-        fetchAliases().catch(() => {}),
-      ]);
+      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
     } catch {
       notify.error(t("failedSaveCustomModel"));
     } finally {
@@ -2760,10 +2757,7 @@ export default function ProviderDetailPage() {
         notify.error(detail || t("failedSaveCustomModel"));
         return;
       }
-      await Promise.all([
-        fetchProviderModelMeta().catch(() => {}),
-        fetchAliases().catch(() => {}),
-      ]);
+      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
     } catch {
       notify.error(t("failedSaveCustomModel"));
     } finally {
@@ -4277,7 +4271,14 @@ function PassthroughModelsSection({
     }
 
     return rows;
-  }, [availableModels, customModelMap, customModels, isModelHidden, providerAlias, providerAliases]);
+  }, [
+    availableModels,
+    customModelMap,
+    customModels,
+    isModelHidden,
+    providerAlias,
+    providerAliases,
+  ]);
   const filteredModels = allModels.filter((model) =>
     matchesModelCatalogQuery(modelFilter, {
       modelId: model.modelId,
@@ -4376,7 +4377,7 @@ function PassthroughModelsSection({
               isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
-              onDeleteAlias={alias ? () => onDeleteAlias(alias) : undefined}
+              onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
               t={t}
               showDeveloperToggle
               effectiveModelNormalize={effectiveModelNormalize}
@@ -5346,7 +5347,13 @@ function CompatibleModelsSection({
               isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
-              onDeleteAlias={() => handleDeleteModel(modelId, alias)}
+              onDeleteAlias={
+                source === "custom" || source === "manual"
+                  ? () => handleDeleteModel(modelId, alias)
+                  : source === "alias" && alias
+                    ? () => onDeleteAlias(alias)
+                    : undefined
+              }
               t={t}
               showDeveloperToggle={!isAnthropic}
               effectiveModelNormalize={effectiveModelNormalize}
