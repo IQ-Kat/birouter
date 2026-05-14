@@ -9,6 +9,9 @@
   },
   "license": "MIT",
   "homepage": "https://omniroute.online",
+  "engines": {
+    "node": ">=22.22.2 <23 || >=24.0.0 <27"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron . --no-sandbox",
