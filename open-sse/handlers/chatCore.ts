@@ -704,6 +704,34 @@ function readStreamChunkWithTimeout(
   });
 }
 
+/**
+ * Strip hop-by-hop headers that describe the upstream wire encoding.
+ *
+ * `readNonStreamingResponseBody` reads (and, for compressed responses, also
+ * decompresses via fetch's auto-decoder) the full upstream body into a JS
+ * string before we re-emit it to the client. Once that happens, the original
+ * `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` all describe
+ * a payload that no longer exists:
+ *
+ *   - `Content-Length` is the *compressed* byte count, so clients honoring it
+ *     read only the first N bytes of the decompressed JSON and surface
+ *     "Unterminated string in JSON at position …" parse failures (observed
+ *     on gzipped Gemini responses).
+ *   - `Content-Encoding` advertises a compression we have already undone.
+ *   - `Transfer-Encoding` is hop-by-hop per RFC 7230 §6.1 and must not be
+ *     forwarded across a buffering proxy — its presence alongside a
+ *     re-emitted body is undefined behavior.
+ *
+ * Deleting all three lets the response framework set a fresh, correct
+ * `Content-Length` (or fall back to `Transfer-Encoding: chunked`) for the
+ * payload we are actually sending.
+ */
+export function stripStaleForwardingHeaders(headers: Headers): void {
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+  headers.delete("transfer-encoding");
+}
+
 async function readNonStreamingResponseBody(
   response: Response,
   contentType: string,
@@ -3238,6 +3266,7 @@ export async function handleChatCore({
         const status = rawResult.response.status;
         const statusText = rawResult.response.statusText;
         const headers = new Headers(rawResult.response.headers);
+        stripStaleForwardingHeaders(headers);
         const contentType = (headers.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,
