@@ -64,3 +64,23 @@ test("merge mode builds aliases from discovered models without pruning missing p
   assert.equal(aliases["model-a"], undefined);
   assert.equal(aliases["model-b"], "openrouter/shared/model-b");
 });
+
+test("provider-level synced model deletion removes only that provider", async () => {
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-a", [
+    { id: "shared/model-a", name: "Model A", source: "imported" },
+  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openrouter", "conn-b", [
+    { id: "shared/model-b", name: "Model B", source: "imported" },
+  ]);
+  await modelsDb.replaceSyncedAvailableModelsForConnection("openai", "conn-a", [
+    { id: "shared/model-c", name: "Model C", source: "imported" },
+  ]);
+
+  const removed = await modelsDb.deleteSyncedAvailableModelsForProvider("openrouter");
+
+  assert.equal(removed, 2);
+  assert.deepEqual(await modelsDb.getSyncedAvailableModels("openrouter"), []);
+  assert.deepEqual(await modelsDb.getSyncedAvailableModels("openai"), [
+    { id: "shared/model-c", name: "Model C", source: "imported" },
+  ]);
+});
