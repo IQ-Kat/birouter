@@ -205,23 +205,23 @@ if (args.includes("--help") || args.includes("-h")) {
     omniroute providers available --search openai
     omniroute providers available --category api-key
     omniroute providers list
-omniroute providers test <id|name>
-     omniroute providers test-all
-     omniroute providers validate
+    omniroute providers test <id|name>
+    omniroute providers test-all
+    omniroute providers validate
 
-   \x1b[1mCLI Tools:\x1b[0m
-     omniroute config list                  List CLI tool configuration status
-     omniroute config get <tool>            Show config for a specific tool
-     omniroute config set <tool>            Write config for a tool
-     omniroute config validate <tool>       Validate config without writing
-     omniroute status                       Offline status dashboard
-     omniroute logs [--follow] [--filter]   Stream usage logs
-     omniroute update [--check] [--dry-run] Check or apply OmniRoute update
-     omniroute provider add <name>          Add a provider connection
-     omniroute provider list                List configured providers
-     omniroute provider test <name|id>      Test a provider connection
+  \x1b[1mCLI Tools:\x1b[0m
+    omniroute config list                  List CLI tool configuration status
+    omniroute config get <tool>            Show config for a specific tool
+    omniroute config set <tool>            Write config for a tool
+    omniroute config validate <tool>       Validate config without writing
+    omniroute status                       Offline status dashboard
+    omniroute logs [--follow] [--filter]   Stream usage logs
+    omniroute update [--check] [--dry-run] Check or apply OmniRoute update
+    omniroute provider add <name>          Add a provider connection
+    omniroute provider list                List configured providers
+    omniroute provider test <name|id>      Test a provider connection
 
-   \x1b[1mAfter starting:\x1b[0m
+  \x1b[1mAfter starting:\x1b[0m
     Dashboard:  http://localhost:<dashboard-port>
     API:        http://localhost:<api-port>/v1
 

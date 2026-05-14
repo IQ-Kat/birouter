@@ -296,16 +296,8 @@ export default function RoutingTab() {
                 }}
                 disabled={loading || forced}
                 aria-pressed={checked}
-<<<<<<< HEAD
                 aria-disabled={forced || undefined}
                 title={titleText}
-=======
-                title={
-                  checked
-                    ? t("disableFingerprintTitle", { provider: label })
-                    : t("enableFingerprintTitle", { provider: label })
-                }
->>>>>>> a10ef5ee (feat(auto): complete zero-config auto-routing feature)
                 className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
                   checked
                     ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
