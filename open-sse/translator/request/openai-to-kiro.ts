@@ -473,13 +473,23 @@ function convertMessages(messages, tools, model) {
   // Ensure first message is user. Kiro API requires conversations to start
   // with a user message (fixes "Improperly formed request" for assistant-first).
   if (mergedHistory.length > 0 && mergedHistory[0].assistantResponseMessage) {
-    mergedHistory.unshift({
+    const syntheticUserTurn = {
       userInputMessage: {
         content: "(empty)",
         modelId: model,
         origin: "AI_EDITOR",
       },
+    };
+    // Mark as synthetic (non-enumerable so it doesn't leak to upstream JSON)
+    // so conversationId derivation can skip it — otherwise every
+    // assistant-first conversation collapses onto the same uuidv5(empty)
+    // namespace and leaks AWS Builder ID context across unrelated sessions.
+    Object.defineProperty(syntheticUserTurn, "__synthetic", {
+      value: true,
+      enumerable: false,
+      configurable: true,
     });
+    mergedHistory.unshift(syntheticUserTurn);
   }
 
   // Ensure assistant exists before toolResults. Kiro API validates that every
@@ -555,9 +565,15 @@ function convertMessages(messages, tools, model) {
   for (const item of mergedHistory) {
     const last = alternatingHistory[alternatingHistory.length - 1];
     if (item.userInputMessage && last?.userInputMessage) {
-      alternatingHistory.push({
+      const syntheticAssistantTurn = {
         assistantResponseMessage: { content: "(empty)" },
+      };
+      Object.defineProperty(syntheticAssistantTurn, "__synthetic", {
+        value: true,
+        enumerable: false,
+        configurable: true,
       });
+      alternatingHistory.push(syntheticAssistantTurn);
     }
     alternatingHistory.push(item);
   }
@@ -685,12 +701,15 @@ export function buildKiroPayload(model, body, stream, credentials) {
     },
   };
 
-  // Determistic session caching for Kiro
+  // Deterministic session caching for Kiro.
+  // Skip synthetic placeholder turns ("(empty)" injected for assistant-first
+  // conversations or alternating-role gaps) — otherwise unrelated assistant-
+  // first chats would all hash to the same uuidv5(empty) and reuse the same
+  // upstream Kiro/AWS conversation context, leaking prior state across
+  // sessions. See conversionMessages() above for the `__synthetic` marker.
   const NAMESPACE_KIRO = "34f7193f-561d-4050-bc84-9547d953d6bf";
-  const firstContent =
-    history.length > 0 && history[0].userInputMessage?.content
-      ? history[0].userInputMessage.content
-      : finalContent;
+  const firstRealUserTurn = history.find((h) => h?.userInputMessage?.content && !h.__synthetic);
+  const firstContent = firstRealUserTurn?.userInputMessage?.content || finalContent;
 
   // Use uuidv5 with the hash of the system prompt / first message to maintain AWS Builder ID context cache
   payload.conversationState.conversationId = uuidv5(

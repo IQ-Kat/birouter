@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Security
+
+- **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly. The literal was removed from `.env.example` in this release, so the previous direct read would have silently skipped refresh for browser-flow Windsurf/Devin sessions (forcing re-auth instead of renewing). Operators with a legacy `WINDSURF_FIREBASE_API_KEY` value in their `.env` keep working — the env override path is preserved by `resolvePublicCred()`. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+- **fix(kiro/translator):** assistant-first conversations no longer collide on a single `conversationId`. The synthetic "(empty)" user turn injected to satisfy Kiro's "first message must be user" rule is now marked non-enumerable `__synthetic` and excluded from the `uuidv5` conversationId derivation, so unrelated chats no longer share the same upstream AWS Builder ID context. Prevents leaking prior session state across unrelated chats.
+- **fix(utils/publicCreds):** `decodePublicCred()` no longer silently mangles raw credential overrides that don't match `RAW_VALUE_PATTERN`. The previous path always base64-decoded + XOR-unmasked (and `Buffer.from(v, "base64")` is lenient, accepting many non-base64 inputs without throwing). Now: strict-base64 alphabet check + printable-plain check on the decoded result; failing either, the original value is returned untouched.
+- **fix(auth/extractApiKey):** `x-api-key` fallback now only triggers when the request also carries an `anthropic-version` header. Without this scoping, non-Anthropic clients in local mode (placeholder `x-api-key`) would get `401 Invalid API key` from per-route gates even with `REQUIRE_API_KEY` off.
+- **fix(providers/qoder):** the OAuth+PAT disambiguation message now actually surfaces. The `getProviderRuntimeStatus()` early-return on `qoder + !apikey` was masking the new branch added in #2247.
+
 ### Fixed
 
 - **fix(executor/claude-code):** store tool-name round-trip metadata in non-enumerable `_toolNameMap` so it survives in-memory but is stripped by `JSON.stringify()` — prevents internal OmniRoute metadata from leaking to upstream providers. ([#2254](https://github.com/diegosouzapw/OmniRoute/pull/2254) — thanks @Rikonorus)

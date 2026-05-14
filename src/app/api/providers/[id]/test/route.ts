@@ -233,6 +233,26 @@ function hasQoderToken(connection: any): boolean {
 async function getProviderRuntimeStatus(connection: any) {
   const provider = typeof connection?.provider === "string" ? connection.provider : "";
   let toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
+
+  // Issue #2247: detect Qoder in OAuth/CLI-flavored mode with a PAT pasted
+  // BEFORE the CLI-runtime early-return below, otherwise the disambiguation
+  // message never reaches the user (they keep seeing the generic "CLI not
+  // installed" + 401 cascade). For Qoder, this short-circuits the runtime
+  // check entirely with an actionable diagnosis.
+  const isQoderOauthWithToken =
+    provider === "qoder" && connection?.authType !== "apikey" && hasQoderToken(connection);
+  if (isQoderOauthWithToken) {
+    const message =
+      "Qoder OAuth/Local CLI mode is selected but a Personal Access Token is stored on this connection. Switch this connection to API Key auth to use the PAT directly.";
+    return {
+      installed: false,
+      runnable: false,
+      reason: "qoder_oauth_with_token",
+      diagnosis: makeDiagnosis("runtime_error", "local", message, "qoder_oauth_with_token"),
+      error: message,
+    };
+  }
+
   if (provider === "qoder" && connection?.authType !== "apikey") {
     toolId = null;
   }
@@ -244,17 +264,9 @@ async function getProviderRuntimeStatus(connection: any) {
       return runtime;
     }
 
-    // Issue #2247: when Qoder is in OAuth/CLI-flavored mode but the user has
-    // pasted a Personal Access Token, the bare "CLI not installed" message
-    // hides the real fix — switch the connection to API Key auth.
-    const isQoderOauthWithToken =
-      provider === "qoder" && connection?.authType !== "apikey" && hasQoderToken(connection);
-
     const runtimeMessage = runtime.installed
       ? `Local CLI runtime is installed but not runnable (${runtime.reason || "healthcheck_failed"})`
-      : isQoderOauthWithToken
-        ? "Qoder OAuth/Local CLI mode is selected but the Qoder CLI is not detected. If you have a Personal Access Token, switch this connection to API Key auth instead."
-        : "Local CLI runtime is not installed";
+      : "Local CLI runtime is not installed";
 
     return {
       ...runtime,

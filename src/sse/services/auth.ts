@@ -1691,6 +1691,13 @@ export async function clearRecoveredProviderState(
  *
  * When both are present, `Authorization: Bearer` wins for back-compat
  * (issue #2225).
+ *
+ * The `x-api-key` fallback only triggers when the request also carries an
+ * `anthropic-version` header — the documented signal that the caller is
+ * speaking the Anthropic Messages API contract. Without this scoping,
+ * non-Anthropic SDKs that happen to set `x-api-key` (or local-mode tools
+ * with placeholder keys) would be treated as authenticated attempts and
+ * rejected by per-route gates that compare against OmniRoute keys.
  */
 export function extractApiKey(request: Request) {
   const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
@@ -1701,12 +1708,17 @@ export function extractApiKey(request: Request) {
     }
   }
   // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
-  // Without this fallback, per-key policies are bypassed and traffic is
-  // recorded with null api_key_id (invisible in Costs / Analytics).
-  const xApiKey = request.headers.get("x-api-key") || request.headers.get("X-Api-Key");
-  if (typeof xApiKey === "string") {
-    const trimmed = xApiKey.trim();
-    if (trimmed.length > 0) return trimmed;
+  // Gate the fallback on the anthropic-version header so we don't trip up
+  // local-mode requests from non-Anthropic clients that send placeholder
+  // x-api-key values (which would otherwise be rejected as Invalid API key).
+  const anthropicVersion =
+    request.headers.get("anthropic-version") || request.headers.get("Anthropic-Version");
+  if (anthropicVersion) {
+    const xApiKey = request.headers.get("x-api-key") || request.headers.get("X-Api-Key");
+    if (typeof xApiKey === "string") {
+      const trimmed = xApiKey.trim();
+      if (trimmed.length > 0) return trimmed;
+    }
   }
   return null;
 }
