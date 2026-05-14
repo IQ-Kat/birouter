@@ -16,12 +16,44 @@ interface ErrorResponseBody {
   };
 }
 
-const PATH_REGEX = /(?:[A-Z]:[\\/]|\/)[\w\-./\\]+\.(?:ts|js|tsx|jsx|mjs|cjs)(?::\d+)?(?::\d+)?/gi;
+// Length cap protects against pathological inputs even before tokenization.
+const MAX_ERROR_LEN = 4096;
+const SOURCE_EXT = ["ts", "tsx", "js", "jsx", "mjs", "cjs"] as const;
 
+function looksLikeAbsolutePath(tok: string): boolean {
+  // POSIX: "/<...>.ts" (optionally followed by :line[:col]).
+  // Windows: "C:\<...>.ts" or "C:/<...>.ts".
+  if (tok.length < 4 || tok.length > 2048) return false;
+  const isPosix = tok.charCodeAt(0) === 0x2f; // '/'
+  const isWindows = tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
+  if (!isPosix && !isWindows) return false;
+  const dot = tok.lastIndexOf(".");
+  if (dot <= 0 || dot === tok.length - 1) return false;
+  const ext = tok
+    .slice(dot + 1)
+    .split(":", 1)[0]
+    .toLowerCase();
+  return (SOURCE_EXT as readonly string[]).includes(ext);
+}
+
+/**
+ * Strip stack-trace tail and absolute source paths from error messages.
+ *
+ * Implemented via simple whitespace tokenization (linear time) instead of a
+ * single complex regex, so CodeQL `js/polynomial-redos` stays clean even when
+ * the runtime error message is attacker-controlled.
+ */
 export function sanitizeErrorMessage(message: unknown): string {
-  const str = typeof message === "string" ? message : String(message ?? "");
-  const firstLine = str.split("\n")[0] || str;
-  return firstLine.replace(PATH_REGEX, "<path>");
+  let str = typeof message === "string" ? message : String(message ?? "");
+  if (str.length > MAX_ERROR_LEN) str = str.slice(0, MAX_ERROR_LEN);
+  const nl = str.indexOf("\n");
+  const firstLine = nl >= 0 ? str.slice(0, nl) : str;
+  // Preserve original whitespace by splitting on captured separator.
+  const parts = firstLine.split(/(\s+)/);
+  for (let i = 0; i < parts.length; i++) {
+    if (looksLikeAbsolutePath(parts[i])) parts[i] = "<path>";
+  }
+  return parts.join("");
 }
 
 /**
