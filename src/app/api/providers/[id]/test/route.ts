@@ -220,6 +220,16 @@ function classifyFailure({
   );
 }
 
+function hasQoderToken(connection: any): boolean {
+  if (typeof connection?.apiKey === "string" && connection.apiKey.trim().length > 0) return true;
+  const psd = connection?.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const pat = (psd as any).personalAccessToken ?? (psd as any).pat ?? (psd as any).accessToken;
+    if (typeof pat === "string" && pat.trim().length > 0) return true;
+  }
+  return false;
+}
+
 async function getProviderRuntimeStatus(connection: any) {
   const provider = typeof connection?.provider === "string" ? connection.provider : "";
   let toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
@@ -234,9 +244,17 @@ async function getProviderRuntimeStatus(connection: any) {
       return runtime;
     }
 
+    // Issue #2247: when Qoder is in OAuth/CLI-flavored mode but the user has
+    // pasted a Personal Access Token, the bare "CLI not installed" message
+    // hides the real fix — switch the connection to API Key auth.
+    const isQoderOauthWithToken =
+      provider === "qoder" && connection?.authType !== "apikey" && hasQoderToken(connection);
+
     const runtimeMessage = runtime.installed
       ? `Local CLI runtime is installed but not runnable (${runtime.reason || "healthcheck_failed"})`
-      : "Local CLI runtime is not installed";
+      : isQoderOauthWithToken
+        ? "Qoder OAuth/Local CLI mode is selected but the Qoder CLI is not detected. If you have a Personal Access Token, switch this connection to API Key auth instead."
+        : "Local CLI runtime is not installed";
 
     return {
       ...runtime,
