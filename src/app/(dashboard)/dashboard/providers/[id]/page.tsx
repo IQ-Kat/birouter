@@ -1914,7 +1914,11 @@ export default function ProviderDetailPage() {
             : connection
         )
       );
-      notify.success(enabled ? "Claude extra-usage blocked" : "Claude extra-usage allowed");
+      notify.success(
+        enabled
+          ? "Claude extra-usage blocking enabled (extra usage will be blocked)"
+          : "Claude extra-usage blocking disabled (extra usage is allowed)"
+      );
     } catch (error) {
       console.error("Error toggling Claude extra-usage policy:", error);
       notify.error("Failed to update Claude extra-usage policy");
