@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 """
-OmniRoute i18n Auto-Translator
-This script scans all docs/i18n directory markdown files and uses an LLM
-API (like OmniRoute itself) to translate any English paragraphs into the 
-target language.
+DEPRECATED 2026-05-13. Use `npm run i18n:run`
+(scripts/i18n/run-translation.mjs) instead. This Python script will be
+removed in v3.10.
 
-Usage:
-  python3 scripts/i18n/i18n_autotranslate.py --api-url http://localhost:20128/v1 --api-key sk-your-omniroute-key --model cx/gpt-5.4
+The Node-based translator is hash-incremental (only retranslates files
+whose source SHA-256 changed), runs the OmniRoute Cloud LLM through
+OMNIROUTE_TRANSLATION_* env vars, and is wired into `npm run i18n:run`
+and `npm run i18n:check`.
+
+Historical purpose:
+  Scanned `docs/i18n/` markdown files and translated English paragraphs
+  into the target language by paragraph through an OpenAI-compatible LLM.
 """
+
+import sys
+print(
+    "WARN: scripts/i18n/i18n_autotranslate.py is deprecated. Use 'npm run i18n:run' instead.",
+    file=sys.stderr,
+)
 
 import os
 import re
-import sys
 import glob
 import json
 import urllib.request

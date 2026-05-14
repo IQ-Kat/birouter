@@ -1,3 +1,9 @@
+---
+title: "Compliance & Audit"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Compliance & Audit
 
 > **Source of truth:** `src/lib/compliance/`, `src/app/api/compliance/`

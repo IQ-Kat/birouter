@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Platform overhaul (FASES 1-9):** scripts cleanup, `.env` audit, `/docs` restructure, diagrams folder, i18n pipelines (docs + UI), `/src/app/docs` sync, CI gates.
+  - **Scripts:** `scripts/` reorganized into 6 subfolders (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`); 23 one-shot scripts archived to the `archive/scripts-scratch-pre-3.8` branch.
+  - **Environment:** `.env.example` cleaned (-11 orphan vars, +63 missing vars, 11 hardcoded URLs/timeouts promoted to env); new strict `scripts/check/check-env-doc-sync.mjs` validates code ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` parity.
+  - **Docs:** `/docs` restructured into 8 functional subfolders (`architecture/`, `guides/`, `reference/`, `frameworks/`, `routing/`, `security/`, `compression/`, `ops/`); ~899 cross-references rewritten.
+  - **Diagrams:** new `docs/diagrams/` with 8 canonical Mermaid sources + SVG exports, linked into 9 docs.
+  - **i18n (docs):** hash-based incremental pipeline (`config/i18n.json`, `scripts/i18n/run-translation.mjs`, `.i18n-state.json`); old `i18n_autotranslate.py` and `generate-multilang.mjs` deprecated.
+  - **i18n (UI):** `scripts/i18n/sync-ui-keys.mjs` propagates `en.json` keys to all 40 locales (no missing keys; coverage ≥ 85.8%); cosmetic `DocsI18n.tsx` removed (locale handling unified via `next-intl`).
+  - **`/src/app/docs`:** drift fixes (179 → 177 providers, 13 → 14 strategies, 36 → 37 MCP tools); YAML frontmatter added to all docs; `ApiExplorer` consumes `docs/reference/openapi.yaml` (19 endpoints); `content.ts` updated (37 MCP tool groups, 7 internal deployment guide hrefs).
+  - **CI gates:** strict env-doc-sync in pre-commit; `check:doc-links` validates internal markdown refs; new `docs-sync-strict` and `i18n-ui-coverage` jobs in `.github/workflows/ci.yml`.
+
+### Fixed
+
+- **Docs:** 270 broken internal markdown links repaired (consequence of `/docs` subfolder restructure not relativizing all paths). Categories: 241 `i18n-relative`, 14 `parent-relative`, 9 `screenshots`, 2 deleted-RFC, 4 misc. Now `npm run check:doc-links` PASS with 0 broken links.
+
 ## [3.8.0] — 2026-05-06
 
 ### ✨ New Features

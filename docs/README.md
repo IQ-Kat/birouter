@@ -1,3 +1,9 @@
+---
+title: "OmniRoute Documentation"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute Documentation
 
 Navigable index of the OmniRoute documentation set. Topics are grouped by intent so you can find what you need quickly.

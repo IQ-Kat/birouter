@@ -57,7 +57,7 @@ export const autoNavSections: AutoGenNavSection[] = [
     items: [
       {
         slug: "docker-guide",
-        title: "🐳 Docker Guide",
+        title: "🐳 Docker Guide — OmniRoute",
         fileName: "guides/DOCKER_GUIDE.md",
       },
       {
@@ -82,7 +82,7 @@ export const autoNavSections: AutoGenNavSection[] = [
       },
       {
         slug: "setup-guide",
-        title: "Setup Guide",
+        title: "📖 Setup Guide — OmniRoute",
         fileName: "guides/SETUP_GUIDE.md",
       },
       {
@@ -227,7 +227,7 @@ export const autoNavSections: AutoGenNavSection[] = [
       },
       {
         slug: "compression-guide",
-        title: "🗜️ Prompt Compression Guide",
+        title: "🗜️ Prompt Compression Guide — OmniRoute",
         fileName: "compression/COMPRESSION_GUIDE.md",
       },
       {
@@ -262,7 +262,7 @@ export const autoNavSections: AutoGenNavSection[] = [
       },
       {
         slug: "proxy-guide",
-        title: "OmniRoute Proxy Guide",
+        title: "🌐 OmniRoute Proxy Guide",
         fileName: "ops/PROXY_GUIDE.md",
       },
       {
@@ -385,7 +385,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "docker-guide",
-    title: "🐳 Docker Guide",
+    title: "🐳 Docker Guide — OmniRoute",
     fileName: "guides/DOCKER_GUIDE.md",
     section: "Guides",
     content:
@@ -451,6 +451,8 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     content:
       "OmniRoute supports 30 languages with full dashboard UI translation, translated documentation, and RTL support for Arabic and Hebrew. 🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇩🇪 Deutsch 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇯🇵 日本語 🇰🇷 한국어 🇸🇦 العربية 🇮🇳 ",
     headings: [
+      "Translation pipeline (recommended — v3.8.0)",
+      "Legacy scripts (deprecated)",
       "Quick Reference",
       "Architecture",
       "Source of Truth",
@@ -459,8 +461,6 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Adding a New Language",
       "1. Register the Locale",
       "2. Add to Generator",
-      "3. Generate Initial Translation",
-      "4. Review & Fix Auto-Translations",
     ],
   },
   {
@@ -485,7 +485,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "setup-guide",
-    title: "Setup Guide",
+    title: "📖 Setup Guide — OmniRoute",
     fileName: "guides/SETUP_GUIDE.md",
     section: "Guides",
     content:
@@ -963,7 +963,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "compression-guide",
-    title: "🗜️ Prompt Compression Guide",
+    title: "🗜️ Prompt Compression Guide — OmniRoute",
     fileName: "compression/COMPRESSION_GUIDE.md",
     section: "Compression",
     content:
@@ -1073,7 +1073,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
   },
   {
     slug: "proxy-guide",
-    title: "OmniRoute Proxy Guide",
+    title: "🌐 OmniRoute Proxy Guide",
     fileName: "ops/PROXY_GUIDE.md",
     section: "Ops",
     content:

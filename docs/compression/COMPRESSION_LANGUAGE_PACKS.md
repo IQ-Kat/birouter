@@ -1,3 +1,9 @@
+---
+title: "Compression Language Packs"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Compression Language Packs
 
 Caveman compression can load language-specific rule packs in addition to the built-in English rules.
@@ -25,7 +31,7 @@ Current shipped packs (verified against `rules/` directory contents):
 
 > **Parity note:** `en` and `es` packs have the full 5 categories; `pt-BR`, `de`, `fr`, `ja` ship 3 categories. The missing `dedup` and `ultra` categories silently fall back to the English built-ins. Contributions welcome to add `dedup.json` and `ultra.json` for the smaller packs.
 >
-> The canonical category list and per-category schema live in [`open-sse/services/compression/rules/_schema.json`](../open-sse/services/compression/rules/_schema.json) (JSON Schema draft 2020-12).
+> The canonical category list and per-category schema live in [`open-sse/services/compression/rules/_schema.json`](../../open-sse/services/compression/rules/_schema.json) (JSON Schema draft 2020-12).
 
 ## Language Detection
 

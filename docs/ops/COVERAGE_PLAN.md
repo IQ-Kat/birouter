@@ -1,3 +1,9 @@
+---
+title: "Test Coverage Plan"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Test Coverage Plan
 
 Last updated: 2026-05-13

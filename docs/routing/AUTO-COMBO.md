@@ -1,3 +1,9 @@
+---
+title: "OmniRoute Auto-Combo Engine"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute Auto-Combo Engine
 
 > Self-managing model chains with adaptive scoring + zero-config auto-routing

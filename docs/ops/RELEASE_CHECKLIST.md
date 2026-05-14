@@ -1,3 +1,9 @@
+---
+title: "Release Checklist"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Release Checklist
 
 > **Last updated:** 2026-05-13 — v3.8.0
@@ -91,6 +97,9 @@ Breaking changes: add `BREAKING CHANGE:` footer or `!` after the scope (e.g. `fe
 ### Documentation
 
 - [ ] `npm run check:docs-sync` passes (auto-run by pre-commit)
+- [ ] `npm run check:docs-all` passes (umbrella: docs-sync + docs-counts + env-doc-sync + deprecated-versions + doc-links)
+- [ ] `npm run check:env-doc-sync` exits 0 — code ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` env contract is intact
+- [ ] `npm run check:doc-links` exits 0 — no broken internal markdown references after restructuring
 - [ ] `docs/architecture/ARCHITECTURE.md` reviewed for storage/runtime drift
 - [ ] `docs/guides/TROUBLESHOOTING.md` reviewed for env var and operational drift
 - [ ] If `.env.example` changed: `docs/reference/ENVIRONMENT.md` updated
@@ -101,8 +110,10 @@ Breaking changes: add `BREAKING CHANGE:` footer or `!` after the scope (e.g. `fe
 
 ### i18n
 
-- [ ] Check `docs/i18n/` for major language drift against source docs
-- [ ] Run `scripts/i18n-check.mjs` if present in repo
+- [ ] `npm run i18n:check` exits 0 — translation state (`.i18n-state.json`) in sync with source docs (no drifted sources in strict mode; warn-mode advisory is acceptable for last-minute doc touch-ups, but should be 0 before tagging)
+- [ ] `npm run i18n:check-ui-coverage` exits 0 — every UI locale at or above the 80% coverage floor
+- [ ] `npm run i18n:sync-ui:dry` reports 0 missing keys across all 40 locales
+- [ ] If source English docs changed, run `npm run i18n:run` (requires `OMNIROUTE_TRANSLATION_API_KEY` in `.env`) before tagging
 - [ ] Translation contributions can be deferred to next release if minor (track in CHANGELOG)
 
 ### Database Migrations

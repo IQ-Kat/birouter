@@ -1,3 +1,9 @@
+---
+title: "Authorization Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Authorization Guide
 
 > **Source of truth:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`

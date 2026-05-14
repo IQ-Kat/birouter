@@ -1,3 +1,9 @@
+---
+title: "OmniRoute Fly.io 部署指南"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute Fly.io 部署指南
 
 本文档记录 OmniRoute 在 Fly.io 上的实际部署方法，适用于两类场景：

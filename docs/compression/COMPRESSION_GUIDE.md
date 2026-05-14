@@ -1,3 +1,9 @@
+---
+title: "🗜️ Prompt Compression Guide — OmniRoute"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # 🗜️ Prompt Compression Guide — OmniRoute
 
 > Save 15-95% on eligible context automatically. For a quick overview, see the [README Compression section](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).

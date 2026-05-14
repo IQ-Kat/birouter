@@ -1,3 +1,9 @@
+---
+title: "Webhooks"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Webhooks
 
 > **Source of truth:** `src/lib/webhookDispatcher.ts`, `src/lib/db/webhooks.ts`, `src/app/api/webhooks/`

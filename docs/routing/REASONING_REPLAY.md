@@ -1,3 +1,9 @@
+---
+title: "Reasoning Replay Cache"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Reasoning Replay Cache
 
 > **Source of truth:** `src/lib/db/reasoningCache.ts`, `open-sse/services/reasoningCache.ts`

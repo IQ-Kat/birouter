@@ -1,3 +1,9 @@
+---
+title: "🐳 Docker Guide — OmniRoute"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # 🐳 Docker Guide — OmniRoute
 
 > Complete Docker deployment reference. For a quick start, see the [README Docker section](../README.md#-docker).

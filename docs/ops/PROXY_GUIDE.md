@@ -1,3 +1,9 @@
+---
+title: "🌐 OmniRoute Proxy Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # 🌐 OmniRoute Proxy Guide
 
 > **Bypass geographic blocks, protect your identity, and route AI traffic through any proxy — with zero configuration complexity.**

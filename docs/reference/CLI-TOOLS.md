@@ -1,3 +1,9 @@
+---
+title: "CLI Tools — OmniRoute v3.8.0"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # CLI Tools — OmniRoute v3.8.0
 
 Last updated: 2026-05-13

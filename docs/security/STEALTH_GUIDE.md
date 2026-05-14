@@ -1,3 +1,9 @@
+---
+title: "Stealth Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Stealth Guide
 
 > **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{chatgptTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible,antigravityObfuscation}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`

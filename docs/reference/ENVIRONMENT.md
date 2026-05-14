@@ -1,7 +1,13 @@
+---
+title: "Environment Variables Reference"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Environment Variables Reference
 
 > Complete reference for every environment variable recognized by OmniRoute.
-> For a quick-start template, see [`.env.example`](../.env.example).
+> For a quick-start template, see [`.env.example`](../../.env.example).
 
 > [!IMPORTANT]
 > Every variable documented here must also appear in `.env.example`, and
@@ -808,6 +814,20 @@ value below unset in production deployments.
 | `ELECTRON_SMOKE_KEEP_DATA`            | `0`                              | `scripts/smoke-electron-packaged.mjs` | Set `1` to preserve the smoke data directory after the run.                              |
 | `ELECTRON_SMOKE_STREAM_LOGS`          | `0`                              | `scripts/smoke-electron-packaged.mjs` | Set `1` to stream Electron logs to stdout during the run.                                |
 | `CLI_DEVIN_BIN`                       | _(PATH lookup)_                  | `open-sse/executors/devin-cli.ts`     | Override the Devin CLI binary path.                                                      |
+
+### Docs translation pipeline
+
+Used by `scripts/i18n/run-translation.mjs` (the `npm run i18n:run` command).
+All five variables are unset by default — set them in `.env` only on machines
+that should be able to run the docs translator.
+
+| Variable                            | Default   | Source File                        | Description                                                               |
+| ----------------------------------- | --------- | ---------------------------------- | ------------------------------------------------------------------------- |
+| `OMNIROUTE_TRANSLATION_API_URL`     | _(unset)_ | `scripts/i18n/run-translation.mjs` | OpenAI-compatible base URL for the translation backend.                   |
+| `OMNIROUTE_TRANSLATION_API_KEY`     | _(unset)_ | `scripts/i18n/run-translation.mjs` | Bearer token for the translation backend (never logged).                  |
+| `OMNIROUTE_TRANSLATION_MODEL`       | _(unset)_ | `scripts/i18n/run-translation.mjs` | Model id, e.g. `gpt-4o-mini` or `cx/gpt-5.4-mini`.                        |
+| `OMNIROUTE_TRANSLATION_TIMEOUT_MS`  | `60000`   | `scripts/i18n/run-translation.mjs` | Per-request timeout in milliseconds.                                      |
+| `OMNIROUTE_TRANSLATION_CONCURRENCY` | `4`       | `scripts/i18n/run-translation.mjs` | Parallel translation requests when running over multiple files / locales. |
 
 ---
 

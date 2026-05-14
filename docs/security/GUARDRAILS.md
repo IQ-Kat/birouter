@@ -1,3 +1,9 @@
+---
+title: "Guardrails"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Guardrails
 
 > **Source of truth:** `src/lib/guardrails/`

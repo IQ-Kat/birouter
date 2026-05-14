@@ -1,3 +1,9 @@
+---
+title: "OmniRoute A2A Server Documentation"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # OmniRoute A2A Server Documentation
 
 > Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent

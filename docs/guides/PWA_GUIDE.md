@@ -1,3 +1,9 @@
+---
+title: "Progressive Web App (PWA) Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Progressive Web App (PWA) Guide
 
 OmniRoute ships as a fully installable Progressive Web App. When you access the dashboard from any mobile browser — Android (Chrome) or iOS (Safari) — you can "Add to Home Screen" and get a native app-like experience with no app store required.

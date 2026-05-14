@@ -1,3 +1,9 @@
+---
+title: "Tunnels Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Tunnels Guide
 
 > **Source of truth:** `src/lib/{cloudflaredTunnel,ngrokTunnel,tailscaleTunnel}.ts`, `src/app/api/tunnels/`

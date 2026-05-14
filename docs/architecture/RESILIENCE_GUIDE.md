@@ -1,3 +1,9 @@
+---
+title: "Resilience Guide"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Resilience Guide
 
 OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior.

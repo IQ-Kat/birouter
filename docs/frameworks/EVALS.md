@@ -1,3 +1,9 @@
+---
+title: "Evaluations (Evals)"
+version: 3.8.0
+lastUpdated: 2026-05-13
+---
+
 # Evaluations (Evals)
 
 > **Source of truth:** `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`
@@ -194,8 +200,8 @@ can:
 ## Relationship with the Auto-Assessment RFC
 
 A separate, narrower assessment subsystem lives at `src/domain/assessment/`
-and is documented in [docs/RFC-AUTO-ASSESSMENT.md](./RFC-AUTO-ASSESSMENT.md).
-That RFC targets the Auto Combo engine — automatically scoring providers and
+(see also [AUTO-COMBO.md](../routing/AUTO-COMBO.md) for the live scoring engine).
+That subsystem targets the Auto Combo engine — automatically scoring providers and
 models so combos can self-heal when upstreams fail. It uses its own runner,
 its own categorizer, and its own scoring logic.
 
@@ -239,6 +245,6 @@ Common changes and where to make them:
 
 - [USER_GUIDE.md](../guides/USER_GUIDE.md) — overall product walkthrough
 - [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — request pipeline reference
-- [RFC-AUTO-ASSESSMENT.md](./RFC-AUTO-ASSESSMENT.md) — Auto Combo scoring
+- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — Auto Combo scoring engine (live runtime)
 - Source: `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`
 - UI: `src/app/(dashboard)/dashboard/usage/components/EvalsTab.tsx`
