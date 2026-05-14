@@ -56,7 +56,7 @@
 
 [![npm](https://img.shields.io/npm/v/omniroute?logo=npm&style=flat-square)](https://www.npmjs.com/package/omniroute)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%E2%89%A520.20.2-brightgreen?style=flat-square)](package.json)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen?style=flat-square)](package.json)
 [![Stars](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
 [![Trendshift](https://trendshift.io/api/badge/repositories/23589)](https://trendshift.io/repositories/23589)
 
@@ -488,6 +488,6 @@ Free forever. Self-hosted. No tracking. No cloud lock-in.
 
 **[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.0 · Node ≥20.20.2 · MIT License</sub>
+<sub>OmniRoute v3.8.0 · Node ≥22.22.2 · MIT License</sub>
 
 </div>

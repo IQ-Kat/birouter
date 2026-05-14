@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines field](package.json) and the README Node badge.
 - **Platform overhaul (FASES 1-9):** scripts cleanup, `.env` audit, `/docs` restructure, diagrams folder, i18n pipelines (docs + UI), `/src/app/docs` sync, CI gates.
   - **Scripts:** `scripts/` reorganized into 6 subfolders (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`); 23 one-shot scripts archived to the `archive/scripts-scratch-pre-3.8` branch.
   - **Environment:** `.env.example` cleaned (-11 orphan vars, +63 missing vars, 11 hardcoded URLs/timeouts promoted to env); new strict `scripts/check/check-env-doc-sync.mjs` validates code ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` parity.
