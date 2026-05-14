@@ -466,6 +466,15 @@ export async function collectDoctorChecks(context = {}, options = {}) {
     checks.push(await checkServerLiveness(options));
   }
 
+  // CLI tool health checks
+  try {
+    const { collectCliToolChecks } = await import("../../../src/lib/cli-helper/doctor/checks.js");
+    const cliChecks = await collectCliToolChecks();
+    checks.push(...cliChecks);
+  } catch (err) {
+    checks.push(warn("CLI Tools", `Could not run CLI tool checks: ${err.message}`));
+  }
+
   return {
     dataDir,
     dbPath,
@@ -493,7 +502,7 @@ Options:
   --liveness-url <url>   Full health endpoint URL override
 
 Checks:
-  config, database, storage/encryption, ports, Node runtime, native binary, memory, server liveness
+  config, database, storage/encryption, ports, Node runtime, native binary, memory, server liveness, CLI tools
 `);
 }
 
