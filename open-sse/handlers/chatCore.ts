@@ -485,6 +485,35 @@ function mergeResponseToolNameMap(
   return merged;
 }
 
+const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
+  "content-type",
+  "content-encoding",
+  "content-length",
+  "transfer-encoding",
+]);
+
+export function buildStreamingResponseHeaders(
+  providerHeaders: Headers,
+  meta: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
+): Record<string, string> {
+  const forwardedHeaders: [string, string][] = [];
+  providerHeaders.forEach((value, key) => {
+    if (!STREAMING_RESPONSE_HEADER_DENYLIST.has(key.toLowerCase())) {
+      forwardedHeaders.push([key, value]);
+    }
+  });
+
+  return {
+    ...Object.fromEntries(forwardedHeaders),
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+    [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
+    ...buildOmniRouteResponseMetaHeaders(meta),
+  };
+}
+
 function materializeDeduplicatedExecutionResult<T extends Record<string, unknown>>(result: T): T {
   const snapshot =
     result && typeof result === "object"
@@ -4134,7 +4163,10 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
-      cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+      cacheReasoningFromAssistantMessage(msg, provider, model, {
+        requestId: skillRequestId,
+        messageIndex: 0,
+      });
     } catch {
       // Cache capture is non-critical — never block the response
     }
@@ -4364,28 +4396,17 @@ export async function handleChatCore({
     await onRequestSuccess();
   }
 
-  const responseHeaders: Record<string, string> = {
-    ...Object.fromEntries(
-      (() => {
-        const arr: [string, string][] = [];
-        providerResponse.headers.forEach((v, k) => arr.push([k, v]));
-        return arr;
-      })().filter(([k]) => k.toLowerCase() !== "content-type")
-    ),
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache, no-transform",
-    Connection: "keep-alive",
-    "X-Accel-Buffering": "no",
-    [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-    ...buildOmniRouteResponseMetaHeaders({
+  const responseHeaders: Record<string, string> = buildStreamingResponseHeaders(
+    providerResponse.headers,
+    {
       provider,
       model,
       cacheHit: false,
       latencyMs: 0,
       usage: null,
       costUsd: 0,
-    }),
-  };
+    }
+  );
 
   // Create transform stream with logger for streaming response
   let transformStream;
@@ -4421,7 +4442,10 @@ export async function handleChatCore({
         const body = streamResponseBody as Record<string, unknown>;
         const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
-        cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+        cacheReasoningFromAssistantMessage(msg, provider, model, {
+          requestId: skillRequestId,
+          messageIndex: 0,
+        });
       } catch {
         // Cache capture is non-critical — never block the stream
       }
