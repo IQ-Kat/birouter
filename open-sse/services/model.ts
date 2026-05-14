@@ -501,15 +501,17 @@ export async function getModelInfoCore(
   // "openai/gpt-4o", parse it directly as <provider>/<model> and return
   // immediately — before shouldTreatAsExactModelId() or cross-proxy inference
   // can misclassify the target (e.g. because bazaarlink catalogs it verbatim).
-  if (aliases && parsed.model && typeof aliases[parsed.model] === "string") {
+  if (aliases && parsed.model) {
     const directTarget = aliases[parsed.model];
-    const slashIdx = directTarget.indexOf("/");
-    if (slashIdx !== -1) {
-      const providerPart = directTarget.slice(0, slashIdx);
-      const modelPart = directTarget.slice(slashIdx + 1);
-      const provider = resolveProviderAlias(providerPart);
-      const canonicalModel = resolveProviderModelAlias(provider, modelPart);
-      return { provider, model: canonicalModel, extendedContext };
+    if (typeof directTarget === "string") {
+      const slashIdx = directTarget.indexOf("/");
+      if (slashIdx !== -1) {
+        const providerPart = directTarget.slice(0, slashIdx);
+        const modelPart = directTarget.slice(slashIdx + 1);
+        const provider = resolveProviderAlias(providerPart);
+        const canonicalModel = resolveProviderModelAlias(provider, modelPart);
+        return { provider, model: canonicalModel, extendedContext };
+      }
     }
   }
 
