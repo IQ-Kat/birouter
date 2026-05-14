@@ -22,6 +22,12 @@ export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 // first token, while dead 200 OK streams fail fast enough for combo fallback.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
 
+// Heartbeat interval for synthetic SSE keepalive emission toward the downstream
+// client (Capy, Claude Code, OpenAI SDK, etc). Keeps strict proxies from
+// dropping the connection during long upstream thinking phases. Set to 0 to
+// disable. Override with SSE_HEARTBEAT_INTERVAL_MS env var.
+export const SSE_HEARTBEAT_INTERVAL_MS = upstreamTimeouts.sseHeartbeatIntervalMs;
+
 // Timeout for reading the full response body after headers arrive (ms).
 // Prevents indefinite hangs when the upstream sends headers but stalls on the body.
 // Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
