@@ -4,6 +4,7 @@ import {
   addCustomModel,
   removeCustomModel,
   replaceCustomModels,
+  deleteSyncedAvailableModelsForProvider,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
@@ -369,9 +370,12 @@ export async function DELETE(request) {
     const all = searchParams.get("all");
     if (all === "true") {
       await replaceCustomModels(provider, [], { allowEmpty: true });
+      const syncedAvailableModelListsRemoved =
+        await deleteSyncedAvailableModelsForProvider(provider);
       const removedAliases = await deleteManagedAvailableModelAliasesForProvider(provider);
       return Response.json({
         cleared: true,
+        syncedAvailableModelListsRemoved,
         aliasChanges: { removed: removedAliases, assigned: [] },
       });
     }
