@@ -1056,8 +1056,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
       { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
-      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
-      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
     ],
   },
 
@@ -1313,8 +1313,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "google/gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
       { id: "google/gemini-3-flash-preview", name: "Gemini 3 Flash" },
       { id: "google/gemini-3.1-flash-lite", name: "Gemini 3.1 Flash Lite" },
-      { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro" },
-      { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+      { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+      { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
       { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" },
     ],
     passthroughModels: true,
@@ -1345,8 +1345,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "google/gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
       { id: "google/gemini-3-flash-preview", name: "Gemini 3 Flash" },
       { id: "openai/gpt-5.5", name: "GPT-5.5" },
-      { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash" },
-      { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+      { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
+      { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     ],
     passthroughModels: true,
   },
@@ -1625,7 +1625,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     // Seed list — runtime /v1/models discovery keeps this fresh.
     // Source: GET https://crof.ai/v1/models (2026-04-25).
     models: [
-      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
       { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "kimi-k2.6-precision", name: "Kimi K2.6 (Precision)" },
@@ -1694,8 +1694,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
-      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     ],
   },
 
@@ -1994,7 +1994,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "accounts/fireworks/models/minimax-m2p7", name: "MiniMax M2.7" },
       { id: "accounts/fireworks/models/qwen3p6-plus", name: "Qwen3.6 Plus" },
       { id: "accounts/fireworks/models/glm-5p1", name: "GLM 5.1" },
-      { id: "accounts/fireworks/models/deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+      {
+        id: "accounts/fireworks/models/deepseek-v4-pro",
+        name: "DeepSeek V4 Pro",
+        supportsReasoning: true,
+      },
     ],
   },
 
@@ -2024,8 +2028,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     // Note: rate limits vary by plan (free = "Light usage", Pro = more, Max = 5x Pro).
     // Users can generate API keys at https://ollama.com/settings/api-keys
     models: [
-      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
-      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
       { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "glm-5.1", name: "GLM 5.1" },
       { id: "minimax-m2.7", name: "MiniMax M2.7" },
@@ -2070,7 +2074,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen/qwen3.5-397b-a17b", name: "Qwen3.5-397B-A17B" },
       { id: "qwen/qwen3.5-122b-a10b", name: "Qwen3.5-122B-A10B" },
       { id: "stepfun-ai/step-3.5-flash", name: "Step 3.5 Flash" },
-      { id: "deepseek-ai/deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+      { id: "deepseek-ai/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "openai/gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
       { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
       { id: "nvidia/nemotron-3-super-120b-a12b", name: "Nemotron 3 Super 120B A12B" },
@@ -2353,8 +2357,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "google/gemini-3-flash", name: "Gemini 3 Flash (Puter)" },
       { id: "google/gemini-3.1-pro-preview", name: "Gemini 3.1 Pro (Puter)" },
       // DeepSeek — use deepseek/ prefix (confirmed working)
-      { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro (Puter)" },
-      { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash (Puter)" },
+      {
+        id: "deepseek/deepseek-v4-pro",
+        name: "DeepSeek V4 Pro (Puter)",
+        supportsReasoning: true,
+      },
+      {
+        id: "deepseek/deepseek-v4-flash",
+        name: "DeepSeek V4 Flash (Puter)",
+        supportsReasoning: true,
+      },
       // xAI Grok — use x-ai/ prefix
       { id: "x-ai/grok-4.3", name: "Grok 4.3 (Puter)" },
       { id: "x-ai/grok-4.20", name: "Grok 4.20 (Puter)" },
