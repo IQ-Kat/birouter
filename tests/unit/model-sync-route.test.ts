@@ -919,9 +919,19 @@ test("model sync route falls back to in-process discovery when internal self-fet
     },
   });
 
+  // Reset shared readiness gate so this test exercises the probe path cleanly.
+  modelSyncRoute.__resetLoopbackReadinessForTests();
+
   const fetchCalls: string[] = [];
   globalThis.fetch = async (url) => {
     const urlString = String(url);
+
+    // Loopback readiness probe: respond 404 so the gate opens immediately.
+    // (Any HTTP response confirms the server is up — see ensureLoopbackServerReady.)
+    if (urlString.includes("__readiness_probe__")) {
+      return new Response(null, { status: 404 });
+    }
+
     fetchCalls.push(urlString);
 
     if (urlString === `http://localhost/api/providers/${connection.id}/models?refresh=true`) {
@@ -965,8 +975,18 @@ test("model sync route falls back to in-process discovery when internal self-fet
     availableModels.map((model) => ({ id: model.id, source: model.source })),
     [{ id: "aio-model", source: "imported" }]
   );
-  assert.deepEqual(fetchCalls, [
-    `http://localhost/api/providers/${connection.id}/models?refresh=true`,
-    "https://api.bltcy.ai/v1/models",
-  ]);
+  // selfFetchWithRetry default maxRetries=3: all 3 attempts throw, then in-process
+  // fallback fires (which triggers the upstream bltcy.ai fetch). So fetchCalls
+  // contains 3 self-fetch URLs followed by 1 upstream URL.
+  // Route forces IPv4 origin (http://127.0.0.1:PORT) — never "localhost" — to avoid
+  // ::1 (IPv6) resolution issues in containers. PORT defaults to 20128 when env unset.
+  const expectedPort = process.env.OMNIROUTE_PORT || process.env.PORT || "20128";
+  const selfFetchUrl = `http://127.0.0.1:${expectedPort}/api/providers/${connection.id}/models?refresh=true`;
+  assert.equal(
+    fetchCalls.slice(0, 3).every((u) => u === selfFetchUrl),
+    true,
+    "first 3 calls should be self-fetch retries"
+  );
+  assert.equal(fetchCalls[3], "https://api.bltcy.ai/v1/models", "4th call should be upstream");
+  assert.equal(fetchCalls.length, 4, "should have exactly 3 retries + 1 upstream call");
 });
