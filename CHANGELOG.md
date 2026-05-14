@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- **feat(limits):** per-window quota cutoffs across all providers with usage data — operators can set per-quota-window thresholds (e.g. `session=95%, weekly=80%`) with cascading resolver (connection → provider default → global 98%) and zero-latency gate when nothing is configured. New migration 056, new `GET /api/providers/quota-windows` endpoint, and Dashboard › Limits cutoff modal. ([#2267](https://github.com/diegosouzapw/OmniRoute/pull/2267) — thanks @payne0420)
+- **feat(api-keys):** configurable default rate limits via `DEFAULT_RATE_LIMIT_PER_DAY` env var — replaces hardcoded 1000/day fallback with Zod-validated configuration while preserving secure defaults for existing deployments. ([#2266](https://github.com/diegosouzapw/OmniRoute/pull/2266) — thanks @gleber)
+- **feat(authz):** `managementPolicy` accepts API keys with `manage` scope — enables headless/programmatic management (provisioning providers, setting rate limits) without a browser session. ([#2265](https://github.com/diegosouzapw/OmniRoute/pull/2265) — thanks @gleber)
+
 ### Changed
 
 - **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
@@ -17,6 +23,7 @@
 
 ### Fixed
 
+- **fix(sse):** strip stale `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` headers on non-streaming forward — fixes JSON truncation on gzipped Gemini responses where clients honoring `Content-Length` read only the compressed byte count of the decompressed payload, causing `"Unterminated string in JSON"` parse failures. RFC 7230 §6.1 compliant. ([#2264](https://github.com/diegosouzapw/OmniRoute/pull/2264) — thanks @gleber)
 - **fix(executor/claude-code):** store tool-name round-trip metadata in non-enumerable `_toolNameMap` so it survives in-memory but is stripped by `JSON.stringify()` — prevents internal OmniRoute metadata from leaking to upstream providers. ([#2254](https://github.com/diegosouzapw/OmniRoute/pull/2254) — thanks @Rikonorus)
 - **fix(streaming):** strip upstream `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` headers from SSE responses — prevents client-side decompression corruption when the proxy serves plain-text event streams through nginx/caddy. ([#2253](https://github.com/diegosouzapw/OmniRoute/pull/2253) — thanks @Rikonorus)
 - **fix(kiro):** harden OpenAI-to-Kiro translator for API compliance: recursively strip `additionalProperties` and empty `required: []` from tool schemas; merge consecutive assistant messages; prepend synthetic user for assistant-first conversations; convert orphaned tool results to inline text; enforce `origin: "AI_EDITOR"` on all history user messages; deterministic `uuidv5` session caching. Closes #2213. ([#2251](https://github.com/diegosouzapw/OmniRoute/pull/2251) — thanks @8mbe)
@@ -46,6 +53,10 @@
 ### Fixed
 
 - **Docs:** 270 broken internal markdown links repaired (consequence of `/docs` subfolder restructure not relativizing all paths). Categories: 241 `i18n-relative`, 14 `parent-relative`, 9 `screenshots`, 2 deleted-RFC, 4 misc. Now `npm run check:doc-links` PASS with 0 broken links.
+
+### Dependencies
+
+- **chore(deps):** node dependency updates — bump multiple runtime and dev dependencies to latest patch/minor versions. ([#2259](https://github.com/diegosouzapw/OmniRoute/pull/2259) — thanks @backryun)
 
 ## [3.8.0] — 2026-05-06
 
