@@ -79,7 +79,16 @@ loadEnvFile();
 
 const args = process.argv.slice(2);
 const command = args[0];
-const CLI_COMMANDS = new Set(["doctor", "providers", "setup"]);
+const CLI_COMMANDS = new Set([
+  "doctor",
+  "providers",
+  "setup",
+  "config",
+  "status",
+  "logs",
+  "update",
+  "provider",
+]);
 
 if (CLI_COMMANDS.has(command)) {
   try {
@@ -106,6 +115,67 @@ if (args.includes("--help") || args.includes("-h")) {
     omniroute --no-open       Don't open browser automatically
     omniroute --mcp           Start MCP server (stdio transport for IDEs)
     omniroute reset-encrypted-columns  Reset encrypted credentials (recovery)
+
+  \x1b[1mServer Management:\x1b[0m
+    omniroute serve           Start the OmniRoute server
+    omniroute stop            Stop the running server
+    omniroute restart         Restart the server
+    omniroute dashboard       Open dashboard in browser
+    omniroute open            Alias for dashboard (same as dashboard)
+
+  \x1b[1mCLI Integration Suite:\x1b[0m
+    omniroute setup           Interactive wizard to configure CLI tools
+    omniroute doctor         Run health diagnostics
+    omniroute status         Show comprehensive status
+    omniroute logs           Stream request logs (--json, --search, --follow)
+    omniroute config show    Display current configuration
+
+  \x1b[1mProvider & Keys:\x1b[0m
+    omniroute provider list  List available providers
+    omniroute provider add   Add OmniRoute as provider
+    omniroute keys add       Add API key for provider
+    omniroute keys list      List configured API keys
+    omniroute keys remove   Remove API key
+
+  \x1b[1mModels & Combos:\x1b[0m
+    omniroute models         List available models (--json, --search)
+    omniroute models <prov>  Filter models by provider
+    omniroute combo list     List routing combos
+    omniroute combo switch   Switch active combo
+    omniroute combo create  Create new combo
+    omniroute combo delete  Delete a combo
+
+  \x1b[1mBackup & Restore:\x1b[0m
+    omniroute backup         Create backup of config & DB
+    omniroute restore        Restore from backup (list or specify timestamp)
+
+  \x1b[1mMonitoring:\x1b[0m
+    omniroute health         Detailed health (breakers, cache, memory)
+    omniroute quota          Show provider quota usage
+    omniroute cache          Show cache status
+    omniroute cache clear    Clear semantic/signature cache
+
+  \x1b[1mProtocols:\x1b[0m
+    omniroute mcp status     MCP server status
+    omniroute mcp restart   Restart MCP server
+    omniroute a2a status    A2A server status
+    omniroute a2a card      Show A2A agent card
+
+  \x1b[1mTunnels & Network:\x1b[0m
+    omniroute tunnel list    List active tunnels
+    omniroute tunnel create  Create tunnel (cloudflare/tailscale/ngrok)
+    omniroute tunnel stop    Stop a tunnel
+
+  \x1b[1mEnvironment:\x1b[0m
+    omniroute env show       Show environment variables
+    omniroute env get <key>  Get specific env var
+    omniroute env set <k> <v> Set env var (temporary)
+
+  \x1b[1mTools & Utils:\x1b[0m
+    omniroute test           Test provider connectivity
+    omniroute update         Check for updates
+    omniroute completion     Generate shell completion
+
     omniroute --help          Show this help
     omniroute --version       Show version
 
@@ -139,6 +209,18 @@ if (args.includes("--help") || args.includes("-h")) {
     omniroute providers test-all
     omniroute providers validate
 
+  \x1b[1mCLI Tools:\x1b[0m
+    omniroute config list                  List CLI tool configuration status
+    omniroute config get <tool>            Show config for a specific tool
+    omniroute config set <tool>            Write config for a tool
+    omniroute config validate <tool>       Validate config without writing
+    omniroute status                       Offline status dashboard
+    omniroute logs [--follow] [--filter]   Stream usage logs
+    omniroute update [--check] [--dry-run] Check or apply OmniRoute update
+    omniroute provider add <name>          Add a provider connection
+    omniroute provider list                List configured providers
+    omniroute provider test <name|id>      Test a provider connection
+
   \x1b[1mAfter starting:\x1b[0m
     Dashboard:  http://localhost:<dashboard-port>
     API:        http://localhost:<api-port>/v1
@@ -157,6 +239,24 @@ if (args.includes("--version") || args.includes("-v")) {
   } catch {
     console.log("unknown");
   }
+  process.exit(0);
+}
+
+// ── CLI Integration Suite subcommands ───────────────────────────────────────
+const subcommands = [
+  "setup", "doctor", "status", "logs", "provider", "config", "test", "update",
+  "serve", "stop", "restart",
+  "keys", "models", "combo",
+  "completion", "dashboard",
+  "backup", "restore", "quota", "health",
+  "cache", "mcp", "a2a", "tunnel",
+  "env", "open"
+];
+const subcommand = args[0];
+
+if (subcommands.includes(subcommand)) {
+  const { runSubcommand } = await import("./cli-commands.mjs");
+  await runSubcommand(subcommand, args.slice(1));
   process.exit(0);
 }
 

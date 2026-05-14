@@ -6,7 +6,11 @@
 
 _The most complete open-source AI proxy — **one endpoint**, **160+ providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (37 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
 
-**Chat Completions • Responses API • Embeddings • Image Generation • Video • Music • Audio Speech/Transcription • Reranking • Moderations • Web Search • MCP Server • A2A Protocol • 4,600+ Tests • 100% TypeScript**
+[![npm](https://img.shields.io/npm/v/omniroute?logo=npm&style=flat-square)](https://www.npmjs.com/package/omniroute)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen?style=flat-square)](package.json)
+[![Stars](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+[![Trendshift](https://trendshift.io/api/badge/repositories/23589)](https://trendshift.io/repositories/23589)
 
 <br/>
 
@@ -1031,6 +1035,34 @@ Combo: "my-coding-stack"              Format Translation:
 
 ## 🎯 Use Cases — Ready-Made Combo Playbooks
 
+### Case 0: "I want zero-config, auto-routing NOW"
+
+**Problem:** Don't want to create combos manually. Just want AI routing to work immediately.
+
+```bash
+# No combo creation needed! Use auto/ prefix directly:
+model: "auto"           # Default LKGP routing across all connected providers
+model: "auto/coding"    # Quality-first weights for code generation
+model: "auto/fast"      # Low-latency routing (fastest provider first)
+model: "auto/cheap"     # Cost-optimized (cheapest per token)
+model: "auto/offline"   # High availability (most quota available)
+model: "auto/smart"     # Best discovery (10% exploration rate)
+```
+
+**How it works:**
+
+1. Add providers in Dashboard → Providers (OAuth or API key)
+2. Use `auto/` prefix in any AI tool — **no combo creation needed**
+3. OmniRoute dynamically builds a virtual combo from your active connections
+4. Routes using LKGP (Last Known Good Provider) + 6-factor scoring
+5. Session stickiness ensures consistent provider selection
+
+**Dashboard indicator:** A blue banner at the top shows "Auto-Routing Active" with a link to `/dashboard/combos` for configuration.
+
+**Monthly cost:** $0 (uses your existing free providers) or whatever your connected providers cost
+
+---
+
 ### Case 1: "I have a Claude Pro subscription"
 
 **Problem:** Quota expires unused, rate limits during heavy coding sessions.
@@ -1514,8 +1546,10 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for developers who code 24/7</sub>
-  <br/>
-  <sub><a href="https://omniroute.online">omniroute.online</a></sub>
+
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
+
+<sub>OmniRoute v3.8.0 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

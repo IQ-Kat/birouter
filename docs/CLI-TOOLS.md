@@ -351,22 +351,118 @@ They run as internal routes and use OmniRoute's model routing automatically.
 | `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
 | `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
 
+### CLI Tools API (New in v3.8)
+
+| Endpoint                        | Method | Description                                      |
+| ------------------------------- | ------ | ------------------------------------------------ |
+| `/api/cli-tools/detect`         | GET    | Detect all installed CLI tools and config status |
+| `/api/cli-tools/detect?tool=ID` | GET    | Detect a specific tool by ID                     |
+| `/api/cli-tools/config`         | GET    | List generated configs for all tools             |
+| `/api/cli-tools/config`         | POST   | Generate config for a specific tool              |
+| `/api/cli-tools/apply`          | POST   | Apply config to a tool (with backup)             |
+
 ---
 
-## Troubleshooting
+## CLI Commands Reference (New in v3.8)
 
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
+### `omniroute config`
+
+Manage CLI tool configurations directly from the terminal.
+
+```bash
+omniroute config list                    # List all tools and config status
+omniroute config get <tool>              # Show config for a specific tool
+omniroute config set <tool> \            # Generate and write config
+  --api-key sk-your-key \
+  [--base-url http://localhost:20128/v1] \
+  [--model auto]
+omniroute config validate <tool>         # Validate config without writing
+```
+
+**Options:** `--base-url`, `--api-key`, `--model`, `--json`, `--non-interactive`, `--yes`, `--help`
+
+### `omniroute status`
+
+Show offline status dashboard with version, database, and tool info.
+
+```bash
+omniroute status              # Human-readable status
+omniroute status --json       # JSON output
+omniroute status --verbose    # Include tool detection details
+```
+
+### `omniroute logs`
+
+Stream usage logs from the API endpoint.
+
+```bash
+omniroute logs                        # Fetch last 100 log lines
+omniroute logs --follow               # Stream in real-time
+omniroute logs --filter error,warn    # Filter by level
+omniroute logs --lines 500            # Fetch more lines
+omniroute logs --base-url http://localhost:20128
+```
+
+**Options:** `--follow`, `--filter`, `--lines`, `--timeout`, `--base-url`, `--json`, `--help`
+
+### `omniroute update`
+
+Check for or apply OmniRoute updates.
+
+```bash
+omniroute update --check              # Check for updates only
+omniroute update --dry-run            # Preview update without applying
+omniroute update --yes                # Apply update without prompt
+omniroute update --no-backup          # Skip backup creation
+```
+
+**Options:** `--check`, `--dry-run`, `--backup`, `--no-backup`, `--yes`, `--help`
+
+### `omniroute provider`
+
+Manage provider connections from the CLI.
+
+```bash
+omniroute provider add openai --api-key sk-xxx    # Add a provider
+omniroute provider list                            # List all providers
+omniroute provider remove <name|id>                # Remove a provider
+omniroute provider test <name|id>                  # Test connectivity
+omniroute provider default <name|id>               # Set default provider
+```
+
+**Options:** `--provider`, `--api-key`, `--provider-name`, `--default-model`, `--base-url`, `--json`, `--yes`, `--help`
 
 ---
 
 ## Quick Setup Script (One Command)
+
+Set up all CLI tools and configure for OmniRoute:
+
+```bash
+OMNIROUTE_URL="http://localhost:20128/v1"
+OMNIROUTE_ANTHROPIC_URL="http://localhost:20128"
+OMNIROUTE_KEY="sk-your-omniroute-key"
+
+npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
+
+# Kiro CLI
+apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
+
+# Write configs
+mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
+
+cat > ~/.claude/settings.json   <<< "{\"env\":{\"ANTHROPIC_BASE_URL\":\"$OMNIROUTE_ANTHROPIC_URL\",\"ANTHROPIC_AUTH_TOKEN\":\"$OMNIROUTE_KEY\"}}"
+cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
+cat >> ~/.bashrc << EOF
+export OPENAI_BASE_URL="$OMNIROUTE_URL"
+export OPENAI_API_KEY="$OMNIROUTE_KEY"
+export ANTHROPIC_BASE_URL="$OMNIROUTE_ANTHROPIC_URL"
+export ANTHROPIC_AUTH_TOKEN="$OMNIROUTE_KEY"
+EOF
+
+source ~/.bashrc
+echo "✅ All CLIs installed and configured for OmniRoute"
+```
 
 ```bash
 # Install all CLIs and configure for OmniRoute (replace with your key and server URL)
