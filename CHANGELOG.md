@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **fix(auth):** accept `x-api-key` header in `extractApiKey` so Anthropic-native clients (Claude Code, `@anthropic-ai/sdk`) hit the same per-key policy enforcement as Bearer clients. Previously these requests were treated as anonymous, bypassing model/budget/rate-limit policies and showing up as `NULL` in `usage_history.api_key_id` (~50% of traffic invisible in Costs/Analytics). `Authorization: Bearer` still wins when both are present (back-compat). (#2225)
+
 ### Changed
 
 - **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines field](package.json) and the README Node badge.

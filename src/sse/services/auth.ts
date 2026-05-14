@@ -1682,8 +1682,15 @@ export async function clearRecoveredProviderState(
 }
 
 /**
- * Extract API key from request headers
- * Follows management API standard: case-insensitive bearer matching and full trimming
+ * Extract API key from request headers.
+ *
+ * Honors both:
+ * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
+ * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
+ *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`)
+ *
+ * When both are present, `Authorization: Bearer` wins for back-compat
+ * (issue #2225).
  */
 export function extractApiKey(request: Request) {
   const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
@@ -1692,6 +1699,14 @@ export function extractApiKey(request: Request) {
     if (trimmedHeader.toLowerCase().startsWith("bearer ")) {
       return trimmedHeader.slice(7).trim();
     }
+  }
+  // Issue #2225: Anthropic Messages API clients authenticate via x-api-key.
+  // Without this fallback, per-key policies are bypassed and traffic is
+  // recorded with null api_key_id (invisible in Costs / Analytics).
+  const xApiKey = request.headers.get("x-api-key") || request.headers.get("X-Api-Key");
+  if (typeof xApiKey === "string") {
+    const trimmed = xApiKey.trim();
+    if (trimmed.length > 0) return trimmed;
   }
   return null;
 }
