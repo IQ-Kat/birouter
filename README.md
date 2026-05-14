@@ -291,6 +291,8 @@ OmniRoute works seamlessly with **16+ AI coding tools** — one config, all tool
 
 📖 Full setup for each tool: [`docs/CLI-TOOLS.md`](docs/CLI-TOOLS.md)
 
+> **OpenCode tip:** the [`@omniroute/opencode-provider`](./@omniroute/opencode-provider) npm package emits a schema-valid `opencode.json` entry. Use `omniroute config opencode` (CLI) or `buildOmniRouteOpenCodeConfig()` (library) — see [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md) for the full integration guide.
+
 ---
 
 ## 🌐 Supported Providers — 160+

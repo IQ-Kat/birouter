@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
+
 ### Security
 
 - **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly. The literal was removed from `.env.example` in this release, so the previous direct read would have silently skipped refresh for browser-flow Windsurf/Devin sessions (forcing re-auth instead of renewing). Operators with a legacy `WINDSURF_FIREBASE_API_KEY` value in their `.env` keep working — the env override path is preserved by `resolvePublicCred()`. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
