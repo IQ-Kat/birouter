@@ -132,6 +132,21 @@ When adding a new route or executor, copy the assertion pattern from this file. 
 - The `pino` redaction config (`src/lib/log/redaction.ts` — if present) handles structured log redaction separately. This doc covers only the response-message surface.
 - Upstream-header denylist (`src/shared/constants/upstreamHeaders.ts`) covers header leakage — keep both files aligned when adding a new exfiltration concern.
 
+## Known CodeQL limitation: custom sanitizers not recognized
+
+The CodeQL query [`js/stack-trace-exposure`](https://codeql.github.com/codeql-query-help/javascript/js-stack-trace-exposure/) uses a fixed allowlist of sanitizer patterns (e.g. inline `.split("\n")[0]`, `String#replace` with specific regex shapes, access to `.message` on `Error`). It does **not** recognize indirection through a custom helper like our `sanitizeErrorMessage()`.
+
+This means callsites that demonstrably sanitize via this module — for example `open-sse/utils/error.ts::errorResponse` and `open-sse/executors/cursor.ts::buildErrorResponse` — may continue to raise the alert even though the code is functionally safe. Precedent dismissals: `#224`, `#231` (May 2026), both marked `false positive` with technical justification.
+
+**How to handle a new occurrence:**
+
+1. Confirm the callsite actually routes the message through `sanitizeErrorMessage` / `buildErrorBody` / one of the wrappers documented above (read the call chain end-to-end — don't trust a comment).
+2. Confirm `tests/unit/error-message-sanitization.test.ts` exercises the path (or add coverage).
+3. Dismiss the alert via `gh api ... -X PATCH state=dismissed -f 'dismissed_reason=false positive'` referencing this doc.
+4. Do **not** "fix" by inlining `.split("\n")[0]` everywhere — the helper is the single source of truth; duplicating the pattern weakens the sanitizer (loses path scrubbing, length cap, type coercion) for the appearance of placating the scanner.
+
+Adopting opt-in features like CodeQL's [`@codeql/javascript-models` custom sanitizer config](https://codeql.github.com/docs/codeql-language-guides/customizing-library-models-for-javascript/) is the long-term fix; it lives outside this doc.
+
 ## References
 
 - [CWE-209: Information Exposure Through an Error Message](https://cwe.mitre.org/data/definitions/209.html)
