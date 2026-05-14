@@ -91,16 +91,21 @@ Combined with env vars (`INITIAL_PASSWORD`, `OMNIROUTE_WS_BRIDGE_SECRET`, etc.),
 
 ### CLI Options
 
-| Command                 | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
-| `omniroute setup`       | Guided CLI onboarding for password and first provider       |
-| `omniroute doctor`      | Run local health checks without starting the server         |
-| `omniroute providers`   | Discover, list, validate, and test providers from CLI       |
-| `omniroute --port 3000` | Set canonical/API port to 3000                              |
-| `omniroute --mcp`       | Start MCP server (stdio transport)                          |
-| `omniroute --no-open`   | Don't auto-open browser                                     |
-| `omniroute --help`      | Show help                                                   |
+| Command                 | Description                                                    |
+| ----------------------- | -------------------------------------------------------------- |
+| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port)    |
+| `omniroute setup`       | Guided CLI onboarding for password and first provider          |
+| `omniroute doctor`      | Run local health checks without starting the server            |
+| `omniroute providers`   | Discover, list, validate, and test providers from CLI          |
+| `omniroute config`      | CLI tool configuration — list, get, set, validate configs      |
+| `omniroute status`      | Offline status dashboard — version, DB, tools, config          |
+| `omniroute logs`        | Stream usage logs from the API (supports `--follow`)           |
+| `omniroute update`      | Check for or apply OmniRoute updates                           |
+| `omniroute provider`    | Manage provider connections — add, list, remove, test, default |
+| `omniroute --port 3000` | Set canonical/API port to 3000                                 |
+| `omniroute --mcp`       | Start MCP server (stdio transport)                             |
+| `omniroute --no-open`   | Don't auto-open browser                                        |
+| `omniroute --help`      | Show help                                                      |
 
 Headless setup can be scripted with flags or environment variables:
 

@@ -10,6 +10,8 @@
   "files": [
     "bin/",
     "app/",
+    "src/lib/cli-helper/",
+    "@omniroute/",
     "open-sse/mcp-server/index.ts",
     "open-sse/mcp-server/server.ts",
     "open-sse/mcp-server/httpTransport.ts",

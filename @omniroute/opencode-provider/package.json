@@ -1,0 +1,20 @@
+{
+  "name": "@omniroute/opencode-provider",
+  "version": "1.0.0",
+  "description": "OpenCode provider plugin for OmniRoute AI Gateway",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "omniroute",
+    "opencode",
+    "provider"
+  ],
+  "license": "MIT",
+  "peerDependencies": {}
+}

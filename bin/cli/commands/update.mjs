@@ -1,0 +1,166 @@
+import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
+import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
+import { homedir } from "node:os";
+import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+
+function printUpdateHelp() {
+  console.log(`
+Usage:
+  omniroute update [options]
+
+Options:
+  --check               Check for available update without applying
+  --dry-run             Show what would be updated without applying
+  --backup              Create backup before updating (default: true)
+  --no-backup           Skip backup creation
+  --help                Show this help
+
+Environment:
+  OMNIRoute_AUTO_UPDATE  Set to "true" to enable auto-update check on startup
+`);
+}
+
+async function getCurrentVersion() {
+  try {
+    const { readFileSync } = await import("node:fs");
+    const pkg = JSON.parse(readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
+    return pkg.version;
+  } catch {
+    return null;
+  }
+}
+
+async function getLatestVersion() {
+  try {
+    const { stdout } = await execFileAsync("npm", ["view", "omniroute", "version"], {
+      timeout: 15000,
+    });
+    return stdout.trim();
+  } catch {
+    return null;
+  }
+}
+
+function compareVersions(a, b) {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+  }
+  return 0;
+}
+
+async function createBackup() {
+  const binPath = path.join(process.cwd(), "bin");
+  const backupDir = path.join(homedir(), ".omniroute", "backups", `omniroute-${Date.now()}`);
+
+  try {
+    const { mkdirSync, copyFileSync, existsSync } = await import("node:fs");
+    if (!existsSync(binPath)) return null;
+
+    mkdirSync(backupDir, { recursive: true });
+    const files = ["omniroute.mjs", "cli", "nodeRuntimeSupport.mjs", "mcp-server.mjs"];
+    for (const f of files) {
+      const src = path.join(binPath, f);
+      if (existsSync(src)) {
+        copyFileSync(src, path.join(backupDir, f));
+      }
+    }
+    return backupDir;
+  } catch {
+    return null;
+  }
+}
+
+export async function runUpdateCommand(argv) {
+  const { flags } = parseArgs(argv);
+
+  if (hasFlag(flags, "help") || hasFlag(flags, "h")) {
+    printUpdateHelp();
+    return 0;
+  }
+
+  const checkOnly = hasFlag(flags, "check");
+  const dryRun = hasFlag(flags, "dry-run");
+  const skipBackup = hasFlag(flags, "no-backup");
+
+  const current = await getCurrentVersion();
+  const latest = await getLatestVersion();
+
+  if (!current) {
+    printError("Could not determine current version");
+    return 1;
+  }
+
+  if (!latest) {
+    printError("Could not check latest version. Is npm available?");
+    return 1;
+  }
+
+  printHeading("OmniRoute Update");
+  console.log(`  Current version: ${current}`);
+  console.log(`  Latest version:  ${latest}`);
+
+  const cmp = compareVersions(current, latest);
+  if (cmp >= 0) {
+    printSuccess("You are running the latest version!");
+    return 0;
+  }
+
+  console.log(`\n  Update available: ${current} → ${latest}`);
+
+  if (checkOnly) {
+    console.log("\n  Run `omniroute update` to apply the update.");
+    return 0;
+  }
+
+  if (dryRun) {
+    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest");
+    if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
+    return 0;
+  }
+
+  if (!skipBackup) {
+    printInfo("Creating backup...");
+    const backupPath = await createBackup();
+    if (backupPath) {
+      printSuccess(`Backup created: ${backupPath}`);
+    } else {
+      printError("Failed to create backup. Aborting update.");
+      return 1;
+    }
+  }
+
+  if (!hasFlag(flags, "yes")) {
+    const readline = await import("node:readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise((resolve) =>
+      rl.question(`Proceed with update to ${latest}? [y/N] `, resolve)
+    );
+    rl.close();
+    if (!/^y(es)?$/i.test(answer)) {
+      printInfo("Update aborted.");
+      return 0;
+    }
+  }
+
+  printInfo("Updating OmniRoute...");
+  try {
+    const { execSync } = await import("child_process");
+    execSync("npm install -g omniroute@latest", { stdio: "inherit" });
+    printSuccess(`Updated to version ${latest}`);
+    printInfo("Run `omniroute --version` to verify.");
+    return 0;
+  } catch (err) {
+    printError(`Update failed: ${err.message}`);
+    printInfo("Restore from backup:");
+    const backupDir = path.join(homedir(), ".omniroute", "backups");
+    printInfo(`  ls ${backupDir}`);
+    return 1;
+  }
+}
