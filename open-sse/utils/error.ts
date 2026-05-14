@@ -5,8 +5,8 @@ import type { ModelCooldownErrorPayload } from "@/types";
 
 /**
  * Sanitize an error message to prevent stack trace exposure in API responses.
- * Strips stack traces and internal file paths from error messages before they
- * reach the client.
+ * Strips stack traces, file paths, and absolute Windows/POSIX paths from
+ * error messages before they reach the client.
  */
 interface ErrorResponseBody {
   error: {
@@ -16,26 +16,25 @@ interface ErrorResponseBody {
   };
 }
 
-function sanitizeErrorMessage(message: unknown): string {
+const PATH_REGEX = /(?:[A-Z]:[\\/]|\/)[\w\-./\\]+\.(?:ts|js|tsx|jsx|mjs|cjs)(?::\d+)?(?::\d+)?/gi;
+
+export function sanitizeErrorMessage(message: unknown): string {
   const str = typeof message === "string" ? message : String(message ?? "");
-  // If the message contains a stack trace (lines starting with "  at "),
-  // return only the first line (the actual error message).
   const firstLine = str.split("\n")[0] || str;
-  return firstLine;
+  return firstLine.replace(PATH_REGEX, "<path>");
 }
 
 /**
- * Build OpenAI-compatible error response body
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Error message
- * @returns {object} Error response object
+ * Build OpenAI-compatible error response body. Message is always sanitized
+ * so callers do not need to remember to strip stack traces themselves.
  */
 export function buildErrorBody(statusCode: number, message: string): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
+  const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
 
   return {
     error: {
-      message: message || getDefaultErrorMessage(statusCode),
+      message: safeMessage,
       type: errorInfo.type,
       code: errorInfo.code,
     },
@@ -244,7 +243,7 @@ export function createErrorResult(
   } = {
     success: false,
     status: statusCode,
-    error: message,
+    error: body.error.message,
     errorType,
     response: new Response(JSON.stringify(body), {
       status: statusCode,
