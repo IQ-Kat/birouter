@@ -108,11 +108,13 @@ test("heartbeat interval default = 15s, env-overridable", () => {
   assert.equal(runtimeTimeouts.DEFAULT_SSE_HEARTBEAT_INTERVAL_MS, 15_000);
   assert.equal(runtimeTimeouts.getUpstreamTimeoutConfig({}).sseHeartbeatIntervalMs, 15_000);
   assert.equal(
-    runtimeTimeouts.getUpstreamTimeoutConfig({ SSE_HEARTBEAT_INTERVAL_MS: "8000" }).sseHeartbeatIntervalMs,
+    runtimeTimeouts.getUpstreamTimeoutConfig({ SSE_HEARTBEAT_INTERVAL_MS: "8000" })
+      .sseHeartbeatIntervalMs,
     8_000
   );
   assert.equal(
-    runtimeTimeouts.getUpstreamTimeoutConfig({ SSE_HEARTBEAT_INTERVAL_MS: "0" }).sseHeartbeatIntervalMs,
+    runtimeTimeouts.getUpstreamTimeoutConfig({ SSE_HEARTBEAT_INTERVAL_MS: "0" })
+      .sseHeartbeatIntervalMs,
     0
   );
 });

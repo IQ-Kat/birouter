@@ -142,7 +142,10 @@ test("shape: openai-chunk emits valid chat.completion.chunk with empty delta", a
 
 test("shape: openai-responses-in-progress emits response.in_progress data event", async () => {
   await withFakeIntervals(async (intervals) => {
-    const transform = createSseHeartbeatTransform({ intervalMs: 100, shape: "openai-responses-in-progress" });
+    const transform = createSseHeartbeatTransform({
+      intervalMs: 100,
+      shape: "openai-responses-in-progress",
+    });
     const writer = transform.writable.getWriter();
     const reader = transform.readable.getReader();
     const emitted = [];
@@ -240,7 +243,11 @@ test("no shape collides with stream.ts event: keepalive strip regex", async () =
 
       const lines = emitted[0].split("\n");
       for (const line of lines) {
-        assert.doesNotMatch(line.trim(), /^event:\s*keepalive\b/i, `shape ${shape} produced forbidden line: ${line}`);
+        assert.doesNotMatch(
+          line.trim(),
+          /^event:\s*keepalive\b/i,
+          `shape ${shape} produced forbidden line: ${line}`
+        );
       }
     });
   }

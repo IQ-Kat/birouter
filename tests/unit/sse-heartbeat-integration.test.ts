@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { createSseHeartbeatTransform, HEARTBEAT_SHAPES, shapeForClientFormat } = await import(
-  "../../open-sse/utils/sseHeartbeat.ts"
-);
+const { createSseHeartbeatTransform, HEARTBEAT_SHAPES, shapeForClientFormat } =
+  await import("../../open-sse/utils/sseHeartbeat.ts");
 
 const STREAM_TS_STRIP_RE = /^event:\s*keepalive\b/i;
 
@@ -19,7 +18,9 @@ test("integration: anthropic-ping heartbeat reaches downstream and does NOT trig
       controller.enqueue(new TextEncoder().encode("event: message_start\ndata: {}\n\n"));
       // never close — let heartbeat fire
     },
-    cancel() { cancelled = true; },
+    cancel() {
+      cancelled = true;
+    },
   });
 
   const transform = createSseHeartbeatTransform({
@@ -61,7 +62,11 @@ test("integration: anthropic-ping heartbeat reaches downstream and does NOT trig
 test("integration: openai-chunk heartbeat is valid JSON parseable by SDKs", async () => {
   const upstream = new ReadableStream({
     start(controller) {
-      controller.enqueue(new TextEncoder().encode(`data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[]}\n\n`));
+      controller.enqueue(
+        new TextEncoder().encode(
+          `data: {"id":"chatcmpl-1","object":"chat.completion.chunk","choices":[]}\n\n`
+        )
+      );
     },
   });
 

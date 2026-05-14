@@ -12,7 +12,7 @@ export type HeartbeatShape = (typeof HEARTBEAT_SHAPES)[keyof typeof HEARTBEAT_SH
 export const DEFAULT_SSE_HEARTBEAT_SHAPE: HeartbeatShape = HEARTBEAT_SHAPES.COMMENT;
 
 export function shapeForClientFormat(
-  clientResponseFormat: string | undefined | null,
+  clientResponseFormat: string | undefined | null
 ): HeartbeatShape {
   switch (clientResponseFormat) {
     case "claude":
@@ -28,7 +28,7 @@ export function shapeForClientFormat(
 
 function buildHeartbeatPayload(
   shape: HeartbeatShape,
-  opts: { chunkId?: string; chunkModel?: string } = {},
+  opts: { chunkId?: string; chunkModel?: string } = {}
 ): string {
   switch (shape) {
     case HEARTBEAT_SHAPES.ANTHROPIC_PING:
@@ -90,7 +90,7 @@ export function createSseHeartbeatTransform({
 
         try {
           controller.enqueue(
-            HEARTBEAT_ENCODER.encode(buildHeartbeatPayload(shape, { chunkId, chunkModel })),
+            HEARTBEAT_ENCODER.encode(buildHeartbeatPayload(shape, { chunkId, chunkModel }))
           );
         } catch {
           stop();

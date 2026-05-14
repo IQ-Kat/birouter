@@ -70,13 +70,13 @@ export async function handleResponsesCore({
 
   // Transform SSE stream to Responses API format (no logging in worker)
   const transformStream = createResponsesApiTransformStream(null);
-  const transformedBody = response.body
-    .pipeThrough(transformStream)
-    .pipeThrough(createSseHeartbeatTransform({
+  const transformedBody = response.body.pipeThrough(transformStream).pipeThrough(
+    createSseHeartbeatTransform({
       signal,
       intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
       shape: HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS,
-    }));
+    })
+  );
 
   return {
     success: true,
