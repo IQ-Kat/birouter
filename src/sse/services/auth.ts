@@ -31,7 +31,11 @@ import {
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { isLocalProvider } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COOLDOWN_MS } from "@omniroute/open-sse/config/constants.ts";
-import { preflightQuota } from "@omniroute/open-sse/services/quotaPreflight.ts";
+import {
+  preflightQuota,
+  isQuotaPreflightEnabled,
+} from "@omniroute/open-sse/services/quotaPreflight.ts";
+import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -46,6 +50,8 @@ type JsonRecord = Record<string, unknown>;
 
 interface ProviderConnectionView {
   id: string;
+  provider: string;
+  email: string | null;
   isActive: boolean;
   rateLimitedUntil: string | null;
   testStatus: string | null;
@@ -65,6 +71,10 @@ interface ProviderConnectionView {
   errorCode: string | number | null;
   backoffLevel: number;
   maxConcurrent: number | null;
+  // Per-window quota cutoff overrides — null means "no overrides, inherit
+  // resilience-settings defaults." Read by getProviderCredentialsWithQuotaPreflight
+  // to decide whether to invoke the upstream usage fetcher.
+  quotaWindowThresholds: Record<string, number> | null;
 }
 
 interface RecoverableConnectionState {
@@ -121,8 +131,18 @@ function toNullableNumber(value: unknown): number | null {
 
 function toProviderConnection(value: unknown): ProviderConnectionView {
   const row = asRecord(value);
+  // Only accept the per-window override map when it's a plain object —
+  // anything else collapses to null so the preflight gate treats it as "no
+  // overrides set."
+  const rawThresholds = row.quotaWindowThresholds;
+  const quotaWindowThresholds: Record<string, number> | null =
+    rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
+      ? (rawThresholds as Record<string, number>)
+      : null;
   return {
     id: toStringOrNull(row.id) || "",
+    provider: toStringOrNull(row.provider) || "",
+    email: toStringOrNull(row.email),
     isActive: row.isActive === true,
     rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
     testStatus: toStringOrNull(row.testStatus),
@@ -143,6 +163,7 @@ function toProviderConnection(value: unknown): ProviderConnectionView {
       typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
     maxConcurrent: toNullableNumber(row.maxConcurrent),
+    quotaWindowThresholds,
   };
 }
 
@@ -1261,6 +1282,13 @@ export async function getProviderCredentials(
           ? connection.providerSpecificData.copilotToken
           : null,
       providerSpecificData: connection.providerSpecificData,
+      // Fields the generic quota fetcher (open-sse/services/genericQuotaFetcher.ts)
+      // needs to delegate to getUsageForProvider for any provider — kept aliased
+      // (`id` + `connectionId`) for back-compat with callers that already use the
+      // connectionId name.
+      id: connection.id,
+      provider: connection.provider,
+      email: connection.email,
       connectionId: connection.id,
       // Include current status for optimization check
       testStatus: connection.testStatus,
@@ -1270,6 +1298,10 @@ export async function getProviderCredentials(
       errorCode: connection.errorCode,
       rateLimitedUntil: connection.rateLimitedUntil,
       maxConcurrent: connection.maxConcurrent,
+      // Surface per-window quota overrides so the preflight latency gate in
+      // getProviderCredentialsWithQuotaPreflight can see them. Without this,
+      // user-set cutoffs would silently never enforce.
+      quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
     };
   } finally {
     if (resolveMutex) resolveMutex();
@@ -1303,6 +1335,19 @@ export async function getProviderCredentialsWithQuotaPreflight(
     options.excludeConnectionIds
   );
 
+  const resilience = resolveResilienceSettings(await getCachedSettings());
+  const { defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults } =
+    resilience.quotaPreflight;
+  const providerWindowMap = providerWindowDefaults[provider] || {};
+  const providerHasDefaults = Object.keys(providerWindowMap).length > 0;
+  // The factory default is "block at 2% remaining" — effectively "right
+  // before 429." Skipping preflight at that level is a clean no-op. If an
+  // operator has raised the global to anything stricter (e.g. 20% remaining
+  // = stop at 80% used), preflight needs to run for every connection so the
+  // tighter floor is honored.
+  const FACTORY_NO_OP_REMAINING_PERCENT = 2;
+  const globalDefaultIsRestrictive = defaultThresholdPercent > FACTORY_NO_OP_REMAINING_PERCENT;
+
   while (true) {
     const credentials = await getProviderCredentials(
       provider,
@@ -1331,7 +1376,54 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return credentials;
     }
 
-    const preflight = await preflightQuota(provider, connectionId, credentials);
+    // Cascading resolver: per-connection override → per-(provider, window)
+    // default → global default. Used per-window when the fetcher exposes
+    // multiple windows, and once (with window=null) for single-signal
+    // fetchers. The warn fallback is uniform — windows don't need their own
+    // warn levels in v1.
+    const perConnectionWindowOverrides =
+      (credentials as { quotaWindowThresholds?: Record<string, number> | null })
+        .quotaWindowThresholds || {};
+
+    // Latency gate: skip the upstream usage fetch entirely when there's
+    // nothing to enforce. Preflight is only worth its cost when at least
+    // one of the following is true:
+    //   • a per-connection override on this row
+    //   • a per-(provider, window) default in resilience settings
+    //   • the legacy `quotaPreflightEnabled` flag in providerSpecificData
+    //   • the global default is stricter than the factory no-op level
+    //     (factory = 2% remaining, basically "right before 429" — anything
+    //     stricter means the operator wants enforcement everywhere)
+    // Otherwise the resolver would return the factory default for every
+    // window, and a near-exhausted account would still be caught by the
+    // normal 429 → cooldown path.
+    const hasConnectionOverrides = Object.keys(perConnectionWindowOverrides).length > 0;
+    const legacyForceEnable = isQuotaPreflightEnabled(credentials);
+    if (
+      !hasConnectionOverrides &&
+      !providerHasDefaults &&
+      !legacyForceEnable &&
+      !globalDefaultIsRestrictive
+    ) {
+      return credentials;
+    }
+
+    // Returns the minimum-remaining cutoff for a window — matches the
+    // dashboard's quota bars so the number the user types in the modal
+    // means the same thing as the percentage rendered on the bar.
+    const resolveMinRemainingPercent = (windowName: string | null): number => {
+      if (windowName !== null) {
+        const override = perConnectionWindowOverrides[windowName];
+        if (typeof override === "number") return override;
+        const providerDefault = providerWindowMap[windowName];
+        if (typeof providerDefault === "number") return providerDefault;
+      }
+      return defaultThresholdPercent;
+    };
+    const preflight = await preflightQuota(provider, connectionId, credentials, {
+      resolveMinRemainingPercent,
+      resolveWarnRemainingPercent: () => warnThresholdPercent,
+    });
     if (preflight.proceed) {
       return credentials;
     }
