@@ -370,7 +370,10 @@ export async function DELETE(request) {
     if (all === "true") {
       await replaceCustomModels(provider, [], { allowEmpty: true });
       const removedAliases = await deleteManagedAvailableModelAliasesForProvider(provider);
-      return Response.json({ cleared: true, aliasChanges: { removed: removedAliases } });
+      return Response.json({
+        cleared: true,
+        aliasChanges: { removed: removedAliases, assigned: [] },
+      });
     }
 
     if (!modelId) {
@@ -387,7 +390,7 @@ export async function DELETE(request) {
 
     const removed = await removeCustomModel(provider, modelId);
     const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
-    return Response.json({ removed, aliasChanges: { removed: removedAliases } });
+    return Response.json({ removed, aliasChanges: { removed: removedAliases, assigned: [] } });
   } catch (error) {
     console.error("Error removing provider model:", error);
     return Response.json(
