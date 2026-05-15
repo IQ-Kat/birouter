@@ -54,6 +54,22 @@
     "noKeys": "No keys configured.",
     "confirmRemove": "Remove key {id}?"
   },
+  "stream": {
+    "description": "Stream a chat response with SSE inspection modes",
+    "file": "Read prompt from file",
+    "stdin": "Read prompt from stdin",
+    "model": "Model ID (default: auto)",
+    "system": "System prompt",
+    "combo": "Force a specific combo by name",
+    "max_tokens": "Maximum tokens in response",
+    "responses_api": "Use /v1/responses instead of /v1/chat/completions",
+    "raw": "Print raw SSE lines as received",
+    "debug": "Print per-chunk timing info to stderr",
+    "save": "Save all SSE events to a .jsonl file",
+    "error": {
+      "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
+    }
+  },
   "chat": {
     "description": "Send a one-shot chat prompt to OmniRoute",
     "file": "Read prompt from file",

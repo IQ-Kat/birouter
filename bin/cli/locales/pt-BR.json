@@ -54,6 +54,22 @@
     "noKeys": "Nenhuma chave configurada.",
     "confirmRemove": "Remover chave {id}?"
   },
+  "stream": {
+    "description": "Transmitir resposta de chat com modos de inspeção SSE",
+    "file": "Ler prompt de arquivo",
+    "stdin": "Ler prompt da entrada padrão",
+    "model": "ID do modelo (padrão: auto)",
+    "system": "Prompt de sistema",
+    "combo": "Forçar um combo específico pelo nome",
+    "max_tokens": "Máximo de tokens na resposta",
+    "responses_api": "Usar /v1/responses em vez de /v1/chat/completions",
+    "raw": "Imprimir linhas SSE brutas como recebidas",
+    "debug": "Imprimir informações de timing por chunk no stderr",
+    "save": "Salvar todos os eventos SSE em arquivo .jsonl",
+    "error": {
+      "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
+    }
+  },
   "chat": {
     "description": "Enviar um prompt único ao OmniRoute",
     "file": "Ler prompt de arquivo",
