@@ -2,6 +2,8 @@ import { Option } from "commander";
 import { printHeading } from "../io.mjs";
 import { withRuntime } from "../runtime.mjs";
 import { t } from "../i18n.mjs";
+import { apiFetch } from "../api.mjs";
+import { emit } from "../output.mjs";
 
 const VALID_STRATEGIES = [
   "priority",
@@ -19,6 +21,79 @@ const VALID_STRATEGIES = [
   "strict-random",
   "reset-aware",
 ];
+
+const suggestSchema = [
+  { key: "rank", header: "#" },
+  { key: "name", header: "Combo", width: 24 },
+  { key: "strategy", header: "Strategy", width: 16 },
+  { key: "score", header: "Score", formatter: (v) => (v != null ? v.toFixed(3) : "-") },
+  { key: "latencyP50Ms", header: "Latency P50", formatter: (v) => (v != null ? `${v}ms` : "-") },
+  { key: "costPer1k", header: "Cost/1k", formatter: (v) => (v != null ? `$${v.toFixed(5)}` : "-") },
+  {
+    key: "rationale",
+    header: "Rationale",
+    width: 40,
+    formatter: (v) => {
+      if (!v) return "-";
+      const s = String(v);
+      return s.length > 40 ? s.slice(0, 39) + "…" : s;
+    },
+  },
+];
+
+export function extendComboSuggest(combo) {
+  combo
+    .command("suggest")
+    .description(t("combo.suggest.description"))
+    .requiredOption("--task <description>", t("combo.suggest.task"))
+    .option("--max-cost <usd>", t("combo.suggest.maxCost"), parseFloat)
+    .option("--max-latency-ms <ms>", t("combo.suggest.maxLatencyMs"), parseInt)
+    .option("--weights <json>", t("combo.suggest.weights"))
+    .option("--top <n>", t("combo.suggest.top"), parseInt, 5)
+    .option("--explain", t("combo.suggest.explain"))
+    .option("--switch", t("combo.suggest.switch"))
+    .action(async (opts, cmd) => {
+      const body = {
+        task: opts.task,
+        constraints: {
+          maxCostUsd: opts.maxCost,
+          maxLatencyMs: opts.maxLatencyMs,
+        },
+        weights: opts.weights ? JSON.parse(opts.weights) : undefined,
+        top: opts.top,
+      };
+      const res = await apiFetch("/api/mcp/tools/call", {
+        method: "POST",
+        body: { name: "omniroute_best_combo_for_task", arguments: body },
+      });
+      if (!res.ok) {
+        process.stderr.write(`Error: ${res.status}\n`);
+        process.exit(1);
+      }
+      const data = await res.json();
+      const candidates = data.candidates ?? data;
+      const rows = (Array.isArray(candidates) ? candidates : []).map((c, i) => ({
+        rank: i + 1,
+        ...c,
+      }));
+      emit(rows, cmd.optsWithGlobals(), suggestSchema);
+      if (opts.explain && !cmd.optsWithGlobals().quiet) {
+        process.stderr.write(`\nRationale:\n${data.rationale ?? "(no rationale)"}\n`);
+      }
+      if (opts.switch && rows[0]) {
+        const best = rows[0].name;
+        const switchRes = await apiFetch("/api/combos/switch", {
+          method: "POST",
+          body: { name: best },
+        });
+        if (!switchRes.ok) {
+          process.stderr.write(`Switch failed: ${switchRes.status}\n`);
+          process.exit(1);
+        }
+        process.stderr.write(`\nSwitched to: ${best}\n`);
+      }
+    });
+}
 
 export function registerCombo(program) {
   const combo = program.command("combo").description(t("combo.title"));
@@ -68,6 +143,8 @@ export function registerCombo(program) {
       const exitCode = await runComboDeleteCommand(name, { ...opts, output: globalOpts.output });
       if (exitCode !== 0) process.exit(exitCode);
     });
+
+  extendComboSuggest(combo);
 }
 
 export async function runComboListCommand(opts = {}) {

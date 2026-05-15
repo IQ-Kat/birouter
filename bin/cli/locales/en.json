@@ -162,14 +162,6 @@
       "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
     }
   },
-  "combo": {
-    "title": "Combos",
-    "switched": "Active combo: {name}",
-    "created": "Combo created: {name}",
-    "deleted": "Combo deleted: {name}",
-    "noCombos": "No combos configured.",
-    "confirmDelete": "Delete combo {name}?"
-  },
   "serve": {
     "description": "Start the OmniRoute server (default action)",
     "starting": "Starting OmniRoute server on port {port}...",
@@ -861,6 +853,159 @@
     "metrics": {
       "description": "Show node metrics",
       "period": "Time period (e.g. 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Configure context engineering pipeline (Caveman, RTK)",
+    "analytics": {
+      "period": "Time period (e.g. 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Manage Caveman context compressor",
+      "config": {
+        "description": "Show or update Caveman config",
+        "aggressiveness": "Aggressiveness 0.0–1.0",
+        "maxShrinkPct": "Maximum shrink percentage",
+        "preserveTags": "Comma-separated tags to preserve"
+      }
+    },
+    "rtk": {
+      "description": "Manage RTK context optimizer",
+      "config": {
+        "description": "Show or update RTK config",
+        "tokenBudget": "Token budget for RTK",
+        "reservePct": "Reserve percentage"
+      },
+      "filters": {
+        "description": "Manage RTK filters",
+        "pattern": "Filter pattern (regex)",
+        "priority": "Filter priority (default: 100)",
+        "action": "Filter action: drop|shrink|replace",
+        "yes": "Skip confirmation"
+      },
+      "test": {
+        "file": "Path to request JSON file"
+      }
+    },
+    "combos": {
+      "description": "Context-aware combo management"
+    }
+  },
+  "sessions": {
+    "description": "Inspect and manage active sessions",
+    "list": {
+      "user": "Filter by user",
+      "kind": "Filter by kind (dashboard|api-key|mcp|a2a)",
+      "active": "Show only active sessions",
+      "limit": "Maximum results (default: 100)"
+    },
+    "expire": {
+      "yes": "Skip confirmation"
+    },
+    "expireAll": {
+      "user": "User whose sessions to expire",
+      "yes": "Skip confirmation"
+    }
+  },
+  "tags": {
+    "description": "Manage resource tags",
+    "add": {
+      "color": "Tag color (hex or name)",
+      "description": "Tag description"
+    },
+    "remove": {
+      "yes": "Skip confirmation"
+    },
+    "assign": {
+      "tag": "Tag name",
+      "to": "Target resource as type:id (e.g. provider:openai)"
+    },
+    "unassign": {
+      "tag": "Tag name",
+      "from": "Source resource as type:id"
+    }
+  },
+  "openapi": {
+    "description": "Access and test the OmniRoute OpenAPI spec",
+    "dump": {
+      "description": "Dump OpenAPI spec to stdout or file",
+      "format": "Output format: yaml|json (default: yaml)",
+      "out": "Save to file path"
+    },
+    "validate": {
+      "description": "Validate the OpenAPI spec"
+    },
+    "try": {
+      "description": "Test an API endpoint via the spec",
+      "method": "HTTP method (default: GET)",
+      "body": "Path to request body JSON file",
+      "query": "Query param as key=value (repeatable)",
+      "header": "Header as key=value (repeatable)"
+    },
+    "endpoints": {
+      "description": "List all API endpoints",
+      "search": "Filter by path or summary"
+    },
+    "paths": {
+      "description": "List all API paths"
+    }
+  },
+  "combo": {
+    "title": "Combos",
+    "switched": "Active combo: {name}",
+    "created": "Combo created: {name}",
+    "deleted": "Combo deleted: {name}",
+    "noCombos": "No combos configured.",
+    "confirmDelete": "Delete combo {name}?",
+    "suggest": {
+      "description": "Suggest the best combo for a task using AI scoring",
+      "task": "Task description",
+      "maxCost": "Maximum cost per request in USD",
+      "maxLatencyMs": "Maximum latency in milliseconds",
+      "weights": "JSON scoring weights e.g. {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Number of top candidates to show (default: 5)",
+      "explain": "Print rationale to stderr",
+      "switch": "Activate the top-ranked combo"
+    }
+  },
+  "oneproxy": {
+    "description": "Manage the OneProxy upstream pool",
+    "stats": {
+      "provider": "Filter by provider",
+      "period": "Time period (default: 24h)"
+    },
+    "fetch": {
+      "description": "Fetch proxies from the pool",
+      "count": "Number of proxies to fetch (default: 1)",
+      "type": "Proxy type: http|socks5 (default: http)"
+    },
+    "rotate": {
+      "description": "Force proxy rotation",
+      "provider": "Provider to rotate for",
+      "connectionId": "Specific connection ID to rotate"
+    },
+    "config": {
+      "description": "Show or update OneProxy config",
+      "enabled": "Enable proxy pool (true|false)",
+      "poolSize": "Pool size",
+      "providerSource": "URL for proxy provider",
+      "rotationPolicy": "Rotation policy: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "List current proxy pool with metrics"
+    }
+  },
+  "telemetry": {
+    "description": "Access aggregated telemetry data",
+    "summary": {
+      "description": "Show aggregated telemetry summary",
+      "period": "Time period: 24h|7d|30d (default: 24h)",
+      "compareTo": "Compare to previous period"
+    },
+    "export": {
+      "description": "Export telemetry events to JSONL",
+      "out": "Output file path (default: telemetry.jsonl)",
+      "period": "Time period for export (default: 7d)"
     }
   },
   "sync": {

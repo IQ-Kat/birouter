@@ -162,14 +162,6 @@
       "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
     }
   },
-  "combo": {
-    "title": "Combos",
-    "switched": "Combo ativo: {name}",
-    "created": "Combo criado: {name}",
-    "deleted": "Combo excluído: {name}",
-    "noCombos": "Nenhum combo configurado.",
-    "confirmDelete": "Excluir combo {name}?"
-  },
   "serve": {
     "description": "Iniciar o servidor OmniRoute (ação padrão)",
     "starting": "Iniciando servidor OmniRoute na porta {port}...",
@@ -861,6 +853,159 @@
     "metrics": {
       "description": "Exibir métricas do node",
       "period": "Período de tempo (ex: 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Configurar pipeline de context engineering (Caveman, RTK)",
+    "analytics": {
+      "period": "Período de tempo (ex: 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Gerenciar compressor de contexto Caveman",
+      "config": {
+        "description": "Exibir ou atualizar configuração do Caveman",
+        "aggressiveness": "Agressividade 0.0–1.0",
+        "maxShrinkPct": "Percentual máximo de redução",
+        "preserveTags": "Tags a preservar (separadas por vírgula)"
+      }
+    },
+    "rtk": {
+      "description": "Gerenciar otimizador de contexto RTK",
+      "config": {
+        "description": "Exibir ou atualizar configuração RTK",
+        "tokenBudget": "Orçamento de tokens RTK",
+        "reservePct": "Percentual de reserva"
+      },
+      "filters": {
+        "description": "Gerenciar filtros RTK",
+        "pattern": "Padrão do filtro (regex)",
+        "priority": "Prioridade do filtro (padrão: 100)",
+        "action": "Ação: drop|shrink|replace",
+        "yes": "Pular confirmação"
+      },
+      "test": {
+        "file": "Caminho para arquivo JSON de requisição"
+      }
+    },
+    "combos": {
+      "description": "Gerenciamento de combos com context-awareness"
+    }
+  },
+  "sessions": {
+    "description": "Inspecionar e encerrar sessões ativas",
+    "list": {
+      "user": "Filtrar por usuário",
+      "kind": "Filtrar por tipo (dashboard|api-key|mcp|a2a)",
+      "active": "Exibir apenas sessões ativas",
+      "limit": "Máximo de resultados (padrão: 100)"
+    },
+    "expire": {
+      "yes": "Pular confirmação"
+    },
+    "expireAll": {
+      "user": "Usuário cujas sessões serão encerradas",
+      "yes": "Pular confirmação"
+    }
+  },
+  "tags": {
+    "description": "Gerenciar tags de recursos",
+    "add": {
+      "color": "Cor da tag (hex ou nome)",
+      "description": "Descrição da tag"
+    },
+    "remove": {
+      "yes": "Pular confirmação"
+    },
+    "assign": {
+      "tag": "Nome da tag",
+      "to": "Recurso de destino como tipo:id (ex: provider:openai)"
+    },
+    "unassign": {
+      "tag": "Nome da tag",
+      "from": "Recurso de origem como tipo:id"
+    }
+  },
+  "openapi": {
+    "description": "Acessar e testar o spec OpenAPI do OmniRoute",
+    "dump": {
+      "description": "Exportar spec OpenAPI para stdout ou arquivo",
+      "format": "Formato de saída: yaml|json (padrão: yaml)",
+      "out": "Salvar em caminho de arquivo"
+    },
+    "validate": {
+      "description": "Validar o spec OpenAPI"
+    },
+    "try": {
+      "description": "Testar um endpoint da API via spec",
+      "method": "Método HTTP (padrão: GET)",
+      "body": "Caminho para arquivo JSON do corpo da requisição",
+      "query": "Parâmetro de query como key=value (repetível)",
+      "header": "Header como key=value (repetível)"
+    },
+    "endpoints": {
+      "description": "Listar todos os endpoints da API",
+      "search": "Filtrar por caminho ou summary"
+    },
+    "paths": {
+      "description": "Listar todos os caminhos da API"
+    }
+  },
+  "combo": {
+    "title": "Combos",
+    "switched": "Combo ativo: {name}",
+    "created": "Combo criado: {name}",
+    "deleted": "Combo removido: {name}",
+    "noCombos": "Nenhum combo configurado.",
+    "confirmDelete": "Remover combo {name}?",
+    "suggest": {
+      "description": "Sugerir o melhor combo para uma tarefa usando scoring de IA",
+      "task": "Descrição da tarefa",
+      "maxCost": "Custo máximo por requisição em USD",
+      "maxLatencyMs": "Latência máxima em milissegundos",
+      "weights": "Pesos JSON ex: {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Número de candidatos a exibir (padrão: 5)",
+      "explain": "Imprimir justificativa no stderr",
+      "switch": "Ativar o combo mais bem classificado"
+    }
+  },
+  "oneproxy": {
+    "description": "Gerenciar o pool de proxies OneProxy",
+    "stats": {
+      "provider": "Filtrar por provider",
+      "period": "Período de tempo (padrão: 24h)"
+    },
+    "fetch": {
+      "description": "Buscar proxies do pool",
+      "count": "Número de proxies a buscar (padrão: 1)",
+      "type": "Tipo de proxy: http|socks5 (padrão: http)"
+    },
+    "rotate": {
+      "description": "Forçar rotação de proxy",
+      "provider": "Provider para rotacionar",
+      "connectionId": "ID de conexão específica para rotacionar"
+    },
+    "config": {
+      "description": "Exibir ou atualizar configuração do OneProxy",
+      "enabled": "Habilitar pool de proxies (true|false)",
+      "poolSize": "Tamanho do pool",
+      "providerSource": "URL do provedor de proxies",
+      "rotationPolicy": "Política de rotação: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Listar pool de proxies atual com métricas"
+    }
+  },
+  "telemetry": {
+    "description": "Acessar dados de telemetria agregados",
+    "summary": {
+      "description": "Exibir resumo de telemetria agregado",
+      "period": "Período: 24h|7d|30d (padrão: 24h)",
+      "compareTo": "Comparar com período anterior"
+    },
+    "export": {
+      "description": "Exportar eventos de telemetria para JSONL",
+      "out": "Caminho do arquivo de saída (padrão: telemetry.jsonl)",
+      "period": "Período para exportação (padrão: 7d)"
     }
   },
   "sync": {
