@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Input, Select, Toggle } from "@/shared/components";
+import { Button, Card, Collapsible, Input, Select, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import FallbackChainsEditor from "./FallbackChainsEditor";
 import {
@@ -973,7 +973,42 @@ export default function RoutingTab() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5">
+        {/* Add provider — moved to TOP per UX brief. */}
+        <div className="mb-4 flex items-end gap-2 rounded-lg border border-dashed border-border/40 bg-surface/30 p-3">
+          <Select
+            label={t("systemTransformsAddProvider")}
+            value={newProviderId}
+            disabled={loading || availableProvidersToAdd.length === 0}
+            onChange={(e) => setNewProviderId(e.target.value)}
+            className="flex-1"
+          >
+            <option value="">
+              {availableProvidersToAdd.length === 0
+                ? t("systemTransformsAddProviderAllConfigured")
+                : t("systemTransformsAddProviderPlaceholder")}
+            </option>
+            {availableProvidersToAdd.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.id})
+              </option>
+            ))}
+          </Select>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="add"
+            disabled={loading || !newProviderId || !!systemTransforms.providers[newProviderId]}
+            onClick={addProvider}
+          >
+            {t("systemTransformsAddProvider")}
+          </Button>
+        </div>
+
+        {Object.keys(systemTransforms.providers).length === 0 && (
+          <p className="text-sm text-text-muted py-2">{t("systemTransformsNoProviders")}</p>
+        )}
+
+        <div className="flex flex-col gap-3">
           {Object.entries(systemTransforms.providers).map(([providerId, providerCfg]) => {
             const isBuiltin = BUILTIN_PROVIDERS.has(providerId);
             const display = PROVIDER_TILE_DISPLAY[providerId] ?? {
@@ -989,32 +1024,28 @@ export default function RoutingTab() {
               (DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers as Record<string, unknown>)[providerId]
             );
             const isJsonOpen = showJsonEditor[providerId] ?? false;
+            const enabled = providerCfg.enabled !== false;
             const selectedKind =
               (addOpKind[providerId] as TransformOpKind | undefined) ??
               "drop_paragraph_if_contains";
 
             return (
-              <div
+              <Collapsible
                 key={providerId}
-                className="rounded-lg border border-border/50 bg-surface/20 p-4"
-              >
-                {/* Provider header row */}
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <code className="text-xs font-mono rounded bg-surface px-1.5 py-0.5">
-                        {providerId}
-                      </code>
-                      <span className="text-sm font-medium">{display.name}</span>
-                    </div>
-                    <p className="text-xs text-text-muted mt-1">{display.description}</p>
-                    <p className="text-[11px] text-text-muted mt-1">
-                      {opCount} op{opCount === 1 ? "" : "s"}
-                    </p>
+                defaultOpen={false}
+                title={
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <code className="text-xs font-mono rounded bg-surface px-1.5 py-0.5">
+                      {providerId}
+                    </code>
+                    <span className="text-sm font-medium">{display.name}</span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                }
+                subtitle={`${opCount} op${opCount === 1 ? "" : "s"} · ${enabled ? "enabled" : "disabled"}`}
+                trailing={
+                  <>
                     <Toggle
-                      checked={providerCfg.enabled !== false}
+                      checked={enabled}
                       onChange={(checked) => toggleProviderEnabled(providerId, checked)}
                       disabled={loading}
                       ariaLabel={`Enable ${display.name} transforms`}
@@ -1030,59 +1061,65 @@ export default function RoutingTab() {
                         onClick={() => removeProvider(providerId)}
                       />
                     )}
-                  </div>
-                </div>
+                  </>
+                }
+              >
+                <p className="text-xs text-text-muted mb-3">{display.description}</p>
 
-                {/* Pipeline op list with per-op editor */}
+                {/* Pipeline op list — each op is itself collapsible. */}
                 {opCount > 0 && (
                   <ol className="flex flex-col gap-2 mb-3">
                     {(providerCfg.pipeline as any[]).map((op, index) => (
-                      <li
-                        key={index}
-                        className="rounded border border-border/30 bg-background/30 p-2 text-xs"
-                      >
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
-                            {index + 1}
-                          </span>
-                          <span className="font-mono text-purple-300 flex-1">{op?.kind}</span>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon="keyboard_arrow_up"
-                              disabled={loading || index === 0}
-                              aria-label={t("systemTransformsOpMoveUp")}
-                              title={t("systemTransformsOpMoveUp")}
-                              onClick={() => moveOp(providerId, index, -1)}
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon="keyboard_arrow_down"
-                              disabled={loading || index === opCount - 1}
-                              aria-label={t("systemTransformsOpMoveDown")}
-                              title={t("systemTransformsOpMoveDown")}
-                              onClick={() => moveOp(providerId, index, 1)}
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              icon="delete"
-                              disabled={loading}
-                              aria-label={t("systemTransformsOpDelete")}
-                              title={t("systemTransformsOpDelete")}
-                              onClick={() => deleteOp(providerId, index)}
-                            />
-                          </div>
-                        </div>
-                        <div className="ml-7">
+                      <li key={index}>
+                        <Collapsible
+                          variant="inline"
+                          defaultOpen={false}
+                          title={
+                            <div className="flex items-center gap-2">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
+                                {index + 1}
+                              </span>
+                              <span className="font-mono text-purple-300 text-xs">{op?.kind}</span>
+                            </div>
+                          }
+                          trailing={
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon="keyboard_arrow_up"
+                                disabled={loading || index === 0}
+                                aria-label={t("systemTransformsOpMoveUp")}
+                                title={t("systemTransformsOpMoveUp")}
+                                onClick={() => moveOp(providerId, index, -1)}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon="keyboard_arrow_down"
+                                disabled={loading || index === opCount - 1}
+                                aria-label={t("systemTransformsOpMoveDown")}
+                                title={t("systemTransformsOpMoveDown")}
+                                onClick={() => moveOp(providerId, index, 1)}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon="delete"
+                                disabled={loading}
+                                aria-label={t("systemTransformsOpDelete")}
+                                title={t("systemTransformsOpDelete")}
+                                onClick={() => deleteOp(providerId, index)}
+                              />
+                            </>
+                          }
+                        >
                           <OpEditor
                             op={op}
                             disabled={loading}
                             onChange={(next) => updateOp(providerId, index, next)}
                           />
-                        </div>
+                        </Collapsible>
                       </li>
                     ))}
                   </ol>
@@ -1171,43 +1208,9 @@ export default function RoutingTab() {
                     </div>
                   )}
                 </div>
-              </div>
+              </Collapsible>
             );
           })}
-        </div>
-
-        {Object.keys(systemTransforms.providers).length === 0 && (
-          <p className="text-sm text-text-muted py-2">{t("systemTransformsNoProviders")}</p>
-        )}
-
-        <div className="mt-4 flex items-end gap-2 border-t border-border/20 pt-4">
-          <Select
-            label={t("systemTransformsAddProvider")}
-            value={newProviderId}
-            disabled={loading || availableProvidersToAdd.length === 0}
-            onChange={(e) => setNewProviderId(e.target.value)}
-            className="flex-1"
-          >
-            <option value="">
-              {availableProvidersToAdd.length === 0
-                ? t("systemTransformsAddProviderAllConfigured")
-                : t("systemTransformsAddProviderPlaceholder")}
-            </option>
-            {availableProvidersToAdd.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.id})
-              </option>
-            ))}
-          </Select>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="add"
-            disabled={loading || !newProviderId || !!systemTransforms.providers[newProviderId]}
-            onClick={addProvider}
-          >
-            {t("systemTransformsAddProvider")}
-          </Button>
         </div>
 
         <p className="mt-3 text-[11px] text-text-muted">
