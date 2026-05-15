@@ -326,7 +326,12 @@ export function applyTransformPipeline(
   const flushBaseRun = () => {
     if (baseRun.length === 0) return;
     const config: CcBridgeTransformsConfig = { enabled: true, pipeline: baseRun };
-    const result = applyCcBridgeTransformPipeline(body, config);
+    // Local `RequestBody` interface is intentionally looser than the strict one
+    // exported by ccBridgeTransforms — system transforms accept any shape.
+    const result = applyCcBridgeTransformPipeline(
+      body as Parameters<typeof applyCcBridgeTransformPipeline>[0],
+      config
+    );
     appliedOpKinds.push(...result.appliedOpKinds);
     baseRun = [];
   };

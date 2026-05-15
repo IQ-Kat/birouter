@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card } from "@/shared/components";
+import { Button, Card, Input, Select, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import FallbackChainsEditor from "./FallbackChainsEditor";
 import {
@@ -189,246 +189,254 @@ function makeDefaultOp(kind: TransformOpKind): any {
   }
 }
 
-function OpEditor({ op, onChange }: { op: any; onChange: (next: any) => void }) {
-  const inputCls =
-    "w-full rounded border border-border/50 bg-background/40 px-2 py-1 text-xs font-mono text-text";
-  const labelCls = "block text-[11px] text-text-muted mb-0.5";
-
-  const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
-
-  const updateListItem = (field: string, idx: number, value: string) => {
-    const arr = [...(op[field] || [])];
-    arr[idx] = value;
-    onChange({ ...op, [field]: arr });
-  };
-
-  const addListItem = (field: string) => onChange({ ...op, [field]: [...(op[field] || []), ""] });
-
-  const removeListItem = (field: string, idx: number) => {
-    const arr = [...(op[field] || [])];
-    arr.splice(idx, 1);
-    onChange({ ...op, [field]: arr });
-  };
-
-  const renderList = (field: string) => (
-    <div className="flex flex-col gap-1">
-      {(op[field] || []).map((item: string, idx: number) => (
-        <div key={idx} className="flex gap-1">
-          <input
-            className={inputCls + " flex-1"}
+function StringListEditor({
+  label,
+  items,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  items: string[];
+  onChange: (next: string[]) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-text-main">{label}</span>
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <Input
+            className="flex-1"
             value={item}
-            onChange={(e) => updateListItem(field, idx, e.target.value)}
+            disabled={disabled}
+            onChange={(e) => {
+              const next = [...items];
+              next[idx] = e.target.value;
+              onChange(next);
+            }}
           />
-          <button
-            type="button"
-            onClick={() => removeListItem(field, idx)}
-            className="text-red-400 hover:text-red-300 text-xs px-1"
-            title="Remove"
-          >
-            ✕
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="close"
+            disabled={disabled}
+            aria-label="Remove entry"
+            onClick={() => {
+              const next = [...items];
+              next.splice(idx, 1);
+              onChange(next);
+            }}
+          />
         </div>
       ))}
-      <button
-        type="button"
-        onClick={() => addListItem(field)}
-        className="text-left text-[11px] text-primary hover:underline mt-0.5"
+      <Button
+        variant="ghost"
+        size="sm"
+        icon="add"
+        disabled={disabled}
+        onClick={() => onChange([...items, ""])}
+        className="self-start"
       >
-        + Add entry
-      </button>
+        Add entry
+      </Button>
     </div>
   );
+}
+
+function OpEditor({
+  op,
+  onChange,
+  disabled,
+}: {
+  op: any;
+  onChange: (next: any) => void;
+  disabled?: boolean;
+}) {
+  const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
 
   switch (op?.kind) {
     case "drop_paragraph_if_contains":
       return (
-        <div>
-          <label className={labelCls}>Needles (substrings to match)</label>
-          {renderList("needles")}
-          <label className="flex items-center gap-1.5 mt-1 text-[11px] text-text-muted cursor-pointer">
-            <input
-              type="checkbox"
-              checked={op.caseSensitive !== false}
-              onChange={(e) => updateField("caseSensitive", e.target.checked)}
-            />
-            Case sensitive
-          </label>
+        <div className="flex flex-col gap-2">
+          <StringListEditor
+            label="Needles (substrings to match)"
+            items={op.needles || []}
+            onChange={(next) => updateField("needles", next)}
+            disabled={disabled}
+          />
+          <Toggle
+            label="Case sensitive"
+            checked={op.caseSensitive !== false}
+            onChange={(c) => updateField("caseSensitive", c)}
+            size="sm"
+            disabled={disabled}
+          />
         </div>
       );
     case "drop_paragraph_if_starts_with":
       return (
-        <div>
-          <label className={labelCls}>Prefixes</label>
-          {renderList("prefixes")}
-          <label className="flex items-center gap-1.5 mt-1 text-[11px] text-text-muted cursor-pointer">
-            <input
-              type="checkbox"
-              checked={op.caseSensitive !== false}
-              onChange={(e) => updateField("caseSensitive", e.target.checked)}
-            />
-            Case sensitive
-          </label>
+        <div className="flex flex-col gap-2">
+          <StringListEditor
+            label="Prefixes"
+            items={op.prefixes || []}
+            onChange={(next) => updateField("prefixes", next)}
+            disabled={disabled}
+          />
+          <Toggle
+            label="Case sensitive"
+            checked={op.caseSensitive !== false}
+            onChange={(c) => updateField("caseSensitive", c)}
+            size="sm"
+            disabled={disabled}
+          />
         </div>
       );
     case "replace_text":
       return (
-        <div className="flex flex-col gap-1.5">
-          <div>
-            <label className={labelCls}>Match</label>
-            <input
-              className={inputCls}
-              value={op.match || ""}
-              onChange={(e) => updateField("match", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Replacement</label>
-            <input
-              className={inputCls}
-              value={op.replacement || ""}
-              onChange={(e) => updateField("replacement", e.target.value)}
-            />
-          </div>
-          <label className="flex items-center gap-1.5 text-[11px] text-text-muted cursor-pointer">
-            <input
-              type="checkbox"
-              checked={op.allOccurrences !== false}
-              onChange={(e) => updateField("allOccurrences", e.target.checked)}
-            />
-            Replace all occurrences
-          </label>
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Match"
+            value={op.match || ""}
+            disabled={disabled}
+            onChange={(e) => updateField("match", e.target.value)}
+          />
+          <Input
+            label="Replacement"
+            value={op.replacement || ""}
+            disabled={disabled}
+            onChange={(e) => updateField("replacement", e.target.value)}
+          />
+          <Toggle
+            label="Replace all occurrences"
+            checked={op.allOccurrences !== false}
+            onChange={(c) => updateField("allOccurrences", c)}
+            size="sm"
+            disabled={disabled}
+          />
         </div>
       );
     case "replace_regex":
       return (
-        <div className="flex flex-col gap-1.5">
-          <div>
-            <label className={labelCls}>Pattern (regex)</label>
-            <input
-              className={inputCls}
-              value={op.pattern || ""}
-              onChange={(e) => updateField("pattern", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Flags</label>
-            <input
-              className={inputCls}
-              value={op.flags || "g"}
-              onChange={(e) => updateField("flags", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Replacement</label>
-            <input
-              className={inputCls}
-              value={op.replacement || ""}
-              onChange={(e) => updateField("replacement", e.target.value)}
-            />
-          </div>
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Pattern (regex)"
+            value={op.pattern || ""}
+            disabled={disabled}
+            onChange={(e) => updateField("pattern", e.target.value)}
+          />
+          <Input
+            label="Flags"
+            value={op.flags || "g"}
+            disabled={disabled}
+            onChange={(e) => updateField("flags", e.target.value)}
+          />
+          <Input
+            label="Replacement"
+            value={op.replacement || ""}
+            disabled={disabled}
+            onChange={(e) => updateField("replacement", e.target.value)}
+          />
         </div>
       );
     case "drop_block_if_contains":
       return (
-        <div>
-          <label className={labelCls}>Needles</label>
-          {renderList("needles")}
-        </div>
+        <StringListEditor
+          label="Needles"
+          items={op.needles || []}
+          onChange={(next) => updateField("needles", next)}
+          disabled={disabled}
+        />
       );
     case "prepend_system_block":
     case "append_system_block":
       return (
-        <div className="flex flex-col gap-1.5">
-          <div>
-            <label className={labelCls}>Block text</label>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-text-main">Block text</label>
             <textarea
-              className={inputCls}
               rows={3}
               value={op.text || ""}
+              disabled={disabled}
               onChange={(e) => updateField("text", e.target.value)}
+              className="w-full rounded-md border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-text-main font-mono focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
-          <div>
-            <label className={labelCls}>
-              Idempotency key (optional — skips if block starting with this key already present)
-            </label>
-            <input
-              className={inputCls}
-              value={op.idempotencyKey || ""}
-              onChange={(e) => updateField("idempotencyKey", e.target.value)}
-            />
-          </div>
+          <Input
+            label="Idempotency key"
+            hint="Optional — skips if a block starting with this key is already present."
+            value={op.idempotencyKey || ""}
+            disabled={disabled}
+            onChange={(e) => updateField("idempotencyKey", e.target.value)}
+          />
         </div>
       );
     case "inject_billing_header":
       return (
-        <div className="flex flex-col gap-1.5">
-          <div>
-            <label className={labelCls}>Entrypoint</label>
-            <input
-              className={inputCls}
-              value={op.entrypoint || "sdk-cli"}
-              onChange={(e) => updateField("entrypoint", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Version format</label>
-            <select
-              className={inputCls}
-              value={op.versionFormat || "ex-machina"}
-              onChange={(e) => updateField("versionFormat", e.target.value)}
-            >
-              <option value="ex-machina">ex-machina (sha256 per-msg suffix)</option>
-              <option value="omniroute-daystamp">omniroute-daystamp (sha256 day+version)</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>CCH algorithm</label>
-            <select
-              className={inputCls}
-              value={op.cchAlgo || "sha256-first-user"}
-              onChange={(e) => updateField("cchAlgo", e.target.value)}
-            >
-              <option value="sha256-first-user">sha256-first-user (ex-machina style)</option>
-              <option value="xxhash64-body">xxhash64-body (body-level signing)</option>
-              <option value="static-zero">static-zero (00000 placeholder)</option>
-            </select>
-          </div>
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Entrypoint"
+            value={op.entrypoint || "sdk-cli"}
+            disabled={disabled}
+            onChange={(e) => updateField("entrypoint", e.target.value)}
+          />
+          <Select
+            label="Version format"
+            value={op.versionFormat || "ex-machina"}
+            disabled={disabled}
+            onChange={(e) => updateField("versionFormat", e.target.value)}
+            options={[
+              { value: "ex-machina", label: "ex-machina (sha256 per-msg suffix)" },
+              { value: "omniroute-daystamp", label: "omniroute-daystamp (sha256 day+version)" },
+            ]}
+          />
+          <Select
+            label="CCH algorithm"
+            value={op.cchAlgo || "sha256-first-user"}
+            disabled={disabled}
+            onChange={(e) => updateField("cchAlgo", e.target.value)}
+            options={[
+              { value: "sha256-first-user", label: "sha256-first-user (ex-machina style)" },
+              { value: "xxhash64-body", label: "xxhash64-body (body-level signing)" },
+              { value: "static-zero", label: "static-zero (00000 placeholder)" },
+            ]}
+          />
         </div>
       );
     case "obfuscate_words":
       return (
-        <div className="flex flex-col gap-1.5">
-          <div>
-            <label className={labelCls}>Words to obfuscate (ZWJ inserted after first char)</label>
-            {renderList("words")}
-          </div>
-          <div>
-            <label className={labelCls}>Targets</label>
-            <div className="flex gap-3">
-              {["system", "messages", "tools"].map((t) => (
-                <label
-                  key={t}
-                  className="flex items-center gap-1 text-[11px] text-text-muted cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={(op.targets || ["system", "messages", "tools"]).includes(t)}
-                    onChange={(e) => {
-                      const cur: string[] = op.targets || ["system", "messages", "tools"];
-                      const next = e.target.checked ? [...cur, t] : cur.filter((x) => x !== t);
+        <div className="flex flex-col gap-2">
+          <StringListEditor
+            label="Words to obfuscate (ZWJ inserted after first char)"
+            items={op.words || []}
+            onChange={(next) => updateField("words", next)}
+            disabled={disabled}
+          />
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-text-main">Targets</span>
+            <div className="flex flex-wrap gap-4">
+              {(["system", "messages", "tools"] as const).map((target) => {
+                const targets: string[] = op.targets || ["system", "messages", "tools"];
+                const checked = targets.includes(target);
+                return (
+                  <Toggle
+                    key={target}
+                    label={target}
+                    checked={checked}
+                    size="sm"
+                    disabled={disabled}
+                    onChange={(c) => {
+                      const next = c ? [...targets, target] : targets.filter((x) => x !== target);
                       updateField("targets", next);
                     }}
                   />
-                  {t}
-                </label>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       );
     default:
-      return <p className="text-[11px] text-text-muted">Unknown op kind: {op?.kind}</p>;
+      return <p className="text-xs text-text-muted">Unknown op kind: {op?.kind}</p>;
   }
 }
 
@@ -994,16 +1002,12 @@ export default function RoutingTab() {
                         {opCount} op{opCount === 1 ? "" : "s"}
                       </p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={providerCfg.enabled !== false}
-                        onChange={(e) => toggleProviderEnabled(providerId, e.target.checked)}
-                        disabled={loading}
-                      />
-                      <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
+                    <Toggle
+                      checked={providerCfg.enabled !== false}
+                      onChange={(checked) => toggleProviderEnabled(providerId, checked)}
+                      disabled={loading}
+                      ariaLabel={`Enable ${display.name} transforms`}
+                    />
                   </div>
 
                   {/* Pipeline op list with per-op editor */}
@@ -1052,6 +1056,7 @@ export default function RoutingTab() {
                           <div className="ml-7">
                             <OpEditor
                               op={op}
+                              disabled={loading}
                               onChange={(next) => updateOp(providerId, index, next)}
                             />
                           </div>
@@ -1061,8 +1066,10 @@ export default function RoutingTab() {
                   )}
 
                   {/* Add op row */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <select
+                  <div className="flex items-end gap-2 mb-3">
+                    <Select
+                      label="Add a transform op"
+                      className="flex-1"
                       value={selectedKind}
                       onChange={(e) =>
                         setAddOpKind((prev) => ({
@@ -1071,14 +1078,11 @@ export default function RoutingTab() {
                         }))
                       }
                       disabled={loading}
-                      className="flex-1 rounded border border-border/50 bg-background/40 px-2 py-1 text-xs font-mono text-text"
-                    >
-                      {(Object.keys(OP_KIND_LABELS) as TransformOpKind[]).map((kind) => (
-                        <option key={kind} value={kind}>
-                          {OP_KIND_LABELS[kind]}
-                        </option>
-                      ))}
-                    </select>
+                      options={(Object.keys(OP_KIND_LABELS) as TransformOpKind[]).map((kind) => ({
+                        value: kind,
+                        label: OP_KIND_LABELS[kind],
+                      }))}
+                    />
                     <Button
                       onClick={() => addOp(providerId)}
                       disabled={loading}
