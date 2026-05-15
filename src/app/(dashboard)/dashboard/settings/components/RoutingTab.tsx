@@ -9,10 +9,27 @@ import {
   CLI_COMPAT_TOGGLE_IDS,
   normalizeCliCompatProviderId,
 } from "@/shared/constants/cliCompatProviders";
+import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 // Provider keys (mirror of open-sse/services/systemTransforms.ts).
 const PROVIDER_CLAUDE = "claude";
 const PROVIDER_CC_BRIDGE = "anthropic-compatible-cc";
+const BUILTIN_PROVIDERS = new Set([PROVIDER_CLAUDE, PROVIDER_CC_BRIDGE]);
+
+// Canonical provider catalog for the "Add provider" dropdown. Pulled from the
+// shared AI_PROVIDERS registry so the UI stays in sync with backend provider
+// definitions. We add the CC bridge synthetic ID (no AI_PROVIDERS entry — it's
+// a relay surface, not an upstream provider). Sorted by display name.
+type ProviderCatalogEntry = { id: string; name: string };
+const PROVIDER_CATALOG: ProviderCatalogEntry[] = (() => {
+  const entries: ProviderCatalogEntry[] = Object.values(AI_PROVIDERS).map((p) => ({
+    id: p.id,
+    name: p.name ?? p.id,
+  }));
+  entries.push({ id: PROVIDER_CC_BRIDGE, name: "Anthropic-compatible CC bridge" });
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+  return entries;
+})();
 
 const OPENWEBUI_PARAGRAPH_ANCHORS = [
   "github.com/open-webui/open-webui",
@@ -665,10 +682,13 @@ export default function RoutingTab() {
     updateProviderTransforms(providerId, { enabled: current.enabled, pipeline });
   };
 
-  const BUILTIN_PROVIDERS = new Set([PROVIDER_CLAUDE, PROVIDER_CC_BRIDGE]);
+  const availableProvidersToAdd = useMemo(
+    () => PROVIDER_CATALOG.filter((p) => !systemTransforms.providers[p.id]),
+    [systemTransforms.providers]
+  );
 
   const addProvider = () => {
-    const id = newProviderId.trim();
+    const id = newProviderId;
     if (!id || systemTransforms.providers[id]) return;
     updateProviderTransforms(id, { enabled: false, pipeline: [] });
     setNewProviderId("");
@@ -1027,33 +1047,33 @@ export default function RoutingTab() {
                           </span>
                           <span className="font-mono text-purple-300 flex-1">{op?.kind}</span>
                           <div className="flex gap-1">
-                            <button
-                              type="button"
-                              title="Move up"
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon="keyboard_arrow_up"
                               disabled={loading || index === 0}
+                              aria-label={t("systemTransformsOpMoveUp")}
+                              title={t("systemTransformsOpMoveUp")}
                               onClick={() => moveOp(providerId, index, -1)}
-                              className="text-text-muted hover:text-text disabled:opacity-30 px-1"
-                            >
-                              ▲
-                            </button>
-                            <button
-                              type="button"
-                              title="Move down"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon="keyboard_arrow_down"
                               disabled={loading || index === opCount - 1}
+                              aria-label={t("systemTransformsOpMoveDown")}
+                              title={t("systemTransformsOpMoveDown")}
                               onClick={() => moveOp(providerId, index, 1)}
-                              className="text-text-muted hover:text-text disabled:opacity-30 px-1"
-                            >
-                              ▼
-                            </button>
-                            <button
-                              type="button"
-                              title="Delete op"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon="delete"
                               disabled={loading}
+                              aria-label={t("systemTransformsOpDelete")}
+                              title={t("systemTransformsOpDelete")}
                               onClick={() => deleteOp(providerId, index)}
-                              className="text-red-400 hover:text-red-300 disabled:opacity-30 px-1"
-                            >
-                              ✕
-                            </button>
+                            />
                           </div>
                         </div>
                         <div className="ml-7">
@@ -1161,24 +1181,29 @@ export default function RoutingTab() {
         )}
 
         <div className="mt-4 flex items-end gap-2 border-t border-border/20 pt-4">
-          <Input
+          <Select
             label={t("systemTransformsAddProvider")}
-            placeholder={t("systemTransformsAddProviderPlaceholder")}
             value={newProviderId}
-            disabled={loading}
+            disabled={loading || availableProvidersToAdd.length === 0}
             onChange={(e) => setNewProviderId(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addProvider();
-            }}
             className="flex-1"
-          />
+          >
+            <option value="">
+              {availableProvidersToAdd.length === 0
+                ? t("systemTransformsAddProviderAllConfigured")
+                : t("systemTransformsAddProviderPlaceholder")}
+            </option>
+            {availableProvidersToAdd.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.id})
+              </option>
+            ))}
+          </Select>
           <Button
             variant="secondary"
             size="sm"
             icon="add"
-            disabled={
-              loading || !newProviderId.trim() || !!systemTransforms.providers[newProviderId.trim()]
-            }
+            disabled={loading || !newProviderId || !!systemTransforms.providers[newProviderId]}
             onClick={addProvider}
           >
             {t("systemTransformsAddProvider")}
