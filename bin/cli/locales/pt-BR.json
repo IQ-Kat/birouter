@@ -201,12 +201,10 @@
   },
   "health": {
     "title": "Saúde",
-    "description": "Exibir status de saúde do servidor",
     "status": "Status: {status}",
     "uptime": "Uptime: {uptime}",
     "requests": "Requisições (24h): {count}",
-    "cost": "Custo (24h): ${cost}",
-    "noServer": "Servidor não está em execução. Inicie com: omniroute serve"
+    "cost": "Custo (24h): ${cost}"
   },
   "quota": {
     "description": "Exibir uso de cota dos provedores",
@@ -232,13 +230,6 @@
     "available": "Atualização disponível: {current} → {latest}",
     "installing": "Instalando {latest}...",
     "done": "Atualizado para {latest}. Reinicie o servidor para aplicar."
-  },
-  "health": {
-    "title": "Saúde",
-    "status": "Status: {status}",
-    "uptime": "Uptime: {uptime}",
-    "requests": "Requisições (24h): {count}",
-    "cost": "Custo (24h): ${cost}"
   },
   "mcp": {
     "title": "Servidor MCP",
@@ -700,5 +691,221 @@
     "timeout": "Timeout de requisições HTTP em milissegundos",
     "api_key": "Chave de API para o servidor OmniRoute",
     "base_url": "URL base do servidor OmniRoute"
+  },
+  "files": {
+    "description": "Gerenciar arquivos (upload, listar, obter, baixar, deletar)",
+    "list": {
+      "purpose": "Filtrar por propósito",
+      "limit": "Máximo de resultados"
+    },
+    "get": {
+      "description": "Obter metadados do arquivo"
+    },
+    "upload": {
+      "description": "Fazer upload de um arquivo",
+      "purpose": "Propósito do arquivo (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Baixar conteúdo do arquivo",
+      "out": "Salvar no caminho (padrão: stdout)"
+    },
+    "delete": {
+      "yes": "Pular confirmação"
+    }
+  },
+  "batches": {
+    "description": "Gerenciar jobs em batch (compatível com OpenAI)",
+    "list": {
+      "status": "Filtrar por status",
+      "limit": "Máximo de resultados"
+    },
+    "create": {
+      "description": "Criar um job em batch",
+      "inputFile": "ID do arquivo de entrada",
+      "endpoint": "Endpoint destino",
+      "window": "Janela de conclusão",
+      "metadata": "Adicionar metadado key=value"
+    },
+    "submit": {
+      "description": "Fazer upload do JSONL e criar batch",
+      "jsonl": "Caminho para o arquivo JSONL",
+      "endpoint": "Endpoint destino",
+      "wait": "Aguardar conclusão"
+    },
+    "cancel": {
+      "yes": "Pular confirmação"
+    },
+    "wait": {
+      "timeout": "Timeout em ms"
+    },
+    "output": {
+      "out": "Salvar output no caminho"
+    },
+    "errors": {
+      "out": "Salvar erros no caminho"
+    }
+  },
+  "translator": {
+    "description": "Traduzir payloads entre formatos LLM",
+    "detect": {
+      "description": "Detectar formato do body"
+    },
+    "translate": {
+      "description": "Converter body de um formato para outro"
+    },
+    "send": {
+      "description": "Traduzir e despachar para upstream"
+    },
+    "stream": {
+      "description": "Tradução de request em stream"
+    },
+    "from": "Formato de origem (openai|anthropic|gemini|cohere)",
+    "to": "Formato de destino (openai|anthropic|gemini|cohere)",
+    "file": "Caminho para o arquivo JSON do request",
+    "out": "Salvar output em arquivo",
+    "model": "Sobrescrever model",
+    "history": {
+      "limit": "Máximo de resultados"
+    }
+  },
+  "pricing": {
+    "description": "Gerenciar dados de precificação dos modelos",
+    "sync": {
+      "description": "Sincronizar preços com fontes upstream",
+      "provider": "Filtrar por provider",
+      "force": "Forçar re-sincronização"
+    },
+    "list": {
+      "provider": "Filtrar por provider",
+      "model": "Filtrar por model",
+      "limit": "Máximo de resultados"
+    },
+    "defaults": {
+      "description": "Gerenciar preços padrão",
+      "input": "Custo de entrada por 1M tokens (USD)",
+      "output": "Custo de saída por 1M tokens (USD)",
+      "cacheRead": "Custo de leitura de cache por 1M tokens (USD)",
+      "cacheWrite": "Custo de escrita de cache por 1M tokens (USD)"
+    },
+    "diff": {
+      "description": "Mostrar divergências em relação ao upstream",
+      "model": "Filtrar por model"
+    }
+  },
+  "resilience": {
+    "description": "Inspecionar e gerenciar mecanismos de resiliência",
+    "status": {
+      "provider": "Filtrar por provider"
+    },
+    "breakers": {
+      "provider": "Filtrar por provider"
+    },
+    "cooldowns": {
+      "provider": "Filtrar por provider",
+      "connectionId": "Filtrar por ID de conexão"
+    },
+    "lockouts": {
+      "provider": "Filtrar por provider",
+      "model": "Filtrar por model"
+    },
+    "reset": {
+      "description": "Resetar estado de breaker/cooldown",
+      "provider": "Provider para resetar",
+      "connectionId": "ID de conexão para resetar",
+      "model": "Model para liberar lockout",
+      "allCooldowns": "Resetar todos os cooldowns do provider",
+      "yes": "Pular confirmação"
+    },
+    "profile": {
+      "description": "Gerenciar perfil de resiliência",
+      "name": "Nome do perfil"
+    },
+    "config": {
+      "description": "Gerenciar configuração de resiliência",
+      "threshold": "Limiar de falhas",
+      "resetTimeout": "Timeout de reset em ms",
+      "baseCooldown": "Cooldown base em ms"
+    }
+  },
+  "nodes": {
+    "description": "Gerenciar nodes de provider (endpoints)",
+    "list": {
+      "provider": "Filtrar por provider",
+      "enabled": "Exibir apenas nodes ativos"
+    },
+    "add": {
+      "provider": "Nome do provider",
+      "baseUrl": "URL base do node",
+      "name": "Nome do node",
+      "weight": "Peso para balanceamento de carga",
+      "region": "Tag de região",
+      "authHeader": "Header de autenticação customizado (key=value)"
+    },
+    "update": {
+      "baseUrl": "Nova URL base",
+      "name": "Novo nome",
+      "weight": "Novo peso",
+      "region": "Nova região",
+      "enabled": "Habilitar ou desabilitar (true|false)"
+    },
+    "remove": {
+      "yes": "Pular confirmação"
+    },
+    "validate": {
+      "baseUrl": "URL para validar",
+      "provider": "Provider para validar"
+    },
+    "test": {
+      "description": "Enviar requisição de teste ao node"
+    },
+    "metrics": {
+      "description": "Exibir métricas do node",
+      "period": "Período de tempo (ex: 24h, 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sincronizar configuração entre instâncias OmniRoute",
+    "push": {
+      "description": "Enviar config para cloud ou instância remota",
+      "target": "Destino (cloud ou context:nome)",
+      "bundle": "Partes do bundle para sincronizar",
+      "dryRun": "Visualizar sem aplicar"
+    },
+    "pull": {
+      "description": "Baixar config da cloud ou remoto",
+      "source": "Origem (cloud ou context:nome)",
+      "merge": "Mesclar com config existente",
+      "replace": "Substituir config existente",
+      "dryRun": "Visualizar sem aplicar"
+    },
+    "diff": {
+      "source": "Contexto de origem",
+      "target": "Contexto de destino"
+    },
+    "bundle": {
+      "description": "Exportar config como arquivo bundle",
+      "include": "Partes a incluir (separadas por vírgula)"
+    },
+    "import": {
+      "description": "Importar arquivo bundle",
+      "dryRun": "Validar sem aplicar"
+    },
+    "initialize": {
+      "fromCloud": "Inicializar a partir de backup na cloud"
+    },
+    "tokens": {
+      "description": "Gerenciar tokens de sincronização",
+      "create": {
+        "name": "Nome do token",
+        "scope": "Escopo do token",
+        "ttl": "TTL do token (ex: 30d)"
+      },
+      "revoke": {
+        "yes": "Pular confirmação"
+      }
+    },
+    "resolve": {
+      "description": "Resolver conflitos de sincronização interativamente"
+    }
   }
 }

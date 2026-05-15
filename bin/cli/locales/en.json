@@ -201,12 +201,10 @@
   },
   "health": {
     "title": "Health",
-    "description": "Show server health status",
     "status": "Status: {status}",
     "uptime": "Uptime: {uptime}",
     "requests": "Requests (24h): {count}",
-    "cost": "Cost (24h): ${cost}",
-    "noServer": "Server not running. Start with: omniroute serve"
+    "cost": "Cost (24h): ${cost}"
   },
   "quota": {
     "description": "Show provider quota usage",
@@ -232,13 +230,6 @@
     "available": "Update available: {current} → {latest}",
     "installing": "Installing {latest}...",
     "done": "Updated to {latest}. Restart the server to apply."
-  },
-  "health": {
-    "title": "Health",
-    "status": "Status: {status}",
-    "uptime": "Uptime: {uptime}",
-    "requests": "Requests (24h): {count}",
-    "cost": "Cost (24h): ${cost}"
   },
   "mcp": {
     "title": "MCP Server",
@@ -700,5 +691,221 @@
     "timeout": "HTTP request timeout in milliseconds",
     "api_key": "API key for OmniRoute server",
     "base_url": "OmniRoute server base URL"
+  },
+  "files": {
+    "description": "Manage files (upload, list, get, download, delete)",
+    "list": {
+      "purpose": "Filter by purpose",
+      "limit": "Max results"
+    },
+    "get": {
+      "description": "Get file metadata"
+    },
+    "upload": {
+      "description": "Upload a file",
+      "purpose": "File purpose (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Download file content",
+      "out": "Save to path (default: stdout)"
+    },
+    "delete": {
+      "yes": "Skip confirmation"
+    }
+  },
+  "batches": {
+    "description": "Manage OpenAI-compatible batch jobs",
+    "list": {
+      "status": "Filter by status",
+      "limit": "Max results"
+    },
+    "create": {
+      "description": "Create a batch job",
+      "inputFile": "Input file ID",
+      "endpoint": "Target endpoint",
+      "window": "Completion window",
+      "metadata": "Add metadata key=value"
+    },
+    "submit": {
+      "description": "Upload JSONL file and create batch",
+      "jsonl": "Path to JSONL file",
+      "endpoint": "Target endpoint",
+      "wait": "Wait for completion"
+    },
+    "cancel": {
+      "yes": "Skip confirmation"
+    },
+    "wait": {
+      "timeout": "Timeout in ms"
+    },
+    "output": {
+      "out": "Save output to path"
+    },
+    "errors": {
+      "out": "Save errors to path"
+    }
+  },
+  "translator": {
+    "description": "Translate request bodies between LLM formats",
+    "detect": {
+      "description": "Detect body format"
+    },
+    "translate": {
+      "description": "Convert body from one format to another"
+    },
+    "send": {
+      "description": "Translate and dispatch upstream"
+    },
+    "stream": {
+      "description": "Stream-translate a request body"
+    },
+    "from": "Source format (openai|anthropic|gemini|cohere)",
+    "to": "Target format (openai|anthropic|gemini|cohere)",
+    "file": "Path to request body JSON file",
+    "out": "Save output to file",
+    "model": "Override model",
+    "history": {
+      "limit": "Max results"
+    }
+  },
+  "pricing": {
+    "description": "Manage pricing data for models",
+    "sync": {
+      "description": "Sync prices from upstream sources",
+      "provider": "Filter by provider",
+      "force": "Force re-sync"
+    },
+    "list": {
+      "provider": "Filter by provider",
+      "model": "Filter by model",
+      "limit": "Max results"
+    },
+    "defaults": {
+      "description": "Manage default pricing",
+      "input": "Input cost per 1M tokens (USD)",
+      "output": "Output cost per 1M tokens (USD)",
+      "cacheRead": "Cache read cost per 1M tokens (USD)",
+      "cacheWrite": "Cache write cost per 1M tokens (USD)"
+    },
+    "diff": {
+      "description": "Show divergence from upstream prices",
+      "model": "Filter by model"
+    }
+  },
+  "resilience": {
+    "description": "Inspect and manage resilience mechanisms",
+    "status": {
+      "provider": "Filter by provider"
+    },
+    "breakers": {
+      "provider": "Filter by provider"
+    },
+    "cooldowns": {
+      "provider": "Filter by provider",
+      "connectionId": "Filter by connection ID"
+    },
+    "lockouts": {
+      "provider": "Filter by provider",
+      "model": "Filter by model"
+    },
+    "reset": {
+      "description": "Reset breaker/cooldown state",
+      "provider": "Provider to reset",
+      "connectionId": "Connection ID to reset",
+      "model": "Model to reset lockout",
+      "allCooldowns": "Reset all cooldowns for provider",
+      "yes": "Skip confirmation"
+    },
+    "profile": {
+      "description": "Manage resilience profile",
+      "name": "Profile name"
+    },
+    "config": {
+      "description": "Manage resilience config",
+      "threshold": "Failure threshold",
+      "resetTimeout": "Reset timeout in ms",
+      "baseCooldown": "Base cooldown in ms"
+    }
+  },
+  "nodes": {
+    "description": "Manage provider nodes (endpoints)",
+    "list": {
+      "provider": "Filter by provider",
+      "enabled": "Only show enabled nodes"
+    },
+    "add": {
+      "provider": "Provider name",
+      "baseUrl": "Base URL for the node",
+      "name": "Node name",
+      "weight": "Load balancing weight",
+      "region": "Region tag",
+      "authHeader": "Custom auth header (key=value)"
+    },
+    "update": {
+      "baseUrl": "New base URL",
+      "name": "New name",
+      "weight": "New weight",
+      "region": "New region",
+      "enabled": "Enable or disable (true|false)"
+    },
+    "remove": {
+      "yes": "Skip confirmation"
+    },
+    "validate": {
+      "baseUrl": "URL to validate",
+      "provider": "Provider to validate against"
+    },
+    "test": {
+      "description": "Send test request to node"
+    },
+    "metrics": {
+      "description": "Show node metrics",
+      "period": "Time period (e.g. 24h, 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sync configuration between OmniRoute instances",
+    "push": {
+      "description": "Push config to cloud or remote instance",
+      "target": "Target (cloud or context:name)",
+      "bundle": "Bundle parts to sync",
+      "dryRun": "Preview without applying"
+    },
+    "pull": {
+      "description": "Pull config from cloud or remote",
+      "source": "Source (cloud or context:name)",
+      "merge": "Merge with existing config",
+      "replace": "Replace existing config",
+      "dryRun": "Preview without applying"
+    },
+    "diff": {
+      "source": "Source context",
+      "target": "Target context"
+    },
+    "bundle": {
+      "description": "Export config as a bundle file",
+      "include": "Parts to include (comma-separated)"
+    },
+    "import": {
+      "description": "Import a bundle file",
+      "dryRun": "Validate without applying"
+    },
+    "initialize": {
+      "fromCloud": "Initialize from cloud backup"
+    },
+    "tokens": {
+      "description": "Manage sync tokens",
+      "create": {
+        "name": "Token name",
+        "scope": "Token scope",
+        "ttl": "Token TTL (e.g. 30d)"
+      },
+      "revoke": {
+        "yes": "Skip confirmation"
+      }
+    },
+    "resolve": {
+      "description": "Resolve sync conflicts interactively"
+    }
   }
 }
