@@ -70,6 +70,15 @@
       "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
     }
   },
+  "cost": {
+    "description": "Show cost report with breakdown by provider, model, combo, or API key",
+    "period": "Time range: 1d|7d|30d|90d|ytd|all (default: 30d)",
+    "since": "Start date (ISO format, e.g. 2026-01-01) — overrides --period",
+    "until": "End date (ISO format)",
+    "group_by": "Group results by: provider|model|api-key|combo|day (default: provider)",
+    "api_key_filter": "Filter by a specific API key",
+    "limit": "Maximum number of rows to show (default: 100)"
+  },
   "simulate": {
     "description": "Dry-run routing simulation — show which providers would be selected without calling upstream",
     "file": "Load full request body from JSON file",

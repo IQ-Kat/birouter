@@ -70,6 +70,15 @@
       "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
     }
   },
+  "cost": {
+    "description": "Exibir relatório de custos com breakdown por provedor, modelo, combo ou chave de API",
+    "period": "Período: 1d|7d|30d|90d|ytd|all (padrão: 30d)",
+    "since": "Data de início (formato ISO, ex: 2026-01-01) — substitui --period",
+    "until": "Data de fim (formato ISO)",
+    "group_by": "Agrupar por: provider|model|api-key|combo|day (padrão: provider)",
+    "api_key_filter": "Filtrar por uma chave de API específica",
+    "limit": "Número máximo de linhas (padrão: 100)"
+  },
   "simulate": {
     "description": "Simulação de routing em dry-run — mostra quais provedores seriam selecionados sem chamar o upstream",
     "file": "Carregar body completo da requisição de arquivo JSON",
