@@ -298,3 +298,6 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
   slmFallbackToAggressive: true,
   maxTokensPerMessage: 0,
 };
+
+export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
+export { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "./engines/mcpAccessibility/constants.ts";
