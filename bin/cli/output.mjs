@@ -1,3 +1,6 @@
+import Table from "cli-table3";
+import { stringify as csvStringify } from "csv-stringify/sync";
+
 const MASK_RE = /sk-[A-Za-z0-9]{4,}/g;
 
 export const EXIT_CODES = Object.freeze({
@@ -17,50 +20,71 @@ export function maskSecret(value) {
 
 function toRows(data) {
   if (Array.isArray(data)) return data;
-  if (data !== null && typeof data === "object") return [data];
+  if (data !== null && typeof data === "object") return data.items ? data.items : [data];
   return [{ value: data }];
 }
 
-function renderTable(rows) {
+function pickFormat(opts) {
+  if (opts.output) return opts.output;
+  if (opts.json) return "json";
+  if (!process.stdout.isTTY) return "json";
+  return "table";
+}
+
+function inferSchema(sample) {
+  return Object.keys(sample).map((k) => ({ key: k, header: k }));
+}
+
+function formatCell(v, col) {
+  if (v == null) return "";
+  if (col.formatter) return col.formatter(v);
+  return String(v);
+}
+
+function renderTable(rows, schema, opts = {}) {
   if (rows.length === 0) {
     process.stdout.write("(empty)\n");
     return;
   }
-  const keys = Array.from(
-    rows.reduce((acc, row) => {
-      for (const k of Object.keys(row)) acc.add(k);
-      return acc;
-    }, new Set())
-  );
-
-  const widths = keys.map((k) => Math.max(k.length, ...rows.map((r) => String(r[k] ?? "").length)));
-
-  const sep = widths.map((w) => "-".repeat(w)).join("-+-");
-  const header = keys.map((k, i) => k.padEnd(widths[i])).join(" | ");
-
-  process.stdout.write(`${header}\n${sep}\n`);
+  const cols = schema || inferSchema(rows[0]);
+  const quiet = opts.quiet === true;
+  const widths = cols.map((c) => c.width || null);
+  const hasWidths = widths.some((w) => w !== null);
+  const tableOpts = {
+    head: quiet ? [] : cols.map((c) => c.header),
+    style: { head: quiet ? [] : ["cyan"] },
+  };
+  if (hasWidths) tableOpts.colWidths = widths;
+  const table = new Table(tableOpts);
   for (const row of rows) {
-    const line = keys.map((k, i) => String(row[k] ?? "").padEnd(widths[i])).join(" | ");
-    process.stdout.write(`${line}\n`);
+    table.push(cols.map((c) => formatCell(row[c.key], c)));
   }
+  process.stdout.write(table.toString() + "\n");
 }
 
-function renderCsv(rows) {
-  if (rows.length === 0) return;
-  const keys = Object.keys(rows[0]);
-  process.stdout.write(keys.map(csvEscape).join(",") + "\n");
-  for (const row of rows) {
-    process.stdout.write(keys.map((k) => csvEscape(String(row[k] ?? ""))).join(",") + "\n");
+function renderCsv(rows, schema) {
+  if (rows.length === 0) {
+    process.stdout.write("\n");
+    return;
   }
+  const cols = schema || inferSchema(rows[0]);
+  const headers = cols.map((c) => c.header);
+  const records = rows.map((r) => cols.map((c) => formatCell(r[c.key], c)));
+  process.stdout.write(csvStringify([headers, ...records]));
 }
 
-function csvEscape(value) {
-  if (/[",\r\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
-  return value;
+function renderJsonl(rows) {
+  for (const row of rows) process.stdout.write(JSON.stringify(row) + "\n");
 }
 
-export function emit(data, opts = {}) {
-  const format = opts.output || "table";
+/**
+ * Emit structured data to stdout in the requested format.
+ * @param {unknown} data - Array of objects or single object
+ * @param {object} opts - Options: { output, json, quiet }
+ * @param {Array|null} schema - Column definitions: [{ key, header, width?, formatter? }]
+ */
+export function emit(data, opts = {}, schema = null) {
+  const format = pickFormat(opts);
   const rows = toRows(data);
 
   switch (format) {
@@ -68,13 +92,13 @@ export function emit(data, opts = {}) {
       process.stdout.write(JSON.stringify(data, null, 2) + "\n");
       break;
     case "jsonl":
-      for (const row of rows) process.stdout.write(JSON.stringify(row) + "\n");
+      renderJsonl(rows);
       break;
     case "csv":
-      renderCsv(rows);
+      renderCsv(rows, schema);
       break;
     default:
-      renderTable(rows);
+      renderTable(rows, schema, opts);
   }
 }
 

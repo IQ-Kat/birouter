@@ -1,4 +1,6 @@
 import { apiFetch, isServerUp } from "../api.mjs";
+import { emit } from "../output.mjs";
+import { modelListSchema } from "../schemas/output-schemas.mjs";
 import { t } from "../i18n.mjs";
 
 export function registerModels(program) {
@@ -66,35 +68,25 @@ export async function runModelsCommand(provider, opts = {}) {
     );
   }
 
-  if (opts.json || opts.output === "json") {
-    console.log(JSON.stringify(models, null, 2));
-    return 0;
-  }
-
   if (models.length === 0) {
     console.log(t("models.noModels"));
     return 0;
   }
 
-  console.log();
-  console.log("\x1b[36m" + "  Model".padEnd(45) + "Provider".padEnd(20) + "Context\x1b[0m");
-  console.log(
-    "\x1b[2m  " + "─".repeat(44) + " " + "─".repeat(19) + " " + "─".repeat(10) + "\x1b[0m"
-  );
+  const normalized = models.map((m) => ({
+    id: m.id || m.name || "unknown",
+    provider: m.provider || "unknown",
+    contextWindow: String(m.context_length || m.max_tokens || m.contextWindow || "-"),
+  }));
 
-  const displayModels = models.slice(0, 50);
-  for (const model of displayModels) {
-    const name = (model.id || model.name || "unknown").slice(0, 43);
-    const prov = (model.provider || "unknown").slice(0, 18);
-    const context = model.context_length || model.max_tokens || model.contextWindow || "-";
-    console.log(`  ${name.padEnd(45)}${prov.padEnd(20)}${String(context).padEnd(10)}`);
-  }
+  const display = normalized.slice(0, 50);
+  emit(display, opts, modelListSchema);
 
-  console.log();
   if (models.length > 50) {
-    console.log(`\x1b[2m  ... and ${models.length - 50} more. Use --json for full list.\x1b[0m`);
+    console.log(
+      `\x1b[2m  ... and ${models.length - 50} more. Use --output json for full list.\x1b[0m`
+    );
   }
-  console.log(`  \x1b[32mTotal: ${models.length} models\x1b[0m`);
 
   return 0;
 }
