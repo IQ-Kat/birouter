@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { createPrompt, printHeading, printInfo, printSuccess } from "../io.mjs";
 import { openOmniRouteDb } from "../sqlite.mjs";
 import { getSettings, hashManagementPassword, updateSettings } from "../settings-store.mjs";
@@ -9,6 +11,13 @@ import {
   resolveProviderChoice,
 } from "../provider-catalog.mjs";
 import { t } from "../i18n.mjs";
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+
+async function getListCliTools() {
+  const { listCliTools } = await import(`${PROJECT_ROOT}/src/shared/constants/cliTools.ts`);
+  return listCliTools;
+}
 
 function wantsProviderSetup(opts) {
   return opts.addProvider || Boolean(opts.provider) || Boolean(opts.apiKey);
@@ -135,6 +144,7 @@ export function registerSetup(program) {
     .option("--provider-base-url <url>", "Optional OpenAI-compatible base URL override")
     .option("--test-provider", "Test the provider after saving it")
     .option("--non-interactive", "Read all inputs from flags/env and do not prompt")
+    .option("--list", "List all supported CLI tools")
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       const exitCode = await runSetupCommand({ ...opts, output: globalOpts.output });
@@ -143,6 +153,22 @@ export function registerSetup(program) {
 }
 
 export async function runSetupCommand(opts = {}) {
+  if (opts.list) {
+    const listCliTools = await getListCliTools();
+    const tools = listCliTools();
+    if (opts.json || opts.output === "json") {
+      console.log(JSON.stringify(tools, null, 2));
+    } else {
+      printHeading("Supported CLI Tools");
+      for (const tool of tools) {
+        const cmd = tool.defaultCommand || tool.defaultCommands?.[0] || "";
+        const cmdStr = cmd ? `  \x1b[2m(${cmd})\x1b[0m` : "";
+        console.log(`  • ${tool.name}${cmdStr}`);
+      }
+    }
+    return 0;
+  }
+
   const nonInteractive = opts.nonInteractive ?? false;
   const prompt = createPrompt();
 
