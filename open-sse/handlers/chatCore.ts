@@ -13,6 +13,10 @@ import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
+import {
+  stripStaleEncodingHeaders,
+  filterUpstreamResponseHeaderEntries,
+} from "../utils/upstreamResponseHeaders.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
@@ -3208,7 +3212,10 @@ export async function handleChatCore({
         // Non-stream: release semaphore immediately after reading full response body.
         const status = rawResult.response.status;
         const statusText = rawResult.response.statusText;
-        const headers = new Headers(rawResult.response.headers);
+        // Strip content-encoding/length/transfer-encoding: fetch() already
+        // decompressed the body and we are about to repack it via new Response()
+        // below, so forwarding the upstream encoding/length is misleading.
+        const headers = stripStaleEncodingHeaders(rawResult.response.headers);
         const contentType = (headers.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,
@@ -4134,7 +4141,10 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
-      cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+      cacheReasoningFromAssistantMessage(msg, provider, model, {
+        requestId: skillRequestId,
+        messageIndex: 0,
+      });
     } catch {
       // Cache capture is non-critical — never block the response
     }
@@ -4364,13 +4374,14 @@ export async function handleChatCore({
     await onRequestSuccess();
   }
 
+  // Strip content-type (we override with text/event-stream below) and the
+  // stale encoding/length headers — fetch() decompressed the upstream body and
+  // we re-stream it through our own transforms, so forwarding the upstream
+  // content-encoding (e.g. "gzip") makes openai-compatible clients try to
+  // gunzip plain text and fail with ZlibError ("incorrect header check").
   const responseHeaders: Record<string, string> = {
     ...Object.fromEntries(
-      (() => {
-        const arr: [string, string][] = [];
-        providerResponse.headers.forEach((v, k) => arr.push([k, v]));
-        return arr;
-      })().filter(([k]) => k.toLowerCase() !== "content-type")
+      filterUpstreamResponseHeaderEntries(providerResponse.headers.entries(), ["content-type"])
     ),
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
@@ -4421,7 +4432,10 @@ export async function handleChatCore({
         const body = streamResponseBody as Record<string, unknown>;
         const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
-        cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+        cacheReasoningFromAssistantMessage(msg, provider, model, {
+          requestId: skillRequestId,
+          messageIndex: 0,
+        });
       } catch {
         // Cache capture is non-critical — never block the stream
       }
