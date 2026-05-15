@@ -51,6 +51,28 @@ test("provider-store.mjs exporta removeProviderConnectionByProvider", async () =
   assert.equal(typeof mod.removeProviderConnectionByProvider, "function");
 });
 
+test("tunnel.mjs exporta subcomandos status/logs/info/rotate", async () => {
+  const mod = await import("../../bin/cli/commands/tunnel.mjs");
+  assert.equal(typeof mod.registerTunnel, "function");
+  assert.equal(typeof mod.runTunnelStatusCommand, "function");
+  assert.equal(typeof mod.runTunnelLogsCommand, "function");
+  assert.equal(typeof mod.runTunnelInfoCommand, "function");
+  assert.equal(typeof mod.runTunnelRotateCommand, "function");
+});
+
+test("tunnel — registerTunnel registra list/create/stop/status/logs/info/rotate", async () => {
+  const { registerTunnel } = await import("../../bin/cli/commands/tunnel.mjs");
+  const { Command } = await import("commander");
+  const prog = new Command().exitOverride();
+  registerTunnel(prog);
+  const tunnelCmd = prog.commands.find((c) => c.name() === "tunnel");
+  assert.ok(tunnelCmd, "tunnel command deve existir");
+  const names = tunnelCmd.commands.map((c) => c.name());
+  for (const sub of ["list", "create", "stop", "status", "logs", "info", "rotate"]) {
+    assert.ok(names.includes(sub), `tunnel ${sub} deve existir`);
+  }
+});
+
 test("health components com alertsOnly=true não lança", async () => {
   // Server não está rodando — função deve retornar 1 sem throw.
   const { runHealthComponentsCommand } = await import("../../bin/cli/commands/health.mjs");
