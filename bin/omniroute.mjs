@@ -67,6 +67,20 @@ function loadEnvFile() {
 
 loadEnvFile();
 
+// Apply --lang before Commander parses (program descriptions call t() during setup)
+{
+  const langIdx = process.argv.findIndex((a) => a === "--lang");
+  const langArg = langIdx >= 0 ? process.argv[langIdx + 1] : null;
+  const langEnv = process.env.OMNIROUTE_LANG;
+  const chosen = langArg || langEnv;
+  if (chosen) {
+    const { setLocale } = await import(
+      pathToFileURL(join(ROOT, "bin", "cli", "i18n.mjs")).href
+    );
+    setLocale(chosen);
+  }
+}
+
 // Register update notifier — checks npm once per 24h, notifies on exit via stderr.
 const _pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const _notifier = updateNotifier({ pkg: _pkg, updateCheckInterval: 1000 * 60 * 60 * 24 });

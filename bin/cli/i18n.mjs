@@ -21,8 +21,8 @@ export function detectLocale() {
 }
 
 function normalize(raw) {
-  const stripped = String(raw).split(".")[0].replace("_", "-");
-  if (!stripped) return FALLBACK_LOCALE;
+  const stripped = String(raw).split(".")[0].replaceAll("_", "-");
+  if (!stripped || !/^[a-zA-Z0-9-]+$/.test(stripped)) return FALLBACK_LOCALE;
   if (hasCatalog(stripped)) return stripped;
   const base = stripped.split("-")[0];
   if (hasCatalog(base)) return base;

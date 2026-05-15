@@ -776,7 +776,8 @@
     "timeout": "HTTP request timeout in milliseconds",
     "api_key": "API key for OmniRoute server",
     "base_url": "OmniRoute server base URL",
-    "context": "Server context/profile to use for this command"
+    "context": "Server context/profile to use for this command",
+    "lang": "Set CLI display language (overrides OMNIROUTE_LANG)"
   },
   "files": {
     "description": "Manage files (upload, list, get, download, delete)",
@@ -1154,6 +1155,19 @@
   "config": {
     "contexts": {
       "description": "Manage server contexts/profiles (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Manage CLI display language",
+      "getDescription": "Show the currently active language code",
+      "setDescription": "Set the display language and save it to config",
+      "listDescription": "List all available languages",
+      "listTitle": "Available Languages",
+      "current": "Language: {code} ({name})",
+      "saved": "Language set to {code} ({name}).",
+      "noCode": "Language code required. Run 'omniroute config lang list' to see available codes.",
+      "unknown": "Unknown language code: {code}. Run 'omniroute config lang list' to see available codes.",
+      "alreadySet": "Language is already set to {code}.",
+      "envHint": "Tip: you can also set OMNIROUTE_LANG={code} in your environment."
     }
   },
   "completion": {

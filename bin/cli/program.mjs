@@ -31,6 +31,7 @@ export function createProgram() {
         t("program.context") || "Server context/profile to use for this command"
       ).env("OMNIROUTE_CONTEXT")
     )
+    .addOption(new Option("--lang <code>", t("program.lang")))
     .showHelpAfterError(true)
     .exitOverride();
 

@@ -8,8 +8,7 @@ This directory contains the CLI runtime, helpers, and commands for the `omnirout
 bin/cli/
 ├── CONVENTIONS.md          ← normative design rules (read this first)
 ├── README.md               ← this file
-├── index.mjs               ← central command router (will migrate to Commander in 1.1)
-├── args.mjs                ← legacy arg parser (replaced by Commander in 1.1)
+├── program.mjs             ← Commander setup — global flags, registerCommands()
 ├── api.mjs                 ← apiFetch() — all HTTP calls + retry/backoff
 ├── runtime.mjs             ← withRuntime() — server-first / DB-fallback
 ├── i18n.mjs                ← t() — i18n helper + locale detection
@@ -23,13 +22,16 @@ bin/cli/
 ├── provider-test.mjs       ← testProviderApiKey()
 ├── settings-store.mjs      ← DB CRUD for key_value settings
 ├── locales/
-│   ├── en.json             ← English strings
-│   └── pt-BR.json          ← Portuguese (Brazil) strings
+│   ├── en.json             ← English strings (source of truth, 42+ locales)
+│   ├── pt-BR.json          ← Portuguese (Brazil) — fully translated
+│   └── {locale}.json       ← 40 additional locales (ar, az, de, es, fr, ja, zh-CN, …)
+├── scripts/
+│   └── generate-locales.mjs ← scaffold new locale files from config/i18n.json
 └── commands/
     ├── setup.mjs
     ├── doctor.mjs
     ├── providers.mjs
-    ├── config.mjs
+    ├── config.mjs          ← includes `config lang get/set/list`
     ├── status.mjs
     ├── logs.mjs
     └── update.mjs
@@ -103,12 +105,42 @@ printError("Something went wrong");
 process.exit(EXIT_CODES.SERVER_OFFLINE);
 ```
 
+## Locale selection
+
+The CLI displays text in the user's language. Detection order:
+
+1. `--lang <code>` flag on the command line
+2. `OMNIROUTE_LANG` environment variable
+3. System env: `LC_ALL` → `LC_MESSAGES` → `LANG`
+4. Fallback: `en`
+
+**Set permanently:**
+
+```bash
+omniroute config lang set pt-BR       # saves to ~/.omniroute/.env
+omniroute config lang list            # show all 42 available locales
+omniroute config lang get             # show currently active locale
+```
+
+**One-time override:**
+
+```bash
+omniroute --lang de providers list    # run in German, not persisted
+OMNIROUTE_LANG=ja omniroute status    # same effect via env
+```
+
+**Adding a new locale**: add entry to `config/i18n.json`, then run:
+
+```bash
+node bin/cli/scripts/generate-locales.mjs
+```
+
 ## Adding a new command
 
 1. Create `bin/cli/commands/your-command.mjs`
-2. Export `runYourCommand(argv, context)` (pre-1.1) or `registerYourCommand(program)` (post-1.1)
-3. Register in `bin/cli/index.mjs` (pre-1.1) or `bin/cli/program.mjs` (post-1.1)
-4. Add strings to both `locales/en.json` and `locales/pt-BR.json`
+2. Export `registerYourCommand(program)` following the Commander pattern
+3. Register in `bin/cli/commands/registry.mjs`
+4. Add strings to `locales/en.json` and `locales/pt-BR.json`
 5. Write test in `tests/unit/cli-your-command.test.ts`
 
 See `CONVENTIONS.md` for exit codes, flag naming, output format, and destructive-action rules.

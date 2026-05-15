@@ -135,11 +135,25 @@ export const RETRY_DEFAULTS = {
 ## 6. Internationalization
 
 - Every user-facing string goes through `t("module.key", vars)`.
-- Catalogs live in `bin/cli/locales/{en,pt-BR}.json` (nested objects).
-- Detection: `OMNIROUTE_LANG` overrides, otherwise `LC_ALL`, `LC_MESSAGES`,
-  `LANG`. Fallback: `en`.
-- Missing keys return the key itself (no crash). PRs that add new strings
-  must update both `en` and `pt-BR` catalogs.
+- Catalogs live in `bin/cli/locales/{locale}.json` (nested objects).
+  42 files ship out-of-the-box: `en`, `pt-BR`, and 40 additional locales.
+  11 locales are scaffold-only (empty `{}`); all keys fall back to `en` automatically.
+- Detection order: `--lang` flag → `OMNIROUTE_LANG` env → `LC_ALL` → `LC_MESSAGES` → `LANG` → `en`.
+- Locale persisted via `config lang set <code>` — saves `OMNIROUTE_LANG` to `~/.omniroute/.env`.
+- Missing keys return the key itself (no crash).
+- PRs that add new strings **must** update `en.json` and `pt-BR.json`.
+  Other locale files are best-effort; missing keys silently fall back to `en`.
+- `normalize()` in `i18n.mjs` validates locale codes via `/^[a-zA-Z0-9-]+$/` to
+  prevent path traversal — never pass raw filesystem paths.
+- Canonical locale list: `config/i18n.json` — source of truth used by both CLI and
+  dashboard i18n pipelines.
+
+### Adding a new locale file
+
+1. Add entry to `config/i18n.json` with `code`, `english`, `native`, `flag`.
+2. Run `node bin/cli/scripts/generate-locales.mjs` — creates `bin/cli/locales/{code}.json`.
+3. Fill in translations (or leave as `{}` for en-fallback scaffold).
+4. The pre-commit hook `check-cli-i18n` will verify all `t()` keys exist in `en.json`.
 
 ## 7. Logs / output channels
 

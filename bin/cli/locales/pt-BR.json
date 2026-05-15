@@ -776,7 +776,8 @@
     "timeout": "Timeout de requisições HTTP em milissegundos",
     "api_key": "Chave de API para o servidor OmniRoute",
     "base_url": "URL base do servidor OmniRoute",
-    "context": "Contexto/perfil do servidor a usar neste comando"
+    "context": "Contexto/perfil do servidor a usar neste comando",
+    "lang": "Definir idioma de exibição do CLI (substitui OMNIROUTE_LANG)"
   },
   "files": {
     "description": "Gerenciar arquivos (upload, listar, obter, baixar, deletar)",
@@ -1154,6 +1155,19 @@
   "config": {
     "contexts": {
       "description": "Gerenciar contextos/perfis de servidor (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Gerenciar idioma de exibição do CLI",
+      "getDescription": "Exibir o código de idioma atualmente ativo",
+      "setDescription": "Definir o idioma de exibição e salvar na configuração",
+      "listDescription": "Listar todos os idiomas disponíveis",
+      "listTitle": "Idiomas Disponíveis",
+      "current": "Idioma: {code} ({name})",
+      "saved": "Idioma definido como {code} ({name}).",
+      "noCode": "Código de idioma obrigatório. Execute 'omniroute config lang list' para ver os códigos disponíveis.",
+      "unknown": "Código de idioma desconhecido: {code}. Execute 'omniroute config lang list' para ver os códigos disponíveis.",
+      "alreadySet": "O idioma já está definido como {code}.",
+      "envHint": "Dica: você também pode definir OMNIROUTE_LANG={code} no seu ambiente."
     }
   },
   "completion": {
