@@ -55,6 +55,45 @@ export function registerKeys(program) {
       const exitCode = await runKeysRemoveCommand(provider, { ...opts, ...globalOpts });
       if (exitCode !== 0) process.exit(exitCode);
     });
+
+  keys
+    .command("regenerate <id>")
+    .description("Regenerate an OmniRoute API key (management keys)")
+    .option("--yes", "Skip confirmation prompt")
+    .action(async (id, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runKeysRegenerateCommand(id, { ...opts, ...globalOpts });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  keys
+    .command("revoke <id>")
+    .description("Revoke an OmniRoute API key")
+    .option("--yes", "Skip confirmation prompt")
+    .action(async (id, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runKeysRevokeCommand(id, { ...opts, ...globalOpts });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  keys
+    .command("reveal <id>")
+    .description("Reveal the unmasked API key value")
+    .action(async (id, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runKeysRevealCommand(id, { ...opts, ...globalOpts });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  keys
+    .command("usage <id>")
+    .description("Show recent usage for an API key")
+    .option("--limit <n>", "Number of recent requests", "20")
+    .action(async (id, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runKeysUsageCommand(id, { ...opts, ...globalOpts });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
 }
 
 export async function runKeysAddCommand(provider, apiKey, opts = {}) {
@@ -211,4 +250,92 @@ async function readStdin() {
     process.stdin.on("data", (chunk) => (data += chunk));
     process.stdin.on("end", () => resolve(data.trim()));
   });
+}
+
+export async function runKeysRegenerateCommand(id, opts = {}) {
+  if (!opts.yes) {
+    const readline = await import("node:readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise((r) => rl.question(`Regenerate key ${id}? [y/N] `, r));
+    rl.close();
+    if (!/^y(es)?$/i.test(answer)) {
+      console.log("Aborted.");
+      return 0;
+    }
+  }
+  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/regenerate`, {
+    method: "POST",
+    ...opts,
+  });
+  if (!res.ok) {
+    console.error(`Error: HTTP ${res.status}`);
+    return 1;
+  }
+  const data = await res.json();
+  console.log(`Regenerated. New key: ${data.key || data.apiKey || "(see dashboard)"}`);
+  return 0;
+}
+
+export async function runKeysRevokeCommand(id, opts = {}) {
+  if (!opts.yes) {
+    const readline = await import("node:readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise((r) => rl.question(`Revoke key ${id}? [y/N] `, r));
+    rl.close();
+    if (!/^y(es)?$/i.test(answer)) {
+      console.log("Aborted.");
+      return 0;
+    }
+  }
+  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/revoke`, {
+    method: "POST",
+    ...opts,
+  });
+  if (!res.ok) {
+    console.error(`Error: HTTP ${res.status}`);
+    return 1;
+  }
+  console.log(`Key ${id} revoked.`);
+  return 0;
+}
+
+export async function runKeysRevealCommand(id, opts = {}) {
+  process.stderr.write(
+    "⚠  This will display the full unmasked key. Ensure your screen is private.\n"
+  );
+  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/reveal`, {
+    ...opts,
+  });
+  if (!res.ok) {
+    console.error(`Error: HTTP ${res.status}`);
+    return 1;
+  }
+  const data = await res.json();
+  console.log(data.key || data.apiKey || "(not available)");
+  return 0;
+}
+
+export async function runKeysUsageCommand(id, opts = {}) {
+  const limit = opts.limit || "20";
+  const res = await apiFetch(
+    `/api/v1/registered-keys/${encodeURIComponent(id)}/usage?limit=${limit}`,
+    { ...opts }
+  );
+  if (!res.ok) {
+    console.error(`Error: HTTP ${res.status}`);
+    return 1;
+  }
+  const data = await res.json();
+  const rows = data.usage || data.requests || data.items || [];
+  if (rows.length === 0) {
+    console.log("No usage data found.");
+    return 0;
+  }
+  for (const r of rows) {
+    const ts = r.timestamp || r.createdAt || "";
+    const path = r.path || r.endpoint || "";
+    const status = r.status || r.statusCode || "";
+    console.log(`  ${ts}  ${String(status).padEnd(4)}  ${path}`);
+  }
+  return 0;
 }

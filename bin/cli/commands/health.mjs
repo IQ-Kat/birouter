@@ -2,15 +2,41 @@ import { apiFetch, isServerUp } from "../api.mjs";
 import { t } from "../i18n.mjs";
 
 export function registerHealth(program) {
-  program
+  const health = program
     .command("health")
     .description(t("health.description"))
     .option("-v, --verbose", "Show extended info (memory, breakers)")
     .option("--json", "Output as JSON")
+    .option("--alerts-only", "Show only components with alerts")
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       const exitCode = await runHealthCommand({ ...opts, output: globalOpts.output });
       if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  health
+    .command("components")
+    .description("List health components and their status")
+    .option("--alerts-only", "Show only components with alerts")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      const exitCode = await runHealthComponentsCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  health
+    .command("watch")
+    .description("Live dashboard — refresh every N seconds")
+    .option("--interval <s>", "Refresh interval in seconds", "5")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      const interval = parseInt(opts.interval, 10) * 1000;
+      process.stdout.write("\x1B[2J\x1B[0f");
+      while (true) {
+        process.stdout.write("\x1B[0f");
+        await runHealthCommand({ ...globalOpts, verbose: true });
+        await new Promise((r) => setTimeout(r, interval));
+      }
     });
 }
 
@@ -68,6 +94,30 @@ export async function runHealthCommand(opts = {}) {
     return 0;
   } catch (err) {
     console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
+}
+
+export async function runHealthComponentsCommand(opts = {}) {
+  try {
+    const res = await apiFetch("/api/health", { retry: false, timeout: 5000, acceptNotOk: true });
+    if (!res.ok) {
+      console.error(`HTTP ${res.status}`);
+      return 1;
+    }
+    const health = await res.json();
+    const components = health.components || health.breakers || {};
+    for (const [name, info] of Object.entries(components)) {
+      const status =
+        typeof info === "object" ? info.state || info.status || "unknown" : String(info);
+      const isAlert = status !== "closed" && status !== "ok" && status !== "healthy";
+      if (opts.alertsOnly && !isAlert) continue;
+      const icon = isAlert ? "\x1b[33m⚠\x1b[0m" : "\x1b[32m✓\x1b[0m";
+      console.log(`  ${icon} ${name.padEnd(24)} ${status}`);
+    }
+    return 0;
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
     return 1;
   }
 }

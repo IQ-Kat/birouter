@@ -1056,5 +1056,23 @@
     "resolve": {
       "description": "Resolver conflitos de sincronização interativamente"
     }
+  },
+  "completion": {
+    "description": "Gerar ou instalar scripts de completion do shell",
+    "zsh": "Imprimir script de completion para zsh",
+    "bash": "Imprimir script de completion para bash",
+    "fish": "Imprimir script de completion para fish",
+    "install": "Instalar completion globalmente para o shell detectado",
+    "refresh": "Atualizar cache de combos/providers/models"
+  },
+  "logs": {
+    "description": "Streaming ou exportação de logs de request",
+    "requestId": "Filtrar por ID do request",
+    "apiKey": "Filtrar por chave de API",
+    "combo": "Filtrar por nome do combo",
+    "status": "Filtrar por código HTTP",
+    "durationMin": "Duração mínima do request em ms",
+    "durationMax": "Duração máxima do request em ms",
+    "export": "Salvar logs em arquivo (json/jsonl/csv)"
   }
 }

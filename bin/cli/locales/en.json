@@ -1056,5 +1056,23 @@
     "resolve": {
       "description": "Resolve sync conflicts interactively"
     }
+  },
+  "completion": {
+    "description": "Generate or install shell completion scripts",
+    "zsh": "Print zsh completion script",
+    "bash": "Print bash completion script",
+    "fish": "Print fish completion script",
+    "install": "Install completion script globally for detected shell",
+    "refresh": "Refresh cache of combos/providers/models"
+  },
+  "logs": {
+    "description": "Stream or export request logs",
+    "requestId": "Filter by request ID",
+    "apiKey": "Filter by API key",
+    "combo": "Filter by combo name",
+    "status": "Filter by HTTP status code",
+    "durationMin": "Min request duration in ms",
+    "durationMax": "Max request duration in ms",
+    "export": "Save logs to file (json/jsonl/csv)"
   }
 }

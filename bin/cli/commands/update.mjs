@@ -64,7 +64,9 @@ export function registerUpdate(program) {
   program
     .command("update")
     .description(t("update.checking"))
-    .option("--check", "Check for available update without applying")
+    .option("--check", "Check for available update — exit 0 if up-to-date, exit 1 if outdated")
+    .option("--apply", "Install latest version automatically (npm install -g)")
+    .option("--changelog", "Show changelog for the latest release")
     .option("--dry-run", "Show what would be updated without applying")
     .option("--no-backup", "Skip backup creation")
     .option("--yes", "Skip confirmation prompt")
@@ -77,9 +79,11 @@ export function registerUpdate(program) {
 
 export async function runUpdateCommand(opts = {}) {
   const checkOnly = opts.check ?? false;
+  const applyNow = opts.apply ?? false;
+  const showChangelog = opts.changelog ?? false;
   const dryRun = opts.dryRun ?? false;
   const skipBackup = !(opts.backup ?? true);
-  const skipConfirm = opts.yes ?? false;
+  const skipConfirm = opts.yes ?? applyNow;
 
   const current = await getCurrentVersion();
   const latest = await getLatestVersion();
@@ -92,6 +96,22 @@ export async function runUpdateCommand(opts = {}) {
   if (!latest) {
     printError("Could not check latest version. Is npm available?");
     return 1;
+  }
+
+  if (showChangelog) {
+    try {
+      const { stdout } = await execFileAsync("npm", ["view", "omniroute", "changelog"], {
+        timeout: 10000,
+      });
+      if (stdout.trim()) {
+        console.log(stdout.trim());
+      } else {
+        console.log(`Changelog: https://github.com/your-org/omniroute/releases/tag/v${latest}`);
+      }
+    } catch {
+      console.log(`Changelog: https://github.com/your-org/omniroute/releases/tag/v${latest}`);
+    }
+    return 0;
   }
 
   printHeading("OmniRoute Update");
@@ -107,8 +127,8 @@ export async function runUpdateCommand(opts = {}) {
   console.log(`\n  Update available: ${current} → ${latest}`);
 
   if (checkOnly) {
-    console.log("\n  Run `omniroute update` to apply the update.");
-    return 0;
+    console.log("\n  Run `omniroute update --apply` to install automatically.");
+    return 1; // exit 1 = outdated (useful for scripts)
   }
 
   if (dryRun) {
