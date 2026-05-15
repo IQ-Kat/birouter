@@ -10,7 +10,9 @@
     "no": "no",
     "confirm": "Are you sure? (yes/no)",
     "dryRun": "[dry-run] would {action}",
-    "cancelled": "Cancelled."
+    "cancelled": "Cancelled.",
+    "jsonOpt": "Output as JSON",
+    "yesOpt": "Skip confirmation prompt"
   },
   "setup": {
     "title": "OmniRoute Setup",
@@ -62,11 +64,51 @@
   },
   "keys": {
     "title": "API Keys",
+    "addDescription": "Add or update an API key for a provider",
+    "listDescription": "List all configured API keys",
+    "removeDescription": "Remove an API key for a provider",
+    "regenerateDescription": "Regenerate an OmniRoute API key",
+    "revokeDescription": "Revoke an OmniRoute API key",
+    "revealDescription": "Reveal the unmasked API key value",
+    "usageDescription": "Show recent usage for an API key",
+    "usageLimitOpt": "Number of recent requests",
+    "rotateDescription": "Generate a new key and invalidate the old one",
+    "graceOpt": "Grace period (ms) before the old key is invalidated",
+    "stdinOpt": "Read API key from stdin instead of argument",
     "added": "Key added for {provider}.",
     "removed": "Key removed.",
     "listed": "{count} key(s).",
     "noKeys": "No keys configured.",
-    "confirmRemove": "Remove key {id}?"
+    "noUsage": "No usage data found.",
+    "confirmRemove": "Remove key {id}?",
+    "confirmRegenerate": "Regenerate key {id}?",
+    "confirmRevoke": "Revoke key {id}?",
+    "confirmRotate": "Rotate key {id}? (old key will be invalidated after grace period)",
+    "regenerated": "Regenerated. New key: {key}",
+    "revoked": "Key {id} revoked.",
+    "rotated": "Key {id} rotated. New key ID: {newId}",
+    "revealWarning": "⚠  This will display the full unmasked key. Ensure your screen is private.",
+    "providerRequired": "Provider is required.",
+    "keyRequired": "API key is required.",
+    "stdinEmpty": "No API key provided via stdin.",
+    "unknownProvider": "Unknown provider: {provider}",
+    "policy": {
+      "title": "Key Policy",
+      "showDescription": "Show rate/cost policy for a key",
+      "setDescription": "Set rate/cost policy for a key",
+      "rateLimitOpt": "Max requests per minute",
+      "maxCostOpt": "Max cost per day (USD)",
+      "allowedModelsOpt": "Comma-separated list of allowed models",
+      "nothingToSet": "No policy fields provided. Use --rate-limit, --max-cost, or --allowed-models.",
+      "updated": "Policy updated."
+    },
+    "expiration": {
+      "title": "Key Expiration",
+      "listDescription": "List keys expiring soon",
+      "daysOpt": "Show keys expiring within N days",
+      "none": "No keys expiring within {days} days.",
+      "listTitle": "Keys expiring within {days} days:"
+    }
   },
   "stream": {
     "description": "Stream a chat response with SSE inspection modes",

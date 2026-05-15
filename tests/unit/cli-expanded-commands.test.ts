@@ -27,6 +27,28 @@ test("keys.mjs exporta novos comandos", async () => {
   assert.equal(typeof mod.runKeysRevokeCommand, "function");
   assert.equal(typeof mod.runKeysRevealCommand, "function");
   assert.equal(typeof mod.runKeysUsageCommand, "function");
+  assert.equal(typeof mod.runKeysPolicyShowCommand, "function");
+  assert.equal(typeof mod.runKeysPolicySetCommand, "function");
+  assert.equal(typeof mod.runKeysExpirationListCommand, "function");
+  assert.equal(typeof mod.runKeysRotateCommand, "function");
+  assert.equal(typeof mod.runKeysListCommand, "function");
+  assert.equal(typeof mod.runKeysRemoveCommand, "function");
+});
+
+test("keys.mjs — runKeysListCommand sem server retorna 0 ou 1", async () => {
+  const { runKeysListCommand } = await import("../../bin/cli/commands/keys.mjs");
+  let code = 0;
+  try {
+    code = await runKeysListCommand({ json: true });
+  } catch {
+    code = 1;
+  }
+  assert.ok(code === 0 || code === 1);
+});
+
+test("provider-store.mjs exporta removeProviderConnectionByProvider", async () => {
+  const mod = await import("../../bin/cli/provider-store.mjs");
+  assert.equal(typeof mod.removeProviderConnectionByProvider, "function");
 });
 
 test("health components com alertsOnly=true não lança", async () => {

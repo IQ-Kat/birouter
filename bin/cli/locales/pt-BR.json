@@ -10,7 +10,9 @@
     "no": "não",
     "confirm": "Tem certeza? (sim/não)",
     "dryRun": "[simulação] faria: {action}",
-    "cancelled": "Cancelado."
+    "cancelled": "Cancelado.",
+    "jsonOpt": "Saída em JSON",
+    "yesOpt": "Pular confirmação"
   },
   "setup": {
     "title": "Configuração do OmniRoute",
@@ -62,11 +64,51 @@
   },
   "keys": {
     "title": "Chaves de API",
+    "addDescription": "Adicionar ou atualizar uma chave de API para um provedor",
+    "listDescription": "Listar todas as chaves de API configuradas",
+    "removeDescription": "Remover uma chave de API de um provedor",
+    "regenerateDescription": "Regenerar uma chave de API do OmniRoute",
+    "revokeDescription": "Revogar uma chave de API do OmniRoute",
+    "revealDescription": "Revelar o valor completo da chave (sem máscara)",
+    "usageDescription": "Exibir uso recente de uma chave de API",
+    "usageLimitOpt": "Número de requisições recentes",
+    "rotateDescription": "Gerar nova chave e invalidar a antiga",
+    "graceOpt": "Período de carência (ms) antes de invalidar a chave antiga",
+    "stdinOpt": "Ler chave de API via stdin",
     "added": "Chave adicionada para {provider}.",
     "removed": "Chave removida.",
     "listed": "{count} chave(s).",
     "noKeys": "Nenhuma chave configurada.",
-    "confirmRemove": "Remover chave {id}?"
+    "noUsage": "Nenhum dado de uso encontrado.",
+    "confirmRemove": "Remover chave {id}?",
+    "confirmRegenerate": "Regenerar chave {id}?",
+    "confirmRevoke": "Revogar chave {id}?",
+    "confirmRotate": "Rotacionar chave {id}? (a chave antiga será invalidada após o período de carência)",
+    "regenerated": "Chave regenerada. Nova chave: {key}",
+    "revoked": "Chave {id} revogada.",
+    "rotated": "Chave {id} rotacionada. Novo ID: {newId}",
+    "revealWarning": "⚠  Isso exibirá a chave completa sem máscara. Certifique-se de que sua tela está privada.",
+    "providerRequired": "Provedor é obrigatório.",
+    "keyRequired": "Chave de API é obrigatória.",
+    "stdinEmpty": "Nenhuma chave fornecida via stdin.",
+    "unknownProvider": "Provedor desconhecido: {provider}",
+    "policy": {
+      "title": "Política da Chave",
+      "showDescription": "Exibir política de taxa/custo de uma chave",
+      "setDescription": "Definir política de taxa/custo de uma chave",
+      "rateLimitOpt": "Máximo de requisições por minuto",
+      "maxCostOpt": "Custo máximo por dia (USD)",
+      "allowedModelsOpt": "Lista de modelos permitidos (separados por vírgula)",
+      "nothingToSet": "Nenhum campo de política fornecido. Use --rate-limit, --max-cost ou --allowed-models.",
+      "updated": "Política atualizada."
+    },
+    "expiration": {
+      "title": "Expiração de Chaves",
+      "listDescription": "Listar chaves prestes a expirar",
+      "daysOpt": "Exibir chaves que expiram em N dias",
+      "none": "Nenhuma chave expirando nos próximos {days} dias.",
+      "listTitle": "Chaves que expiram nos próximos {days} dias:"
+    }
   },
   "stream": {
     "description": "Transmitir resposta de chat com modos de inspeção SSE",
