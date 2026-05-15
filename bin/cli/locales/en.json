@@ -192,6 +192,8 @@
     "confirmRestore": "Overwrite current data with backup from {ts}?"
   },
   "health": {
+    "description": "Check server health and component status",
+    "noServer": "Server not running. Start with: omniroute serve",
     "title": "Health",
     "status": "Status: {status}",
     "uptime": "Uptime: {uptime}",

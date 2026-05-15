@@ -192,6 +192,8 @@
     "confirmRestore": "Substituir dados atuais pelo backup de {ts}?"
   },
   "health": {
+    "description": "Verificar saúde do servidor e status dos componentes",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "title": "Saúde",
     "status": "Status: {status}",
     "uptime": "Uptime: {uptime}",
