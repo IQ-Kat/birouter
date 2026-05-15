@@ -233,7 +233,29 @@
     "listTitle": "Available Backups",
     "noBackups": "No backups found.",
     "notFound": "Backup not found: {name}",
-    "confirmRestore": "Overwrite current data with backup from {ts}?"
+    "confirmRestore": "Overwrite current data with backup from {ts}?",
+    "createDescription": "Create a backup of OmniRoute data",
+    "nameOpt": "Custom backup name",
+    "cloudOpt": "Upload backup to cloud storage",
+    "encryptOpt": "Encrypt backup with AES-256-GCM",
+    "keyFileOpt": "Path to file containing encryption passphrase",
+    "excludeOpt": "Exclude file matching pattern (repeatable)",
+    "retentionOpt": "Keep only the last N backups",
+    "passphrasePrompt": "Encryption passphrase: ",
+    "noPassphrase": "Passphrase is required for encrypted backup.",
+    "cloudFailed": "Warning: cloud upload failed. Local backup was saved.",
+    "cloudUploaded": "Cloud backup uploaded: {url}",
+    "auto": {
+      "title": "Backup Schedule",
+      "enableDescription": "Enable scheduled automatic backups",
+      "disableDescription": "Disable scheduled automatic backups",
+      "statusDescription": "Show current backup schedule status",
+      "cronOpt": "Cron expression for schedule (default: daily at 3am)",
+      "enabled": "Automatic backup enabled (cron: {cron}).",
+      "hint": "  The schedule is read by omniroute serve on startup.",
+      "disabled": "Automatic backup disabled.",
+      "notConfigured": "No backup schedule configured."
+    }
   },
   "health": {
     "description": "Check server health and component status",

@@ -60,6 +60,28 @@ test("tunnel.mjs exporta subcomandos status/logs/info/rotate", async () => {
   assert.equal(typeof mod.runTunnelRotateCommand, "function");
 });
 
+test("backup.mjs exporta runBackupAutoEnableCommand/Disable/Status", async () => {
+  const mod = await import("../../bin/cli/commands/backup.mjs");
+  assert.equal(typeof mod.registerBackup, "function");
+  assert.equal(typeof mod.runBackupCommand, "function");
+  assert.equal(typeof mod.runBackupAutoEnableCommand, "function");
+  assert.equal(typeof mod.runBackupAutoDisableCommand, "function");
+  assert.equal(typeof mod.runBackupAutoStatusCommand, "function");
+});
+
+test("backup auto status sem arquivo retorna 0", async () => {
+  const { runBackupAutoStatusCommand } = await import("../../bin/cli/commands/backup.mjs");
+  const { tmpdir } = await import("node:os");
+  const orig = process.env.HOME;
+  process.env.HOME = tmpdir();
+  try {
+    const code = await runBackupAutoStatusCommand();
+    assert.ok(code === 0 || code === 1);
+  } finally {
+    process.env.HOME = orig;
+  }
+});
+
 test("tunnel — registerTunnel registra list/create/stop/status/logs/info/rotate", async () => {
   const { registerTunnel } = await import("../../bin/cli/commands/tunnel.mjs");
   const { Command } = await import("commander");

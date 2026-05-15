@@ -6,8 +6,11 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
+import { dirname, join, extname, basename } from "node:path";
+import { homedir } from "node:os";
 import { resolveDataDir } from "../data-dir.mjs";
+import { apiFetch, isServerUp } from "../api.mjs";
 import { t } from "../i18n.mjs";
 
 function getBackupDir() {
@@ -22,14 +25,64 @@ const FILES_TO_BACKUP = [
 ];
 
 export function registerBackup(program) {
-  program
-    .command("backup")
-    .description(t("backup.description"))
-    .option("--name <name>", "Custom backup name")
+  const backup = program.command("backup").description(t("backup.description"));
+
+  backup
+    .command("create")
+    .description(t("backup.createDescription"))
+    .option("--name <name>", t("backup.nameOpt"))
+    .option("--cloud", t("backup.cloudOpt"))
+    .option("--encrypt", t("backup.encryptOpt"))
+    .option("--key-file <path>", t("backup.keyFileOpt"))
+    .option("--exclude <pattern>", t("backup.excludeOpt"), (v, prev = []) => [...prev, v], [])
+    .option("--retention <n>", t("backup.retentionOpt"), parseInt)
     .action(async (opts) => {
       const exitCode = await runBackupCommand(opts);
       if (exitCode !== 0) process.exit(exitCode);
     });
+
+  const auto = backup.command("auto").description(t("backup.auto.title"));
+
+  auto
+    .command("enable")
+    .description(t("backup.auto.enableDescription"))
+    .option("--cron <expr>", t("backup.auto.cronOpt"), "0 3 * * *")
+    .option("--cloud", t("backup.cloudOpt"))
+    .option("--encrypt", t("backup.encryptOpt"))
+    .option("--retention <n>", t("backup.retentionOpt"), parseInt)
+    .action(async (opts) => {
+      const exitCode = await runBackupAutoEnableCommand(opts);
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  auto
+    .command("disable")
+    .description(t("backup.auto.disableDescription"))
+    .action(async () => {
+      const exitCode = await runBackupAutoDisableCommand();
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  auto
+    .command("status")
+    .description(t("backup.auto.statusDescription"))
+    .action(async () => {
+      const exitCode = await runBackupAutoStatusCommand();
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  // Legacy: `omniroute backup` without subcommand still creates a backup
+  backup.action(async (opts) => {
+    const exitCode = await runBackupCommand(opts);
+    if (exitCode !== 0) process.exit(exitCode);
+  });
+  backup
+    .option("--name <name>", t("backup.nameOpt"))
+    .option("--cloud", t("backup.cloudOpt"))
+    .option("--encrypt", t("backup.encryptOpt"))
+    .option("--key-file <path>", t("backup.keyFileOpt"))
+    .option("--exclude <pattern>", t("backup.excludeOpt"), (v, prev = []) => [...prev, v], [])
+    .option("--retention <n>", t("backup.retentionOpt"), parseInt);
 }
 
 export function registerRestore(program) {
@@ -44,14 +97,82 @@ export function registerRestore(program) {
     });
 }
 
+function matchesGlob(fileName, pattern) {
+  if (!pattern.includes("*")) return fileName === pattern || fileName.startsWith(pattern);
+  const parts = pattern.split("*");
+  if (parts.length !== 2) return false;
+  const [prefix, suffix] = parts;
+  return (
+    fileName.startsWith(prefix) &&
+    fileName.endsWith(suffix) &&
+    fileName.length >= prefix.length + suffix.length
+  );
+}
+
+function shouldExclude(fileName, patterns) {
+  if (!patterns || patterns.length === 0) return false;
+  return patterns.some((p) => matchesGlob(fileName, p));
+}
+
+function encryptFile(srcPath, destPath, passphrase) {
+  const salt = randomBytes(16);
+  const iv = randomBytes(12);
+  const key = scryptSync(passphrase, salt, 32);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const plaintext = readFileSync(srcPath);
+  const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  // Format: salt(16) + iv(12) + authTag(16) + ciphertext
+  writeFileSync(destPath, Buffer.concat([salt, iv, authTag, encrypted]));
+}
+
+async function promptPassphrase() {
+  const readline = await import("node:readline");
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) =>
+    rl.question(t("backup.passphrasePrompt"), (ans) => {
+      rl.close();
+      resolve(ans.trim());
+    })
+  );
+}
+
+async function pruneBackups(backupDir, retention) {
+  if (!retention || retention <= 0 || !existsSync(backupDir)) return;
+  try {
+    const dirs = readdirSync(backupDir)
+      .filter((f) => f.startsWith("omniroute-backup-"))
+      .sort()
+      .reverse();
+    for (const old of dirs.slice(retention)) {
+      const { rmSync } = await import("node:fs");
+      rmSync(join(backupDir, old), { recursive: true, force: true });
+    }
+  } catch {}
+}
+
 export async function runBackupCommand(opts = {}) {
   const dataDir = resolveDataDir();
   const backupDir = getBackupDir();
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const backupName = opts.name ? `omniroute-backup-${opts.name}` : `omniroute-backup-${timestamp}`;
   const backupPath = join(backupDir, backupName);
+  const excludePatterns = opts.exclude || [];
 
   console.log(t("backup.creating"));
+
+  let passphrase = null;
+  if (opts.encrypt) {
+    if (opts.keyFile) {
+      passphrase = readFileSync(opts.keyFile, "utf8").trim();
+    } else {
+      passphrase = await promptPassphrase();
+      if (!passphrase) {
+        console.error(t("backup.noPassphrase"));
+        return 1;
+      }
+    }
+  }
 
   try {
     if (!existsSync(backupDir)) mkdirSync(backupDir, { recursive: true });
@@ -67,14 +188,27 @@ export async function runBackupCommand(opts = {}) {
     let skipped = 0;
 
     for (const file of FILES_TO_BACKUP) {
+      if (shouldExclude(file.name, excludePatterns)) {
+        skipped++;
+        continue;
+      }
       const sourcePath = join(dataDir, file.name);
       if (existsSync(sourcePath)) {
-        const destPath = join(backupPath, file.name);
+        const destName = opts.encrypt ? `${file.name}.enc` : file.name;
+        const destPath = join(backupPath, destName);
         mkdirSync(dirname(destPath), { recursive: true });
         if (file.name.endsWith(".sqlite") && Database) {
           const db = new Database(sourcePath, { readonly: true });
-          await db.backup(destPath);
+          const tmpPath = destPath.replace(/\.enc$/, "");
+          await db.backup(tmpPath);
           db.close();
+          if (opts.encrypt) {
+            encryptFile(tmpPath, destPath, passphrase);
+            const { unlinkSync } = await import("node:fs");
+            unlinkSync(tmpPath);
+          }
+        } else if (opts.encrypt) {
+          encryptFile(sourcePath, destPath, passphrase);
         } else {
           copyFileSync(sourcePath, destPath);
         }
@@ -88,11 +222,28 @@ export async function runBackupCommand(opts = {}) {
       const info = {
         timestamp: new Date().toISOString(),
         version: "omniroute-cli-v1",
-        files: FILES_TO_BACKUP.filter((f) => existsSync(join(dataDir, f.name))).map((f) => f.name),
+        encrypted: !!opts.encrypt,
+        files: FILES_TO_BACKUP.filter(
+          (f) => existsSync(join(dataDir, f.name)) && !shouldExclude(f.name, excludePatterns)
+        ).map((f) => (opts.encrypt ? `${f.name}.enc` : f.name)),
       };
       writeFileSync(join(backupPath, "backup-info.json"), JSON.stringify(info, null, 2), "utf8");
+
+      if (opts.cloud) {
+        const cloudCode = await _uploadBackupToCloud(backupPath, info);
+        if (cloudCode !== 0) {
+          console.warn(t("backup.cloudFailed"));
+        }
+      }
+
+      if (opts.retention) {
+        await pruneBackups(backupDir, opts.retention);
+      }
+
       console.log(t("backup.done", { path: backupPath }));
-      console.log(`\x1b[2m  ${backedUp} backed up, ${skipped} skipped\x1b[0m`);
+      console.log(
+        `\x1b[2m  ${backedUp} backed up, ${skipped} skipped${opts.encrypt ? " (encrypted)" : ""}\x1b[0m`
+      );
       return 0;
     }
 
@@ -102,6 +253,75 @@ export async function runBackupCommand(opts = {}) {
     console.error(t("backup.failed", { error: err instanceof Error ? err.message : String(err) }));
     return 1;
   }
+}
+
+async function _uploadBackupToCloud(backupPath, info) {
+  const serverUp = await isServerUp();
+  if (!serverUp) {
+    console.warn(t("common.serverOffline"));
+    return 1;
+  }
+  try {
+    const res = await apiFetch("/api/db-backups/cloud", {
+      method: "POST",
+      body: { backupPath, info },
+      retry: false,
+      timeout: 30000,
+      acceptNotOk: true,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      console.log(t("backup.cloudUploaded", { url: data.url || "(stored)" }));
+      return 0;
+    }
+    return 1;
+  } catch {
+    return 1;
+  }
+}
+
+const BACKUP_SCHEDULE_PATH = join(homedir(), ".omniroute", "backup-schedule.json");
+
+export async function runBackupAutoEnableCommand(opts = {}) {
+  const schedule = {
+    enabled: true,
+    cron: opts.cron || "0 3 * * *",
+    cloud: !!opts.cloud,
+    encrypt: !!opts.encrypt,
+    retention: opts.retention || null,
+    updatedAt: new Date().toISOString(),
+  };
+  mkdirSync(dirname(BACKUP_SCHEDULE_PATH), { recursive: true });
+  writeFileSync(BACKUP_SCHEDULE_PATH, JSON.stringify(schedule, null, 2), "utf8");
+  console.log(t("backup.auto.enabled", { cron: schedule.cron }));
+  console.log(t("backup.auto.hint"));
+  return 0;
+}
+
+export async function runBackupAutoDisableCommand() {
+  if (existsSync(BACKUP_SCHEDULE_PATH)) {
+    const schedule = JSON.parse(readFileSync(BACKUP_SCHEDULE_PATH, "utf8"));
+    schedule.enabled = false;
+    schedule.updatedAt = new Date().toISOString();
+    writeFileSync(BACKUP_SCHEDULE_PATH, JSON.stringify(schedule, null, 2), "utf8");
+  }
+  console.log(t("backup.auto.disabled"));
+  return 0;
+}
+
+export async function runBackupAutoStatusCommand() {
+  if (!existsSync(BACKUP_SCHEDULE_PATH)) {
+    console.log(t("backup.auto.notConfigured"));
+    return 0;
+  }
+  const schedule = JSON.parse(readFileSync(BACKUP_SCHEDULE_PATH, "utf8"));
+  const statusLabel = schedule.enabled ? "\x1b[32m● enabled\x1b[0m" : "\x1b[31m○ disabled\x1b[0m";
+  console.log(`${t("backup.auto.title")}: ${statusLabel}`);
+  console.log(`  cron:      ${schedule.cron}`);
+  console.log(`  cloud:     ${schedule.cloud ? "yes" : "no"}`);
+  console.log(`  encrypt:   ${schedule.encrypt ? "yes" : "no"}`);
+  console.log(`  retention: ${schedule.retention ?? "unlimited"}`);
+  return 0;
 }
 
 export async function runRestoreCommand(backupId, opts = {}) {
