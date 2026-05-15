@@ -54,6 +54,25 @@
     "noKeys": "No keys configured.",
     "confirmRemove": "Remove key {id}?"
   },
+  "chat": {
+    "description": "Send a one-shot chat prompt to OmniRoute",
+    "file": "Read prompt from file",
+    "stdin": "Read prompt from stdin",
+    "system": "System prompt",
+    "model": "Model ID (default: auto)",
+    "max_tokens": "Maximum tokens in response",
+    "temperature": "Sampling temperature (0–2)",
+    "top_p": "Top-p nucleus sampling",
+    "reasoning_effort": "Reasoning effort level (low|medium|high)",
+    "thinking_budget": "Extended thinking token budget",
+    "combo": "Force a specific combo by name",
+    "responses_api": "Use /v1/responses instead of /v1/chat/completions",
+    "stream": "Stream response incrementally",
+    "no_history": "Do not save to ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
+    }
+  },
   "combo": {
     "title": "Combos",
     "switched": "Active combo: {name}",

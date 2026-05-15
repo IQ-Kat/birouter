@@ -1,3 +1,4 @@
+import { registerChat } from "./chat.mjs";
 import { registerServe } from "./serve.mjs";
 import { registerStop } from "./stop.mjs";
 import { registerRestart } from "./restart.mjs";
@@ -25,6 +26,7 @@ import { registerTestProvider } from "./test-provider.mjs";
 import { registerCompletion } from "./completion.mjs";
 
 export function registerCommands(program) {
+  registerChat(program);
   registerServe(program);
   registerStop(program);
   registerRestart(program);

@@ -54,6 +54,25 @@
     "noKeys": "Nenhuma chave configurada.",
     "confirmRemove": "Remover chave {id}?"
   },
+  "chat": {
+    "description": "Enviar um prompt único ao OmniRoute",
+    "file": "Ler prompt de arquivo",
+    "stdin": "Ler prompt da entrada padrão",
+    "system": "Prompt de sistema",
+    "model": "ID do modelo (padrão: auto)",
+    "max_tokens": "Máximo de tokens na resposta",
+    "temperature": "Temperatura de amostragem (0–2)",
+    "top_p": "Amostragem nucleus top-p",
+    "reasoning_effort": "Nível de esforço de raciocínio (low|medium|high)",
+    "thinking_budget": "Budget de tokens para raciocínio estendido",
+    "combo": "Forçar um combo específico pelo nome",
+    "responses_api": "Usar /v1/responses em vez de /v1/chat/completions",
+    "stream": "Transmitir resposta incrementalmente",
+    "no_history": "Não salvar em ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
+    }
+  },
   "combo": {
     "title": "Combos",
     "switched": "Combo ativo: {name}",
