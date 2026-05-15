@@ -1,5 +1,6 @@
 import { registerMemory } from "./memory.mjs";
 import { registerSkills } from "./skills.mjs";
+import { registerAudit } from "./audit.mjs";
 import { registerChat } from "./chat.mjs";
 import { registerStream } from "./stream.mjs";
 import { registerSimulate } from "./simulate.mjs";
@@ -34,6 +35,7 @@ import { registerCompletion } from "./completion.mjs";
 export function registerCommands(program) {
   registerMemory(program);
   registerSkills(program);
+  registerAudit(program);
   registerChat(program);
   registerStream(program);
   registerSimulate(program);

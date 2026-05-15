@@ -274,6 +274,34 @@
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "noModels": "Nenhum modelo encontrado."
   },
+  "audit": {
+    "description": "Acessar logs de auditoria de compliance e MCP",
+    "source": "Fonte do log: all|compliance|mcp (padrão: all)",
+    "since": "Retornar entradas desde este timestamp (ISO 8601)",
+    "until": "Retornar entradas até este timestamp (ISO 8601)",
+    "tail": {
+      "description": "Exibir entradas recentes do log de auditoria",
+      "follow": "Fazer tail contínuo de novas entradas (poll 2s)",
+      "limit": "Máximo de entradas (padrão: 100)"
+    },
+    "search": {
+      "description": "Buscar entradas do log de auditoria por palavra-chave",
+      "limit": "Máximo de resultados (padrão: 200)",
+      "actor": "Filtrar por ID de ator",
+      "action": "Filtrar por nome de ação"
+    },
+    "export": {
+      "description": "Exportar log de auditoria para arquivo",
+      "format": "Formato de saída: jsonl|csv (padrão: jsonl)"
+    },
+    "stats": {
+      "description": "Exibir estatísticas do log de auditoria",
+      "period": "Período: 1d|7d|30d (padrão: 7d)"
+    },
+    "get": {
+      "description": "Obter uma entrada do log de auditoria por ID"
+    }
+  },
   "skills": {
     "description": "Gerenciar skills do OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
     "list": {
