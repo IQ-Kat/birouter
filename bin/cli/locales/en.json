@@ -274,6 +274,79 @@
     "noServer": "Server not running. Start with: omniroute serve",
     "noModels": "No models found."
   },
+  "skills": {
+    "description": "Manage OmniRoute skills (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "List installed skills",
+      "type": "Filter by type (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Show only enabled skills",
+      "disabled": "Show only disabled skills",
+      "api_key": "Filter by API key"
+    },
+    "get": {
+      "description": "Get details for a skill by ID"
+    },
+    "install": {
+      "description": "Install a skill from file or URL",
+      "from_file": "Path to skill JSON definition file",
+      "from_url": "URL of remote skill definition",
+      "type": "Skill type (sandbox|custom|hybrid)",
+      "enable": "Enable skill after install"
+    },
+    "enable": {
+      "description": "Enable a skill by ID"
+    },
+    "disable": {
+      "description": "Disable a skill by ID",
+      "yes": "Skip confirmation prompt"
+    },
+    "delete": {
+      "description": "Delete a skill by ID",
+      "yes": "Skip confirmation prompt"
+    },
+    "execute": {
+      "description": "Execute a skill by ID",
+      "input": "JSON input object",
+      "input_file": "Path to JSON input file",
+      "timeout": "Execution timeout in ms (default: 30000)"
+    },
+    "executions": {
+      "description": "List skill execution history",
+      "skill": "Filter by skill ID",
+      "limit": "Maximum results (default: 50)",
+      "status": "Filter by status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Manage skills installed via SSH"
+    },
+    "marketplace": {
+      "description": "Browse and install skills from the marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Search marketplace packages",
+        "category": "Filter by category",
+        "tag": "Filter by tag",
+        "limit": "Maximum results (default: 30)",
+        "sort": "Sort by: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Show package details and readme"
+      },
+      "install": {
+        "description": "Install a marketplace package",
+        "version": "Package version (default: latest)",
+        "enable": "Enable after install",
+        "yes": "Skip confirmation prompt"
+      },
+      "categories": {
+        "description": "List marketplace categories"
+      },
+      "featured": {
+        "description": "Show featured marketplace packages"
+      }
+    }
+  },
   "memory": {
     "description": "Manage OmniRoute conversational memory (FTS5 + vector)",
     "search": {

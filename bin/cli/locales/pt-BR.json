@@ -274,6 +274,79 @@
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "noModels": "Nenhum modelo encontrado."
   },
+  "skills": {
+    "description": "Gerenciar skills do OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Listar skills instaladas",
+      "type": "Filtrar por tipo (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Mostrar apenas skills habilitadas",
+      "disabled": "Mostrar apenas skills desabilitadas",
+      "api_key": "Filtrar por chave de API"
+    },
+    "get": {
+      "description": "Obter detalhes de uma skill por ID"
+    },
+    "install": {
+      "description": "Instalar uma skill a partir de arquivo ou URL",
+      "from_file": "Caminho para o arquivo JSON de definição da skill",
+      "from_url": "URL da definição remota da skill",
+      "type": "Tipo de skill (sandbox|custom|hybrid)",
+      "enable": "Habilitar skill após instalar"
+    },
+    "enable": {
+      "description": "Habilitar uma skill por ID"
+    },
+    "disable": {
+      "description": "Desabilitar uma skill por ID",
+      "yes": "Pular confirmação"
+    },
+    "delete": {
+      "description": "Deletar uma skill por ID",
+      "yes": "Pular confirmação"
+    },
+    "execute": {
+      "description": "Executar uma skill por ID",
+      "input": "Objeto JSON de entrada",
+      "input_file": "Caminho para arquivo JSON de entrada",
+      "timeout": "Timeout de execução em ms (padrão: 30000)"
+    },
+    "executions": {
+      "description": "Listar histórico de execuções de skills",
+      "skill": "Filtrar por ID de skill",
+      "limit": "Máximo de resultados (padrão: 50)",
+      "status": "Filtrar por status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Gerenciar skills instaladas via SSH"
+    },
+    "marketplace": {
+      "description": "Explorar e instalar skills do marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Buscar pacotes no marketplace",
+        "category": "Filtrar por categoria",
+        "tag": "Filtrar por tag",
+        "limit": "Máximo de resultados (padrão: 30)",
+        "sort": "Ordenar por: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Exibir detalhes e readme do pacote"
+      },
+      "install": {
+        "description": "Instalar um pacote do marketplace",
+        "version": "Versão do pacote (padrão: latest)",
+        "enable": "Habilitar após instalar",
+        "yes": "Pular confirmação"
+      },
+      "categories": {
+        "description": "Listar categorias do marketplace"
+      },
+      "featured": {
+        "description": "Exibir pacotes em destaque do marketplace"
+      }
+    }
+  },
   "memory": {
     "description": "Gerenciar memória conversacional do OmniRoute (FTS5 + vetorial)",
     "search": {
