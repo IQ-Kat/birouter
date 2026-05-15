@@ -5,6 +5,8 @@ import { registerOAuth } from "./oauth.mjs";
 import { registerCloud } from "./cloud.mjs";
 import { registerEval } from "./eval.mjs";
 import { registerWebhooks } from "./webhooks.mjs";
+import { registerPolicy } from "./policy.mjs";
+import { registerCompression } from "./compression.mjs";
 import { registerChat } from "./chat.mjs";
 import { registerStream } from "./stream.mjs";
 import { registerSimulate } from "./simulate.mjs";
@@ -44,6 +46,8 @@ export function registerCommands(program) {
   registerCloud(program);
   registerEval(program);
   registerWebhooks(program);
+  registerPolicy(program);
+  registerCompression(program);
   registerChat(program);
   registerStream(program);
   registerSimulate(program);
