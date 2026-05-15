@@ -70,6 +70,16 @@
       "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
     }
   },
+  "simulate": {
+    "description": "Simulação de routing em dry-run — mostra quais provedores seriam selecionados sem chamar o upstream",
+    "file": "Carregar body completo da requisição de arquivo JSON",
+    "model": "ID do modelo (padrão: auto)",
+    "combo": "Forçar um combo específico pelo nome",
+    "reasoning": "Nível de esforço de raciocínio (low|medium|high)",
+    "thinking": "Budget de tokens para raciocínio estendido",
+    "explain": "Imprimir árvore de fallback e faixa de custo no stderr",
+    "noCombo": "Nenhum combo correspondente encontrado. Configure um com: omniroute combo create"
+  },
   "chat": {
     "description": "Enviar um prompt único ao OmniRoute",
     "file": "Ler prompt de arquivo",

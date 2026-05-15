@@ -70,6 +70,16 @@
       "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
     }
   },
+  "simulate": {
+    "description": "Dry-run routing simulation — show which providers would be selected without calling upstream",
+    "file": "Load full request body from JSON file",
+    "model": "Model ID (default: auto)",
+    "combo": "Force a specific combo by name",
+    "reasoning": "Reasoning effort level (low|medium|high)",
+    "thinking": "Extended thinking token budget",
+    "explain": "Print fallback tree and cost range to stderr",
+    "noCombo": "No matching combo found. Configure one with: omniroute combo create"
+  },
   "chat": {
     "description": "Send a one-shot chat prompt to OmniRoute",
     "file": "Read prompt from file",
