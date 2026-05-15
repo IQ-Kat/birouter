@@ -11,6 +11,7 @@ Usage:
   omniroute config get <tool>              Show current config for a tool
   omniroute config set <tool> [options]    Write config for a tool
   omniroute config validate <tool>         Validate config format without writing
+  omniroute config tray <enable|disable>   Enable/disable tray autostart on login
 
 Options:
   --base-url <url>     OmniRoute API base URL (default: http://localhost:20128/v1)
@@ -174,6 +175,29 @@ export async function runConfigCommand(argv) {
       console.log(JSON.stringify({ valid: true, content: result.content }, null, 2));
     }
     return 0;
+  }
+
+  if (subcommand === "tray") {
+    const action = positionals[1];
+    if (action === "enable") {
+      const { enableAutoStart } = await import("../tray/autostart.ts");
+      const ok = await enableAutoStart();
+      if (ok) {
+        printSuccess("Autostart enabled — omniroute --tray will launch on login.");
+      } else {
+        printError("Autostart failed (unsupported OS or permission denied).");
+        return 1;
+      }
+      return 0;
+    }
+    if (action === "disable") {
+      const { disableAutoStart } = await import("../tray/autostart.ts");
+      await disableAutoStart();
+      printSuccess("Autostart disabled.");
+      return 0;
+    }
+    printError("Usage: omniroute config tray <enable|disable>");
+    return 1;
   }
 
   printError(`Unknown subcommand: ${subcommand}`);
