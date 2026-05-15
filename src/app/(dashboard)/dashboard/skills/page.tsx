@@ -36,11 +36,22 @@ interface Execution {
 
 function AgentSkillCopyButton({ value, label = "Copy link" }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    void navigator.clipboard.writeText(value).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Fallback for HTTP contexts or older browsers
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
   return (
     <button
@@ -457,7 +468,7 @@ export default function SkillsPage() {
               : "border-transparent text-text-muted hover:text-text-main"
           }`}
         >
-          AI Skills
+          {t("agentSkillsTab")}
         </button>
       </div>
 
