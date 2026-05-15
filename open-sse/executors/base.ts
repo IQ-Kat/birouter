@@ -13,6 +13,7 @@ import {
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
 import { randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_VERSION,
@@ -780,6 +781,15 @@ export class BaseExecutor {
           }
           sysBlocks.unshift({ type: "text", text: billingLine }, { type: "text", text: SENTINEL });
           tb.system = sysBlocks;
+
+          // Run the configurable system-transforms pipeline for the native
+          // `claude` provider (issue #2260 / comment 4459544580). The default
+          // claude pipeline runs cosmetic ops only (Open WebUI paragraph
+          // anchors, identity-prefix paragraph drop, ZWJ obfuscation of
+          // sensitive words). It deliberately does NOT include
+          // `inject_billing_header` — billing + sentinel are already
+          // prepended above. Users can extend the pipeline via Settings UI.
+          applySystemTransformPipeline(PROVIDER_CLAUDE, tb);
 
           if (!tb.metadata || typeof tb.metadata !== "object") tb.metadata = {};
           (tb.metadata as Record<string, unknown>).user_id = buildUserIdJson({

@@ -13,7 +13,8 @@ export type RuntimeReloadSection =
   | "thoughtSignature"
   | "modelsDevSync"
   | "corsOrigins"
-  | "ccBridgeTransforms";
+  | "ccBridgeTransforms"
+  | "systemTransforms";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
@@ -33,6 +34,7 @@ interface RuntimeSettingsSnapshot {
   modelsDevSyncInterval: number | null;
   corsOrigins: string;
   ccBridgeTransforms: unknown;
+  systemTransforms: unknown;
 }
 
 const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
@@ -48,6 +50,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   modelsDevSyncInterval: null,
   corsOrigins: "",
   ccBridgeTransforms: null,
+  systemTransforms: null,
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
@@ -184,6 +187,7 @@ export function buildRuntimeSettingsSnapshot(
     modelsDevSyncInterval: normalizeNumber(settings.modelsDevSyncInterval),
     corsOrigins: typeof settings.corsOrigins === "string" ? settings.corsOrigins : "",
     ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
+    systemTransforms: parseStoredJson(settings.systemTransforms, "systemTransforms"),
   };
 }
 
@@ -261,22 +265,38 @@ async function applyCorsOriginsSection(corsOrigins: string) {
   setRuntimeAllowedOrigins(corsOrigins);
 }
 
+/**
+ * Legacy alias for the v2 systemTransforms config. The `ccBridgeTransforms`
+ * settings field carried the single-provider shape `{ enabled, pipeline }`
+ * during Phase 2 (commit e3e962db, pre-release). v2 unifies everything under
+ * `systemTransforms.providers[*]`. We migrate the legacy shape into the v2
+ * registry on every reload so users with persisted Phase-2 data keep working.
+ *
+ * `setSystemTransformsConfig` accepts both shapes and routes legacy into
+ * `providers[PROVIDER_CC_BRIDGE]`.
+ */
 async function applyCcBridgeTransformsSection(ccBridgeTransforms: unknown) {
-  const { setCcBridgeTransformsConfig, resetCcBridgeTransformsConfig } =
-    await import("@omniroute/open-sse/services/ccBridgeTransforms.ts");
+  const { setSystemTransformsConfig } =
+    await import("@omniroute/open-sse/services/systemTransforms.ts");
+  if (ccBridgeTransforms && typeof ccBridgeTransforms === "object") {
+    setSystemTransformsConfig(ccBridgeTransforms);
+  }
+}
+
+async function applySystemTransformsSection(systemTransforms: unknown) {
+  const { setSystemTransformsConfig, resetSystemTransformsConfig } =
+    await import("@omniroute/open-sse/services/systemTransforms.ts");
 
   if (
-    ccBridgeTransforms === null ||
-    ccBridgeTransforms === undefined ||
-    typeof ccBridgeTransforms !== "object"
+    systemTransforms === null ||
+    systemTransforms === undefined ||
+    typeof systemTransforms !== "object"
   ) {
-    resetCcBridgeTransformsConfig();
+    resetSystemTransformsConfig();
     return;
   }
 
-  setCcBridgeTransformsConfig(
-    ccBridgeTransforms as Parameters<typeof setCcBridgeTransformsConfig>[0]
-  );
+  setSystemTransformsConfig(systemTransforms);
 }
 
 async function applyModelsDevSyncSection(
@@ -420,6 +440,11 @@ export async function applyRuntimeSettings(
   ) {
     await applyCcBridgeTransformsSection(currentSnapshot.ccBridgeTransforms);
     markChanged("ccBridgeTransforms");
+  }
+
+  if (force || hasChanged(currentSnapshot.systemTransforms, previousSnapshot.systemTransforms)) {
+    await applySystemTransformsSection(currentSnapshot.systemTransforms);
+    markChanged("systemTransforms");
   }
 
   lastAppliedSnapshot = currentSnapshot;

@@ -12,7 +12,7 @@ import {
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
-import { applyCcBridgeTransformPipeline } from "./ccBridgeTransforms.ts";
+import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
 
 /**
  * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
@@ -333,10 +333,16 @@ export async function buildAndSignClaudeCodeRequest(
   // Step 5: Cache control
   enforceCacheControlLimit(body);
 
-  // Step 5b: Config-driven CC bridge transforms (issue #2260)
-  // Normalizes system blocks to classifier-correct structure regardless of source
-  // client (OpenCode, Cline, Cursor, Continue, raw API). Idempotent on re-run.
-  applyCcBridgeTransformPipeline(body as Parameters<typeof applyCcBridgeTransformPipeline>[0]);
+  // Step 5b: Config-driven system transforms (issue #2260, v2)
+  // Normalizes system blocks to classifier-correct structure regardless of
+  // source client (OpenCode, Cline, Cursor, Continue, Open WebUI, raw API).
+  // Routed via the generic per-provider DSL so the same pipeline shape covers
+  // the CC bridge, the native `claude` path, and any other configured
+  // provider. Idempotent on re-run.
+  applySystemTransformPipeline(
+    PROVIDER_CC_BRIDGE,
+    body as Parameters<typeof applySystemTransformPipeline>[1]
+  );
 
   // Step 6: Obfuscation (optional, per-provider setting)
   if (enableObfuscation) {
@@ -368,6 +374,27 @@ export {
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
+// Preferred (v2): generic per-provider DSL.
+export {
+  applySystemTransformPipeline,
+  setSystemTransformsConfig,
+  getSystemTransformsConfig,
+  resetSystemTransformsConfig,
+  DEFAULT_SYSTEM_TRANSFORMS_CONFIG,
+  DEFAULT_CLAUDE_PIPELINE,
+  DEFAULT_CC_BRIDGE_PROVIDER_PIPELINE,
+  DEFAULT_OBFUSCATE_WORDS,
+  OPENWEBUI_PARAGRAPH_ANCHORS,
+  OPENWEBUI_IDENTITY_PREFIXES,
+  PROVIDER_CLAUDE,
+  PROVIDER_CC_BRIDGE,
+} from "./systemTransforms.ts";
+export type { SystemTransformsConfig, ProviderTransformsConfig } from "./systemTransforms.ts";
+
+// Legacy (deprecated, kept for transitional API consumers).
+// The base executor is still used internally by systemTransforms.ts;
+// these exports let downstream code reference the building blocks directly
+// while we migrate UI + settings to the v2 shape.
 export {
   applyCcBridgeTransformPipeline,
   buildBillingHeaderValue,

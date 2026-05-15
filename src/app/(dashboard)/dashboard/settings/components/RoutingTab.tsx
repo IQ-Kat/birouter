@@ -10,57 +10,136 @@ import {
   normalizeCliCompatProviderId,
 } from "@/shared/constants/cliCompatProviders";
 
-// Mirror of DEFAULT_CC_BRIDGE_PIPELINE from open-sse/services/ccBridgeTransforms.ts.
-// Kept client-side so the UI can render + reset to defaults without a server roundtrip.
-// Server is the source of truth — if pipeline is empty/missing on PATCH, server falls back to its own defaults.
-const DEFAULT_CC_BRIDGE_PIPELINE_CLIENT = [
-  {
-    kind: "drop_paragraph_if_contains",
-    needles: [
-      "github.com/anomalyco/opencode",
-      "opencode.ai/docs",
-      "github.com/cline/cline",
-      "github.com/getcursor/cursor",
-      "continue.dev",
-    ],
-  },
-  {
-    kind: "drop_paragraph_if_starts_with",
-    prefixes: ["You are OpenCode"],
-  },
-  {
-    kind: "replace_text",
-    match: "if OpenCode honestly",
-    replacement: "if the assistant honestly",
-  },
-  {
-    kind: "replace_text",
-    match: "Here is some useful information about the environment you are running in:",
-    replacement: "Environment context you are running in:",
-  },
-  {
-    kind: "prepend_system_block",
-    text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
-    idempotencyKey: "claude-agent-sdk-identity",
-  },
-  {
-    kind: "inject_billing_header",
-    entrypoint: "sdk-cli",
-    versionFormat: "ex-machina",
-    cchAlgo: "sha256-first-user",
-  },
+// Provider keys (mirror of open-sse/services/systemTransforms.ts).
+const PROVIDER_CLAUDE = "claude";
+const PROVIDER_CC_BRIDGE = "anthropic-compatible-cc";
+
+const OPENWEBUI_PARAGRAPH_ANCHORS = [
+  "github.com/open-webui/open-webui",
+  "openwebui.com",
+  "docs.openwebui.com",
 ];
 
-const TRANSFORM_OP_KINDS = [
-  "drop_paragraph_if_contains",
-  "drop_paragraph_if_starts_with",
-  "replace_text",
-  "replace_regex",
-  "drop_block_if_contains",
-  "prepend_system_block",
-  "append_system_block",
-  "inject_billing_header",
-] as const;
+const DEFAULT_OBFUSCATE_WORDS = [
+  "opencode",
+  "open-code",
+  "cline",
+  "roo-cline",
+  "roo_cline",
+  "cursor",
+  "windsurf",
+  "aider",
+  "continue.dev",
+  "copilot",
+  "avante",
+  "codecompanion",
+  "openwebui",
+  "open-webui",
+];
+
+// Mirror of DEFAULT_SYSTEM_TRANSFORMS_CONFIG from open-sse/services/systemTransforms.ts.
+// Kept client-side so the UI can render + reset to defaults without a server roundtrip.
+// Server remains the source of truth — UI just lets the user inspect, edit, and reset.
+const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
+  providers: {
+    [PROVIDER_CLAUDE]: {
+      enabled: true,
+      pipeline: [
+        {
+          kind: "drop_paragraph_if_contains",
+          needles: [...OPENWEBUI_PARAGRAPH_ANCHORS],
+        },
+        {
+          kind: "drop_paragraph_if_starts_with",
+          prefixes: ["You are Open WebUI"],
+        },
+        {
+          kind: "obfuscate_words",
+          words: [...DEFAULT_OBFUSCATE_WORDS],
+          targets: ["system", "messages", "tools"],
+        },
+      ],
+    },
+    [PROVIDER_CC_BRIDGE]: {
+      enabled: true,
+      pipeline: [
+        {
+          kind: "drop_paragraph_if_contains",
+          needles: [...OPENWEBUI_PARAGRAPH_ANCHORS],
+        },
+        {
+          kind: "drop_paragraph_if_starts_with",
+          prefixes: ["You are Open WebUI"],
+        },
+        {
+          kind: "obfuscate_words",
+          words: ["openwebui", "open-webui"],
+          targets: ["system", "messages", "tools"],
+        },
+        {
+          kind: "drop_paragraph_if_contains",
+          needles: [
+            "github.com/anomalyco/opencode",
+            "opencode.ai/docs",
+            "github.com/cline/cline",
+            "github.com/getcursor/cursor",
+            "continue.dev",
+          ],
+        },
+        {
+          kind: "drop_paragraph_if_starts_with",
+          prefixes: ["You are OpenCode"],
+        },
+        {
+          kind: "replace_text",
+          match: "if OpenCode honestly",
+          replacement: "if the assistant honestly",
+          allOccurrences: true,
+        },
+        {
+          kind: "replace_text",
+          match: "Here is some useful information about the environment you are running in:",
+          replacement: "Environment context you are running in:",
+          allOccurrences: true,
+        },
+        {
+          kind: "prepend_system_block",
+          text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+          idempotencyKey: "claude-agent-sdk-identity",
+        },
+        {
+          kind: "inject_billing_header",
+          entrypoint: "sdk-cli",
+          versionFormat: "ex-machina",
+          cchAlgo: "sha256-first-user",
+        },
+      ],
+    },
+  },
+} as const;
+
+// Provider display metadata for the per-provider tiles.
+// Mirrors the names from CLI_COMPAT_PROVIDER_DISPLAY where applicable so the
+// header-fingerprint toggle row stays consistent with the rest of the card.
+const PROVIDER_TILE_DISPLAY: Record<
+  string,
+  { name: string; description: string; icon: string; tone: string }
+> = {
+  [PROVIDER_CLAUDE]: {
+    name: "Claude (OAuth)",
+    description:
+      "Native Claude provider — handles OAuth-issued tokens. Header fingerprint is force-applied for account safety; transforms are cosmetic-only (no billing/identity prepend — native code already does that).",
+    icon: "anthropic",
+    tone: "indigo",
+  },
+  [PROVIDER_CC_BRIDGE]: {
+    name: "Claude-Code Bridge (anthropic-compatible-cc-*)",
+    description:
+      "Relay endpoints that accept Anthropic-shaped requests on behalf of API-key callers. The full transform pipeline ships here (paragraph anchors + identity prefixes + text replacements + SDK identity + billing header) — that's the T4-200 layout proven on the live OmniRoute deployment.",
+    icon: "hub",
+    tone: "purple",
+  },
+};
 
 function summarizeTransformOp(op: any): string {
   switch (op?.kind) {
@@ -80,37 +159,42 @@ function summarizeTransformOp(op: any): string {
       return `append block: "${(op.text || "").slice(0, 60)}${(op.text || "").length > 60 ? "…" : ""}"`;
     case "inject_billing_header":
       return `inject billing header (entrypoint=${op.entrypoint}, version=${op.versionFormat}, cch=${op.cchAlgo})`;
+    case "obfuscate_words":
+      return `obfuscate ${(op.words || []).length} word(s) via ZWJ in ${(op.targets || ["system", "messages", "tools"]).join("+")}`;
     default:
       return JSON.stringify(op);
   }
 }
 
-function makeBlankOp(kind: string): any {
-  switch (kind) {
-    case "drop_paragraph_if_contains":
-      return { kind, needles: [""] };
-    case "drop_paragraph_if_starts_with":
-      return { kind, prefixes: [""] };
-    case "replace_text":
-      return { kind, match: "", replacement: "" };
-    case "replace_regex":
-      return { kind, pattern: "", flags: "g", replacement: "" };
-    case "drop_block_if_contains":
-      return { kind, needles: [""] };
-    case "prepend_system_block":
-      return { kind, text: "" };
-    case "append_system_block":
-      return { kind, text: "" };
-    case "inject_billing_header":
-      return {
-        kind,
-        entrypoint: "sdk-cli",
-        versionFormat: "ex-machina",
-        cchAlgo: "sha256-first-user",
-      };
-    default:
-      return { kind };
+// Client-side validator — light shape check before we PATCH; the server
+// re-validates with the full zod schema in settingsSchemas.ts.
+function validateProviderTransformsConfig(value: unknown): string | null {
+  if (!value || typeof value !== "object") return "Config must be a JSON object";
+  const cfg = value as { enabled?: unknown; pipeline?: unknown };
+  if (typeof cfg.enabled !== "boolean") return "`enabled` must be true or false";
+  if (!Array.isArray(cfg.pipeline)) return "`pipeline` must be an array of ops";
+  if (cfg.pipeline.length > 50) return "Pipeline cannot exceed 50 ops";
+  for (let i = 0; i < cfg.pipeline.length; i++) {
+    const op = cfg.pipeline[i] as { kind?: unknown };
+    if (!op || typeof op !== "object" || typeof op.kind !== "string") {
+      return `Op #${i + 1}: missing or invalid \`kind\``;
+    }
+    const validKinds = [
+      "drop_paragraph_if_contains",
+      "drop_paragraph_if_starts_with",
+      "replace_text",
+      "replace_regex",
+      "drop_block_if_contains",
+      "prepend_system_block",
+      "append_system_block",
+      "inject_billing_header",
+      "obfuscate_words",
+    ];
+    if (!validKinds.includes(op.kind)) {
+      return `Op #${i + 1}: unknown kind "${op.kind}"`;
+    }
   }
+  return null;
 }
 
 export default function RoutingTab() {
@@ -120,9 +204,14 @@ export default function RoutingTab() {
     cliCompatProviders: [],
     autoRoutingEnabled: true,
     autoRoutingDefaultVariant: "lkgp",
-    ccBridgeTransforms: { enabled: true, pipeline: DEFAULT_CC_BRIDGE_PIPELINE_CLIENT },
+    systemTransforms: DEFAULT_SYSTEM_TRANSFORMS_CLIENT,
   });
-  const [addOpKind, setAddOpKind] = useState<string>("drop_paragraph_if_contains");
+  // Per-provider JSON draft + error state for the system-transforms editor.
+  // Map keyed by provider id; values track the textarea content + last
+  // validation error string (null when valid). Synced from settings via
+  // effect so server-side values flow into the editor.
+  const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
+  const [jsonErrors, setJsonErrors] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
   const [lkgpCacheStatus, setLkgpCacheStatus] = useState({ type: "", message: "" });
@@ -164,40 +253,86 @@ export default function RoutingTab() {
   );
   const cliCompatProviderSet = useMemo(() => new Set(cliCompatProviders), [cliCompatProviders]);
 
-  const ccBridgeTransforms = useMemo(() => {
-    const raw = settings.ccBridgeTransforms;
-    if (raw && typeof raw === "object" && Array.isArray(raw.pipeline)) {
-      return { enabled: raw.enabled !== false, pipeline: raw.pipeline };
+  // Normalize the server snapshot into a per-provider map. Legacy v1
+  // `ccBridgeTransforms` payloads from Phase 2 are migrated client-side
+  // into providers[PROVIDER_CC_BRIDGE] so the editor never breaks.
+  const systemTransforms = useMemo(() => {
+    const raw = settings.systemTransforms;
+    if (raw && typeof raw === "object" && raw.providers && typeof raw.providers === "object") {
+      return raw as { providers: Record<string, { enabled: boolean; pipeline: any[] }> };
     }
-    return { enabled: true, pipeline: DEFAULT_CC_BRIDGE_PIPELINE_CLIENT };
-  }, [settings.ccBridgeTransforms]);
+    // Legacy migration shim: { enabled, pipeline } → providers[CC_BRIDGE].
+    const legacy = settings.ccBridgeTransforms;
+    if (legacy && typeof legacy === "object" && Array.isArray(legacy.pipeline)) {
+      return {
+        providers: {
+          ...DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers,
+          [PROVIDER_CC_BRIDGE]: {
+            enabled: legacy.enabled !== false,
+            pipeline: legacy.pipeline,
+          },
+        },
+      };
+    }
+    return DEFAULT_SYSTEM_TRANSFORMS_CLIENT;
+  }, [settings.systemTransforms, settings.ccBridgeTransforms]);
 
-  const updateCcBridgeTransforms = (next: { enabled: boolean; pipeline: any[] }) => {
-    updateSetting({ ccBridgeTransforms: next });
+  // Sync JSON drafts from settings whenever the server snapshot changes.
+  useEffect(() => {
+    const nextDrafts: Record<string, string> = {};
+    for (const [providerId, providerCfg] of Object.entries(systemTransforms.providers)) {
+      nextDrafts[providerId] = JSON.stringify(providerCfg, null, 2);
+    }
+    setJsonDrafts(nextDrafts);
+    setJsonErrors({});
+  }, [systemTransforms]);
+
+  const updateProviderTransforms = (
+    providerId: string,
+    next: { enabled: boolean; pipeline: any[] }
+  ) => {
+    const merged = {
+      providers: {
+        ...systemTransforms.providers,
+        [providerId]: next,
+      },
+    };
+    updateSetting({ systemTransforms: merged });
   };
 
-  const moveCcBridgeOp = (index: number, direction: -1 | 1) => {
-    const pipeline = [...ccBridgeTransforms.pipeline];
-    const target = index + direction;
-    if (target < 0 || target >= pipeline.length) return;
-    [pipeline[index], pipeline[target]] = [pipeline[target], pipeline[index]];
-    updateCcBridgeTransforms({ enabled: ccBridgeTransforms.enabled, pipeline });
+  const toggleProviderEnabled = (providerId: string, enabled: boolean) => {
+    const current = systemTransforms.providers[providerId] ?? { enabled: false, pipeline: [] };
+    updateProviderTransforms(providerId, { enabled, pipeline: current.pipeline });
   };
 
-  const deleteCcBridgeOp = (index: number) => {
-    const pipeline = ccBridgeTransforms.pipeline.filter((_, i) => i !== index);
-    updateCcBridgeTransforms({ enabled: ccBridgeTransforms.enabled, pipeline });
+  const applyProviderJson = (providerId: string) => {
+    const raw = jsonDrafts[providerId] ?? "";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (err) {
+      setJsonErrors((prev) => ({
+        ...prev,
+        [providerId]: `Invalid JSON: ${(err as Error).message}`,
+      }));
+      return;
+    }
+    const validationError = validateProviderTransformsConfig(parsed);
+    if (validationError) {
+      setJsonErrors((prev) => ({ ...prev, [providerId]: validationError }));
+      return;
+    }
+    setJsonErrors((prev) => ({ ...prev, [providerId]: null }));
+    updateProviderTransforms(providerId, parsed as { enabled: boolean; pipeline: any[] });
   };
 
-  const addCcBridgeOp = () => {
-    const pipeline = [...ccBridgeTransforms.pipeline, makeBlankOp(addOpKind)];
-    updateCcBridgeTransforms({ enabled: ccBridgeTransforms.enabled, pipeline });
-  };
-
-  const resetCcBridgePipeline = () => {
-    updateCcBridgeTransforms({
-      enabled: true,
-      pipeline: DEFAULT_CC_BRIDGE_PIPELINE_CLIENT.map((op) => ({ ...op })),
+  const resetProviderTransforms = (providerId: string) => {
+    const def = (DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers as Record<string, any>)[providerId];
+    if (!def) return;
+    setJsonErrors((prev) => ({ ...prev, [providerId]: null }));
+    updateProviderTransforms(providerId, {
+      enabled: def.enabled,
+      pipeline: def.pipeline.map((op: any) => ({ ...op })),
     });
   };
 
@@ -397,217 +532,225 @@ export default function RoutingTab() {
       </Card>
 
       <Card>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              fingerprint
+              integration_instructions
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">{t("cliFingerprint")}</h3>
-            <p className="text-sm text-text-muted">{t("cliFingerprintDesc")}</p>
+            <h3 className="text-lg font-semibold">Provider Upstream Compatibility</h3>
+            <p className="text-sm text-text-muted mt-1">
+              Configure per-provider request normalization. The header-fingerprint row matches
+              upstream CLI binary signatures (reordering headers/body shapes) and the
+              system-transform pipeline rewrites system blocks so Anthropic-side classifiers (or
+              equivalent guards on other providers) see a classifier-correct request regardless of
+              which client sent it. Issue #2260 + comment 4459544580.
+            </p>
             <p className="mt-1 text-xs text-text-muted">
-              {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
+              <span className="font-medium">No local CLI binary is required</span> — OmniRoute
+              builds the upstream-compatible request server-side. The &quot;Managed&quot; badge on
+              the Claude tile means the fingerprint is force-applied for OAuth account safety, not
+              that the user must install the Claude Code CLI.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
-            const normalizedProviderId = normalizeCliCompatProviderId(providerId);
-            const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
-            // Claude OAuth force-applies the fingerprint regardless of this toggle
-            // (base.ts: shouldFingerprint), so render the tile as locked-on.
-            const forced = providerId === "claude";
-            const checked = forced || cliCompatProviderSet.has(normalizedProviderId);
-            const label = providerDisplay?.name || providerId;
-            const description = providerDisplay?.description || providerId;
-            const titleText = forced
-              ? t("forcedFingerprintTitle", { provider: label })
-              : checked
-                ? t("disableFingerprintTitle", { provider: label })
-                : t("enableFingerprintTitle", { provider: label });
+        <div className="mb-5">
+          <h4 className="text-sm font-semibold mb-2">Header fingerprint (per provider)</h4>
+          <p className="text-xs text-text-muted mb-2">
+            {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
+              const normalizedProviderId = normalizeCliCompatProviderId(providerId);
+              const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
+              // Claude OAuth force-applies the fingerprint regardless of this toggle
+              // (base.ts: shouldFingerprint) — that's an account-safety constraint,
+              // not a local-binary requirement.
+              const forced = providerId === "claude";
+              const checked = forced || cliCompatProviderSet.has(normalizedProviderId);
+              const label = providerDisplay?.name || providerId;
+              const description = providerDisplay?.description || providerId;
+              const titleText = forced
+                ? t("forcedFingerprintTitle", { provider: label })
+                : checked
+                  ? t("disableFingerprintTitle", { provider: label })
+                  : t("enableFingerprintTitle", { provider: label });
 
-            return (
-              <button
-                key={providerId}
-                type="button"
-                onClick={() => {
-                  if (forced) return;
-                  toggleCliCompatProvider(providerId, !checked);
-                }}
-                disabled={loading || forced}
-                aria-pressed={checked}
-                aria-disabled={forced || undefined}
-                title={titleText}
-                className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
-                  checked
-                    ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
-                    : "border-border/50 hover:border-border hover:bg-surface/30"
-                } ${loading || forced ? "cursor-not-allowed" : ""} ${loading ? "opacity-60" : ""}`}
-              >
-                <span
-                  className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
-                  aria-hidden="true"
+              return (
+                <button
+                  key={providerId}
+                  type="button"
+                  onClick={() => {
+                    if (forced) return;
+                    toggleCliCompatProvider(providerId, !checked);
+                  }}
+                  disabled={loading || forced}
+                  aria-pressed={checked}
+                  aria-disabled={forced || undefined}
+                  title={titleText}
+                  className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
+                    checked
+                      ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                      : "border-border/50 hover:border-border hover:bg-surface/30"
+                  } ${loading || forced ? "cursor-not-allowed" : ""} ${loading ? "opacity-60" : ""}`}
                 >
-                  {forced ? "lock" : checked ? "check_circle" : "radio_button_unchecked"}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
-                    <span
-                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
-                    >
-                      {label}
-                    </span>
-                    {forced ? (
-                      <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-400">
-                        {t("forcedFingerprintBadge")}
-                      </span>
-                    ) : null}
+                  <span
+                    className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
+                    aria-hidden="true"
+                  >
+                    {forced ? "lock" : checked ? "check_circle" : "radio_button_unchecked"}
                   </span>
-                  <span className="mt-1 block text-xs text-text-muted">{description}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-
-      <Card>
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 h-fit">
-              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                tune
-              </span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">{t("ccBridgeTransforms")}</h3>
-              <p className="text-sm text-text-muted mt-1">{t("ccBridgeTransformsDesc")}</p>
-              <p className="mt-1 text-xs text-text-muted">
-                {t("ccBridgeTransformsEnabled", { count: ccBridgeTransforms.pipeline.length })}
-              </p>
-            </div>
-          </div>
-          <div className="pt-1">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={ccBridgeTransforms.enabled}
-                onChange={(e) =>
-                  updateCcBridgeTransforms({
-                    enabled: e.target.checked,
-                    pipeline: ccBridgeTransforms.pipeline,
-                  })
-                }
-                disabled={loading}
-              />
-              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
+                      >
+                        {label}
+                      </span>
+                      {forced ? (
+                        <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-400">
+                          Managed
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="mt-1 block text-xs text-text-muted">{description}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {ccBridgeTransforms.pipeline.length === 0 ? (
-          <p className="text-xs text-text-muted italic mb-3">{t("ccBridgeTransformsEmpty")}</p>
-        ) : (
-          <ol className="flex flex-col gap-2 mb-3">
-            {ccBridgeTransforms.pipeline.map((op: any, index: number) => (
-              <li
-                key={index}
-                className="flex items-start gap-2 rounded-lg border border-border/50 bg-surface/30 p-3"
-              >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-xs font-semibold text-purple-400">
-                  {index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-mono text-purple-300">{op?.kind}</div>
-                  <div className="mt-1 text-xs text-text-muted break-words">
-                    {summarizeTransformOp(op)}
+        <div>
+          <h4 className="text-sm font-semibold mb-2">System-block transform pipeline</h4>
+          <p className="text-xs text-text-muted mb-3">
+            Per-provider DSL. Each provider has its own ordered pipeline of ops
+            (drop_paragraph_if_contains, replace_text, obfuscate_words, inject_billing_header, …).
+            Edit the JSON below and click <em>Apply JSON</em> — the server validates against the
+            full zod schema before persisting. Click <em>Reset</em> to restore the shipped defaults
+            for that provider.
+          </p>
+
+          <div className="flex flex-col gap-5">
+            {Object.entries(systemTransforms.providers).map(([providerId, providerCfg]) => {
+              const display = PROVIDER_TILE_DISPLAY[providerId] ?? {
+                name: providerId,
+                description:
+                  "Custom provider — pipeline only runs when an OmniRoute request targets this provider key.",
+                icon: "extension",
+                tone: "purple",
+              };
+              const draft = jsonDrafts[providerId] ?? JSON.stringify(providerCfg, null, 2);
+              const errorMsg = jsonErrors[providerId] ?? null;
+              const opCount = Array.isArray(providerCfg.pipeline) ? providerCfg.pipeline.length : 0;
+              const hasDefault = Boolean(
+                (DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers as Record<string, unknown>)[providerId]
+              );
+
+              return (
+                <div
+                  key={providerId}
+                  className="rounded-lg border border-border/50 bg-surface/20 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="text-xs font-mono rounded bg-surface px-1.5 py-0.5">
+                          {providerId}
+                        </code>
+                        <span className="text-sm font-medium">{display.name}</span>
+                      </div>
+                      <p className="text-xs text-text-muted mt-1">{display.description}</p>
+                      <p className="text-[11px] text-text-muted mt-1">
+                        {opCount} op{opCount === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={providerCfg.enabled !== false}
+                        onChange={(e) => toggleProviderEnabled(providerId, e.target.checked)}
+                        disabled={loading}
+                      />
+                      <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                  </div>
+
+                  {opCount > 0 && (
+                    <ol className="flex flex-col gap-1 mb-3">
+                      {(providerCfg.pipeline as any[]).map((op, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-2 rounded border border-border/30 bg-background/30 p-2 text-xs"
+                        >
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
+                            {index + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-mono text-purple-300">{op?.kind}</div>
+                            <div className="text-text-muted break-words">
+                              {summarizeTransformOp(op)}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  <label className="text-[11px] font-medium text-text-muted block mb-1">
+                    JSON configuration
+                  </label>
+                  <textarea
+                    value={draft}
+                    onChange={(e) =>
+                      setJsonDrafts((prev) => ({ ...prev, [providerId]: e.target.value }))
+                    }
+                    rows={Math.min(20, Math.max(8, draft.split("\n").length))}
+                    disabled={loading}
+                    spellCheck={false}
+                    className="w-full rounded border border-border/50 bg-background/40 p-2 font-mono text-[11px] text-text resize-y"
+                  />
+                  {errorMsg && (
+                    <p className="mt-2 text-xs text-red-400 break-words">⚠ {errorMsg}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Button
+                      onClick={() => applyProviderJson(providerId)}
+                      disabled={loading}
+                      variant="secondary"
+                      size="sm"
+                      icon="check"
+                    >
+                      Apply JSON
+                    </Button>
+                    {hasDefault && (
+                      <Button
+                        onClick={() => resetProviderTransforms(providerId)}
+                        disabled={loading}
+                        variant="ghost"
+                        size="sm"
+                        icon="restart_alt"
+                      >
+                        Reset to defaults
+                      </Button>
+                    )}
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveCcBridgeOp(index, -1)}
-                    disabled={loading || index === 0}
-                    title={t("ccBridgeTransformsMoveUp")}
-                    aria-label={t("ccBridgeTransformsMoveUp")}
-                    className="rounded p-1 text-text-muted hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                      arrow_upward
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveCcBridgeOp(index, 1)}
-                    disabled={loading || index === ccBridgeTransforms.pipeline.length - 1}
-                    title={t("ccBridgeTransformsMoveDown")}
-                    aria-label={t("ccBridgeTransformsMoveDown")}
-                    className="rounded p-1 text-text-muted hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                      arrow_downward
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteCcBridgeOp(index)}
-                    disabled={loading}
-                    title={t("ccBridgeTransformsDelete")}
-                    aria-label={t("ccBridgeTransformsDelete")}
-                    className="rounded p-1 text-text-muted hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                      delete
-                    </span>
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
+              );
+            })}
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={addOpKind}
-            onChange={(e) => setAddOpKind(e.target.value)}
-            disabled={loading}
-            className="rounded-lg border border-border/50 bg-surface px-3 py-1.5 text-xs text-text"
-          >
-            {TRANSFORM_OP_KINDS.map((kind) => (
-              <option key={kind} value={kind}>
-                {kind}
-              </option>
-            ))}
-          </select>
-          <Button
-            onClick={addCcBridgeOp}
-            disabled={loading}
-            variant="secondary"
-            size="sm"
-            icon="add"
-          >
-            {t("ccBridgeTransformsAddOp")}
-          </Button>
-          <Button
-            onClick={resetCcBridgePipeline}
-            disabled={loading}
-            variant="ghost"
-            size="sm"
-            icon="restart_alt"
-          >
-            {t("ccBridgeTransformsReset")}
-          </Button>
+          <p className="mt-3 text-[11px] text-text-muted">
+            Native <code>claude</code> path: the DSL runs after the existing billing+sentinel
+            prepend (executors/base.ts) — its default pipeline therefore omits{" "}
+            <code>inject_billing_header</code>. CC bridge (<code>anthropic-compatible-cc-*</code>):
+            the DSL runs as step 5b of the bridge request build (claudeCodeCompatible.ts), after
+            cache-control and before ZWJ obfuscation. All ops are idempotent on re-run.
+          </p>
         </div>
-
-        <p className="mt-3 text-[11px] text-text-muted">
-          Pipeline applies in order at step 5b of the CC bridge request build (after cache-control,
-          before ZWJ obfuscation). All ops are idempotent on re-run. Op editing beyond
-          reorder/delete requires PATCH via /api/settings — full per-op form is coming in a
-          follow-up; for now, edit the JSON directly via the API to fine-tune individual ops.
-        </p>
       </Card>
 
       <Card>
