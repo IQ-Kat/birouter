@@ -433,6 +433,8 @@
   },
   "tunnel": {
     "title": "Túneis",
+    "listDescription": "Listar túneis ativos",
+    "createDescription": "Criar um túnel",
     "created": "Túnel criado: {url}",
     "stopped": "Túnel parado.",
     "confirmStop": "Parar túnel {id}?",
@@ -1161,6 +1163,11 @@
   },
   "logs": {
     "description": "Streaming ou exportação de logs de request",
+    "follow": "Transmitir logs em tempo real",
+    "filter": "Filtrar por nível (error,warn,info) — separados por vírgula",
+    "lines": "Número de linhas a buscar",
+    "timeout": "Timeout de conexão em ms",
+    "baseUrl": "URL base da API do OmniRoute",
     "requestId": "Filtrar por ID do request",
     "apiKey": "Filtrar por chave de API",
     "combo": "Filtrar por nome do combo",

@@ -4,19 +4,19 @@ import { t } from "../i18n.mjs";
 export function registerLogs(program) {
   program
     .command("logs")
-    .description("Stream request logs")
-    .option("--follow", "Stream logs in real-time")
-    .option("--filter <level>", "Filter by level (error,warn,info) — comma-separated")
-    .option("--lines <n>", "Number of lines to fetch", "100")
-    .option("--timeout <ms>", "Connection timeout in ms", "30000")
-    .option("--base-url <url>", "OmniRoute API base URL", "http://localhost:20128")
-    .option("--request-id <id>", "Filter by request ID")
-    .option("--api-key <key>", "Filter by API key")
-    .option("--combo <name>", "Filter by combo name")
-    .option("--status <code>", "Filter by HTTP status code")
-    .option("--duration-min <ms>", "Min request duration in ms", parseInt)
-    .option("--duration-max <ms>", "Max request duration in ms", parseInt)
-    .option("--export <path>", "Save logs to file (json/jsonl/csv)")
+    .description(t("logs.description"))
+    .option("--follow", t("logs.follow"))
+    .option("--filter <level>", t("logs.filter"))
+    .option("--lines <n>", t("logs.lines"), "100")
+    .option("--timeout <ms>", t("logs.timeout"), "30000")
+    .option("--base-url <url>", t("logs.baseUrl"), "http://localhost:20128")
+    .option("--request-id <id>", t("logs.requestId"))
+    .option("--api-key <key>", t("logs.apiKey"))
+    .option("--combo <name>", t("logs.combo"))
+    .option("--status <code>", t("logs.status"))
+    .option("--duration-min <ms>", t("logs.durationMin"), parseInt)
+    .option("--duration-max <ms>", t("logs.durationMax"), parseInt)
+    .option("--export <path>", t("logs.export"))
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
       const exitCode = await runLogsCommand({ ...opts, output: globalOpts.output });

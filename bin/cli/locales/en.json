@@ -433,6 +433,8 @@
   },
   "tunnel": {
     "title": "Tunnels",
+    "listDescription": "List active tunnels",
+    "createDescription": "Create a tunnel",
     "created": "Tunnel created: {url}",
     "stopped": "Tunnel stopped.",
     "confirmStop": "Stop tunnel {id}?",
@@ -1161,6 +1163,11 @@
   },
   "logs": {
     "description": "Stream or export request logs",
+    "follow": "Stream logs in real-time",
+    "filter": "Filter by level (error,warn,info) — comma-separated",
+    "lines": "Number of lines to fetch",
+    "timeout": "Connection timeout in ms",
+    "baseUrl": "OmniRoute API base URL",
     "requestId": "Filter by request ID",
     "apiKey": "Filter by API key",
     "combo": "Filter by combo name",

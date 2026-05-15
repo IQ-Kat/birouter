@@ -9,8 +9,8 @@ export function registerTunnel(program) {
 
   tunnel
     .command("list")
-    .description("List active tunnels")
-    .option("--json", "Output as JSON")
+    .description(t("tunnel.listDescription"))
+    .option("--json", t("common.jsonOpt"))
     .action(async (opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
       const exitCode = await runTunnelListCommand({ ...opts, output: globalOpts.output });
@@ -19,7 +19,7 @@ export function registerTunnel(program) {
 
   tunnel
     .command("create [type]")
-    .description("Create a tunnel")
+    .description(t("tunnel.createDescription"))
     .addArgument(
       new Argument("[type]", "Tunnel type").choices(VALID_TUNNEL_TYPES).default("cloudflare")
     )
