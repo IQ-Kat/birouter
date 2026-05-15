@@ -1,7 +1,13 @@
 import { createHmac } from "node:crypto";
-import nodeMachineId from "node-machine-id";
-
-const { machineIdSync } = nodeMachineId;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+let machineIdSync: (original?: boolean) => string;
+try {
+  // Use require() to bypass webpack static analysis that breaks the default export
+  const mod = require("node-machine-id");
+  machineIdSync = mod.machineIdSync || mod.default?.machineIdSync;
+} catch {
+  machineIdSync = () => "";
+}
 
 const BUILTIN_DEFAULT_SALT = "omniroute-cli-auth-v1";
 
