@@ -1105,5 +1105,12 @@
     "repair_force": "Force reinstall even if valid",
     "clean": "Remove runtime directory (frees disk space)",
     "clean_yes": "Skip confirmation"
+  },
+  "repl": {
+    "description": "Interactive multi-turn REPL with LLM",
+    "model": "Model to use (default: auto)",
+    "combo": "Combo name to use",
+    "system": "System prompt",
+    "resume": "Resume a saved session by name"
   }
 }

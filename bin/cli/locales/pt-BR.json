@@ -1105,5 +1105,12 @@
     "repair_force": "Forçar reinstalação mesmo se estiver válido",
     "clean": "Remover diretório de runtime (libera espaço em disco)",
     "clean_yes": "Pular confirmação"
+  },
+  "repl": {
+    "description": "REPL interativo multi-turn com LLM",
+    "model": "Modelo a usar (padrão: auto)",
+    "combo": "Nome do combo a usar",
+    "system": "System prompt",
+    "resume": "Retomar sessão salva pelo nome"
   }
 }

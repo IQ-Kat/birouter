@@ -54,6 +54,7 @@ import { registerCompletion } from "./completion.mjs";
 import { registerRuntime } from "./runtime.mjs";
 import { registerTray } from "./tray.mjs";
 import { registerAutostart } from "./autostart.mjs";
+import { registerRepl } from "./repl.mjs";
 
 export function registerCommands(program) {
   registerMemory(program);
@@ -113,4 +114,5 @@ export function registerCommands(program) {
   registerRuntime(program);
   registerTray(program);
   registerAutostart(program);
+  registerRepl(program);
 }
