@@ -1,5 +1,8 @@
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { apiFetch, isServerUp } from "./api.mjs";
-import { openOmniRouteDb } from "./sqlite.mjs";
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 export class ServerOfflineError extends Error {
   constructor(message = "Server is offline and operation requires HTTP runtime") {
@@ -17,21 +20,17 @@ function makeHttpContext(opts) {
   };
 }
 
+async function importDbModules() {
+  const [combos, recovery] = await Promise.all([
+    import(`${PROJECT_ROOT}/src/lib/db/combos.ts`),
+    import(`${PROJECT_ROOT}/src/lib/db/recovery.ts`),
+  ]);
+  return { combos, recovery };
+}
+
 async function makeDbContext() {
-  const { db, dataDir, dbPath } = await openOmniRouteDb();
-  return {
-    kind: "db",
-    db,
-    dataDir,
-    dbPath,
-    close: () => {
-      try {
-        db.close();
-      } catch {
-        // best-effort
-      }
-    },
-  };
+  const modules = await importDbModules();
+  return { kind: "db", db: modules };
 }
 
 export async function withRuntime(fn, opts = {}) {
@@ -48,12 +47,7 @@ export async function withRuntime(fn, opts = {}) {
     }
   }
 
-  const ctx = await makeDbContext();
-  try {
-    return await fn(ctx);
-  } finally {
-    ctx.close?.();
-  }
+  return fn(await makeDbContext());
 }
 
 export async function withHttp(fn, opts = {}) {
@@ -63,10 +57,5 @@ export async function withHttp(fn, opts = {}) {
 }
 
 export async function withDb(fn) {
-  const ctx = await makeDbContext();
-  try {
-    return await fn(ctx);
-  } finally {
-    ctx.close?.();
-  }
+  return fn(await makeDbContext());
 }

@@ -1,7 +1,6 @@
 import { Option } from "commander";
 import { printHeading } from "../io.mjs";
-import { openOmniRouteDb } from "../sqlite.mjs";
-import { apiFetch, isServerUp } from "../api.mjs";
+import { withRuntime } from "../runtime.mjs";
 import { t } from "../i18n.mjs";
 
 const VALID_STRATEGIES = [
@@ -72,51 +71,54 @@ export function registerCombo(program) {
 }
 
 export async function runComboListCommand(opts = {}) {
-  const { db } = await openOmniRouteDb();
   try {
-    // TODO(1.5): replace raw SQL with src/lib/db/combos.ts
-    const combos = db
-      .prepare("SELECT id, name, strategy, enabled, target_count FROM combos ORDER BY name")
-      .all();
+    return await withRuntime(async ({ kind, api, db }) => {
+      let combos = [];
+      let activeCombo = null;
 
-    let activeCombo = null;
-    try {
-      const serverUp = await isServerUp();
-      if (serverUp) {
-        const res = await apiFetch("/api/combos/active", {
-          retry: false,
-          timeout: 3000,
-          acceptNotOk: true,
-        });
-        if (res.ok) {
-          const data = await res.json();
-          activeCombo = data.active || data.name || data.combo || null;
+      if (kind === "http") {
+        const [listRes, activeRes] = await Promise.all([
+          api("/api/combos", { retry: false, timeout: 5000, acceptNotOk: true }),
+          api("/api/settings", { retry: false, timeout: 3000, acceptNotOk: true }),
+        ]);
+        if (listRes.ok) {
+          const data = await listRes.json();
+          combos = Array.isArray(data) ? data : (data.combos ?? []);
         }
+        if (activeRes.ok) {
+          const settings = await activeRes.json();
+          activeCombo = settings?.activeCombo ?? null;
+        }
+      } else {
+        combos = await db.combos.getCombos();
       }
-    } catch {}
 
-    if (opts.json || opts.output === "json") {
-      console.log(JSON.stringify({ combos, active: activeCombo }, null, 2));
+      if (opts.json || opts.output === "json") {
+        console.log(JSON.stringify({ combos, active: activeCombo }, null, 2));
+        return 0;
+      }
+
+      printHeading(t("combo.title"));
+      if (combos.length === 0) {
+        console.log(t("combo.noCombos"));
+        return 0;
+      }
+
+      for (const combo of combos) {
+        const comboName = combo.name ?? combo.id ?? "?";
+        const isActive = activeCombo && (comboName === activeCombo || combo.id === activeCombo);
+        const icon = isActive ? "\x1b[32m●\x1b[0m" : "\x1b[2m○\x1b[0m";
+        const enabled = combo.enabled !== false;
+        const status = enabled ? "\x1b[32menabled\x1b[0m" : "\x1b[31mdisabled\x1b[0m";
+        const strategy = (combo.strategy ?? "priority").padEnd(12);
+        console.log(`  ${icon} ${comboName.padEnd(25)} [${strategy}] ${status}`);
+      }
+
       return 0;
-    }
-
-    printHeading(t("combo.title"));
-    if (combos.length === 0) {
-      console.log(t("combo.noCombos"));
-      return 0;
-    }
-
-    for (const combo of combos) {
-      const isActive = activeCombo && (combo.name === activeCombo || combo.id === activeCombo);
-      const icon = isActive ? "\x1b[32m●\x1b[0m" : "\x1b[2m○\x1b[0m";
-      const status = combo.enabled ? "\x1b[32menabled\x1b[0m" : "\x1b[31mdisabled\x1b[0m";
-      const strategy = (combo.strategy || "priority").padEnd(12);
-      console.log(`  ${icon} ${combo.name.padEnd(25)} [${strategy}] ${status}`);
-    }
-
-    return 0;
-  } finally {
-    db.close();
+    });
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
   }
 }
 
@@ -126,40 +128,50 @@ export async function runComboSwitchCommand(name, opts = {}) {
     return 1;
   }
 
-  const serverUp = await isServerUp();
-  if (serverUp) {
-    try {
-      const res = await apiFetch("/api/combos/switch", {
-        method: "POST",
-        body: { name },
-        retry: false,
-        acceptNotOk: true,
-      });
-      if (res.ok) {
-        console.log(t("combo.switched", { name }));
-        return 0;
-      }
-    } catch {}
-  }
-
-  // DB fallback
-  const { db } = await openOmniRouteDb();
   try {
-    // TODO(1.5): replace raw SQL with src/lib/db/combos.ts
-    const combo = db.prepare("SELECT id FROM combos WHERE name = ?").get(name);
-    if (!combo) {
-      console.error(`Combo '${name}' not found.`);
-      return 1;
-    }
+    return await withRuntime(async ({ kind, api, db }) => {
+      if (kind === "http") {
+        const listRes = await api("/api/combos", {
+          retry: false,
+          timeout: 5000,
+          acceptNotOk: true,
+        });
+        if (!listRes.ok) {
+          console.error(`Failed to fetch combo list (HTTP ${listRes.status}).`);
+          return 1;
+        }
+        const data = await listRes.json();
+        const combos = Array.isArray(data) ? data : (data.combos ?? []);
+        const found = combos.find((c) => c.name === name || c.id === name);
+        if (!found) {
+          console.error(`Combo '${name}' not found.`);
+          return 1;
+        }
+        const patchRes = await api("/api/settings", {
+          method: "PATCH",
+          body: { activeCombo: name },
+          retry: false,
+          acceptNotOk: true,
+        });
+        if (!patchRes.ok) {
+          console.error(`Failed to switch combo (HTTP ${patchRes.status}).`);
+          return 1;
+        }
+      } else {
+        const combo = await db.combos.getComboByName(name);
+        if (!combo) {
+          console.error(`Combo '${name}' not found.`);
+          return 1;
+        }
+        db.combos.setActiveCombo(name);
+      }
 
-    db.prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'activeCombo', ?)"
-    ).run(JSON.stringify(name));
-
-    console.log(t("combo.switched", { name }));
-    return 0;
-  } finally {
-    db.close();
+      console.log(t("combo.switched", { name }));
+      return 0;
+    });
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
   }
 }
 
@@ -174,23 +186,36 @@ export async function runComboCreateCommand(name, strategy = "priority", opts = 
     return 1;
   }
 
-  const { db } = await openOmniRouteDb();
   try {
-    // TODO(1.5): replace raw SQL with src/lib/db/combos.ts
-    const existing = db.prepare("SELECT id FROM combos WHERE name = ?").get(name);
-    if (existing) {
-      console.error(`Combo '${name}' already exists. Delete it first.`);
-      return 1;
-    }
+    return await withRuntime(async ({ kind, api, db }) => {
+      if (kind === "http") {
+        const res = await api("/api/combos", {
+          method: "POST",
+          body: { name, strategy, enabled: true, models: [], config: {} },
+          retry: false,
+          acceptNotOk: true,
+        });
+        if (!res.ok) {
+          const body = await res.text().catch(() => "");
+          const msg = body ? ` — ${body}` : "";
+          console.error(`Failed to create combo (HTTP ${res.status})${msg}`);
+          return 1;
+        }
+      } else {
+        const existing = await db.combos.getComboByName(name);
+        if (existing) {
+          console.error(`Combo '${name}' already exists. Delete it first.`);
+          return 1;
+        }
+        await db.combos.createCombo({ name, strategy, enabled: true, models: [], config: {} });
+      }
 
-    db.prepare(
-      "INSERT INTO combos (name, strategy, enabled, target_count) VALUES (?, ?, 1, 0)"
-    ).run(name, strategy);
-
-    console.log(t("combo.created", { name }));
-    return 0;
-  } finally {
-    db.close();
+      console.log(t("combo.created", { name }));
+      return 0;
+    });
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
   }
 }
 
@@ -213,17 +238,47 @@ export async function runComboDeleteCommand(name, opts = {}) {
     }
   }
 
-  const { db } = await openOmniRouteDb();
   try {
-    // TODO(1.5): replace raw SQL with src/lib/db/combos.ts
-    const result = db.prepare("DELETE FROM combos WHERE name = ?").run(name);
-    if (result.changes > 0) {
+    return await withRuntime(async ({ kind, api, db }) => {
+      if (kind === "http") {
+        const listRes = await api("/api/combos", {
+          retry: false,
+          timeout: 5000,
+          acceptNotOk: true,
+        });
+        if (!listRes.ok) {
+          console.error(`Failed to fetch combo list (HTTP ${listRes.status}).`);
+          return 1;
+        }
+        const data = await listRes.json();
+        const combos = Array.isArray(data) ? data : (data.combos ?? []);
+        const found = combos.find((c) => c.name === name || c.id === name);
+        if (!found) {
+          console.error(`Combo '${name}' not found.`);
+          return 1;
+        }
+        const delRes = await api(`/api/combos/${encodeURIComponent(found.id)}`, {
+          method: "DELETE",
+          retry: false,
+          acceptNotOk: true,
+        });
+        if (!delRes.ok) {
+          console.error(`Failed to delete combo (HTTP ${delRes.status}).`);
+          return 1;
+        }
+      } else {
+        const deleted = await db.combos.deleteComboByName(name);
+        if (!deleted) {
+          console.error(`Combo '${name}' not found.`);
+          return 1;
+        }
+      }
+
       console.log(t("combo.deleted", { name }));
       return 0;
-    }
-    console.error(`Combo '${name}' not found.`);
+    });
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
     return 1;
-  } finally {
-    db.close();
   }
 }

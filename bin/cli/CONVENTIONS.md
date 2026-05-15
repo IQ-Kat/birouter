@@ -155,18 +155,24 @@ Single helper:
 ```js
 import { withRuntime } from "./runtime.mjs";
 
-await withRuntime(async (ctx) => {
-  if (ctx.kind === "http") return ctx.api("/v1/providers");
-  return ctx.db.providers.list();
+await withRuntime(async ({ kind, api, db }) => {
+  if (kind === "http")
+    return api("/api/combos", { retry: false, timeout: 5000, acceptNotOk: true });
+  return db.combos.getCombos();
 });
 ```
 
-- `kind: "http"` when server is up (preferred).
-- `kind: "db"` when offline (read-only operations).
+- `kind: "http"` when server is up (preferred). `api` is `apiFetch` bound to
+  the current profile/base-URL.
+- `kind: "db"` when server is offline. `db` exposes typed module exports:
+  - `db.combos` → `src/lib/db/combos.ts` (getCombos, getComboByName, createCombo,
+    deleteComboByName, setActiveCombo, …)
+  - `db.recovery` → `src/lib/db/recovery.ts` (countEncryptedCredentials,
+    resetEncryptedColumns)
 - Mutations that require server **must** error with exit code `3` when the
   server is down, never silently fall back.
-- **Never** write raw SQL in commands — always go through `bin/cli/sqlite.mjs`
-  or the upstream `src/lib/db/` modules.
+- **Never** write raw SQL in commands — always go through `src/lib/db/` modules.
+  The Semgrep rule at `.semgrep/rules/cli-no-sqlite.yaml` enforces this at commit time.
 
 ## 9. Audit of destructive actions
 

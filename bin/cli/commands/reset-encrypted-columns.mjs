@@ -1,21 +1,13 @@
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { existsSync } from "node:fs";
+import { resolveDataDir } from "../data-dir.mjs";
 import { join } from "node:path";
-import { homedir, platform } from "node:os";
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 export async function runResetEncryptedColumns(argv) {
-  const dataDir = (() => {
-    const configured = process.env.DATA_DIR?.trim();
-    if (configured) return configured;
-    if (platform() === "win32") {
-      const appData = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
-      return join(appData, "omniroute");
-    }
-    const xdg = process.env.XDG_CONFIG_HOME?.trim();
-    if (xdg) return join(xdg, "omniroute");
-    return join(homedir(), ".omniroute");
-  })();
-
+  const dataDir = resolveDataDir();
   const dbPath = join(dataDir, "storage.sqlite");
 
   if (!existsSync(dbPath)) {
@@ -23,7 +15,8 @@ export async function runResetEncryptedColumns(argv) {
     return 0;
   }
 
-  const force = argv.includes("--force");
+  const force = Array.isArray(argv) ? argv.includes("--force") : argv?.force === true;
+
   if (!force) {
     console.log(`
   \x1b[1m\x1b[33m⚠ WARNING: This will erase all encrypted credentials\x1b[0m
@@ -46,51 +39,28 @@ export async function runResetEncryptedColumns(argv) {
   }
 
   try {
-    const require = createRequire(import.meta.url);
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath);
+    const { countEncryptedCredentials, resetEncryptedColumns } = await import(
+      `${PROJECT_ROOT}/src/lib/db/recovery.ts`
+    );
 
-    const countResult = db
-      .prepare(
-        `SELECT COUNT(*) as cnt FROM provider_connections
-         WHERE api_key LIKE 'enc:v1:%'
-            OR access_token LIKE 'enc:v1:%'
-            OR refresh_token LIKE 'enc:v1:%'
-            OR id_token LIKE 'enc:v1:%'`
-      )
-      .get();
+    const count = countEncryptedCredentials();
 
-    const affected = countResult?.cnt ?? 0;
-
-    if (affected === 0) {
+    if (count === 0) {
       console.log("\x1b[32m✔ No encrypted credentials found — nothing to reset.\x1b[0m");
-      db.close();
       return 0;
     }
 
-    const result = db
-      .prepare(
-        `UPDATE provider_connections
-            SET api_key = NULL,
-                access_token = NULL,
-                refresh_token = NULL,
-                id_token = NULL
-          WHERE api_key LIKE 'enc:v1:%'
-             OR access_token LIKE 'enc:v1:%'
-             OR refresh_token LIKE 'enc:v1:%'
-             OR id_token LIKE 'enc:v1:%'`
-      )
-      .run();
-
-    db.close();
+    const { affected } = resetEncryptedColumns({ dryRun: false });
 
     console.log(
-      `\x1b[32m✔ Reset ${result.changes} provider connection(s).\x1b[0m\n` +
+      `\x1b[32m✔ Reset ${affected} provider connection(s).\x1b[0m\n` +
         `  Re-authenticate your providers in the dashboard or re-add API keys.\n`
     );
     return 0;
   } catch (err) {
-    console.error(`\x1b[31m✖ Failed to reset encrypted columns:\x1b[0m ${err.message || err}`);
+    console.error(
+      `\x1b[31m✖ Failed to reset encrypted columns:\x1b[0m ${err instanceof Error ? err.message : String(err)}`
+    );
     return 1;
   }
 }
