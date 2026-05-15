@@ -427,19 +427,23 @@ function applyDropBlockIfContains(blocks: SystemBlock[], op: DropBlockIfContains
 
 function applyPrependSystemBlock(blocks: SystemBlock[], op: PrependSystemBlockOp): SystemBlock[] {
   if (!op.text) return blocks;
-  if (op.idempotencyKey || op.text) {
-    const firstText = blocks.find(isTextBlock)?.text ?? "";
-    if (firstText === op.text || firstText.startsWith(op.text)) {
-      return blocks;
-    }
-  }
+  // Idempotency: skip if any text block already starts with idempotencyKey (when
+  // set) or with op.text itself (default). Scans ALL blocks, not just the first.
+  const prefix = op.idempotencyKey ?? op.text;
+  const alreadyPresent = blocks.some((b) => isTextBlock(b) && b.text.startsWith(prefix));
+  if (alreadyPresent) return blocks;
   return [{ type: "text", text: op.text }, ...blocks];
 }
 
 function applyAppendSystemBlock(blocks: SystemBlock[], op: AppendSystemBlockOp): SystemBlock[] {
   if (!op.text) return blocks;
-  const last = [...blocks].reverse().find(isTextBlock)?.text ?? "";
-  if (last === op.text) return blocks;
+  // Idempotency: skip if any text block already starts with idempotencyKey (when
+  // set) or is an exact match of op.text (default). Scans ALL blocks.
+  const prefix = op.idempotencyKey;
+  const alreadyPresent = prefix
+    ? blocks.some((b) => isTextBlock(b) && b.text.startsWith(prefix))
+    : blocks.some((b) => isTextBlock(b) && b.text === op.text);
+  if (alreadyPresent) return blocks;
   return [...blocks, { type: "text", text: op.text }];
 }
 
