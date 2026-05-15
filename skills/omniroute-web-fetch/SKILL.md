@@ -5,7 +5,7 @@ description: Fetch a URL and convert to clean markdown via OmniRoute proxying Ji
 
 # OmniRoute — Web Fetch
 
-Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
+Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
 
 ## Endpoint
 

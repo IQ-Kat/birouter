@@ -34,17 +34,17 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 
 ## Capability skills
 
-| Capability       | Raw URL                                                                                       |
-| ---------------- | --------------------------------------------------------------------------------------------- |
-| Chat / code-gen  | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-chat/SKILL.md       |
-| Image generation | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-image/SKILL.md      |
-| Text-to-speech   | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-tts/SKILL.md        |
-| Speech-to-text   | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-stt/SKILL.md        |
-| Embeddings       | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-embeddings/SKILL.md |
-| Web search       | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-web-search/SKILL.md |
-| Web fetch        | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-web-fetch/SKILL.md  |
-| MCP server       | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-mcp/SKILL.md        |
-| A2A protocol     | https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute-a2a/SKILL.md        |
+| Capability       | Raw URL                                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| Chat / code-gen  | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-chat/SKILL.md       |
+| Image generation | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-image/SKILL.md      |
+| Text-to-speech   | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-tts/SKILL.md        |
+| Speech-to-text   | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-stt/SKILL.md        |
+| Embeddings       | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-embeddings/SKILL.md |
+| Web search       | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-search/SKILL.md |
+| Web fetch        | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-fetch/SKILL.md  |
+| MCP server       | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-mcp/SKILL.md        |
+| A2A protocol     | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-a2a/SKILL.md        |
 
 ## Errors
 

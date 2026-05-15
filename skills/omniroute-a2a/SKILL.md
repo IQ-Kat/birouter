@@ -5,7 +5,7 @@ description: OmniRoute exposes an A2A (Agent-to-Agent) JSON-RPC 2.0 server with 
 
 # OmniRoute — A2A Protocol
 
-Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
+Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
 
 OmniRoute publishes an Agent Card at `/.well-known/agent.json` and accepts
 JSON-RPC 2.0 calls at `/a2a`.
@@ -68,4 +68,4 @@ curl -X POST $OMNIROUTE_URL/a2a \
 
 ## Reference
 
-Full docs: https://github.com/NomenAK/OmniRoute/blob/main/docs/frameworks/A2A-SERVER.md
+Full docs: https://github.com/diegosouzapw/OmniRoute/blob/main/docs/frameworks/A2A-SERVER.md

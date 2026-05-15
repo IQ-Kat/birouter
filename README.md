@@ -520,7 +520,7 @@ Drop-in markdown manifests that let any AI agent consume OmniRoute via one fetch
 Tell your agent (Claude Desktop, ChatGPT, Cursor, Cline, etc.):
 
 > "Fetch this URL and use OmniRoute according to its instructions:
-> `https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute/SKILL.md`"
+> `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md`"
 
 10 skills available — see [skills/README.md](./skills/README.md).
 

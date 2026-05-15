@@ -5,7 +5,7 @@ description: Text-to-speech via OmniRoute using OpenAI /v1/audio/speech format w
 
 # OmniRoute — Text-to-Speech
 
-Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
+Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
 
 ## Endpoint
 

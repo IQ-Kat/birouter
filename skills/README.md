@@ -7,7 +7,7 @@ consume OmniRoute via OpenAI-compatible REST in one fetch.
 
 ```
 User to agent: "Use OmniRoute for code-gen. Fetch this URL and follow it:
-https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute/SKILL.md"
+https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md"
 ```
 
 The agent retrieves the manifest, sees the setup + endpoints, and routes calls

@@ -5,7 +5,7 @@ description: Web search via OmniRoute proxying Tavily, Brave Search, SerpAPI, Ex
 
 # OmniRoute — Web Search
 
-Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/NomenAK/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
+Requires `OMNIROUTE_URL` and `OMNIROUTE_KEY`. See [entry-point SKILL](https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md) for setup.
 
 ## Endpoint
 
