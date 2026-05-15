@@ -416,6 +416,155 @@
       "description": "Exibir saúde do subsistema de memória (FTS5 + Qdrant)"
     }
   },
+  "oauth": {
+    "description": "Gerenciar conexões OAuth de provedores",
+    "providers": {
+      "description": "Listar provedores com suporte OAuth e seus tipos de fluxo"
+    },
+    "start": {
+      "description": "Iniciar fluxo de autorização OAuth para um provedor",
+      "provider": "ID do provedor (gemini, copilot, cursor, …)",
+      "no_browser": "Apenas exibir URL — não abrir navegador",
+      "import_system": "Auto-importar credenciais da configuração local do sistema",
+      "social": "Provedor de login social (google|github) — obrigatório para kiro",
+      "timeout": "Timeout aguardando autorização em ms (padrão: 300000)"
+    },
+    "status": {
+      "description": "Listar conexões OAuth ativas",
+      "provider": "Filtrar por ID do provedor"
+    },
+    "revoke": {
+      "description": "Revogar uma conexão OAuth",
+      "provider": "ID do provedor a revogar",
+      "connection_id": "Revogar uma conexão específica por ID",
+      "yes": "Pular confirmação"
+    }
+  },
+  "cloud": {
+    "description": "Gerenciar tarefas de agentes cloud de IA (codex, devin, jules)",
+    "agents": {
+      "description": "Listar agentes cloud disponíveis"
+    },
+    "agent": {
+      "description": "Gerenciar tarefas do agente cloud {agent}",
+      "auth": {
+        "description": "Autorizar {agent} via OAuth"
+      }
+    },
+    "task": {
+      "description": "Gerenciar tarefas de agentes cloud",
+      "create": {
+        "description": "Criar nova tarefa de agente",
+        "title": "Título da tarefa (padrão: primeiros 80 chars do prompt)",
+        "prompt": "Texto do prompt da tarefa",
+        "prompt_file": "Ler prompt de arquivo",
+        "repo": "URL do repositório para clonar na tarefa",
+        "branch": "Nome do branch a usar",
+        "metadata": "Objeto JSON de metadados"
+      },
+      "list": {
+        "description": "Listar tarefas de agentes",
+        "status": "Filtrar por status (running|completed|failed|cancelled)",
+        "limit": "Máximo de resultados (padrão: 50)"
+      },
+      "get": {
+        "description": "Obter detalhes da tarefa por ID"
+      },
+      "status": {
+        "description": "Exibir status da tarefa (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Cancelar uma tarefa em execução",
+        "yes": "Pular confirmação"
+      },
+      "approve": {
+        "description": "Aprovar o plano do agente para iniciar execução"
+      },
+      "message": {
+        "description": "Enviar mensagem para uma tarefa em execução"
+      }
+    },
+    "sources": {
+      "description": "Listar arquivos de origem produzidos por uma tarefa"
+    }
+  },
+  "eval": {
+    "description": "Gerenciar suites e execuções de avaliação",
+    "suites": {
+      "description": "Gerenciar suites de avaliação",
+      "list": {
+        "description": "Listar suites de avaliação"
+      },
+      "get": {
+        "description": "Obter detalhes de suite por ID"
+      },
+      "create": {
+        "description": "Criar suite de avaliação a partir de arquivo JSON",
+        "file": "Caminho para arquivo JSON de definição da suite"
+      }
+    },
+    "run": {
+      "description": "Iniciar execução de avaliação para uma suite",
+      "model": "ID do modelo a avaliar (padrão: auto)",
+      "combo": "Forçar combo específico por nome",
+      "concurrency": "Número de amostras concorrentes (padrão: 4)",
+      "tag": "Tag para esta execução",
+      "watch": "Monitorar progresso até conclusão"
+    },
+    "list": {
+      "description": "Listar execuções de avaliação",
+      "suite": "Filtrar por ID de suite",
+      "status": "Filtrar por status",
+      "since": "Retornar execuções desde este timestamp",
+      "limit": "Máximo de resultados (padrão: 50)"
+    },
+    "get": {
+      "description": "Obter detalhes de execução por ID"
+    },
+    "results": {
+      "description": "Exibir resultados de amostras de uma execução",
+      "failed": "Exibir apenas amostras que falharam"
+    },
+    "cancel": {
+      "description": "Cancelar uma avaliação em execução",
+      "yes": "Pular confirmação"
+    },
+    "scorecard": {
+      "description": "Exibir scorecard de uma execução concluída"
+    }
+  },
+  "webhooks": {
+    "description": "Gerenciar webhooks do OmniRoute",
+    "events": {
+      "description": "Listar todos os tipos de evento disponíveis para webhooks"
+    },
+    "list": {
+      "description": "Listar webhooks configurados"
+    },
+    "get": {
+      "description": "Obter detalhes de webhook por ID"
+    },
+    "add": {
+      "description": "Registrar novo webhook",
+      "url": "URL de destino",
+      "events": "Lista de tipos de evento separados por vírgula",
+      "secret": "Segredo HMAC de assinatura",
+      "header": "Header extra no formato chave=valor (repetível)",
+      "no_enabled": "Criar webhook em estado desabilitado"
+    },
+    "update": {
+      "description": "Atualizar webhook existente",
+      "enabled": "Definir estado habilitado (true|false)"
+    },
+    "remove": {
+      "description": "Deletar webhook",
+      "yes": "Pular confirmação"
+    },
+    "test": {
+      "description": "Enviar evento de teste para um webhook",
+      "event": "Tipo de evento a simular (padrão: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Roteador de IA com Fallback Automático",
     "version": "Exibir versão e sair",

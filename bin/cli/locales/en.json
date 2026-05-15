@@ -416,6 +416,155 @@
       "description": "Show memory subsystem health (FTS5 + Qdrant)"
     }
   },
+  "oauth": {
+    "description": "Manage OAuth provider connections",
+    "providers": {
+      "description": "List OAuth-capable providers and their flow types"
+    },
+    "start": {
+      "description": "Start OAuth authorization flow for a provider",
+      "provider": "Provider ID (gemini, copilot, cursor, …)",
+      "no_browser": "Print URL only — do not open browser",
+      "import_system": "Auto-import credentials from local system config",
+      "social": "Social login provider (google|github) — required for kiro",
+      "timeout": "Timeout waiting for authorization in ms (default: 300000)"
+    },
+    "status": {
+      "description": "List active OAuth connections",
+      "provider": "Filter by provider ID"
+    },
+    "revoke": {
+      "description": "Revoke an OAuth connection",
+      "provider": "Provider ID to revoke",
+      "connection_id": "Revoke a specific connection by ID",
+      "yes": "Skip confirmation prompt"
+    }
+  },
+  "cloud": {
+    "description": "Manage cloud AI agent tasks (codex, devin, jules)",
+    "agents": {
+      "description": "List available cloud agents"
+    },
+    "agent": {
+      "description": "Manage {agent} cloud agent tasks",
+      "auth": {
+        "description": "Authorize {agent} via OAuth"
+      }
+    },
+    "task": {
+      "description": "Manage cloud agent tasks",
+      "create": {
+        "description": "Create a new agent task",
+        "title": "Task title (defaults to first 80 chars of prompt)",
+        "prompt": "Task prompt text",
+        "prompt_file": "Read prompt from file",
+        "repo": "Repository URL to clone for the task",
+        "branch": "Branch name to use",
+        "metadata": "JSON metadata object"
+      },
+      "list": {
+        "description": "List agent tasks",
+        "status": "Filter by status (running|completed|failed|cancelled)",
+        "limit": "Maximum results (default: 50)"
+      },
+      "get": {
+        "description": "Get task details by ID"
+      },
+      "status": {
+        "description": "Print task status (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Cancel a running task",
+        "yes": "Skip confirmation prompt"
+      },
+      "approve": {
+        "description": "Approve the agent plan to start execution"
+      },
+      "message": {
+        "description": "Send a message to a running task"
+      }
+    },
+    "sources": {
+      "description": "List source files produced by a task"
+    }
+  },
+  "eval": {
+    "description": "Manage eval suites and runs",
+    "suites": {
+      "description": "Manage eval suites",
+      "list": {
+        "description": "List eval suites"
+      },
+      "get": {
+        "description": "Get eval suite details by ID"
+      },
+      "create": {
+        "description": "Create an eval suite from a JSON file",
+        "file": "Path to suite definition JSON file"
+      }
+    },
+    "run": {
+      "description": "Start an eval run for a suite",
+      "model": "Model ID to evaluate (default: auto)",
+      "combo": "Force a specific combo by name",
+      "concurrency": "Number of concurrent samples (default: 4)",
+      "tag": "Tag this run for later filtering",
+      "watch": "Watch run progress until completion"
+    },
+    "list": {
+      "description": "List eval runs",
+      "suite": "Filter by suite ID",
+      "status": "Filter by status",
+      "since": "Return runs since this timestamp",
+      "limit": "Maximum results (default: 50)"
+    },
+    "get": {
+      "description": "Get eval run details by ID"
+    },
+    "results": {
+      "description": "Show sample results for an eval run",
+      "failed": "Show only failed samples"
+    },
+    "cancel": {
+      "description": "Cancel a running eval",
+      "yes": "Skip confirmation prompt"
+    },
+    "scorecard": {
+      "description": "Show scorecard for a completed eval run"
+    }
+  },
+  "webhooks": {
+    "description": "Manage OmniRoute webhooks",
+    "events": {
+      "description": "List all available webhook event types"
+    },
+    "list": {
+      "description": "List configured webhooks"
+    },
+    "get": {
+      "description": "Get webhook details by ID"
+    },
+    "add": {
+      "description": "Register a new webhook",
+      "url": "Destination URL",
+      "events": "Comma-separated list of event types",
+      "secret": "HMAC signing secret",
+      "header": "Extra header in key=value format (repeatable)",
+      "no_enabled": "Create webhook in disabled state"
+    },
+    "update": {
+      "description": "Update an existing webhook",
+      "enabled": "Set enabled state (true|false)"
+    },
+    "remove": {
+      "description": "Delete a webhook",
+      "yes": "Skip confirmation prompt"
+    },
+    "test": {
+      "description": "Send a test event to a webhook",
+      "event": "Event type to simulate (default: request.completed)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Smart AI Router with Auto Fallback",
     "version": "Print version and exit",
