@@ -4,6 +4,16 @@
 
 ### Changed
 
+- **CLI**: Refatorada arquitetura para usar Commander.js como framework. Monolito `bin/cli-commands.mjs` (2853 linhas) removido — comandos agora vivem individualmente em `bin/cli/commands/`. Sem breaking changes em uso normal; todos os subcomandos previamente listados continuam funcionando.
+
+### Removed
+
+- `bin/cli-commands.mjs` — substituído por estrutura modular em `bin/cli/commands/`.
+- `bin/cli/index.mjs` — substituído por `bin/cli/program.mjs` + `bin/cli/commands/registry.mjs`.
+- `bin/cli/args.mjs` — substituído pelo suporte nativo de parsing do Commander.js.
+
+---
+
 - **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
 - **chore(npm):** [`@omniroute/opencode-provider@0.1.0`](https://www.npmjs.com/package/@omniroute/opencode-provider) published to npmjs.com under the new `@omniroute` org. Install with `npm install --save-dev @omniroute/opencode-provider`.
 
