@@ -124,15 +124,13 @@ const PROVIDER_TILE_DISPLAY: Record<
 > = {
   [PROVIDER_CLAUDE]: {
     name: "Claude (OAuth)",
-    description:
-      "Native Claude provider — OAuth-issued tokens. Cosmetic transforms only; billing/identity prepend handled by native executor.",
+    description: "Native Claude provider with OAuth-issued tokens.",
     icon: "anthropic",
     tone: "indigo",
   },
   [PROVIDER_CC_BRIDGE]: {
-    name: "Claude-Code Bridge (anthropic-compatible-cc-*)",
-    description:
-      "Relay endpoints using API keys. Full transform pipeline (paragraph anchors + identity prefixes + replacements + SDK identity + billing header).",
+    name: "Claude-Code Bridge",
+    description: "Relay endpoints using API keys (anthropic-compatible-cc-*).",
     icon: "hub",
     tone: "purple",
   },
@@ -869,27 +867,8 @@ export default function RoutingTab() {
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">CLI Fingerprint Matching</h3>
-            <p className="text-sm text-text-muted mt-1">
-              Match upstream CLI binary signatures and normalize system-block content so
-              provider-side classifiers see a correct request regardless of which client sent it.
-              Per-provider: header fingerprint (body/header shape reordering) + system-block
-              transform pipeline (paragraph anchors, text replacements, ZWJ obfuscation, billing
-              header injection). Issue{" "}
-              <a
-                href="https://github.com/diegosouzapw/OmniRoute/issues/2260"
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary underline"
-              >
-                #2260
-              </a>
-              .
-            </p>
-            <p className="mt-1 text-xs text-text-muted">
-              <span className="font-medium">No local CLI binary required</span> — OmniRoute builds
-              the upstream-compatible request server-side.
-            </p>
+            <h3 className="text-lg font-semibold">{t("cliFingerprint")}</h3>
+            <p className="text-sm text-text-muted mt-1">{t("cliFingerprintDesc")}</p>
           </div>
         </div>
 
@@ -902,52 +881,38 @@ export default function RoutingTab() {
             {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
               const normalizedProviderId = normalizeCliCompatProviderId(providerId);
               const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
-              const forced = providerId === "claude";
-              const checked = forced || cliCompatProviderSet.has(normalizedProviderId);
+              const checked = cliCompatProviderSet.has(normalizedProviderId);
               const label = providerDisplay?.name || providerId;
               const description = providerDisplay?.description || providerId;
-              const titleText = forced
-                ? t("forcedFingerprintTitle", { provider: label })
-                : checked
-                  ? t("disableFingerprintTitle", { provider: label })
-                  : t("enableFingerprintTitle", { provider: label });
+              const titleText = checked
+                ? t("disableFingerprintTitle", { provider: label })
+                : t("enableFingerprintTitle", { provider: label });
 
               return (
                 <button
                   key={providerId}
                   type="button"
-                  onClick={() => {
-                    if (forced) return;
-                    toggleCliCompatProvider(providerId, !checked);
-                  }}
-                  disabled={loading || forced}
+                  onClick={() => toggleCliCompatProvider(providerId, !checked)}
+                  disabled={loading}
                   aria-pressed={checked}
-                  aria-disabled={forced || undefined}
                   title={titleText}
                   className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
                     checked
                       ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
                       : "border-border/50 hover:border-border hover:bg-surface/30"
-                  } ${loading || forced ? "cursor-not-allowed" : ""} ${loading ? "opacity-60" : ""}`}
+                  } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
                 >
                   <span
                     className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
                     aria-hidden="true"
                   >
-                    {forced ? "lock" : checked ? "check_circle" : "radio_button_unchecked"}
+                    {checked ? "check_circle" : "radio_button_unchecked"}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
-                      >
-                        {label}
-                      </span>
-                      {forced && (
-                        <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-400">
-                          Managed
-                        </span>
-                      )}
+                    <span
+                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
+                    >
+                      {label}
                     </span>
                     <span className="mt-1 block text-xs text-text-muted">{description}</span>
                   </span>
@@ -1154,10 +1119,8 @@ export default function RoutingTab() {
           </div>
 
           <p className="mt-3 text-[11px] text-text-muted">
-            <code>claude</code> path: DSL runs after native billing+sentinel prepend — omit{" "}
-            <code>inject_billing_header</code> in that pipeline.{" "}
-            <code>anthropic-compatible-cc-*</code>: DSL runs at step 5b (after cache-control, before
-            ZWJ obfuscation).
+            All transform ops are idempotent on re-run. Changes take effect immediately on the next
+            request.
           </p>
         </div>
       </Card>
