@@ -388,3 +388,116 @@ test("idempotency: full claude pipeline running twice does not duplicate blocks"
   const twiceLen = (body.system as Array<unknown>).length;
   assert.equal(onceLen, twiceLen);
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// UI ↔ server defaults parity
+// ────────────────────────────────────────────────────────────────────────────
+//
+// The Settings UI keeps a hand-maintained mirror of DEFAULT_SYSTEM_TRANSFORMS_CONFIG
+// in src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx so it can
+// render + reset to defaults without a server roundtrip. The snapshot below is
+// the contract between server and UI — if it drifts, both must be updated in
+// the same commit.
+
+const UI_DEFAULTS_SNAPSHOT = {
+  providers: {
+    claude: {
+      enabled: false,
+      pipeline: [
+        {
+          kind: "drop_paragraph_if_contains",
+          needles: ["github.com/open-webui/open-webui", "openwebui.com", "docs.openwebui.com"],
+        },
+        {
+          kind: "drop_paragraph_if_starts_with",
+          prefixes: ["You are Open WebUI"],
+        },
+        {
+          kind: "obfuscate_words",
+          words: [
+            "opencode",
+            "open-code",
+            "cline",
+            "roo-cline",
+            "roo_cline",
+            "cursor",
+            "windsurf",
+            "aider",
+            "continue.dev",
+            "copilot",
+            "avante",
+            "codecompanion",
+            "openwebui",
+            "open-webui",
+          ],
+          targets: ["system", "messages", "tools"],
+        },
+      ],
+    },
+    "anthropic-compatible-cc": {
+      enabled: true,
+      pipeline: [
+        {
+          kind: "drop_paragraph_if_contains",
+          needles: ["github.com/open-webui/open-webui", "openwebui.com", "docs.openwebui.com"],
+        },
+        {
+          kind: "drop_paragraph_if_starts_with",
+          prefixes: ["You are Open WebUI"],
+        },
+        {
+          kind: "obfuscate_words",
+          words: ["openwebui", "open-webui"],
+          targets: ["system", "messages", "tools"],
+        },
+        {
+          kind: "drop_paragraph_if_contains",
+          needles: [
+            "github.com/anomalyco/opencode",
+            "opencode.ai/docs",
+            "github.com/cline/cline",
+            "github.com/getcursor/cursor",
+            "continue.dev",
+          ],
+        },
+        {
+          kind: "drop_paragraph_if_starts_with",
+          prefixes: ["You are OpenCode"],
+        },
+        {
+          kind: "replace_text",
+          match: "if OpenCode honestly",
+          replacement: "if the assistant honestly",
+          allOccurrences: true,
+        },
+        {
+          kind: "replace_text",
+          match: "Here is some useful information about the environment you are running in:",
+          replacement: "Environment context you are running in:",
+          allOccurrences: true,
+        },
+        {
+          kind: "prepend_system_block",
+          text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+          idempotencyKey: "claude-agent-sdk-identity",
+        },
+        {
+          kind: "inject_billing_header",
+          entrypoint: "sdk-cli",
+          versionFormat: "ex-machina",
+          cchAlgo: "sha256-first-user",
+        },
+      ],
+    },
+  },
+};
+
+test("defaults parity: DEFAULT_SYSTEM_TRANSFORMS_CONFIG matches the UI mirror snapshot", () => {
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(DEFAULT_SYSTEM_TRANSFORMS_CONFIG)),
+    UI_DEFAULTS_SNAPSHOT,
+    "Server DEFAULT_SYSTEM_TRANSFORMS_CONFIG drifted from the UI mirror in " +
+      "src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx " +
+      "(DEFAULT_SYSTEM_TRANSFORMS_CLIENT). Update both in the same commit."
+  );
+});
