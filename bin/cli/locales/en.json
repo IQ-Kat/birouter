@@ -1080,5 +1080,13 @@
     "durationMin": "Min request duration in ms",
     "durationMax": "Max request duration in ms",
     "export": "Save logs to file (json/jsonl/csv)"
+  },
+  "runtime": {
+    "description": "Manage native runtime dependencies",
+    "check": "Check status of native deps in runtime directory",
+    "repair": "Reinstall native deps in runtime directory",
+    "repair_force": "Force reinstall even if valid",
+    "clean": "Remove runtime directory (frees disk space)",
+    "clean_yes": "Skip confirmation"
   }
 }
