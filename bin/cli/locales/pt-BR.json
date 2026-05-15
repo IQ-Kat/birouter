@@ -242,9 +242,135 @@
   },
   "mcp": {
     "title": "Servidor MCP",
+    "call": {
+      "description": "Invocar uma ferramenta MCP diretamente",
+      "args": "Objeto JSON de argumentos (inline)",
+      "args_file": "Caminho para arquivo JSON de argumentos",
+      "stream": "Usar endpoint de streaming (/api/mcp/stream)",
+      "scope": "Escopo requerido (repetível, ex: read:health)"
+    },
+    "scopes": {
+      "description": "Listar escopos MCP disponíveis",
+      "tool": "Mostrar escopos requeridos por uma ferramenta específica"
+    },
+    "tools": {
+      "description": "Inspecionar ferramentas MCP",
+      "list": {
+        "description": "Listar todas as ferramentas MCP",
+        "scope": "Filtrar por escopo"
+      },
+      "info": {
+        "description": "Exibir metadados de uma ferramenta MCP"
+      },
+      "schema": {
+        "description": "Exibir schema JSON de entrada/saída de uma ferramenta MCP",
+        "io": "Tipo de schema: input|output (padrão: input)"
+      }
+    },
+    "audit": {
+      "description": "Log de auditoria MCP (alias para audit --source mcp)"
+    },
     "running": "Servidor MCP em execução ({transport})",
     "stopped": "Servidor MCP parado.",
     "restarted": "Servidor MCP reiniciado."
+  },
+  "a2a": {
+    "skills": {
+      "description": "Listar skills A2A disponíveis na agent card"
+    },
+    "invoke": {
+      "description": "Invocar uma skill A2A e retornar o ID da task",
+      "input": "Objeto JSON de entrada",
+      "input_file": "Caminho para arquivo JSON de entrada",
+      "wait": "Aguardar conclusão da task antes de retornar",
+      "timeout": "Timeout aguardando conclusão em ms (padrão: 60000)"
+    },
+    "tasks": {
+      "description": "Gerenciar tasks A2A",
+      "list": {
+        "status": "Filtrar por status",
+        "skill": "Filtrar por ID de skill"
+      },
+      "watch": {
+        "description": "Monitorar status da task até conclusão"
+      },
+      "stream": {
+        "description": "Transmitir eventos de execução da task via SSE"
+      },
+      "logs": {
+        "description": "Exibir mensagens e artefatos da task"
+      }
+    }
+  },
+  "policy": {
+    "description": "Gerenciar políticas de autorização do OmniRoute",
+    "list": {
+      "description": "Listar políticas",
+      "kind": "Filtrar por tipo (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtrar por escopo (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Obter detalhes de política por ID"
+    },
+    "create": {
+      "description": "Criar política a partir de arquivo JSON",
+      "file": "Caminho para arquivo JSON de política"
+    },
+    "update": {
+      "description": "Atualizar política a partir de arquivo JSON",
+      "file": "Caminho para arquivo JSON de política"
+    },
+    "delete": {
+      "description": "Deletar política por ID",
+      "yes": "Pular confirmação"
+    },
+    "evaluate": {
+      "description": "Dry-run de avaliação de política (saída 0=permitido, 4=negado)",
+      "api_key": "Chave de API a avaliar",
+      "action": "Ação a verificar (ex: chat, embed, admin)",
+      "resource": "Caminho ou identificador do recurso",
+      "context": "Contexto adicional como objeto JSON"
+    },
+    "export": {
+      "description": "Exportar todas as políticas para arquivo JSON"
+    },
+    "import": {
+      "description": "Importar políticas de arquivo JSON",
+      "overwrite": "Sobrescrever políticas existentes com mesmo ID"
+    }
+  },
+  "compression": {
+    "description": "Configurar e inspecionar o pipeline de compressão do OmniRoute",
+    "status": {
+      "description": "Exibir status atual de compressão e configurações"
+    },
+    "configure": {
+      "description": "Configurar as definições de compressão",
+      "engine": "Engine de compressão (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Agressividade do Caveman 0.0–1.0",
+      "rtk_budget": "Budget de tokens RTK",
+      "language_pack": "Language pack a ativar"
+    },
+    "engine": {
+      "description": "Obter ou definir o engine de compressão ativo"
+    },
+    "combos": {
+      "description": "Gerenciar estatísticas de combos de compressão"
+    },
+    "rules": {
+      "description": "Gerenciar regras de compressão",
+      "add": {
+        "pattern": "Padrão para corresponder (regex ou campo:padrão)",
+        "action": "Ação: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Listar language packs de compressão disponíveis"
+    },
+    "preview": {
+      "description": "Visualizar efeito de compressão em uma requisição",
+      "file": "Caminho para arquivo JSON da requisição"
+    }
   },
   "tunnel": {
     "title": "Túneis",

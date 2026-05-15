@@ -244,7 +244,133 @@
     "title": "MCP Server",
     "running": "MCP server running ({transport})",
     "stopped": "MCP server stopped.",
-    "restarted": "MCP server restarted."
+    "restarted": "MCP server restarted.",
+    "call": {
+      "description": "Invoke an MCP tool directly",
+      "args": "JSON arguments object (inline)",
+      "args_file": "Path to JSON arguments file",
+      "stream": "Use streaming endpoint (/api/mcp/stream)",
+      "scope": "Required scope (repeatable, e.g. read:health)"
+    },
+    "scopes": {
+      "description": "List available MCP scopes",
+      "tool": "Show scopes required by a specific tool"
+    },
+    "tools": {
+      "description": "Inspect MCP tools",
+      "list": {
+        "description": "List all MCP tools",
+        "scope": "Filter by scope"
+      },
+      "info": {
+        "description": "Show metadata for an MCP tool"
+      },
+      "schema": {
+        "description": "Show input/output JSON schema for an MCP tool",
+        "io": "Schema kind: input|output (default: input)"
+      }
+    },
+    "audit": {
+      "description": "MCP audit log (alias for audit --source mcp)"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "List available A2A skills from the agent card"
+    },
+    "invoke": {
+      "description": "Invoke an A2A skill and return the task ID",
+      "input": "JSON input object",
+      "input_file": "Path to JSON input file",
+      "wait": "Wait for task completion before returning",
+      "timeout": "Timeout waiting for completion in ms (default: 60000)"
+    },
+    "tasks": {
+      "description": "Manage A2A tasks",
+      "list": {
+        "status": "Filter by status",
+        "skill": "Filter by skill ID"
+      },
+      "watch": {
+        "description": "Poll task status until completion"
+      },
+      "stream": {
+        "description": "Stream task execution events via SSE"
+      },
+      "logs": {
+        "description": "Show task messages and artifacts"
+      }
+    }
+  },
+  "policy": {
+    "description": "Manage OmniRoute authorization policies",
+    "list": {
+      "description": "List policies",
+      "kind": "Filter by kind (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filter by scope (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Get policy details by ID"
+    },
+    "create": {
+      "description": "Create a policy from a JSON file",
+      "file": "Path to policy JSON file"
+    },
+    "update": {
+      "description": "Update a policy from a JSON file",
+      "file": "Path to policy JSON file"
+    },
+    "delete": {
+      "description": "Delete a policy by ID",
+      "yes": "Skip confirmation prompt"
+    },
+    "evaluate": {
+      "description": "Dry-run policy evaluation (exit 0=allowed, 4=denied)",
+      "api_key": "API key to evaluate",
+      "action": "Action to check (e.g. chat, embed, admin)",
+      "resource": "Resource path or identifier",
+      "context": "Additional context as JSON object"
+    },
+    "export": {
+      "description": "Export all policies to a JSON file"
+    },
+    "import": {
+      "description": "Import policies from a JSON file",
+      "overwrite": "Overwrite existing policies with same ID"
+    }
+  },
+  "compression": {
+    "description": "Configure and inspect the OmniRoute compression pipeline",
+    "status": {
+      "description": "Show current compression status and settings"
+    },
+    "configure": {
+      "description": "Configure compression settings",
+      "engine": "Compression engine (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Caveman aggressiveness 0.0–1.0",
+      "rtk_budget": "RTK token budget",
+      "language_pack": "Language pack to activate"
+    },
+    "engine": {
+      "description": "Get or set the active compression engine"
+    },
+    "combos": {
+      "description": "Manage compression combo statistics"
+    },
+    "rules": {
+      "description": "Manage compression rules",
+      "add": {
+        "pattern": "Pattern to match (regex or field:pattern)",
+        "action": "Action: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "List available compression language packs"
+    },
+    "preview": {
+      "description": "Preview compression effect on a request",
+      "file": "Path to request JSON file"
+    }
   },
   "tunnel": {
     "title": "Tunnels",
