@@ -888,7 +888,20 @@
     "contextCavemanDescription": "Rule-based message compression, language packs, analytics and output mode controls.",
     "contextRtkDescription": "Command-aware compression for tool output, terminal logs and build results.",
     "contextCombosDescription": "Define how engines are combined for different routing scenarios.",
-    "changelogDescription": "Stay up to date with the latest platform features and announcements."
+    "changelogDescription": "Stay up to date with the latest platform features and announcements.",
+    "agentsDescription": "Manage and configure AI agent tools: Codex, Devin, Jules, and custom agents",
+    "cloudAgentsDescription": "Orchestrate cloud-based AI agents with live task tracking and plan approval",
+    "memoryDescription": "Persistent conversational memory with semantic search and FTS5 full-text indexing",
+    "skillsDescription": "Install and manage sandbox skills for automated prompt and tool execution",
+    "agentSkillsDescription": "Agent-ready skills catalog with one-click URL copy for AI client integration",
+    "translatorDescription": "Translate and test prompts across API formats: OpenAI ↔ Claude ↔ Gemini",
+    "playgroundDescription": "Test prompts interactively with live provider responses and format inspection",
+    "searchToolsDescription": "Search analytics, provider breakdown, cache hit rates, and cost tracking",
+    "logsDescription": "Real-time request logs, error traces, and streaming event inspector",
+    "auditDescription": "Compliance audit trail of API key usage, MCP tool calls, and policy events",
+    "webhooksDescription": "Configure webhook endpoints to receive real-time event notifications",
+    "healthDescription": "System health overview: providers, circuit breakers, rate limits, and database",
+    "proxyDescription": "Configure upstream proxy settings for outbound provider connections"
   },
   "home": {
     "quickStart": "Início rápido",

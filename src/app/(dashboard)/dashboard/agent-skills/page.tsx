@@ -162,17 +162,6 @@ export default function AgentSkillsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold" style={{ color: "var(--color-text, #111827)" }}>
-          AgentSkills
-        </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--color-text-2, #6b7280)" }}>
-          SKILL.md manifests for AI agents — paste a URL into Claude, Cursor, Cline, or any agent to
-          give it full knowledge of OmniRoute.
-        </p>
-      </div>
-
       {/* How to use */}
       <div
         className="rounded-lg border p-4"
