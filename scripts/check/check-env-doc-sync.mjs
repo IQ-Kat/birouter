@@ -54,6 +54,8 @@ const IGNORE_FROM_CODE = new Set([
   "XDG_CONFIG_HOME",
   "USERPROFILE",
   "PREFIX",
+  // X11 display server — set by the OS/session manager, not OmniRoute config.
+  "DISPLAY",
   // Next.js / Node test runners — these are framework-managed.
   "NEXT_DIST_DIR",
   "NEXT_PHASE",

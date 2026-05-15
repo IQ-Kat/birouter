@@ -11,6 +11,8 @@ Usage:
   omniroute config get <tool>              Show current config for a tool
   omniroute config set <tool> [options]    Write config for a tool
   omniroute config validate <tool>         Validate config format without writing
+  omniroute config tray <enable|disable>   Enable/disable tray autostart on login
+  omniroute config token                   Show the machine-derived CLI auth token
 
 Options:
   --base-url <url>     OmniRoute API base URL (default: http://localhost:20128/v1)
@@ -174,6 +176,47 @@ export async function runConfigCommand(argv) {
       console.log(JSON.stringify({ valid: true, content: result.content }, null, 2));
     }
     return 0;
+  }
+
+  if (subcommand === "token") {
+    const { getMachineTokenSync } = await import("../../../src/lib/machineToken.ts");
+    const token = getMachineTokenSync();
+    if (!token) {
+      printError("Could not derive machine token (machine-id unavailable).");
+      return 1;
+    }
+    if (hasFlag(flags, "json")) {
+      console.log(JSON.stringify({ token, header: "x-omniroute-cli-token" }));
+    } else {
+      printHeading("CLI Machine Token");
+      console.log(`  Header: x-omniroute-cli-token`);
+      console.log(`  Value:  ${token}`);
+      console.log(`\n  Use this token to authenticate management API calls from localhost.`);
+    }
+    return 0;
+  }
+
+  if (subcommand === "tray") {
+    const action = positionals[1];
+    if (action === "enable") {
+      const { enableAutoStart } = await import("../tray/autostart.ts");
+      const ok = await enableAutoStart();
+      if (ok) {
+        printSuccess("Autostart enabled — omniroute --tray will launch on login.");
+      } else {
+        printError("Autostart failed (unsupported OS or permission denied).");
+        return 1;
+      }
+      return 0;
+    }
+    if (action === "disable") {
+      const { disableAutoStart } = await import("../tray/autostart.ts");
+      await disableAutoStart();
+      printSuccess("Autostart disabled.");
+      return 0;
+    }
+    printError("Usage: omniroute config tray <enable|disable>");
+    return 1;
   }
 
   printError(`Unknown subcommand: ${subcommand}`);

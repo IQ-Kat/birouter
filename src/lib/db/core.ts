@@ -1408,6 +1408,49 @@ export function resetDbInstance() {
   closeDbInstance();
 }
 
+// ──────────────── Runtime Driver Info ────────────────
+
+type DbDriverInfo = { source: string; kind: string };
+let driverInfoCached: DbDriverInfo | null = null;
+
+function setDriverInfo(info: DbDriverInfo) {
+  driverInfoCached = info;
+}
+
+/** Returns how better-sqlite3 was resolved (bundled / runtime / etc.). Null if not yet init. */
+export function getDriverInfo(): DbDriverInfo | null {
+  return driverInfoCached;
+}
+
+/**
+ * Async initializer that pre-resolves the SQLite runtime before first DB access.
+ *
+ * Call this at process startup (before any call to getDbInstance()) so that
+ * if the bundled better-sqlite3 binary is unavailable, the runtime installer
+ * can place it in ~/.omniroute/runtime/ without blocking a synchronous caller.
+ *
+ * Idempotent — safe to call multiple times.
+ */
+export async function ensureDbInitialized(): Promise<void> {
+  if (getDb()) return;
+
+  try {
+    const runtimeModule = await import("../../../bin/cli/runtime/sqliteRuntime.mjs" as any);
+    const { driver, source } = await runtimeModule.loadSqliteRuntime();
+    setDriverInfo({ source, kind: driver.kind as string });
+    if ((driver.kind as string) !== "better-sqlite3") {
+      console.warn(
+        `[DB] better-sqlite3 unavailable (resolved via ${source}/${driver.kind}). ` +
+          `OmniRoute may fall back to read-only or limited functionality.`
+      );
+    }
+  } catch {
+    // Runtime loader unavailable (CLI context only) — DB init falls through to normal path.
+  }
+
+  getDbInstance();
+}
+
 // ──────────────── JSON → SQLite Migration ────────────────
 
 function migrateFromJson(db: SqliteDatabase, jsonPath: string) {

@@ -2585,8 +2585,27 @@
   "onboarding": {
     "welcome": "Welcome",
     "security": "Security",
+    "tiers": "How It Works",
     "test": "Test",
     "ready": "Ready!",
+    "tier": {
+      "title": "How OmniRoute saves you money",
+      "subtitle": "Three tiers, automatic fallback — never stop building.",
+      "tier1": {
+        "label": "Subscription",
+        "description": "Use what you already pay for — every drop of quota before it resets."
+      },
+      "tier2": {
+        "label": "Cheap",
+        "description": "Pay-per-token under $1/1M — kicks in when subscription quotas hit."
+      },
+      "tier3": {
+        "label": "Free",
+        "description": "Generous free tiers and credit programs — final safety net."
+      },
+      "continue": "Continue",
+      "configure": "Configure tiers now"
+    },
     "setPassword": "Set Password",
     "addProvider": "Add your first provider",
     "getStarted": "Get Started",

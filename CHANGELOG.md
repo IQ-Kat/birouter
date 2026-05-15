@@ -14,14 +14,15 @@
 
 - **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
 - **chore(npm):** [`@omniroute/opencode-provider@0.1.0`](https://www.npmjs.com/package/@omniroute/opencode-provider) published to npmjs.com under the new `@omniroute` org. Install with `npm install --save-dev @omniroute/opencode-provider`.
+- **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines field](package.json) and the README Node badge.
 
 ### Security
 
-- **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly. The literal was removed from `.env.example` in this release, so the previous direct read would have silently skipped refresh for browser-flow Windsurf/Devin sessions (forcing re-auth instead of renewing). Operators with a legacy `WINDSURF_FIREBASE_API_KEY` value in their `.env` keep working — the env override path is preserved by `resolvePublicCred()`. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-- **fix(kiro/translator):** assistant-first conversations no longer collide on a single `conversationId`. The synthetic "(empty)" user turn injected to satisfy Kiro's "first message must be user" rule is now marked non-enumerable `__synthetic` and excluded from the `uuidv5` conversationId derivation, so unrelated chats no longer share the same upstream AWS Builder ID context. Prevents leaking prior session state across unrelated chats.
-- **fix(utils/publicCreds):** `decodePublicCred()` no longer silently mangles raw credential overrides that don't match `RAW_VALUE_PATTERN`. The previous path always base64-decoded + XOR-unmasked (and `Buffer.from(v, "base64")` is lenient, accepting many non-base64 inputs without throwing). Now: strict-base64 alphabet check + printable-plain check on the decoded result; failing either, the original value is returned untouched.
-- **fix(auth/extractApiKey):** `x-api-key` fallback now only triggers when the request also carries an `anthropic-version` header. Without this scoping, non-Anthropic clients in local mode (placeholder `x-api-key`) would get `401 Invalid API key` from per-route gates even with `REQUIRE_API_KEY` off.
-- **fix(providers/qoder):** the OAuth+PAT disambiguation message now actually surfaces. The `getProviderRuntimeStatus()` early-return on `qoder + !apikey` was masking the new branch added in #2247.
+- **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly.
+- **fix(kiro/translator):** assistant-first conversations no longer collide on a single `conversationId`.
+- **fix(utils/publicCreds):** `decodePublicCred()` no longer silently mangles raw credential overrides that don't match `RAW_VALUE_PATTERN`.
+- **fix(auth/extractApiKey):** `x-api-key` fallback now only triggers when the request also carries an `anthropic-version` header.
+- **fix(providers/qoder):** the OAuth+PAT disambiguation message now actually surfaces.
 
 ### Fixed
 
@@ -42,23 +43,48 @@
 - **fix(settings):** default `debugMode` to `true` on fresh installations — the Debug sidebar section (Translator, Playground, Search Tools) was hidden on new installs because `debugMode` was not in the settings defaults object, making `data?.debugMode === true` evaluate to `false`. The toggle in System & Storage appeared active but had no effect until manually set. Now all sidebar sections are visible out of the box.
 - **fix(providers/command-code):** send required `skills` and `stream` payload fields — Command Code upstream wrapper now includes `skills: ""` and forces `params.stream: true` to align with upstream API requirements. Validation probe defaults to `deepseek/deepseek-v4-flash`. ([#2271](https://github.com/diegosouzapw/OmniRoute/pull/2271) — thanks @ddarkr)
 - **chore:** ignore `.playwright-mcp/` generated artifacts (CSP error logs, accessibility tree snapshots) — removes tracked test artifacts and adds the directory to `.gitignore`. ([#2269](https://github.com/diegosouzapw/OmniRoute/pull/2269) — thanks @backryun)
+- **Docs:** 270 broken internal markdown links repaired.
+
+---
+
+## [3.8.0] - 2026-05-15
+
+### Added
+
+- `feat(mcp): MCP accessibility-tree smart filter engine` — collapses ≥30 repeated sibling lines, preserves `[ref=eXX]` anchors, 60-80% savings on browser snapshot outputs (Task 1)
+- `docs(skills): publish 10 SKILL.md manifests for external AI agents` — zero-friction onboarding for Claude Desktop, ChatGPT, Cursor, Cline (Task 2)
+- `feat(cli): standalone system tray with PowerShell fallback on Windows` — no Electron required; `omniroute --tray`; autostart via LaunchAgent/.desktop/registry (Task 3)
+- `feat(auth): CLI machine-ID HMAC-SHA256 token` — zero-friction local auth without JWT/password; loopback-only; constant-time compare (Task 4)
+- `feat(security): route protection tiers` — 5 tiers: public/read-only/protected/always/local-only; spawn-capable routes enforce loopback even with valid JWT (Task 5)
+- `feat(compression): Caveman SHARED_BOUNDARIES` — all 6 languages × 3 intensities embed boundary clause; `alreadyApplied` check order fixed (Task 6)
+- `feat(runtime): dynamic SQLite 5-step fallback chain` — bundled → runtime-installed → lazy-install → node:sqlite → sql.js; magic-byte validation (ELF/Mach-O/PE) (Task 7)
+- `docs/ux: tier 1/2/3 marketing, onboarding tour, dashboard widget` — README tier diagram, `docs/marketing/TIERS.md`, TierTour onboarding step, Tier Coverage widget (Task 8)
+- `docs(comparison): OMNIROUTE_VS_ALTERNATIVES.md` — objective comparison vs LiteLLM, OpenRouter, Portkey
 
 ### Changed
 
-- **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines field](package.json) and the README Node badge.
-- **Platform overhaul (FASES 1-9):** scripts cleanup, `.env` audit, `/docs` restructure, diagrams folder, i18n pipelines (docs + UI), `/src/app/docs` sync, CI gates.
-  - **Scripts:** `scripts/` reorganized into 6 subfolders (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`); 23 one-shot scripts archived to the `archive/scripts-scratch-pre-3.8` branch.
-  - **Environment:** `.env.example` cleaned (-11 orphan vars, +63 missing vars, 11 hardcoded URLs/timeouts promoted to env); new strict `scripts/check/check-env-doc-sync.mjs` validates code ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` parity.
-  - **Docs:** `/docs` restructured into 8 functional subfolders (`architecture/`, `guides/`, `reference/`, `frameworks/`, `routing/`, `security/`, `compression/`, `ops/`); ~899 cross-references rewritten.
-  - **Diagrams:** new `docs/diagrams/` with 8 canonical Mermaid sources + SVG exports, linked into 9 docs.
-  - **i18n (docs):** hash-based incremental pipeline (`config/i18n.json`, `scripts/i18n/run-translation.mjs`, `.i18n-state.json`); old `i18n_autotranslate.py` and `generate-multilang.mjs` deprecated.
-  - **i18n (UI):** `scripts/i18n/sync-ui-keys.mjs` propagates `en.json` keys to all 40 locales (no missing keys; coverage ≥ 85.8%); cosmetic `DocsI18n.tsx` removed (locale handling unified via `next-intl`).
-  - **`/src/app/docs`:** drift fixes (179 → 177 providers, 13 → 14 strategies, 36 → 37 MCP tools); YAML frontmatter added to all docs; `ApiExplorer` consumes `docs/reference/openapi.yaml` (19 endpoints); `content.ts` updated (37 MCP tool groups, 7 internal deployment guide hrefs).
-  - **CI gates:** strict env-doc-sync in pre-commit; `check:doc-links` validates internal markdown refs; new `docs-sync-strict` and `i18n-ui-coverage` jobs in `.github/workflows/ci.yml`.
+- `getDbInstance()` requires prior `ensureDbInitialized()` call — server startup awaits it automatically (see release notes for migration)
+- Caveman prompts embed `SHARED_BOUNDARIES` verbatim (LITE/FULL/ULTRA × 6 languages)
+- README "Why OmniRoute?" enhanced with 3-tier ASCII diagram and comparison table
+- Onboarding wizard gains "How It Works" tier tour step (after Welcome, before Security)
+- Home dashboard shows "Tier coverage" widget (configured + active counts per tier)
 
-### Fixed
+### Security
 
-- **Docs:** 270 broken internal markdown links repaired (consequence of `/docs` subfolder restructure not relativizing all paths). Categories: 241 `i18n-relative`, 14 `parent-relative`, 9 `screenshots`, 2 deleted-RFC, 4 misc. Now `npm run check:doc-links` PASS with 0 broken links.
+- Hard Rule #15: spawn-capable routes must call `assertRouteAllowed(req)` (CLAUDE.md)
+- CLI token rejected on non-loopback hosts even when the HMAC is correct
+- `always`-protected routes (shutdown, db export) reject CLI tokens unconditionally
+
+### Documentation
+
+- `docs/security/CLI_TOKEN.md`
+- `docs/security/ROUTE_GUARD_TIERS.md`
+- `docs/ops/SQLITE_RUNTIME.md`
+- `docs/marketing/TIERS.md`
+- `docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`
+- `docs/releases/v3.8.0.md`
+
+---
 
 ### Dependencies
 
@@ -1774,7 +1800,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(ui):** Implement on-demand per-model testing in the provider dashboard, allowing single-token diagnostic checks without triggering rate-limits (Issue #1532).
 
 - **Detailed Token Tracking:** Added granular token breakdown columns (cache read, cache write, reasoning) to call logs with proper null vs zero distinction. Includes DB migration 018 and 5-label UI display per provider capability (#1017 — thanks @rdself).
-- **Legacy JSON Config Import/Export:** Restored JSON-based settings export and import for migration from legacy 9router configurations. Security-hardened with Zero-Trust redaction of passwords and `requireLogin` fields, and automatic pre-import database backups (#1012 — thanks @luandiasrj).
+- **Legacy JSON Config Import/Export:** Restored JSON-based settings export and import for migration from legacy configurations. Security-hardened with Zero-Trust redaction of passwords and `requireLogin` fields, and automatic pre-import database backups (#1012 — thanks @luandiasrj).
 - **Non-Stream Aliases:** Added API support for explicit non-streaming aliases (`non_stream`, `disable_stream`, `disable_streaming`, `streaming=false`), normalized at the boundary before provider translation (#1036 — thanks @wlfonseca).
 - **Russian Dashboard Localization:** Comprehensive Russian translation for the dashboard UI, including fixes for 2 Ukrainian locale keys (#1003 — thanks @mercs2910).
 

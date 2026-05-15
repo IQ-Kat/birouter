@@ -211,26 +211,80 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 
 ## 🤔 Why OmniRoute?
 
-**Stop wasting money, tokens and hitting limits:**
+**One endpoint. 207+ providers. Never stop building.**
 
-❌ Subscription quota expires unused every month
-❌ Rate limits stop you mid-coding
-❌ Tool outputs (`git diff`, `grep`, `ls`...) burn tokens fast
-❌ Expensive APIs ($20-50/month per provider)
-❌ Manual switching between providers
-❌ Each provider has a different API format
-❌ AI providers blocked in your country
+Stop juggling 10 dashboards, dead API keys, and surprise bills. OmniRoute
+routes every request through the cheapest viable provider — automatically.
 
-**OmniRoute solves all of this:**
+### The 3-tier fallback (zero-downtime AI)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  Your IDE / CLI / App                    │
+│         (Claude Code, Cursor, Cline, Copilot, …)         │
+└─────────────────────┬────────────────────────────────────┘
+                      │ http://localhost:20128/v1
+                      ▼
+┌──────────────────────────────────────────────────────────┐
+│               OmniRoute (Smart Router)                   │
+│  • RTK token saver (47 specialized filters)              │
+│  • Caveman terse-mode (3 levels + SHARED_BOUNDARIES)     │
+│  • Auto-fallback combos (14 strategies)                  │
+│  • Circuit breaker · TLS fingerprint stealth (JA3/JA4)   │
+│  • Memory · MCP server · A2A · Guardrails · Evals        │
+└─────────────────────┬────────────────────────────────────┘
+                      │
+   ┌──────────────────┼─────────────────┐
+   ▼ Tier 1           ▼ Tier 2          ▼ Tier 3
+SUBSCRIPTION         CHEAP              FREE
+(Claude Code,        (DeepSeek $0.27,   (Kiro, OpenCode,
+ Codex, Copilot,      GLM $0.60,         Gemini CLI,
+ Cursor, Antigravity) MiniMax $0.20)     Vertex $300cr)
+
+  quota exhausted?   budget hit?        always available
+  → falls to Tier 2  → falls to Tier 3
+```
+
+### Why this matters
+
+- ❌ **Subscription quota wasted** every month? OmniRoute uses every token before expiry.
+- ❌ **Rate limits stop you mid-flow?** Auto-fallback to the next provider in milliseconds.
+- ❌ **Tool outputs burn tokens?** RTK compresses `git diff`, logs, and grep results 30-50%.
+- ❌ **Paying $50/mo across 5 providers?** Route to the cheapest viable model automatically.
+- ❌ **Each AI tool wants its own setup?** One endpoint, every tool, one dashboard.
+
+### What sets OmniRoute apart
+
+| Feature                             | OmniRoute                                                     | Other routers |
+| ----------------------------------- | ------------------------------------------------------------- | ------------- |
+| Providers                           | **207+**                                                      | 20-100        |
+| Combo strategies                    | **14** (priority, weighted, cost-optimized, context-relay, …) | 1-3           |
+| Token compression (RTK)             | **47 specialized filters**                                    | None          |
+| Built-in MCP server                 | **37 tools, 3 transports, 13 scopes**                         | Rare          |
+| A2A agent protocol                  | **5 skills, JSON-RPC 2.0**                                    | None          |
+| Memory (FTS5 + vector)              | **Yes**                                                       | Rare          |
+| Guardrails (PII, injection, vision) | **Yes**                                                       | Rare          |
+| Cloud agent integrations            | Codex, Devin, Jules                                           | None          |
+| Circuit breaker per provider        | **3-state, lazy recovery**                                    | Rare          |
+| TLS fingerprint stealth             | **JA3/JA4 via wreq-js**                                       | None          |
+| Eval framework                      | **Built-in**                                                  | Rare          |
+| CLI (no Electron required)          | **Yes** + system tray                                         | Varies        |
+| i18n                                | **40+ locales**                                               | 0-4           |
+
+See [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md) for a detailed comparison vs LiteLLM, OpenRouter, and Portkey.
+
+---
+
+**Also solves:**
 
 ✅ **Prompt Compression** — auto-compress prompts & tool outputs, save 15-95% eligible tokens per request with RTK+Caveman stacked mode
 ✅ **Maximize subscriptions** — track quota, use every bit before reset
-✅ **Auto fallback** — Subscription → API Key → Cheap → Free, zero downtime
+✅ **Auto fallback** — Subscription → Cheap → Free, zero downtime
 ✅ **Multi-account** — round-robin between accounts per provider
 ✅ **Format translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API, any tool works
 ✅ **3-level proxy** — bypass geo-blocks with global, per-provider, and per-key proxies
 ✅ **10 multi-modal APIs** — chat, images, video, music, audio, search in one endpoint
-✅ **MCP + A2A** — 29 MCP tools + agent-to-agent protocol, production-ready
+✅ **MCP + A2A** — 37 MCP tools + agent-to-agent protocol, production-ready
 ✅ **Universal** — works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
 
 ---
@@ -244,7 +298,6 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
-- **Original Project**: [9router by decolua](https://github.com/decolua/9router)
 
 ### 🐛 Reporting a Bug?
 
@@ -457,6 +510,19 @@ Alibaba · Amazon Q · AssemblyAI · Baidu Qianfan · Baseten · Black Forest La
     <td align="center" width="130"><b>SD WebUI</b></td>
   </tr>
 </table>
+
+---
+
+## 🤖 AI Agent Skills
+
+Drop-in markdown manifests that let any AI agent consume OmniRoute via one fetch.
+
+Tell your agent (Claude Desktop, ChatGPT, Cursor, Cline, etc.):
+
+> "Fetch this URL and use OmniRoute according to its instructions:
+> `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md`"
+
+10 skills available — see [skills/README.md](./skills/README.md).
 
 ---
 
@@ -1585,8 +1651,6 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 </a>
 
 ## 🙏 Acknowledgments
-
-Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
 
 Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** by **[router-for-me](https://github.com/router-for-me)** — the original Go implementation that inspired this JavaScript port.
 

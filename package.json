@@ -25,6 +25,8 @@
     "src/shared/utils/nodeRuntimeSupport.ts",
     ".env.example",
     "scripts/build/postinstall.mjs",
+    "bin/cli/runtime/",
+    "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
     "scripts/dev/responses-ws-proxy.mjs",
     "scripts/check/check-supported-node-runtime.ts",

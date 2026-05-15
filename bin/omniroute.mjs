@@ -7,6 +7,7 @@
  *   omniroute                          Start the server (default port 20128)
  *   omniroute --port 3000              Start on custom port
  *   omniroute --no-open                Start without opening browser
+ *   omniroute --tray                   Enable system tray icon (macOS/Linux/Windows)
  *   omniroute --mcp                    Start MCP server (stdio transport for IDEs)
  *   omniroute setup                    Interactive guided setup
  *   omniroute doctor                   Run local health checks
@@ -388,6 +389,7 @@ const apiPort = parsePort(process.env.API_PORT || String(port), port);
 const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
 const isAndroid = process.platform === 'android';
 let noOpen = args.includes("--no-open") || isAndroid;
+const useTray = args.includes("--tray");
 
 console.log(`
 \x1b[36m   ____                  _ ____              _
@@ -555,6 +557,34 @@ async function onReady() {
       await open.default(dashboardUrl);
     } catch {
       // open is optional — if not available, just skip.
+    }
+  }
+
+  if (useTray) {
+    try {
+      const { initTray } = await import("./cli/tray/tray.ts");
+      const { exec } = await import("node:child_process");
+      const tray = await initTray({
+        port: dashboardPort,
+        onQuit: () => {
+          shutdown();
+        },
+        onOpenDashboard: () => {
+          const url = dashboardUrl;
+          const cmd =
+            process.platform === "darwin"
+              ? `open "${url}"`
+              : process.platform === "win32"
+                ? `start "" "${url}"`
+                : `xdg-open "${url}"`;
+          exec(cmd);
+        },
+      });
+      if (tray) {
+        console.log("  \x1b[2m🖥  System tray active\x1b[0m");
+      }
+    } catch (err) {
+      console.warn(`  \x1b[33m⚠ Tray unavailable: ${err?.message ?? err}\x1b[0m`);
     }
   }
 }
