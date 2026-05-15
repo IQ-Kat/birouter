@@ -13,6 +13,16 @@ import { registerCombo } from "./combo.mjs";
 import { registerStatus } from "./status.mjs";
 import { registerLogs } from "./logs.mjs";
 import { registerUpdate } from "./update.mjs";
+import { registerBackup, registerRestore } from "./backup.mjs";
+import { registerHealth } from "./health.mjs";
+import { registerQuota } from "./quota.mjs";
+import { registerCache } from "./cache.mjs";
+import { registerMcp } from "./mcp.mjs";
+import { registerA2a } from "./a2a.mjs";
+import { registerTunnel } from "./tunnel.mjs";
+import { registerEnv } from "./env.mjs";
+import { registerTestProvider } from "./test-provider.mjs";
+import { registerCompletion } from "./completion.mjs";
 
 export function registerCommands(program) {
   registerServe(program);
@@ -30,4 +40,15 @@ export function registerCommands(program) {
   registerStatus(program);
   registerLogs(program);
   registerUpdate(program);
+  registerBackup(program);
+  registerRestore(program);
+  registerHealth(program);
+  registerQuota(program);
+  registerCache(program);
+  registerMcp(program);
+  registerA2a(program);
+  registerTunnel(program);
+  registerEnv(program);
+  registerTestProvider(program);
+  registerCompletion(program);
 }

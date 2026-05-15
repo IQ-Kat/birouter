@@ -75,11 +75,45 @@
   },
   "backup": {
     "title": "Backup",
+    "description": "Create a backup of OmniRoute data",
     "creating": "Creating backup...",
     "done": "Backup saved to {path}",
+    "noFiles": "No files to backup (database not initialized)",
+    "failed": "Backup failed: {error}",
     "restoring": "Restoring from {path}...",
     "restored": "Restore complete.",
+    "restoreDescription": "Restore from a backup",
+    "listTitle": "Available Backups",
+    "noBackups": "No backups found.",
+    "notFound": "Backup not found: {name}",
     "confirmRestore": "Overwrite current data with backup from {ts}?"
+  },
+  "health": {
+    "title": "Health",
+    "description": "Show server health status",
+    "status": "Status: {status}",
+    "uptime": "Uptime: {uptime}",
+    "requests": "Requests (24h): {count}",
+    "cost": "Cost (24h): ${cost}",
+    "noServer": "Server not running. Start with: omniroute serve"
+  },
+  "quota": {
+    "description": "Show provider quota usage",
+    "noServer": "Server not running. Start with: omniroute serve",
+    "noData": "No quota information available."
+  },
+  "cache": {
+    "description": "Manage response cache",
+    "noServer": "Server not running. Start with: omniroute serve",
+    "cleared": "Cache cleared.",
+    "clearFailed": "Failed to clear cache."
+  },
+  "test": {
+    "description": "Test a provider connection",
+    "noServer": "Server not running. Start with: omniroute serve",
+    "testing": "Testing {provider} / {model}...",
+    "passed": "Connection successful!",
+    "failed": "Connection failed: {error}"
   },
   "update": {
     "checking": "Checking for updates...",

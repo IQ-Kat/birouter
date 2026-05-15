@@ -75,11 +75,45 @@
   },
   "backup": {
     "title": "Backup",
+    "description": "Criar backup dos dados do OmniRoute",
     "creating": "Criando backup...",
     "done": "Backup salvo em {path}",
+    "noFiles": "Nenhum arquivo para backup (banco não inicializado)",
+    "failed": "Backup falhou: {error}",
     "restoring": "Restaurando de {path}...",
     "restored": "Restauração concluída.",
+    "restoreDescription": "Restaurar a partir de um backup",
+    "listTitle": "Backups Disponíveis",
+    "noBackups": "Nenhum backup encontrado.",
+    "notFound": "Backup não encontrado: {name}",
     "confirmRestore": "Substituir dados atuais pelo backup de {ts}?"
+  },
+  "health": {
+    "title": "Saúde",
+    "description": "Exibir status de saúde do servidor",
+    "status": "Status: {status}",
+    "uptime": "Uptime: {uptime}",
+    "requests": "Requisições (24h): {count}",
+    "cost": "Custo (24h): ${cost}",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve"
+  },
+  "quota": {
+    "description": "Exibir uso de cota dos provedores",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "noData": "Nenhuma informação de cota disponível."
+  },
+  "cache": {
+    "description": "Gerenciar cache de respostas",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "cleared": "Cache limpo.",
+    "clearFailed": "Falha ao limpar cache."
+  },
+  "test": {
+    "description": "Testar conexão com um provedor",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "testing": "Testando {provider} / {model}...",
+    "passed": "Conexão bem-sucedida!",
+    "failed": "Conexão falhou: {error}"
   },
   "update": {
     "checking": "Verificando atualizações...",
