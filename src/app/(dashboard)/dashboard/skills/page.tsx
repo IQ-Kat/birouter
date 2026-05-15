@@ -4,6 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import type { SkillsProvider } from "@/lib/skills/providerSettings";
+import {
+  AGENT_SKILLS,
+  AGENT_SKILLS_REPO_URL,
+  getAgentSkillRawUrl,
+  getAgentSkillBlobUrl,
+  type AgentSkill,
+} from "@/shared/constants/agentSkills";
 
 interface Skill {
   id: string;
@@ -27,6 +34,93 @@ interface Execution {
   createdAt: string;
 }
 
+function AgentSkillCopyButton({ value, label = "Copy link" }: { value: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Fallback for HTTP contexts or older browsers
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={copy}
+      className="px-2 py-1 rounded-md bg-primary text-white text-[11px] font-medium hover:bg-primary/90 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1"
+      title={value}
+    >
+      <span className="material-symbols-outlined text-[12px]">
+        {copied ? "check" : "content_copy"}
+      </span>
+      {copied ? "Copied!" : label}
+    </button>
+  );
+}
+
+function AgentSkillRow({ skill }: { skill: AgentSkill }) {
+  const url = getAgentSkillRawUrl(skill.id);
+  return (
+    <div
+      className={`flex items-start gap-3 p-4 rounded-[14px] border shadow-[var(--shadow-soft)] transition-colors ${
+        skill.isEntry
+          ? "border-brand-500/40 bg-brand-500/5"
+          : "border-border-subtle bg-surface hover:bg-surface-2"
+      }`}
+    >
+      <div
+        className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${
+          skill.isEntry ? "bg-primary text-white" : "bg-primary/10 text-primary"
+        }`}
+      >
+        <span className="material-symbols-outlined text-[18px]">{skill.icon}</span>
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="font-semibold text-sm text-text-main">{skill.name}</h3>
+          {skill.isEntry && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+              START HERE
+            </span>
+          )}
+          {skill.isNew && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-medium">
+              NEW
+            </span>
+          )}
+          {skill.endpoint && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-2 text-text-muted font-mono">
+              {skill.endpoint}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-text-muted mt-0.5">{skill.description}</p>
+        <a
+          href={getAgentSkillBlobUrl(skill.id)}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[11px] text-text-muted hover:text-primary mt-1 inline-flex items-center gap-1 break-all"
+        >
+          {url}
+          <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+        </a>
+      </div>
+
+      <AgentSkillCopyButton value={url} />
+    </div>
+  );
+}
+
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [executions, setExecutions] = useState<Execution[]>([]);
@@ -42,9 +136,9 @@ export default function SkillsPage() {
   const [execTotal, setExecTotal] = useState(0);
   const [execTotalPages, setExecTotalPages] = useState(1);
 
-  const [activeTab, setActiveTab] = useState<"skills" | "executions" | "sandbox" | "marketplace">(
-    "skills"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "skills" | "executions" | "sandbox" | "marketplace" | "agent-skills"
+  >("skills");
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [installJson, setInstallJson] = useState("");
   const [installStatus, setInstallStatus] = useState<{
@@ -365,6 +459,16 @@ export default function SkillsPage() {
           }`}
         >
           Marketplace
+        </button>
+        <button
+          onClick={() => setActiveTab("agent-skills")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "agent-skills"
+              ? "border-violet-500 text-violet-400"
+              : "border-transparent text-text-muted hover:text-text-main"
+          }`}
+        >
+          {t("agentSkillsTab")}
         </button>
       </div>
 
@@ -772,6 +876,54 @@ export default function SkillsPage() {
               </div>
             </Card>
           )}
+        </div>
+      )}
+
+      {activeTab === "agent-skills" && (
+        <div className="max-w-4xl mx-auto space-y-4">
+          <Card padding="md">
+            <div className="text-xs text-text-muted mb-2">Paste this to your AI agent:</div>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 px-3 py-2 rounded bg-surface-2 font-mono text-[12px] text-text-main break-all">
+                Read this skill and use it: {getAgentSkillRawUrl("omniroute")}
+              </code>
+              <AgentSkillCopyButton
+                value={`Read this skill and use it: ${getAgentSkillRawUrl("omniroute")}`}
+                label="Copy"
+              />
+            </div>
+            <p className="text-xs text-text-muted mt-3">
+              Your agent fetches the SKILL.md, reads the setup instructions, and follows the links
+              to any capability it needs. Works with Claude, Cursor, ChatGPT, Cline, and any AI that
+              can fetch URLs.
+            </p>
+          </Card>
+
+          <div className="space-y-2">
+            {AGENT_SKILLS.map((skill) => (
+              <AgentSkillRow key={skill.id} skill={skill} />
+            ))}
+          </div>
+
+          <Card padding="md">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h2 className="text-sm font-semibold text-text-main">Browse on GitHub</h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Source, README, and raw links for all 13 skills.
+                </p>
+              </div>
+              <a
+                href={`${AGENT_SKILLS_REPO_URL}/tree/main/skills`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                View on GitHub
+              </a>
+            </div>
+          </Card>
         </div>
       )}
 

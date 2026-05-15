@@ -2336,6 +2336,7 @@
     "skillsTab": "Skills",
     "executionsTab": "Executions",
     "sandboxTab": "Sandbox",
+    "agentSkillsTab": "AI Skills",
     "loading": "Loading skills...",
     "noSkills": "No skills found",
     "noExecutions": "No executions found",
