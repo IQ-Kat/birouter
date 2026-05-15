@@ -379,7 +379,8 @@
   "dashboard": {
     "description": "Open the OmniRoute dashboard in a browser",
     "opening": "Opening dashboard at {url}",
-    "urlOnly": "Print dashboard URL without opening browser"
+    "urlOnly": "Print dashboard URL without opening browser",
+    "tui": "Open interactive TUI dashboard (terminal UI, 7 tabs)"
   },
   "models": {
     "description": "List available models (requires server)",

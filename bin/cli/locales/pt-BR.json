@@ -379,7 +379,8 @@
   "dashboard": {
     "description": "Abrir o painel OmniRoute no navegador",
     "opening": "Abrindo painel em {url}",
-    "urlOnly": "Exibir URL do painel sem abrir o navegador"
+    "urlOnly": "Exibir URL do painel sem abrir o navegador",
+    "tui": "Abrir painel TUI interativo (terminal UI, 7 abas)"
   },
   "models": {
     "description": "Listar modelos disponíveis (requer servidor)",

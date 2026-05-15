@@ -8,7 +8,17 @@ export function registerDashboard(program) {
     .description(t("dashboard.description"))
     .option("--url", t("dashboard.urlOnly"))
     .option("--port <port>", "Port the server is running on", "20128")
-    .action(async (opts) => {
+    .option("--tui", t("dashboard.tui") || "Open interactive TUI dashboard (terminal UI)")
+    .action(async (opts, cmd) => {
+      if (opts.tui) {
+        const globalOpts = cmd.optsWithGlobals();
+        const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
+        const baseUrl = globalOpts.baseUrl ?? `http://localhost:${port}`;
+        const apiKey = globalOpts.apiKey ?? null;
+        const { startInteractiveTui } = await import("../tui/Dashboard.jsx");
+        await startInteractiveTui({ port, baseUrl, apiKey });
+        return;
+      }
       const exitCode = await runDashboardCommand(opts);
       if (exitCode !== 0) process.exit(exitCode);
     });
