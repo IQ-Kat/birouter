@@ -223,14 +223,6 @@ export default function AuditPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[24px] text-primary">policy</span>
-          <h1 className="text-3xl font-bold tracking-tight text-text-main">{t("auditTitle")}</h1>
-        </div>
-        <p className="mt-1 text-sm text-text-muted">{t("auditDescription")}</p>
-      </div>
-
       <SegmentedControl
         options={[
           { value: "compliance", label: t("complianceTab") },

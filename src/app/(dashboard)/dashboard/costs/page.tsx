@@ -14,14 +14,6 @@ export default function CostsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[28px]">payments</span>
-          {t("title")}
-        </h1>
-        <p className="text-sm text-text-muted mt-1">{t("pageDescription")}</p>
-      </div>
-
       <SegmentedControl
         options={[
           { value: "overview", label: t("overview") },

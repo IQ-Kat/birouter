@@ -117,16 +117,6 @@ export default function CavemanContextPageClient() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-[30px] text-primary">compress</span>
-          <div>
-            <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
-            <p className="text-sm text-text-muted">{t("description")}</p>
-          </div>
-        </div>
-      </header>
-
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         {statCards.map(([label, value]) => (
           <div key={label} className="rounded-lg border border-border bg-surface p-4">

@@ -879,7 +879,16 @@
     "media": "媒体",
     "mediaDescription": "生成图像、视频和音乐",
     "themes": "主题",
-    "themesDescription": "为整个仪表板选择颜色主题"
+    "themesDescription": "为整个仪表板选择颜色主题",
+    "costsDescription": "Track spending, analyze trends, and manage your AI budget across all providers",
+    "cacheDescription": "Monitor provider prompt cache efficiency and local semantic response reuse.",
+    "limitsDescription": "Configure rate limits and quotas per API key and provider",
+    "apiManagerDescription": "Manage API keys and access control for your OmniRoute instance",
+    "batchDescription": "Process large volumes of requests asynchronously with batched API calls",
+    "contextCavemanDescription": "Rule-based message compression, language packs, analytics and output mode controls.",
+    "contextRtkDescription": "Command-aware compression for tool output, terminal logs and build results.",
+    "contextCombosDescription": "Define how engines are combined for different routing scenarios.",
+    "changelogDescription": "Stay up to date with the latest platform features and announcements."
   },
   "home": {
     "quickStart": "快速入门",

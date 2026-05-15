@@ -245,7 +245,7 @@ export default function Sidebar({
 
         <div className={cn("py-4", collapsed ? "px-2" : "px-6")}>
           <Link
-            href="/dashboard"
+            href="/home"
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
           >
             <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">

@@ -198,30 +198,23 @@ export default function HealthPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
-          <p className="text-sm text-text-muted mt-1">{t("description")}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {lastRefresh && (
-            <span className="text-xs text-text-muted">
-              {t("updatedAt", { time: lastRefresh.toLocaleTimeString() })}
-            </span>
-          )}
-          <button
-            onClick={() => {
-              fetchHealth();
-              fetchExtras();
-              fetchDbHealth();
-            }}
-            className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
-            title={tc("refresh")}
-          >
-            <span className="material-symbols-outlined text-[18px]">refresh</span>
-          </button>
-        </div>
+      <div className="flex items-center justify-end gap-3">
+        {lastRefresh && (
+          <span className="text-xs text-text-muted">
+            {t("updatedAt", { time: lastRefresh.toLocaleTimeString() })}
+          </span>
+        )}
+        <button
+          onClick={() => {
+            fetchHealth();
+            fetchExtras();
+            fetchDbHealth();
+          }}
+          className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
+          title={tc("refresh")}
+        >
+          <span className="material-symbols-outlined text-[18px]">refresh</span>
+        </button>
       </div>
 
       {/* Status Banner */}
