@@ -63,11 +63,15 @@
     "confirmDelete": "Delete combo {name}?"
   },
   "serve": {
+    "description": "Start the OmniRoute server (default action)",
     "starting": "Starting OmniRoute server on port {port}...",
     "ready": "Ready at http://localhost:{port}",
     "stopping": "Stopping server (PID {pid})...",
     "stopped": "Server stopped.",
-    "notRunning": "Server is not running."
+    "notRunning": "Server is not running.",
+    "port": "Port to listen on (default: 20128)",
+    "no_open": "Do not open browser automatically",
+    "daemon": "Run server as a background daemon"
   },
   "backup": {
     "title": "Backup",
@@ -102,5 +106,15 @@
     "created": "Tunnel created: {url}",
     "stopped": "Tunnel stopped.",
     "confirmStop": "Stop tunnel {id}?"
+  },
+  "program": {
+    "description": "OmniRoute — Smart AI Router with Auto Fallback",
+    "version": "Print version and exit",
+    "output": "Output format (table, json, jsonl, csv)",
+    "quiet": "Suppress non-essential output",
+    "no_color": "Disable colored output",
+    "timeout": "HTTP request timeout in milliseconds",
+    "api_key": "API key for OmniRoute server",
+    "base_url": "OmniRoute server base URL"
   }
 }

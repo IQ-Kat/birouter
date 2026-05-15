@@ -63,11 +63,15 @@
     "confirmDelete": "Excluir combo {name}?"
   },
   "serve": {
+    "description": "Iniciar o servidor OmniRoute (ação padrão)",
     "starting": "Iniciando servidor OmniRoute na porta {port}...",
     "ready": "Pronto em http://localhost:{port}",
     "stopping": "Parando servidor (PID {pid})...",
     "stopped": "Servidor parado.",
-    "notRunning": "Servidor não está em execução."
+    "notRunning": "Servidor não está em execução.",
+    "port": "Porta de escuta (padrão: 20128)",
+    "no_open": "Não abrir navegador automaticamente",
+    "daemon": "Executar servidor em segundo plano"
   },
   "backup": {
     "title": "Backup",
@@ -102,5 +106,15 @@
     "created": "Túnel criado: {url}",
     "stopped": "Túnel parado.",
     "confirmStop": "Parar túnel {id}?"
+  },
+  "program": {
+    "description": "OmniRoute — Roteador de IA com Fallback Automático",
+    "version": "Exibir versão e sair",
+    "output": "Formato de saída (table, json, jsonl, csv)",
+    "quiet": "Suprimir saída não essencial",
+    "no_color": "Desativar saída colorida",
+    "timeout": "Timeout de requisições HTTP em milissegundos",
+    "api_key": "Chave de API para o servidor OmniRoute",
+    "base_url": "URL base do servidor OmniRoute"
   }
 }
