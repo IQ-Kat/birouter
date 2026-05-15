@@ -22,6 +22,7 @@ import {
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "routing";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
+const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
 
 type SidebarProps = {
   onClose?: () => void;
@@ -31,6 +32,23 @@ type SidebarProps = {
 };
 
 type HoveredItem = { id: string; label: string; x: number; y: number } | null;
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed as T;
+    }
+  } catch {}
+  return fallback;
+}
+
+function saveToStorage(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+}
 
 export default function Sidebar({
   onClose,
@@ -54,23 +72,17 @@ export default function Sidebar({
   const [expandedSections, setExpandedSections] = useState<Set<SidebarSectionId>>(
     new Set([DEFAULT_EXPANDED])
   );
+  const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
 
-  // Load persisted expanded sections on mount
+  // Load persisted state on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(EXPANDED_SECTIONS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as SidebarSectionId[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setExpandedSections(new Set(parsed));
-          return;
-        }
-      }
-    } catch {
-      // ignore parse errors
-    }
-    setExpandedSections(new Set([DEFAULT_EXPANDED]));
+    const storedExpanded = loadFromStorage<SidebarSectionId[]>(EXPANDED_SECTIONS_KEY, [
+      DEFAULT_EXPANDED,
+    ]);
+    const storedPinned = loadFromStorage<SidebarSectionId[]>(PINNED_SECTIONS_KEY, []);
+    setExpandedSections(new Set(storedExpanded.length > 0 ? storedExpanded : [DEFAULT_EXPANDED]));
+    setPinnedSections(new Set(storedPinned));
   }, []);
 
   useEffect(() => {
@@ -88,21 +100,13 @@ export default function Sidebar({
 
     const handleSettingsUpdated = (event: Event) => {
       const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
-
-      if ("debugMode" in detail) {
-        setShowDebug(detail.debugMode === true);
-      }
-
+      if ("debugMode" in detail) setShowDebug(detail.debugMode === true);
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
         );
       }
-
-      if ("instanceName" in detail) {
-        setCustomAppName((detail.instanceName as string) || null);
-      }
-
+      if ("instanceName" in detail) setCustomAppName((detail.instanceName as string) || null);
       if ("customLogoBase64" in detail) {
         setCustomLogo((detail.customLogoBase64 as string) || null);
       } else if ("customLogoUrl" in detail) {
@@ -111,13 +115,11 @@ export default function Sidebar({
     };
 
     window.addEventListener(SIDEBAR_SETTINGS_UPDATED_EVENT, handleSettingsUpdated as EventListener);
-
-    return () => {
+    return () =>
       window.removeEventListener(
         SIDEBAR_SETTINGS_UPDATED_EVENT,
         handleSettingsUpdated as EventListener
       );
-    };
   }, []);
 
   const getSidebarLabel = (key: string, fallback: string) =>
@@ -141,7 +143,7 @@ export default function Sidebar({
     visibleSections.flatMap((section) => section.items)
   );
 
-  // Auto-expand the section containing the active page
+  // Auto-expand the section containing the active page (without closing others)
   useEffect(() => {
     if (collapsed) return;
     for (const section of visibleSections) {
@@ -150,9 +152,7 @@ export default function Sidebar({
           if (prev.has(section.id as SidebarSectionId)) return prev;
           const next = new Set(prev);
           next.add(section.id as SidebarSectionId);
-          try {
-            localStorage.setItem(EXPANDED_SECTIONS_KEY, JSON.stringify([...next]));
-          } catch {}
+          saveToStorage(EXPANDED_SECTIONS_KEY, [...next]);
           return next;
         });
         break;
@@ -161,17 +161,48 @@ export default function Sidebar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeHref, collapsed]);
 
-  const toggleSection = useCallback((sectionId: SidebarSectionId) => {
-    setExpandedSections((prev) => {
+  // Accordion toggle: opening a section closes all non-pinned sections
+  const toggleSection = useCallback(
+    (sectionId: SidebarSectionId) => {
+      setExpandedSections((prev) => {
+        const isOpen = prev.has(sectionId);
+        let next: Set<SidebarSectionId>;
+        if (isOpen) {
+          // Close this section
+          next = new Set(prev);
+          next.delete(sectionId);
+        } else {
+          // Accordion: keep only pinned sections + the new one
+          next = new Set<SidebarSectionId>();
+          for (const id of pinnedSections) {
+            next.add(id);
+          }
+          next.add(sectionId);
+        }
+        saveToStorage(EXPANDED_SECTIONS_KEY, [...next]);
+        return next;
+      });
+    },
+    [pinnedSections]
+  );
+
+  const togglePin = useCallback((sectionId: SidebarSectionId) => {
+    setPinnedSections((prev) => {
       const next = new Set(prev);
       if (next.has(sectionId)) {
         next.delete(sectionId);
       } else {
         next.add(sectionId);
+        // Ensure the section is expanded when pinned
+        setExpandedSections((prevExp) => {
+          if (prevExp.has(sectionId)) return prevExp;
+          const nextExp = new Set(prevExp);
+          nextExp.add(sectionId);
+          saveToStorage(EXPANDED_SECTIONS_KEY, [...nextExp]);
+          return nextExp;
+        });
       }
-      try {
-        localStorage.setItem(EXPANDED_SECTIONS_KEY, JSON.stringify([...next]));
-      } catch {}
+      saveToStorage(PINNED_SECTIONS_KEY, [...next]);
       return next;
     });
   }, []);
@@ -181,7 +212,7 @@ export default function Sidebar({
     try {
       await fetch("/api/shutdown", { method: "POST" });
     } catch (e) {
-      // Expected to fail as server shuts down; ignore error
+      // Expected to fail as server shuts down
     }
     setIsShuttingDown(false);
     setShowShutdownModal(false);
@@ -198,9 +229,7 @@ export default function Sidebar({
     setIsRestarting(false);
     setShowRestartModal(false);
     setIsDisconnected(true);
-    setTimeout(() => {
-      globalThis.location.reload();
-    }, 3000);
+    setTimeout(() => globalThis.location.reload(), 3000);
   };
 
   const handleMouseEnter = useCallback(
@@ -218,9 +247,7 @@ export default function Sidebar({
     [collapsed]
   );
 
-  const handleMouseLeave = useCallback(() => {
-    setHoveredItem(null);
-  }, []);
+  const handleMouseLeave = useCallback(() => setHoveredItem(null), []);
 
   const renderNavLink = (item) => {
     const active = !item.external && activeHref === item.href;
@@ -241,7 +268,6 @@ export default function Sidebar({
         {!collapsed && <span className="text-sm font-medium truncate">{item.label}</span>}
       </>
     );
-
     const sharedProps = {
       onMouseEnter: (e: React.MouseEvent<HTMLElement>) => handleMouseEnter(e, item.id, item.label),
       onMouseLeave: handleMouseLeave,
@@ -284,9 +310,7 @@ export default function Sidebar({
           "flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",
           collapsed ? "w-16" : "w-[220px]"
         )}
-        style={{
-          paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined,
-        }}
+        style={{ paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined }}
       >
         <a
           href="#main-content"
@@ -294,6 +318,7 @@ export default function Sidebar({
         >
           Skip to content
         </a>
+
         {(onToggleCollapse || !isMacElectron) && (
           <div
             className={cn(
@@ -365,14 +390,17 @@ export default function Sidebar({
             collapsed ? "px-2 space-y-0.5" : "px-3"
           )}
         >
-          {visibleSections.map((section) => {
-            const showTitle = section.showTitleInSidebar !== false;
-            const isExpanded = expandedSections.has(section.id as SidebarSectionId);
+          {visibleSections.map((section, idx) => {
+            const sectionId = section.id as SidebarSectionId;
+            const isExpanded = expandedSections.has(sectionId);
+            const isPinned = pinnedSections.has(sectionId);
+            const isFirst = idx === 0;
 
+            // Collapsed (mini) mode: flat items with dividers
             if (collapsed) {
               return (
                 <div key={section.id}>
-                  {showTitle && (
+                  {!isFirst && (
                     <div className="border-t border-black/5 dark:border-white/5 my-1.5" />
                   )}
                   {section.items.map(renderNavLink)}
@@ -380,33 +408,48 @@ export default function Sidebar({
               );
             }
 
-            if (!showTitle) {
-              return (
-                <div key={section.id} className="space-y-0.5">
-                  {section.items.map(renderNavLink)}
-                </div>
-              );
-            }
-
+            // Expanded mode: collapsible section with pin
             return (
-              <div key={section.id} className="mt-3">
-                <button
-                  onClick={() => toggleSection(section.id as SidebarSectionId)}
-                  aria-expanded={isExpanded}
-                  className="w-full flex items-center justify-between px-3 py-1 rounded-md hover:bg-surface/30 transition-colors group/section"
-                >
-                  <span className="text-[10px] font-semibold text-text-muted/60 uppercase tracking-wider">
-                    {section.title}
-                  </span>
-                  <span
+              <div key={section.id} className={isFirst ? "space-y-0.5" : "mt-2"}>
+                <div className="flex items-center gap-0.5 group/header">
+                  <button
+                    onClick={() => toggleSection(sectionId)}
+                    aria-expanded={isExpanded}
+                    className="flex-1 flex items-center justify-between px-3 py-1 rounded-md hover:bg-surface/30 transition-colors group/toggle"
+                  >
+                    <span className="text-[10px] font-semibold text-text-muted/60 uppercase tracking-wider group-hover/toggle:text-text-muted/90 transition-colors">
+                      {section.title}
+                    </span>
+                    <span
+                      className={cn(
+                        "material-symbols-outlined text-[14px] text-text-muted/40 transition-all duration-200 group-hover/toggle:text-text-muted/70",
+                        isExpanded && "rotate-180"
+                      )}
+                    >
+                      expand_more
+                    </span>
+                  </button>
+
+                  {/* Pin button — visible on hover or when pinned */}
+                  <button
+                    onClick={() => togglePin(sectionId)}
+                    title={isPinned ? "Unpin section" : "Pin section open"}
                     className={cn(
-                      "material-symbols-outlined text-[14px] text-text-muted/40 transition-transform duration-200 group-hover/section:text-text-muted/70",
-                      isExpanded && "rotate-180"
+                      "p-1 rounded-md transition-all",
+                      isPinned
+                        ? "text-primary opacity-100"
+                        : "text-text-muted/30 opacity-0 group-hover/header:opacity-100 hover:text-text-muted/70"
                     )}
                   >
-                    expand_more
-                  </span>
-                </button>
+                    <span
+                      className="material-symbols-outlined text-[12px]"
+                      style={isPinned ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                    >
+                      push_pin
+                    </span>
+                  </button>
+                </div>
+
                 {isExpanded && (
                   <div className="mt-0.5 space-y-0.5">{section.items.map(renderNavLink)}</div>
                 )}
@@ -453,7 +496,7 @@ export default function Sidebar({
         </div>
       </aside>
 
-      {/* Styled tooltip for collapsed sidebar */}
+      {/* Styled tooltip for collapsed (mini) sidebar */}
       {collapsed && hoveredItem && (
         <div
           className="fixed z-[200] pointer-events-none flex items-center"

@@ -778,7 +778,8 @@
     "settingsSecurity": "Security",
     "settingsRouting": "Routing",
     "settingsResilience": "Resilience",
-    "settingsAdvanced": "Advanced"
+    "settingsAdvanced": "Advanced",
+    "omniProxySection": "OmniProxy"
   },
   "webhooks": {
     "title": "Webhooks",

@@ -312,10 +312,9 @@ const HELP_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
 export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
   {
     id: "routing",
-    titleKey: "routingSection",
-    titleFallback: "Routing",
+    titleKey: "omniProxySection",
+    titleFallback: "OmniProxy",
     items: ROUTING_SIDEBAR_ITEMS,
-    showTitleInSidebar: false,
   },
   {
     id: "protocols",
