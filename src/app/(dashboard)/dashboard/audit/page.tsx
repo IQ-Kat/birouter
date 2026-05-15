@@ -222,7 +222,7 @@ export default function AuditPage() {
   const [activeTab, setActiveTab] = useState("compliance");
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
+    <div className="space-y-6">
       <SegmentedControl
         options={[
           { value: "compliance", label: t("complianceTab") },

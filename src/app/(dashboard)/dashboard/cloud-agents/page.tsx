@@ -254,7 +254,7 @@ export default function CloudAgentsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
+    <div className="flex flex-col gap-6">
       <Card className="border-purple-500/20 bg-purple-500/5">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">

@@ -138,7 +138,7 @@ export default function RtkContextPageClient() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map(([label, value]) => (
           <div key={label} className="rounded-lg border border-border bg-surface p-4">

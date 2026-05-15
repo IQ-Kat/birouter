@@ -9,7 +9,7 @@ export default function ChangelogPage() {
   const [activeTab, setActiveTab] = useState<"news" | "changelog">("news");
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
+    <div className="flex flex-col gap-6">
       <div className="flex justify-end">
         <div className="w-full sm:w-[240px]">
           <SegmentedControl

@@ -116,7 +116,7 @@ export default function CavemanContextPageClient() {
   const previewPrompt = `[OmniRoute Caveman Output Mode]\n${t(`preview.${outputMode.intensity}`)}`;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         {statCards.map(([label, value]) => (
           <div key={label} className="rounded-lg border border-border bg-surface p-4">

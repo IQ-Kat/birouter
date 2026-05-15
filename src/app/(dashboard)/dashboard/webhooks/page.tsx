@@ -273,7 +273,7 @@ export default function WebhooksPage() {
   const isModalOpen = formMode !== null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex justify-end">
         <button
           onClick={openCreateModal}

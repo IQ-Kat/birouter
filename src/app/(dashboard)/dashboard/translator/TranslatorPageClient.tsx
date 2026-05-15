@@ -72,7 +72,7 @@ export default function TranslatorPageClient() {
   };
 
   return (
-    <div className="p-4 sm:p-8 space-y-6 min-w-0">
+    <div className="space-y-6 min-w-0">
       <div className="flex justify-end min-w-0 overflow-x-auto">
         <SegmentedControl
           options={modes}

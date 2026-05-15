@@ -157,7 +157,7 @@ export default function HealthPage() {
 
   if (!data && !error) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           <p className="text-text-muted mt-4">{t("loadingHealth")}</p>
@@ -168,7 +168,7 @@ export default function HealthPage() {
 
   if (error && !data) {
     return (
-      <div className="p-6">
+      <div>
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
           <span className="material-symbols-outlined text-red-500 text-[32px] mb-2">error</span>
           <p className="text-red-400">{t("failedToLoad", { error })}</p>
@@ -197,7 +197,7 @@ export default function HealthPage() {
   const lockoutEntries = Object.entries(lockouts || {});
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6">
       <div className="flex items-center justify-end gap-3">
         {lastRefresh && (
           <span className="text-xs text-text-muted">
