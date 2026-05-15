@@ -43,7 +43,7 @@ const DEFAULT_OBFUSCATE_WORDS = [
 const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
   providers: {
     [PROVIDER_CLAUDE]: {
-      enabled: true,
+      enabled: false,
       pipeline: [
         {
           kind: "drop_paragraph_if_contains",
@@ -118,9 +118,6 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
   },
 } as const;
 
-// Provider display metadata for the per-provider tiles.
-// Mirrors the names from CLI_COMPAT_PROVIDER_DISPLAY where applicable so the
-// header-fingerprint toggle row stays consistent with the rest of the card.
 const PROVIDER_TILE_DISPLAY: Record<
   string,
   { name: string; description: string; icon: string; tone: string }
@@ -128,18 +125,312 @@ const PROVIDER_TILE_DISPLAY: Record<
   [PROVIDER_CLAUDE]: {
     name: "Claude (OAuth)",
     description:
-      "Native Claude provider — handles OAuth-issued tokens. Header fingerprint is force-applied for account safety; transforms are cosmetic-only (no billing/identity prepend — native code already does that).",
+      "Native Claude provider — OAuth-issued tokens. Cosmetic transforms only; billing/identity prepend handled by native executor.",
     icon: "anthropic",
     tone: "indigo",
   },
   [PROVIDER_CC_BRIDGE]: {
     name: "Claude-Code Bridge (anthropic-compatible-cc-*)",
     description:
-      "Relay endpoints that accept Anthropic-shaped requests on behalf of API-key callers. The full transform pipeline ships here (paragraph anchors + identity prefixes + text replacements + SDK identity + billing header) — that's the T4-200 layout proven on the live OmniRoute deployment.",
+      "Relay endpoints using API keys. Full transform pipeline (paragraph anchors + identity prefixes + replacements + SDK identity + billing header).",
     icon: "hub",
     tone: "purple",
   },
 };
+
+type TransformOpKind =
+  | "drop_paragraph_if_contains"
+  | "drop_paragraph_if_starts_with"
+  | "replace_text"
+  | "replace_regex"
+  | "drop_block_if_contains"
+  | "prepend_system_block"
+  | "append_system_block"
+  | "inject_billing_header"
+  | "obfuscate_words";
+
+const OP_KIND_LABELS: Record<TransformOpKind, string> = {
+  drop_paragraph_if_contains: "Drop paragraph (contains)",
+  drop_paragraph_if_starts_with: "Drop paragraph (starts with)",
+  replace_text: "Replace text",
+  replace_regex: "Replace regex",
+  drop_block_if_contains: "Drop block (contains)",
+  prepend_system_block: "Prepend system block",
+  append_system_block: "Append system block",
+  inject_billing_header: "Inject billing header",
+  obfuscate_words: "Obfuscate words (ZWJ)",
+};
+
+function makeDefaultOp(kind: TransformOpKind): any {
+  switch (kind) {
+    case "drop_paragraph_if_contains":
+      return { kind, needles: [""] };
+    case "drop_paragraph_if_starts_with":
+      return { kind, prefixes: [""] };
+    case "replace_text":
+      return { kind, match: "", replacement: "", allOccurrences: true };
+    case "replace_regex":
+      return { kind, pattern: "", flags: "g", replacement: "" };
+    case "drop_block_if_contains":
+      return { kind, needles: [""] };
+    case "prepend_system_block":
+      return { kind, text: "", idempotencyKey: "" };
+    case "append_system_block":
+      return { kind, text: "", idempotencyKey: "" };
+    case "inject_billing_header":
+      return {
+        kind,
+        entrypoint: "sdk-cli",
+        versionFormat: "ex-machina",
+        cchAlgo: "sha256-first-user",
+      };
+    case "obfuscate_words":
+      return { kind, words: [""], targets: ["system", "messages", "tools"] };
+  }
+}
+
+function OpEditor({ op, onChange }: { op: any; onChange: (next: any) => void }) {
+  const inputCls =
+    "w-full rounded border border-border/50 bg-background/40 px-2 py-1 text-xs font-mono text-text";
+  const labelCls = "block text-[11px] text-text-muted mb-0.5";
+
+  const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
+
+  const updateListItem = (field: string, idx: number, value: string) => {
+    const arr = [...(op[field] || [])];
+    arr[idx] = value;
+    onChange({ ...op, [field]: arr });
+  };
+
+  const addListItem = (field: string) => onChange({ ...op, [field]: [...(op[field] || []), ""] });
+
+  const removeListItem = (field: string, idx: number) => {
+    const arr = [...(op[field] || [])];
+    arr.splice(idx, 1);
+    onChange({ ...op, [field]: arr });
+  };
+
+  const renderList = (field: string) => (
+    <div className="flex flex-col gap-1">
+      {(op[field] || []).map((item: string, idx: number) => (
+        <div key={idx} className="flex gap-1">
+          <input
+            className={inputCls + " flex-1"}
+            value={item}
+            onChange={(e) => updateListItem(field, idx, e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => removeListItem(field, idx)}
+            className="text-red-400 hover:text-red-300 text-xs px-1"
+            title="Remove"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => addListItem(field)}
+        className="text-left text-[11px] text-primary hover:underline mt-0.5"
+      >
+        + Add entry
+      </button>
+    </div>
+  );
+
+  switch (op?.kind) {
+    case "drop_paragraph_if_contains":
+      return (
+        <div>
+          <label className={labelCls}>Needles (substrings to match)</label>
+          {renderList("needles")}
+          <label className="flex items-center gap-1.5 mt-1 text-[11px] text-text-muted cursor-pointer">
+            <input
+              type="checkbox"
+              checked={op.caseSensitive !== false}
+              onChange={(e) => updateField("caseSensitive", e.target.checked)}
+            />
+            Case sensitive
+          </label>
+        </div>
+      );
+    case "drop_paragraph_if_starts_with":
+      return (
+        <div>
+          <label className={labelCls}>Prefixes</label>
+          {renderList("prefixes")}
+          <label className="flex items-center gap-1.5 mt-1 text-[11px] text-text-muted cursor-pointer">
+            <input
+              type="checkbox"
+              checked={op.caseSensitive !== false}
+              onChange={(e) => updateField("caseSensitive", e.target.checked)}
+            />
+            Case sensitive
+          </label>
+        </div>
+      );
+    case "replace_text":
+      return (
+        <div className="flex flex-col gap-1.5">
+          <div>
+            <label className={labelCls}>Match</label>
+            <input
+              className={inputCls}
+              value={op.match || ""}
+              onChange={(e) => updateField("match", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Replacement</label>
+            <input
+              className={inputCls}
+              value={op.replacement || ""}
+              onChange={(e) => updateField("replacement", e.target.value)}
+            />
+          </div>
+          <label className="flex items-center gap-1.5 text-[11px] text-text-muted cursor-pointer">
+            <input
+              type="checkbox"
+              checked={op.allOccurrences !== false}
+              onChange={(e) => updateField("allOccurrences", e.target.checked)}
+            />
+            Replace all occurrences
+          </label>
+        </div>
+      );
+    case "replace_regex":
+      return (
+        <div className="flex flex-col gap-1.5">
+          <div>
+            <label className={labelCls}>Pattern (regex)</label>
+            <input
+              className={inputCls}
+              value={op.pattern || ""}
+              onChange={(e) => updateField("pattern", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Flags</label>
+            <input
+              className={inputCls}
+              value={op.flags || "g"}
+              onChange={(e) => updateField("flags", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Replacement</label>
+            <input
+              className={inputCls}
+              value={op.replacement || ""}
+              onChange={(e) => updateField("replacement", e.target.value)}
+            />
+          </div>
+        </div>
+      );
+    case "drop_block_if_contains":
+      return (
+        <div>
+          <label className={labelCls}>Needles</label>
+          {renderList("needles")}
+        </div>
+      );
+    case "prepend_system_block":
+    case "append_system_block":
+      return (
+        <div className="flex flex-col gap-1.5">
+          <div>
+            <label className={labelCls}>Block text</label>
+            <textarea
+              className={inputCls}
+              rows={3}
+              value={op.text || ""}
+              onChange={(e) => updateField("text", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>
+              Idempotency key (optional — skips if block starting with this key already present)
+            </label>
+            <input
+              className={inputCls}
+              value={op.idempotencyKey || ""}
+              onChange={(e) => updateField("idempotencyKey", e.target.value)}
+            />
+          </div>
+        </div>
+      );
+    case "inject_billing_header":
+      return (
+        <div className="flex flex-col gap-1.5">
+          <div>
+            <label className={labelCls}>Entrypoint</label>
+            <input
+              className={inputCls}
+              value={op.entrypoint || "sdk-cli"}
+              onChange={(e) => updateField("entrypoint", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Version format</label>
+            <select
+              className={inputCls}
+              value={op.versionFormat || "ex-machina"}
+              onChange={(e) => updateField("versionFormat", e.target.value)}
+            >
+              <option value="ex-machina">ex-machina (sha256 per-msg suffix)</option>
+              <option value="omniroute-daystamp">omniroute-daystamp (sha256 day+version)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>CCH algorithm</label>
+            <select
+              className={inputCls}
+              value={op.cchAlgo || "sha256-first-user"}
+              onChange={(e) => updateField("cchAlgo", e.target.value)}
+            >
+              <option value="sha256-first-user">sha256-first-user (ex-machina style)</option>
+              <option value="xxhash64-body">xxhash64-body (body-level signing)</option>
+              <option value="static-zero">static-zero (00000 placeholder)</option>
+            </select>
+          </div>
+        </div>
+      );
+    case "obfuscate_words":
+      return (
+        <div className="flex flex-col gap-1.5">
+          <div>
+            <label className={labelCls}>Words to obfuscate (ZWJ inserted after first char)</label>
+            {renderList("words")}
+          </div>
+          <div>
+            <label className={labelCls}>Targets</label>
+            <div className="flex gap-3">
+              {["system", "messages", "tools"].map((t) => (
+                <label
+                  key={t}
+                  className="flex items-center gap-1 text-[11px] text-text-muted cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={(op.targets || ["system", "messages", "tools"]).includes(t)}
+                    onChange={(e) => {
+                      const cur: string[] = op.targets || ["system", "messages", "tools"];
+                      const next = e.target.checked ? [...cur, t] : cur.filter((x) => x !== t);
+                      updateField("targets", next);
+                    }}
+                  />
+                  {t}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    default:
+      return <p className="text-[11px] text-text-muted">Unknown op kind: {op?.kind}</p>;
+  }
+}
 
 function summarizeTransformOp(op: any): string {
   switch (op?.kind) {
@@ -212,6 +503,8 @@ export default function RoutingTab() {
   // effect so server-side values flow into the editor.
   const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
   const [jsonErrors, setJsonErrors] = useState<Record<string, string | null>>({});
+  const [showJsonEditor, setShowJsonEditor] = useState<Record<string, boolean>>({});
+  const [addOpKind, setAddOpKind] = useState<Record<string, TransformOpKind>>({});
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
   const [lkgpCacheStatus, setLkgpCacheStatus] = useState({ type: "", message: "" });
@@ -334,6 +627,35 @@ export default function RoutingTab() {
       enabled: def.enabled,
       pipeline: def.pipeline.map((op: any) => ({ ...op })),
     });
+  };
+
+  const updateOp = (providerId: string, opIndex: number, next: any) => {
+    const current = systemTransforms.providers[providerId] ?? { enabled: false, pipeline: [] };
+    const pipeline = [...(current.pipeline as any[])];
+    pipeline[opIndex] = next;
+    updateProviderTransforms(providerId, { enabled: current.enabled, pipeline });
+  };
+
+  const deleteOp = (providerId: string, opIndex: number) => {
+    const current = systemTransforms.providers[providerId] ?? { enabled: false, pipeline: [] };
+    const pipeline = (current.pipeline as any[]).filter((_, i) => i !== opIndex);
+    updateProviderTransforms(providerId, { enabled: current.enabled, pipeline });
+  };
+
+  const moveOp = (providerId: string, opIndex: number, direction: -1 | 1) => {
+    const current = systemTransforms.providers[providerId] ?? { enabled: false, pipeline: [] };
+    const pipeline = [...(current.pipeline as any[])];
+    const target = opIndex + direction;
+    if (target < 0 || target >= pipeline.length) return;
+    [pipeline[opIndex], pipeline[target]] = [pipeline[target], pipeline[opIndex]];
+    updateProviderTransforms(providerId, { enabled: current.enabled, pipeline });
+  };
+
+  const addOp = (providerId: string) => {
+    const kind = addOpKind[providerId] ?? "drop_paragraph_if_contains";
+    const current = systemTransforms.providers[providerId] ?? { enabled: false, pipeline: [] };
+    const pipeline = [...(current.pipeline as any[]), makeDefaultOp(kind)];
+    updateProviderTransforms(providerId, { enabled: current.enabled, pipeline });
   };
 
   const toggleCliCompatProvider = (providerId: string, enabled: boolean) => {
@@ -535,23 +857,30 @@ export default function RoutingTab() {
         <div className="flex items-start gap-3 mb-4">
           <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              integration_instructions
+              security
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Provider Upstream Compatibility</h3>
+            <h3 className="text-lg font-semibold">CLI Fingerprint Matching</h3>
             <p className="text-sm text-text-muted mt-1">
-              Configure per-provider request normalization. The header-fingerprint row matches
-              upstream CLI binary signatures (reordering headers/body shapes) and the
-              system-transform pipeline rewrites system blocks so Anthropic-side classifiers (or
-              equivalent guards on other providers) see a classifier-correct request regardless of
-              which client sent it. Issue #2260 + comment 4459544580.
+              Match upstream CLI binary signatures and normalize system-block content so
+              provider-side classifiers see a correct request regardless of which client sent it.
+              Per-provider: header fingerprint (body/header shape reordering) + system-block
+              transform pipeline (paragraph anchors, text replacements, ZWJ obfuscation, billing
+              header injection). Issue{" "}
+              <a
+                href="https://github.com/diegosouzapw/OmniRoute/issues/2260"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline"
+              >
+                #2260
+              </a>
+              .
             </p>
             <p className="mt-1 text-xs text-text-muted">
-              <span className="font-medium">No local CLI binary is required</span> — OmniRoute
-              builds the upstream-compatible request server-side. The &quot;Managed&quot; badge on
-              the Claude tile means the fingerprint is force-applied for OAuth account safety, not
-              that the user must install the Claude Code CLI.
+              <span className="font-medium">No local CLI binary required</span> — OmniRoute builds
+              the upstream-compatible request server-side.
             </p>
           </div>
         </div>
@@ -565,9 +894,6 @@ export default function RoutingTab() {
             {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
               const normalizedProviderId = normalizeCliCompatProviderId(providerId);
               const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
-              // Claude OAuth force-applies the fingerprint regardless of this toggle
-              // (base.ts: shouldFingerprint) — that's an account-safety constraint,
-              // not a local-binary requirement.
               const forced = providerId === "claude";
               const checked = forced || cliCompatProviderSet.has(normalizedProviderId);
               const label = providerDisplay?.name || providerId;
@@ -609,11 +935,11 @@ export default function RoutingTab() {
                       >
                         {label}
                       </span>
-                      {forced ? (
+                      {forced && (
                         <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-400">
                           Managed
                         </span>
-                      ) : null}
+                      )}
                     </span>
                     <span className="mt-1 block text-xs text-text-muted">{description}</span>
                   </span>
@@ -624,21 +950,17 @@ export default function RoutingTab() {
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold mb-2">System-block transform pipeline</h4>
+          <h4 className="text-sm font-semibold mb-1">System-block transform pipeline</h4>
           <p className="text-xs text-text-muted mb-3">
-            Per-provider DSL. Each provider has its own ordered pipeline of ops
-            (drop_paragraph_if_contains, replace_text, obfuscate_words, inject_billing_header, …).
-            Edit the JSON below and click <em>Apply JSON</em> — the server validates against the
-            full zod schema before persisting. Click <em>Reset</em> to restore the shipped defaults
-            for that provider.
+            Per-provider ordered pipeline. Add/edit ops via the form below, or import JSON for bulk
+            changes. All ops are idempotent on re-run.
           </p>
 
           <div className="flex flex-col gap-5">
             {Object.entries(systemTransforms.providers).map(([providerId, providerCfg]) => {
               const display = PROVIDER_TILE_DISPLAY[providerId] ?? {
                 name: providerId,
-                description:
-                  "Custom provider — pipeline only runs when an OmniRoute request targets this provider key.",
+                description: "Custom provider.",
                 icon: "extension",
                 tone: "purple",
               };
@@ -648,12 +970,17 @@ export default function RoutingTab() {
               const hasDefault = Boolean(
                 (DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers as Record<string, unknown>)[providerId]
               );
+              const isJsonOpen = showJsonEditor[providerId] ?? false;
+              const selectedKind =
+                (addOpKind[providerId] as TransformOpKind | undefined) ??
+                "drop_paragraph_if_contains";
 
               return (
                 <div
                   key={providerId}
                   className="rounded-lg border border-border/50 bg-surface/20 p-4"
                 >
+                  {/* Provider header row */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -679,63 +1006,142 @@ export default function RoutingTab() {
                     </label>
                   </div>
 
+                  {/* Pipeline op list with per-op editor */}
                   {opCount > 0 && (
-                    <ol className="flex flex-col gap-1 mb-3">
+                    <ol className="flex flex-col gap-2 mb-3">
                       {(providerCfg.pipeline as any[]).map((op, index) => (
                         <li
                           key={index}
-                          className="flex items-start gap-2 rounded border border-border/30 bg-background/30 p-2 text-xs"
+                          className="rounded border border-border/30 bg-background/30 p-2 text-xs"
                         >
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
-                            {index + 1}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="font-mono text-purple-300">{op?.kind}</div>
-                            <div className="text-text-muted break-words">
-                              {summarizeTransformOp(op)}
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
+                              {index + 1}
+                            </span>
+                            <span className="font-mono text-purple-300 flex-1">{op?.kind}</span>
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                title="Move up"
+                                disabled={loading || index === 0}
+                                onClick={() => moveOp(providerId, index, -1)}
+                                className="text-text-muted hover:text-text disabled:opacity-30 px-1"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                title="Move down"
+                                disabled={loading || index === opCount - 1}
+                                onClick={() => moveOp(providerId, index, 1)}
+                                className="text-text-muted hover:text-text disabled:opacity-30 px-1"
+                              >
+                                ▼
+                              </button>
+                              <button
+                                type="button"
+                                title="Delete op"
+                                disabled={loading}
+                                onClick={() => deleteOp(providerId, index)}
+                                className="text-red-400 hover:text-red-300 disabled:opacity-30 px-1"
+                              >
+                                ✕
+                              </button>
                             </div>
+                          </div>
+                          <div className="ml-7">
+                            <OpEditor
+                              op={op}
+                              onChange={(next) => updateOp(providerId, index, next)}
+                            />
                           </div>
                         </li>
                       ))}
                     </ol>
                   )}
 
-                  <label className="text-[11px] font-medium text-text-muted block mb-1">
-                    JSON configuration
-                  </label>
-                  <textarea
-                    value={draft}
-                    onChange={(e) =>
-                      setJsonDrafts((prev) => ({ ...prev, [providerId]: e.target.value }))
-                    }
-                    rows={Math.min(40, Math.max(8, draft.split("\n").length))}
-                    disabled={loading}
-                    spellCheck={false}
-                    className="w-full rounded border border-border/50 bg-background/40 p-2 font-mono text-[11px] text-text resize-y"
-                  />
-                  {errorMsg && (
-                    <p className="mt-2 text-xs text-red-400 break-words">⚠ {errorMsg}</p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                  {/* Add op row */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <select
+                      value={selectedKind}
+                      onChange={(e) =>
+                        setAddOpKind((prev) => ({
+                          ...prev,
+                          [providerId]: e.target.value as TransformOpKind,
+                        }))
+                      }
+                      disabled={loading}
+                      className="flex-1 rounded border border-border/50 bg-background/40 px-2 py-1 text-xs font-mono text-text"
+                    >
+                      {(Object.keys(OP_KIND_LABELS) as TransformOpKind[]).map((kind) => (
+                        <option key={kind} value={kind}>
+                          {OP_KIND_LABELS[kind]}
+                        </option>
+                      ))}
+                    </select>
                     <Button
-                      onClick={() => applyProviderJson(providerId)}
+                      onClick={() => addOp(providerId)}
                       disabled={loading}
                       variant="secondary"
                       size="sm"
-                      icon="check"
+                      icon="add"
                     >
-                      Apply JSON
+                      Add op
                     </Button>
-                    {hasDefault && (
-                      <Button
-                        onClick={() => resetProviderTransforms(providerId)}
-                        disabled={loading}
-                        variant="ghost"
-                        size="sm"
-                        icon="restart_alt"
-                      >
-                        Reset to defaults
-                      </Button>
+                  </div>
+
+                  {/* JSON import section (collapsible) */}
+                  <div className="border-t border-border/20 pt-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowJsonEditor((prev) => ({ ...prev, [providerId]: !isJsonOpen }))
+                      }
+                      className="text-[11px] text-primary hover:underline"
+                    >
+                      {isJsonOpen ? "▾ Hide JSON editor" : "▸ Import / export JSON"}
+                    </button>
+                    {isJsonOpen && (
+                      <div className="mt-2">
+                        <label className="text-[11px] font-medium text-text-muted block mb-1">
+                          JSON (edit &amp; Apply, or paste to import)
+                        </label>
+                        <textarea
+                          value={draft}
+                          onChange={(e) =>
+                            setJsonDrafts((prev) => ({ ...prev, [providerId]: e.target.value }))
+                          }
+                          rows={Math.min(40, Math.max(6, draft.split("\n").length))}
+                          disabled={loading}
+                          spellCheck={false}
+                          className="w-full rounded border border-border/50 bg-background/40 p-2 font-mono text-[11px] text-text resize-y"
+                        />
+                        {errorMsg && (
+                          <p className="mt-1 text-xs text-red-400 break-words">⚠ {errorMsg}</p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <Button
+                            onClick={() => applyProviderJson(providerId)}
+                            disabled={loading}
+                            variant="secondary"
+                            size="sm"
+                            icon="check"
+                          >
+                            Apply JSON
+                          </Button>
+                          {hasDefault && (
+                            <Button
+                              onClick={() => resetProviderTransforms(providerId)}
+                              disabled={loading}
+                              variant="ghost"
+                              size="sm"
+                              icon="restart_alt"
+                            >
+                              Reset to defaults
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -744,11 +1150,10 @@ export default function RoutingTab() {
           </div>
 
           <p className="mt-3 text-[11px] text-text-muted">
-            Native <code>claude</code> path: the DSL runs after the existing billing+sentinel
-            prepend (executors/base.ts) — its default pipeline therefore omits{" "}
-            <code>inject_billing_header</code>. CC bridge (<code>anthropic-compatible-cc-*</code>):
-            the DSL runs as step 5b of the bridge request build (claudeCodeCompatible.ts), after
-            cache-control and before ZWJ obfuscation. All ops are idempotent on re-run.
+            <code>claude</code> path: DSL runs after native billing+sentinel prepend — omit{" "}
+            <code>inject_billing_header</code> in that pipeline.{" "}
+            <code>anthropic-compatible-cc-*</code>: DSL runs at step 5b (after cache-control, before
+            ZWJ obfuscation).
           </p>
         </div>
       </Card>

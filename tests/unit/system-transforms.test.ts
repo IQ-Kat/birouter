@@ -196,11 +196,17 @@ test("applySystemTransformPipeline: claude provider runs its default pipeline", 
     ],
     messages: [{ role: "user", content: "hi" }],
   };
-  const result = applySystemTransformPipeline(
-    PROVIDER_CLAUDE,
-    body,
-    DEFAULT_SYSTEM_TRANSFORMS_CONFIG
-  );
+  // Enable the claude provider explicitly for this test (default is opt-in/disabled).
+  const cfg = {
+    providers: {
+      ...DEFAULT_SYSTEM_TRANSFORMS_CONFIG.providers,
+      [PROVIDER_CLAUDE]: {
+        enabled: true,
+        pipeline: DEFAULT_SYSTEM_TRANSFORMS_CONFIG.providers[PROVIDER_CLAUDE].pipeline,
+      },
+    },
+  };
+  const result = applySystemTransformPipeline(PROVIDER_CLAUDE, body, cfg);
   const blocks = body.system as Array<{ text: string }>;
   assert.ok(blocks.length >= 1);
   const out = blocks[0].text;
@@ -242,7 +248,17 @@ test("OpenWebUI fixture: claude provider drops anchor + obfuscates 'openwebui' w
     ],
     messages: [{ role: "user", content: "Tell me about open-webui" }],
   };
-  applySystemTransformPipeline(PROVIDER_CLAUDE, body, DEFAULT_SYSTEM_TRANSFORMS_CONFIG);
+  // Enable the claude provider explicitly for this test (default is opt-in/disabled).
+  const cfg = {
+    providers: {
+      ...DEFAULT_SYSTEM_TRANSFORMS_CONFIG.providers,
+      [PROVIDER_CLAUDE]: {
+        enabled: true,
+        pipeline: DEFAULT_SYSTEM_TRANSFORMS_CONFIG.providers[PROVIDER_CLAUDE].pipeline,
+      },
+    },
+  };
+  applySystemTransformPipeline(PROVIDER_CLAUDE, body, cfg);
   const sysText = (body.system[0] as { text: string }).text;
   // "You are Open WebUI" identity paragraph dropped
   assert.ok(!sysText.includes("You are Open WebUI assistant"));

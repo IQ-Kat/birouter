@@ -188,7 +188,7 @@ export const DEFAULT_CC_BRIDGE_PROVIDER_PIPELINE: TransformOp[] = [
 export const DEFAULT_SYSTEM_TRANSFORMS_CONFIG: SystemTransformsConfig = {
   providers: {
     [PROVIDER_CLAUDE]: {
-      enabled: true,
+      enabled: false,
       pipeline: DEFAULT_CLAUDE_PIPELINE,
     },
     [PROVIDER_CC_BRIDGE]: {
