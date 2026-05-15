@@ -1177,7 +1177,10 @@
     "status": "Filter by HTTP status code",
     "durationMin": "Min request duration in ms",
     "durationMax": "Max request duration in ms",
-    "export": "Save logs to file (json/jsonl/csv)"
+    "export": "Save logs to file (json/jsonl/csv)",
+    "exported": "Logs saved to {path}",
+    "stopped": "Log stream stopped.",
+    "streamError": "Log stream error: {message}"
   },
   "tray": {
     "description": "Control the system tray icon",

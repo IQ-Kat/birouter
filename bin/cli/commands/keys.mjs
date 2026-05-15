@@ -344,17 +344,26 @@ export async function runKeysRegenerateCommand(id, opts = {}) {
       return 0;
     }
   }
-  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/regenerate`, {
-    method: "POST",
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  const data = await res.json();
-  console.log(t("keys.regenerated", { key: data.key || data.apiKey || "(see dashboard)" }));
-  return 0;
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/regenerate`, {
+      method: "POST",
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    const data = await res.json();
+    console.log(t("keys.regenerated", { key: data.key || data.apiKey || "(see dashboard)" }));
+    return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
 }
 
 export async function runKeysRevokeCommand(id, opts = {}) {
@@ -370,78 +379,114 @@ export async function runKeysRevokeCommand(id, opts = {}) {
       return 0;
     }
   }
-  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/revoke`, {
-    method: "POST",
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  console.log(t("keys.revoked", { id }));
-  return 0;
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/revoke`, {
+      method: "POST",
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    console.log(t("keys.revoked", { id }));
+    return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
 }
 
 export async function runKeysRevealCommand(id, opts = {}) {
   process.stderr.write(t("keys.revealWarning") + "\n");
-  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/reveal`, {
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  const data = await res.json();
-  console.log(data.key || data.apiKey || "(not available)");
-  return 0;
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/reveal`, {
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    const data = await res.json();
+    console.log(data.key || data.apiKey || "(not available)");
+    return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
 }
 
 export async function runKeysUsageCommand(id, opts = {}) {
-  const limit = opts.limit || "20";
-  const res = await apiFetch(
-    `/api/v1/registered-keys/${encodeURIComponent(id)}/usage?limit=${limit}`,
-    { retry: false }
-  );
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  const data = await res.json();
-  const rows = data.usage || data.requests || data.items || [];
-  if (rows.length === 0) {
-    console.log(t("keys.noUsage"));
+  const limit = opts.limit || "20";
+  try {
+    const res = await apiFetch(
+      `/api/v1/registered-keys/${encodeURIComponent(id)}/usage?limit=${limit}`,
+      { retry: false }
+    );
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    const data = await res.json();
+    const rows = data.usage || data.requests || data.items || [];
+    if (rows.length === 0) {
+      console.log(t("keys.noUsage"));
+      return 0;
+    }
+    for (const r of rows) {
+      const ts = r.timestamp || r.createdAt || "";
+      const path = r.path || r.endpoint || "";
+      const status = r.status || r.statusCode || "";
+      console.log(`  ${ts}  ${String(status).padEnd(4)}  ${path}`);
+    }
     return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
   }
-  for (const r of rows) {
-    const ts = r.timestamp || r.createdAt || "";
-    const path = r.path || r.endpoint || "";
-    const status = r.status || r.statusCode || "";
-    console.log(`  ${ts}  ${String(status).padEnd(4)}  ${path}`);
-  }
-  return 0;
 }
 
 export async function runKeysPolicyShowCommand(id, opts = {}) {
-  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/policy`, {
-    acceptNotOk: true,
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  const data = await res.json();
-  if (opts.output === "json" || opts.json) {
-    console.log(JSON.stringify(data, null, 2));
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/policy`, {
+      acceptNotOk: true,
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    const data = await res.json();
+    if (opts.output === "json" || opts.json) {
+      console.log(JSON.stringify(data, null, 2));
+      return 0;
+    }
+    console.log(t("keys.policy.title") + ` (${id}):`);
+    console.log(`  rate_limit:      ${data.rateLimit ?? data.rate_limit ?? "(unset)"}`);
+    console.log(`  max_cost:        ${data.maxCost ?? data.max_cost ?? "(unset)"}`);
+    console.log(
+      `  allowed_models:  ${(data.allowedModels ?? data.allowed_models ?? []).join(", ") || "(all)"}`
+    );
     return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
   }
-  console.log(t("keys.policy.title") + ` (${id}):`);
-  console.log(`  rate_limit:      ${data.rateLimit ?? data.rate_limit ?? "(unset)"}`);
-  console.log(`  max_cost:        ${data.maxCost ?? data.max_cost ?? "(unset)"}`);
-  console.log(
-    `  allowed_models:  ${(data.allowedModels ?? data.allowed_models ?? []).join(", ") || "(all)"}`
-  );
-  return 0;
 }
 
 export async function runKeysPolicySetCommand(id, opts = {}) {
@@ -454,47 +499,64 @@ export async function runKeysPolicySetCommand(id, opts = {}) {
     console.error(t("keys.policy.nothingToSet"));
     return 1;
   }
-
-  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/policy`, {
-    method: "PATCH",
-    body,
-    acceptNotOk: true,
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  console.log(t("keys.policy.updated"));
-  return 0;
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/policy`, {
+      method: "PATCH",
+      body,
+      acceptNotOk: true,
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    console.log(t("keys.policy.updated"));
+    return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
 }
 
 export async function runKeysExpirationListCommand(opts = {}) {
-  const days = Number(opts.days || 30);
-  const res = await apiFetch(`/api/v1/registered-keys?expiring=true&days=${days}`, {
-    acceptNotOk: true,
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  const data = await res.json();
-  const rows = data.keys || data.items || data;
-  if (!Array.isArray(rows) || rows.length === 0) {
-    console.log(t("keys.expiration.none", { days }));
+  const days = Number(opts.days || 30);
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys?expiring=true&days=${days}`, {
+      acceptNotOk: true,
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    const data = await res.json();
+    const rows = data.keys || data.items || data;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      console.log(t("keys.expiration.none", { days }));
+      return 0;
+    }
+    if (opts.json || opts.output === "json") {
+      console.log(JSON.stringify(rows, null, 2));
+      return 0;
+    }
+    console.log(t("keys.expiration.listTitle", { days }));
+    for (const k of rows) {
+      const exp = k.expiresAt || k.expires_at || "(unknown)";
+      console.log(`  ${(k.id || "").padEnd(24)} ${(k.name || "").padEnd(20)} expires: ${exp}`);
+    }
     return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
   }
-  if (opts.json || opts.output === "json") {
-    console.log(JSON.stringify(rows, null, 2));
-    return 0;
-  }
-  console.log(t("keys.expiration.listTitle", { days }));
-  for (const k of rows) {
-    const exp = k.expiresAt || k.expires_at || "(unknown)";
-    console.log(`  ${(k.id || "").padEnd(24)} ${(k.name || "").padEnd(20)} expires: ${exp}`);
-  }
-  return 0;
 }
 
 export async function runKeysRotateCommand(id, opts = {}) {
@@ -510,20 +572,28 @@ export async function runKeysRotateCommand(id, opts = {}) {
       return 0;
     }
   }
-
-  const gracePeriod = Number(opts.gracePeriod || 60000);
-  const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/rotate`, {
-    method: "POST",
-    body: { gracePeriodMs: gracePeriod },
-    acceptNotOk: true,
-    retry: false,
-  });
-  if (!res.ok) {
-    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+  if (!(await isServerUp())) {
+    console.error(t("common.serverOffline"));
     return 1;
   }
-  const data = await res.json();
-  const newId = data.newKeyId || data.id || "(see dashboard)";
-  console.log(t("keys.rotated", { id, newId }));
-  return 0;
+  const gracePeriod = Number(opts.gracePeriod || 60000);
+  try {
+    const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/rotate`, {
+      method: "POST",
+      body: { gracePeriodMs: gracePeriod },
+      acceptNotOk: true,
+      retry: false,
+    });
+    if (!res.ok) {
+      console.error(t("common.error", { message: `HTTP ${res.status}` }));
+      return 1;
+    }
+    const data = await res.json();
+    const newId = data.newKeyId || data.id || "(see dashboard)";
+    console.log(t("keys.rotated", { id, newId }));
+    return 0;
+  } catch (err) {
+    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
+    return 1;
+  }
 }

@@ -1177,7 +1177,10 @@
     "status": "Filtrar por código HTTP",
     "durationMin": "Duração mínima do request em ms",
     "durationMax": "Duração máxima do request em ms",
-    "export": "Salvar logs em arquivo (json/jsonl/csv)"
+    "export": "Salvar logs em arquivo (json/jsonl/csv)",
+    "exported": "Logs salvos em {path}",
+    "stopped": "Stream de logs interrompido.",
+    "streamError": "Erro no stream de logs: {message}"
   },
   "tray": {
     "description": "Controlar o ícone na bandeja do sistema",

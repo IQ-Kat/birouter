@@ -148,7 +148,7 @@ export async function runTunnelCreateCommand(type = "cloudflare", opts = {}) {
 
 export async function runTunnelStopCommand(type, opts = {}) {
   if (!type) {
-    console.error("Tunnel type required. Valid: " + VALID_TUNNEL_TYPES.join(", "));
+    console.error(t("tunnel.typeRequired"));
     return 1;
   }
 
