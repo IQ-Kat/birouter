@@ -1,4 +1,4 @@
-// Agent Skills metadata — single source of truth for /dashboard/skills → "AI Skills" tab.
+// Agent Skills metadata — single source of truth for /dashboard/agent-skills.
 // Each skill = 1 raw GitHub URL the user copies and pastes to any AI agent.
 
 const REPO = "diegosouzapw/OmniRoute";
@@ -15,11 +15,13 @@ export interface AgentSkill {
   description: string;
   endpoint: string | null;
   icon: string;
+  category: "api" | "cli";
   isEntry?: boolean;
   isNew?: boolean;
 }
 
 export const AGENT_SKILLS: AgentSkill[] = [
+  // ── API Skills ──────────────────────────────────────────────────────────────
   {
     id: "omniroute",
     name: "OmniRoute (Entry)",
@@ -27,6 +29,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "Setup + index of all capabilities. Start here — covers base URL, auth, model discovery, and links to every capability skill.",
     endpoint: null,
     icon: "hub",
+    category: "api",
     isEntry: true,
   },
   {
@@ -35,6 +38,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
     description: "Chat / code-gen via OpenAI or Anthropic format with streaming and reasoning.",
     endpoint: "/v1/chat/completions",
     icon: "chat",
+    category: "api",
   },
   {
     id: "omniroute-image",
@@ -42,6 +46,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
     description: "Text-to-image via DALL-E, Imagen, FLUX, MiniMax, SDWebUI, and more.",
     endpoint: "/v1/images/generations",
     icon: "image",
+    category: "api",
   },
   {
     id: "omniroute-tts",
@@ -49,6 +54,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
     description: "OpenAI / ElevenLabs / Edge / Google / Deepgram voices.",
     endpoint: "/v1/audio/speech",
     icon: "record_voice_over",
+    category: "api",
   },
   {
     id: "omniroute-stt",
@@ -57,6 +63,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "Transcribe audio via OpenAI Whisper, Groq, Gemini, Deepgram, AssemblyAI, and more.",
     endpoint: "/v1/audio/transcriptions",
     icon: "mic",
+    category: "api",
   },
   {
     id: "omniroute-embeddings",
@@ -64,6 +71,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
     description: "Vectors for RAG / semantic search via OpenAI, Gemini, Mistral, and more.",
     endpoint: "/v1/embeddings",
     icon: "scatter_plot",
+    category: "api",
   },
   {
     id: "omniroute-web-search",
@@ -71,6 +79,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
     description: "Tavily / Exa / Brave / Serper / SearXNG / Google PSE / You.com.",
     endpoint: "/v1/search",
     icon: "search",
+    category: "api",
   },
   {
     id: "omniroute-web-fetch",
@@ -78,6 +87,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
     description: "URL → markdown / text / HTML via Firecrawl, Jina, Tavily, Exa.",
     endpoint: "/v1/web/fetch",
     icon: "language",
+    category: "api",
   },
   {
     id: "omniroute-mcp",
@@ -86,6 +96,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "37 tools over SSE/stdio/HTTP: routing, cache, compression, memory, skills, providers, audit.",
     endpoint: "/api/mcp/sse",
     icon: "electrical_services",
+    category: "api",
   },
   {
     id: "omniroute-a2a",
@@ -94,6 +105,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "JSON-RPC 2.0 agent-to-agent server with 5 built-in skills: smart-routing, quota, discovery, cost, health.",
     endpoint: "/a2a",
     icon: "device_hub",
+    category: "api",
   },
   {
     id: "omniroute-routing",
@@ -102,6 +114,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "Create and configure routing combos, 14 strategies, Auto-combo scoring, and fallback chains.",
     endpoint: "/api/combos",
     icon: "route",
+    category: "api",
     isNew: true,
   },
   {
@@ -111,6 +124,7 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "RTK (command output), Caveman (prose), stacked mode, and MCP accessibility-tree filter. Save 60–90% tokens.",
     endpoint: "/api/settings/compression",
     icon: "compress",
+    category: "api",
     isNew: true,
   },
   {
@@ -120,6 +134,60 @@ export const AGENT_SKILLS: AgentSkill[] = [
       "Health endpoints, circuit breakers, provider metrics (p50/p95/p99), budget guard, and MCP monitoring tools.",
     endpoint: "/api/monitoring/health",
     icon: "monitor_heart",
+    category: "api",
+    isNew: true,
+  },
+
+  // ── CLI Skills ───────────────────────────────────────────────────────────────
+  {
+    id: "omniroute-cli",
+    name: "CLI (Entry)",
+    description:
+      "Install, global flags (--output, --base-url, --api-key), environment variables, and index of all CLI capability skills.",
+    endpoint: null,
+    icon: "terminal",
+    category: "cli",
+    isEntry: true,
+    isNew: true,
+  },
+  {
+    id: "omniroute-cli-admin",
+    name: "CLI Admin",
+    description:
+      "Server lifecycle (start/stop/restart), non-interactive setup, doctor diagnostics, backup/restore, autostart, and tunnels.",
+    endpoint: null,
+    icon: "manage_accounts",
+    category: "cli",
+    isNew: true,
+  },
+  {
+    id: "omniroute-cli-providers",
+    name: "CLI Providers & Keys",
+    description:
+      "Add/test/remove provider connections, manage API keys, rotate credentials, OAuth flows, list models, and manage combos.",
+    endpoint: null,
+    icon: "key",
+    category: "cli",
+    isNew: true,
+  },
+  {
+    id: "omniroute-cli-cloud",
+    name: "CLI Cloud Agents",
+    description:
+      "Control Codex, Devin, and Jules cloud agents — create tasks, track status, approve plans, send messages, and view sources.",
+    endpoint: null,
+    icon: "cloud_sync",
+    category: "cli",
+    isNew: true,
+  },
+  {
+    id: "omniroute-cli-eval",
+    name: "CLI Evals",
+    description:
+      "Create and run eval suites, watch live benchmark progress, view scorecards, compare models, and integrate with CI.",
+    endpoint: null,
+    icon: "science",
+    category: "cli",
     isNew: true,
   },
 ];

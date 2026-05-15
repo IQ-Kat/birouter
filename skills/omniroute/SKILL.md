@@ -49,6 +49,16 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 | Token compression     | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-compression/SKILL.md |
 | Monitoring & health   | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-monitoring/SKILL.md  |
 
+## CLI skills (omniroute binary)
+
+| Capability             | Raw URL                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| CLI entry point        | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-cli/SKILL.md           |
+| CLI admin & lifecycle  | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-cli-admin/SKILL.md     |
+| CLI providers & keys   | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-cli-providers/SKILL.md |
+| CLI cloud agents       | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-cli-cloud/SKILL.md     |
+| CLI evals & benchmarks | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-cli-eval/SKILL.md      |
+
 ## Errors
 
 - `401` → set/refresh `OMNIROUTE_KEY` (Dashboard → API Keys)

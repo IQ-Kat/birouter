@@ -672,6 +672,8 @@
     "cloudAgents": "Cloud Agents",
     "memory": "Memory",
     "skills": "Skills",
+    "omniSkills": "OmniSkills",
+    "agentSkills": "AgentSkills",
     "docs": "Docs",
     "issues": "Issues",
     "endpoints": "Endpoints",

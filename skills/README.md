@@ -15,21 +15,26 @@ through `$OMNIROUTE_URL/v1/...` with `Authorization: Bearer $OMNIROUTE_KEY`.
 
 ## Skills index
 
-| Capability               | Manifest                                                         |
-| ------------------------ | ---------------------------------------------------------------- |
-| Entry point + setup      | [omniroute/SKILL.md](omniroute/SKILL.md)                         |
-| Chat / code-gen          | [omniroute-chat/SKILL.md](omniroute-chat/SKILL.md)               |
-| Image generation         | [omniroute-image/SKILL.md](omniroute-image/SKILL.md)             |
-| Text-to-speech           | [omniroute-tts/SKILL.md](omniroute-tts/SKILL.md)                 |
-| Speech-to-text           | [omniroute-stt/SKILL.md](omniroute-stt/SKILL.md)                 |
-| Embeddings               | [omniroute-embeddings/SKILL.md](omniroute-embeddings/SKILL.md)   |
-| Web search               | [omniroute-web-search/SKILL.md](omniroute-web-search/SKILL.md)   |
-| Web fetch (URL→markdown) | [omniroute-web-fetch/SKILL.md](omniroute-web-fetch/SKILL.md)     |
-| MCP server (37 tools)    | [omniroute-mcp/SKILL.md](omniroute-mcp/SKILL.md)                 |
-| A2A protocol             | [omniroute-a2a/SKILL.md](omniroute-a2a/SKILL.md)                 |
-| Routing & combos         | [omniroute-routing/SKILL.md](omniroute-routing/SKILL.md)         |
-| Token compression        | [omniroute-compression/SKILL.md](omniroute-compression/SKILL.md) |
-| Monitoring & health      | [omniroute-monitoring/SKILL.md](omniroute-monitoring/SKILL.md)   |
+| Capability               | Manifest                                                             |
+| ------------------------ | -------------------------------------------------------------------- |
+| Entry point + setup      | [omniroute/SKILL.md](omniroute/SKILL.md)                             |
+| Chat / code-gen          | [omniroute-chat/SKILL.md](omniroute-chat/SKILL.md)                   |
+| Image generation         | [omniroute-image/SKILL.md](omniroute-image/SKILL.md)                 |
+| Text-to-speech           | [omniroute-tts/SKILL.md](omniroute-tts/SKILL.md)                     |
+| Speech-to-text           | [omniroute-stt/SKILL.md](omniroute-stt/SKILL.md)                     |
+| Embeddings               | [omniroute-embeddings/SKILL.md](omniroute-embeddings/SKILL.md)       |
+| Web search               | [omniroute-web-search/SKILL.md](omniroute-web-search/SKILL.md)       |
+| Web fetch (URL→markdown) | [omniroute-web-fetch/SKILL.md](omniroute-web-fetch/SKILL.md)         |
+| MCP server (37 tools)    | [omniroute-mcp/SKILL.md](omniroute-mcp/SKILL.md)                     |
+| A2A protocol             | [omniroute-a2a/SKILL.md](omniroute-a2a/SKILL.md)                     |
+| Routing & combos         | [omniroute-routing/SKILL.md](omniroute-routing/SKILL.md)             |
+| Token compression        | [omniroute-compression/SKILL.md](omniroute-compression/SKILL.md)     |
+| Monitoring & health      | [omniroute-monitoring/SKILL.md](omniroute-monitoring/SKILL.md)       |
+| CLI entry point          | [omniroute-cli/SKILL.md](omniroute-cli/SKILL.md)                     |
+| CLI admin & lifecycle    | [omniroute-cli-admin/SKILL.md](omniroute-cli-admin/SKILL.md)         |
+| CLI providers & keys     | [omniroute-cli-providers/SKILL.md](omniroute-cli-providers/SKILL.md) |
+| CLI cloud agents         | [omniroute-cli-cloud/SKILL.md](omniroute-cli-cloud/SKILL.md)         |
+| CLI evals & benchmarks   | [omniroute-cli-eval/SKILL.md](omniroute-cli-eval/SKILL.md)           |
 
 ## Format
 
