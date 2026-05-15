@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   AGENT_SKILLS,
   AGENT_SKILLS_REPO_URL,
@@ -8,30 +7,28 @@ import {
   getAgentSkillBlobUrl,
   type AgentSkill,
 } from "@/shared/constants/agentSkills";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 function CopyButton({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const { copied, copy } = useCopyToClipboard();
+  const isCopied = copied === url;
 
   return (
     <button
-      onClick={handleCopy}
+      onClick={() => void copy(url, url)}
       className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors"
       style={{
-        background: copied ? "var(--color-success-bg, #d1fae5)" : "var(--color-surface-2, #f3f4f6)",
-        color: copied ? "var(--color-success, #065f46)" : "var(--color-text-2, #6b7280)",
+        background: isCopied
+          ? "var(--color-success-bg, #d1fae5)"
+          : "var(--color-surface-2, #f3f4f6)",
+        color: isCopied ? "var(--color-success, #065f46)" : "var(--color-text-2, #6b7280)",
       }}
       title="Copy raw URL to clipboard"
     >
       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-        {copied ? "check" : "content_copy"}
+        {isCopied ? "check" : "content_copy"}
       </span>
-      {copied ? "Copied!" : "Copy URL"}
+      {isCopied ? "Copied!" : "Copy URL"}
     </button>
   );
 }
