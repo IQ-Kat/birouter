@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 const SALT = "omniroute-cli-auth-v1";
 const HEADER_NAME = "x-omniroute-cli-token";
 
-function isLoopback(ip: string): boolean {
+export function isLoopback(ip: string): boolean {
   const normalized = ip.replace(/^::ffff:/, "");
   return normalized === "127.0.0.1" || normalized === "::1" || normalized === "localhost";
 }
