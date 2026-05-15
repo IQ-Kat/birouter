@@ -314,3 +314,11 @@ await fixBetterSqliteBinary();
 await fixWreqJsBinary();
 await ensureSwcHelpers();
 await syncProjectEnv();
+
+// Warm up native runtimes (better-sqlite3 in ~/.omniroute/runtime/).
+// Non-fatal: errors are caught inside postinstall.mjs.
+try {
+  await import("../postinstall.mjs");
+} catch {
+  // Silently skip — runtime warm-up is best-effort.
+}
