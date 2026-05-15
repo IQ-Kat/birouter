@@ -29,6 +29,10 @@ export async function runTestProviderCommand(provider, model, opts = {}) {
     return 1;
   }
 
+  if (opts.allProviders) {
+    return _runAllProviders(opts);
+  }
+
   if (opts.compare) {
     return _runCompare(provider, opts);
   }
@@ -63,6 +67,58 @@ export async function runTestProviderCommand(provider, model, opts = {}) {
 
   _printResult(aggregated, opts.latency);
   return aggregated.success ? 0 : 1;
+}
+
+async function _runAllProviders(opts) {
+  const res = await apiFetch("/api/providers?limit=200", {
+    retry: false,
+    timeout: 5000,
+    acceptNotOk: true,
+  });
+  if (!res.ok) {
+    console.error(t("test.noServer"));
+    return 1;
+  }
+  const data = await res.json();
+  const connections = (data.providers ?? data.items ?? data).filter(
+    (c) => c.authType === "apikey" || c.testStatus !== "unavailable"
+  );
+  if (connections.length === 0) {
+    console.log(t("test.noProviders"));
+    return 0;
+  }
+
+  const providers = connections.map((c) => ({
+    provider: c.provider ?? c.id,
+    model: c.defaultModel ?? c.model,
+  }));
+
+  if (process.stdout.isTTY && !opts.json && opts.output !== "json") {
+    const { startProvidersTestTui } = await import("../tui/ProvidersTestAll.jsx");
+    const baseUrl = opts.baseUrl ?? "http://localhost:20128";
+    const apiKey = opts.apiKey ?? process.env.OMNIROUTE_API_KEY;
+    await startProvidersTestTui({ providers, baseUrl, apiKey });
+    return 0;
+  }
+
+  const results = await Promise.all(
+    providers.map(async ({ provider, model }) => {
+      const r = await _runSingleTest(provider, model);
+      return { provider, model, ...r };
+    })
+  );
+
+  if (opts.json || opts.output === "json") {
+    console.log(JSON.stringify(results, null, 2));
+  } else {
+    for (const r of results) {
+      const mark = r.success ? "\x1b[32m✔\x1b[0m" : "\x1b[31m✖\x1b[0m";
+      console.log(`${mark}  ${r.provider}/${r.model ?? "-"}`);
+    }
+  }
+
+  const failed = results.filter((r) => !r.success).length;
+  return failed > 0 ? 1 : 0;
 }
 
 async function _runCompare(provider, opts) {

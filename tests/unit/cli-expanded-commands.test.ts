@@ -134,6 +134,39 @@ test("test-provider — registerTestProvider registra flags latency/repeat/compa
   assert.ok(optNames.includes("--save"), "--save deve existir");
 });
 
+test("OAuthFlow.jsx — arquivo existe e exporta startOAuthTui", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const path = new URL("../../bin/cli/tui/OAuthFlow.jsx", import.meta.url);
+  const src = readFileSync(fileURLToPath(path), "utf8");
+  assert.ok(
+    src.includes("export async function startOAuthTui"),
+    "startOAuthTui deve ser exportada"
+  );
+});
+
+test("EvalWatch.jsx — arquivo existe e exporta startEvalWatchTui", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const path = new URL("../../bin/cli/tui/EvalWatch.jsx", import.meta.url);
+  const src = readFileSync(fileURLToPath(path), "utf8");
+  assert.ok(
+    src.includes("export async function startEvalWatchTui"),
+    "startEvalWatchTui deve ser exportada"
+  );
+});
+
+test("ProvidersTestAll.jsx — arquivo existe e exporta startProvidersTestTui", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const path = new URL("../../bin/cli/tui/ProvidersTestAll.jsx", import.meta.url);
+  const src = readFileSync(fileURLToPath(path), "utf8");
+  assert.ok(
+    src.includes("export async function startProvidersTestTui"),
+    "startProvidersTestTui deve ser exportada"
+  );
+});
+
 test("test-provider — compare requer pelo menos dois modelos sem server retorna 0 ou 1", async () => {
   const { runTestProviderCommand } = await import("../../bin/cli/commands/test-provider.mjs");
   let code = 0;

@@ -290,7 +290,8 @@
     "saveOpt": "Save results to a JSON file",
     "saved": "Results saved to {path}",
     "compareTitle": "Model Comparison",
-    "compareMinTwo": "At least two models required for --compare (comma-separated)"
+    "compareMinTwo": "At least two models required for --compare (comma-separated)",
+    "noProviders": "No providers configured. Add one with: omniroute keys add"
   },
   "update": {
     "checking": "Checking for updates...",

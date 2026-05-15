@@ -64,9 +64,18 @@ async function runBrowserFlow(def, opts) {
   }
   const start = await startRes.json();
   const url = start.authorizeUrl ?? start.url;
-  process.stdout.write(`\nOpen this URL to authorize:\n  ${url}\n\n`);
-  if (opts.browser !== false) await openBrowser(url);
-  process.stderr.write("Waiting for authorization... (Ctrl+C to cancel)\n");
+
+  if (process.stdout.isTTY && opts.browser !== false) {
+    const { startOAuthTui } = await import("../tui/OAuthFlow.jsx");
+    await openBrowser(url);
+    const tuiResult = await startOAuthTui({ provider: def.name ?? def.id, url });
+    if (tuiResult.status === "cancelled") return;
+  } else {
+    process.stdout.write(`\nOpen this URL to authorize:\n  ${url}\n\n`);
+    if (opts.browser !== false) await openBrowser(url);
+    process.stderr.write("Waiting for authorization... (Ctrl+C to cancel)\n");
+  }
+
   const result = await pollStatus(
     `/api/oauth/${def.id}/status?state=${encodeURIComponent(start.state ?? "")}`,
     opts.timeout ?? 300000

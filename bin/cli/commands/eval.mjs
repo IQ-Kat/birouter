@@ -145,8 +145,18 @@ export async function runEvalRun(suiteId, opts, cmd) {
   const run = await res.json();
   emit(run, globalOpts, runSchema);
   if (opts.watch) {
-    process.stderr.write("\nWatching run... (Ctrl+C to detach)\n");
-    await watchRun(run.id, globalOpts);
+    if (process.stdout.isTTY) {
+      const { startEvalWatchTui } = await import("../tui/EvalWatch.jsx");
+      await startEvalWatchTui({
+        runId: run.id,
+        suiteId: opts.suite,
+        baseUrl: globalOpts.baseUrl ?? "http://localhost:20128",
+        apiKey: globalOpts.apiKey ?? process.env.OMNIROUTE_API_KEY,
+      });
+    } else {
+      process.stderr.write("\nWatching run... (Ctrl+C to detach)\n");
+      await watchRun(run.id, globalOpts);
+    }
   }
 }
 
