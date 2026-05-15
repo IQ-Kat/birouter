@@ -37,7 +37,6 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   cache: "cacheDescription",
   limits: "limitsDescription",
   media: "mediaDescription",
-  "cli-tools": "cliToolsDescription",
   agents: "agentsDescription",
   "cloud-agents": "cloudAgentsDescription",
   memory: "memoryDescription",
@@ -56,6 +55,35 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   health: "healthDescription",
   proxy: "proxyDescription",
   changelog: "changelogDescription",
+  // Protocols
+  mcp: "mcpDescription",
+  a2a: "a2aDescription",
+  "api-endpoints": "apiEndpointsDescription",
+  // Agents & AI sub-pages
+  "batch-files": "batchFilesDescription",
+  // Analytics sub-pages
+  "analytics-evals": "analyticsEvalsDescription",
+  "analytics-search": "analyticsSearchDescription",
+  "analytics-utilization": "analyticsUtilizationDescription",
+  "analytics-combo-health": "analyticsComboHealthDescription",
+  "analytics-compression": "analyticsCompressionDescription",
+  // Costs sub-pages
+  "costs-budget": "costsBudgetDescription",
+  "costs-pricing": "costsPricingDescription",
+  // Logs sub-pages
+  "logs-proxy": "logsProxyDescription",
+  "logs-console": "logsConsoleDescription",
+  "logs-activity": "logsActivityDescription",
+  // Audit sub-pages
+  "audit-mcp": "auditMcpDescription",
+  // Settings sub-pages
+  "settings-general": "settingsGeneralDescription",
+  "settings-appearance": "settingsAppearanceDescription",
+  "settings-ai": "settingsAiDescription",
+  "settings-security": "settingsSecurityDescription",
+  "settings-routing": "settingsRoutingDescription",
+  "settings-resilience": "settingsResilienceDescription",
+  "settings-advanced": "settingsAdvancedDescription",
 };
 
 // Build href → sidebar item lookup (non-external items only)

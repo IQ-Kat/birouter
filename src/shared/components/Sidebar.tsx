@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
@@ -16,9 +16,12 @@ import {
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTIONS,
   normalizeHiddenSidebarItems,
+  type SidebarSectionId,
 } from "@/shared/constants/sidebarVisibility";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
+const DEFAULT_EXPANDED: SidebarSectionId = "routing";
+const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 
 type SidebarProps = {
   onClose?: () => void;
@@ -26,6 +29,8 @@ type SidebarProps = {
   onToggleCollapse?: () => void;
   isMacElectron?: boolean;
 };
+
+type HoveredItem = { id: string; label: string; x: number; y: number } | null;
 
 export default function Sidebar({
   onClose,
@@ -36,6 +41,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
+  const sidebarRef = useRef<HTMLElement>(null);
   const [showShutdownModal, setShowShutdownModal] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [isShuttingDown, setIsShuttingDown] = useState(false);
@@ -45,6 +51,27 @@ export default function Sidebar({
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
   const [customAppName, setCustomAppName] = useState<string | null>(null);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<SidebarSectionId>>(
+    new Set([DEFAULT_EXPANDED])
+  );
+  const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
+
+  // Load persisted expanded sections on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(EXPANDED_SECTIONS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as SidebarSectionId[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setExpandedSections(new Set(parsed));
+          return;
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+    setExpandedSections(new Set([DEFAULT_EXPANDED]));
+  }, []);
 
   useEffect(() => {
     const applySettings = (data) => {
@@ -93,6 +120,62 @@ export default function Sidebar({
     };
   }, []);
 
+  const getSidebarLabel = (key: string, fallback: string) =>
+    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+
+  const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const visibleSections = SIDEBAR_SECTIONS.filter(
+    (section) => section.visibility !== "debug" || showDebug
+  )
+    .map((section) => ({
+      ...section,
+      title: getSidebarLabel(section.titleKey, section.titleFallback),
+      items: section.items
+        .map((item) => ({ ...item, label: getSidebarLabel(item.i18nKey, item.id) }))
+        .filter((item) => !hiddenSidebarSet.has(item.id)),
+    }))
+    .filter((section) => section.items.length > 0);
+
+  const activeHref = getActiveSidebarHref(
+    pathname,
+    visibleSections.flatMap((section) => section.items)
+  );
+
+  // Auto-expand the section containing the active page
+  useEffect(() => {
+    if (collapsed) return;
+    for (const section of visibleSections) {
+      if (section.items.some((item) => !item.external && item.href === activeHref)) {
+        setExpandedSections((prev) => {
+          if (prev.has(section.id as SidebarSectionId)) return prev;
+          const next = new Set(prev);
+          next.add(section.id as SidebarSectionId);
+          try {
+            localStorage.setItem(EXPANDED_SECTIONS_KEY, JSON.stringify([...next]));
+          } catch {}
+          return next;
+        });
+        break;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHref, collapsed]);
+
+  const toggleSection = useCallback((sectionId: SidebarSectionId) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      try {
+        localStorage.setItem(EXPANDED_SECTIONS_KEY, JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   const handleShutdown = async () => {
     setIsShuttingDown(true);
     try {
@@ -120,45 +203,49 @@ export default function Sidebar({
     }, 3000);
   };
 
-  const getSidebarLabel = (key: string, fallback: string) =>
-    typeof t.has === "function" && t.has(key) ? t(key) : fallback;
-
-  const hiddenSidebarSet = new Set(hiddenSidebarItems);
-  const visibleSections = SIDEBAR_SECTIONS.filter(
-    (section) => section.visibility !== "debug" || showDebug
-  )
-    .map((section) => ({
-      ...section,
-      title: getSidebarLabel(section.titleKey, section.titleFallback),
-      items: section.items
-        .map((item) => ({ ...item, label: t(item.i18nKey) }))
-        .filter((item) => !hiddenSidebarSet.has(item.id)),
-    }))
-    .filter((section) => section.items.length > 0);
-  const activeHref = getActiveSidebarHref(
-    pathname,
-    visibleSections.flatMap((section) => section.items)
+  const handleMouseEnter = useCallback(
+    (e: React.MouseEvent<HTMLElement>, id: string, label: string) => {
+      if (!collapsed) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const sidebarRect = sidebarRef.current?.getBoundingClientRect();
+      setHoveredItem({
+        id,
+        label,
+        x: (sidebarRect?.right ?? 64) + 8,
+        y: rect.top + rect.height / 2,
+      });
+    },
+    [collapsed]
   );
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredItem(null);
+  }, []);
 
   const renderNavLink = (item) => {
     const active = !item.external && activeHref === item.href;
     const className = cn(
       "flex items-center gap-3 rounded-lg transition-all group",
-      collapsed ? "justify-center px-2 py-2.5" : "px-4 py-2",
+      collapsed ? "justify-center px-2 py-2.5" : "px-3 py-1.5",
       active
         ? "bg-primary/10 text-primary"
         : "text-text-muted hover:bg-surface/50 hover:text-text-main"
     );
     const iconClassName = cn(
-      "material-symbols-outlined text-[18px]",
+      "material-symbols-outlined text-[18px] shrink-0",
       active ? "fill-1" : "group-hover:text-primary transition-colors"
     );
     const content = (
       <>
         <span className={iconClassName}>{item.icon}</span>
-        {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+        {!collapsed && <span className="text-sm font-medium truncate">{item.label}</span>}
       </>
     );
+
+    const sharedProps = {
+      onMouseEnter: (e: React.MouseEvent<HTMLElement>) => handleMouseEnter(e, item.id, item.label),
+      onMouseLeave: handleMouseLeave,
+    };
 
     if (item.external) {
       return (
@@ -168,8 +255,8 @@ export default function Sidebar({
           target="_blank"
           rel="noopener noreferrer"
           onClick={onClose}
-          title={collapsed ? item.label : undefined}
           className={className}
+          {...sharedProps}
         >
           {content}
         </a>
@@ -181,8 +268,8 @@ export default function Sidebar({
         key={item.href}
         href={item.href}
         onClick={onClose}
-        title={collapsed ? item.label : undefined}
         className={className}
+        {...sharedProps}
       >
         {content}
       </Link>
@@ -192,9 +279,10 @@ export default function Sidebar({
   return (
     <>
       <aside
+        ref={sidebarRef}
         className={cn(
           "flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",
-          collapsed ? "w-16" : "w-80"
+          collapsed ? "w-16" : "w-[220px]"
         )}
         style={{
           paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined,
@@ -211,7 +299,7 @@ export default function Sidebar({
             className={cn(
               "flex items-center gap-2 pb-2",
               isMacElectron ? "pt-3" : "pt-5",
-              collapsed ? "px-3 justify-center" : "px-6"
+              collapsed ? "px-3 justify-center" : "px-4"
             )}
             aria-hidden="true"
           >
@@ -243,12 +331,12 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className={cn("py-4", collapsed ? "px-2" : "px-6")}>
+        <div className={cn("py-3", collapsed ? "px-2" : "px-4")}>
           <Link
             href="/home"
-            className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}
+            className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}
           >
-            <div className="flex items-center justify-center size-9 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
+            <div className="flex items-center justify-center size-8 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
               {customLogo ? (
                 <img
                   src={customLogo}
@@ -256,15 +344,15 @@ export default function Sidebar({
                   className="size-5 object-contain"
                 />
               ) : (
-                <OmniRouteLogo size={20} className="text-white" />
+                <OmniRouteLogo size={18} className="text-white" />
               )}
             </div>
             {!collapsed && (
-              <div className="flex flex-col">
-                <h1 className="text-lg font-semibold tracking-tight text-text-main">
+              <div className="flex flex-col min-w-0">
+                <h1 className="text-sm font-semibold tracking-tight text-text-main truncate">
                   {customAppName || APP_CONFIG.name}
                 </h1>
-                <span className="text-xs text-text-muted">v{APP_CONFIG.version}</span>
+                <span className="text-[10px] text-text-muted">v{APP_CONFIG.version}</span>
               </div>
             )}
           </Link>
@@ -273,24 +361,55 @@ export default function Sidebar({
         <nav
           aria-label="Main navigation"
           className={cn(
-            "min-h-0 flex-1 space-y-1 overflow-y-auto py-2 custom-scrollbar",
-            collapsed ? "px-2" : "px-4"
+            "min-h-0 flex-1 overflow-y-auto py-1 custom-scrollbar",
+            collapsed ? "px-2 space-y-0.5" : "px-3"
           )}
         >
           {visibleSections.map((section) => {
             const showTitle = section.showTitleInSidebar !== false;
+            const isExpanded = expandedSections.has(section.id as SidebarSectionId);
+
+            if (collapsed) {
+              return (
+                <div key={section.id}>
+                  {showTitle && (
+                    <div className="border-t border-black/5 dark:border-white/5 my-1.5" />
+                  )}
+                  {section.items.map(renderNavLink)}
+                </div>
+              );
+            }
+
+            if (!showTitle) {
+              return (
+                <div key={section.id} className="space-y-0.5">
+                  {section.items.map(renderNavLink)}
+                </div>
+              );
+            }
 
             return (
-              <div key={section.id} className={showTitle ? "pt-4 mt-2" : undefined}>
-                {!collapsed && showTitle && (
-                  <p className="px-4 text-xs font-semibold text-text-muted/60 uppercase tracking-wider mb-2">
+              <div key={section.id} className="mt-3">
+                <button
+                  onClick={() => toggleSection(section.id as SidebarSectionId)}
+                  aria-expanded={isExpanded}
+                  className="w-full flex items-center justify-between px-3 py-1 rounded-md hover:bg-surface/30 transition-colors group/section"
+                >
+                  <span className="text-[10px] font-semibold text-text-muted/60 uppercase tracking-wider">
                     {section.title}
-                  </p>
+                  </span>
+                  <span
+                    className={cn(
+                      "material-symbols-outlined text-[14px] text-text-muted/40 transition-transform duration-200 group-hover/section:text-text-muted/70",
+                      isExpanded && "rotate-180"
+                    )}
+                  >
+                    expand_more
+                  </span>
+                </button>
+                {isExpanded && (
+                  <div className="mt-0.5 space-y-0.5">{section.items.map(renderNavLink)}</div>
                 )}
-                {collapsed && showTitle && (
-                  <div className="border-t border-black/5 dark:border-white/5 mb-2" />
-                )}
-                {section.items.map(renderNavLink)}
               </div>
             );
           })}
@@ -301,10 +420,10 @@ export default function Sidebar({
         <div
           className={cn(
             "shrink-0 border-t border-black/5 dark:border-white/5",
-            collapsed ? "p-2 flex flex-col gap-1" : "p-3 flex gap-2"
+            collapsed ? "p-2 flex flex-col gap-1" : "p-2 flex gap-2"
           )}
           style={{
-            paddingBottom: isMacElectron ? "calc(0.75rem + var(--desktop-safe-bottom))" : undefined,
+            paddingBottom: isMacElectron ? "calc(0.5rem + var(--desktop-safe-bottom))" : undefined,
           }}
         >
           <button
@@ -313,11 +432,11 @@ export default function Sidebar({
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
               "text-amber-500 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40",
-              collapsed ? "p-2" : "flex-1 min-w-0 px-3 py-2 text-xs"
+              collapsed ? "p-2" : "flex-1 min-w-0 px-2 py-1.5 text-xs"
             )}
           >
-            <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-            {!collapsed && t("restart")}
+            <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+            {!collapsed && <span className="truncate">{t("restart")}</span>}
           </button>
           <button
             onClick={() => setShowShutdownModal(true)}
@@ -325,14 +444,27 @@ export default function Sidebar({
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
               "text-red-500 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/40",
-              collapsed ? "p-2" : "flex-1 min-w-0 px-3 py-2 text-xs"
+              collapsed ? "p-2" : "flex-1 min-w-0 px-2 py-1.5 text-xs"
             )}
           >
-            <span className="material-symbols-outlined text-[18px]">power_settings_new</span>
-            {!collapsed && t("shutdown")}
+            <span className="material-symbols-outlined text-[16px]">power_settings_new</span>
+            {!collapsed && <span className="truncate">{t("shutdown")}</span>}
           </button>
         </div>
       </aside>
+
+      {/* Styled tooltip for collapsed sidebar */}
+      {collapsed && hoveredItem && (
+        <div
+          className="fixed z-[200] pointer-events-none flex items-center"
+          style={{ left: hoveredItem.x, top: hoveredItem.y, transform: "translateY(-50%)" }}
+        >
+          <div className="w-0 h-0 border-t-[5px] border-b-[5px] border-r-[6px] border-t-transparent border-b-transparent border-r-sidebar dark:border-r-sidebar" />
+          <div className="px-2.5 py-1.5 bg-sidebar text-text-main text-xs font-medium rounded-md shadow-lg border border-black/10 dark:border-white/10 whitespace-nowrap">
+            {hoveredItem.label}
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={showShutdownModal}
