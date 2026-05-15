@@ -1,35 +1,29 @@
-import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
-import { printHeading, printInfo, printError } from "../io.mjs";
+import { printInfo, printError } from "../io.mjs";
+import { t } from "../i18n.mjs";
 
-function printLogsHelp() {
-  console.log(`
-Usage:
-  omniroute logs [options]
-
-Options:
-  --follow              Stream logs in real-time
-  --filter <level>      Filter by level (error, warn, info) — comma-separated
-  --lines <n>           Number of lines to fetch (default: 100)
-  --timeout <ms>        Connection timeout in ms (default: 30000)
-  --base-url <url>      OmniRoute API base URL (default: http://localhost:20128)
-  --json                Output as JSON
-  --help                Show this help
-`);
+export function registerLogs(program) {
+  program
+    .command("logs")
+    .description("Stream request logs")
+    .option("--follow", "Stream logs in real-time")
+    .option("--filter <level>", "Filter by level (error,warn,info) — comma-separated")
+    .option("--lines <n>", "Number of lines to fetch", "100")
+    .option("--timeout <ms>", "Connection timeout in ms", "30000")
+    .option("--base-url <url>", "OmniRoute API base URL", "http://localhost:20128")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      const exitCode = await runLogsCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
 }
 
-export async function runLogsCommand(argv) {
-  const { flags } = parseArgs(argv);
-
-  if (hasFlag(flags, "help") || hasFlag(flags, "h")) {
-    printLogsHelp();
-    return 0;
-  }
-
-  const baseUrl = getStringFlag(flags, "base-url") || "http://localhost:20128";
-  const follow = hasFlag(flags, "follow");
-  const filter = getStringFlag(flags, "filter");
-  const lines = getStringFlag(flags, "lines") || "100";
-  const timeout = parseInt(getStringFlag(flags, "timeout") || "30000", 10);
+export async function runLogsCommand(opts = {}) {
+  const baseUrl = opts.baseUrl || opts["base-url"] || "http://localhost:20128";
+  const follow = opts.follow ?? false;
+  const filter = opts.filter ?? "";
+  const lines = opts.lines || "100";
+  const timeout = parseInt(String(opts.timeout || "30000"), 10);
+  const isJson = opts.output === "json";
 
   const filters = filter ? filter.split(",").map((f) => f.trim()) : [];
 
@@ -42,7 +36,7 @@ export async function runLogsCommand(argv) {
 
   const processLine = (line) => {
     if (!line.trim()) return;
-    if (hasFlag(flags, "json")) {
+    if (isJson) {
       console.log(line);
       return;
     }
@@ -64,9 +58,9 @@ export async function runLogsCommand(argv) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) processLine(line);
+      const parts = buffer.split("\n");
+      buffer = parts.pop() || "";
+      for (const line of parts) processLine(line);
     }
     if (buffer) processLine(buffer);
   } catch (err) {

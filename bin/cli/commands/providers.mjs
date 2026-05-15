@@ -1,4 +1,3 @@
-import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
 import { printHeading } from "../io.mjs";
 import { getAvailableProviderCategories, loadAvailableProviders } from "../provider-catalog.mjs";
 import { testProviderApiKey } from "../provider-test.mjs";
@@ -9,6 +8,7 @@ import {
   updateProviderTestResult,
 } from "../provider-store.mjs";
 import { openOmniRouteDb } from "../sqlite.mjs";
+import { t } from "../i18n.mjs";
 
 function publicConnection(connection) {
   return {
@@ -22,113 +22,6 @@ function publicConnection(connection) {
     lastError: connection.lastError,
     defaultModel: connection.defaultModel,
   };
-}
-
-function printProvidersHelp() {
-  console.log(`
-Usage:
-  omniroute providers available
-  omniroute providers available --search openai
-  omniroute providers available --category api-key
-  omniroute providers list
-  omniroute providers test <id|name>
-  omniroute providers test-all
-  omniroute providers validate
-
-Options:
-  --json                 Print machine-readable JSON
-  --search, --q <text>   Filter available providers by id, name, alias, or category
-  --category <category>  Filter available providers by category
-
-Notes:
-  "available" shows the OmniRoute provider catalog.
-  "list" shows provider connections already configured in local SQLite.
-  Provider commands read local SQLite directly and do not require the server to be running.
-  API-key provider tests update test_status, last_tested, and error fields in SQLite.
-`);
-}
-
-function printAvailableHelp() {
-  console.log(`
-Usage:
-  omniroute providers available
-  omniroute providers available --search openai
-  omniroute providers available --category api-key
-  omniroute providers available --json
-
-Options:
-  --json                 Print machine-readable JSON
-  --search, --q <text>   Filter by id, name, alias, or category
-  --category <category>  Filter by category, for example api-key, oauth, free
-
-Notes:
-  Shows the OmniRoute provider catalog, not locally configured provider connections.
-`);
-}
-
-function printListHelp() {
-  console.log(`
-Usage:
-  omniroute providers list
-  omniroute providers list --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Lists provider connections already configured in local SQLite.
-`);
-}
-
-function printTestHelp() {
-  console.log(`
-Usage:
-  omniroute providers test <id|name>
-  omniroute providers test <id|name> --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Tests one configured provider connection and updates test status in local SQLite.
-`);
-}
-
-function printTestAllHelp() {
-  console.log(`
-Usage:
-  omniroute providers test-all
-  omniroute providers test-all --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Tests every active configured provider connection and updates test status in local SQLite.
-`);
-}
-
-function printValidateHelp() {
-  console.log(`
-Usage:
-  omniroute providers validate
-  omniroute providers validate --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Validates local provider configuration without calling upstream providers.
-`);
-}
-
-function printProvidersSubcommandHelp(subcommand) {
-  if (subcommand === "available") printAvailableHelp();
-  else if (subcommand === "list") printListHelp();
-  else if (subcommand === "test") printTestHelp();
-  else if (subcommand === "test-all") printTestAllHelp();
-  else if (subcommand === "validate") printValidateHelp();
-  else printProvidersHelp();
 }
 
 function statusColor(status) {
@@ -186,11 +79,11 @@ function publicAvailableProvider(provider) {
   };
 }
 
-function filterAvailableProviders(providers, flags) {
-  const search = String(getStringFlag(flags, "search") || getStringFlag(flags, "q") || "")
+function filterAvailableProviders(providers, opts) {
+  const search = String(opts.search || opts.q || "")
     .trim()
     .toLowerCase();
-  const category = normalizeCategoryFilter(getStringFlag(flags, "category"));
+  const category = normalizeCategoryFilter(opts.category);
 
   return providers.filter((provider) => {
     if (category && provider.category !== category) return false;
@@ -284,12 +177,12 @@ function validateConnection(connection) {
   };
 }
 
-async function availableCommand(flags) {
+export async function runAvailableCommand(opts = {}) {
   const allProviders = loadAvailableProviders();
-  const providers = filterAvailableProviders(allProviders, flags).map(publicAvailableProvider);
+  const providers = filterAvailableProviders(allProviders, opts).map(publicAvailableProvider);
   const categories = getAvailableProviderCategories(allProviders);
 
-  if (hasFlag(flags, "json")) {
+  if (opts.json) {
     console.log(JSON.stringify({ count: providers.length, categories, providers }, null, 2));
   } else {
     printHeading("OmniRoute Available Providers");
@@ -299,11 +192,11 @@ async function availableCommand(flags) {
   return 0;
 }
 
-async function listCommand(flags) {
+export async function runListCommand(opts = {}) {
   const { db } = await openOmniRouteDb();
   try {
     const connections = listProviderConnections(db).map(publicConnection);
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify({ providers: connections }, null, 2));
     } else {
       printHeading("OmniRoute Providers");
@@ -315,7 +208,7 @@ async function listCommand(flags) {
   }
 }
 
-async function testCommand(flags, selector) {
+export async function runTestCommand(selector, opts = {}) {
   if (!selector) {
     console.error("Provider id or name is required.");
     return 1;
@@ -330,7 +223,7 @@ async function testCommand(flags, selector) {
     }
 
     const result = await runProviderTest(db, connection);
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify(result, null, 2));
     } else if (result.valid) {
       console.log(`\x1b[32mOK\x1b[0m ${connection.name}: provider test passed`);
@@ -343,7 +236,7 @@ async function testCommand(flags, selector) {
   }
 }
 
-async function testAllCommand(flags) {
+export async function runTestAllCommand(opts = {}) {
   const { db } = await openOmniRouteDb();
   try {
     const connections = listProviderConnections(db);
@@ -361,7 +254,7 @@ async function testAllCommand(flags) {
       results.push(await runProviderTest(db, connection));
     }
 
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify({ results }, null, 2));
     } else {
       printHeading("OmniRoute Provider Tests");
@@ -383,11 +276,11 @@ async function testAllCommand(flags) {
   }
 }
 
-async function validateCommand(flags) {
+export async function runValidateCommand(opts = {}) {
   const { db } = await openOmniRouteDb();
   try {
     const results = listProviderConnections(db).map(validateConnection);
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify({ results }, null, 2));
     } else {
       printHeading("OmniRoute Provider Validation");
@@ -406,23 +299,59 @@ async function validateCommand(flags) {
   }
 }
 
-export async function runProvidersCommand(argv) {
-  const { flags, positionals } = parseArgs(argv);
-  const requestedSubcommand = positionals[0];
-  const subcommand = requestedSubcommand || "list";
+export function registerProviders(program) {
+  const providers = program.command("providers").description(t("providers.title"));
 
-  if (hasFlag(flags, "help") || hasFlag(flags, "h")) {
-    printProvidersSubcommandHelp(requestedSubcommand);
-    return 0;
-  }
+  providers
+    .command("available")
+    .description("Show available providers in the OmniRoute catalog")
+    .option("--json", "Print machine-readable JSON")
+    .option("--search <query>", "Filter by id, name, alias, or category")
+    .option("-q, --q <query>", "Alias for --search")
+    .option("--category <category>", "Filter by category (api-key, oauth, free)")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runAvailableCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
 
-  if (subcommand === "available") return availableCommand(flags);
-  if (subcommand === "list") return listCommand(flags);
-  if (subcommand === "test") return testCommand(flags, positionals[1]);
-  if (subcommand === "test-all") return testAllCommand(flags);
-  if (subcommand === "validate") return validateCommand(flags);
+  providers
+    .command("list")
+    .description("List configured provider connections")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runListCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
 
-  console.error(`Unknown providers subcommand: ${subcommand}`);
-  printProvidersHelp();
-  return 1;
+  providers
+    .command("test <idOrName>")
+    .description("Test a configured provider connection")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (idOrName, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runTestCommand(idOrName, { ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("test-all")
+    .description("Test all active provider connections")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runTestAllCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("validate")
+    .description("Validate local provider configuration without calling upstream")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runValidateCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
 }
