@@ -4,16 +4,12 @@ import { getMachineTokenSync } from "../../../lib/machineToken";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { CLI_TOKEN_HEADER } from "../headers";
+import { isAlwaysProtectedPath, isLocalOnlyPath, isLoopbackHost } from "../routeGuard";
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 function isLoopbackRequest(headers: Headers): boolean {
-  const host = (headers.get("host") ?? "")
-    .split(":")[0]
-    .replace(/^\[|\]$/g, "")
-    .toLowerCase();
-  return LOOPBACK_HOSTS.has(host);
+  return isLoopbackHost(headers.get("host"));
 }
 
 function hasValidCliToken(headers: Headers): boolean {
@@ -37,8 +33,13 @@ function isInternalModelSyncRequest(ctx: PolicyContext): boolean {
 export const managementPolicy: RoutePolicy = {
   routeClass: "MANAGEMENT",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
-    if (!(await isAuthRequired(ctx.request))) {
-      return allow({ kind: "anonymous", id: "anonymous", label: "auth-disabled" });
+    const path = ctx.classification.normalizedPath;
+
+    // Tier 1: local-only gate — block spawn-capable routes from non-loopback.
+    if (isLocalOnlyPath(path)) {
+      if (!isLoopbackRequest(ctx.request.headers)) {
+        return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
+      }
     }
 
     if (isInternalModelSyncRequest(ctx)) {
@@ -47,6 +48,11 @@ export const managementPolicy: RoutePolicy = {
 
     if (hasValidCliToken(ctx.request.headers)) {
       return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
+    }
+
+    // Tier 2: always-protected routes skip the requireLogin=false bypass.
+    if (!isAlwaysProtectedPath(path) && !(await isAuthRequired(ctx.request))) {
+      return allow({ kind: "anonymous", id: "anonymous", label: "auth-disabled" });
     }
 
     if (await isDashboardSessionAuthenticated(ctx.request)) {
