@@ -354,7 +354,8 @@ export async function buildAndSignClaudeCodeRequest(
     obfuscateInBody(body);
   }
 
-  // Step 7: Serialize with CCH placeholder
+  // Step 7: Serialize with CCH placeholder (strip internal sentinel fields)
+  delete (body as Record<string, unknown>)["_claudeCodeRequiresLowercaseToolNames"];
   const serialized = JSON.stringify(body);
 
   // Step 8: Sign with xxHash64

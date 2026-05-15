@@ -856,6 +856,11 @@ export class BaseExecutor {
         // CLI fingerprint ordering — always-on for native Claude OAuth, opt-in
         // for other providers. Header + body field order is itself a fingerprint.
         let finalHeaders = headers;
+        // Strip internal sentinel fields set by remapToolNamesInRequest before
+        // serializing — Anthropic rejects unknown top-level fields (issue #2260).
+        delete (transformedBody as Record<string, unknown>)[
+          "_claudeCodeRequiresLowercaseToolNames"
+        ];
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
