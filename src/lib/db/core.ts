@@ -188,6 +188,7 @@ const SCHEMA_SQL = `
     last_used_at TEXT,
     "group" TEXT,
     max_concurrent INTEGER,
+    quota_window_thresholds_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -1136,6 +1137,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
     ensureCallLogsColumns(memoryDb);
+    ensureProviderConnectionsColumns(memoryDb);
     setDb(memoryDb);
     return memoryDb;
   }
