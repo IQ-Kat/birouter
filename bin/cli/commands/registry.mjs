@@ -20,6 +20,7 @@ import { registerTags } from "./tags.mjs";
 import { registerOpenapi } from "./openapi.mjs";
 import { registerOneProxy } from "./oneproxy.mjs";
 import { registerTelemetry } from "./telemetry.mjs";
+import { registerOpen } from "./open.mjs";
 import { registerChat } from "./chat.mjs";
 import { registerStream } from "./stream.mjs";
 import { registerSimulate } from "./simulate.mjs";
@@ -74,6 +75,7 @@ export function registerCommands(program) {
   registerOpenapi(program);
   registerOneProxy(program);
   registerTelemetry(program);
+  registerOpen(program);
   registerChat(program);
   registerStream(program);
   registerSimulate(program);

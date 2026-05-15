@@ -995,6 +995,10 @@
       "description": "List current proxy pool with metrics"
     }
   },
+  "open": {
+    "description": "Open a specific OmniRoute dashboard page in the browser",
+    "url": "Print URL only, do not open browser"
+  },
   "telemetry": {
     "description": "Access aggregated telemetry data",
     "summary": {

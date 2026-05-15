@@ -995,6 +995,10 @@
       "description": "Listar pool de proxies atual com métricas"
     }
   },
+  "open": {
+    "description": "Abrir uma página específica do dashboard OmniRoute no navegador",
+    "url": "Apenas imprime a URL, sem abrir o navegador"
+  },
   "telemetry": {
     "description": "Acessar dados de telemetria agregados",
     "summary": {

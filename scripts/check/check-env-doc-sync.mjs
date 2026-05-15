@@ -63,6 +63,16 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
+  // These are external signals set by the host OS or cloud provider — not OmniRoute config.
+  "CODESPACES",
+  "GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN",
+  "GITPOD_WORKSPACE_ID",
+  "NO_COLOR",
+  "REPL_ID",
+  "REPL_SLUG",
+  "WSL_DISTRO_NAME",
+  "WSL_INTEROP",
   // Aliases for documented vars handled via fallback ordering.
   "API_KEY",
   "APP_URL",
