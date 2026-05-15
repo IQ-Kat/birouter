@@ -80,6 +80,8 @@ const IGNORE_FROM_CODE = new Set([
   // X11/Wayland display server vars used by tray heuristic (isTraySupported).
   "DISPLAY",
   "WAYLAND_DISPLAY",
+  // Build-time override for OpenAPI spec path used by generate-api-commands.mjs.
+  "OPENAPI_SPEC",
   // Aliases for documented vars handled via fallback ordering.
   "API_KEY",
   "APP_URL",
