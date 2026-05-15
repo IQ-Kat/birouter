@@ -511,6 +511,7 @@ export default function RoutingTab() {
   const [jsonErrors, setJsonErrors] = useState<Record<string, string | null>>({});
   const [showJsonEditor, setShowJsonEditor] = useState<Record<string, boolean>>({});
   const [addOpKind, setAddOpKind] = useState<Record<string, TransformOpKind>>({});
+  const [newProviderId, setNewProviderId] = useState("");
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
   const [lkgpCacheStatus, setLkgpCacheStatus] = useState({ type: "", message: "" });
@@ -662,6 +663,22 @@ export default function RoutingTab() {
     const current = systemTransforms.providers[providerId] ?? { enabled: false, pipeline: [] };
     const pipeline = [...(current.pipeline as any[]), makeDefaultOp(kind)];
     updateProviderTransforms(providerId, { enabled: current.enabled, pipeline });
+  };
+
+  const BUILTIN_PROVIDERS = new Set([PROVIDER_CLAUDE, PROVIDER_CC_BRIDGE]);
+
+  const addProvider = () => {
+    const id = newProviderId.trim();
+    if (!id || systemTransforms.providers[id]) return;
+    updateProviderTransforms(id, { enabled: false, pipeline: [] });
+    setNewProviderId("");
+  };
+
+  const removeProvider = (providerId: string) => {
+    if (BUILTIN_PROVIDERS.has(providerId)) return;
+    const providers = systemTransforms.providers as Record<string, unknown>;
+    const { [providerId]: _removed, ...rest } = providers;
+    updateSetting({ systemTransforms: { providers: rest } });
   };
 
   const toggleCliCompatProvider = (providerId: string, enabled: boolean) => {
@@ -921,208 +938,257 @@ export default function RoutingTab() {
             })}
           </div>
         </div>
+      </Card>
 
-        <div>
-          <h4 className="text-sm font-semibold mb-1">System-block transform pipeline</h4>
-          <p className="text-xs text-text-muted mb-3">
-            Per-provider ordered pipeline. Add/edit ops via the form below, or import JSON for bulk
-            changes. All ops are idempotent on re-run.
-          </p>
+      <Card>
+        <div className="flex items-start gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 h-fit">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              tune
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{t("systemTransforms")}</h3>
+            <p className="text-sm text-text-muted mt-1">{t("systemTransformsDesc")}</p>
+          </div>
+        </div>
 
-          <div className="flex flex-col gap-5">
-            {Object.entries(systemTransforms.providers).map(([providerId, providerCfg]) => {
-              const display = PROVIDER_TILE_DISPLAY[providerId] ?? {
-                name: providerId,
-                description: "Custom provider.",
-                icon: "extension",
-                tone: "purple",
-              };
-              const draft = jsonDrafts[providerId] ?? JSON.stringify(providerCfg, null, 2);
-              const errorMsg = jsonErrors[providerId] ?? null;
-              const opCount = Array.isArray(providerCfg.pipeline) ? providerCfg.pipeline.length : 0;
-              const hasDefault = Boolean(
-                (DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers as Record<string, unknown>)[providerId]
-              );
-              const isJsonOpen = showJsonEditor[providerId] ?? false;
-              const selectedKind =
-                (addOpKind[providerId] as TransformOpKind | undefined) ??
-                "drop_paragraph_if_contains";
+        <div className="flex flex-col gap-5">
+          {Object.entries(systemTransforms.providers).map(([providerId, providerCfg]) => {
+            const isBuiltin = BUILTIN_PROVIDERS.has(providerId);
+            const display = PROVIDER_TILE_DISPLAY[providerId] ?? {
+              name: providerId,
+              description: "Custom provider.",
+              icon: "extension",
+              tone: "purple",
+            };
+            const draft = jsonDrafts[providerId] ?? JSON.stringify(providerCfg, null, 2);
+            const errorMsg = jsonErrors[providerId] ?? null;
+            const opCount = Array.isArray(providerCfg.pipeline) ? providerCfg.pipeline.length : 0;
+            const hasDefault = Boolean(
+              (DEFAULT_SYSTEM_TRANSFORMS_CLIENT.providers as Record<string, unknown>)[providerId]
+            );
+            const isJsonOpen = showJsonEditor[providerId] ?? false;
+            const selectedKind =
+              (addOpKind[providerId] as TransformOpKind | undefined) ??
+              "drop_paragraph_if_contains";
 
-              return (
-                <div
-                  key={providerId}
-                  className="rounded-lg border border-border/50 bg-surface/20 p-4"
-                >
-                  {/* Provider header row */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <code className="text-xs font-mono rounded bg-surface px-1.5 py-0.5">
-                          {providerId}
-                        </code>
-                        <span className="text-sm font-medium">{display.name}</span>
-                      </div>
-                      <p className="text-xs text-text-muted mt-1">{display.description}</p>
-                      <p className="text-[11px] text-text-muted mt-1">
-                        {opCount} op{opCount === 1 ? "" : "s"}
-                      </p>
+            return (
+              <div
+                key={providerId}
+                className="rounded-lg border border-border/50 bg-surface/20 p-4"
+              >
+                {/* Provider header row */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <code className="text-xs font-mono rounded bg-surface px-1.5 py-0.5">
+                        {providerId}
+                      </code>
+                      <span className="text-sm font-medium">{display.name}</span>
                     </div>
+                    <p className="text-xs text-text-muted mt-1">{display.description}</p>
+                    <p className="text-[11px] text-text-muted mt-1">
+                      {opCount} op{opCount === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
                     <Toggle
                       checked={providerCfg.enabled !== false}
                       onChange={(checked) => toggleProviderEnabled(providerId, checked)}
                       disabled={loading}
                       ariaLabel={`Enable ${display.name} transforms`}
                     />
-                  </div>
-
-                  {/* Pipeline op list with per-op editor */}
-                  {opCount > 0 && (
-                    <ol className="flex flex-col gap-2 mb-3">
-                      {(providerCfg.pipeline as any[]).map((op, index) => (
-                        <li
-                          key={index}
-                          className="rounded border border-border/30 bg-background/30 p-2 text-xs"
-                        >
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
-                              {index + 1}
-                            </span>
-                            <span className="font-mono text-purple-300 flex-1">{op?.kind}</span>
-                            <div className="flex gap-1">
-                              <button
-                                type="button"
-                                title="Move up"
-                                disabled={loading || index === 0}
-                                onClick={() => moveOp(providerId, index, -1)}
-                                className="text-text-muted hover:text-text disabled:opacity-30 px-1"
-                              >
-                                ▲
-                              </button>
-                              <button
-                                type="button"
-                                title="Move down"
-                                disabled={loading || index === opCount - 1}
-                                onClick={() => moveOp(providerId, index, 1)}
-                                className="text-text-muted hover:text-text disabled:opacity-30 px-1"
-                              >
-                                ▼
-                              </button>
-                              <button
-                                type="button"
-                                title="Delete op"
-                                disabled={loading}
-                                onClick={() => deleteOp(providerId, index)}
-                                className="text-red-400 hover:text-red-300 disabled:opacity-30 px-1"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
-                          <div className="ml-7">
-                            <OpEditor
-                              op={op}
-                              disabled={loading}
-                              onChange={(next) => updateOp(providerId, index, next)}
-                            />
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  )}
-
-                  {/* Add op row */}
-                  <div className="flex items-end gap-2 mb-3">
-                    <Select
-                      label="Add a transform op"
-                      className="flex-1"
-                      value={selectedKind}
-                      onChange={(e) =>
-                        setAddOpKind((prev) => ({
-                          ...prev,
-                          [providerId]: e.target.value as TransformOpKind,
-                        }))
-                      }
-                      disabled={loading}
-                      options={(Object.keys(OP_KIND_LABELS) as TransformOpKind[]).map((kind) => ({
-                        value: kind,
-                        label: OP_KIND_LABELS[kind],
-                      }))}
-                    />
-                    <Button
-                      onClick={() => addOp(providerId)}
-                      disabled={loading}
-                      variant="secondary"
-                      size="sm"
-                      icon="add"
-                    >
-                      Add op
-                    </Button>
-                  </div>
-
-                  {/* JSON import section (collapsible) */}
-                  <div className="border-t border-border/20 pt-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowJsonEditor((prev) => ({ ...prev, [providerId]: !isJsonOpen }))
-                      }
-                      className="text-[11px] text-primary hover:underline"
-                    >
-                      {isJsonOpen ? "▾ Hide JSON editor" : "▸ Import / export JSON"}
-                    </button>
-                    {isJsonOpen && (
-                      <div className="mt-2">
-                        <label className="text-[11px] font-medium text-text-muted block mb-1">
-                          JSON (edit &amp; Apply, or paste to import)
-                        </label>
-                        <textarea
-                          value={draft}
-                          onChange={(e) =>
-                            setJsonDrafts((prev) => ({ ...prev, [providerId]: e.target.value }))
-                          }
-                          rows={Math.min(40, Math.max(6, draft.split("\n").length))}
-                          disabled={loading}
-                          spellCheck={false}
-                          className="w-full rounded border border-border/50 bg-background/40 p-2 font-mono text-[11px] text-text resize-y"
-                        />
-                        {errorMsg && (
-                          <p className="mt-1 text-xs text-red-400 break-words">⚠ {errorMsg}</p>
-                        )}
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          <Button
-                            onClick={() => applyProviderJson(providerId)}
-                            disabled={loading}
-                            variant="secondary"
-                            size="sm"
-                            icon="check"
-                          >
-                            Apply JSON
-                          </Button>
-                          {hasDefault && (
-                            <Button
-                              onClick={() => resetProviderTransforms(providerId)}
-                              disabled={loading}
-                              variant="ghost"
-                              size="sm"
-                              icon="restart_alt"
-                            >
-                              Reset to defaults
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                    {!isBuiltin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon="delete"
+                        disabled={loading}
+                        aria-label={t("systemTransformsRemoveProvider")}
+                        title={t("systemTransformsRemoveProvider")}
+                        onClick={() => removeProvider(providerId)}
+                      />
                     )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          <p className="mt-3 text-[11px] text-text-muted">
-            All transform ops are idempotent on re-run. Changes take effect immediately on the next
-            request.
-          </p>
+                {/* Pipeline op list with per-op editor */}
+                {opCount > 0 && (
+                  <ol className="flex flex-col gap-2 mb-3">
+                    {(providerCfg.pipeline as any[]).map((op, index) => (
+                      <li
+                        key={index}
+                        className="rounded border border-border/30 bg-background/30 p-2 text-xs"
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
+                            {index + 1}
+                          </span>
+                          <span className="font-mono text-purple-300 flex-1">{op?.kind}</span>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              title="Move up"
+                              disabled={loading || index === 0}
+                              onClick={() => moveOp(providerId, index, -1)}
+                              className="text-text-muted hover:text-text disabled:opacity-30 px-1"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              title="Move down"
+                              disabled={loading || index === opCount - 1}
+                              onClick={() => moveOp(providerId, index, 1)}
+                              className="text-text-muted hover:text-text disabled:opacity-30 px-1"
+                            >
+                              ▼
+                            </button>
+                            <button
+                              type="button"
+                              title="Delete op"
+                              disabled={loading}
+                              onClick={() => deleteOp(providerId, index)}
+                              className="text-red-400 hover:text-red-300 disabled:opacity-30 px-1"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                        <div className="ml-7">
+                          <OpEditor
+                            op={op}
+                            disabled={loading}
+                            onChange={(next) => updateOp(providerId, index, next)}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                {/* Add op row */}
+                <div className="flex items-end gap-2 mb-3">
+                  <Select
+                    label="Add a transform op"
+                    className="flex-1"
+                    value={selectedKind}
+                    onChange={(e) =>
+                      setAddOpKind((prev) => ({
+                        ...prev,
+                        [providerId]: e.target.value as TransformOpKind,
+                      }))
+                    }
+                    disabled={loading}
+                    options={(Object.keys(OP_KIND_LABELS) as TransformOpKind[]).map((kind) => ({
+                      value: kind,
+                      label: OP_KIND_LABELS[kind],
+                    }))}
+                  />
+                  <Button
+                    onClick={() => addOp(providerId)}
+                    disabled={loading}
+                    variant="secondary"
+                    size="sm"
+                    icon="add"
+                  >
+                    Add op
+                  </Button>
+                </div>
+
+                {/* JSON import section (collapsible) */}
+                <div className="border-t border-border/20 pt-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowJsonEditor((prev) => ({ ...prev, [providerId]: !isJsonOpen }))
+                    }
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    {isJsonOpen ? "▾ Hide JSON editor" : "▸ Import / export JSON"}
+                  </button>
+                  {isJsonOpen && (
+                    <div className="mt-2">
+                      <label className="text-[11px] font-medium text-text-muted block mb-1">
+                        JSON (edit &amp; Apply, or paste to import)
+                      </label>
+                      <textarea
+                        value={draft}
+                        onChange={(e) =>
+                          setJsonDrafts((prev) => ({ ...prev, [providerId]: e.target.value }))
+                        }
+                        rows={Math.min(40, Math.max(6, draft.split("\n").length))}
+                        disabled={loading}
+                        spellCheck={false}
+                        className="w-full rounded border border-border/50 bg-background/40 p-2 font-mono text-[11px] text-text resize-y"
+                      />
+                      {errorMsg && (
+                        <p className="mt-1 text-xs text-red-400 break-words">⚠ {errorMsg}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <Button
+                          onClick={() => applyProviderJson(providerId)}
+                          disabled={loading}
+                          variant="secondary"
+                          size="sm"
+                          icon="check"
+                        >
+                          Apply JSON
+                        </Button>
+                        {hasDefault && (
+                          <Button
+                            onClick={() => resetProviderTransforms(providerId)}
+                            disabled={loading}
+                            variant="ghost"
+                            size="sm"
+                            icon="restart_alt"
+                          >
+                            Reset to defaults
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
+
+        {Object.keys(systemTransforms.providers).length === 0 && (
+          <p className="text-sm text-text-muted py-2">{t("systemTransformsNoProviders")}</p>
+        )}
+
+        <div className="mt-4 flex items-end gap-2 border-t border-border/20 pt-4">
+          <Input
+            label={t("systemTransformsAddProvider")}
+            placeholder={t("systemTransformsAddProviderPlaceholder")}
+            value={newProviderId}
+            disabled={loading}
+            onChange={(e) => setNewProviderId(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") addProvider();
+            }}
+            className="flex-1"
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="add"
+            disabled={
+              loading || !newProviderId.trim() || !!systemTransforms.providers[newProviderId.trim()]
+            }
+            onClick={addProvider}
+          >
+            {t("systemTransformsAddProvider")}
+          </Button>
+        </div>
+
+        <p className="mt-3 text-[11px] text-text-muted">
+          All transform ops are idempotent on re-run. Changes take effect immediately on the next
+          request.
+        </p>
       </Card>
 
       <Card>
