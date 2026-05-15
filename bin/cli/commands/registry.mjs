@@ -2,6 +2,7 @@ import { registerChat } from "./chat.mjs";
 import { registerStream } from "./stream.mjs";
 import { registerSimulate } from "./simulate.mjs";
 import { registerCost } from "./cost.mjs";
+import { registerUsage } from "./usage.mjs";
 import { registerServe } from "./serve.mjs";
 import { registerStop } from "./stop.mjs";
 import { registerRestart } from "./restart.mjs";
@@ -33,6 +34,7 @@ export function registerCommands(program) {
   registerStream(program);
   registerSimulate(program);
   registerCost(program);
+  registerUsage(program);
   registerServe(program);
   registerStop(program);
   registerRestart(program);

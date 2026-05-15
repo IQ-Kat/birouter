@@ -70,6 +70,46 @@
       "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
     }
   },
+  "usage": {
+    "description": "Usage analytics, budgets, quotas, and logs",
+    "analytics": {
+      "description": "Show aggregated usage analytics",
+      "period": "Time range: 1d|7d|30d|90d|ytd|all (default: 30d)",
+      "provider": "Filter by provider ID"
+    },
+    "budget": {
+      "description": "Manage cost budgets",
+      "set": {
+        "scope": "Budget scope (default: global)",
+        "period": "Budget period: daily|weekly|monthly (default: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Show provider quota usage",
+      "provider": "Filter by provider ID",
+      "check": "Show whether quota is available for a new request"
+    },
+    "logs": {
+      "description": "Show request call logs",
+      "limit": "Number of log entries to return (default: 100)",
+      "search": "Search query to filter logs",
+      "since": "Return logs since this timestamp",
+      "follow": "Continuously tail new log entries",
+      "api_key": "Filter logs by API key"
+    },
+    "utilization": {
+      "description": "Show API key utilization metrics",
+      "api_key": "Filter by API key"
+    },
+    "history": {
+      "description": "Show request history",
+      "limit": "Number of history entries (default: 100)"
+    },
+    "proxy_logs": {
+      "description": "Show proxy-level request logs",
+      "limit": "Number of proxy log entries (default: 100)"
+    }
+  },
   "cost": {
     "description": "Show cost report with breakdown by provider, model, combo, or API key",
     "period": "Time range: 1d|7d|30d|90d|ytd|all (default: 30d)",
