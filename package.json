@@ -171,6 +171,7 @@
     "tls-client-node": "^0.1.13",
     "tsx": "^4.21.0",
     "undici": "^8.2.0",
+    "update-notifier": "^7.3.1",
     "uuid": "^14.0.0",
     "wreq-js": "^2.3.0",
     "xxhash-wasm": "^1.1.0",

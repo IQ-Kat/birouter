@@ -2,6 +2,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { resolveDataDir } from "./data-dir.mjs";
+import { getCliToken, CLI_TOKEN_HEADER } from "./utils/cliToken.mjs";
 
 export const RETRY_DEFAULTS = Object.freeze({
   maxAttempts: 3,
@@ -52,7 +53,7 @@ function resolveUrl(path, opts) {
   return `${getBaseUrl(opts)}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-function buildHeaders(opts) {
+async function buildHeaders(opts) {
   const headers = new Headers(opts.headers || {});
   if (!headers.has("accept")) headers.set("accept", "application/json");
   if (opts.body && !headers.has("content-type") && typeof opts.body !== "string") {
@@ -62,9 +63,10 @@ function buildHeaders(opts) {
   if (apiKey && !headers.has("authorization")) {
     headers.set("authorization", `Bearer ${apiKey}`);
   }
-  const cliToken = opts.cliToken ?? process.env.OMNIROUTE_CLI_TOKEN;
-  if (cliToken && !headers.has("x-omniroute-cli-token")) {
-    headers.set("x-omniroute-cli-token", cliToken);
+  // Inject machine-id derived CLI token; env var override for testing.
+  const cliToken = opts.cliToken ?? process.env.OMNIROUTE_CLI_TOKEN ?? (await getCliToken());
+  if (cliToken && !headers.has(CLI_TOKEN_HEADER)) {
+    headers.set(CLI_TOKEN_HEADER, cliToken);
   }
   if (opts.idempotencyKey && !headers.has("idempotency-key")) {
     headers.set("idempotency-key", opts.idempotencyKey);
@@ -154,7 +156,7 @@ function fetchOnce(url, init, timeoutMs) {
 export async function apiFetch(path, opts = {}) {
   const method = String(opts.method || "GET").toUpperCase();
   const url = resolveUrl(path, opts);
-  const headers = buildHeaders(opts);
+  const headers = await buildHeaders(opts);
   const body = serializeBody(opts.body, headers);
   const timeout =
     opts.timeout ?? (Number.parseInt(process.env.OMNIROUTE_HTTP_TIMEOUT_MS || "", 10) || 30000);

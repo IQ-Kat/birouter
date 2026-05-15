@@ -14,6 +14,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir, platform } from "node:os";
+import updateNotifier from "update-notifier";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,6 +66,28 @@ function loadEnvFile() {
 }
 
 loadEnvFile();
+
+// Register update notifier — checks npm once per 24h, notifies on exit via stderr.
+const _pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+const _notifier = updateNotifier({ pkg: _pkg, updateCheckInterval: 1000 * 60 * 60 * 24 });
+process.on("exit", () => {
+  if (process.env.OMNIROUTE_NO_UPDATE_NOTIFIER) return;
+  if (process.env.CI) return;
+  if (process.argv.includes("--quiet") || process.argv.includes("-q")) return;
+  const outputIdx = process.argv.indexOf("--output");
+  const outputVal = outputIdx >= 0 ? process.argv[outputIdx + 1] : null;
+  if (outputVal === "json" || outputVal === "jsonl" || outputVal === "csv") return;
+  if (process.argv.some((a) => a.startsWith("--output=json") || a.startsWith("--output=jsonl") || a.startsWith("--output=csv"))) return;
+  if (_notifier.update) {
+    _notifier.notify({
+      defer: false,
+      isGlobal: true,
+      message:
+        `Update available: ${_notifier.update.current} → ${_notifier.update.latest}\n` +
+        "Run `npm install -g omniroute` or `omniroute update --apply`",
+    });
+  }
+});
 
 if (process.argv.includes("--mcp")) {
   try {

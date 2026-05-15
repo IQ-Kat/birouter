@@ -63,6 +63,10 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
+  "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // update-notifier opt-out for the CLI binary.
+  "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
   // These are external signals set by the host OS or cloud provider — not OmniRoute config.
   "CODESPACES",
