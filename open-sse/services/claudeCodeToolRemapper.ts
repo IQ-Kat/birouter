@@ -88,9 +88,12 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
     }
   }
 
-  if (hasLowercase && !hasTitleCase) {
-    body._claudeCodeRequiresLowercaseToolNames = true;
-  }
+  // NOTE: previously set body._claudeCodeRequiresLowercaseToolNames = true here.
+  // Removed: the flag had no readers in the codebase and leaked into the
+  // outgoing Anthropic request body, causing HTTP 400
+  // "_claudeCodeRequiresLowercaseToolNames: Extra inputs are not permitted".
+  // The response-side lowercase remap is unconditional anyway via
+  // remapToolNamesInResponse(text, forceLowercase=true).
 
   return hasLowercase && !hasTitleCase;
 }
