@@ -176,6 +176,65 @@ const OP_KIND_LABELS: Record<TransformOpKind, string> = {
   obfuscate_words: "Obfuscate words (ZWJ)",
 };
 
+// Human-readable description shown above each op's editor. Explains in one
+// sentence what the op DOES (transformation effect) and one sentence WHEN
+// to use it (the typical fingerprint-sanitization use-case).
+const OP_KIND_DESCRIPTIONS: Record<TransformOpKind, string> = {
+  drop_paragraph_if_contains:
+    "Removes any paragraph (text block split on blank lines) inside the system prompt whose text contains ANY of the listed substrings. Use to strip third-party client fingerprints like 'github.com/anomalyco/opencode' or 'docs.openwebui.com' that Anthropic's classifier flags.",
+  drop_paragraph_if_starts_with:
+    "Removes any paragraph that STARTS WITH one of the listed prefixes. Use for identity lines like 'You are OpenCode' or 'You are Open WebUI' that announce the calling client.",
+  replace_text:
+    "Replaces a literal substring with another literal substring. Use for known trigger phrases — e.g. rewrite 'Here is some useful information about the environment you are running in:' to 'Environment context you are running in:' (an empirically-validated trigger phrase).",
+  replace_regex:
+    "Replaces text matching a regular expression. Use when you need patterns (character classes, optional whitespace, anchors) instead of literal substrings. A malformed pattern is caught at runtime when the op runs.",
+  drop_block_if_contains:
+    "Removes ENTIRE system blocks (not just paragraphs) whose text contains any of the listed substrings. Use when a whole block is fingerprint-bearing and you want it gone — e.g. an injected MCP-server description.",
+  prepend_system_block:
+    "Inserts a new text block at the FRONT of the system array. Use to add the SDK identity 'You are a Claude agent, built on Anthropic's Claude Agent SDK.' that Anthropic's classifier expects.",
+  append_system_block:
+    "Inserts a new text block at the END of the system array. Use for cosmetic additions that don't need to be at position [0].",
+  inject_billing_header:
+    "Prepends the special 'x-anthropic-billing-header: cc_version=...; cc_entrypoint=...; cch=...;' text block that Anthropic's classifier validates. Required for CC bridge relay endpoints; for the native claude provider OmniRoute already injects its own billing line so this op is usually redundant there.",
+  obfuscate_words:
+    "Inserts a Zero-Width-Joiner character after the first letter of each listed word, so 'opencode' becomes 'o\u200dpencode'. Reads identical to humans but bypasses classifier word matches. Targets system blocks, user/assistant messages, and tool descriptions.",
+};
+
+// Per-field hints rendered under each Input/Select/Toggle inside the
+// editor. Short, plain-English. Keep under ~120 chars each.
+const FIELD_HINTS = {
+  needles:
+    "List of substrings. A paragraph matches if it contains ANY one of them. Add one per line via 'Add entry'.",
+  prefixes:
+    "List of strings. A paragraph matches if it starts with any one of them (leading whitespace is trimmed before matching).",
+  caseSensitive:
+    "When ON, 'OpenCode' and 'opencode' are different strings. When OFF (default), the comparison ignores case.",
+  matchLiteral:
+    "Exact literal substring to find. No regex syntax — special chars like . * ? are treated as themselves.",
+  replacementText:
+    "Replacement string. Leave blank to delete the match. The output preserves surrounding text.",
+  allOccurrences:
+    "When ON (default), every instance is replaced. When OFF, only the first match is replaced.",
+  pattern:
+    "JavaScript regex source. Don't wrap in slashes — just 'foo(.*)bar'. Server rejects patterns that fail to compile.",
+  regexFlags:
+    "JavaScript regex flags (g = all matches, i = case-insensitive, s = dot matches newline, m = multiline). Default 'g'.",
+  blockText:
+    "Full text of the new system block. Use a literal string; the system block stores text only.",
+  idempotencyKey:
+    "Optional. If set, the op skips when a block whose text starts with this key is already present. Prevents double-prepend on retries.",
+  billingEntrypoint:
+    "Value injected as 'cc_entrypoint='. Anthropic accepts 'sdk-cli' (Agent SDK), 'cli' (Claude Code CLI), or other documented values.",
+  billingVersionFormat:
+    "How the 3-char build hash after cc_version= is computed. 'ex-machina' = sha256 of CCH_SALT+chars-from-first-user-msg+version (per-message). 'omniroute-daystamp' = sha256 of YYYY-MM-DD+version (stable per-day).",
+  billingCchAlgo:
+    "How the 5-char cch= token is computed. 'sha256-first-user' = sha256 of first user message text. 'xxhash64-body' = body-level signing fills it later. 'static-zero' = literal '00000' placeholder.",
+  obfuscateWords:
+    "Lowercase words to obfuscate. ZWJ insertion is applied case-insensitively, so 'opencode' also matches 'OpenCode' and 'OPENCODE'.",
+  obfuscateTargets:
+    "Which body regions to scan for the words: system blocks, user/assistant messages, and/or tool descriptions.",
+};
+
 function makeDefaultOp(kind: TransformOpKind): any {
   switch (kind) {
     case "drop_paragraph_if_contains":
@@ -206,11 +265,13 @@ function makeDefaultOp(kind: TransformOpKind): any {
 
 function StringListEditor({
   label,
+  hint,
   items,
   onChange,
   disabled,
 }: {
   label: string;
+  hint?: string;
   items: string[];
   onChange: (next: string[]) => void;
   disabled?: boolean;
@@ -218,6 +279,7 @@ function StringListEditor({
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs font-medium text-text-main">{label}</span>
+      {hint && <p className="text-xs text-text-muted">{hint}</p>}
       {items.map((item, idx) => (
         <div key={idx} className="flex items-center gap-2">
           <Input
@@ -268,19 +330,34 @@ function OpEditor({
   disabled?: boolean;
 }) {
   const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
+  const kind = op?.kind as TransformOpKind | undefined;
+  const opDescription = kind ? OP_KIND_DESCRIPTIONS[kind] : null;
+
+  const wrap = (body: React.ReactNode) => (
+    <div className="flex flex-col gap-3">
+      {opDescription && (
+        <p className="text-[11px] leading-relaxed text-text-muted border-l-2 border-purple-500/30 pl-2 italic">
+          {opDescription}
+        </p>
+      )}
+      {body}
+    </div>
+  );
 
   switch (op?.kind) {
     case "drop_paragraph_if_contains":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
             label="Needles (substrings to match)"
+            hint={FIELD_HINTS.needles}
             items={op.needles || []}
             onChange={(next) => updateField("needles", next)}
             disabled={disabled}
           />
           <Toggle
             label="Case sensitive"
+            description={FIELD_HINTS.caseSensitive}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
             size="sm"
@@ -289,16 +366,18 @@ function OpEditor({
         </div>
       );
     case "drop_paragraph_if_starts_with":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
             label="Prefixes"
+            hint={FIELD_HINTS.prefixes}
             items={op.prefixes || []}
             onChange={(next) => updateField("prefixes", next)}
             disabled={disabled}
           />
           <Toggle
             label="Case sensitive"
+            description={FIELD_HINTS.caseSensitive}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
             size="sm"
@@ -307,22 +386,25 @@ function OpEditor({
         </div>
       );
     case "replace_text":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <Input
             label="Match"
+            hint={FIELD_HINTS.matchLiteral}
             value={op.match || ""}
             disabled={disabled}
             onChange={(e) => updateField("match", e.target.value)}
           />
           <Input
             label="Replacement"
+            hint={FIELD_HINTS.replacementText}
             value={op.replacement || ""}
             disabled={disabled}
             onChange={(e) => updateField("replacement", e.target.value)}
           />
           <Toggle
             label="Replace all occurrences"
+            description={FIELD_HINTS.allOccurrences}
             checked={op.allOccurrences !== false}
             onChange={(c) => updateField("allOccurrences", c)}
             size="sm"
@@ -331,22 +413,25 @@ function OpEditor({
         </div>
       );
     case "replace_regex":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <Input
             label="Pattern (regex)"
+            hint={FIELD_HINTS.pattern}
             value={op.pattern || ""}
             disabled={disabled}
             onChange={(e) => updateField("pattern", e.target.value)}
           />
           <Input
             label="Flags"
+            hint={FIELD_HINTS.regexFlags}
             value={op.flags || "g"}
             disabled={disabled}
             onChange={(e) => updateField("flags", e.target.value)}
           />
           <Input
             label="Replacement"
+            hint={FIELD_HINTS.replacementText}
             value={op.replacement || ""}
             disabled={disabled}
             onChange={(e) => updateField("replacement", e.target.value)}
@@ -354,9 +439,10 @@ function OpEditor({
         </div>
       );
     case "drop_block_if_contains":
-      return (
+      return wrap(
         <StringListEditor
           label="Needles"
+          hint={FIELD_HINTS.needles}
           items={op.needles || []}
           onChange={(next) => updateField("needles", next)}
           disabled={disabled}
@@ -364,7 +450,7 @@ function OpEditor({
       );
     case "prepend_system_block":
     case "append_system_block":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-text-main">Block text</label>
@@ -375,10 +461,11 @@ function OpEditor({
               onChange={(e) => updateField("text", e.target.value)}
               className="w-full rounded-md border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-text-main font-mono focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            <p className="text-xs text-text-muted">{FIELD_HINTS.blockText}</p>
           </div>
           <Input
             label="Idempotency key"
-            hint="Optional — skips if a block starting with this key is already present."
+            hint={FIELD_HINTS.idempotencyKey}
             value={op.idempotencyKey || ""}
             disabled={disabled}
             onChange={(e) => updateField("idempotencyKey", e.target.value)}
@@ -386,16 +473,18 @@ function OpEditor({
         </div>
       );
     case "inject_billing_header":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <Input
             label="Entrypoint"
+            hint={FIELD_HINTS.billingEntrypoint}
             value={op.entrypoint || "sdk-cli"}
             disabled={disabled}
             onChange={(e) => updateField("entrypoint", e.target.value)}
           />
           <Select
             label="Version format"
+            hint={FIELD_HINTS.billingVersionFormat}
             value={op.versionFormat || "ex-machina"}
             disabled={disabled}
             onChange={(e) => updateField("versionFormat", e.target.value)}
@@ -406,6 +495,7 @@ function OpEditor({
           />
           <Select
             label="CCH algorithm"
+            hint={FIELD_HINTS.billingCchAlgo}
             value={op.cchAlgo || "sha256-first-user"}
             disabled={disabled}
             onChange={(e) => updateField("cchAlgo", e.target.value)}
@@ -418,16 +508,18 @@ function OpEditor({
         </div>
       );
     case "obfuscate_words":
-      return (
+      return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
             label="Words to obfuscate (ZWJ inserted after first char)"
+            hint={FIELD_HINTS.obfuscateWords}
             items={op.words || []}
             onChange={(next) => updateField("words", next)}
             disabled={disabled}
           />
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-text-main">Targets</span>
+            <p className="text-xs text-text-muted">{FIELD_HINTS.obfuscateTargets}</p>
             <div className="flex flex-wrap gap-4">
               {(["system", "messages", "tools"] as const).map((target) => {
                 const targets: string[] = op.targets || ["system", "messages", "tools"];
@@ -526,6 +618,10 @@ export default function RoutingTab() {
   // effect so server-side values flow into the editor.
   const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
   const [jsonErrors, setJsonErrors] = useState<Record<string, string | null>>({});
+  // Save-state messages for the per-op structured editor (separate from
+  // jsonErrors which belongs to the JSON textarea). Cleared when the user
+  // makes a fresh edit; populated when the server rejects a PATCH.
+  const [providerSaveErrors, setProviderSaveErrors] = useState<Record<string, string | null>>({});
   const [showJsonEditor, setShowJsonEditor] = useState<Record<string, boolean>>({});
   const [addOpKind, setAddOpKind] = useState<Record<string, TransformOpKind>>({});
   const [newProviderId, setNewProviderId] = useState("");
@@ -544,18 +640,43 @@ export default function RoutingTab() {
       .catch(() => setLoading(false));
   }, []);
 
-  const updateSetting = async (patch) => {
+  // Optimistic update: apply the patch to local state FIRST so the UI never
+  // appears to drop the user's edit, then PATCH the server. If the server
+  // rejects (e.g. blank required field on a freshly-added op), surface the
+  // error to the caller via onError so the editor can render it inline. Local
+  // state is intentionally NOT rolled back — the user keeps editing and
+  // re-saves once the validation passes.
+  const updateSetting = async (patch: Record<string, unknown>, onError?: (msg: string) => void) => {
+    setSettings((prev: any) => ({ ...prev, ...patch }));
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
       });
-      if (res.ok) {
-        setSettings((prev) => ({ ...prev, ...patch }));
+      if (!res.ok) {
+        let serverMsg = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          const details = Array.isArray(body?.error?.details)
+            ? body.error.details
+                .map((d: { field?: string; message?: string }) =>
+                  d.field ? `${d.field}: ${d.message ?? "invalid"}` : d.message
+                )
+                .filter(Boolean)
+                .join("; ")
+            : null;
+          serverMsg = details || body?.error?.message || serverMsg;
+        } catch {
+          // body wasn't JSON — keep the HTTP status fallback
+        }
+        if (onError) onError(serverMsg);
+        else console.error("Failed to update settings:", serverMsg);
       }
     } catch (err) {
-      console.error("Failed to update settings:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (onError) onError(msg);
+      else console.error("Failed to update settings:", msg);
     }
   };
 
@@ -614,7 +735,12 @@ export default function RoutingTab() {
         [providerId]: next,
       },
     };
-    updateSetting({ systemTransforms: merged });
+    // Clear any prior save error for this provider so the user sees a fresh
+    // state. If the server rejects, the callback below will repopulate it.
+    setProviderSaveErrors((prev) => ({ ...prev, [providerId]: null }));
+    updateSetting({ systemTransforms: merged }, (msg) =>
+      setProviderSaveErrors((prev) => ({ ...prev, [providerId]: msg }))
+    );
   };
 
   const toggleProviderEnabled = (providerId: string, enabled: boolean) => {
@@ -1065,6 +1191,19 @@ export default function RoutingTab() {
                 }
               >
                 <p className="text-xs text-text-muted mb-3">{display.description}</p>
+                {providerSaveErrors[providerId] && (
+                  <div
+                    role="alert"
+                    className="mb-3 rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-300"
+                  >
+                    <span className="font-medium">⚠ Server rejected save:</span>{" "}
+                    <span className="break-words font-mono">{providerSaveErrors[providerId]}</span>
+                    <p className="mt-1 text-[11px] text-red-200/80">
+                      Your local edits are kept. Fix the field above and the next change will
+                      re-save.
+                    </p>
+                  </div>
+                )}
 
                 {/* Pipeline op list — each op is itself collapsible. */}
                 {opCount > 0 && (
