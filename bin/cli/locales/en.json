@@ -282,7 +282,15 @@
     "noServer": "Server not running. Start with: omniroute serve",
     "testing": "Testing {provider} / {model}...",
     "passed": "Connection successful!",
-    "failed": "Connection failed: {error}"
+    "failed": "Connection failed: {error}",
+    "allProvidersOpt": "Test all configured providers",
+    "latencyOpt": "Show latency measurements (avg/min/max ms)",
+    "repeatOpt": "Repeat test N times and aggregate results",
+    "compareOpt": "Comma-separated models to compare (e.g. gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Save results to a JSON file",
+    "saved": "Results saved to {path}",
+    "compareTitle": "Model Comparison",
+    "compareMinTwo": "At least two models required for --compare (comma-separated)"
   },
   "update": {
     "checking": "Checking for updates...",

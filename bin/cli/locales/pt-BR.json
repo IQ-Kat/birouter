@@ -282,7 +282,15 @@
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "testing": "Testando {provider} / {model}...",
     "passed": "Conexão bem-sucedida!",
-    "failed": "Conexão falhou: {error}"
+    "failed": "Conexão falhou: {error}",
+    "allProvidersOpt": "Testar todos os provedores configurados",
+    "latencyOpt": "Exibir medições de latência (avg/min/max ms)",
+    "repeatOpt": "Repetir o teste N vezes e agregar os resultados",
+    "compareOpt": "Modelos separados por vírgula para comparar (ex: gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Salvar resultados em arquivo JSON",
+    "saved": "Resultados salvos em {path}",
+    "compareTitle": "Comparação de Modelos",
+    "compareMinTwo": "São necessários pelo menos dois modelos para --compare (separados por vírgula)"
   },
   "update": {
     "checking": "Verificando atualizações...",

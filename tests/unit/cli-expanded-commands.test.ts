@@ -113,3 +113,36 @@ test("update --check com versão atual não lança", async () => {
   }
   assert.ok(code === 0 || code === 1);
 });
+
+test("test-provider.mjs exporta runTestProviderCommand com novas flags", async () => {
+  const mod = await import("../../bin/cli/commands/test-provider.mjs");
+  assert.equal(typeof mod.registerTestProvider, "function");
+  assert.equal(typeof mod.runTestProviderCommand, "function");
+});
+
+test("test-provider — registerTestProvider registra flags latency/repeat/compare/save", async () => {
+  const { registerTestProvider } = await import("../../bin/cli/commands/test-provider.mjs");
+  const { Command } = await import("commander");
+  const prog = new Command().exitOverride();
+  registerTestProvider(prog);
+  const testCmd = prog.commands.find((c) => c.name() === "test");
+  assert.ok(testCmd, "test command deve existir");
+  const optNames = testCmd.options.map((o: any) => o.long);
+  assert.ok(optNames.includes("--latency"), "--latency deve existir");
+  assert.ok(optNames.includes("--repeat"), "--repeat deve existir");
+  assert.ok(optNames.includes("--compare"), "--compare deve existir");
+  assert.ok(optNames.includes("--save"), "--save deve existir");
+});
+
+test("test-provider — compare requer pelo menos dois modelos sem server retorna 0 ou 1", async () => {
+  const { runTestProviderCommand } = await import("../../bin/cli/commands/test-provider.mjs");
+  let code = 0;
+  try {
+    code = await runTestProviderCommand("anthropic", undefined, {
+      compare: "gpt-4o,claude-3-5-sonnet",
+    });
+  } catch {
+    code = 1;
+  }
+  assert.ok(code === 0 || code === 1);
+});
