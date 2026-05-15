@@ -274,6 +274,47 @@
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "noModels": "Nenhum modelo encontrado."
   },
+  "memory": {
+    "description": "Gerenciar memória conversacional do OmniRoute (FTS5 + vetorial)",
+    "search": {
+      "description": "Buscar entradas de memória por query semântica",
+      "type": "Filtrar por tipo (user|feedback|project|reference)",
+      "limit": "Máximo de resultados (padrão: 20)",
+      "api_key": "Filtrar por chave de API",
+      "token_budget": "Limitar total de tokens nos resultados"
+    },
+    "add": {
+      "description": "Adicionar nova entrada de memória",
+      "content": "Conteúdo textual da memória",
+      "file": "Ler conteúdo de arquivo",
+      "type": "Tipo de memória (padrão: user)",
+      "metadata": "Objeto JSON de metadados",
+      "api_key": "Associar a chave de API"
+    },
+    "clear": {
+      "description": "Deletar entradas de memória que correspondem aos filtros",
+      "type": "Filtrar por tipo",
+      "older": "Deletar entradas mais antigas que a duração (30d, 6m, 1y)",
+      "api_key": "Filtrar por chave de API",
+      "yes": "Pular confirmação"
+    },
+    "list": {
+      "description": "Listar entradas de memória sem ranking de busca",
+      "type": "Filtrar por tipo",
+      "limit": "Máximo de resultados (padrão: 100)",
+      "api_key": "Filtrar por chave de API"
+    },
+    "get": {
+      "description": "Obter entrada de memória por ID"
+    },
+    "delete": {
+      "description": "Deletar entrada de memória por ID",
+      "yes": "Pular confirmação"
+    },
+    "health": {
+      "description": "Exibir saúde do subsistema de memória (FTS5 + Qdrant)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Roteador de IA com Fallback Automático",
     "version": "Exibir versão e sair",

@@ -274,6 +274,47 @@
     "noServer": "Server not running. Start with: omniroute serve",
     "noModels": "No models found."
   },
+  "memory": {
+    "description": "Manage OmniRoute conversational memory (FTS5 + vector)",
+    "search": {
+      "description": "Search memory entries by semantic query",
+      "type": "Filter by memory type (user|feedback|project|reference)",
+      "limit": "Maximum results (default: 20)",
+      "api_key": "Filter by API key",
+      "token_budget": "Limit total tokens in results"
+    },
+    "add": {
+      "description": "Add a new memory entry",
+      "content": "Memory text content",
+      "file": "Read content from file",
+      "type": "Memory type (default: user)",
+      "metadata": "JSON metadata object",
+      "api_key": "Associate with API key"
+    },
+    "clear": {
+      "description": "Delete memory entries matching filters",
+      "type": "Filter by type",
+      "older": "Delete entries older than duration (30d, 6m, 1y)",
+      "api_key": "Filter by API key",
+      "yes": "Skip confirmation prompt"
+    },
+    "list": {
+      "description": "List memory entries without search ranking",
+      "type": "Filter by type",
+      "limit": "Maximum results (default: 100)",
+      "api_key": "Filter by API key"
+    },
+    "get": {
+      "description": "Get a single memory entry by ID"
+    },
+    "delete": {
+      "description": "Delete a memory entry by ID",
+      "yes": "Skip confirmation prompt"
+    },
+    "health": {
+      "description": "Show memory subsystem health (FTS5 + Qdrant)"
+    }
+  },
   "program": {
     "description": "OmniRoute — Smart AI Router with Auto Fallback",
     "version": "Print version and exit",

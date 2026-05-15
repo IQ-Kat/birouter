@@ -1,3 +1,4 @@
+import { registerMemory } from "./memory.mjs";
 import { registerChat } from "./chat.mjs";
 import { registerStream } from "./stream.mjs";
 import { registerSimulate } from "./simulate.mjs";
@@ -30,6 +31,7 @@ import { registerTestProvider } from "./test-provider.mjs";
 import { registerCompletion } from "./completion.mjs";
 
 export function registerCommands(program) {
+  registerMemory(program);
   registerChat(program);
   registerStream(program);
   registerSimulate(program);
