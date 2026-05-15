@@ -44,7 +44,21 @@
     "available": "{count} provedor(es) disponível(is)",
     "connected": "Conectado",
     "disconnected": "Desconectado",
-    "validationFailed": "Validação falhou: {error}"
+    "validationFailed": "Validação falhou: {error}",
+    "metrics": {
+      "description": "Exibir métricas de performance dos provedores (latência, taxa de sucesso, custo)",
+      "provider": "Filtrar por ID de provedor",
+      "connection_id": "Filtrar por ID de conexão",
+      "period": "Período: 1h|6h|24h|7d|30d (padrão: 24h)",
+      "metric": "Focar em um campo de métrica específico",
+      "sort": "Ordenar por campo (decrescente)",
+      "limit": "Máximo de linhas (padrão: 50)",
+      "watch": "Atualizar a cada 5s (modo live)",
+      "compare": "IDs de provedores separados por vírgula para comparar"
+    },
+    "metric_single": {
+      "description": "Obter um único valor de métrica para uma conexão específica"
+    }
   },
   "keys": {
     "title": "Chaves de API",

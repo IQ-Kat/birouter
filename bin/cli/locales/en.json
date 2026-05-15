@@ -44,7 +44,21 @@
     "available": "{count} provider(s) available",
     "connected": "Connected",
     "disconnected": "Disconnected",
-    "validationFailed": "Validation failed: {error}"
+    "validationFailed": "Validation failed: {error}",
+    "metrics": {
+      "description": "Show provider performance metrics (latency, success rate, cost)",
+      "provider": "Filter by provider ID",
+      "connection_id": "Filter by connection ID",
+      "period": "Time period: 1h|6h|24h|7d|30d (default: 24h)",
+      "metric": "Focus on a specific metric field",
+      "sort": "Sort by field (descending)",
+      "limit": "Maximum rows (default: 50)",
+      "watch": "Refresh every 5s (live mode)",
+      "compare": "Comma-separated provider IDs to compare side-by-side"
+    },
+    "metric_single": {
+      "description": "Get a single metric value for a specific connection"
+    }
   },
   "keys": {
     "title": "API Keys",
