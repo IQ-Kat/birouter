@@ -45,6 +45,7 @@ const IGNORE_FROM_CODE = new Set([
   "TZ",
   "LANG",
   "LC_ALL",
+  "LC_MESSAGES",
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",

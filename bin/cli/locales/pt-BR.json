@@ -1,0 +1,106 @@
+{
+  "common": {
+    "error": "Erro: {message}",
+    "serverOffline": "Servidor OmniRoute offline. Inicie com: omniroute serve",
+    "authRequired": "Autenticação necessária. Configure OMNIROUTE_API_KEY ou execute: omniroute setup",
+    "rateLimited": "Limite de requisições atingido. Tente novamente em {seconds}s.",
+    "timeout": "Requisição expirou após {ms}ms.",
+    "success": "Concluído.",
+    "yes": "sim",
+    "no": "não",
+    "confirm": "Tem certeza? (sim/não)",
+    "dryRun": "[simulação] faria: {action}",
+    "cancelled": "Cancelado."
+  },
+  "setup": {
+    "title": "Configuração do OmniRoute",
+    "passwordPrompt": "Senha de administrador",
+    "providerPrompt": "Provedor padrão (deixe em branco para pular)",
+    "done": "Configuração concluída",
+    "passwordSet": "Senha de administrador configurada",
+    "providerSet": "Provedor configurado: {name}",
+    "testingProvider": "Testando conexão com provedor: {name}",
+    "testPassed": "Teste do provedor aprovado",
+    "testFailed": "Teste do provedor falhou: {error}",
+    "loginEnabled": "Login: habilitado (senha atualizada)",
+    "loginDisabled": "Login: desabilitado",
+    "providerInfo": "Provedor: {info}"
+  },
+  "doctor": {
+    "title": "OmniRoute Doctor",
+    "dbOk": "Banco de dados: OK ({path})",
+    "dbMissing": "Banco de dados: não inicializado — execute `omniroute setup`",
+    "portOk": "Porta {port}: disponível",
+    "portConflict": "Porta {port}: em uso por outro processo",
+    "encryptionOk": "Chave de criptografia: configurada",
+    "encryptionMissing": "Chave de criptografia ausente — execute `omniroute setup`",
+    "allGood": "Todas as verificações passaram.",
+    "warnings": "{count} aviso(s) — veja acima."
+  },
+  "providers": {
+    "title": "Provedores",
+    "noProviders": "Nenhum provedor configurado. Execute: omniroute setup",
+    "testing": "Testando {name}...",
+    "available": "{count} provedor(es) disponível(is)",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "validationFailed": "Validação falhou: {error}"
+  },
+  "keys": {
+    "title": "Chaves de API",
+    "added": "Chave adicionada para {provider}.",
+    "removed": "Chave removida.",
+    "listed": "{count} chave(s).",
+    "noKeys": "Nenhuma chave configurada.",
+    "confirmRemove": "Remover chave {id}?"
+  },
+  "combo": {
+    "title": "Combos",
+    "switched": "Combo ativo: {name}",
+    "created": "Combo criado: {name}",
+    "deleted": "Combo excluído: {name}",
+    "noCombos": "Nenhum combo configurado.",
+    "confirmDelete": "Excluir combo {name}?"
+  },
+  "serve": {
+    "starting": "Iniciando servidor OmniRoute na porta {port}...",
+    "ready": "Pronto em http://localhost:{port}",
+    "stopping": "Parando servidor (PID {pid})...",
+    "stopped": "Servidor parado.",
+    "notRunning": "Servidor não está em execução."
+  },
+  "backup": {
+    "title": "Backup",
+    "creating": "Criando backup...",
+    "done": "Backup salvo em {path}",
+    "restoring": "Restaurando de {path}...",
+    "restored": "Restauração concluída.",
+    "confirmRestore": "Substituir dados atuais pelo backup de {ts}?"
+  },
+  "update": {
+    "checking": "Verificando atualizações...",
+    "upToDate": "Já está atualizado ({version}).",
+    "available": "Atualização disponível: {current} → {latest}",
+    "installing": "Instalando {latest}...",
+    "done": "Atualizado para {latest}. Reinicie o servidor para aplicar."
+  },
+  "health": {
+    "title": "Saúde",
+    "status": "Status: {status}",
+    "uptime": "Uptime: {uptime}",
+    "requests": "Requisições (24h): {count}",
+    "cost": "Custo (24h): ${cost}"
+  },
+  "mcp": {
+    "title": "Servidor MCP",
+    "running": "Servidor MCP em execução ({transport})",
+    "stopped": "Servidor MCP parado.",
+    "restarted": "Servidor MCP reiniciado."
+  },
+  "tunnel": {
+    "title": "Túneis",
+    "created": "Túnel criado: {url}",
+    "stopped": "Túnel parado.",
+    "confirmStop": "Parar túnel {id}?"
+  }
+}

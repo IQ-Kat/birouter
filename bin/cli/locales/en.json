@@ -1,0 +1,106 @@
+{
+  "common": {
+    "error": "Error: {message}",
+    "serverOffline": "OmniRoute server is offline. Start it with: omniroute serve",
+    "authRequired": "Authentication required. Set OMNIROUTE_API_KEY or run: omniroute setup",
+    "rateLimited": "Rate limit exceeded. Retry after {seconds}s.",
+    "timeout": "Request timed out after {ms}ms.",
+    "success": "Done.",
+    "yes": "yes",
+    "no": "no",
+    "confirm": "Are you sure? (yes/no)",
+    "dryRun": "[dry-run] would {action}",
+    "cancelled": "Cancelled."
+  },
+  "setup": {
+    "title": "OmniRoute Setup",
+    "passwordPrompt": "Admin password",
+    "providerPrompt": "Default provider (leave blank to skip)",
+    "done": "Setup complete",
+    "passwordSet": "Admin password configured",
+    "providerSet": "Provider configured: {name}",
+    "testingProvider": "Testing provider connection: {name}",
+    "testPassed": "Provider test passed",
+    "testFailed": "Provider test failed: {error}",
+    "loginEnabled": "Login: enabled (password updated)",
+    "loginDisabled": "Login: disabled",
+    "providerInfo": "Provider: {info}"
+  },
+  "doctor": {
+    "title": "OmniRoute Doctor",
+    "dbOk": "Database: OK ({path})",
+    "dbMissing": "Database: not initialized — run `omniroute setup`",
+    "portOk": "Port {port}: available",
+    "portConflict": "Port {port}: in use by another process",
+    "encryptionOk": "Encryption key: configured",
+    "encryptionMissing": "Encryption key missing — run `omniroute setup`",
+    "allGood": "All checks passed.",
+    "warnings": "{count} warning(s) — see above."
+  },
+  "providers": {
+    "title": "Providers",
+    "noProviders": "No providers configured. Run: omniroute setup",
+    "testing": "Testing {name}...",
+    "available": "{count} provider(s) available",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "validationFailed": "Validation failed: {error}"
+  },
+  "keys": {
+    "title": "API Keys",
+    "added": "Key added for {provider}.",
+    "removed": "Key removed.",
+    "listed": "{count} key(s).",
+    "noKeys": "No keys configured.",
+    "confirmRemove": "Remove key {id}?"
+  },
+  "combo": {
+    "title": "Combos",
+    "switched": "Active combo: {name}",
+    "created": "Combo created: {name}",
+    "deleted": "Combo deleted: {name}",
+    "noCombos": "No combos configured.",
+    "confirmDelete": "Delete combo {name}?"
+  },
+  "serve": {
+    "starting": "Starting OmniRoute server on port {port}...",
+    "ready": "Ready at http://localhost:{port}",
+    "stopping": "Stopping server (PID {pid})...",
+    "stopped": "Server stopped.",
+    "notRunning": "Server is not running."
+  },
+  "backup": {
+    "title": "Backup",
+    "creating": "Creating backup...",
+    "done": "Backup saved to {path}",
+    "restoring": "Restoring from {path}...",
+    "restored": "Restore complete.",
+    "confirmRestore": "Overwrite current data with backup from {ts}?"
+  },
+  "update": {
+    "checking": "Checking for updates...",
+    "upToDate": "Already up to date ({version}).",
+    "available": "Update available: {current} → {latest}",
+    "installing": "Installing {latest}...",
+    "done": "Updated to {latest}. Restart the server to apply."
+  },
+  "health": {
+    "title": "Health",
+    "status": "Status: {status}",
+    "uptime": "Uptime: {uptime}",
+    "requests": "Requests (24h): {count}",
+    "cost": "Cost (24h): ${cost}"
+  },
+  "mcp": {
+    "title": "MCP Server",
+    "running": "MCP server running ({transport})",
+    "stopped": "MCP server stopped.",
+    "restarted": "MCP server restarted."
+  },
+  "tunnel": {
+    "title": "Tunnels",
+    "created": "Tunnel created: {url}",
+    "stopped": "Tunnel stopped.",
+    "confirmStop": "Stop tunnel {id}?"
+  }
+}
