@@ -1112,5 +1112,15 @@
     "combo": "Nome do combo a usar",
     "system": "System prompt",
     "resume": "Retomar sessão salva pelo nome"
+  },
+  "plugin": {
+    "description": "Gerenciar plugins CLI (omniroute-cmd-*)",
+    "list": "Listar plugins instalados",
+    "install": "Instalar plugin do npm ou caminho local",
+    "remove": "Remover plugin instalado",
+    "info": "Mostrar detalhes de um plugin instalado",
+    "search": "Buscar plugins disponíveis no npm",
+    "update": "Atualizar plugin(s) instalado(s)",
+    "scaffold": "Gerar boilerplate de novo plugin"
   }
 }

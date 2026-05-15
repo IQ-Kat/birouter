@@ -4,7 +4,6 @@ import { t } from "../i18n.mjs";
 export function registerDashboard(program) {
   program
     .command("dashboard")
-    .alias("open")
     .description(t("dashboard.description"))
     .option("--url", t("dashboard.urlOnly"))
     .option("--port <port>", "Port the server is running on", "20128")

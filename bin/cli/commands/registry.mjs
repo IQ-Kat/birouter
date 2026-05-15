@@ -56,6 +56,7 @@ import { registerTray } from "./tray.mjs";
 import { registerAutostart } from "./autostart.mjs";
 import { registerRepl } from "./repl.mjs";
 import { registerApiCommands } from "../api-commands/registry.mjs";
+import { registerPlugin } from "./plugin.mjs";
 
 export function registerCommands(program) {
   registerMemory(program);
@@ -117,4 +118,5 @@ export function registerCommands(program) {
   registerAutostart(program);
   registerRepl(program);
   registerApiCommands(program);
+  registerPlugin(program);
 }
