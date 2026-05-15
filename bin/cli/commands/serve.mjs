@@ -4,7 +4,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { platform } from "node:os";
 import { t } from "../i18n.mjs";
-import { writePidFile, cleanupPidFile } from "../utils/pid.mjs";
+import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
+import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..", "..");
@@ -22,6 +23,9 @@ export function registerServe(program) {
     .option("--port <port>", t("serve.port"), "20128")
     .option("--no-open", t("serve.no_open"))
     .option("--daemon", t("serve.daemon"))
+    .option("--log", t("serve.log"))
+    .option("--no-recovery", t("serve.no_recovery"))
+    .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
     .action(async (opts) => {
       await runServe(opts);
     });
@@ -125,22 +129,48 @@ export async function runServe(opts = {}) {
 
   const isDaemon = opts.daemon === true;
 
+  if (isDaemon) {
+    return runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort);
+  }
+
+  if (opts.noRecovery) {
+    return runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen);
+  }
+
+  return runWithSupervisor(
+    serverJs,
+    env,
+    memoryLimit,
+    dashboardPort,
+    apiPort,
+    noOpen,
+    opts.log === true,
+    opts.maxRestarts ?? 2
+  );
+}
+
+function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
     cwd: APP_DIR,
     env,
-    stdio: isDaemon ? "ignore" : "pipe",
-    detached: isDaemon,
+    stdio: "ignore",
+    detached: true,
+  });
+  writePidFile("server", server.pid);
+  server.unref();
+  console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
+  console.log(`  \x1b[1mDashboard:\x1b[0m  http://localhost:${dashboardPort}`);
+  console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
+}
+
+function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
+  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+    cwd: APP_DIR,
+    env,
+    stdio: "pipe",
   });
 
-  writePidFile(server.pid);
-
-  if (isDaemon) {
-    server.unref();
-    console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
-    console.log(`  \x1b[1mDashboard:\x1b[0m  http://localhost:${dashboardPort}`);
-    console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
-    return;
-  }
+  writePidFile("server", server.pid);
 
   let started = false;
 
@@ -156,9 +186,7 @@ export async function runServe(opts = {}) {
     }
   });
 
-  server.stderr.on("data", (data) => {
-    process.stderr.write(data);
-  });
+  server.stderr.on("data", (data) => process.stderr.write(data));
 
   server.on("error", (err) => {
     console.error("\x1b[31m✖ Failed to start server:\x1b[0m", err.message);
@@ -172,15 +200,15 @@ export async function runServe(opts = {}) {
     process.exit(code ?? 0);
   });
 
-  function shutdown() {
+  const shutdown = () => {
     console.log("\n\x1b[33m⏹ Shutting down OmniRoute...\x1b[0m");
-    cleanupPidFile();
+    cleanupPidFile("server");
     server.kill("SIGTERM");
     setTimeout(() => {
       server.kill("SIGKILL");
       process.exit(0);
     }, 5000);
-  }
+  };
 
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
@@ -191,6 +219,48 @@ export async function runServe(opts = {}) {
       onReady(dashboardPort, apiPort, noOpen);
     }
   }, 15000);
+}
+
+async function runWithSupervisor(
+  serverJs,
+  env,
+  memoryLimit,
+  dashboardPort,
+  apiPort,
+  noOpen,
+  showLog,
+  maxRestarts
+) {
+  if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
+
+  const supervisor = new ServerSupervisor({
+    serverPath: serverJs,
+    env,
+    memoryLimit,
+    maxRestarts,
+    onCrashCallback: async (crashLog) => {
+      if (detectMitmCrash(crashLog)) {
+        try {
+          const PROJECT_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+          const { updateSettings } = await import(`${PROJECT_ROOT}/src/lib/db/settings.ts`);
+          updateSettings({ mitmEnabled: false });
+        } catch {}
+        return "disable-mitm-and-retry";
+      }
+      return null;
+    },
+  });
+
+  supervisor.start();
+
+  process.on("SIGINT", () => supervisor.stop());
+  process.on("SIGTERM", () => supervisor.stop());
+
+  if (!showLog) {
+    waitForServer(dashboardPort, 20000).then((up) => {
+      if (up) onReady(dashboardPort, apiPort, noOpen);
+    });
+  }
 }
 
 async function onReady(dashboardPort, apiPort, noOpen) {

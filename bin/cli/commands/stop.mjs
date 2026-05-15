@@ -1,6 +1,12 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { readPidFile, isPidRunning, cleanupPidFile, sleep } from "../utils/pid.mjs";
+import {
+  readPidFile,
+  isPidRunning,
+  cleanupPidFile,
+  killAllSubprocesses,
+  sleep,
+} from "../utils/pid.mjs";
 import { t } from "../i18n.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -16,7 +22,7 @@ export function registerStop(program) {
 }
 
 export async function runStopCommand(opts = {}) {
-  const pid = readPidFile();
+  const pid = readPidFile("server");
 
   if (pid && isPidRunning(pid)) {
     console.log(t("stop.stopping", { pid }));
@@ -34,7 +40,8 @@ export async function runStopCommand(opts = {}) {
         await sleep(500);
       }
 
-      cleanupPidFile();
+      killAllSubprocesses();
+      cleanupPidFile("server");
       console.log(t("stop.stopped"));
       return 0;
     } catch (err) {
@@ -49,7 +56,8 @@ export async function runStopCommand(opts = {}) {
   if (pid === null) {
     console.log(t("stop.portFallback"));
     await killByPort(port);
-    cleanupPidFile();
+    killAllSubprocesses();
+    cleanupPidFile("server");
     console.log(t("stop.stopped"));
     return 0;
   }

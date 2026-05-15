@@ -71,7 +71,10 @@
     "notRunning": "Server is not running.",
     "port": "Port to listen on (default: 20128)",
     "no_open": "Do not open browser automatically",
-    "daemon": "Run server as a background daemon"
+    "daemon": "Run server as a background daemon",
+    "log": "Show server logs inline",
+    "no_recovery": "Disable auto-restart on crash (debugging mode)",
+    "max_restarts": "Max crash restarts within 30s before giving up (default: 2)"
   },
   "backup": {
     "title": "Backup",

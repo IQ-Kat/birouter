@@ -1,31 +1,49 @@
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { resolveDataDir } from "../data-dir.mjs";
 
-export function getPidFilePath() {
-  return join(resolveDataDir(), "server.pid");
+const SERVICES = ["server", "mitm", "tunnel/cloudflared", "tunnel/tailscale"];
+
+function getServicePidPath(service) {
+  return join(resolveDataDir(), service, ".pid");
 }
 
-export function writePidFile(pid) {
+export function writePidFile(service, pid) {
   try {
-    const pidPath = getPidFilePath();
-    const dir = dirname(pidPath);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    writeFileSync(pidPath, String(pid), "utf8");
+    const dir = join(resolveDataDir(), service);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(getServicePidPath(service), String(pid), "utf8");
     return true;
   } catch {
     return false;
   }
 }
 
-export function readPidFile() {
+export function readPidFile(service) {
   try {
-    const pidPath = getPidFilePath();
-    if (!existsSync(pidPath)) return null;
-    const content = readFileSync(pidPath, "utf8").trim();
-    return content ? parseInt(content, 10) : null;
+    const file = getServicePidPath(service);
+    if (!existsSync(file)) return null;
+    const pid = parseInt(readFileSync(file, "utf8").trim(), 10);
+    return Number.isFinite(pid) ? pid : null;
   } catch {
     return null;
+  }
+}
+
+export function cleanupPidFile(service) {
+  try {
+    unlinkSync(getServicePidPath(service));
+  } catch {}
+}
+
+export function killAllSubprocesses() {
+  for (const service of SERVICES) {
+    const pid = readPidFile(service);
+    if (!pid) continue;
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {}
+    cleanupPidFile(service);
   }
 }
 
@@ -37,13 +55,6 @@ export function isPidRunning(pid) {
   } catch {
     return false;
   }
-}
-
-export function cleanupPidFile() {
-  try {
-    const pidPath = getPidFilePath();
-    if (existsSync(pidPath)) unlinkSync(pidPath);
-  } catch {}
 }
 
 export function sleep(ms) {

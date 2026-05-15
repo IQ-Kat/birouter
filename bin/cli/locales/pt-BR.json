@@ -71,7 +71,10 @@
     "notRunning": "Servidor não está em execução.",
     "port": "Porta de escuta (padrão: 20128)",
     "no_open": "Não abrir navegador automaticamente",
-    "daemon": "Executar servidor em segundo plano"
+    "daemon": "Executar servidor em segundo plano",
+    "log": "Exibir logs do servidor inline",
+    "no_recovery": "Desabilitar reinício automático em crash (modo debug)",
+    "max_restarts": "Máximo de reinícios em 30s antes de desistir (padrão: 2)"
   },
   "backup": {
     "title": "Backup",

@@ -297,12 +297,13 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 These variables tune the `omniroute` CLI binary's own behavior (not the sidecar
 detection above).
 
-| Variable                    | Default    | Source File        | Description                                                                                                            |
-| --------------------------- | ---------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_LANG`            | _(system)_ | `bin/cli/i18n.mjs` | Force CLI output language. BCP-47 locale (e.g. `en`, `pt-BR`). Overrides system locale env vars (LC_ALL, LC_MESSAGES). |
-| `OMNIROUTE_CLI_TOKEN`       | _(unset)_  | `bin/cli/api.mjs`  | Machine-auth token injected as `x-omniroute-cli-token` header. Auto-generated in task 8.12.                            |
-| `OMNIROUTE_HTTP_TIMEOUT_MS` | `30000`    | `bin/cli/api.mjs`  | Per-attempt HTTP timeout (ms) for CLI → server requests.                                                               |
-| `OMNIROUTE_VERBOSE`         | `0`        | `bin/cli/api.mjs`  | Set to `1` to print retry/backoff diagnostics to stderr during CLI commands.                                           |
+| Variable                    | Default    | Source File                             | Description                                                                                                                     |
+| --------------------------- | ---------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_LANG`            | _(system)_ | `bin/cli/i18n.mjs`                      | Force CLI output language. BCP-47 locale (e.g. `en`, `pt-BR`). Overrides system locale env vars (LC_ALL, LC_MESSAGES).          |
+| `OMNIROUTE_SHOW_LOG`        | _(unset)_  | `bin/cli/runtime/processSupervisor.mjs` | Set to `1` to forward server stdout/stderr to the terminal in supervised mode. Equivalent to `--log` flag on `omniroute serve`. |
+| `OMNIROUTE_CLI_TOKEN`       | _(unset)_  | `bin/cli/api.mjs`                       | Machine-auth token injected as `x-omniroute-cli-token` header. Auto-generated in task 8.12.                                     |
+| `OMNIROUTE_HTTP_TIMEOUT_MS` | `30000`    | `bin/cli/api.mjs`                       | Per-attempt HTTP timeout (ms) for CLI → server requests.                                                                        |
+| `OMNIROUTE_VERBOSE`         | `0`        | `bin/cli/api.mjs`                       | Set to `1` to print retry/backoff diagnostics to stderr during CLI commands.                                                    |
 
 ---
 
