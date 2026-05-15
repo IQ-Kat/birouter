@@ -4,6 +4,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { platform } from "node:os";
 import { t } from "../i18n.mjs";
+import { writePidFile, cleanupPidFile } from "../utils/pid.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..", "..");
@@ -26,7 +27,7 @@ export function registerServe(program) {
     });
 }
 
-async function runServe(opts = {}) {
+export async function runServe(opts = {}) {
   const { isNativeBinaryCompatible } =
     await import("../../../scripts/build/native-binary-compat.mjs");
   const { getNodeRuntimeSupport, getNodeRuntimeWarning } =
@@ -122,11 +123,24 @@ async function runServe(opts = {}) {
     NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
   };
 
+  const isDaemon = opts.daemon === true;
+
   const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
     cwd: APP_DIR,
     env,
-    stdio: "pipe",
+    stdio: isDaemon ? "ignore" : "pipe",
+    detached: isDaemon,
   });
+
+  writePidFile(server.pid);
+
+  if (isDaemon) {
+    server.unref();
+    console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
+    console.log(`  \x1b[1mDashboard:\x1b[0m  http://localhost:${dashboardPort}`);
+    console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
+    return;
+  }
 
   let started = false;
 
@@ -160,6 +174,7 @@ async function runServe(opts = {}) {
 
   function shutdown() {
     console.log("\n\x1b[33m⏹ Shutting down OmniRoute...\x1b[0m");
+    cleanupPidFile();
     server.kill("SIGTERM");
     setTimeout(() => {
       server.kill("SIGKILL");

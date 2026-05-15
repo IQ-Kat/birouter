@@ -107,6 +107,28 @@
     "stopped": "Túnel parado.",
     "confirmStop": "Parar túnel {id}?"
   },
+  "stop": {
+    "description": "Parar o servidor OmniRoute",
+    "stopping": "Parando servidor (PID {pid})...",
+    "stopped": "Servidor parado.",
+    "notRunning": "Nenhum servidor está em execução.",
+    "portFallback": "Arquivo PID não encontrado, tentando parar pela porta..."
+  },
+  "restart": {
+    "description": "Reiniciar o servidor OmniRoute",
+    "restarting": "Reiniciando servidor OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Abrir o painel OmniRoute no navegador",
+    "opening": "Abrindo painel em {url}",
+    "urlOnly": "Exibir URL do painel sem abrir o navegador"
+  },
+  "models": {
+    "description": "Listar modelos disponíveis (requer servidor)",
+    "search": "Filtrar modelos por id, nome, provedor ou descrição",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "noModels": "Nenhum modelo encontrado."
+  },
   "program": {
     "description": "OmniRoute — Roteador de IA com Fallback Automático",
     "version": "Exibir versão e sair",

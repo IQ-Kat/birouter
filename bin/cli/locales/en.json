@@ -107,6 +107,28 @@
     "stopped": "Tunnel stopped.",
     "confirmStop": "Stop tunnel {id}?"
   },
+  "stop": {
+    "description": "Stop the OmniRoute server",
+    "stopping": "Stopping server (PID {pid})...",
+    "stopped": "Server stopped.",
+    "notRunning": "No server is running.",
+    "portFallback": "No PID file found, attempting port-based stop..."
+  },
+  "restart": {
+    "description": "Restart the OmniRoute server",
+    "restarting": "Restarting OmniRoute server..."
+  },
+  "dashboard": {
+    "description": "Open the OmniRoute dashboard in a browser",
+    "opening": "Opening dashboard at {url}",
+    "urlOnly": "Print dashboard URL without opening browser"
+  },
+  "models": {
+    "description": "List available models (requires server)",
+    "search": "Filter models by id, name, provider, or description",
+    "noServer": "Server not running. Start with: omniroute serve",
+    "noModels": "No models found."
+  },
   "program": {
     "description": "OmniRoute — Smart AI Router with Auto Fallback",
     "version": "Print version and exit",
