@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
 import { getMachineTokenSync } from "../../../lib/machineToken";
@@ -17,7 +18,8 @@ function hasValidCliToken(headers: Headers): boolean {
   const provided = headers.get(CLI_TOKEN_HEADER);
   if (!provided) return false;
   const expected = getMachineTokenSync();
-  return expected !== "" && provided === expected;
+  if (expected === "" || provided.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
 }
 
 function hasBearerToken(headers: Headers): boolean {

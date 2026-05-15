@@ -11,7 +11,19 @@ $ErrorActionPreference = "Stop"
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 $script:notifyIcon = New-Object System.Windows.Forms.NotifyIcon
-$script:notifyIcon.Icon = New-Object System.Drawing.Icon($IconPath)
+if ($IconPath -and (Test-Path $IconPath)) {
+  if ($IconPath.ToLower().EndsWith('.ico')) {
+    $script:notifyIcon.Icon = New-Object System.Drawing.Icon($IconPath)
+  } else {
+    # Accepts .png and other bitmap formats via GDI+ handle conversion
+    $bitmap = New-Object System.Drawing.Bitmap($IconPath)
+    $handle = $bitmap.GetHicon()
+    $script:notifyIcon.Icon = [System.Drawing.Icon]::FromHandle($handle)
+    $bitmap.Dispose()
+  }
+} else {
+  $script:notifyIcon.Icon = [System.Drawing.SystemIcons]::Application
+}
 $script:notifyIcon.Text = $Tooltip
 $script:notifyIcon.Visible = $true
 

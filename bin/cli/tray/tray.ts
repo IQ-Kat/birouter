@@ -29,9 +29,13 @@ const FALLBACK_ICON_BASE64 =
 
 export function getIconPath(): string {
   const isWin = process.platform === "win32";
-  const iconFile = isWin ? "icon.ico" : "icon.png";
-  const iconPath = join(__dirname, iconFile);
-  return existsSync(iconPath) ? iconPath : "";
+  // On Windows prefer .ico but fall back to .png (tray.ps1 handles both via GDI+)
+  const candidates = isWin ? ["icon.ico", "icon.png"] : ["icon.png"];
+  for (const iconFile of candidates) {
+    const iconPath = join(__dirname, iconFile);
+    if (existsSync(iconPath)) return iconPath;
+  }
+  return "";
 }
 
 export function getIconBase64(): string {
