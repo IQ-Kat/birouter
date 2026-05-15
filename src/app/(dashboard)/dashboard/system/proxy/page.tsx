@@ -18,7 +18,7 @@ export default function ProxyPage() {
   const [activeSubTab, setActiveSubTab] = useState("http");
 
   return (
-    <div className="max-w-6xl mx-auto min-w-0">
+    <div className="min-w-0">
       <div className="flex flex-col gap-6">
         <div className="w-full overflow-x-auto pb-1">
           <div

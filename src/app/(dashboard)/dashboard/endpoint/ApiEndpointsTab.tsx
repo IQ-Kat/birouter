@@ -273,17 +273,15 @@ export default function ApiEndpointsTab() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-white/5 rounded-lg w-1/3" />
-          <div className="h-64 bg-white/5 rounded-xl" />
-        </div>
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-white/5 rounded-lg w-1/3" />
+        <div className="h-64 bg-white/5 rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-5">
+    <div className="space-y-5">
       {/* Header with spec info */}
       {catalog && (
         <Card className="p-5">
