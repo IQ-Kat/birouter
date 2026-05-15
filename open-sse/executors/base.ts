@@ -789,7 +789,14 @@ export class BaseExecutor {
           // sensitive words). It deliberately does NOT include
           // `inject_billing_header` — billing + sentinel are already
           // prepended above. Users can extend the pipeline via Settings UI.
-          applySystemTransformPipeline(PROVIDER_CLAUDE, tb);
+          {
+            const transformResult = applySystemTransformPipeline(PROVIDER_CLAUDE, tb);
+            if (transformResult.appliedOpKinds.length > 0) {
+              console.log(
+                `[SystemTransforms] claude-native: ${transformResult.appliedOpKinds.join(", ")}`
+              );
+            }
+          }
 
           if (!tb.metadata || typeof tb.metadata !== "object") tb.metadata = {};
           (tb.metadata as Record<string, unknown>).user_id = buildUserIdJson({

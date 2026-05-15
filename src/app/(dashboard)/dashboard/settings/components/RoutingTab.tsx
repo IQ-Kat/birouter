@@ -708,7 +708,7 @@ export default function RoutingTab() {
                     onChange={(e) =>
                       setJsonDrafts((prev) => ({ ...prev, [providerId]: e.target.value }))
                     }
-                    rows={Math.min(20, Math.max(8, draft.split("\n").length))}
+                    rows={Math.min(40, Math.max(8, draft.split("\n").length))}
                     disabled={loading}
                     spellCheck={false}
                     className="w-full rounded border border-border/50 bg-background/40 p-2 font-mono text-[11px] text-text resize-y"

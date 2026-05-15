@@ -23,7 +23,7 @@
  *
  * Reference: OmniRoute issue #2260 + comment 4459544580 (Open WebUI bypass).
  */
-import { obfuscateSensitiveWords } from "./claudeCodeObfuscation.ts";
+
 import {
   applyCcBridgeTransformPipeline,
   CLAUDE_AGENT_SDK_IDENTITY,
@@ -213,18 +213,6 @@ interface RequestBody {
 // Op: obfuscate_words (the only op kind beyond the base set).
 // ────────────────────────────────────────────────────────────────────────────
 
-function setWordsForOp(words: string[]): void {
-  // Reuse the existing obfuscation engine — but it reads from its own module
-  // singleton. We swap the words for this op invocation; obfuscateSensitiveWords
-  // uses the module-level `sensitiveWords` array via setSensitiveWords.
-  // To keep this stateless across concurrent requests, we instead call
-  // obfuscateSensitiveWordsCustom (defined below) which takes the words list
-  // explicitly.
-  // — unused (intentional, see obfuscateWithList below).
-  void words;
-}
-void setWordsForOp;
-
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -297,10 +285,6 @@ function applyObfuscateWords(body: RequestBody, op: ObfuscateWordsOp): void {
     }
   }
 }
-
-// Silence unused-import warning on obfuscateSensitiveWords — re-export for
-// callers that want the global-singleton variant.
-export { obfuscateSensitiveWords };
 
 // ────────────────────────────────────────────────────────────────────────────
 // Pipeline executor (delegates base ops to applyCcBridgeTransformPipeline).

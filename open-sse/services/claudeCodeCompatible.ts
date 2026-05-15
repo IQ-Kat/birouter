@@ -339,10 +339,15 @@ export async function buildAndSignClaudeCodeRequest(
   // Routed via the generic per-provider DSL so the same pipeline shape covers
   // the CC bridge, the native `claude` path, and any other configured
   // provider. Idempotent on re-run.
-  applySystemTransformPipeline(
-    PROVIDER_CC_BRIDGE,
-    body as Parameters<typeof applySystemTransformPipeline>[1]
-  );
+  {
+    const transformResult = applySystemTransformPipeline(
+      PROVIDER_CC_BRIDGE,
+      body as Parameters<typeof applySystemTransformPipeline>[1]
+    );
+    if (transformResult.appliedOpKinds.length > 0) {
+      console.log(`[SystemTransforms] cc-bridge: ${transformResult.appliedOpKinds.join(", ")}`);
+    }
+  }
 
   // Step 6: Obfuscation (optional, per-provider setting)
   if (enableObfuscation) {
