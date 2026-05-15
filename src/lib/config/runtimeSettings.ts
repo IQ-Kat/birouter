@@ -12,7 +12,8 @@ export type RuntimeReloadSection =
   | "healthCheckLogs"
   | "thoughtSignature"
   | "modelsDevSync"
-  | "corsOrigins";
+  | "corsOrigins"
+  | "ccBridgeTransforms";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
@@ -31,6 +32,7 @@ interface RuntimeSettingsSnapshot {
   modelsDevSyncEnabled: boolean;
   modelsDevSyncInterval: number | null;
   corsOrigins: string;
+  ccBridgeTransforms: unknown;
 }
 
 const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
@@ -45,6 +47,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   modelsDevSyncEnabled: false,
   modelsDevSyncInterval: null,
   corsOrigins: "",
+  ccBridgeTransforms: null,
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
@@ -180,6 +183,7 @@ export function buildRuntimeSettingsSnapshot(
     modelsDevSyncEnabled: settings.modelsDevSyncEnabled === true,
     modelsDevSyncInterval: normalizeNumber(settings.modelsDevSyncInterval),
     corsOrigins: typeof settings.corsOrigins === "string" ? settings.corsOrigins : "",
+    ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
   };
 }
 
@@ -255,6 +259,24 @@ async function applyThoughtSignatureSection(mode: string) {
 async function applyCorsOriginsSection(corsOrigins: string) {
   const { setRuntimeAllowedOrigins } = await import("@/server/cors/origins");
   setRuntimeAllowedOrigins(corsOrigins);
+}
+
+async function applyCcBridgeTransformsSection(ccBridgeTransforms: unknown) {
+  const { setCcBridgeTransformsConfig, resetCcBridgeTransformsConfig } =
+    await import("@omniroute/open-sse/services/ccBridgeTransforms.ts");
+
+  if (
+    ccBridgeTransforms === null ||
+    ccBridgeTransforms === undefined ||
+    typeof ccBridgeTransforms !== "object"
+  ) {
+    resetCcBridgeTransformsConfig();
+    return;
+  }
+
+  setCcBridgeTransformsConfig(
+    ccBridgeTransforms as Parameters<typeof setCcBridgeTransformsConfig>[0]
+  );
 }
 
 async function applyModelsDevSyncSection(
@@ -390,6 +412,14 @@ export async function applyRuntimeSettings(
   if (force || hasChanged(currentSnapshot.corsOrigins, previousSnapshot.corsOrigins)) {
     await applyCorsOriginsSection(currentSnapshot.corsOrigins);
     markChanged("corsOrigins");
+  }
+
+  if (
+    force ||
+    hasChanged(currentSnapshot.ccBridgeTransforms, previousSnapshot.ccBridgeTransforms)
+  ) {
+    await applyCcBridgeTransformsSection(currentSnapshot.ccBridgeTransforms);
+    markChanged("ccBridgeTransforms");
   }
 
   lastAppliedSnapshot = currentSnapshot;

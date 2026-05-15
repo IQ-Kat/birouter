@@ -619,6 +619,15 @@ export class BaseExecutor {
           remapToolNamesInRequest(tb);
           obfuscateInBody(tb);
 
+          // NOTE (issue #2260): This is the native `claude` provider OAuth path.
+          // It is intentionally NOT routed through applyCcBridgeTransformPipeline.
+          // The native OAuth path already prepends its own billing line + sentinel
+          // (see lines ~744-773 below, dayStamp-based, cc_entrypoint=cli, cch=00000
+          // placeholder, signed at body level). The CC bridge transforms DSL is
+          // wired into buildAndSignClaudeCodeRequest (claudeCodeCompatible.ts step 5b)
+          // which is the anthropic-compatible-cc-* relay path — a different,
+          // separately classified surface. Do not double-prepend here.
+
           // Real CLI never sets cache_control on tools.
           if (Array.isArray(tb.tools)) {
             for (const t of tb.tools as Array<Record<string, unknown>>) {

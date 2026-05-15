@@ -10,6 +10,109 @@ import {
   normalizeCliCompatProviderId,
 } from "@/shared/constants/cliCompatProviders";
 
+// Mirror of DEFAULT_CC_BRIDGE_PIPELINE from open-sse/services/ccBridgeTransforms.ts.
+// Kept client-side so the UI can render + reset to defaults without a server roundtrip.
+// Server is the source of truth — if pipeline is empty/missing on PATCH, server falls back to its own defaults.
+const DEFAULT_CC_BRIDGE_PIPELINE_CLIENT = [
+  {
+    kind: "drop_paragraph_if_contains",
+    needles: [
+      "github.com/anomalyco/opencode",
+      "opencode.ai/docs",
+      "github.com/cline/cline",
+      "github.com/getcursor/cursor",
+      "continue.dev",
+    ],
+  },
+  {
+    kind: "drop_paragraph_if_starts_with",
+    prefixes: ["You are OpenCode"],
+  },
+  {
+    kind: "replace_text",
+    match: "if OpenCode honestly",
+    replacement: "if the assistant honestly",
+  },
+  {
+    kind: "replace_text",
+    match: "Here is some useful information about the environment you are running in:",
+    replacement: "Environment context you are running in:",
+  },
+  {
+    kind: "prepend_system_block",
+    text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+    idempotencyKey: "claude-agent-sdk-identity",
+  },
+  {
+    kind: "inject_billing_header",
+    entrypoint: "sdk-cli",
+    versionFormat: "ex-machina",
+    cchAlgo: "sha256-first-user",
+  },
+];
+
+const TRANSFORM_OP_KINDS = [
+  "drop_paragraph_if_contains",
+  "drop_paragraph_if_starts_with",
+  "replace_text",
+  "replace_regex",
+  "drop_block_if_contains",
+  "prepend_system_block",
+  "append_system_block",
+  "inject_billing_header",
+] as const;
+
+function summarizeTransformOp(op: any): string {
+  switch (op?.kind) {
+    case "drop_paragraph_if_contains":
+      return `drop paragraphs containing: ${(op.needles || []).slice(0, 3).join(", ")}${(op.needles || []).length > 3 ? "…" : ""}`;
+    case "drop_paragraph_if_starts_with":
+      return `drop paragraphs starting with: ${(op.prefixes || []).slice(0, 3).join(", ")}${(op.prefixes || []).length > 3 ? "…" : ""}`;
+    case "replace_text":
+      return `replace "${(op.match || "").slice(0, 40)}${(op.match || "").length > 40 ? "…" : ""}" → "${(op.replacement || "").slice(0, 40)}${(op.replacement || "").length > 40 ? "…" : ""}"`;
+    case "replace_regex":
+      return `regex /${op.pattern}/${op.flags || ""} → "${(op.replacement || "").slice(0, 40)}"`;
+    case "drop_block_if_contains":
+      return `drop blocks containing: ${(op.needles || []).slice(0, 3).join(", ")}`;
+    case "prepend_system_block":
+      return `prepend block: "${(op.text || "").slice(0, 60)}${(op.text || "").length > 60 ? "…" : ""}"`;
+    case "append_system_block":
+      return `append block: "${(op.text || "").slice(0, 60)}${(op.text || "").length > 60 ? "…" : ""}"`;
+    case "inject_billing_header":
+      return `inject billing header (entrypoint=${op.entrypoint}, version=${op.versionFormat}, cch=${op.cchAlgo})`;
+    default:
+      return JSON.stringify(op);
+  }
+}
+
+function makeBlankOp(kind: string): any {
+  switch (kind) {
+    case "drop_paragraph_if_contains":
+      return { kind, needles: [""] };
+    case "drop_paragraph_if_starts_with":
+      return { kind, prefixes: [""] };
+    case "replace_text":
+      return { kind, match: "", replacement: "" };
+    case "replace_regex":
+      return { kind, pattern: "", flags: "g", replacement: "" };
+    case "drop_block_if_contains":
+      return { kind, needles: [""] };
+    case "prepend_system_block":
+      return { kind, text: "" };
+    case "append_system_block":
+      return { kind, text: "" };
+    case "inject_billing_header":
+      return {
+        kind,
+        entrypoint: "sdk-cli",
+        versionFormat: "ex-machina",
+        cchAlgo: "sha256-first-user",
+      };
+    default:
+      return { kind };
+  }
+}
+
 export default function RoutingTab() {
   const [settings, setSettings] = useState<any>({
     alwaysPreserveClientCache: "auto",
@@ -17,7 +120,9 @@ export default function RoutingTab() {
     cliCompatProviders: [],
     autoRoutingEnabled: true,
     autoRoutingDefaultVariant: "lkgp",
+    ccBridgeTransforms: { enabled: true, pipeline: DEFAULT_CC_BRIDGE_PIPELINE_CLIENT },
   });
+  const [addOpKind, setAddOpKind] = useState<string>("drop_paragraph_if_contains");
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
   const [lkgpCacheStatus, setLkgpCacheStatus] = useState({ type: "", message: "" });
@@ -58,6 +163,43 @@ export default function RoutingTab() {
     [settings.cliCompatProviders]
   );
   const cliCompatProviderSet = useMemo(() => new Set(cliCompatProviders), [cliCompatProviders]);
+
+  const ccBridgeTransforms = useMemo(() => {
+    const raw = settings.ccBridgeTransforms;
+    if (raw && typeof raw === "object" && Array.isArray(raw.pipeline)) {
+      return { enabled: raw.enabled !== false, pipeline: raw.pipeline };
+    }
+    return { enabled: true, pipeline: DEFAULT_CC_BRIDGE_PIPELINE_CLIENT };
+  }, [settings.ccBridgeTransforms]);
+
+  const updateCcBridgeTransforms = (next: { enabled: boolean; pipeline: any[] }) => {
+    updateSetting({ ccBridgeTransforms: next });
+  };
+
+  const moveCcBridgeOp = (index: number, direction: -1 | 1) => {
+    const pipeline = [...ccBridgeTransforms.pipeline];
+    const target = index + direction;
+    if (target < 0 || target >= pipeline.length) return;
+    [pipeline[index], pipeline[target]] = [pipeline[target], pipeline[index]];
+    updateCcBridgeTransforms({ enabled: ccBridgeTransforms.enabled, pipeline });
+  };
+
+  const deleteCcBridgeOp = (index: number) => {
+    const pipeline = ccBridgeTransforms.pipeline.filter((_, i) => i !== index);
+    updateCcBridgeTransforms({ enabled: ccBridgeTransforms.enabled, pipeline });
+  };
+
+  const addCcBridgeOp = () => {
+    const pipeline = [...ccBridgeTransforms.pipeline, makeBlankOp(addOpKind)];
+    updateCcBridgeTransforms({ enabled: ccBridgeTransforms.enabled, pipeline });
+  };
+
+  const resetCcBridgePipeline = () => {
+    updateCcBridgeTransforms({
+      enabled: true,
+      pipeline: DEFAULT_CC_BRIDGE_PIPELINE_CLIENT.map((op) => ({ ...op })),
+    });
+  };
 
   const toggleCliCompatProvider = (providerId: string, enabled: boolean) => {
     const normalizedProviderId = normalizeCliCompatProviderId(providerId);
@@ -329,6 +471,143 @@ export default function RoutingTab() {
             );
           })}
         </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex gap-3">
+            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 h-fit">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                tune
+              </span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">{t("ccBridgeTransforms")}</h3>
+              <p className="text-sm text-text-muted mt-1">{t("ccBridgeTransformsDesc")}</p>
+              <p className="mt-1 text-xs text-text-muted">
+                {t("ccBridgeTransformsEnabled", { count: ccBridgeTransforms.pipeline.length })}
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={ccBridgeTransforms.enabled}
+                onChange={(e) =>
+                  updateCcBridgeTransforms({
+                    enabled: e.target.checked,
+                    pipeline: ccBridgeTransforms.pipeline,
+                  })
+                }
+                disabled={loading}
+              />
+              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+        </div>
+
+        {ccBridgeTransforms.pipeline.length === 0 ? (
+          <p className="text-xs text-text-muted italic mb-3">{t("ccBridgeTransformsEmpty")}</p>
+        ) : (
+          <ol className="flex flex-col gap-2 mb-3">
+            {ccBridgeTransforms.pipeline.map((op: any, index: number) => (
+              <li
+                key={index}
+                className="flex items-start gap-2 rounded-lg border border-border/50 bg-surface/30 p-3"
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-xs font-semibold text-purple-400">
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-mono text-purple-300">{op?.kind}</div>
+                  <div className="mt-1 text-xs text-text-muted break-words">
+                    {summarizeTransformOp(op)}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveCcBridgeOp(index, -1)}
+                    disabled={loading || index === 0}
+                    title={t("ccBridgeTransformsMoveUp")}
+                    aria-label={t("ccBridgeTransformsMoveUp")}
+                    className="rounded p-1 text-text-muted hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                      arrow_upward
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveCcBridgeOp(index, 1)}
+                    disabled={loading || index === ccBridgeTransforms.pipeline.length - 1}
+                    title={t("ccBridgeTransformsMoveDown")}
+                    aria-label={t("ccBridgeTransformsMoveDown")}
+                    className="rounded p-1 text-text-muted hover:bg-surface hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                      arrow_downward
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteCcBridgeOp(index)}
+                    disabled={loading}
+                    title={t("ccBridgeTransformsDelete")}
+                    aria-label={t("ccBridgeTransformsDelete")}
+                    className="rounded p-1 text-text-muted hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                      delete
+                    </span>
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={addOpKind}
+            onChange={(e) => setAddOpKind(e.target.value)}
+            disabled={loading}
+            className="rounded-lg border border-border/50 bg-surface px-3 py-1.5 text-xs text-text"
+          >
+            {TRANSFORM_OP_KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {kind}
+              </option>
+            ))}
+          </select>
+          <Button
+            onClick={addCcBridgeOp}
+            disabled={loading}
+            variant="secondary"
+            size="sm"
+            icon="add"
+          >
+            {t("ccBridgeTransformsAddOp")}
+          </Button>
+          <Button
+            onClick={resetCcBridgePipeline}
+            disabled={loading}
+            variant="ghost"
+            size="sm"
+            icon="restart_alt"
+          >
+            {t("ccBridgeTransformsReset")}
+          </Button>
+        </div>
+
+        <p className="mt-3 text-[11px] text-text-muted">
+          Pipeline applies in order at step 5b of the CC bridge request build (after cache-control,
+          before ZWJ obfuscation). All ops are idempotent on re-run. Op editing beyond
+          reorder/delete requires PATCH via /api/settings — full per-op form is coming in a
+          follow-up; for now, edit the JSON directly via the API to fine-tune individual ops.
+        </p>
       </Card>
 
       <Card>

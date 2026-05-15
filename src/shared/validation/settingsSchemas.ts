@@ -63,6 +63,63 @@ export const updateSettingsSchema = z.object({
   wsAuth: z.boolean().optional(),
   // CLI Fingerprint compatibility (per-provider)
   cliCompatProviders: z.array(z.string().max(100)).optional(),
+  // CC bridge transforms (issue #2260): config-driven pipeline that normalizes
+  // system blocks at the Claude Code bridge so any client (OpenCode, Cline,
+  // Cursor, Continue, raw API) ends up with classifier-correct structure.
+  ccBridgeTransforms: z
+    .object({
+      enabled: z.boolean(),
+      pipeline: z
+        .array(
+          z.discriminatedUnion("kind", [
+            z.object({
+              kind: z.literal("drop_paragraph_if_contains"),
+              needles: z.array(z.string().max(500)).max(50),
+              caseSensitive: z.boolean().optional(),
+            }),
+            z.object({
+              kind: z.literal("drop_paragraph_if_starts_with"),
+              prefixes: z.array(z.string().max(500)).max(50),
+              caseSensitive: z.boolean().optional(),
+            }),
+            z.object({
+              kind: z.literal("replace_text"),
+              match: z.string().min(1).max(500),
+              replacement: z.string().max(500),
+              allOccurrences: z.boolean().optional(),
+            }),
+            z.object({
+              kind: z.literal("replace_regex"),
+              pattern: z.string().min(1).max(500),
+              flags: z.string().max(10).optional(),
+              replacement: z.string().max(500),
+            }),
+            z.object({
+              kind: z.literal("drop_block_if_contains"),
+              needles: z.array(z.string().max(500)).max(50),
+            }),
+            z.object({
+              kind: z.literal("prepend_system_block"),
+              text: z.string().min(1).max(2000),
+              idempotencyKey: z.string().max(100).optional(),
+            }),
+            z.object({
+              kind: z.literal("append_system_block"),
+              text: z.string().min(1).max(2000),
+              idempotencyKey: z.string().max(100).optional(),
+            }),
+            z.object({
+              kind: z.literal("inject_billing_header"),
+              entrypoint: z.string().min(1).max(50),
+              versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
+              cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
+              version: z.string().max(50).optional(),
+            }),
+          ])
+        )
+        .max(50),
+    })
+    .optional(),
   // Strip provider/model prefix at proxy layer (e.g. "openai/gpt-4" → "gpt-4")
   stripModelPrefix: z.boolean().optional(),
   // Cache control preservation mode

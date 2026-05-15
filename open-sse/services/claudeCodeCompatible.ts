@@ -12,6 +12,7 @@ import {
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
+import { applyCcBridgeTransformPipeline } from "./ccBridgeTransforms.ts";
 
 /**
  * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
@@ -332,6 +333,11 @@ export async function buildAndSignClaudeCodeRequest(
   // Step 5: Cache control
   enforceCacheControlLimit(body);
 
+  // Step 5b: Config-driven CC bridge transforms (issue #2260)
+  // Normalizes system blocks to classifier-correct structure regardless of source
+  // client (OpenCode, Cline, Cursor, Continue, raw API). Idempotent on re-run.
+  applyCcBridgeTransformPipeline(body as Parameters<typeof applyCcBridgeTransformPipeline>[0]);
+
   // Step 6: Obfuscation (optional, per-provider setting)
   if (enableObfuscation) {
     obfuscateInBody(body);
@@ -362,6 +368,19 @@ export {
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
+export {
+  applyCcBridgeTransformPipeline,
+  buildBillingHeaderValue,
+  setCcBridgeTransformsConfig,
+  getCcBridgeTransformsConfig,
+  resetCcBridgeTransformsConfig,
+  DEFAULT_CC_BRIDGE_PIPELINE,
+  DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
+  DEFAULT_IDENTITY_PREFIXES,
+  DEFAULT_TEXT_REPLACEMENTS,
+  CLAUDE_AGENT_SDK_IDENTITY,
+} from "./ccBridgeTransforms.ts";
+export type { TransformOp, CcBridgeTransformsConfig } from "./ccBridgeTransforms.ts";
 
 export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,
