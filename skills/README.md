@@ -34,9 +34,9 @@ Each `SKILL.md` follows the Anthropic skill manifest spec with YAML frontmatter
 (`name`, `description`) and a self-contained markdown body: setup, endpoints,
 examples, and error codes. Assume the reader is an agent with no prior context.
 
-## Differences from 9router skills
+## Additional skills
 
-OmniRoute extends the 9router pattern with two additional skills:
+OmniRoute includes two protocol-level skills not found in other routers:
 
 - `omniroute-mcp` — exposes 37 MCP tools (memory, skills, providers, routing) over SSE/stdio/HTTP
 - `omniroute-a2a` — exposes 5 A2A skills (smart-routing, quota, discovery, cost, health)

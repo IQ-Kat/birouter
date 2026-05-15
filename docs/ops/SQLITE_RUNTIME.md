@@ -69,8 +69,6 @@ omniroute config db-info  # (if CLI command exists)
 
 ## Reference
 
-Pattern adapted from `9router/cli/hooks/sqliteRuntime.js`.
-
 Implementation:
 
 - `bin/cli/runtime/magicBytes.mjs` — binary magic-byte validation helpers

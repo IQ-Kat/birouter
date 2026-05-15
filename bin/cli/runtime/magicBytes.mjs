@@ -5,7 +5,6 @@ import { readFileSync, existsSync } from "node:fs";
  * Returns the platform label ("elf" | "macho" | "macho-le" | "macho-fat" | "pe")
  * or null if unrecognized / missing / unreadable.
  *
- * Ref: 9router/cli/hooks/sqliteRuntime.js (algorithm origin).
  */
 export function validateBinaryMagic(path) {
   if (!existsSync(path)) return null;
