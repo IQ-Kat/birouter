@@ -52,6 +52,8 @@ import { registerEnv } from "./env.mjs";
 import { registerTestProvider } from "./test-provider.mjs";
 import { registerCompletion } from "./completion.mjs";
 import { registerRuntime } from "./runtime.mjs";
+import { registerTray } from "./tray.mjs";
+import { registerAutostart } from "./autostart.mjs";
 
 export function registerCommands(program) {
   registerMemory(program);
@@ -109,4 +111,6 @@ export function registerCommands(program) {
   registerTestProvider(program);
   registerCompletion(program);
   registerRuntime(program);
+  registerTray(program);
+  registerAutostart(program);
 }

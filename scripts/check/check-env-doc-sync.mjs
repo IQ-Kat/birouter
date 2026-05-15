@@ -77,6 +77,9 @@ const IGNORE_FROM_CODE = new Set([
   "REPL_SLUG",
   "WSL_DISTRO_NAME",
   "WSL_INTEROP",
+  // X11/Wayland display server vars used by tray heuristic (isTraySupported).
+  "DISPLAY",
+  "WAYLAND_DISPLAY",
   // Aliases for documented vars handled via fallback ordering.
   "API_KEY",
   "APP_URL",

@@ -174,7 +174,9 @@
     "daemon": "Run server as a background daemon",
     "log": "Show server logs inline",
     "no_recovery": "Disable auto-restart on crash (debugging mode)",
-    "max_restarts": "Max crash restarts within 30s before giving up (default: 2)"
+    "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
+    "tray": "Show system tray icon (desktop only, opt-in)",
+    "no_tray": "Disable system tray icon"
   },
   "backup": {
     "title": "Backup",
@@ -1082,6 +1084,18 @@
     "durationMin": "Min request duration in ms",
     "durationMax": "Max request duration in ms",
     "export": "Save logs to file (json/jsonl/csv)"
+  },
+  "tray": {
+    "description": "Control the system tray icon",
+    "show": "Show the tray icon (if server is running with --tray)",
+    "hide": "Hide the tray icon",
+    "quit": "Quit OmniRoute via tray"
+  },
+  "autostart": {
+    "description": "Manage OmniRoute autostart at login",
+    "enable": "Enable autostart at login",
+    "disable": "Disable autostart at login",
+    "status": "Show autostart status"
   },
   "runtime": {
     "description": "Manage native runtime dependencies",

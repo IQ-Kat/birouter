@@ -174,7 +174,9 @@
     "daemon": "Executar servidor em segundo plano",
     "log": "Exibir logs do servidor inline",
     "no_recovery": "Desabilitar reinício automático em crash (modo debug)",
-    "max_restarts": "Máximo de reinícios em 30s antes de desistir (padrão: 2)"
+    "max_restarts": "Máximo de reinícios em 30s antes de desistir (padrão: 2)",
+    "tray": "Mostrar ícone na bandeja do sistema (apenas desktop, opt-in)",
+    "no_tray": "Desabilitar ícone na bandeja do sistema"
   },
   "backup": {
     "title": "Backup",
@@ -1082,6 +1084,18 @@
     "durationMin": "Duração mínima do request em ms",
     "durationMax": "Duração máxima do request em ms",
     "export": "Salvar logs em arquivo (json/jsonl/csv)"
+  },
+  "tray": {
+    "description": "Controlar o ícone na bandeja do sistema",
+    "show": "Mostrar o ícone na bandeja (se o servidor estiver rodando com --tray)",
+    "hide": "Ocultar o ícone na bandeja",
+    "quit": "Encerrar OmniRoute via bandeja"
+  },
+  "autostart": {
+    "description": "Gerenciar inicialização automática do OmniRoute no login",
+    "enable": "Habilitar inicialização automática no login",
+    "disable": "Desabilitar inicialização automática no login",
+    "status": "Mostrar status de inicialização automática"
   },
   "runtime": {
     "description": "Gerenciar dependências nativas do runtime",
