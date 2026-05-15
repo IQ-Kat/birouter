@@ -682,7 +682,8 @@
     "no_color": "Disable colored output",
     "timeout": "HTTP request timeout in milliseconds",
     "api_key": "API key for OmniRoute server",
-    "base_url": "OmniRoute server base URL"
+    "base_url": "OmniRoute server base URL",
+    "context": "Server context/profile to use for this command"
   },
   "files": {
     "description": "Manage files (upload, list, get, download, delete)",
@@ -1055,6 +1056,11 @@
     },
     "resolve": {
       "description": "Resolve sync conflicts interactively"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Manage server contexts/profiles (add, use, list, show, remove, rename, export, import)"
     }
   },
   "completion": {

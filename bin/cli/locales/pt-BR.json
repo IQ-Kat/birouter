@@ -682,7 +682,8 @@
     "no_color": "Desativar saída colorida",
     "timeout": "Timeout de requisições HTTP em milissegundos",
     "api_key": "Chave de API para o servidor OmniRoute",
-    "base_url": "URL base do servidor OmniRoute"
+    "base_url": "URL base do servidor OmniRoute",
+    "context": "Contexto/perfil do servidor a usar neste comando"
   },
   "files": {
     "description": "Gerenciar arquivos (upload, listar, obter, baixar, deletar)",
@@ -1055,6 +1056,11 @@
     },
     "resolve": {
       "description": "Resolver conflitos de sincronização interativamente"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Gerenciar contextos/perfis de servidor (add, use, list, show, remove, rename, export, import)"
     }
   },
   "completion": {

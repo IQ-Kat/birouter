@@ -25,6 +25,12 @@ export function createProgram() {
     .addOption(new Option("--timeout <ms>", t("program.timeout")).default("30000"))
     .addOption(new Option("--api-key <key>", t("program.api_key")).env("OMNIROUTE_API_KEY"))
     .addOption(new Option("--base-url <url>", t("program.base_url")).env("OMNIROUTE_BASE_URL"))
+    .addOption(
+      new Option(
+        "--context <name>",
+        t("program.context") || "Server context/profile to use for this command"
+      ).env("OMNIROUTE_CONTEXT")
+    )
     .showHelpAfterError(true)
     .exitOverride();
 

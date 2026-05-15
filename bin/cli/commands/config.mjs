@@ -2,6 +2,7 @@ import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { t } from "../i18n.mjs";
 import path from "node:path";
 import fs from "node:fs";
+import { registerContexts } from "./contexts.mjs";
 
 function ensureBackup(configPath) {
   if (!fs.existsSync(configPath)) return;
@@ -188,4 +189,7 @@ export function registerConfig(program) {
       const exitCode = await runConfigValidateCommand(tool, { ...opts, output: globalOpts.output });
       if (exitCode !== 0) process.exit(exitCode);
     });
+
+  // Register contexts/profiles CRUD as a subgroup of config.
+  registerContexts(config);
 }
