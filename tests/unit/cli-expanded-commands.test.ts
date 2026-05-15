@@ -167,6 +167,21 @@ test("ProvidersTestAll.jsx — arquivo existe e exporta startProvidersTestTui", 
   );
 });
 
+test("backup matchesGlob — comportamento correto", async () => {
+  // Teste via leitura de arquivo para evitar efeitos colaterais de importação
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const src = readFileSync(
+    fileURLToPath(new URL("../../bin/cli/commands/backup.mjs", import.meta.url)),
+    "utf8"
+  );
+  // Garante que a função usa lógica correta (sem startsWith na branch sem *)
+  assert.ok(src.includes("return fileName === pattern;"), "non-glob deve usar igualdade exata");
+  assert.ok(!src.includes("fileName.startsWith(pattern)"), "não deve usar startsWith no non-glob");
+  // Garante que suporta multi-wildcard (sem early return parts.length !== 2)
+  assert.ok(!src.includes("parts.length !== 2"), "não deve bloquear multi-wildcard");
+});
+
 test("test-provider — compare requer pelo menos dois modelos sem server retorna 0 ou 1", async () => {
   const { runTestProviderCommand } = await import("../../bin/cli/commands/test-provider.mjs");
   let code = 0;

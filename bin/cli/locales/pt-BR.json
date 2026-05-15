@@ -447,6 +447,8 @@
     "tailOpt": "Número de linhas de log a exibir",
     "typeRequired": "Tipo de túnel é obrigatório.",
     "noLogs": "Nenhum log disponível.",
+    "notAvailable": "Informações do túnel não disponíveis.",
+    "noTunnels": "Nenhum túnel ativo.",
     "infoTitle": "Info do túnel: {type}",
     "rotated": "URL do túnel rotacionada: {url}",
     "confirmRotate": "Rotacionar túnel {type}? (uma nova URL será gerada)"

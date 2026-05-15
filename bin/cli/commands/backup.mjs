@@ -8,7 +8,6 @@ import {
 } from "node:fs";
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
 import { dirname, join, extname, basename } from "node:path";
-import { homedir } from "node:os";
 import { resolveDataDir } from "../data-dir.mjs";
 import { apiFetch, isServerUp } from "../api.mjs";
 import { t } from "../i18n.mjs";
@@ -98,15 +97,25 @@ export function registerRestore(program) {
 }
 
 function matchesGlob(fileName, pattern) {
-  if (!pattern.includes("*")) return fileName === pattern || fileName.startsWith(pattern);
+  if (!pattern.includes("*")) return fileName === pattern;
   const parts = pattern.split("*");
-  if (parts.length !== 2) return false;
-  const [prefix, suffix] = parts;
-  return (
-    fileName.startsWith(prefix) &&
-    fileName.endsWith(suffix) &&
-    fileName.length >= prefix.length + suffix.length
-  );
+  let pos = 0;
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (!part) continue;
+    if (i === 0) {
+      if (!fileName.startsWith(part)) return false;
+      pos = part.length;
+    } else if (i === parts.length - 1) {
+      if (!fileName.endsWith(part)) return false;
+      if (fileName.length < pos + part.length) return false;
+    } else {
+      const idx = fileName.indexOf(part, pos);
+      if (idx === -1) return false;
+      pos = idx + part.length;
+    }
+  }
+  return true;
 }
 
 function shouldExclude(fileName, patterns) {
@@ -155,7 +164,8 @@ export async function runBackupCommand(opts = {}) {
   const dataDir = resolveDataDir();
   const backupDir = getBackupDir();
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const backupName = opts.name ? `omniroute-backup-${opts.name}` : `omniroute-backup-${timestamp}`;
+  const safeName = opts.name ? String(opts.name).replace(/[/\\]/g, "_") : null;
+  const backupName = safeName ? `omniroute-backup-${safeName}` : `omniroute-backup-${timestamp}`;
   const backupPath = join(backupDir, backupName);
   const excludePatterns = opts.exclude || [];
 
@@ -262,9 +272,14 @@ async function _uploadBackupToCloud(backupPath, info) {
     return 1;
   }
   try {
+    // Read files locally and send as base64 — never send local path to server
+    const files = {};
+    for (const fname of readdirSync(backupPath)) {
+      files[fname] = readFileSync(join(backupPath, fname)).toString("base64");
+    }
     const res = await apiFetch("/api/db-backups/cloud", {
       method: "POST",
-      body: { backupPath, info },
+      body: { files, info },
       retry: false,
       timeout: 30000,
       acceptNotOk: true,
@@ -280,9 +295,12 @@ async function _uploadBackupToCloud(backupPath, info) {
   }
 }
 
-const BACKUP_SCHEDULE_PATH = join(homedir(), ".omniroute", "backup-schedule.json");
+function getSchedulePath() {
+  return join(resolveDataDir(), "backup-schedule.json");
+}
 
 export async function runBackupAutoEnableCommand(opts = {}) {
+  const schedulePath = getSchedulePath();
   const schedule = {
     enabled: true,
     cron: opts.cron || "0 3 * * *",
@@ -291,30 +309,32 @@ export async function runBackupAutoEnableCommand(opts = {}) {
     retention: opts.retention || null,
     updatedAt: new Date().toISOString(),
   };
-  mkdirSync(dirname(BACKUP_SCHEDULE_PATH), { recursive: true });
-  writeFileSync(BACKUP_SCHEDULE_PATH, JSON.stringify(schedule, null, 2), "utf8");
+  mkdirSync(dirname(schedulePath), { recursive: true });
+  writeFileSync(schedulePath, JSON.stringify(schedule, null, 2), "utf8");
   console.log(t("backup.auto.enabled", { cron: schedule.cron }));
   console.log(t("backup.auto.hint"));
   return 0;
 }
 
 export async function runBackupAutoDisableCommand() {
-  if (existsSync(BACKUP_SCHEDULE_PATH)) {
-    const schedule = JSON.parse(readFileSync(BACKUP_SCHEDULE_PATH, "utf8"));
+  const schedulePath = getSchedulePath();
+  if (existsSync(schedulePath)) {
+    const schedule = JSON.parse(readFileSync(schedulePath, "utf8"));
     schedule.enabled = false;
     schedule.updatedAt = new Date().toISOString();
-    writeFileSync(BACKUP_SCHEDULE_PATH, JSON.stringify(schedule, null, 2), "utf8");
+    writeFileSync(schedulePath, JSON.stringify(schedule, null, 2), "utf8");
   }
   console.log(t("backup.auto.disabled"));
   return 0;
 }
 
 export async function runBackupAutoStatusCommand() {
-  if (!existsSync(BACKUP_SCHEDULE_PATH)) {
+  const schedulePath = getSchedulePath();
+  if (!existsSync(schedulePath)) {
     console.log(t("backup.auto.notConfigured"));
     return 0;
   }
-  const schedule = JSON.parse(readFileSync(BACKUP_SCHEDULE_PATH, "utf8"));
+  const schedule = JSON.parse(readFileSync(schedulePath, "utf8"));
   const statusLabel = schedule.enabled ? "\x1b[32m● enabled\x1b[0m" : "\x1b[31m○ disabled\x1b[0m";
   console.log(`${t("backup.auto.title")}: ${statusLabel}`);
   console.log(`  cron:      ${schedule.cron}`);
@@ -368,7 +388,8 @@ export async function runRestoreCommand(backupId, opts = {}) {
     return 0;
   }
 
-  const backupPath = join(backupDir, `omniroute-backup-${backupId}`);
+  const safeBackupId = String(backupId).replace(/[/\\]/g, "_");
+  const backupPath = join(backupDir, `omniroute-backup-${safeBackupId}`);
   if (!existsSync(backupPath)) {
     console.error(t("backup.notFound", { name: backupId }));
     return 1;

@@ -94,11 +94,7 @@ function EvalWatchApp({ runId, suiteId, baseUrl, apiKey, onExit }) {
           <Box marginBottom={1}>
             <StatusBadge
               status={
-                run.status === "running"
-                  ? "running"
-                  : run.status === "completed"
-                    ? "running"
-                    : "error"
+                run.status === "running" ? "running" : run.status === "completed" ? "ok" : "error"
               }
             />
             <Text> {run.status} </Text>

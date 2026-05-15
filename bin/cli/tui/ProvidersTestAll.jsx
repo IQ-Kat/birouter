@@ -48,10 +48,11 @@ async function testOne(provider, model, baseUrl, apiKey) {
     const data = res.ok ? await res.json() : { success: false, error: `HTTP ${res.status}` };
     return { status: data.success ? STATUS.PASS : STATUS.FAIL, latencyMs, error: data.error };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     return {
       status: STATUS.FAIL,
       latencyMs: Date.now() - start,
-      error: err instanceof Error ? err.message : String(err),
+      error: msg.slice(0, 100),
     };
   }
 }

@@ -194,9 +194,10 @@ async function _runSingleTest(provider, model) {
     const data = res.ok ? await res.json() : { success: false, error: `HTTP ${res.status}` };
     return { ...data, durationMs };
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: msg.slice(0, 100),
       durationMs: Date.now() - startMs,
     };
   }

@@ -90,7 +90,7 @@ export async function runTunnelListCommand(opts = {}) {
   try {
     const res = await apiFetch("/api/tunnels", { retry: false, timeout: 5000, acceptNotOk: true });
     if (!res.ok) {
-      console.log("Tunnel info not available.");
+      console.log(t("tunnel.notAvailable"));
       return 0;
     }
 
@@ -103,7 +103,7 @@ export async function runTunnelListCommand(opts = {}) {
 
     console.log(`\n\x1b[1m\x1b[36m${t("tunnel.title")}\x1b[0m\n`);
     if (!Array.isArray(tunnels) || tunnels.length === 0) {
-      console.log("  No active tunnels.");
+      console.log(t("tunnel.noTunnels"));
       return 0;
     }
 

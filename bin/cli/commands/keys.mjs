@@ -178,10 +178,15 @@ export async function runKeysAddCommand(provider, apiKey, opts = {}) {
         method: "POST",
         body: { provider: providerLower, apiKey: key },
         retry: false,
+        acceptNotOk: true,
       });
       if (res.ok) {
         console.log(t("keys.added", { provider: providerLower }));
         return 0;
+      }
+      if (res.status >= 400 && res.status < 500) {
+        console.error(t("common.error", { message: `HTTP ${res.status}` }));
+        return 1;
       }
     } catch {}
   }
@@ -341,7 +346,7 @@ export async function runKeysRegenerateCommand(id, opts = {}) {
   }
   const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/regenerate`, {
     method: "POST",
-    ...opts,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -367,7 +372,7 @@ export async function runKeysRevokeCommand(id, opts = {}) {
   }
   const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/revoke`, {
     method: "POST",
-    ...opts,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -380,7 +385,7 @@ export async function runKeysRevokeCommand(id, opts = {}) {
 export async function runKeysRevealCommand(id, opts = {}) {
   process.stderr.write(t("keys.revealWarning") + "\n");
   const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/reveal`, {
-    ...opts,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -395,7 +400,7 @@ export async function runKeysUsageCommand(id, opts = {}) {
   const limit = opts.limit || "20";
   const res = await apiFetch(
     `/api/v1/registered-keys/${encodeURIComponent(id)}/usage?limit=${limit}`,
-    { ...opts }
+    { retry: false }
   );
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -418,8 +423,8 @@ export async function runKeysUsageCommand(id, opts = {}) {
 
 export async function runKeysPolicyShowCommand(id, opts = {}) {
   const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/policy`, {
-    ...opts,
     acceptNotOk: true,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -453,8 +458,8 @@ export async function runKeysPolicySetCommand(id, opts = {}) {
   const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/policy`, {
     method: "PATCH",
     body,
-    ...opts,
     acceptNotOk: true,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -467,8 +472,8 @@ export async function runKeysPolicySetCommand(id, opts = {}) {
 export async function runKeysExpirationListCommand(opts = {}) {
   const days = Number(opts.days || 30);
   const res = await apiFetch(`/api/v1/registered-keys?expiring=true&days=${days}`, {
-    ...opts,
     acceptNotOk: true,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));
@@ -510,8 +515,8 @@ export async function runKeysRotateCommand(id, opts = {}) {
   const res = await apiFetch(`/api/v1/registered-keys/${encodeURIComponent(id)}/rotate`, {
     method: "POST",
     body: { gracePeriodMs: gracePeriod },
-    ...opts,
     acceptNotOk: true,
+    retry: false,
   });
   if (!res.ok) {
     console.error(t("common.error", { message: `HTTP ${res.status}` }));

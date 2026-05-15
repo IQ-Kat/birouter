@@ -12,6 +12,9 @@ const PHASE = {
   CANCELLED: "cancelled",
 };
 
+let _globalDone = null;
+let _globalFail = null;
+
 function OAuthFlowApp({ provider, url, deviceCode, onCancel, onDone, onFail }) {
   const [phase, setPhase] = useState(PHASE.WAITING);
   const [result, setResult] = useState(null);
@@ -25,8 +28,21 @@ function OAuthFlowApp({ provider, url, deviceCode, onCancel, onDone, onFail }) {
   }, []);
 
   useEffect(() => {
-    if (!onDone && !onFail) return;
+    _globalDone = (res) => {
+      setResult(res);
+      setPhase(PHASE.DONE);
+      onDone?.(res);
+    };
+    _globalFail = (err) => {
+      setError(typeof err === "string" ? err : (err?.message ?? String(err)));
+      setPhase(PHASE.FAILED);
+      onFail?.(err);
+    };
     setPhase(PHASE.POLLING);
+    return () => {
+      _globalDone = null;
+      _globalFail = null;
+    };
   }, []);
 
   useInput((input, key) => {
@@ -99,7 +115,7 @@ function OAuthFlowApp({ provider, url, deviceCode, onCancel, onDone, onFail }) {
           </Box>
         ) : phase === PHASE.DONE ? (
           <Box>
-            <StatusBadge status="running" />
+            <StatusBadge status="ok" />
             <Text> Authorized: {result?.email ?? result?.account ?? "connected"}</Text>
           </Box>
         ) : phase === PHASE.FAILED ? (
@@ -168,5 +184,10 @@ export async function startOAuthTui({ provider, url, deviceCode }) {
   });
 }
 
-export function markOAuthDone(result) {}
-export function markOAuthFailed(error) {}
+export function markOAuthDone(result) {
+  _globalDone?.(result);
+}
+
+export function markOAuthFailed(error) {
+  _globalFail?.(error);
+}
