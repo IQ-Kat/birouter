@@ -296,62 +296,62 @@
 
 Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 
-| Contributor                                                | PRs | Contributions                                                                      |
-| :--------------------------------------------------------- | :-: | :--------------------------------------------------------------------------------- |
-| [@NomenAK](https://github.com/NomenAK)                     | 12  | #2217, #2218, #2219, #2221, #2222, #2223, #2224, #2228, #2233, #2234, #2242, #2192 |
+| Contributor                                                | PRs | Contributions                                                                                    |
+| :--------------------------------------------------------- | :-: | :----------------------------------------------------------------------------------------------- |
+| [@NomenAK](https://github.com/NomenAK)                     | 12  | #2217, #2218, #2219, #2221, #2222, #2223, #2224, #2228, #2233, #2234, #2242, #2192               |
 | [@oyi77](https://github.com/oyi77)                         | 14  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131, #2135, #2240, #2283, #2295 |
-| [@backryun](https://github.com/backryun)                   |  9  | #1992, #2033, #2088, #2123, #2138, #2141, #2150, #2177, #2279                      |
-| [@Brkic-Nikola](https://github.com/Brkic-Nikola)           |  6  | #2165, #2189, #2190, #2191, #2192, #2197                                           |
-| [@Gioxaa](https://github.com/Gioxaa)                       |  5  | #2105, #2149, #2153, #2154, #2159                                                  |
-| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                                         |
-| [@andrewmunsell](https://github.com/andrewmunsell)         |  3  | #2169, #2176, #2238                                                                |
-| [@ddarkr](https://github.com/ddarkr)                       |  4  | #2047, #2199, #2243, #2271                                                         |
-| [@nickwizard](https://github.com/nickwizard)               |  3  | #1991, #2196, #2227                                                                |
-| [@herjarsa](https://github.com/herjarsa)                   |  3  | #2030, #2136, #2152                                                                |
-| [@rafacpti23](https://github.com/rafacpti23)               |  3  | #2086, #2146, #2201                                                                |
-| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                                       |
-| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                                       |
-| [@hartmark](https://github.com/hartmark)                   |  4  | #2045, #2137, #2294, #2299                                                         |
-| [@payne0420](https://github.com/payne0420)                 |  2  | #2082, #2128                                                                       |
-| [@bypanghu](https://github.com/bypanghu)                   |  2  | #2027, #2156                                                                       |
-| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                                       |
-| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                                              |
-| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                                              |
-| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                                              |
-| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                                              |
-| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                                              |
-| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                                              |
-| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                                              |
-| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                                              |
-| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                                              |
-| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                                              |
-| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                                              |
-| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                                              |
-| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                                              |
-| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                                              |
-| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                                              |
-| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                                              |
-| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                                              |
-| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                                              |
-| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                                              |
-| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                                              |
-| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                                              |
-| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                                              |
-| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                                              |
-| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                                              |
-| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                                              |
-| [@Zhaba1337228](https://github.com/Zhaba1337228)           |  1  | #2168                                                                              |
-| [@faisalill](https://github.com/faisalill)                 |  1  | #2166                                                                              |
-| [@Yosee11](https://github.com/Yosee11)                     |  1  | #2164                                                                              |
-| [@hachimed](https://github.com/hachimed)                   |  1  | #2162                                                                              |
-| [@JohnDoe-oss](https://github.com/JohnDoe-oss)             |  1  | #2161                                                                              |
-| [@brucevoin](https://github.com/brucevoin)                 |  1  | #2163                                                                              |
-| [@InkshadeWoods](https://github.com/InkshadeWoods)         |  1  | #2202                                                                              |
-| [@kang-heewon](https://github.com/kang-heewon)             |  1  | #2231                                                                              |
-| [@one-vs](https://github.com/one-vs)                       |  1  | #2236                                                                              |
-| [@thepigdestroyer](https://github.com/thepigdestroyer)     |  2  | #2290, #2291                                                                       |
-| [@josephvoxone](https://github.com/josephvoxone)           |  1  | #2289                                                                              |
-| [@mrmm](https://github.com/mrmm)                           |  2  | #2286, #2305                                                                       |
+| [@backryun](https://github.com/backryun)                   |  9  | #1992, #2033, #2088, #2123, #2138, #2141, #2150, #2177, #2279                                    |
+| [@Brkic-Nikola](https://github.com/Brkic-Nikola)           |  6  | #2165, #2189, #2190, #2191, #2192, #2197                                                         |
+| [@Gioxaa](https://github.com/Gioxaa)                       |  5  | #2105, #2149, #2153, #2154, #2159                                                                |
+| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                                                       |
+| [@andrewmunsell](https://github.com/andrewmunsell)         |  3  | #2169, #2176, #2238                                                                              |
+| [@ddarkr](https://github.com/ddarkr)                       |  4  | #2047, #2199, #2243, #2271                                                                       |
+| [@nickwizard](https://github.com/nickwizard)               |  3  | #1991, #2196, #2227                                                                              |
+| [@herjarsa](https://github.com/herjarsa)                   |  3  | #2030, #2136, #2152                                                                              |
+| [@rafacpti23](https://github.com/rafacpti23)               |  3  | #2086, #2146, #2201                                                                              |
+| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                                                     |
+| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                                                     |
+| [@hartmark](https://github.com/hartmark)                   |  4  | #2045, #2137, #2294, #2299                                                                       |
+| [@payne0420](https://github.com/payne0420)                 |  2  | #2082, #2128                                                                                     |
+| [@bypanghu](https://github.com/bypanghu)                   |  2  | #2027, #2156                                                                                     |
+| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                                                     |
+| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                                                            |
+| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                                                            |
+| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                                                            |
+| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                                                            |
+| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                                                            |
+| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                                                            |
+| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                                                            |
+| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                                                            |
+| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                                                            |
+| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                                                            |
+| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                                                            |
+| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                                                            |
+| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                                                            |
+| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                                                            |
+| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                                                            |
+| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                                                            |
+| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                                                            |
+| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                                                            |
+| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                                                            |
+| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                                                            |
+| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                                                            |
+| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                                                            |
+| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                                                            |
+| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                                                            |
+| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                                                            |
+| [@Zhaba1337228](https://github.com/Zhaba1337228)           |  1  | #2168                                                                                            |
+| [@faisalill](https://github.com/faisalill)                 |  1  | #2166                                                                                            |
+| [@Yosee11](https://github.com/Yosee11)                     |  1  | #2164                                                                                            |
+| [@hachimed](https://github.com/hachimed)                   |  1  | #2162                                                                                            |
+| [@JohnDoe-oss](https://github.com/JohnDoe-oss)             |  1  | #2161                                                                                            |
+| [@brucevoin](https://github.com/brucevoin)                 |  1  | #2163                                                                                            |
+| [@InkshadeWoods](https://github.com/InkshadeWoods)         |  1  | #2202                                                                                            |
+| [@kang-heewon](https://github.com/kang-heewon)             |  1  | #2231                                                                                            |
+| [@one-vs](https://github.com/one-vs)                       |  1  | #2236                                                                                            |
+| [@thepigdestroyer](https://github.com/thepigdestroyer)     |  2  | #2290, #2291                                                                                     |
+| [@josephvoxone](https://github.com/josephvoxone)           |  1  | #2289                                                                                            |
+| [@mrmm](https://github.com/mrmm)                           |  2  | #2286, #2305                                                                                     |
 
 ## [3.7.9] — 2026-05-03
 
