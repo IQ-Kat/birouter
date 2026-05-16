@@ -677,7 +677,7 @@
     "docs": "Docs",
     "issues": "Issues",
     "endpoints": "Endpoints",
-    "apiManager": "API Manager",
+    "apiManager": "API Key Manager",
     "logs": "Logs",
     "webhooks": "Webhooks",
     "auditLog": "Audit Log",

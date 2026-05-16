@@ -675,7 +675,7 @@
     "docs": "Docs",
     "issues": "Problémy",
     "endpoints": "Koncové body",
-    "apiManager": "API Manager",
+    "apiManager": "API Key Manager",
     "logs": "Denníky",
     "webhooks": "__MISSING__:Webhooks",
     "auditLog": "Audit Log",

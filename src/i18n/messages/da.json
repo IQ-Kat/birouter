@@ -675,7 +675,7 @@
     "docs": "Dokumenter",
     "issues": "Problemer",
     "endpoints": "Endpoints",
-    "apiManager": "API Manager",
+    "apiManager": "API Key Manager",
     "logs": "Logs",
     "webhooks": "__MISSING__:Webhooks",
     "auditLog": "Revisionslog",

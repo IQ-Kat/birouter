@@ -675,7 +675,7 @@
     "docs": "Asiakirjat",
     "issues": "Ongelmat",
     "endpoints": "Päätepisteet",
-    "apiManager": "API Manager",
+    "apiManager": "API Key Manager",
     "logs": "Lokit",
     "webhooks": "__MISSING__:Webhooks",
     "auditLog": "Tarkastusloki",
