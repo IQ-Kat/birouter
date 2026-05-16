@@ -65,18 +65,18 @@ function getConnectionErrorTag(connection) {
   if (!connection) return null;
 
   const explicitType = connection.lastErrorType;
-  if (explicitType === "runtime_error") return "RUNTIME";
+  if (explicitType === "runtime_error") return "Runtime";
   if (
     explicitType === "upstream_auth_error" ||
     explicitType === "auth_missing" ||
     explicitType === "token_refresh_failed" ||
     explicitType === "token_expired"
   ) {
-    return "AUTH";
+    return "Auth";
   }
-  if (explicitType === "upstream_rate_limited") return "429";
-  if (explicitType === "upstream_unavailable") return "5XX";
-  if (explicitType === "network_error") return "NET";
+  if (explicitType === "upstream_rate_limited") return "Rate limited";
+  if (explicitType === "upstream_unavailable") return "Server error";
+  if (explicitType === "network_error") return "Network";
 
   const numericCode = Number(connection.errorCode);
   if (Number.isFinite(numericCode) && numericCode >= 400) {
@@ -84,19 +84,19 @@ function getConnectionErrorTag(connection) {
   }
 
   const fromMessage = getErrorCode(connection.lastError);
-  if (fromMessage === "401" || fromMessage === "403") return "AUTH";
+  if (fromMessage === "401" || fromMessage === "403") return "Auth";
   if (fromMessage && fromMessage !== "ERR") return fromMessage;
 
   const msg = (connection.lastError || "").toLowerCase();
   if (msg.includes("runtime") || msg.includes("not runnable") || msg.includes("not installed"))
-    return "RUNTIME";
+    return "Runtime";
   if (
     msg.includes("invalid api key") ||
     msg.includes("token invalid") ||
     msg.includes("revoked") ||
     msg.includes("unauthorized")
   )
-    return "AUTH";
+    return "Auth";
 
   return "ERR";
 }
