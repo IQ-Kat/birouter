@@ -1,8 +1,9 @@
 /**
  * Claude Code tool name remapping.
  *
- * Claude Code-compatible requests use TitleCase tool names (Bash, Read,
- * Write, etc.) while OpenAI-compatible clients commonly use lowercase names.
+ * Anthropic uses tool name fingerprinting to detect third-party clients.
+ * Real Claude Code uses TitleCase tool names (Bash, Read, Write, etc.)
+ * while third-party clients like OpenCode use lowercase.
  *
  * This module remaps tool names in both directions:
  * - Request path: lowercase → TitleCase (before sending to Anthropic)
@@ -37,35 +38,17 @@ for (const [k, v] of Object.entries(TOOL_RENAME_MAP)) {
   REVERSE_MAP[v] = k;
 }
 
-function attachToolNameMap(body: Record<string, unknown>, toolNameMap: Map<string, string>): void {
-  if (toolNameMap.size === 0) return;
-  Object.defineProperty(body, "_toolNameMap", {
-    value: toolNameMap,
-    enumerable: false,
-    configurable: true,
-    writable: true,
-  });
-}
-
 export function remapToolNamesInRequest(body: Record<string, unknown>): boolean {
   let hasLowercase = false;
   let hasTitleCase = false;
-  const existingToolNameMap = body._toolNameMap instanceof Map ? body._toolNameMap : null;
-  const toolNameMap = new Map<string, string>(existingToolNameMap ?? []);
-
-  const recordRemap = (upstreamName: string, originalName: string): void => {
-    toolNameMap.set(upstreamName, originalName);
-  };
 
   // Remap tool definitions
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(tools)) {
     for (const tool of tools) {
       const name = String(tool.name || "");
-      const mapped = TOOL_RENAME_MAP[name];
-      if (mapped) {
-        tool.name = mapped;
-        recordRemap(mapped, name);
+      if (TOOL_RENAME_MAP[name]) {
+        tool.name = TOOL_RENAME_MAP[name];
         hasLowercase = true;
       } else if (REVERSE_MAP[name]) {
         hasTitleCase = true;
@@ -81,13 +64,11 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
       if (!Array.isArray(content)) continue;
       for (const block of content) {
         if (block.type === "tool_use" && typeof block.name === "string") {
-          const name = block.name;
-          const mapped = TOOL_RENAME_MAP[name];
+          const mapped = TOOL_RENAME_MAP[block.name];
           if (mapped) {
             block.name = mapped;
-            recordRemap(mapped, name);
             hasLowercase = true;
-          } else if (REVERSE_MAP[name]) {
+          } else if (REVERSE_MAP[block.name]) {
             hasTitleCase = true;
           }
         }
@@ -98,38 +79,28 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
   // Remap tool_choice
   const toolChoice = body.tool_choice as Record<string, unknown> | undefined;
   if (toolChoice?.type === "tool" && typeof toolChoice.name === "string") {
-    const name = toolChoice.name;
-    const mapped = TOOL_RENAME_MAP[name];
+    const mapped = TOOL_RENAME_MAP[toolChoice.name];
     if (mapped) {
       toolChoice.name = mapped;
-      recordRemap(mapped, name);
       hasLowercase = true;
-    } else if (REVERSE_MAP[name]) {
+    } else if (REVERSE_MAP[toolChoice.name]) {
       hasTitleCase = true;
     }
   }
 
-  attachToolNameMap(body, toolNameMap);
+  // NOTE: do not set body._claudeCodeRequiresLowercaseToolNames here.
+  // The flag has no readers and would leak into the outgoing Anthropic
+  // request body, causing HTTP 400 (Extra inputs are not permitted).
+  // The response-side remap is unconditional via remapToolNamesInResponse.
 
   return hasLowercase && !hasTitleCase;
 }
 
-export function remapToolNamesInResponse(
-  text: string,
-  forceLowercase = true,
-  toolNameMap: Map<string, string> | null = null
-): string {
+export function remapToolNamesInResponse(text: string, forceLowercase = true): string {
   if (!forceLowercase) return text;
 
-  const replacements = new Map<string, string>(Object.entries(REVERSE_MAP));
-  if (toolNameMap instanceof Map) {
-    for (const [upstreamName, originalName] of toolNameMap.entries()) {
-      replacements.set(upstreamName, originalName);
-    }
-  }
-
   // Replace TitleCase tool names back to lowercase in SSE chunks
-  for (const [titleCase, lower] of replacements.entries()) {
+  for (const [titleCase, lower] of Object.entries(REVERSE_MAP)) {
     // Match in "name":"ToolName" patterns
     text = text.replaceAll(`"name":"${titleCase}"`, `"name":"${lower}"`);
     text = text.replaceAll(`"name": "${titleCase}"`, `"name": "${lower}"`);
