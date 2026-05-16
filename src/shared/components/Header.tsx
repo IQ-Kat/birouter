@@ -17,6 +17,7 @@ import {
 } from "@/shared/constants/providers";
 import {
   SIDEBAR_SECTIONS,
+  getSectionItems,
   type SidebarItemDefinition,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
@@ -84,12 +85,21 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   "settings-routing": "settingsRoutingDescription",
   "settings-resilience": "settingsResilienceDescription",
   "settings-advanced": "settingsAdvancedDescription",
+  // Proxy sub-pages
+  "mitm-proxy": "mitmProxyDescription",
+  "1proxy": "oneProxyDescription",
+  // OmniProxy items
+  "cli-tools": "cliToolsDescription",
+  agents: "agentsDescription",
+  "cloud-agents": "cloudAgentsDescription",
+  "api-endpoints": "apiEndpointsDescription",
+  webhooks: "webhooksDescription",
 };
 
 // Build href → sidebar item lookup (non-external items only)
 const sidebarByHref = new Map<string, SidebarItemDefinition>();
 for (const section of SIDEBAR_SECTIONS) {
-  for (const item of section.items) {
+  for (const item of getSectionItems(section)) {
     if (!item.external) sidebarByHref.set(item.href, item);
   }
 }

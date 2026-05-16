@@ -777,7 +777,21 @@
     "settingsRouting": "Routing",
     "settingsResilience": "Resilience",
     "settingsAdvanced": "Advanced",
-    "omniProxySection": "OmniProxy"
+    "omniProxySection": "OmniProxy",
+    "quotaTracker": "Quota Tracker",
+    "consoleLogs": "Console Logs",
+    "globalRouting": "Global Routing",
+    "mitmProxy": "MITM Proxy",
+    "oneProxy": "1Proxy",
+    "agenticFeaturesSection": "Agentic Features",
+    "otherFeaturesSection": "Other Features",
+    "compressionContextGroup": "Compression Context",
+    "toolsGroup": "Tools",
+    "integrationsGroup": "Integrations",
+    "proxyGroup": "Proxy",
+    "costsParametersGroup": "Costs Parameters",
+    "auditGroup": "Audit",
+    "batchGroup": "Batch"
   },
   "webhooks": {
     "title": "__MISSING__:Webhooks",
@@ -955,7 +969,9 @@
     "settingsSecurityDescription": "Authentication, authorization, and access control settings",
     "settingsRoutingDescription": "Routing rules, model aliases, combo defaults, and degradation settings",
     "settingsResilienceDescription": "Circuit breaker, retry, and fallback configuration",
-    "settingsAdvancedDescription": "Advanced payload rules, request limits, and proxy API settings"
+    "settingsAdvancedDescription": "Advanced payload rules, request limits, and proxy API settings",
+    "mitmProxyDescription": "Configure MITM proxy settings for traffic inspection and debugging",
+    "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining"
   },
   "home": {
     "quickStart": "Mabilis na Pagsisimula",

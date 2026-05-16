@@ -1,65 +1,72 @@
 export const HIDEABLE_SIDEBAR_ITEM_IDS = [
-  // Routing
+  // Home
   "home",
-  "endpoints",
+  // OmniProxy — flat
   "api-manager",
+  "endpoints",
   "providers",
   "combos",
   "limits",
-  // Protocols
-  "mcp",
-  "a2a",
-  "api-endpoints",
-  // Agents & AI
-  "agents",
-  "cloud-agents",
-  "batch",
-  "batch-files",
-  // Cache & Context
-  "cache",
+  // OmniProxy > Compression Context
   "context-caveman",
   "context-rtk",
   "context-combos",
+  // OmniProxy > Tools
+  "cli-tools",
+  "agents",
+  "cloud-agents",
+  // OmniProxy > Integrations
+  "api-endpoints",
+  "webhooks",
+  // OmniProxy > Proxy
+  "proxy",
+  "mitm-proxy",
+  "1proxy",
   // Analytics
   "analytics",
-  "analytics-evals",
-  "analytics-search",
-  "analytics-utilization",
   "analytics-combo-health",
-  "analytics-compression",
-  // Costs
+  "analytics-utilization",
   "costs",
-  "costs-budget",
-  "costs-pricing",
-  // Monitoring
+  "cache",
+  "analytics-compression",
+  "analytics-search",
+  "analytics-evals",
+  // Monitoring — flat
   "logs",
   "logs-proxy",
   "logs-console",
   "logs-activity",
   "health",
-  // Audit & Security
+  // Monitoring > Costs Parameters
+  "costs-pricing",
+  "costs-budget",
+  // Monitoring > Audit
   "audit",
   "audit-mcp",
-  "webhooks",
   // Dev Tools
   "translator",
   "playground",
   "search-tools",
+  // Agentic Features
+  "memory",
+  "skills",
+  "agent-skills",
+  "mcp",
+  "a2a",
+  // Other Features — flat
+  "media",
+  // Other Features > Batch
+  "batch",
+  "batch-files",
   // Configuration
   "settings",
   "settings-general",
   "settings-appearance",
   "settings-ai",
-  "settings-security",
   "settings-routing",
   "settings-resilience",
   "settings-advanced",
-  "proxy",
-  // AI Features
-  "memory",
-  "skills",
-  "agent-skills",
-  "media",
+  "settings-security",
   // Help
   "docs",
   "issues",
@@ -67,18 +74,16 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
+
 export type SidebarSectionId =
-  | "routing"
-  | "protocols"
-  | "agents-ai"
-  | "cache-context"
+  | "home"
+  | "omni-proxy"
   | "analytics"
-  | "costs"
   | "monitoring"
-  | "audit-security"
   | "devtools"
+  | "agentic-features"
+  | "other-features"
   | "configuration"
-  | "ai-features"
   | "help";
 
 export interface SidebarItemDefinition {
@@ -90,66 +95,131 @@ export interface SidebarItemDefinition {
   external?: boolean;
 }
 
+export interface SidebarItemGroup {
+  type: "group";
+  id: string;
+  titleKey: string;
+  titleFallback: string;
+  items: readonly SidebarItemDefinition[];
+}
+
+export type SidebarSectionChild = SidebarItemDefinition | SidebarItemGroup;
+
 export interface SidebarSectionDefinition {
   id: SidebarSectionId;
   titleKey: string;
   titleFallback: string;
-  items: readonly SidebarItemDefinition[];
-  showTitleInSidebar?: boolean;
+  children: readonly SidebarSectionChild[];
+  showTitle?: boolean;
   visibility?: "always" | "debug";
+  defaultPinned?: boolean;
 }
 
-const ROUTING_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+export function getSectionItems(
+  section: SidebarSectionDefinition | { children: readonly SidebarSectionChild[] }
+): readonly SidebarItemDefinition[] {
+  return section.children.flatMap((child) =>
+    "type" in child && child.type === "group" ? child.items : [child as SidebarItemDefinition]
+  );
+}
+
+// ─── Item arrays ────────────────────────────────────────────────────────────
+
+const HOME_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "home", href: "/home", i18nKey: "home", icon: "home", exact: true },
-  { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
+];
+
+const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
+  { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
   { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
   { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
-  { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
+  { id: "limits", href: "/dashboard/limits", i18nKey: "quotaTracker", icon: "tune" },
 ];
 
-const PROTOCOLS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" },
-  { id: "a2a", href: "/dashboard/a2a", i18nKey: "a2a", icon: "device_hub" },
-  { id: "api-endpoints", href: "/dashboard/api-endpoints", i18nKey: "apiEndpoints", icon: "api" },
-];
+const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "compression-context",
+  titleKey: "compressionContextGroup",
+  titleFallback: "Compression Context",
+  items: [
+    {
+      id: "context-caveman",
+      href: "/dashboard/context/caveman",
+      i18nKey: "contextCaveman",
+      icon: "compress",
+    },
+    {
+      id: "context-rtk",
+      href: "/dashboard/context/rtk",
+      i18nKey: "contextRtk",
+      icon: "filter_alt",
+    },
+    {
+      id: "context-combos",
+      href: "/dashboard/context/combos",
+      i18nKey: "contextCombos",
+      icon: "hub",
+    },
+  ],
+};
 
-const AGENTS_AI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
-  { id: "cloud-agents", href: "/dashboard/cloud-agents", i18nKey: "cloudAgents", icon: "cloud" },
-  { id: "batch", href: "/dashboard/batch", i18nKey: "batch", icon: "view_list" },
-  { id: "batch-files", href: "/dashboard/batch/files", i18nKey: "batchFiles", icon: "folder" },
-];
+const TOOLS_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "tools",
+  titleKey: "toolsGroup",
+  titleFallback: "Tools",
+  items: [
+    { id: "cli-tools", href: "/dashboard/cli-tools", i18nKey: "cliTools", icon: "terminal" },
+    { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
+    { id: "cloud-agents", href: "/dashboard/cloud-agents", i18nKey: "cloudAgents", icon: "cloud" },
+  ],
+};
 
-const CACHE_CONTEXT_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+const INTEGRATIONS_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "integrations",
+  titleKey: "integrationsGroup",
+  titleFallback: "Integrations",
+  items: [
+    { id: "api-endpoints", href: "/dashboard/api-endpoints", i18nKey: "apiEndpoints", icon: "api" },
+    { id: "webhooks", href: "/dashboard/webhooks", i18nKey: "webhooks", icon: "webhook" },
+  ],
+};
+
+const PROXY_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "proxy",
+  titleKey: "proxyGroup",
+  titleFallback: "Proxy",
+  items: [
+    { id: "proxy", href: "/dashboard/system/proxy", i18nKey: "proxy", icon: "dns" },
+    { id: "mitm-proxy", href: "/dashboard/system/mitm-proxy", i18nKey: "mitmProxy", icon: "lan" },
+    { id: "1proxy", href: "/dashboard/system/1proxy", i18nKey: "oneProxy", icon: "public" },
+  ],
+};
+
+const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "analytics", href: "/dashboard/analytics", i18nKey: "usage", icon: "analytics" },
+  {
+    id: "analytics-combo-health",
+    href: "/dashboard/analytics/combo-health",
+    i18nKey: "analyticsComboHealth",
+    icon: "monitor_heart",
+  },
+  {
+    id: "analytics-utilization",
+    href: "/dashboard/analytics/utilization",
+    i18nKey: "analyticsUtilization",
+    icon: "bar_chart",
+  },
+  { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
   { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
   {
-    id: "context-caveman",
-    href: "/dashboard/context/caveman",
-    i18nKey: "contextCaveman",
-    icon: "compress",
-  },
-  {
-    id: "context-rtk",
-    href: "/dashboard/context/rtk",
-    i18nKey: "contextRtk",
-    icon: "filter_alt",
-  },
-  {
-    id: "context-combos",
-    href: "/dashboard/context/combos",
-    i18nKey: "contextCombos",
-    icon: "hub",
-  },
-];
-
-const ANALYTICS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
-  {
-    id: "analytics-evals",
-    href: "/dashboard/analytics/evals",
-    i18nKey: "analyticsEvals",
-    icon: "labs",
+    id: "analytics-compression",
+    href: "/dashboard/analytics/compression",
+    i18nKey: "analyticsCompression",
+    icon: "data_compression",
   },
   {
     id: "analytics-search",
@@ -158,55 +228,17 @@ const ANALYTICS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "manage_search",
   },
   {
-    id: "analytics-utilization",
-    href: "/dashboard/analytics/utilization",
-    i18nKey: "analyticsUtilization",
-    icon: "bar_chart",
-  },
-  {
-    id: "analytics-combo-health",
-    href: "/dashboard/analytics/combo-health",
-    i18nKey: "analyticsComboHealth",
-    icon: "monitor_heart",
-  },
-  {
-    id: "analytics-compression",
-    href: "/dashboard/analytics/compression",
-    i18nKey: "analyticsCompression",
-    icon: "data_compression",
+    id: "analytics-evals",
+    href: "/dashboard/analytics/evals",
+    i18nKey: "analyticsEvals",
+    icon: "labs",
   },
 ];
 
-const COSTS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
-  {
-    id: "costs-budget",
-    href: "/dashboard/costs/budget",
-    i18nKey: "costsBudget",
-    icon: "savings",
-  },
-  {
-    id: "costs-pricing",
-    href: "/dashboard/costs/pricing",
-    i18nKey: "costsPricing",
-    icon: "price_change",
-  },
-];
-
-const MONITORING_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "logs", href: "/dashboard/logs", i18nKey: "logs", icon: "description" },
-  {
-    id: "logs-proxy",
-    href: "/dashboard/logs/proxy",
-    i18nKey: "logsProxy",
-    icon: "lan",
-  },
-  {
-    id: "logs-console",
-    href: "/dashboard/logs/console",
-    i18nKey: "logsConsole",
-    icon: "terminal",
-  },
+  { id: "logs-proxy", href: "/dashboard/logs/proxy", i18nKey: "logsProxy", icon: "lan" },
+  { id: "logs-console", href: "/dashboard/logs/console", i18nKey: "consoleLogs", icon: "terminal" },
   {
     id: "logs-activity",
     href: "/dashboard/logs/activity",
@@ -216,18 +248,39 @@ const MONITORING_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "health", href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
 ];
 
-const AUDIT_SECURITY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "policy" },
-  {
-    id: "audit-mcp",
-    href: "/dashboard/audit/mcp",
-    i18nKey: "auditMcp",
-    icon: "security",
-  },
-  { id: "webhooks", href: "/dashboard/webhooks", i18nKey: "webhooks", icon: "webhook" },
-];
+const COSTS_PARAMS_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "costs-parameters",
+  titleKey: "costsParametersGroup",
+  titleFallback: "Costs Parameters",
+  items: [
+    {
+      id: "costs-pricing",
+      href: "/dashboard/costs/pricing",
+      i18nKey: "costsPricing",
+      icon: "price_change",
+    },
+    {
+      id: "costs-budget",
+      href: "/dashboard/costs/budget",
+      i18nKey: "costsBudget",
+      icon: "savings",
+    },
+  ],
+};
 
-const DEVTOOLS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+const AUDIT_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "audit",
+  titleKey: "auditGroup",
+  titleFallback: "Audit",
+  items: [
+    { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "policy" },
+    { id: "audit-mcp", href: "/dashboard/audit/mcp", i18nKey: "auditMcp", icon: "security" },
+  ],
+};
+
+const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "translator", href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
   { id: "playground", href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
   {
@@ -238,7 +291,30 @@ const DEVTOOLS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-const CONFIGURATION_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+const AGENTIC_FEATURES_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
+  { id: "skills", href: "/dashboard/skills", i18nKey: "omniSkills", icon: "auto_fix_high" },
+  { id: "agent-skills", href: "/dashboard/agent-skills", i18nKey: "agentSkills", icon: "share" },
+  { id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" },
+  { id: "a2a", href: "/dashboard/a2a", i18nKey: "a2a", icon: "device_hub" },
+];
+
+const OTHER_FEATURES_ITEMS: readonly SidebarItemDefinition[] = [
+  { id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
+];
+
+const BATCH_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "batch",
+  titleKey: "batchGroup",
+  titleFallback: "Batch",
+  items: [
+    { id: "batch", href: "/dashboard/batch", i18nKey: "batch", icon: "view_list" },
+    { id: "batch-files", href: "/dashboard/batch/files", i18nKey: "batchFiles", icon: "folder" },
+  ],
+};
+
+const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "settings", href: "/dashboard/settings", i18nKey: "settings", icon: "settings" },
   {
     id: "settings-general",
@@ -259,15 +335,9 @@ const CONFIGURATION_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "auto_awesome",
   },
   {
-    id: "settings-security",
-    href: "/dashboard/settings/security",
-    i18nKey: "settingsSecurity",
-    icon: "shield",
-  },
-  {
     id: "settings-routing",
     href: "/dashboard/settings/routing",
-    i18nKey: "settingsRouting",
+    i18nKey: "globalRouting",
     icon: "route",
   },
   {
@@ -282,22 +352,15 @@ const CONFIGURATION_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "settingsAdvanced",
     icon: "engineering",
   },
-  { id: "proxy", href: "/dashboard/system/proxy", i18nKey: "proxy", icon: "dns" },
-];
-
-const AI_FEATURES_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
-  { id: "skills", href: "/dashboard/skills", i18nKey: "omniSkills", icon: "auto_fix_high" },
   {
-    id: "agent-skills",
-    href: "/dashboard/agent-skills",
-    i18nKey: "agentSkills",
-    icon: "share",
+    id: "settings-security",
+    href: "/dashboard/settings/security",
+    i18nKey: "settingsSecurity",
+    icon: "shield",
   },
-  { id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
 ];
 
-const HELP_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+const HELP_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "docs", href: "/docs", i18nKey: "docs", icon: "menu_book", external: true },
   {
     id: "issues",
@@ -309,81 +372,75 @@ const HELP_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog", icon: "campaign" },
 ];
 
+// ─── Sections ────────────────────────────────────────────────────────────────
+
 export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
   {
-    id: "routing",
+    id: "home",
+    titleKey: "home",
+    titleFallback: "Home",
+    children: HOME_ITEMS,
+    showTitle: false,
+  },
+  {
+    id: "omni-proxy",
     titleKey: "omniProxySection",
     titleFallback: "OmniProxy",
-    items: ROUTING_SIDEBAR_ITEMS,
-  },
-  {
-    id: "protocols",
-    titleKey: "protocolsSection",
-    titleFallback: "Protocols",
-    items: PROTOCOLS_SIDEBAR_ITEMS,
-  },
-  {
-    id: "agents-ai",
-    titleKey: "agentsAiSection",
-    titleFallback: "Agents & AI",
-    items: AGENTS_AI_SIDEBAR_ITEMS,
-  },
-  {
-    id: "cache-context",
-    titleKey: "cacheContextSection",
-    titleFallback: "Cache & Context",
-    items: CACHE_CONTEXT_SIDEBAR_ITEMS,
+    children: [
+      ...OMNI_PROXY_ITEMS,
+      COMPRESSION_CONTEXT_GROUP,
+      TOOLS_GROUP,
+      INTEGRATIONS_GROUP,
+      PROXY_GROUP,
+    ],
+    defaultPinned: true,
   },
   {
     id: "analytics",
     titleKey: "analyticsSection",
     titleFallback: "Analytics",
-    items: ANALYTICS_SIDEBAR_ITEMS,
-  },
-  {
-    id: "costs",
-    titleKey: "costsSection",
-    titleFallback: "Costs",
-    items: COSTS_SIDEBAR_ITEMS,
+    children: ANALYTICS_ITEMS,
   },
   {
     id: "monitoring",
     titleKey: "monitoringSection",
     titleFallback: "Monitoring",
-    items: MONITORING_SIDEBAR_ITEMS,
-  },
-  {
-    id: "audit-security",
-    titleKey: "auditSecuritySection",
-    titleFallback: "Audit & Security",
-    items: AUDIT_SECURITY_SIDEBAR_ITEMS,
+    children: [...MONITORING_ITEMS, COSTS_PARAMS_GROUP, AUDIT_GROUP],
   },
   {
     id: "devtools",
     titleKey: "devtoolsSection",
     titleFallback: "Dev Tools",
-    items: DEVTOOLS_SIDEBAR_ITEMS,
+    children: DEVTOOLS_ITEMS,
     visibility: "debug",
+  },
+  {
+    id: "agentic-features",
+    titleKey: "agenticFeaturesSection",
+    titleFallback: "Agentic Features",
+    children: AGENTIC_FEATURES_ITEMS,
+  },
+  {
+    id: "other-features",
+    titleKey: "otherFeaturesSection",
+    titleFallback: "Other Features",
+    children: [...OTHER_FEATURES_ITEMS, BATCH_GROUP],
   },
   {
     id: "configuration",
     titleKey: "configurationSection",
     titleFallback: "Configuration",
-    items: CONFIGURATION_SIDEBAR_ITEMS,
-  },
-  {
-    id: "ai-features",
-    titleKey: "aiFeaturesSection",
-    titleFallback: "AI Features",
-    items: AI_FEATURES_SIDEBAR_ITEMS,
+    children: CONFIGURATION_ITEMS,
   },
   {
     id: "help",
     titleKey: "helpSection",
     titleFallback: "Help",
-    items: HELP_SIDEBAR_ITEMS,
+    children: HELP_ITEMS,
   },
 ] as const;
+
+// ─── Settings helpers ─────────────────────────────────────────────────────────
 
 export const HIDDEN_SIDEBAR_ITEMS_SETTING_KEY = "hiddenSidebarItems";
 export const SIDEBAR_SETTINGS_UPDATED_EVENT = "omniroute:settings-updated";

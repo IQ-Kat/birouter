@@ -15,12 +15,15 @@ import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTIONS,
+  getSectionItems,
   normalizeHiddenSidebarItems,
   type SidebarSectionId,
+  type SidebarItemDefinition,
+  type SidebarItemGroup,
 } from "@/shared/constants/sidebarVisibility";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
-const DEFAULT_EXPANDED: SidebarSectionId = "routing";
+const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
 
@@ -75,14 +78,32 @@ export default function Sidebar({
   const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
 
-  // Load persisted state on mount
+  // Load persisted state on mount; OmniProxy is pinned by default on first visit
   useEffect(() => {
     const storedExpanded = loadFromStorage<SidebarSectionId[]>(EXPANDED_SECTIONS_KEY, [
       DEFAULT_EXPANDED,
     ]);
-    const storedPinned = loadFromStorage<SidebarSectionId[]>(PINNED_SECTIONS_KEY, []);
-    setExpandedSections(new Set(storedExpanded.length > 0 ? storedExpanded : [DEFAULT_EXPANDED]));
-    setPinnedSections(new Set(storedPinned));
+    const pinnedRaw = (() => {
+      try {
+        return localStorage.getItem(PINNED_SECTIONS_KEY);
+      } catch {
+        return null;
+      }
+    })();
+    const storedPinned: SidebarSectionId[] =
+      pinnedRaw !== null
+        ? (JSON.parse(pinnedRaw) as SidebarSectionId[])
+        : (SIDEBAR_SECTIONS.filter((s) => s.defaultPinned).map((s) => s.id) as SidebarSectionId[]);
+
+    const initialExpanded = new Set<SidebarSectionId>(
+      storedExpanded.length > 0 ? storedExpanded : [DEFAULT_EXPANDED]
+    );
+    const initialPinned = new Set<SidebarSectionId>(storedPinned);
+    // Pinned sections must also be expanded
+    for (const id of initialPinned) initialExpanded.add(id);
+
+    setExpandedSections(initialExpanded);
+    setPinnedSections(initialPinned);
   }, []);
 
   useEffect(() => {
@@ -125,29 +146,64 @@ export default function Sidebar({
   const getSidebarLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
 
+  const resolveItem = (item: SidebarItemDefinition, hidden: Set<string>) => {
+    if (hidden.has(item.id)) return null;
+    return { ...item, label: getSidebarLabel(item.i18nKey, item.id) };
+  };
+
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
+
   const visibleSections = SIDEBAR_SECTIONS.filter(
     (section) => section.visibility !== "debug" || showDebug
   )
-    .map((section) => ({
-      ...section,
-      title: getSidebarLabel(section.titleKey, section.titleFallback),
-      items: section.items
-        .map((item) => ({ ...item, label: getSidebarLabel(item.i18nKey, item.id) }))
-        .filter((item) => !hiddenSidebarSet.has(item.id)),
-    }))
-    .filter((section) => section.items.length > 0);
+    .map((section) => {
+      const children = section.children
+        .map((child) => {
+          if ("type" in child && child.type === "group") {
+            const items = child.items
+              .map((item) => resolveItem(item, hiddenSidebarSet))
+              .filter(Boolean) as (SidebarItemDefinition & { label: string })[];
+            if (items.length === 0) return null;
+            return {
+              ...child,
+              title: getSidebarLabel(child.titleKey, child.titleFallback),
+              items,
+            } as SidebarItemGroup & {
+              title: string;
+              items: (SidebarItemDefinition & { label: string })[];
+            };
+          }
+          return resolveItem(child as SidebarItemDefinition, hiddenSidebarSet);
+        })
+        .filter(Boolean);
 
-  const activeHref = getActiveSidebarHref(
-    pathname,
-    visibleSections.flatMap((section) => section.items)
+      return {
+        ...section,
+        title: getSidebarLabel(section.titleKey, section.titleFallback),
+        children,
+      };
+    })
+    .filter((section) => {
+      const allItems = section.children.flatMap((child: any) =>
+        child.type === "group" ? child.items : [child]
+      );
+      return allItems.length > 0;
+    });
+
+  const allVisibleItems = visibleSections.flatMap((section) =>
+    section.children.flatMap((child: any) => (child.type === "group" ? child.items : [child]))
   );
+
+  const activeHref = getActiveSidebarHref(pathname, allVisibleItems);
 
   // Auto-expand the section containing the active page (without closing others)
   useEffect(() => {
     if (collapsed) return;
     for (const section of visibleSections) {
-      if (section.items.some((item) => !item.external && item.href === activeHref)) {
+      const sectionItems = section.children.flatMap((child: any) =>
+        child.type === "group" ? child.items : [child]
+      );
+      if (sectionItems.some((item: any) => !item.external && item.href === activeHref)) {
         setExpandedSections((prev) => {
           if (prev.has(section.id as SidebarSectionId)) return prev;
           const next = new Set(prev);
@@ -395,15 +451,27 @@ export default function Sidebar({
             const isExpanded = expandedSections.has(sectionId);
             const isPinned = pinnedSections.has(sectionId);
             const isFirst = idx === 0;
+            const sectionItems = section.children.flatMap((child: any) =>
+              child.type === "group" ? child.items : [child]
+            );
 
-            // Collapsed (mini) mode: flat items with dividers
+            // Collapsed (mini) mode: flat items with dividers between sections
             if (collapsed) {
               return (
                 <div key={section.id}>
                   {!isFirst && (
                     <div className="border-t border-black/5 dark:border-white/5 my-1.5" />
                   )}
-                  {section.items.map(renderNavLink)}
+                  {sectionItems.map(renderNavLink)}
+                </div>
+              );
+            }
+
+            // Sections without a visible title (e.g. Home) render items directly
+            if (section.showTitle === false) {
+              return (
+                <div key={section.id} className={cn("space-y-0.5", !isFirst && "mt-1")}>
+                  {sectionItems.map(renderNavLink)}
                 </div>
               );
             }
@@ -411,47 +479,72 @@ export default function Sidebar({
             // Expanded mode: collapsible section with pin
             return (
               <div key={section.id} className={isFirst ? "space-y-0.5" : "mt-2"}>
-                <div className="flex items-center gap-0.5 group/header">
-                  <button
-                    onClick={() => toggleSection(sectionId)}
-                    aria-expanded={isExpanded}
-                    className="flex-1 flex items-center justify-between px-3 py-1 rounded-md hover:bg-surface/30 transition-colors group/toggle"
-                  >
-                    <span className="text-[10px] font-semibold text-text-muted/60 uppercase tracking-wider group-hover/toggle:text-text-muted/90 transition-colors">
-                      {section.title}
-                    </span>
-                    <span
-                      className={cn(
-                        "material-symbols-outlined text-[14px] text-text-muted/40 transition-all duration-200 group-hover/toggle:text-text-muted/70",
-                        isExpanded && "rotate-180"
-                      )}
-                    >
-                      expand_more
-                    </span>
-                  </button>
+                <div
+                  className="flex items-center gap-0.5 px-2 py-1 rounded-md hover:bg-surface/30 transition-colors cursor-pointer group/header"
+                  onClick={() => toggleSection(sectionId)}
+                  role="button"
+                  aria-expanded={isExpanded}
+                >
+                  <span className="flex-1 text-[10px] font-semibold text-text-muted/60 uppercase tracking-wider group-hover/header:text-text-muted/90 transition-colors">
+                    {section.title}
+                  </span>
 
-                  {/* Pin button — visible on hover or when pinned */}
+                  {/* Pin button — right side near chevron */}
                   <button
-                    onClick={() => togglePin(sectionId)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePin(sectionId);
+                    }}
                     title={isPinned ? "Unpin section" : "Pin section open"}
                     className={cn(
-                      "p-1 rounded-md transition-all",
+                      "p-0.5 rounded transition-all shrink-0",
                       isPinned
                         ? "text-primary opacity-100"
                         : "text-text-muted/30 opacity-0 group-hover/header:opacity-100 hover:text-text-muted/70"
                     )}
                   >
                     <span
-                      className="material-symbols-outlined text-[12px]"
-                      style={isPinned ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: "10px",
+                        ...(isPinned ? { fontVariationSettings: "'FILL' 1" } : {}),
+                      }}
                     >
                       push_pin
                     </span>
                   </button>
+
+                  <span
+                    className={cn(
+                      "material-symbols-outlined text-[14px] text-text-muted/40 transition-all duration-200 group-hover/header:text-text-muted/70 shrink-0",
+                      isExpanded && "rotate-180"
+                    )}
+                  >
+                    expand_more
+                  </span>
                 </div>
 
                 {isExpanded && (
-                  <div className="mt-0.5 space-y-0.5">{section.items.map(renderNavLink)}</div>
+                  <div className="mt-0.5 space-y-0.5">
+                    {section.children.map((child: any) => {
+                      if (child.type === "group") {
+                        if (child.items.length === 0) return null;
+                        return (
+                          <div key={child.id} className="mt-2">
+                            {/* Visual sub-group separator */}
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
+                              <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
+                              <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
+                                {child.title}
+                              </span>
+                            </div>
+                            {child.items.map(renderNavLink)}
+                          </div>
+                        );
+                      }
+                      return renderNavLink(child);
+                    })}
+                  </div>
                 )}
               </div>
             );
