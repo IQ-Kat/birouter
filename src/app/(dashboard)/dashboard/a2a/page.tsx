@@ -177,48 +177,42 @@ export default function A2APage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="font-semibold flex items-center gap-2 mb-1">
-            <span
-              className="material-symbols-rounded text-base"
-              style={{ color: "var(--color-primary)" }}
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+              Agent2Agent JSON-RPC 2.0 endpoint — send tasks, stream responses, cancel in-flight
+              jobs.
+            </p>
+            <ol
+              className="mt-2 text-sm space-y-0.5 list-decimal list-inside"
+              style={{ color: "var(--color-text-muted)" }}
             >
-              group_work
-            </span>
-            A2A Server
-          </h3>
-          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-            Agent2Agent JSON-RPC 2.0 endpoint — send tasks, stream responses, cancel in-flight jobs.
-          </p>
-          <ol
-            className="mt-2 text-sm space-y-0.5 list-decimal list-inside"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            <li>
-              Discover the agent card at <code className="text-xs">/.well-known/agent.json</code>.
-            </li>
-            <li>
-              Send JSON-RPC to <code className="text-xs">POST /a2a</code> using{" "}
-              <code className="text-xs">message/send</code> or{" "}
-              <code className="text-xs">message/stream</code>.
-            </li>
-            <li>
-              Track and cancel tasks with <code className="text-xs">tasks/get</code> and{" "}
-              <code className="text-xs">tasks/cancel</code>.
-            </li>
-          </ol>
+              <li>
+                Discover the agent card at <code className="text-xs">/.well-known/agent.json</code>.
+              </li>
+              <li>
+                Send JSON-RPC to <code className="text-xs">POST /a2a</code> using{" "}
+                <code className="text-xs">message/send</code> or{" "}
+                <code className="text-xs">message/stream</code>.
+              </li>
+              <li>
+                Track and cancel tasks with <code className="text-xs">tasks/get</code> and{" "}
+                <code className="text-xs">tasks/cancel</code>.
+              </li>
+            </ol>
+          </div>
+          <div className="shrink-0">
+            <ServiceToggle
+              label="A2A"
+              status={a2aStatus}
+              enabled={a2aEnabled}
+              onToggle={() => void toggleA2a()}
+              toggling={a2aToggling}
+            />
+          </div>
         </div>
-        <div className="shrink-0">
-          <ServiceToggle
-            label="A2A"
-            status={a2aStatus}
-            enabled={a2aEnabled}
-            onToggle={() => void toggleA2a()}
-            toggling={a2aToggling}
-          />
-        </div>
-      </div>
+      </Card>
 
       {a2aEnabled ? <A2ADashboardPage /> : <DisabledPanel />}
     </div>

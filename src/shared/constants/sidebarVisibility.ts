@@ -291,11 +291,22 @@ const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-const AGENTIC_FEATURES_ITEMS: readonly SidebarItemDefinition[] = [
+const MCP_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "mcp",
+  titleKey: "mcp",
+  titleFallback: "MCP Server",
+  items: [
+    { id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" },
+    { id: "audit-mcp", href: "/dashboard/audit/mcp", i18nKey: "auditMcp", icon: "security" },
+  ],
+};
+
+const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
   { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
   { id: "skills", href: "/dashboard/skills", i18nKey: "omniSkills", icon: "auto_fix_high" },
   { id: "agent-skills", href: "/dashboard/agent-skills", i18nKey: "agentSkills", icon: "share" },
-  { id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" },
+  MCP_GROUP,
   { id: "a2a", href: "/dashboard/a2a", i18nKey: "a2a", icon: "device_hub" },
 ];
 
