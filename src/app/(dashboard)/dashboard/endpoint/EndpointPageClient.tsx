@@ -126,7 +126,7 @@ const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
 
 function runEndpointBackgroundTask(taskName: string, task: () => Promise<unknown>) {
   void task().catch((error) => {
-    console.log(`Error running endpoint background task (${taskName}):`, error);
+    console.log("Error running endpoint background task:", taskName, error);
   });
 }
 
@@ -173,6 +173,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokNotice, setNgrokNotice] = useState<TunnelNotice | null>(null);
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
+  const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -1029,6 +1030,31 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
   // Use new format endpoint (machineId embedded in key)
   const currentEndpoint = cloudEnabled && cloudEndpointNew ? cloudEndpointNew : baseUrl;
+
+  const activeUrls = [
+    { label: "Local", url: baseUrl, key: "active_local" },
+    ...(cloudEnabled && cloudEndpointNew
+      ? [{ label: "Cloud", url: cloudEndpointNew, key: "active_cloud" }]
+      : []),
+    ...(cloudflaredStatus?.running && cloudflaredStatus.apiUrl
+      ? [{ label: "Cloudflare", url: cloudflaredStatus.apiUrl, key: "active_cf" }]
+      : []),
+    ...(tailscaleStatus?.running && tailscaleStatus.apiUrl
+      ? [{ label: "Tailscale", url: tailscaleStatus.apiUrl, key: "active_ts" }]
+      : []),
+    ...(ngrokStatus?.running && ngrokStatus.apiUrl
+      ? [{ label: "ngrok", url: ngrokStatus.apiUrl, key: "active_ngrok" }]
+      : []),
+  ];
+  const visibleTunnelCount = [showCloudflaredTunnel, showTailscaleFunnel, showNgrokTunnel].filter(
+    Boolean
+  ).length;
+  const activeTunnelCount = [
+    showCloudflaredTunnel && cloudflaredStatus?.running,
+    showTailscaleFunnel && tailscaleStatus?.running,
+    showNgrokTunnel && ngrokStatus?.running,
+  ].filter(Boolean).length;
+
   const mcpOnline = Boolean(mcpStatus?.online);
   const a2aOnline = a2aStatus?.status === "ok";
   const mcpToolCount = Number(mcpStatus?.heartbeat?.toolCount || 0);
@@ -1148,59 +1174,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   return (
     <div className="flex flex-col gap-8">
       {/* Endpoint Card */}
-      <Card className={""}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold">{t("title")}</h2>
-            <div className="mt-2">
-              <Button
-                size="sm"
-                variant={cloudEnabled ? "primary" : "secondary"}
-                icon={cloudEnabled ? "cloud_done" : "dns"}
-                onClick={() => handleCloudToggle(!cloudEnabled)}
-                disabled={cloudSyncing || (!cloudEnabled && !cloudConfigured)}
-                className={
-                  cloudEnabled ? "" : "border-border/70! text-text-muted! hover:text-text!"
-                }
-              >
-                {cloudEnabled ? t("usingCloudProxy") : t("usingLocalServer")}
-              </Button>
-            </div>
-            {resolvedMachineId && (
-              <p className="text-xs text-text-muted mt-2">
-                {t("machineId", { id: resolvedMachineId.slice(0, 8) })}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {cloudEnabled ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                icon="cloud_off"
-                onClick={() => handleCloudToggle(false)}
-                disabled={cloudSyncing}
-                className="bg-red-500/10! text-red-500! hover:bg-red-500/20! border-red-500/30!"
-              >
-                {t("disableCloud")}
-              </Button>
-            ) : cloudConfigured ? (
-              <Button
-                variant="primary"
-                icon="cloud_upload"
-                onClick={() => handleCloudToggle(true)}
-                disabled={cloudSyncing}
-                className="bg-linear-to-r from-primary to-blue-500 hover:from-primary-hover hover:to-blue-600"
-              >
-                {t("enableCloud")}
-              </Button>
-            ) : (
-              <span className="text-xs px-2 py-1 rounded-full bg-surface text-text-muted border border-border/70">
-                Cloud not configured
-              </span>
-            )}
-          </div>
-        </div>
+      <Card>
+        <h2 className="text-lg font-semibold mb-4">{t("title")}</h2>
 
         {/* Cloud Status Toast */}
         {cloudStatus && (
@@ -1230,143 +1205,282 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           </div>
         )}
 
-        {/* Endpoint URL */}
-        <div className="flex flex-col sm:flex-row gap-2 mb-3">
-          <Input
-            value={currentEndpoint}
-            readOnly
-            className={`flex-1 min-w-0 font-mono text-sm ${cloudEnabled ? "animate-border-glow" : ""}`}
-          />
-          <Button
-            variant="secondary"
-            icon={copied === "endpoint_url" ? "check" : "content_copy"}
-            onClick={() => copy(currentEndpoint, "endpoint_url")}
-            className="shrink-0 self-start sm:self-auto"
-          >
-            {copied === "endpoint_url" ? tc("copied") : tc("copy")}
-          </Button>
-        </div>
-
-        {showCloudflaredTunnel && (
-          <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold">
-                      {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
-                    </h3>
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
-                    >
-                      {cloudflaredPhaseMeta[cloudflaredPhase].label}
+        {/* Active URLs — shown only when more than just local is active */}
+        {activeUrls.length > 1 && (
+          <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+            <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">
+              Active Endpoints
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {activeUrls.map(({ label, url, key }) => (
+                <div key={key} className="flex items-center gap-2 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                  <span className="text-xs text-text-muted w-20 shrink-0">{label}</span>
+                  <code className="text-xs font-mono text-text-main flex-1 truncate min-w-0">
+                    {url}
+                  </code>
+                  <button
+                    onClick={() => void copy(url, key)}
+                    className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded border border-border/70 text-text-muted hover:text-text transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">
+                      {copied === key ? "check" : "content_copy"}
                     </span>
-                  </div>
+                  </button>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
 
+        {/* Connection rows */}
+        <div className="flex flex-col">
+          {/* Local Server */}
+          <div className="flex items-center gap-3 py-3">
+            <span className="material-symbols-outlined text-[18px] text-emerald-500 shrink-0">
+              computer
+            </span>
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium">Local Server</span>
+              {resolvedMachineId && (
+                <span className="text-xs text-text-muted ml-2">
+                  · {resolvedMachineId.slice(0, 8)}
+                </span>
+              )}
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 border border-green-500/30 text-green-400 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Running
+            </span>
+            <code className="hidden sm:block text-xs font-mono text-text-muted truncate max-w-[200px] shrink-0">
+              {baseUrl}
+            </code>
+            <button
+              onClick={() => void copy(baseUrl, "endpoint_url")}
+              className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-border/70 text-text-muted hover:text-text hover:border-border transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {copied === "endpoint_url" ? "check" : "content_copy"}
+              </span>
+              {copied === "endpoint_url" ? tc("copied") : tc("copy")}
+            </button>
+          </div>
+
+          {/* Cloud OmniRoute */}
+          <div className="flex items-center gap-3 py-3 border-t border-border/50">
+            <span className="material-symbols-outlined text-[18px] text-blue-400 shrink-0">
+              cloud
+            </span>
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium">Cloud OmniRoute</span>
+              {cloudEnabled && cloudEndpointNew && (
+                <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
+                  {cloudEndpointNew}
+                </code>
+              )}
+            </div>
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0 ${
+                cloudEnabled
+                  ? "bg-green-500/10 border-green-500/30 text-green-400"
+                  : "bg-surface border-border/70 text-text-muted"
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${cloudEnabled ? "bg-green-400 animate-pulse" : "bg-text-muted"}`}
+              />
+              {cloudEnabled ? "Active" : "Disabled"}
+            </span>
+            {cloudEnabled ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon="cloud_off"
+                onClick={() => handleCloudToggle(false)}
+                disabled={cloudSyncing}
+                className="shrink-0 bg-red-500/10! text-red-500! hover:bg-red-500/20! border-red-500/30!"
+              >
+                {t("disableCloud")}
+              </Button>
+            ) : cloudConfigured ? (
+              <Button
+                size="sm"
+                variant="primary"
+                icon="cloud_upload"
+                onClick={() => handleCloudToggle(true)}
+                disabled={cloudSyncing}
+                className="shrink-0"
+              >
+                {t("enableCloud")}
+              </Button>
+            ) : (
+              <span className="text-xs text-text-muted shrink-0 px-2 py-1 rounded border border-border/70 bg-surface">
+                Not configured
+              </span>
+            )}
+          </div>
+
+          {/* Tunnels section header */}
+          {(showCloudflaredTunnel || showTailscaleFunnel || showNgrokTunnel) && (
+            <div className="flex items-center gap-2 pt-4 pb-1 border-t border-border/50">
+              <span className="material-symbols-outlined text-[14px] text-text-muted">
+                network_node
+              </span>
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                Tunnels
+              </span>
+              <div className="flex-1 h-px bg-border/50" />
+              <span className="text-[10px] text-text-muted">
+                {activeTunnelCount} / {visibleTunnelCount} active
+              </span>
+            </div>
+          )}
+
+          {/* Cloudflare Quick Tunnel */}
+          {showCloudflaredTunnel && (
+            <div>
+              <button
+                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left"
+                onClick={() => setExpandedTunnel(expandedTunnel === "cf" ? null : "cf")}
+              >
+                <span className="material-symbols-outlined text-[18px] text-orange-400 shrink-0">
+                  cloud_queue
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium">
+                    {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
+                  </span>
+                  {cloudflaredStatus?.running && cloudflaredStatus.apiUrl && (
+                    <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
+                      {cloudflaredStatus.apiUrl}
+                    </code>
+                  )}
+                </div>
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
+                >
+                  {cloudflaredPhaseMeta[cloudflaredPhase].label}
+                </span>
                 {cloudflaredStatus?.supported !== false && (
                   <Button
                     size="sm"
                     variant={cloudflaredStatus?.running ? "secondary" : "primary"}
                     icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
-                    onClick={() =>
-                      handleCloudflaredAction(cloudflaredStatus?.running ? "disable" : "enable")
-                    }
                     loading={cloudflaredBusy}
-                    className={
-                      cloudflaredStatus?.running
-                        ? "border-border/70! text-text-muted! hover:text-text!"
-                        : "bg-linear-to-r from-primary to-cyan-500 hover:from-primary-hover hover:to-cyan-600"
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleCloudflaredAction(
+                        cloudflaredStatus?.running ? "disable" : "enable"
+                      );
+                    }}
+                    className={`shrink-0 ${cloudflaredStatus?.running ? "border-border/70! text-text-muted! hover:text-text!" : ""}`}
                   >
                     {cloudflaredActionLabel}
                   </Button>
                 )}
-              </div>
-
-              {cloudflaredNotice && (
-                <div
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                    cloudflaredNotice.type === "success"
-                      ? "border-green-500/30 bg-green-500/10 text-green-400"
-                      : cloudflaredNotice.type === "info"
-                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                        : "border-red-500/30 bg-red-500/10 text-red-400"
-                  }`}
+                <span
+                  className="material-symbols-outlined text-[18px] text-text-muted shrink-0 transition-transform duration-200"
+                  style={{
+                    transform: expandedTunnel === "cf" ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {cloudflaredNotice.type === "success"
-                      ? "check_circle"
-                      : cloudflaredNotice.type === "info"
-                        ? "info"
-                        : "error"}
-                  </span>
-                  <span className="flex-1">{cloudflaredNotice.message}</span>
-                  <button
-                    onClick={() => setCloudflaredNotice(null)}
-                    className="rounded p-0.5 transition-colors hover:bg-white/10"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">close</span>
-                  </button>
+                  expand_more
+                </span>
+              </button>
+              {expandedTunnel === "cf" && (
+                <div className="pb-3 pl-7 pr-1 flex flex-col gap-2">
+                  {cloudflaredNotice && (
+                    <div
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                        cloudflaredNotice.type === "success"
+                          ? "border-green-500/30 bg-green-500/10 text-green-400"
+                          : cloudflaredNotice.type === "info"
+                            ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                            : "border-red-500/30 bg-red-500/10 text-red-400"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {cloudflaredNotice.type === "success"
+                          ? "check_circle"
+                          : cloudflaredNotice.type === "info"
+                            ? "info"
+                            : "error"}
+                      </span>
+                      <span className="flex-1">{cloudflaredNotice.message}</span>
+                      <button
+                        onClick={() => setCloudflaredNotice(null)}
+                        className="rounded p-0.5 transition-colors hover:bg-white/10"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">close</span>
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      value={cloudflaredStatus?.apiUrl || ""}
+                      readOnly
+                      placeholder="https://*.trycloudflare.com/v1"
+                      className="flex-1 min-w-0 font-mono text-sm"
+                    />
+                    <Button
+                      variant="secondary"
+                      icon={copied === "cloudflared_url" ? "check" : "content_copy"}
+                      onClick={() =>
+                        cloudflaredStatus?.apiUrl &&
+                        copy(cloudflaredStatus.apiUrl, "cloudflared_url")
+                      }
+                      disabled={!cloudflaredStatus?.apiUrl}
+                      className="shrink-0 self-start sm:self-auto"
+                    >
+                      {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
+                    </Button>
+                  </div>
+                  {cloudflaredStatus?.lastError && (
+                    <p className="text-xs text-red-400">
+                      {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
+                        error: cloudflaredStatus.lastError,
+                      })}
+                    </p>
+                  )}
                 </div>
-              )}
-
-              <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  value={cloudflaredStatus?.apiUrl || ""}
-                  readOnly
-                  placeholder="https://*.trycloudflare.com/v1"
-                  className="flex-1 min-w-0 font-mono text-sm"
-                />
-                <Button
-                  variant="secondary"
-                  icon={copied === "cloudflared_url" ? "check" : "content_copy"}
-                  onClick={() =>
-                    cloudflaredStatus?.apiUrl && copy(cloudflaredStatus.apiUrl, "cloudflared_url")
-                  }
-                  disabled={!cloudflaredStatus?.apiUrl}
-                  className="shrink-0 self-start sm:self-auto"
-                >
-                  {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
-                </Button>
-              </div>
-              {cloudflaredStatus?.lastError && (
-                <p className="text-xs text-red-400">
-                  {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
-                    error: cloudflaredStatus.lastError,
-                  })}
-                </p>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {showTailscaleFunnel && (
-          <div
-            className={`${showCloudflaredTunnel ? "mt-4 " : ""}rounded-xl border border-border/70 bg-surface/40 p-4`}
-          >
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold">
-                      {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
-                    </h3>
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${tailscalePhaseMeta[tailscalePhase].className}`}
-                    >
-                      {tailscalePhaseMeta[tailscalePhase].label}
-                    </span>
-                  </div>
+          {/* Tailscale Funnel */}
+          {showTailscaleFunnel && (
+            <div className={showCloudflaredTunnel ? "border-t border-border/30" : ""}>
+              <button
+                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left"
+                onClick={() => setExpandedTunnel(expandedTunnel === "ts" ? null : "ts")}
+              >
+                <span className="material-symbols-outlined text-[18px] text-indigo-400 shrink-0">
+                  vpn_lock
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium">
+                    {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+                  </span>
+                  {tailscaleStatus?.running && tailscaleStatus.apiUrl && (
+                    <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
+                      {tailscaleStatus.apiUrl}
+                    </code>
+                  )}
                 </div>
-
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${tailscalePhaseMeta[tailscalePhase].className}`}
+                >
+                  {tailscalePhaseMeta[tailscalePhase].label}
+                </span>
                 {tailscaleStatus?.supported !== false && (
                   <Button
                     size="sm"
                     variant={tailscaleStatus?.running ? "secondary" : "primary"}
                     icon={tailscaleStatus?.running ? "vpn_lock_off" : "vpn_lock"}
-                    onClick={() => {
+                    loading={tailscaleBusy}
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (tailscaleStatus?.running) {
                         void handleTailscaleDisable();
                       } else if (tailscaleStatus?.installed) {
@@ -1375,228 +1489,250 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                         setShowTailscaleInstallModal(true);
                       }
                     }}
-                    loading={tailscaleBusy}
-                    className={
-                      tailscaleStatus?.running
-                        ? "border-border/70! text-text-muted! hover:text-text!"
-                        : "bg-linear-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600"
-                    }
+                    className={`shrink-0 ${tailscaleStatus?.running ? "border-border/70! text-text-muted! hover:text-text!" : ""}`}
                   >
                     {tailscaleActionLabel}
                   </Button>
                 )}
-              </div>
-
-              {tailscaleNotice && (
-                <div
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                    tailscaleNotice.type === "success"
-                      ? "border-green-500/30 bg-green-500/10 text-green-400"
-                      : tailscaleNotice.type === "info"
-                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                        : "border-red-500/30 bg-red-500/10 text-red-400"
-                  }`}
+                <span
+                  className="material-symbols-outlined text-[18px] text-text-muted shrink-0 transition-transform duration-200"
+                  style={{
+                    transform: expandedTunnel === "ts" ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {tailscaleNotice.type === "success"
-                      ? "check_circle"
-                      : tailscaleNotice.type === "info"
-                        ? "info"
-                        : "error"}
-                  </span>
-                  <span className="flex-1">{tailscaleNotice.message}</span>
-                  <button
-                    onClick={() => setTailscaleNotice(null)}
-                    className="rounded p-0.5 transition-colors hover:bg-white/10"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">close</span>
-                  </button>
-                </div>
-              )}
-
-              <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
-              {tailscaleStatus?.phase === "needs_login" && (
-                <p className="text-xs text-blue-400">
-                  {translateOrFallback(
-                    "tailscaleNeedsLoginHint",
-                    "Authenticate this machine with Tailscale, then enable Funnel."
+                  expand_more
+                </span>
+              </button>
+              {expandedTunnel === "ts" && (
+                <div className="pb-3 pl-7 pr-1 flex flex-col gap-2">
+                  {tailscaleNotice && (
+                    <div
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                        tailscaleNotice.type === "success"
+                          ? "border-green-500/30 bg-green-500/10 text-green-400"
+                          : tailscaleNotice.type === "info"
+                            ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                            : "border-red-500/30 bg-red-500/10 text-red-400"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {tailscaleNotice.type === "success"
+                          ? "check_circle"
+                          : tailscaleNotice.type === "info"
+                            ? "info"
+                            : "error"}
+                      </span>
+                      <span className="flex-1">{tailscaleNotice.message}</span>
+                      <button
+                        onClick={() => setTailscaleNotice(null)}
+                        className="rounded p-0.5 transition-colors hover:bg-white/10"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">close</span>
+                      </button>
+                    </div>
                   )}
-                </p>
-              )}
-              {/* Sudo password input — shown when Tailscale is installed but not running (needs sudo to start daemon) */}
-              {tailscaleStatus?.installed &&
-                !tailscaleStatus?.running &&
-                tailscaleStatus?.platform !== "win32" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-text-muted">
+                  <p className="text-xs text-text-muted">{tailscaleUrlNotice}</p>
+                  {tailscaleStatus?.phase === "needs_login" && (
+                    <p className="text-xs text-blue-400">
                       {translateOrFallback(
-                        "tailscaleSudoLabel",
-                        "Sudo Password (required on macOS/Linux)"
+                        "tailscaleNeedsLoginHint",
+                        "Authenticate this machine with Tailscale, then enable Funnel."
                       )}
-                    </label>
+                    </p>
+                  )}
+                  {tailscaleStatus?.installed &&
+                    !tailscaleStatus?.running &&
+                    tailscaleStatus?.platform !== "win32" && (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs text-text-muted">
+                          {translateOrFallback(
+                            "tailscaleSudoLabel",
+                            "Sudo Password (required on macOS/Linux)"
+                          )}
+                        </label>
+                        <Input
+                          type="password"
+                          value={tailscalePassword}
+                          onChange={(event) => setTailscalePassword(event.target.value)}
+                          placeholder={translateOrFallback(
+                            "tailscaleSudoPlaceholder",
+                            "Enter sudo password"
+                          )}
+                          disabled={tailscaleBusy}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                    )}
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Input
-                      type="password"
-                      value={tailscalePassword}
-                      onChange={(event) => setTailscalePassword(event.target.value)}
-                      placeholder={translateOrFallback(
-                        "tailscaleSudoPlaceholder",
-                        "Enter sudo password"
-                      )}
-                      disabled={tailscaleBusy}
-                      className="font-mono text-sm"
+                      value={tailscaleStatus?.apiUrl || ""}
+                      readOnly
+                      placeholder="https://your-device.tailnet.ts.net/v1"
+                      className="flex-1 min-w-0 font-mono text-sm"
                     />
+                    <Button
+                      variant="secondary"
+                      icon={copied === "tailscale_url" ? "check" : "content_copy"}
+                      onClick={() =>
+                        tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
+                      }
+                      disabled={!tailscaleStatus?.apiUrl}
+                      className="shrink-0 self-start sm:self-auto"
+                    >
+                      {copied === "tailscale_url" ? tc("copied") : tc("copy")}
+                    </Button>
                   </div>
-                )}
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  value={tailscaleStatus?.apiUrl || ""}
-                  readOnly
-                  placeholder="https://your-device.tailnet.ts.net/v1"
-                  className="flex-1 min-w-0 font-mono text-sm"
-                />
-                <Button
-                  variant="secondary"
-                  icon={copied === "tailscale_url" ? "check" : "content_copy"}
-                  onClick={() =>
-                    tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
-                  }
-                  disabled={!tailscaleStatus?.apiUrl}
-                  className="shrink-0 self-start sm:self-auto"
-                >
-                  {copied === "tailscale_url" ? tc("copied") : tc("copy")}
-                </Button>
-              </div>
-              {tailscaleStatus?.binaryPath && (
-                <p className="text-xs text-text-muted">
-                  {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
-                    path: tailscaleStatus.binaryPath,
-                  })}
-                </p>
-              )}
-              {tailscaleStatus?.lastError && (
-                <p className="text-xs text-red-400">
-                  {translateOrFallback("tailscaleLastError", "Last error: {error}", {
-                    error: tailscaleStatus.lastError,
-                  })}
-                </p>
+                  {tailscaleStatus?.binaryPath && (
+                    <p className="text-xs text-text-muted">
+                      {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
+                        path: tailscaleStatus.binaryPath,
+                      })}
+                    </p>
+                  )}
+                  {tailscaleStatus?.lastError && (
+                    <p className="text-xs text-red-400">
+                      {translateOrFallback("tailscaleLastError", "Last error: {error}", {
+                        error: tailscaleStatus.lastError,
+                      })}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {showNgrokTunnel && (
-          <div
-            className={`${showCloudflaredTunnel || showTailscaleFunnel ? "mt-4 " : ""}rounded-xl border border-border/70 bg-surface/40 p-4`}
-          >
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold">
-                      {translateOrFallback("ngrokTitle", "ngrok Tunnel")}
-                    </h3>
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${ngrokPhaseMeta[ngrokPhase].className}`}
-                    >
-                      {ngrokPhaseMeta[ngrokPhase].label}
-                    </span>
-                  </div>
+          {/* ngrok Tunnel */}
+          {showNgrokTunnel && (
+            <div
+              className={
+                showCloudflaredTunnel || showTailscaleFunnel ? "border-t border-border/30" : ""
+              }
+            >
+              <button
+                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left"
+                onClick={() => setExpandedTunnel(expandedTunnel === "ngrok" ? null : "ngrok")}
+              >
+                <span className="material-symbols-outlined text-[18px] text-purple-400 shrink-0">
+                  public
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium">
+                    {translateOrFallback("ngrokTitle", "ngrok Tunnel")}
+                  </span>
+                  {ngrokStatus?.running && ngrokStatus.apiUrl && (
+                    <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
+                      {ngrokStatus.apiUrl}
+                    </code>
+                  )}
                 </div>
-
+                <span
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${ngrokPhaseMeta[ngrokPhase].className}`}
+                >
+                  {ngrokPhaseMeta[ngrokPhase].label}
+                </span>
                 {ngrokStatus?.supported !== false && (
                   <Button
                     size="sm"
                     variant={ngrokStatus?.running ? "secondary" : "primary"}
                     icon={ngrokStatus?.running ? "public_off" : "public"}
-                    onClick={() => handleNgrokAction(ngrokStatus?.running ? "disable" : "enable")}
                     loading={ngrokBusy}
-                    className={
-                      ngrokStatus?.running
-                        ? "border-border/70! text-text-muted! hover:text-text!"
-                        : "bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleNgrokAction(ngrokStatus?.running ? "disable" : "enable");
+                    }}
+                    className={`shrink-0 ${ngrokStatus?.running ? "border-border/70! text-text-muted! hover:text-text!" : ""}`}
                   >
                     {ngrokActionLabel}
                   </Button>
                 )}
-              </div>
-
-              {ngrokNotice && (
-                <div
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                    ngrokNotice.type === "success"
-                      ? "border-green-500/30 bg-green-500/10 text-green-400"
-                      : ngrokNotice.type === "info"
-                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                        : "border-red-500/30 bg-red-500/10 text-red-400"
-                  }`}
+                <span
+                  className="material-symbols-outlined text-[18px] text-text-muted shrink-0 transition-transform duration-200"
+                  style={{
+                    transform: expandedTunnel === "ngrok" ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {ngrokNotice.type === "success"
-                      ? "check_circle"
-                      : ngrokNotice.type === "info"
-                        ? "info"
-                        : "error"}
-                  </span>
-                  <span className="flex-1">{ngrokNotice.message}</span>
-                  <button
-                    onClick={() => setNgrokNotice(null)}
-                    className="rounded p-0.5 transition-colors hover:bg-white/10"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">close</span>
-                  </button>
+                  expand_more
+                </span>
+              </button>
+              {expandedTunnel === "ngrok" && (
+                <div className="pb-3 pl-7 pr-1 flex flex-col gap-2">
+                  {ngrokNotice && (
+                    <div
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                        ngrokNotice.type === "success"
+                          ? "border-green-500/30 bg-green-500/10 text-green-400"
+                          : ngrokNotice.type === "info"
+                            ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                            : "border-red-500/30 bg-red-500/10 text-red-400"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {ngrokNotice.type === "success"
+                          ? "check_circle"
+                          : ngrokNotice.type === "info"
+                            ? "info"
+                            : "error"}
+                      </span>
+                      <span className="flex-1">{ngrokNotice.message}</span>
+                      <button
+                        onClick={() => setNgrokNotice(null)}
+                        className="rounded p-0.5 transition-colors hover:bg-white/10"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">close</span>
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-text-muted">{ngrokUrlNotice}</p>
+                  {ngrokStatus?.phase === "needs_auth" && (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-text-muted">
+                        {translateOrFallback(
+                          "ngrokAuthTokenLabel",
+                          "Authtoken (Required if NGROK_AUTHTOKEN not set)"
+                        )}
+                      </label>
+                      <Input
+                        type="password"
+                        value={ngrokToken}
+                        onChange={(event) => setNgrokToken(event.target.value)}
+                        placeholder={translateOrFallback(
+                          "ngrokAuthTokenPlaceholder",
+                          "Enter your ngrok authtoken"
+                        )}
+                        disabled={ngrokBusy}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      value={ngrokStatus?.apiUrl || ""}
+                      readOnly
+                      placeholder="https://your-tunnel.ngrok-free.app/v1"
+                      className="flex-1 min-w-0 font-mono text-sm"
+                    />
+                    <Button
+                      variant="secondary"
+                      icon={copied === "ngrok_url" ? "check" : "content_copy"}
+                      onClick={() => ngrokStatus?.apiUrl && copy(ngrokStatus.apiUrl, "ngrok_url")}
+                      disabled={!ngrokStatus?.apiUrl}
+                      className="shrink-0 self-start sm:self-auto"
+                    >
+                      {copied === "ngrok_url" ? tc("copied") : tc("copy")}
+                    </Button>
+                  </div>
+                  {ngrokStatus?.lastError && (
+                    <p className="text-xs text-red-400">
+                      {translateOrFallback("ngrokLastError", "Last error: {error}", {
+                        error: ngrokStatus.lastError,
+                      })}
+                    </p>
+                  )}
                 </div>
-              )}
-
-              <p className="text-xs text-text-muted">{ngrokUrlNotice}</p>
-              {ngrokStatus?.phase === "needs_auth" && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs text-text-muted">
-                    {translateOrFallback(
-                      "ngrokAuthTokenLabel",
-                      "Authtoken (Required if NGROK_AUTHTOKEN not set)"
-                    )}
-                  </label>
-                  <Input
-                    type="password"
-                    value={ngrokToken}
-                    onChange={(event) => setNgrokToken(event.target.value)}
-                    placeholder={translateOrFallback(
-                      "ngrokAuthTokenPlaceholder",
-                      "Enter your ngrok authtoken"
-                    )}
-                    disabled={ngrokBusy}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              )}
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  value={ngrokStatus?.apiUrl || ""}
-                  readOnly
-                  placeholder="https://your-tunnel.ngrok-free.app/v1"
-                  className="flex-1 min-w-0 font-mono text-sm"
-                />
-                <Button
-                  variant="secondary"
-                  icon={copied === "ngrok_url" ? "check" : "content_copy"}
-                  onClick={() => ngrokStatus?.apiUrl && copy(ngrokStatus.apiUrl, "ngrok_url")}
-                  disabled={!ngrokStatus?.apiUrl}
-                  className="shrink-0 self-start sm:self-auto"
-                >
-                  {copied === "ngrok_url" ? tc("copied") : tc("copy")}
-                </Button>
-              </div>
-              {ngrokStatus?.lastError && (
-                <p className="text-xs text-red-400">
-                  {translateOrFallback("ngrokLastError", "Last error: {error}", {
-                    error: ngrokStatus.lastError,
-                  })}
-                </p>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </Card>
 
       <Card>
