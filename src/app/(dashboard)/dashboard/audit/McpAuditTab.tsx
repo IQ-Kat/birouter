@@ -23,6 +23,13 @@ type McpAuditResponse = {
   offset: number;
 };
 
+type McpAuditStats = {
+  totalCalls: number;
+  successRate: number;
+  avgDurationMs: number;
+  topTools: Array<{ tool: string; count: number }>;
+};
+
 const MCP_PAGE_SIZE = 25;
 
 export default function McpAuditTab() {
@@ -33,10 +40,24 @@ export default function McpAuditTab() {
     limit: MCP_PAGE_SIZE,
     offset: 0,
   });
+  const [stats, setStats] = useState<McpAuditStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [toolFilter, setToolFilter] = useState("");
   const [successFilter, setSuccessFilter] = useState<"all" | "true" | "false">("all");
   const [offset, setOffset] = useState(0);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/mcp/audit/stats");
+      if (res.ok) setStats((await res.json()) as McpAuditStats);
+    } catch {
+      // non-fatal
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchStats();
+  }, [fetchStats]);
 
   const fetchAudit = useCallback(async () => {
     setLoading(true);
@@ -80,7 +101,10 @@ export default function McpAuditTab() {
             </p>
           </div>
           <button
-            onClick={() => void fetchAudit()}
+            onClick={() => {
+              void fetchAudit();
+              void fetchStats();
+            }}
             disabled={loading}
             className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-sidebar disabled:opacity-40"
           >
@@ -93,6 +117,54 @@ export default function McpAuditTab() {
           </button>
         </div>
       </Card>
+
+      {stats && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            {
+              label: "Calls (24h)",
+              value: stats.totalCalls.toLocaleString(),
+              icon: "terminal",
+            },
+            {
+              label: "Success rate",
+              value: `${Math.round(stats.successRate * 100)}%`,
+              icon: "check_circle",
+              highlight: stats.successRate >= 0.9,
+            },
+            {
+              label: "Avg duration",
+              value: `${Math.round(stats.avgDurationMs)}ms`,
+              icon: "timer",
+            },
+            {
+              label: "Top tool",
+              value: stats.topTools[0]?.tool ?? "—",
+              icon: "star",
+            },
+          ].map((item) => (
+            <Card key={item.label} className="px-4 py-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className="material-symbols-outlined text-[14px]"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {item.icon}
+                </span>
+                <span className="text-xs text-text-muted uppercase tracking-wider">
+                  {item.label}
+                </span>
+              </div>
+              <p
+                className="text-lg font-semibold truncate"
+                style={{ color: item.highlight ? "rgb(34,197,94)" : "var(--color-text)" }}
+              >
+                {item.value}
+              </p>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Card className="p-4">
         <div className="grid gap-3 md:grid-cols-3">

@@ -43,6 +43,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // Monitoring > Audit
   "audit",
   "audit-mcp",
+  "audit-a2a",
   // Dev Tools
   "translator",
   "playground",
@@ -277,6 +278,7 @@ const AUDIT_GROUP: SidebarItemGroup = {
   items: [
     { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "policy" },
     { id: "audit-mcp", href: "/dashboard/audit/mcp", i18nKey: "auditMcp", icon: "security" },
+    { id: "audit-a2a", href: "/dashboard/audit/a2a", i18nKey: "auditA2a", icon: "device_hub" },
   ],
 };
 
@@ -296,10 +298,7 @@ const MCP_GROUP: SidebarItemGroup = {
   id: "mcp",
   titleKey: "mcp",
   titleFallback: "MCP Server",
-  items: [
-    { id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" },
-    { id: "audit-mcp", href: "/dashboard/audit/mcp", i18nKey: "auditMcp", icon: "security" },
-  ],
+  items: [{ id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" }],
 };
 
 const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
