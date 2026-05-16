@@ -51,6 +51,7 @@ const DOT_COLORS: Record<string, string> = {
   audio: "bg-rose-500",
   local: "bg-emerald-500",
   "upstream-proxy": "bg-indigo-500",
+  "cloud-agent": "bg-violet-500",
 };
 
 function getStatusDisplay(

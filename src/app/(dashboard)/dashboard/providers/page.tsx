@@ -581,9 +581,9 @@ export default function ProvidersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Search Bar */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
+      {/* Search Bar + Dot Legend */}
+      <div className="flex items-center gap-4">
+        <div className="relative w-1/4 min-w-[160px]">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">
             search
           </span>
@@ -603,6 +603,27 @@ export default function ProvidersPage() {
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
           )}
+        </div>
+        <div className="flex-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-text-muted select-none">
+          {(
+            [
+              ["bg-green-500", tc("free")],
+              ["bg-blue-500", t("oauthLabel")],
+              ["bg-amber-500", t("apiKeyLabel")],
+              ["bg-orange-500", t("compatibleLabel")],
+              ["bg-purple-500", t("webCookieProviders")],
+              ["bg-teal-500", t("searchProvidersHeading")],
+              ["bg-rose-500", t("audioProvidersHeading")],
+              ["bg-emerald-500", t("localProviders")],
+              ["bg-indigo-500", t("upstreamProxyProviders")],
+              ["bg-violet-500", t("cloudAgentProviders")],
+            ] as [string, string][]
+          ).map(([color, label]) => (
+            <span key={color} className="flex items-center gap-1 whitespace-nowrap">
+              <span className={`size-2 rounded-full shrink-0 ${color}`} />
+              {label}
+            </span>
+          ))}
         </div>
       </div>
 
@@ -1004,18 +1025,16 @@ export default function ProvidersPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {webCookieProviderEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
+            {webCookieProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="web-cookie"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -1049,18 +1068,16 @@ export default function ProvidersPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {searchProviderEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
+            {searchProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="search"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -1094,18 +1111,16 @@ export default function ProvidersPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {audioProviderEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
+            {audioProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="audio"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -1139,18 +1154,16 @@ export default function ProvidersPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {cloudAgentProviderEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
+            {cloudAgentProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="cloud-agent"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -1181,18 +1194,16 @@ export default function ProvidersPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {localProviderEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
+            {localProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="local"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -1226,18 +1237,16 @@ export default function ProvidersPage() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {upstreamProxyEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
+            {upstreamProxyEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="upstream-proxy"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
