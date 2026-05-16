@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardSkeleton, Badge, Button, Input, Toggle } from "@/shared/components";
+import { Card, CardSkeleton, Badge, Button, Input, Toggle, CollapsibleSection } from "@/shared/components";
 import {
   FREE_PROVIDERS,
   OAUTH_PROVIDERS,
@@ -123,7 +123,10 @@ export default function ProvidersPage() {
   } | null>(null);
   const [repairingEnv, setRepairingEnv] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showFreeOnly, setShowFreeOnly] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const notify = useNotificationStore();
+  const showSection = (category: string) => !activeCategory || activeCategory === category;
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const ccCompatibleLabel = t("ccCompatibleLabel");
@@ -419,7 +422,8 @@ export default function ProvidersPage() {
   const oauthProviderEntries = filterConfiguredProviderEntries(
     oauthProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
@@ -433,74 +437,86 @@ export default function ProvidersPage() {
         !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
     ),
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
   const aggregatorProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => AGGREGATOR_PROVIDER_IDS.has(entry.providerId)),
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
   const imageProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)),
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
   const enterpriseProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId)),
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
   const videoProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => VIDEO_PROVIDER_IDS.has(entry.providerId)),
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
   const embeddingRerankProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)),
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const webCookieProviderEntriesAll = buildStaticProviderEntries("web-cookie", getProviderStats);
   const webCookieProviderEntries = filterConfiguredProviderEntries(
     webCookieProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const localProviderEntriesAll = buildStaticProviderEntries("local", getProviderStats);
   const localProviderEntries = filterConfiguredProviderEntries(
     localProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const searchProviderEntriesAll = buildStaticProviderEntries("search", getProviderStats);
   const searchProviderEntries = filterConfiguredProviderEntries(
     searchProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const audioProviderEntriesAll = buildStaticProviderEntries("audio", getProviderStats);
   const audioProviderEntries = filterConfiguredProviderEntries(
     audioProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const cloudAgentProviderEntriesAll = buildStaticProviderEntries("cloud-agent", getProviderStats);
   const cloudAgentProviderEntries = filterConfiguredProviderEntries(
     cloudAgentProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const upstreamProxyEntriesAll = buildStaticProviderEntries("upstream-proxy", getProviderStats);
   const upstreamProxyEntries = filterConfiguredProviderEntries(
     upstreamProxyEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const compatibleProviderEntriesAll = [
@@ -529,7 +545,8 @@ export default function ProvidersPage() {
   const compatibleProviderEntries = filterConfiguredProviderEntries(
     compatibleProviderEntriesAll,
     showConfiguredOnly,
-    searchQuery
+    searchQuery,
+    showFreeOnly
   );
 
   const FREE_SECTION_IDS = new Set([
@@ -754,6 +771,48 @@ export default function ProvidersPage() {
         )}
       </div>
 
+      {/* Category Filter Chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { key: null, label: t("allProviders") || "All" },
+          { key: "free", label: t("freeProviders") || "Free" },
+          { key: "oauth", label: t("oauthProviders") },
+          { key: "apikey", label: t("apiKeyProviders") },
+          { key: "webcookie", label: t("webCookieProviders") || "Web Cookie" },
+          { key: "search", label: t("searchProviders") || "Search" },
+          { key: "audio", label: t("audioProviders") || "Audio" },
+          { key: "cloudagent", label: t("cloudAgentProviders") || "Cloud Agent" },
+          { key: "local", label: t("localProviders") || "Local" },
+          { key: "compatible", label: t("compatibleProviders") || "Compatible" },
+        ].map((cat) => (
+          <button
+            key={cat.key ?? "all"}
+            onClick={() => {
+              if (cat.key === "free") {
+                setShowFreeOnly(true);
+                setActiveCategory(null);
+              } else {
+                setShowFreeOnly(false);
+                setActiveCategory(cat.key);
+              }
+            }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+              (cat.key === "free" && showFreeOnly) ||
+              (cat.key !== "free" && !showFreeOnly && activeCategory === cat.key)
+                ? "bg-primary text-white border-primary"
+                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/30"
+            }`}
+          >
+            {cat.key === "free" && (
+              <span className="material-symbols-outlined text-[12px] mr-0.5 align-middle">
+                star
+              </span>
+            )}
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       {/* Expiration Banner */}
       {expirations?.summary &&
         (expirations.summary.expired > 0 || expirations.summary.expiringSoon > 0) && (
@@ -844,6 +903,20 @@ export default function ProvidersPage() {
             <ProviderCountBadge {...countConfigured(oauthProviderEntriesAll)} />
           </h2>
           <div className="flex items-center gap-2">
+            <Toggle
+              size="sm"
+              checked={showFreeOnly}
+              onChange={setShowFreeOnly}
+              label={t("showFreeOnly") || "Free only"}
+              className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
+            />
+            <Toggle
+              size="sm"
+              checked={showConfiguredOnly}
+              onChange={setShowConfiguredOnly}
+              label={t("showConfiguredOnly")}
+              className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
+            />
             <button
               onClick={handleZedImport}
               disabled={importingZed}

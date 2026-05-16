@@ -70,12 +70,20 @@ export function buildStaticProviderEntries(
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
-  searchQuery?: string
+  searchQuery?: string,
+  showFreeOnly?: boolean
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
 
   if (showConfiguredOnly) {
     filtered = filtered.filter((entry) => Number(entry.stats?.total || 0) > 0);
+  }
+
+  if (showFreeOnly) {
+    filtered = filtered.filter((entry) => {
+      const provider = entry.provider as Record<string, unknown>;
+      return provider.hasFree === true;
+    });
   }
 
   if (searchQuery && searchQuery.trim()) {
