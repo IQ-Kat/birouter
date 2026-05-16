@@ -454,6 +454,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         setShowCloudflaredTunnel(tunnelVisibility.showCloudflaredTunnel);
         setShowTailscaleFunnel(tunnelVisibility.showTailscaleFunnel);
         setShowNgrokTunnel(tunnelVisibility.showNgrokTunnel);
+        if (data.ngrokAuthToken) setNgrokToken(data.ngrokAuthToken);
 
         if (!tunnelVisibility.showCloudflaredTunnel) {
           setCloudflaredStatus(null);
@@ -711,8 +712,12 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             ? translateOrFallback("ngrokStarted", "ngrok tunnel started")
             : translateOrFallback("ngrokStopped", "ngrok tunnel stopped"),
       });
-      if (action === "enable") {
-        setNgrokToken("");
+      if (action === "enable" && ngrokToken) {
+        await fetch("/api/settings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ngrokAuthToken: ngrokToken }),
+        });
       }
     } catch (error) {
       setNgrokNotice({
@@ -1039,8 +1044,14 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     ...(cloudflaredStatus?.running && cloudflaredStatus.apiUrl
       ? [{ label: "Cloudflare", url: cloudflaredStatus.apiUrl, key: "active_cf" }]
       : []),
-    ...(tailscaleStatus?.running && tailscaleStatus.apiUrl
-      ? [{ label: "Tailscale", url: tailscaleStatus.apiUrl, key: "active_ts" }]
+    ...(tailscaleStatus?.running && (tailscaleStatus.apiUrl ?? tailscaleStatus.tunnelUrl)
+      ? [
+          {
+            label: "Tailscale",
+            url: tailscaleStatus.apiUrl ?? tailscaleStatus.tunnelUrl ?? "",
+            key: "active_ts",
+          },
+        ]
       : []),
     ...(ngrokStatus?.running && ngrokStatus.apiUrl
       ? [{ label: "ngrok", url: ngrokStatus.apiUrl, key: "active_ngrok" }]
@@ -1205,8 +1216,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           </div>
         )}
 
-        {/* Active URLs — shown only when more than just local is active */}
-        {activeUrls.length > 1 && (
+        {/* Active URLs bar */}
+        {activeUrls.length > 0 && (
           <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
             <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">
               Active Endpoints
@@ -1252,9 +1263,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
               Running
             </span>
-            <code className="hidden sm:block text-xs font-mono text-text-muted truncate max-w-[200px] shrink-0">
-              {baseUrl}
-            </code>
             <button
               onClick={() => void copy(baseUrl, "endpoint_url")}
               className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-border/70 text-text-muted hover:text-text hover:border-border transition-colors"
@@ -1273,11 +1281,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </span>
             <div className="flex-1 min-w-0">
               <span className="text-sm font-medium">Cloud OmniRoute</span>
-              {cloudEnabled && cloudEndpointNew && (
-                <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
-                  {cloudEndpointNew}
-                </code>
-              )}
             </div>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0 ${
@@ -1350,11 +1353,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                   <span className="text-sm font-medium">
                     {translateOrFallback("cloudflaredTitle", "Cloudflare Quick Tunnel")}
                   </span>
-                  {cloudflaredStatus?.running && cloudflaredStatus.apiUrl && (
-                    <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
-                      {cloudflaredStatus.apiUrl}
-                    </code>
-                  )}
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${cloudflaredPhaseMeta[cloudflaredPhase].className}`}
@@ -1462,11 +1460,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                   <span className="text-sm font-medium">
                     {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
                   </span>
-                  {tailscaleStatus?.running && tailscaleStatus.apiUrl && (
-                    <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
-                      {tailscaleStatus.apiUrl}
-                    </code>
-                  )}
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${tailscalePhaseMeta[tailscalePhase].className}`}
@@ -1619,11 +1612,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                   <span className="text-sm font-medium">
                     {translateOrFallback("ngrokTitle", "ngrok Tunnel")}
                   </span>
-                  {ngrokStatus?.running && ngrokStatus.apiUrl && (
-                    <code className="block text-xs font-mono text-text-muted truncate mt-0.5">
-                      {ngrokStatus.apiUrl}
-                    </code>
-                  )}
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${ngrokPhaseMeta[ngrokPhase].className}`}
