@@ -412,10 +412,22 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     [endpointData]
   );
 
-  const availableEndpointCount = useMemo(
-    () => Object.values(endpointData).filter((models) => models.length > 0).length + 2,
-    [endpointData]
-  );
+  const availableEndpointCount = useMemo(() => {
+    const chatCount = endpointData.chat.length > 0 ? 4 : 0; // chat + responses + completions + messages
+    const imageCount = endpointData.images.length > 0 ? 2 : 0; // image gen + image edits
+    const otherMedia = [
+      endpointData.embeddings,
+      endpointData.audioTranscription,
+      endpointData.audioSpeech,
+      endpointData.music,
+      endpointData.video,
+    ].filter((m) => m.length > 0).length;
+    const utilityFixed = 3; // batch + files + list models (always available)
+    const modelUtility =
+      (endpointData.rerank.length > 0 ? 1 : 0) + (endpointData.moderation.length > 0 ? 1 : 0);
+    const searchCount = searchProviders.length > 0 ? 1 : 0;
+    return chatCount + imageCount + otherMedia + utilityFixed + modelUtility + searchCount;
+  }, [endpointData, searchProviders]);
 
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
     const controller = new AbortController();
@@ -1694,7 +1706,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       </Card>
 
       <Card>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-lg font-semibold">{t("available")}</h2>
             <p className="text-sm text-text-muted">
@@ -1709,7 +1721,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         </div>
 
         {/* Core APIs */}
-        <div className="mb-6">
+        <div className="mb-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-sm text-primary">hub</span>
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
@@ -1717,72 +1729,60 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </h3>
             <div className="flex-1 h-px bg-border/50" />
           </div>
-          <div className="flex flex-col gap-3">
-            {/* Chat Completions */}
-            <EndpointSection
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <EndpointCard
               icon="chat"
               iconColor="text-blue-500"
               iconBg="bg-blue-500/10"
               title={t("chatCompletions")}
               path="/v1/chat/completions"
-              description={t("chatDesc")}
               models={endpointData.chat}
-              expanded={expandedEndpoint === "chat"}
-              onToggle={() => setExpandedEndpoint(expandedEndpoint === "chat" ? null : "chat")}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Responses API */}
-            <EndpointSection
+            <EndpointCard
               icon="code"
               iconColor="text-indigo-500"
               iconBg="bg-indigo-500/10"
               title={t("responses") || "Responses API"}
               path="/v1/responses"
-              description={
-                t("responsesDesc") ||
-                "OpenAI Responses API for Codex and advanced agentic workflows"
-              }
               models={endpointData.chat}
-              expanded={expandedEndpoint === "responses"}
-              onToggle={() =>
-                setExpandedEndpoint(expandedEndpoint === "responses" ? null : "responses")
-              }
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Legacy Completions */}
-            <EndpointSection
+            <EndpointCard
               icon="text_fields"
               iconColor="text-orange-500"
               iconBg="bg-orange-500/10"
               title={t("completionsLegacy") || "Completions (Legacy)"}
               path="/v1/completions"
-              description={
-                t("completionsLegacyDesc") ||
-                "Legacy OpenAI text completions — accepts both prompt and messages format"
-              }
               models={endpointData.chat}
-              expanded={expandedEndpoint === "completions"}
-              onToggle={() =>
-                setExpandedEndpoint(expandedEndpoint === "completions" ? null : "completions")
-              }
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
+            <EndpointCard
+              icon="psychology"
+              iconColor="text-violet-500"
+              iconBg="bg-violet-500/10"
+              title={t("messagesApi") || "Messages"}
+              path="/v1/messages"
+              models={null}
+              badge="Anthropic"
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+            />
           </div>
         </div>
 
         {/* Media & Multi-Modal */}
-        <div className="mb-6">
+        <div className="mb-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="material-symbols-outlined text-sm text-purple-400">perm_media</span>
             <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
@@ -1790,117 +1790,86 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </h3>
             <div className="flex-1 h-px bg-border/50" />
           </div>
-          <div className="flex flex-col gap-3">
-            {/* Embeddings */}
-            <EndpointSection
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <EndpointCard
               icon="data_array"
               iconColor="text-emerald-500"
               iconBg="bg-emerald-500/10"
               title={t("embeddings")}
               path="/v1/embeddings"
-              description={t("embeddingsDesc")}
               models={endpointData.embeddings}
-              expanded={expandedEndpoint === "embeddings"}
-              onToggle={() =>
-                setExpandedEndpoint(expandedEndpoint === "embeddings" ? null : "embeddings")
-              }
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Image Generation */}
-            <EndpointSection
+            <EndpointCard
               icon="image"
               iconColor="text-purple-500"
               iconBg="bg-purple-500/10"
               title={t("imageGeneration")}
               path="/v1/images/generations"
-              description={t("imageDesc")}
               models={endpointData.images}
-              expanded={expandedEndpoint === "images"}
-              onToggle={() => setExpandedEndpoint(expandedEndpoint === "images" ? null : "images")}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Audio Transcription */}
-            <EndpointSection
+            <EndpointCard
+              icon="edit_square"
+              iconColor="text-violet-500"
+              iconBg="bg-violet-500/10"
+              title={t("imageEdits") || "Image Edits"}
+              path="/v1/images/edits"
+              models={endpointData.images}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+            <EndpointCard
               icon="mic"
               iconColor="text-rose-500"
               iconBg="bg-rose-500/10"
               title={t("audioTranscription")}
               path="/v1/audio/transcriptions"
-              description={t("audioTranscriptionDesc")}
               models={endpointData.audioTranscription}
-              expanded={expandedEndpoint === "audioTranscription"}
-              onToggle={() =>
-                setExpandedEndpoint(
-                  expandedEndpoint === "audioTranscription" ? null : "audioTranscription"
-                )
-              }
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Audio Speech (TTS) */}
-            <EndpointSection
+            <EndpointCard
               icon="record_voice_over"
               iconColor="text-cyan-500"
               iconBg="bg-cyan-500/10"
               title={t("textToSpeech")}
               path="/v1/audio/speech"
-              description={t("textToSpeechDesc")}
               models={endpointData.audioSpeech}
-              expanded={expandedEndpoint === "audioSpeech"}
-              onToggle={() =>
-                setExpandedEndpoint(expandedEndpoint === "audioSpeech" ? null : "audioSpeech")
-              }
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Music Generation */}
-            <EndpointSection
+            <EndpointCard
               icon="music_note"
               iconColor="text-fuchsia-500"
               iconBg="bg-fuchsia-500/10"
               title={t("musicGeneration") || "Music Generation"}
               path="/v1/music/generations"
-              description={
-                t("musicDesc") ||
-                "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)"
-              }
               models={endpointData.music}
-              expanded={expandedEndpoint === "music"}
-              onToggle={() => setExpandedEndpoint(expandedEndpoint === "music" ? null : "music")}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Video Generation */}
-            <EndpointSection
+            <EndpointCard
               icon="videocam"
               iconColor="text-red-500"
               iconBg="bg-red-500/10"
               title={t("videoGeneration") || "Video Generation"}
               path="/v1/videos/generations"
-              description={
-                t("videoDesc") ||
-                "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
-              }
               models={endpointData.video}
-              expanded={expandedEndpoint === "video"}
-              onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
@@ -1911,7 +1880,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
 
         {/* Search & Discovery */}
         {searchProviders.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="material-symbols-outlined text-sm text-cyan-400">
                 travel_explore
@@ -1921,27 +1890,14 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               </h3>
               <div className="flex-1 h-px bg-border/50" />
             </div>
-            <div className="flex flex-col gap-3">
-              <EndpointSection
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+              <EndpointCard
                 icon="search"
                 iconColor="text-cyan-500"
                 iconBg="bg-cyan-500/10"
                 title={t("webSearch") || "Web Search"}
                 path="/v1/search"
-                description={
-                  t("webSearchDesc") ||
-                  "Unified web search across multiple providers with automatic failover and caching"
-                }
-                models={searchProviders.map((p) => ({
-                  id: p.id,
-                  name: p.name,
-                  owned_by: p.id,
-                  type: "search",
-                }))}
-                expanded={expandedEndpoint === "search"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "search" ? null : "search")
-                }
+                models={searchProviders.map((p) => ({ id: p.id, owned_by: p.id, type: "search" }))}
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
@@ -1959,56 +1915,61 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </h3>
             <div className="flex-1 h-px bg-border/50" />
           </div>
-          <div className="flex flex-col gap-3">
-            {/* Rerank */}
-            <EndpointSection
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            <EndpointCard
               icon="sort"
               iconColor="text-amber-500"
               iconBg="bg-amber-500/10"
               title={t("rerank")}
               path="/v1/rerank"
-              description={t("rerankDesc")}
               models={endpointData.rerank}
-              expanded={expandedEndpoint === "rerank"}
-              onToggle={() => setExpandedEndpoint(expandedEndpoint === "rerank" ? null : "rerank")}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* Moderations */}
-            <EndpointSection
+            <EndpointCard
               icon="shield"
               iconColor="text-orange-500"
               iconBg="bg-orange-500/10"
               title={t("moderations")}
               path="/v1/moderations"
-              description={t("moderationsDesc")}
               models={endpointData.moderation}
-              expanded={expandedEndpoint === "moderation"}
-              onToggle={() =>
-                setExpandedEndpoint(expandedEndpoint === "moderation" ? null : "moderation")
-              }
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
               modelsLoading={modelsLoading}
             />
-
-            {/* List Models */}
-            <EndpointSection
+            <EndpointCard
+              icon="view_list"
+              iconColor="text-teal-500"
+              iconBg="bg-teal-500/10"
+              title={t("batchApi") || "Batch API"}
+              path="/v1/batches"
+              models={null}
+              badge="OpenAI"
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+            />
+            <EndpointCard
+              icon="folder"
+              iconColor="text-yellow-500"
+              iconBg="bg-yellow-500/10"
+              title={t("filesApi") || "Files API"}
+              path="/v1/files"
+              models={null}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+            />
+            <EndpointCard
               icon="list"
               iconColor="text-teal-500"
               iconBg="bg-teal-500/10"
               title={t("listModels") || "List Models"}
               path="/v1/models"
-              description={
-                t("listModelsDesc") || "List all available models across all connected providers"
-              }
-              models={[]}
-              expanded={expandedEndpoint === "models"}
-              onToggle={() => setExpandedEndpoint(expandedEndpoint === "models" ? null : "models")}
+              models={null}
               copy={copy}
               copied={copied}
               baseUrl={currentEndpoint}
@@ -2346,6 +2307,77 @@ function ProviderModelsModal({
 }
 
 // -- Sub-component: Endpoint Section ------------------------------------------
+
+function EndpointCard({
+  icon,
+  iconColor,
+  iconBg,
+  title,
+  path,
+  models,
+  copy,
+  copied,
+  baseUrl,
+  badge,
+  modelsLoading = false,
+}: Readonly<{
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+  title: string;
+  path: string;
+  models: EndpointModelSummary[] | null;
+  copy: CopyHandler;
+  copied?: string | null;
+  baseUrl: string;
+  badge?: string;
+  modelsLoading?: boolean;
+}>) {
+  const t = useTranslations("endpoint");
+  const copyId = `endpoint_${path}`;
+  const fullUrl = `${baseUrl.replace(/\/v1$/, "")}${path}`;
+
+  return (
+    <div className="border border-border rounded-lg p-3 hover:bg-surface/30 transition-colors flex flex-col gap-2">
+      <div className="flex items-start gap-2.5">
+        <div className={`flex items-center justify-center size-8 rounded-lg ${iconBg} shrink-0`}>
+          <span className={`material-symbols-outlined text-base ${iconColor}`}>{icon}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-semibold text-xs leading-tight">{title}</span>
+            {badge && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-border/60 text-text-muted font-medium uppercase tracking-wider leading-none">
+                {badge}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-text-muted mt-0.5 block">
+            {models === null
+              ? "—"
+              : modelsLoading
+                ? "..."
+                : t("modelsCount", { count: models.length })}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <code className="flex-1 text-[10px] font-mono text-text-muted bg-surface/80 px-2 py-1 rounded truncate">
+          {path}
+        </code>
+        <button
+          onClick={() => void copy(fullUrl, copyId)}
+          className="shrink-0 flex items-center justify-center size-6 rounded hover:bg-sidebar transition-colors"
+          title="Copy URL"
+        >
+          <span className="material-symbols-outlined text-[12px] text-text-muted">
+            {copied === copyId ? "check" : "content_copy"}
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function EndpointSection({
   icon,
