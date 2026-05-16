@@ -131,8 +131,8 @@ const HOME_ITEMS: readonly SidebarItemDefinition[] = [
 ];
 
 const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
   { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
+  { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
   { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
   { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
   { id: "limits", href: "/dashboard/limits", i18nKey: "quotaTracker", icon: "tune" },

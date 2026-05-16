@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { CardSkeleton, Badge, Button, Input, Toggle } from "@/shared/components";
+import { Card, CardSkeleton, Badge, Button, Input, Toggle } from "@/shared/components";
 import {
   FREE_PROVIDERS,
   OAUTH_PROVIDERS,
@@ -566,9 +566,22 @@ export default function ProvidersPage() {
   );
   const freeSectionEntries = filterConfiguredProviderEntries(
     freeSectionEntriesAll,
-    false,
+    showConfiguredOnly,
     searchQuery
   );
+
+  const oauthOnlyEntriesAll = oauthProviderEntriesAll.filter((e) => e.toggleAuthType === "oauth");
+  const summaryStats = {
+    all: {
+      configured:
+        oauthProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+        apiKeyProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length,
+      total: oauthProviderEntriesAll.length + apiKeyProviderEntriesAll.length,
+    },
+    free: countConfigured(freeSectionEntriesAll),
+    oauth: countConfigured(oauthOnlyEntriesAll),
+    apikey: countConfigured(apiKeyProviderEntriesAll),
+  };
 
   if (loading) {
     return (
@@ -581,51 +594,102 @@ export default function ProvidersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Search Bar + Dot Legend */}
-      <div className="flex items-center gap-4">
-        <div className="relative w-1/4 min-w-[160px]">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">
-            search
-          </span>
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("searchProviders")}
-            aria-label={t("searchProviders")}
-            className="pl-10 pr-10"
-          />
-          {searchQuery && (
+      {/* Provider Summary Card */}
+      <Card padding="sm">
+        <div className="flex flex-col gap-3">
+          {/* Row 1: Search + Controls */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="relative w-1/4 min-w-[160px]">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">
+                search
+              </span>
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("searchProviders")}
+                aria-label={t("searchProviders")}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-primary transition-colors"
+                  aria-label={tc("clear")}
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
+                </button>
+              )}
+            </div>
+            <div className="flex-1" />
+            <Toggle
+              size="sm"
+              checked={showConfiguredOnly}
+              onChange={setShowConfiguredOnly}
+              label={t("showConfiguredOnly")}
+              className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
+            />
             <button
-              onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-primary transition-colors"
-              aria-label={tc("clear")}
+              onClick={() => handleBatchTest("all")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "all"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
             >
-              <span className="material-symbols-outlined text-[20px]">close</span>
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "all" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "all" ? t("testing") : t("testAll")}
             </button>
-          )}
+          </div>
+
+          {/* Row 2: Legend */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-text-muted select-none">
+            {(
+              [
+                ["bg-green-500", tc("free")],
+                ["bg-blue-500", t("oauthLabel")],
+                ["bg-amber-500", t("apiKeyLabel")],
+                ["bg-orange-500", t("compatibleLabel")],
+                ["bg-purple-500", t("webCookieProviders")],
+                ["bg-teal-500", t("searchProvidersHeading")],
+                ["bg-rose-500", t("audioProvidersHeading")],
+                ["bg-emerald-500", t("localProviders")],
+                ["bg-indigo-500", t("upstreamProxyProviders")],
+                ["bg-violet-500", t("cloudAgentProviders")],
+              ] as [string, string][]
+            ).map(([color, label]) => (
+              <span key={color} className="flex items-center gap-1 whitespace-nowrap">
+                <span className={`size-2 rounded-full shrink-0 ${color}`} />
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {/* Divider + Stats */}
+          <div className="border-t border-border pt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
+            {(
+              [
+                [null, t("providerSummaryAll"), summaryStats.all],
+                ["bg-green-500", tc("free"), summaryStats.free],
+                ["bg-blue-500", t("oauthLabel"), summaryStats.oauth],
+                ["bg-amber-500", t("apiKeyLabel"), summaryStats.apikey],
+              ] as [string | null, string, { configured: number; total: number }][]
+            ).map(([color, label, stat]) => (
+              <span key={label} className="flex items-center gap-1.5">
+                {color && <span className={`size-2 rounded-full shrink-0 ${color}`} />}
+                <span className="text-xs text-text-muted">{label}</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {stat.configured}
+                  <span className="font-normal text-text-muted">/{stat.total}</span>
+                </span>
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="flex-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-text-muted select-none">
-          {(
-            [
-              ["bg-green-500", tc("free")],
-              ["bg-blue-500", t("oauthLabel")],
-              ["bg-amber-500", t("apiKeyLabel")],
-              ["bg-orange-500", t("compatibleLabel")],
-              ["bg-purple-500", t("webCookieProviders")],
-              ["bg-teal-500", t("searchProvidersHeading")],
-              ["bg-rose-500", t("audioProvidersHeading")],
-              ["bg-emerald-500", t("localProviders")],
-              ["bg-indigo-500", t("upstreamProxyProviders")],
-              ["bg-violet-500", t("cloudAgentProviders")],
-            ] as [string, string][]
-          ).map(([color, label]) => (
-            <span key={color} className="flex items-center gap-1 whitespace-nowrap">
-              <span className={`size-2 rounded-full shrink-0 ${color}`} />
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
+      </Card>
 
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
       <div className="flex flex-col gap-4">
@@ -732,13 +796,30 @@ export default function ProvidersPage() {
       {/* Free Tier Providers */}
       {freeSectionEntries.length > 0 && (
         <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              {t("freeTierProviders")}
-              <span className="size-2.5 rounded-full bg-green-500" title={t("freeTierLabel")} />
-              <ProviderCountBadge {...countConfigured(freeSectionEntriesAll)} />
-            </h2>
-            <p className="text-sm text-text-muted mt-1">{t("freeTierProvidersDesc")}</p>
+          <div className="flex flex-wrap items-start gap-2">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                {t("freeTierProviders")}
+                <span className="size-2.5 rounded-full bg-green-500" title={t("freeTierLabel")} />
+                <ProviderCountBadge {...countConfigured(freeSectionEntriesAll)} />
+              </h2>
+              <p className="text-sm text-text-muted mt-1">{t("freeTierProvidersDesc")}</p>
+            </div>
+            <button
+              onClick={() => handleBatchTest("free")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "free"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "free" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "free" ? t("testing") : t("testAll")}
+            </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {freeSectionEntries.map(
@@ -766,13 +847,6 @@ export default function ProvidersPage() {
             <ProviderCountBadge {...countConfigured(oauthProviderEntriesAll)} />
           </h2>
           <div className="flex items-center gap-2">
-            <Toggle
-              size="sm"
-              checked={showConfiguredOnly}
-              onChange={setShowConfiguredOnly}
-              label={t("showConfiguredOnly")}
-              className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
-            />
             <button
               onClick={handleZedImport}
               disabled={importingZed}

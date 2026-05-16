@@ -3249,7 +3249,11 @@
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
     "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing"
+    "zedImporting": "Zed Importing",
+    "freeTierProviders": "Free Tier Providers",
+    "freeTierLabel": "Free tier available",
+    "freeTierProvidersDesc": "Providers with free tiers — some require an API key signup, others need no credentials at all.",
+    "providerSummaryAll": "Total"
   },
   "settings": {
     "title": "Settings",
