@@ -131,7 +131,11 @@ export default function Sidebar({
       ...section,
       title: getSidebarLabel(section.titleKey, section.titleFallback),
       items: section.items
-        .map((item) => ({ ...item, label: t(item.i18nKey) }))
+        .map((item) => ({
+          ...item,
+          label: t(item.i18nKey),
+          subtitle: item.subtitleKey ? t(item.subtitleKey) : undefined,
+        }))
         .filter((item) => !hiddenSidebarSet.has(item.id)),
     }))
     .filter((section) => section.items.length > 0);
@@ -156,7 +160,14 @@ export default function Sidebar({
     const content = (
       <>
         <span className={iconClassName}>{item.icon}</span>
-        {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+        {!collapsed && (
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium">{item.label}</span>
+            {item.subtitle && (
+              <span className="text-[10px] text-text-muted/60 truncate">{item.subtitle}</span>
+            )}
+          </div>
+        )}
       </>
     );
 
