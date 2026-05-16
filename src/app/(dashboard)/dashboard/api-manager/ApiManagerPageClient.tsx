@@ -546,27 +546,6 @@ export default function ApiManagerPageClient() {
         </div>
       )}
 
-      {/* Header Card */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold">{t("keyManagement")}</h2>
-            <p className="text-sm text-text-muted">{t("keyManagementDesc")}</p>
-          </div>
-          <Button
-            icon="add"
-            onClick={() => {
-              setNameError(null);
-              setCreateError(null);
-              clearPageError();
-              setShowAddModal(true);
-            }}
-          >
-            {t("createKey")}
-          </Button>
-        </div>
-      </Card>
-
       {/* Keys List Card */}
       <Card>
         <div className="flex items-center justify-between mb-4">
@@ -584,6 +563,17 @@ export default function ApiManagerPageClient() {
               </p>
             </div>
           </div>
+          <Button
+            icon="add"
+            onClick={() => {
+              setNameError(null);
+              setCreateError(null);
+              clearPageError();
+              setShowAddModal(true);
+            }}
+          >
+            {t("createKey")}
+          </Button>
         </div>
 
         <p className="text-sm text-text-muted mb-4">{t("keysSecurityNote")}</p>
