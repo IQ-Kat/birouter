@@ -261,6 +261,8 @@ export {
   countBatches,
   getPendingBatches,
   getTerminalBatches,
+  deleteBatch,
+  deleteCompletedBatches,
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";
