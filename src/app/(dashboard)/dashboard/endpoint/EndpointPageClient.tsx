@@ -1268,32 +1268,26 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               computer
             </span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="flex items-baseline gap-1 flex-wrap">
                 <span className="text-sm font-medium">Local Server</span>
                 {resolvedMachineId && (
                   <span className="text-xs text-text-muted">· {resolvedMachineId.slice(0, 8)}</span>
                 )}
+                {lanUrls.map((url) => (
+                  <button
+                    key={url}
+                    onClick={() => void copy(url, `lan_${url}`)}
+                    title={`Copy ${url}`}
+                    className="inline-flex items-center gap-0.5 text-[10px] text-text-muted hover:text-text transition-colors"
+                  >
+                    <span className="text-text-muted/50">,</span>
+                    <code className="font-mono">{url.replace(/^https?:\/\//, "")}</code>
+                    <span className="material-symbols-outlined text-[10px] opacity-60">
+                      {copied === `lan_${url}` ? "check" : "content_copy"}
+                    </span>
+                  </button>
+                ))}
               </div>
-              {lanUrls.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {lanUrls.map((url) => (
-                    <button
-                      key={url}
-                      onClick={() => void copy(url, `lan_${url}`)}
-                      title={url}
-                      className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border border-border/50 text-text-muted hover:text-text transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[11px]">lan</span>
-                      <code className="font-mono truncate max-w-[180px]">
-                        {url.replace(/^https?:\/\//, "")}
-                      </code>
-                      <span className="material-symbols-outlined text-[11px]">
-                        {copied === `lan_${url}` ? "check" : "content_copy"}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 border border-green-500/30 text-green-400 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -1450,26 +1444,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                     </div>
                   )}
                   <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Input
-                      value={cloudflaredStatus?.apiUrl || ""}
-                      readOnly
-                      placeholder="https://*.trycloudflare.com/v1"
-                      className="flex-1 min-w-0 font-mono text-sm"
-                    />
-                    <Button
-                      variant="secondary"
-                      icon={copied === "cloudflared_url" ? "check" : "content_copy"}
-                      onClick={() =>
-                        cloudflaredStatus?.apiUrl &&
-                        copy(cloudflaredStatus.apiUrl, "cloudflared_url")
-                      }
-                      disabled={!cloudflaredStatus?.apiUrl}
-                      className="shrink-0 self-start sm:self-auto"
-                    >
-                      {copied === "cloudflared_url" ? tc("copied") : tc("copy")}
-                    </Button>
-                  </div>
                   {cloudflaredStatus?.lastError && (
                     <p className="text-xs text-red-400">
                       {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
@@ -1493,9 +1467,29 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                   vpn_lock
                 </span>
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium">
-                    {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
-                  </span>
+                  <div className="flex items-baseline gap-1 flex-wrap">
+                    <span className="text-sm font-medium">
+                      {translateOrFallback("tailscaleTitle", "Tailscale Funnel")}
+                    </span>
+                    {tailscaleIpUrl && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void copy(tailscaleIpUrl, "tailscale_ip_inline");
+                        }}
+                        title={`Copy ${tailscaleIpUrl}`}
+                        className="inline-flex items-center gap-0.5 text-[10px] text-text-muted hover:text-text transition-colors"
+                      >
+                        <span className="text-text-muted/50">,</span>
+                        <code className="font-mono">
+                          {tailscaleIpUrl.replace(/^https?:\/\//, "")}
+                        </code>
+                        <span className="material-symbols-outlined text-[10px] opacity-60">
+                          {copied === "tailscale_ip_inline" ? "check" : "content_copy"}
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <span
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium shrink-0 ${tailscalePhaseMeta[tailscalePhase].className}`}
@@ -1569,67 +1563,27 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                       )}
                     </p>
                   )}
-                  {tailscaleStatus?.installed &&
-                    !tailscaleStatus?.running &&
-                    tailscaleStatus?.platform !== "win32" && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs text-text-muted">
-                          {translateOrFallback(
-                            "tailscaleSudoLabel",
-                            "Sudo Password (required on macOS/Linux)"
-                          )}
-                        </label>
-                        <Input
-                          type="password"
-                          value={tailscalePassword}
-                          onChange={(event) => setTailscalePassword(event.target.value)}
-                          placeholder={translateOrFallback(
-                            "tailscaleSudoPlaceholder",
-                            "Enter sudo password"
-                          )}
-                          disabled={tailscaleBusy}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    )}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-col sm:flex-row gap-2">
+                  {tailscaleStatus?.installed && tailscaleStatus?.platform !== "win32" && (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-text-muted">
+                        {translateOrFallback(
+                          "tailscaleSudoLabel",
+                          "Sudo Password (required on macOS/Linux)"
+                        )}
+                      </label>
                       <Input
-                        value={tailscaleStatus?.apiUrl || ""}
-                        readOnly
-                        placeholder="https://your-device.tailnet.ts.net/v1"
-                        className="flex-1 min-w-0 font-mono text-sm"
+                        type="password"
+                        value={tailscalePassword}
+                        onChange={(event) => setTailscalePassword(event.target.value)}
+                        placeholder={translateOrFallback(
+                          "tailscaleSudoPlaceholder",
+                          "Optional sudo password"
+                        )}
+                        disabled={tailscaleBusy}
+                        className="font-mono text-sm"
                       />
-                      <Button
-                        variant="secondary"
-                        icon={copied === "tailscale_url" ? "check" : "content_copy"}
-                        onClick={() =>
-                          tailscaleStatus?.apiUrl && copy(tailscaleStatus.apiUrl, "tailscale_url")
-                        }
-                        disabled={!tailscaleStatus?.apiUrl}
-                        className="shrink-0 self-start sm:self-auto"
-                      >
-                        {copied === "tailscale_url" ? tc("copied") : tc("copy")}
-                      </Button>
                     </div>
-                    {tailscaleIpUrl && (
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Input
-                          value={tailscaleIpUrl}
-                          readOnly
-                          className="flex-1 min-w-0 font-mono text-sm"
-                        />
-                        <Button
-                          variant="secondary"
-                          icon={copied === "tailscale_ip_url" ? "check" : "content_copy"}
-                          onClick={() => copy(tailscaleIpUrl, "tailscale_ip_url")}
-                          className="shrink-0 self-start sm:self-auto"
-                        >
-                          {copied === "tailscale_ip_url" ? tc("copied") : tc("copy")}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  )}
                   {tailscaleStatus?.binaryPath && (
                     <p className="text-xs text-text-muted">
                       {translateOrFallback("tailscaleBinaryPath", "Binary: {path}", {
@@ -1747,23 +1701,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                       />
                     </div>
                   )}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Input
-                      value={ngrokStatus?.apiUrl || ""}
-                      readOnly
-                      placeholder="https://your-tunnel.ngrok-free.app/v1"
-                      className="flex-1 min-w-0 font-mono text-sm"
-                    />
-                    <Button
-                      variant="secondary"
-                      icon={copied === "ngrok_url" ? "check" : "content_copy"}
-                      onClick={() => ngrokStatus?.apiUrl && copy(ngrokStatus.apiUrl, "ngrok_url")}
-                      disabled={!ngrokStatus?.apiUrl}
-                      className="shrink-0 self-start sm:self-auto"
-                    >
-                      {copied === "ngrok_url" ? tc("copied") : tc("copy")}
-                    </Button>
-                  </div>
                   {ngrokStatus?.lastError && (
                     <p className="text-xs text-red-400">
                       {translateOrFallback("ngrokLastError", "Last error: {error}", {
