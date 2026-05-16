@@ -25,8 +25,8 @@ import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
 import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
-import { ClaudeWebExecutor } from "./claude-web.ts";
-import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
+import { DeepSeekWebExecutor } from "./deepseek-web.ts";
+import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -73,8 +73,8 @@ const executors = {
   ws: new WindsurfExecutor(), // Alias
   "devin-cli": new DevinCliExecutor(),
   devin: new DevinCliExecutor(), // Alias
-  "claude-web": new ClaudeWebWithAutoRefresh(),
-  "cw-web": new ClaudeWebWithAutoRefresh(), // Alias
+  "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
+  "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -118,5 +118,5 @@ export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
-export { ClaudeWebExecutor } from "./claude-web.ts";
-export { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
+export { DeepSeekWebExecutor } from "./deepseek-web.ts";
+export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
