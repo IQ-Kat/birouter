@@ -3854,7 +3854,11 @@
     "tokensFiltered": "Tokens filtered",
     "filtersActive": "Filters active",
     "requests": "Requests",
-    "avgSavings": "Avg savings"
+    "avgSavings": "Avg savings",
+    "simpleMode": "Simple",
+    "advancedMode": "Advanced",
+    "filterCatalog": "Filter Catalog",
+    "filterCatalogDesc": "Available output filters by category"
   },
   "contextCombos": {
     "title": "Compression Combos",
@@ -3897,6 +3901,8 @@
     "autoClarity": "Auto-Clarity Bypass",
     "bypassConditions": "Bypass conditions",
     "bypassConditionsList": "security, irreversible, clarification, order-sensitive",
+    "simpleMode": "Simple",
+    "advancedMode": "Advanced",
     "preview": {
       "lite": "Respond concise. Preserve technical terms, code, errors, URLs, and identifiers.",
       "full": "Respond terse and compact. Preserve all technical substance.",
