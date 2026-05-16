@@ -461,6 +461,19 @@ test("enforceApiKeyPolicy rejects disallowed models and exhausted budgets", asyn
   assert.match(await readErrorMessage(overBudget.rejection), /Daily budget exceeded/);
 });
 
+test("enforceApiKeyPolicy does not rate-limit unrestricted keys by default", async () => {
+  const unrestrictedKey = await createKeyWithPolicy({ allowedModels: ["openai/*"] });
+  const policy = await loadPolicy("default-no-request-limit");
+
+  for (let i = 0; i < 1005; i += 1) {
+    const result = await policy.enforceApiKeyPolicy(
+      makePolicyRequest(unrestrictedKey.key),
+      "openai/gpt-4.1"
+    );
+    assert.equal(result.rejection, null);
+  }
+});
+
 test("enforceApiKeyPolicy enforces request-per-minute limits and returns success when allowed", async () => {
   const limitedKey = await createKeyWithPolicy({
     allowedModels: ["openai/*"],
