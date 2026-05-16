@@ -1219,6 +1219,24 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   }
 });
 
+test("CodexExecutor.refreshCredentials propagates unrecoverable error object instead of returning null", async () => {
+  const executor = new CodexExecutor();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({ error: "invalid_grant", error_description: "Refresh token expired" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+
+  try {
+    const result = await executor.refreshCredentials({ refreshToken: "dead-token" }, null);
+    assert.ok(result !== null, "should return error object, not null");
+    assert.equal((result as any).error, "unrecoverable_refresh_error");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("CodexExecutor maps usage_limit_reached websocket failures without explicit status to 429", () => {
   const raw = JSON.stringify({
     type: "response.failed",

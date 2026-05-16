@@ -13,7 +13,7 @@ import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
-import { refreshWithRetry } from "../services/tokenRefresh.ts";
+import { refreshWithRetry, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import {
@@ -3471,6 +3471,9 @@ export async function handleChatCore({
       }
     } else {
       log?.warn?.("TOKEN", `${provider.toUpperCase()} | refresh failed`);
+      if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
+        await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+      }
     }
   }
 
@@ -4134,7 +4137,10 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
-      cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+      cacheReasoningFromAssistantMessage(msg, provider, model, {
+        requestId: skillRequestId,
+        messageIndex: 0,
+      });
     } catch {
       // Cache capture is non-critical — never block the response
     }
@@ -4421,7 +4427,10 @@ export async function handleChatCore({
         const body = streamResponseBody as Record<string, unknown>;
         const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
-        cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+        cacheReasoningFromAssistantMessage(msg, provider, model, {
+          requestId: skillRequestId,
+          messageIndex: 0,
+        });
       } catch {
         // Cache capture is non-critical — never block the stream
       }

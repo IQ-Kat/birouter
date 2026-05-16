@@ -334,7 +334,8 @@ export async function executeChatWithBreaker({
               // apiKey blob mid-request — forward it so the DB credential
               // doesn't go stale after Set-Cookie rotation.
               apiKey: newCreds.apiKey,
-              testStatus: "active",
+              testStatus: newCreds.testStatus ?? "active",
+              isActive: newCreds.isActive,
             });
           },
           onRequestSuccess: async () => {
