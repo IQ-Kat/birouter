@@ -166,8 +166,10 @@ export default function ProviderCard({
               )}
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold flex items-center gap-1.5 truncate">
-                <span className={provider.deprecated ? "line-through opacity-60" : ""}>
+              <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
+                <span
+                  className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                >
                   {provider.name}
                 </span>
                 {provider.deprecated && (
@@ -183,9 +185,15 @@ export default function ProviderCard({
                   </Badge>
                 )}
                 <span
-                  className={`size-2 rounded-full ${DOT_COLORS[authType] || DOT_COLORS.apikey} shrink-0`}
+                  className={`size-2 rounded-full shrink-0 ${DOT_COLORS[authType] || DOT_COLORS.apikey}`}
                   title={dotLabels[authType] || t("apiKeyLabel")}
                 />
+                {provider.hasFree === true && authType !== "free" && (
+                  <span
+                    className="size-2 rounded-full shrink-0 bg-green-500"
+                    title={provider.freeNote || t("freeTierAvailable")}
+                  />
+                )}
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 {allDisabled ? (
@@ -198,18 +206,6 @@ export default function ProviderCard({
                 ) : (
                   <>
                     {getStatusDisplay(connected, error, stats.errorCode, t, codexFastChip)}
-                    {(authType === "free" || provider.hasFree === true) && (
-                      <Badge
-                        variant="success"
-                        size="sm"
-                        title={provider.freeNote || t("freeTierAvailable")}
-                      >
-                        <span className="flex items-center gap-0.5">
-                          <span className="material-symbols-outlined text-[10px]">redeem</span>
-                          {t("freeTier")}
-                        </span>
-                      </Badge>
-                    )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>
                         {t("expiredBadge")}
@@ -247,7 +243,7 @@ export default function ProviderCard({
             {Number(stats.total || 0) > 0 && (
               <div onClick={handleToggle}>
                 <Toggle
-                  size="sm"
+                  size="xs"
                   checked={!allDisabled}
                   onChange={() => {}}
                   title={allDisabled ? t("enableProvider") : t("disableProvider")}
