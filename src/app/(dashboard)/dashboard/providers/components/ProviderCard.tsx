@@ -149,20 +149,20 @@ export default function ProviderCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 pr-2">
             <div
-              className="size-8 rounded-lg flex items-center justify-center shrink-0"
+              className="size-7 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
             >
               {staticIconPath ? (
                 <Image
                   src={staticIconPath}
                   alt={provider.name}
-                  width={30}
-                  height={30}
-                  className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
-                  sizes="30px"
+                  width={26}
+                  height={26}
+                  className="object-contain rounded-lg max-w-[26px] max-h-[26px]"
+                  sizes="26px"
                 />
               ) : (
-                <ProviderIcon providerId={provider.id || providerId} size={28} type="color" />
+                <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
               )}
             </div>
             <div className="min-w-0">
