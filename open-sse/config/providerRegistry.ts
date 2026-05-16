@@ -1034,6 +1034,30 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  opencode: {
+    id: "opencode",
+    alias: "oc",
+    format: "openai",
+    executor: "opencode",
+    baseUrl: "https://opencode.ai/zen/v1",
+    modelsUrl: "https://opencode.ai/zen/v1/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    defaultContextLength: 200000,
+    models: [
+      { id: "big-pickle", name: "Big Pickle" },
+      { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
+      { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
+      {
+        id: "trinity-large-preview-free",
+        name: "Trinity Large Preview Free",
+        contextLength: 131000,
+      },
+      { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
+    ],
+  },
+
   "opencode-go": {
     id: "opencode-go",
     alias: "opencode-go",
