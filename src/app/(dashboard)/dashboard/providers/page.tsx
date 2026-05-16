@@ -599,28 +599,25 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-3">
           {/* Row 1: Search + Controls */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative w-1/4 min-w-[160px]">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px]">
-                search
-              </span>
+            <div className="relative flex-1 min-w-[160px]">
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t("searchProviders")}
                 aria-label={t("searchProviders")}
-                className="pl-10 pr-10"
+                icon="search"
+                inputClassName={searchQuery ? "pr-9" : ""}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-primary transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-text-muted hover:text-text-primary transition-colors"
                   aria-label={tc("clear")}
                 >
-                  <span className="material-symbols-outlined text-[20px]">close</span>
+                  <span className="material-symbols-outlined text-[18px]">close</span>
                 </button>
               )}
             </div>
-            <div className="flex-1" />
             <Toggle
               size="sm"
               checked={showConfiguredOnly}
