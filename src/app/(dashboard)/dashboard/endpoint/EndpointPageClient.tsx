@@ -1450,9 +1450,17 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           {/* Tailscale Funnel */}
           {showTailscaleFunnel && (
             <div className={showCloudflaredTunnel ? "border-t border-border/30" : ""}>
-              <button
-                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left"
+              <div
+                role="button"
+                tabIndex={0}
+                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left cursor-pointer"
                 onClick={() => setExpandedTunnel(expandedTunnel === "ts" ? null : "ts")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setExpandedTunnel(expandedTunnel === "ts" ? null : "ts");
+                  }
+                }}
               >
                 <span className="material-symbols-outlined text-[18px] text-indigo-400 shrink-0">
                   vpn_lock
@@ -1515,7 +1523,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                 >
                   expand_more
                 </span>
-              </button>
+              </div>
               {expandedTunnel === "ts" && (
                 <div className="pb-3 pl-7 pr-1 flex flex-col gap-2">
                   {tailscaleNotice && (
@@ -1600,9 +1608,17 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                 showCloudflaredTunnel || showTailscaleFunnel ? "border-t border-border/30" : ""
               }
             >
-              <button
-                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left"
+              <div
+                role="button"
+                tabIndex={0}
+                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left cursor-pointer"
                 onClick={() => setExpandedTunnel(expandedTunnel === "ngrok" ? null : "ngrok")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setExpandedTunnel(expandedTunnel === "ngrok" ? null : "ngrok");
+                  }
+                }}
               >
                 <span className="material-symbols-outlined text-[18px] text-purple-400 shrink-0">
                   public
@@ -1640,7 +1656,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                 >
                   expand_more
                 </span>
-              </button>
+              </div>
               {expandedTunnel === "ngrok" && (
                 <div className="pb-3 pl-7 pr-1 flex flex-col gap-2">
                   {ngrokNotice && (
