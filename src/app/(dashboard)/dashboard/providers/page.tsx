@@ -730,7 +730,7 @@ export default function ProvidersPage() {
                   providerId={providerId}
                   provider={{ ...provider, hasFree: false }}
                   stats={stats}
-                  authType={displayAuthType}
+                  authType={toggleAuthType === "free" ? "free" : displayAuthType}
                   onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
                 />
               )

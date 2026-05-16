@@ -1044,6 +1044,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "Authorization",
     authPrefix: "Bearer",
+    passthroughModels: true,
     defaultContextLength: 200000,
     models: [
       { id: "big-pickle", name: "Big Pickle" },
