@@ -307,14 +307,44 @@ export default function McpPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-end">
-        <ServiceToggle
-          label="MCP"
-          status={mcpStatus}
-          enabled={mcpEnabled}
-          onToggle={() => void toggleMcp()}
-          toggling={mcpToggling}
-        />
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-semibold flex items-center gap-2 mb-1">
+            <span
+              className="material-symbols-rounded text-base"
+              style={{ color: "var(--color-primary)" }}
+            >
+              hub
+            </span>
+            MCP Server
+          </h3>
+          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+            Model Context Protocol — 37 tools across 13 scopes, 3 transports (stdio / SSE /
+            Streamable HTTP).
+          </p>
+          <ol
+            className="mt-2 text-sm space-y-0.5 list-decimal list-inside"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            <li>
+              Run via <code className="text-xs">omniroute --mcp</code>
+            </li>
+            <li>Configure your MCP client to connect over stdio transport.</li>
+            <li>
+              Invoke tools like <code className="text-xs">omniroute_get_health</code> and{" "}
+              <code className="text-xs">omniroute_list_combos</code>.
+            </li>
+          </ol>
+        </div>
+        <div className="shrink-0">
+          <ServiceToggle
+            label="MCP"
+            status={mcpStatus}
+            enabled={mcpEnabled}
+            onToggle={() => void toggleMcp()}
+            toggling={mcpToggling}
+          />
+        </div>
       </div>
 
       {mcpEnabled && (

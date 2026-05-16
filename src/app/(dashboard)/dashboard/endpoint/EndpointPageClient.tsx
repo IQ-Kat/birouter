@@ -152,7 +152,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [selectedProvider, setSelectedProvider] = useState(null); // for provider models popup
   const [cloudBaseUrl, setCloudBaseUrl] = useState(BUILD_TIME_CLOUD_URL); // dynamic cloud URL from API response
   const [cloudConfigured, setCloudConfigured] = useState(Boolean(BUILD_TIME_CLOUD_URL));
-  const [viewTab, setViewTab] = useState("api");
   const [mcpStatus, setMcpStatus] = useState<any>(null);
   const [a2aStatus, setA2aStatus] = useState<any>(null);
   const [searchProviders, setSearchProviders] = useState<any[]>([]);
@@ -1280,7 +1279,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                     title={`Copy ${url}`}
                     className="inline-flex items-center gap-0.5 text-[10px] text-text-muted hover:text-text transition-colors"
                   >
-                    <span className="text-text-muted/50">,</span>
                     <code className="font-mono">{url.replace(/^https?:\/\//, "")}</code>
                     <span className="material-symbols-outlined text-[10px] opacity-60">
                       {copied === `lan_${url}` ? "check" : "content_copy"}
@@ -1304,8 +1302,22 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </button>
           </div>
 
+          {/* Tunnels section header */}
+          <div className="flex items-center gap-2 pt-4 pb-1 border-t border-border/50">
+            <span className="material-symbols-outlined text-[14px] text-text-muted">
+              network_node
+            </span>
+            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+              Tunnels
+            </span>
+            <div className="flex-1 h-px bg-border/50" />
+            <span className="text-[10px] text-text-muted">
+              {activeTunnelCount} / {visibleTunnelCount} active
+            </span>
+          </div>
+
           {/* Cloud OmniRoute */}
-          <div className="flex items-center gap-3 py-3 border-t border-border/50">
+          <div className="flex items-center gap-3 py-3">
             <span className="material-symbols-outlined text-[18px] text-blue-400 shrink-0">
               cloud
             </span>
@@ -1353,29 +1365,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             )}
           </div>
 
-          {/* Tunnels section header */}
-          {(showCloudflaredTunnel || showTailscaleFunnel || showNgrokTunnel) && (
-            <div className="flex items-center gap-2 pt-4 pb-1 border-t border-border/50">
-              <span className="material-symbols-outlined text-[14px] text-text-muted">
-                network_node
-              </span>
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                Tunnels
-              </span>
-              <div className="flex-1 h-px bg-border/50" />
-              <span className="text-[10px] text-text-muted">
-                {activeTunnelCount} / {visibleTunnelCount} active
-              </span>
-            </div>
-          )}
-
           {/* Cloudflare Quick Tunnel */}
           {showCloudflaredTunnel && (
-            <div>
-              <button
-                className="w-full flex items-center gap-3 py-3 hover:bg-surface/40 transition-colors rounded -mx-1 px-1 text-left"
-                onClick={() => setExpandedTunnel(expandedTunnel === "cf" ? null : "cf")}
-              >
+            <div className="border-t border-border/30">
+              <div className="flex items-center gap-3 py-3">
                 <span className="material-symbols-outlined text-[18px] text-orange-400 shrink-0">
                   cloud_queue
                 </span>
@@ -1395,8 +1388,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                     variant={cloudflaredStatus?.running ? "secondary" : "primary"}
                     icon={cloudflaredStatus?.running ? "cloud_off" : "cloud_upload"}
                     loading={cloudflaredBusy}
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       void handleCloudflaredAction(
                         cloudflaredStatus?.running ? "disable" : "enable"
                       );
@@ -1406,52 +1398,39 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                     {cloudflaredActionLabel}
                   </Button>
                 )}
-                <span
-                  className="material-symbols-outlined text-[18px] text-text-muted shrink-0 transition-transform duration-200"
-                  style={{
-                    transform: expandedTunnel === "cf" ? "rotate(180deg)" : "rotate(0deg)",
-                  }}
+              </div>
+              {cloudflaredNotice && (
+                <div
+                  className={`mb-2 ml-7 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    cloudflaredNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : cloudflaredNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
                 >
-                  expand_more
-                </span>
-              </button>
-              {expandedTunnel === "cf" && (
-                <div className="pb-3 pl-7 pr-1 flex flex-col gap-2">
-                  {cloudflaredNotice && (
-                    <div
-                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                        cloudflaredNotice.type === "success"
-                          ? "border-green-500/30 bg-green-500/10 text-green-400"
-                          : cloudflaredNotice.type === "info"
-                            ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                            : "border-red-500/30 bg-red-500/10 text-red-400"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">
-                        {cloudflaredNotice.type === "success"
-                          ? "check_circle"
-                          : cloudflaredNotice.type === "info"
-                            ? "info"
-                            : "error"}
-                      </span>
-                      <span className="flex-1">{cloudflaredNotice.message}</span>
-                      <button
-                        onClick={() => setCloudflaredNotice(null)}
-                        className="rounded p-0.5 transition-colors hover:bg-white/10"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">close</span>
-                      </button>
-                    </div>
-                  )}
-                  <p className="text-xs text-text-muted">{cloudflaredUrlNotice}</p>
-                  {cloudflaredStatus?.lastError && (
-                    <p className="text-xs text-red-400">
-                      {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
-                        error: cloudflaredStatus.lastError,
-                      })}
-                    </p>
-                  )}
+                  <span className="material-symbols-outlined text-[18px]">
+                    {cloudflaredNotice.type === "success"
+                      ? "check_circle"
+                      : cloudflaredNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{cloudflaredNotice.message}</span>
+                  <button
+                    onClick={() => setCloudflaredNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
                 </div>
+              )}
+              {cloudflaredStatus?.lastError && (
+                <p className="mb-2 ml-7 text-xs text-red-400">
+                  {translateOrFallback("cloudflaredLastError", "Last error: {error}", {
+                    error: cloudflaredStatus.lastError,
+                  })}
+                </p>
               )}
             </div>
           )}
@@ -1480,7 +1459,6 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                         title={`Copy ${tailscaleIpUrl}`}
                         className="inline-flex items-center gap-0.5 text-[10px] text-text-muted hover:text-text transition-colors"
                       >
-                        <span className="text-text-muted/50">,</span>
                         <code className="font-mono">
                           {tailscaleIpUrl.replace(/^https?:\/\//, "")}
                         </code>
@@ -1685,7 +1663,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                       <label className="text-xs text-text-muted">
                         {translateOrFallback(
                           "ngrokAuthTokenLabel",
-                          "Authtoken (Required if NGROK_AUTHTOKEN not set)"
+                          "Authtoken (Required if NGROK_AUTHTOKEN not set in environment)"
                         )}
                       </label>
                       <Input
@@ -1716,357 +1694,253 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       </Card>
 
       <Card>
-        <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">{t("sectionTitle") || "Integration Surface"}</h2>
+            <h2 className="text-lg font-semibold">{t("available")}</h2>
             <p className="text-sm text-text-muted">
-              {t("sectionDescription") ||
-                "OpenAI-compatible APIs and operational protocol endpoints"}
+              {modelsLoading
+                ? translateOrFallback("loadingModels", "Loading available models...")
+                : t("modelsAcrossEndpoints", {
+                    models: totalEndpointModelCount,
+                    endpoints: availableEndpointCount,
+                  })}
             </p>
-            <a
-              href="https://developers.openai.com/api/reference/overview"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
-            >
-              OpenAI API Reference
-              <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-            </a>
           </div>
-          <SegmentedControl
-            options={[
-              { value: "api", label: t("tabApis") || "OpenAI-compatible APIs", icon: "api" },
-              { value: "protocols", label: t("tabProtocols") || "Protocols", icon: "hub" },
-            ]}
-            value={viewTab}
-            onChange={setViewTab}
-            aria-label={t("tabsAria") || "Endpoint sections"}
-          />
         </div>
-      </Card>
 
-      {viewTab === "api" ? (
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold">{t("available")}</h2>
-              <p className="text-sm text-text-muted">
-                {modelsLoading
-                  ? translateOrFallback("loadingModels", "Loading available models...")
-                  : t("modelsAcrossEndpoints", {
-                      models: totalEndpointModelCount,
-                      endpoints: availableEndpointCount,
-                    })}
-              </p>
-            </div>
+        {/* Core APIs */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="material-symbols-outlined text-sm text-primary">hub</span>
+            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              {t("categoryCore") || "Core APIs"}
+            </h3>
+            <div className="flex-1 h-px bg-border/50" />
           </div>
+          <div className="flex flex-col gap-3">
+            {/* Chat Completions */}
+            <EndpointSection
+              icon="chat"
+              iconColor="text-blue-500"
+              iconBg="bg-blue-500/10"
+              title={t("chatCompletions")}
+              path="/v1/chat/completions"
+              description={t("chatDesc")}
+              models={endpointData.chat}
+              expanded={expandedEndpoint === "chat"}
+              onToggle={() => setExpandedEndpoint(expandedEndpoint === "chat" ? null : "chat")}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
 
-          {/* Core APIs */}
+            {/* Responses API */}
+            <EndpointSection
+              icon="code"
+              iconColor="text-indigo-500"
+              iconBg="bg-indigo-500/10"
+              title={t("responses") || "Responses API"}
+              path="/v1/responses"
+              description={
+                t("responsesDesc") ||
+                "OpenAI Responses API for Codex and advanced agentic workflows"
+              }
+              models={endpointData.chat}
+              expanded={expandedEndpoint === "responses"}
+              onToggle={() =>
+                setExpandedEndpoint(expandedEndpoint === "responses" ? null : "responses")
+              }
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Legacy Completions */}
+            <EndpointSection
+              icon="text_fields"
+              iconColor="text-orange-500"
+              iconBg="bg-orange-500/10"
+              title={t("completionsLegacy") || "Completions (Legacy)"}
+              path="/v1/completions"
+              description={
+                t("completionsLegacyDesc") ||
+                "Legacy OpenAI text completions — accepts both prompt and messages format"
+              }
+              models={endpointData.chat}
+              expanded={expandedEndpoint === "completions"}
+              onToggle={() =>
+                setExpandedEndpoint(expandedEndpoint === "completions" ? null : "completions")
+              }
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+          </div>
+        </div>
+
+        {/* Media & Multi-Modal */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="material-symbols-outlined text-sm text-purple-400">perm_media</span>
+            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              {t("categoryMedia") || "Media & Multi-Modal"}
+            </h3>
+            <div className="flex-1 h-px bg-border/50" />
+          </div>
+          <div className="flex flex-col gap-3">
+            {/* Embeddings */}
+            <EndpointSection
+              icon="data_array"
+              iconColor="text-emerald-500"
+              iconBg="bg-emerald-500/10"
+              title={t("embeddings")}
+              path="/v1/embeddings"
+              description={t("embeddingsDesc")}
+              models={endpointData.embeddings}
+              expanded={expandedEndpoint === "embeddings"}
+              onToggle={() =>
+                setExpandedEndpoint(expandedEndpoint === "embeddings" ? null : "embeddings")
+              }
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Image Generation */}
+            <EndpointSection
+              icon="image"
+              iconColor="text-purple-500"
+              iconBg="bg-purple-500/10"
+              title={t("imageGeneration")}
+              path="/v1/images/generations"
+              description={t("imageDesc")}
+              models={endpointData.images}
+              expanded={expandedEndpoint === "images"}
+              onToggle={() => setExpandedEndpoint(expandedEndpoint === "images" ? null : "images")}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Audio Transcription */}
+            <EndpointSection
+              icon="mic"
+              iconColor="text-rose-500"
+              iconBg="bg-rose-500/10"
+              title={t("audioTranscription")}
+              path="/v1/audio/transcriptions"
+              description={t("audioTranscriptionDesc")}
+              models={endpointData.audioTranscription}
+              expanded={expandedEndpoint === "audioTranscription"}
+              onToggle={() =>
+                setExpandedEndpoint(
+                  expandedEndpoint === "audioTranscription" ? null : "audioTranscription"
+                )
+              }
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Audio Speech (TTS) */}
+            <EndpointSection
+              icon="record_voice_over"
+              iconColor="text-cyan-500"
+              iconBg="bg-cyan-500/10"
+              title={t("textToSpeech")}
+              path="/v1/audio/speech"
+              description={t("textToSpeechDesc")}
+              models={endpointData.audioSpeech}
+              expanded={expandedEndpoint === "audioSpeech"}
+              onToggle={() =>
+                setExpandedEndpoint(expandedEndpoint === "audioSpeech" ? null : "audioSpeech")
+              }
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Music Generation */}
+            <EndpointSection
+              icon="music_note"
+              iconColor="text-fuchsia-500"
+              iconBg="bg-fuchsia-500/10"
+              title={t("musicGeneration") || "Music Generation"}
+              path="/v1/music/generations"
+              description={
+                t("musicDesc") ||
+                "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)"
+              }
+              models={endpointData.music}
+              expanded={expandedEndpoint === "music"}
+              onToggle={() => setExpandedEndpoint(expandedEndpoint === "music" ? null : "music")}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Video Generation */}
+            <EndpointSection
+              icon="videocam"
+              iconColor="text-red-500"
+              iconBg="bg-red-500/10"
+              title={t("videoGeneration") || "Video Generation"}
+              path="/v1/videos/generations"
+              description={
+                t("videoDesc") ||
+                "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
+              }
+              models={endpointData.video}
+              expanded={expandedEndpoint === "video"}
+              onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+          </div>
+        </div>
+
+        {/* Search & Discovery */}
+        {searchProviders.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-sm text-primary">hub</span>
+              <span className="material-symbols-outlined text-sm text-cyan-400">
+                travel_explore
+              </span>
               <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                {t("categoryCore") || "Core APIs"}
+                {t("categorySearch") || "Search & Discovery"}
               </h3>
               <div className="flex-1 h-px bg-border/50" />
             </div>
             <div className="flex flex-col gap-3">
-              {/* Chat Completions */}
               <EndpointSection
-                icon="chat"
-                iconColor="text-blue-500"
-                iconBg="bg-blue-500/10"
-                title={t("chatCompletions")}
-                path="/v1/chat/completions"
-                description={t("chatDesc")}
-                models={endpointData.chat}
-                expanded={expandedEndpoint === "chat"}
-                onToggle={() => setExpandedEndpoint(expandedEndpoint === "chat" ? null : "chat")}
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Responses API */}
-              <EndpointSection
-                icon="code"
-                iconColor="text-indigo-500"
-                iconBg="bg-indigo-500/10"
-                title={t("responses") || "Responses API"}
-                path="/v1/responses"
-                description={
-                  t("responsesDesc") ||
-                  "OpenAI Responses API for Codex and advanced agentic workflows"
-                }
-                models={endpointData.chat}
-                expanded={expandedEndpoint === "responses"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "responses" ? null : "responses")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Legacy Completions */}
-              <EndpointSection
-                icon="text_fields"
-                iconColor="text-orange-500"
-                iconBg="bg-orange-500/10"
-                title={t("completionsLegacy") || "Completions (Legacy)"}
-                path="/v1/completions"
-                description={
-                  t("completionsLegacyDesc") ||
-                  "Legacy OpenAI text completions — accepts both prompt and messages format"
-                }
-                models={endpointData.chat}
-                expanded={expandedEndpoint === "completions"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "completions" ? null : "completions")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-            </div>
-          </div>
-
-          {/* Media & Multi-Modal */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-sm text-purple-400">perm_media</span>
-              <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                {t("categoryMedia") || "Media & Multi-Modal"}
-              </h3>
-              <div className="flex-1 h-px bg-border/50" />
-            </div>
-            <div className="flex flex-col gap-3">
-              {/* Embeddings */}
-              <EndpointSection
-                icon="data_array"
-                iconColor="text-emerald-500"
-                iconBg="bg-emerald-500/10"
-                title={t("embeddings")}
-                path="/v1/embeddings"
-                description={t("embeddingsDesc")}
-                models={endpointData.embeddings}
-                expanded={expandedEndpoint === "embeddings"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "embeddings" ? null : "embeddings")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Image Generation */}
-              <EndpointSection
-                icon="image"
-                iconColor="text-purple-500"
-                iconBg="bg-purple-500/10"
-                title={t("imageGeneration")}
-                path="/v1/images/generations"
-                description={t("imageDesc")}
-                models={endpointData.images}
-                expanded={expandedEndpoint === "images"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "images" ? null : "images")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Audio Transcription */}
-              <EndpointSection
-                icon="mic"
-                iconColor="text-rose-500"
-                iconBg="bg-rose-500/10"
-                title={t("audioTranscription")}
-                path="/v1/audio/transcriptions"
-                description={t("audioTranscriptionDesc")}
-                models={endpointData.audioTranscription}
-                expanded={expandedEndpoint === "audioTranscription"}
-                onToggle={() =>
-                  setExpandedEndpoint(
-                    expandedEndpoint === "audioTranscription" ? null : "audioTranscription"
-                  )
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Audio Speech (TTS) */}
-              <EndpointSection
-                icon="record_voice_over"
+                icon="search"
                 iconColor="text-cyan-500"
                 iconBg="bg-cyan-500/10"
-                title={t("textToSpeech")}
-                path="/v1/audio/speech"
-                description={t("textToSpeechDesc")}
-                models={endpointData.audioSpeech}
-                expanded={expandedEndpoint === "audioSpeech"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "audioSpeech" ? null : "audioSpeech")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Music Generation */}
-              <EndpointSection
-                icon="music_note"
-                iconColor="text-fuchsia-500"
-                iconBg="bg-fuchsia-500/10"
-                title={t("musicGeneration") || "Music Generation"}
-                path="/v1/music/generations"
+                title={t("webSearch") || "Web Search"}
+                path="/v1/search"
                 description={
-                  t("musicDesc") ||
-                  "Generate music and audio tracks via ComfyUI (Stable Audio, MusicGen)"
+                  t("webSearchDesc") ||
+                  "Unified web search across multiple providers with automatic failover and caching"
                 }
-                models={endpointData.music}
-                expanded={expandedEndpoint === "music"}
-                onToggle={() => setExpandedEndpoint(expandedEndpoint === "music" ? null : "music")}
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Video Generation */}
-              <EndpointSection
-                icon="videocam"
-                iconColor="text-red-500"
-                iconBg="bg-red-500/10"
-                title={t("videoGeneration") || "Video Generation"}
-                path="/v1/videos/generations"
-                description={
-                  t("videoDesc") ||
-                  "Generate videos via ComfyUI, Stable Diffusion WebUI, and compatible providers"
-                }
-                models={endpointData.video}
-                expanded={expandedEndpoint === "video"}
-                onToggle={() => setExpandedEndpoint(expandedEndpoint === "video" ? null : "video")}
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-            </div>
-          </div>
-
-          {/* Search & Discovery */}
-          {searchProviders.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-sm text-cyan-400">
-                  travel_explore
-                </span>
-                <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  {t("categorySearch") || "Search & Discovery"}
-                </h3>
-                <div className="flex-1 h-px bg-border/50" />
-              </div>
-              <div className="flex flex-col gap-3">
-                <EndpointSection
-                  icon="search"
-                  iconColor="text-cyan-500"
-                  iconBg="bg-cyan-500/10"
-                  title={t("webSearch") || "Web Search"}
-                  path="/v1/search"
-                  description={
-                    t("webSearchDesc") ||
-                    "Unified web search across multiple providers with automatic failover and caching"
-                  }
-                  models={searchProviders.map((p) => ({
-                    id: p.id,
-                    name: p.name,
-                    owned_by: p.id,
-                    type: "search",
-                  }))}
-                  expanded={expandedEndpoint === "search"}
-                  onToggle={() =>
-                    setExpandedEndpoint(expandedEndpoint === "search" ? null : "search")
-                  }
-                  copy={copy}
-                  copied={copied}
-                  baseUrl={currentEndpoint}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Utility & Management */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-sm text-amber-400">build</span>
-              <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                {t("categoryUtility") || "Utility & Management"}
-              </h3>
-              <div className="flex-1 h-px bg-border/50" />
-            </div>
-            <div className="flex flex-col gap-3">
-              {/* Rerank */}
-              <EndpointSection
-                icon="sort"
-                iconColor="text-amber-500"
-                iconBg="bg-amber-500/10"
-                title={t("rerank")}
-                path="/v1/rerank"
-                description={t("rerankDesc")}
-                models={endpointData.rerank}
-                expanded={expandedEndpoint === "rerank"}
+                models={searchProviders.map((p) => ({
+                  id: p.id,
+                  name: p.name,
+                  owned_by: p.id,
+                  type: "search",
+                }))}
+                expanded={expandedEndpoint === "search"}
                 onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "rerank" ? null : "rerank")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* Moderations */}
-              <EndpointSection
-                icon="shield"
-                iconColor="text-orange-500"
-                iconBg="bg-orange-500/10"
-                title={t("moderations")}
-                path="/v1/moderations"
-                description={t("moderationsDesc")}
-                models={endpointData.moderation}
-                expanded={expandedEndpoint === "moderation"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "moderation" ? null : "moderation")
-                }
-                copy={copy}
-                copied={copied}
-                baseUrl={currentEndpoint}
-                modelsLoading={modelsLoading}
-              />
-
-              {/* List Models */}
-              <EndpointSection
-                icon="list"
-                iconColor="text-teal-500"
-                iconBg="bg-teal-500/10"
-                title={t("listModels") || "List Models"}
-                path="/v1/models"
-                description={
-                  t("listModelsDesc") || "List all available models across all connected providers"
-                }
-                models={[]}
-                expanded={expandedEndpoint === "models"}
-                onToggle={() =>
-                  setExpandedEndpoint(expandedEndpoint === "models" ? null : "models")
+                  setExpandedEndpoint(expandedEndpoint === "search" ? null : "search")
                 }
                 copy={copy}
                 copied={copied}
@@ -2074,158 +1948,74 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               />
             </div>
           </div>
-        </Card>
-      ) : (
-        <Card>
-          <div className="flex flex-col gap-6">
-            <div>
-              <h2 className="text-lg font-semibold">{t("protocolsTitle") || "Protocols"}</h2>
-              <p className="text-sm text-text-muted mt-1">
-                {t("protocolsDescription") ||
-                  "MCP and A2A are first-class endpoints with dedicated observability and controls."}
-              </p>
-            </div>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-border p-4 bg-bg-subtle">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-[18px]">
-                        hub
-                      </span>
-                      {t("mcpCardTitle") || "MCP Server"}
-                    </h3>
-                    <p className="text-xs text-text-muted mt-1">
-                      {t("mcpCardDescription") || "Model Context Protocol over stdio"}
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                      mcpOnline ? "bg-green-500/15 text-green-500" : "bg-red-500/15 text-red-500"
-                    }`}
-                  >
-                    {mcpOnline ? tc("active") : tc("inactive")}
-                  </span>
-                </div>
-                <div className="mt-3 text-xs text-text-muted space-y-1">
-                  <p>
-                    {t("protocolToolsLabel") || "Tools"}:{" "}
-                    <span className="text-text-main font-semibold">{mcpToolCount || 29}</span>
-                  </p>
-                  <p>
-                    {t("protocolLastActivity") || "Last activity"}:{" "}
-                    <span className="text-text-main">
-                      {mcpStatus?.activity?.lastCallAt
-                        ? new Date(mcpStatus.activity.lastCallAt).toLocaleString()
-                        : "—"}
-                    </span>
-                  </p>
-                </div>
-                <div className="mt-3 rounded-lg bg-bg p-3 border border-border/70">
-                  <p className="text-xs font-semibold mb-1">{t("quickStart") || "Quick Start"}</p>
-                  <code className="text-xs font-mono break-all">omniroute --mcp</code>
-                </div>
-                <div className="mt-3">
-                  <Link
-                    href="/dashboard/mcp"
-                    className="text-sm text-primary hover:text-primary-hover transition-colors"
-                  >
-                    {t("openMcpDashboard") || "Open MCP management"} →
-                  </Link>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border p-4 bg-bg-subtle">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-[18px]">
-                        group_work
-                      </span>
-                      {t("a2aCardTitle") || "A2A Server"}
-                    </h3>
-                    <p className="text-xs text-text-muted mt-1">
-                      {t("a2aCardDescription") || "Agent2Agent JSON-RPC endpoint"}
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                      a2aOnline ? "bg-green-500/15 text-green-500" : "bg-red-500/15 text-red-500"
-                    }`}
-                  >
-                    {a2aOnline ? tc("active") : tc("inactive")}
-                  </span>
-                </div>
-                <div className="mt-3 text-xs text-text-muted space-y-1">
-                  <p>
-                    {t("protocolTasksLabel") || "Tasks"}:{" "}
-                    <span className="text-text-main font-semibold">
-                      {a2aStatus?.tasks?.total || 0}
-                    </span>
-                  </p>
-                  <p>
-                    {t("protocolActiveStreamsLabel") || "Active streams"}:{" "}
-                    <span className="text-text-main font-semibold">{a2aActiveStreams}</span>
-                  </p>
-                </div>
-                <div className="mt-3 rounded-lg bg-bg p-3 border border-border/70">
-                  <p className="text-xs font-semibold mb-1">{t("quickStart") || "Quick Start"}</p>
-                  <code className="text-xs font-mono break-all">
-                    {baseUrl.replace(/\/v1$/, "")}/a2a
-                  </code>
-                </div>
-                <div className="mt-3">
-                  <Link
-                    href="/dashboard/a2a"
-                    className="text-sm text-primary hover:text-primary-hover transition-colors"
-                  >
-                    {t("openA2aDashboard") || "Open A2A management"} →
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-border p-4 bg-bg-subtle">
-                <h4 className="font-semibold mb-2">
-                  {t("mcpQuickStartTitle") || "MCP Quick Start"}
-                </h4>
-                <ol className="text-sm text-text-muted space-y-1 list-decimal list-inside">
-                  <li>{t("mcpQuickStartStep1") || "Run the MCP server via `omniroute --mcp`."}</li>
-                  <li>
-                    {t("mcpQuickStartStep2") ||
-                      "Configure your MCP client to connect over stdio transport."}
-                  </li>
-                  <li>
-                    {t("mcpQuickStartStep3") ||
-                      "Invoke tools such as `omniroute_get_health` and `omniroute_list_combos`."}
-                  </li>
-                </ol>
-              </div>
-              <div className="rounded-xl border border-border p-4 bg-bg-subtle">
-                <h4 className="font-semibold mb-2">
-                  {t("a2aQuickStartTitle") || "A2A Quick Start"}
-                </h4>
-                <ol className="text-sm text-text-muted space-y-1 list-decimal list-inside">
-                  <li>
-                    {t("a2aQuickStartStep1") ||
-                      "Discover the agent card at `/.well-known/agent.json`."}
-                  </li>
-                  <li>
-                    {t("a2aQuickStartStep2") ||
-                      "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`."}
-                  </li>
-                  <li>
-                    {t("a2aQuickStartStep3") ||
-                      "Track and control tasks using `tasks/get` and `tasks/cancel`."}
-                  </li>
-                </ol>
-              </div>
-            </div>
+        {/* Utility & Management */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="material-symbols-outlined text-sm text-amber-400">build</span>
+            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              {t("categoryUtility") || "Utility & Management"}
+            </h3>
+            <div className="flex-1 h-px bg-border/50" />
           </div>
-        </Card>
-      )}
+          <div className="flex flex-col gap-3">
+            {/* Rerank */}
+            <EndpointSection
+              icon="sort"
+              iconColor="text-amber-500"
+              iconBg="bg-amber-500/10"
+              title={t("rerank")}
+              path="/v1/rerank"
+              description={t("rerankDesc")}
+              models={endpointData.rerank}
+              expanded={expandedEndpoint === "rerank"}
+              onToggle={() => setExpandedEndpoint(expandedEndpoint === "rerank" ? null : "rerank")}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* Moderations */}
+            <EndpointSection
+              icon="shield"
+              iconColor="text-orange-500"
+              iconBg="bg-orange-500/10"
+              title={t("moderations")}
+              path="/v1/moderations"
+              description={t("moderationsDesc")}
+              models={endpointData.moderation}
+              expanded={expandedEndpoint === "moderation"}
+              onToggle={() =>
+                setExpandedEndpoint(expandedEndpoint === "moderation" ? null : "moderation")
+              }
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+              modelsLoading={modelsLoading}
+            />
+
+            {/* List Models */}
+            <EndpointSection
+              icon="list"
+              iconColor="text-teal-500"
+              iconBg="bg-teal-500/10"
+              title={t("listModels") || "List Models"}
+              path="/v1/models"
+              description={
+                t("listModelsDesc") || "List all available models across all connected providers"
+              }
+              models={[]}
+              expanded={expandedEndpoint === "models"}
+              onToggle={() => setExpandedEndpoint(expandedEndpoint === "models" ? null : "models")}
+              copy={copy}
+              copied={copied}
+              baseUrl={currentEndpoint}
+            />
+          </div>
+        </div>
+      </Card>
 
       {/* Cloud Enable Modal */}
       <Modal
