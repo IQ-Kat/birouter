@@ -5,6 +5,9 @@
 omnirouteCloud/
 omnirouteSite/
 
+# Claude Code local state — must never be committed
+.claude/
+
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
 
