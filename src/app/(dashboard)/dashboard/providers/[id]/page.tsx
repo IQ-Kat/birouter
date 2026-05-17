@@ -31,7 +31,9 @@ import {
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
   supportsApiKeyOnFreeProvider,
+  supportsBulkApiKey,
 } from "@/shared/constants/providers";
+import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import {
   compatibleProviderSupportsModelImport,
@@ -6294,6 +6296,18 @@ function AddApiKeyModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
+
+  const bulkSupported = supportsBulkApiKey(provider);
+  const [mode, setMode] = useState<"single" | "bulk">("single");
+  const [bulkText, setBulkText] = useState("");
+  const [bulkValidateKeys, setBulkValidateKeys] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{
+    success: number;
+    failed: number;
+    total: number;
+    errors: Array<{ index: number; name: string; message: string }>;
+  } | null>(null);
+  const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
     : isWebSessionProvider
@@ -6486,6 +6500,45 @@ function AddApiKeyModal({
     }
   };
 
+  const handleBulkSubmit = async () => {
+    if (!provider) return;
+    const parsed = parseBulkApiKeys(bulkText);
+    setBulkWarnings(parsed.warnings);
+    if (parsed.entries.length === 0) return;
+
+    setSaving(true);
+    setBulkResult(null);
+    setSaveError(null);
+
+    try {
+      const res = await fetch("/api/providers/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          entries: parsed.entries.map((e) => ({ name: e.name, apiKey: e.apiKey })),
+          priority: formData.priority || 1,
+          validateKeys: bulkValidateKeys,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveError(typeof data?.error === "string" ? data.error : t("failedSaveConnection"));
+        return;
+      }
+      setBulkResult({
+        success: data.success || 0,
+        failed: data.failed || 0,
+        total: data.total || 0,
+        errors: Array.isArray(data.errors) ? data.errors : [],
+      });
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : t("failedSaveConnection"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!provider) return null;
 
   return (
@@ -6495,301 +6548,425 @@ function AddApiKeyModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
-        {isCcCompatible && (
-          <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
-            <div className="flex items-start gap-2">
-              <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
-                warning
-              </span>
-              <p>{t("ccCompatibleValidationHint")}</p>
-            </div>
+        {bulkSupported && (
+          <div className="flex gap-1 border-b border-border">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("single");
+                setBulkResult(null);
+                setBulkWarnings([]);
+              }}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                mode === "single"
+                  ? "border-b-2 border-primary text-text-main"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {t("bulkTabSingle")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("bulk");
+                setSaveError(null);
+              }}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                mode === "bulk"
+                  ? "border-b-2 border-primary text-text-main"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {t("bulkTabBulkAdd")}
+            </button>
           </div>
         )}
-        {isCommandCode && onStartCommandCodeAuth && (
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-3 text-sm">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined mt-0.5 text-[18px] text-sky-500">
-                open_in_new
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-text-main">Browser/manual connect</p>
-                <p className="mt-1 text-xs text-text-muted">
-                  Open Command Code Studio, then paste the returned key/JSON/URL into the API key
-                  field below.
-                </p>
-                {commandCodeAuthState?.message && (
-                  <p className="mt-2 text-xs text-text-muted">
-                    {commandCodeAuthPhaseLabel}: {commandCodeAuthState.message}
-                  </p>
+
+        {bulkSupported && mode === "bulk" && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
+            <textarea
+              className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+            />
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-text-muted">{t("priorityLabel")}</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={formData.priority}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      priority: Number.parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className="w-20 px-2 py-1 text-sm border border-border rounded bg-background"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-text-muted cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={bulkValidateKeys}
+                  onChange={(e) => setBulkValidateKeys(e.target.checked)}
+                  className="rounded border-border"
+                />
+                {t("bulkValidateKeys")}
+              </label>
+            </div>
+            {bulkWarnings.length > 0 && (
+              <div className="rounded border border-amber-500/25 bg-amber-500/10 p-2 text-xs text-amber-200 space-y-1">
+                {bulkWarnings.map((w, i) => (
+                  <div key={i}>{w}</div>
+                ))}
+              </div>
+            )}
+            {bulkResult && (
+              <div
+                className={`text-sm font-medium ${
+                  bulkResult.failed > 0 ? "text-amber-300" : "text-emerald-400"
+                }`}
+              >
+                {t("bulkAddedCount", { count: bulkResult.success })}
+                {bulkResult.failed > 0 && (
+                  <>, {t("bulkFailedCount", { count: bulkResult.failed })}</>
                 )}
-                {commandCodeAuthState?.authUrl && (
-                  <div className="mt-3 space-y-2">
-                    <div>
-                      <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
-                      <div className="flex gap-2">
-                        <Input
-                          value={commandCodeAuthState.authUrl}
-                          readOnly
-                          className="flex-1 font-mono text-xs"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={copiedCommandCodeField === "authUrl" ? "check" : "content_copy"}
-                          onClick={() =>
-                            copyCommandCodeValue(commandCodeAuthState.authUrl, "authUrl")
-                          }
-                        />
-                      </div>
-                    </div>
-                    {commandCodeAuthState.callbackUrl && (
-                      <div>
-                        <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
-                        <div className="flex gap-2">
-                          <Input
-                            value={commandCodeAuthState.callbackUrl}
-                            readOnly
-                            className="flex-1 font-mono text-xs"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={
-                              copiedCommandCodeField === "callbackUrl" ? "check" : "content_copy"
-                            }
-                            onClick={() =>
-                              copyCommandCodeValue(commandCodeAuthState.callbackUrl, "callbackUrl")
-                            }
-                          />
-                        </div>
-                      </div>
+                {bulkResult.errors.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5 text-xs text-text-muted font-normal space-y-0.5">
+                    {bulkResult.errors.slice(0, 10).map((err, i) => (
+                      <li key={i}>
+                        {err.name}: {err.message}
+                      </li>
+                    ))}
+                    {bulkResult.errors.length > 10 && (
+                      <li>… {bulkResult.errors.length - 10} more</li>
                     )}
-                  </div>
+                  </ul>
                 )}
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon="open_in_new"
-                loading={
-                  commandCodeAuthState?.phase === "starting" ||
-                  commandCodeAuthState?.phase === "polling" ||
-                  commandCodeAuthState?.phase === "applying"
-                }
-                onClick={onStartCommandCodeAuth}
-              >
-                Connect in browser
+            )}
+            {saveError && <div className="text-sm text-rose-400">{saveError}</div>}
+            <div className="flex gap-2">
+              <Button onClick={handleBulkSubmit} fullWidth disabled={saving || !bulkText.trim()}>
+                {saving ? t("adding") : t("bulkAddAllKeys")}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
               </Button>
             </div>
           </div>
         )}
-        <Input
-          label={t("nameLabel")}
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={isQoder ? t("personalAccessTokenLabel") : t("productionKey")}
-        />
-        <div className="flex gap-2">
-          <Input
-            label={apiCredentialLabel}
-            type="password"
-            value={formData.apiKey}
-            onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-            className="flex-1"
-            placeholder={apiCredentialPlaceholder}
-            hint={apiCredentialHint}
-          />
-          <div className="pt-6">
-            <Button
-              onClick={handleValidate}
-              disabled={
-                (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                (isGooglePse && !formData.cx.trim()) ||
-                validating ||
-                saving
-              }
-              variant="secondary"
-            >
-              {validating ? t("checking") : t("check")}
-            </Button>
-          </div>
-        </div>
-        {isGooglePse && (
-          <Input
-            label={t("searchEngineIdLabel")}
-            value={formData.cx}
-            onChange={(e) => setFormData({ ...formData, cx: e.target.value })}
-            placeholder="012345678901234567890:abc123xyz"
-            hint={t("searchEngineIdHint")}
-          />
-        )}
-        {validationResult && (
-          <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? t("valid") : t("invalid")}
-          </Badge>
-        )}
-        {saveError && (
-          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-            {saveError}
-          </div>
-        )}
-        {isCcCompatible && (
-          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Toggle
-              checked={formData.ccCompatibleContext1m}
-              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
-              label={t("ccCompatibleContext1mLabel")}
-              description={t("ccCompatibleContext1mDescription")}
-            />
-          </div>
-        )}
-        {isCompatible && !isCcCompatible && (
-          <p className="text-xs text-text-muted">
-            {isAnthropic
-              ? t("validationChecksAnthropicCompatible", {
-                  provider: providerName || t("anthropicCompatibleName"),
-                })
-              : t("validationChecksOpenAiCompatible", {
-                  provider: providerName || t("openaiCompatibleName"),
-                })}
-          </p>
-        )}
-        <button
-          type="button"
-          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          aria-expanded={showAdvanced}
-          aria-controls="add-api-key-advanced-settings"
-        >
-          <span
-            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
-            aria-hidden="true"
-          >
-            ▶
-          </span>
-          {t("advancedSettings")}
-        </button>
-        {showAdvanced && (
-          <div
-            id="add-api-key-advanced-settings"
-            className="flex flex-col gap-3 pl-2 border-l-2 border-border"
-          >
+
+        {(!bulkSupported || mode === "single") && (
+          <>
+            {isCcCompatible && (
+              <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
+                <div className="flex items-start gap-2">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+                    warning
+                  </span>
+                  <p>{t("ccCompatibleValidationHint")}</p>
+                </div>
+              </div>
+            )}
+            {isCommandCode && onStartCommandCodeAuth && (
+              <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-sky-500">
+                    open_in_new
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-text-main">Browser/manual connect</p>
+                    <p className="mt-1 text-xs text-text-muted">
+                      Open Command Code Studio, then paste the returned key/JSON/URL into the API
+                      key field below.
+                    </p>
+                    {commandCodeAuthState?.message && (
+                      <p className="mt-2 text-xs text-text-muted">
+                        {commandCodeAuthPhaseLabel}: {commandCodeAuthState.message}
+                      </p>
+                    )}
+                    {commandCodeAuthState?.authUrl && (
+                      <div className="mt-3 space-y-2">
+                        <div>
+                          <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
+                          <div className="flex gap-2">
+                            <Input
+                              value={commandCodeAuthState.authUrl}
+                              readOnly
+                              className="flex-1 font-mono text-xs"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={copiedCommandCodeField === "authUrl" ? "check" : "content_copy"}
+                              onClick={() =>
+                                copyCommandCodeValue(commandCodeAuthState.authUrl, "authUrl")
+                              }
+                            />
+                          </div>
+                        </div>
+                        {commandCodeAuthState.callbackUrl && (
+                          <div>
+                            <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
+                            <div className="flex gap-2">
+                              <Input
+                                value={commandCodeAuthState.callbackUrl}
+                                readOnly
+                                className="flex-1 font-mono text-xs"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={
+                                  copiedCommandCodeField === "callbackUrl"
+                                    ? "check"
+                                    : "content_copy"
+                                }
+                                onClick={() =>
+                                  copyCommandCodeValue(
+                                    commandCodeAuthState.callbackUrl,
+                                    "callbackUrl"
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="open_in_new"
+                    loading={
+                      commandCodeAuthState?.phase === "starting" ||
+                      commandCodeAuthState?.phase === "polling" ||
+                      commandCodeAuthState?.phase === "applying"
+                    }
+                    onClick={onStartCommandCodeAuth}
+                  >
+                    Connect in browser
+                  </Button>
+                </div>
+              </div>
+            )}
             <Input
-              label={t("customUserAgentLabel")}
-              value={formData.customUserAgent}
-              onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
-              placeholder="my-app/1.0"
-              hint={t("customUserAgentHint")}
+              label={t("nameLabel")}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder={isQoder ? t("personalAccessTokenLabel") : t("productionKey")}
             />
-            <Input
-              label={t("routingTagsLabel")}
-              value={formData.routingTags}
-              onChange={(e) => setFormData({ ...formData, routingTags: e.target.value })}
-              placeholder={t("routingTagsPlaceholder")}
-              hint={t("routingTagsHint")}
-            />
-            <Input
-              label={t("excludedModelsLabel")}
-              value={formData.excludedModels}
-              onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
-              placeholder={t("excludedModelsPlaceholder")}
-              hint={t("excludedModelsHint")}
-            />
-            <Toggle
-              size="sm"
-              checked={formData.passthroughModels}
-              onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
-              label={t("perModelQuotaLabel")}
-              description={t("perModelQuotaDescription")}
-            />
-            {provider === "bailian-coding-plan" && (
+            <div className="flex gap-2">
               <Input
-                label={t("consoleApiKeyOracleLabel")}
-                value={formData.consoleApiKey}
-                onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
-                placeholder={t("consoleApiKeyOraclePlaceholder")}
-                hint={t("consoleApiKeyOracleHint")}
+                label={apiCredentialLabel}
                 type="password"
+                value={formData.apiKey}
+                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                className="flex-1"
+                placeholder={apiCredentialPlaceholder}
+                hint={apiCredentialHint}
+              />
+              <div className="pt-6">
+                <Button
+                  onClick={handleValidate}
+                  disabled={
+                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                    (isGooglePse && !formData.cx.trim()) ||
+                    validating ||
+                    saving
+                  }
+                  variant="secondary"
+                >
+                  {validating ? t("checking") : t("check")}
+                </Button>
+              </div>
+            </div>
+            {isGooglePse && (
+              <Input
+                label={t("searchEngineIdLabel")}
+                value={formData.cx}
+                onChange={(e) => setFormData({ ...formData, cx: e.target.value })}
+                placeholder="012345678901234567890:abc123xyz"
+                hint={t("searchEngineIdHint")}
               />
             )}
-          </div>
-        )}
-        <Input
-          label={t("validationModelIdLabel")}
-          placeholder={t("validationModelIdPlaceholder")}
-          value={formData.validationModelId}
-          onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
-          hint={t("validationModelIdHint")}
-        />
-        <Input
-          label={t("priorityLabel")}
-          type="number"
-          value={formData.priority}
-          onChange={(e) =>
-            setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
-          }
-        />
-        {usesBaseUrl && (
-          <Input
-            label={t("baseUrlLabel")}
-            value={formData.baseUrl}
-            onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-            placeholder={getProviderBaseUrlPlaceholder(provider)}
-            hint={getProviderBaseUrlHint(provider, t)}
-          />
-        )}
-        {isVertex && (
-          <Input
-            label={t("regionLabel")}
-            value={formData.region}
-            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-            placeholder={defaultRegion}
-            hint={t("regionHint")}
-          />
-        )}
-        {isCloudflare && (
-          <Input
-            label={t("accountIdLabel")}
-            value={formData.accountId}
-            onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-            placeholder={t("accountIdPlaceholder")}
-            hint={t("accountIdHint")}
-          />
-        )}
-        {isGlm && (
-          <div>
-            <label className="text-sm font-medium text-text-main mb-1 block">
-              {t("apiRegionLabel")}
-            </label>
-            <select
-              value={formData.apiRegion}
-              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            {validationResult && (
+              <Badge variant={validationResult === "success" ? "success" : "error"}>
+                {validationResult === "success" ? t("valid") : t("invalid")}
+              </Badge>
+            )}
+            {saveError && (
+              <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                {saveError}
+              </div>
+            )}
+            {isCcCompatible && (
+              <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+                <Toggle
+                  checked={formData.ccCompatibleContext1m}
+                  onChange={(checked) =>
+                    setFormData({ ...formData, ccCompatibleContext1m: checked })
+                  }
+                  label={t("ccCompatibleContext1mLabel")}
+                  description={t("ccCompatibleContext1mDescription")}
+                />
+              </div>
+            )}
+            {isCompatible && !isCcCompatible && (
+              <p className="text-xs text-text-muted">
+                {isAnthropic
+                  ? t("validationChecksAnthropicCompatible", {
+                      provider: providerName || t("anthropicCompatibleName"),
+                    })
+                  : t("validationChecksOpenAiCompatible", {
+                      provider: providerName || t("openaiCompatibleName"),
+                    })}
+              </p>
+            )}
+            <button
+              type="button"
+              className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              aria-expanded={showAdvanced}
+              aria-controls="add-api-key-advanced-settings"
             >
-              <option value="international">{t("apiRegionInternational")}</option>
-              <option value="china">{t("apiRegionChina")}</option>
-            </select>
-            <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
-          </div>
+              <span
+                className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+                aria-hidden="true"
+              >
+                ▶
+              </span>
+              {t("advancedSettings")}
+            </button>
+            {showAdvanced && (
+              <div
+                id="add-api-key-advanced-settings"
+                className="flex flex-col gap-3 pl-2 border-l-2 border-border"
+              >
+                <Input
+                  label={t("customUserAgentLabel")}
+                  value={formData.customUserAgent}
+                  onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
+                  placeholder="my-app/1.0"
+                  hint={t("customUserAgentHint")}
+                />
+                <Input
+                  label={t("routingTagsLabel")}
+                  value={formData.routingTags}
+                  onChange={(e) => setFormData({ ...formData, routingTags: e.target.value })}
+                  placeholder={t("routingTagsPlaceholder")}
+                  hint={t("routingTagsHint")}
+                />
+                <Input
+                  label={t("excludedModelsLabel")}
+                  value={formData.excludedModels}
+                  onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
+                  placeholder={t("excludedModelsPlaceholder")}
+                  hint={t("excludedModelsHint")}
+                />
+                <Toggle
+                  size="sm"
+                  checked={formData.passthroughModels}
+                  onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+                  label={t("perModelQuotaLabel")}
+                  description={t("perModelQuotaDescription")}
+                />
+                {provider === "bailian-coding-plan" && (
+                  <Input
+                    label={t("consoleApiKeyOracleLabel")}
+                    value={formData.consoleApiKey}
+                    onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                    placeholder={t("consoleApiKeyOraclePlaceholder")}
+                    hint={t("consoleApiKeyOracleHint")}
+                    type="password"
+                  />
+                )}
+              </div>
+            )}
+            <Input
+              label={t("validationModelIdLabel")}
+              placeholder={t("validationModelIdPlaceholder")}
+              value={formData.validationModelId}
+              onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
+              hint={t("validationModelIdHint")}
+            />
+            <Input
+              label={t("priorityLabel")}
+              type="number"
+              value={formData.priority}
+              onChange={(e) =>
+                setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
+              }
+            />
+            {usesBaseUrl && (
+              <Input
+                label={t("baseUrlLabel")}
+                value={formData.baseUrl}
+                onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
+                placeholder={getProviderBaseUrlPlaceholder(provider)}
+                hint={getProviderBaseUrlHint(provider, t)}
+              />
+            )}
+            {isVertex && (
+              <Input
+                label={t("regionLabel")}
+                value={formData.region}
+                onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                placeholder={defaultRegion}
+                hint={t("regionHint")}
+              />
+            )}
+            {isCloudflare && (
+              <Input
+                label={t("accountIdLabel")}
+                value={formData.accountId}
+                onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+                placeholder={t("accountIdPlaceholder")}
+                hint={t("accountIdHint")}
+              />
+            )}
+            {isGlm && (
+              <div>
+                <label className="text-sm font-medium text-text-main mb-1 block">
+                  {t("apiRegionLabel")}
+                </label>
+                <select
+                  value={formData.apiRegion}
+                  onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                >
+                  <option value="international">{t("apiRegionInternational")}</option>
+                  <option value="china">{t("apiRegionChina")}</option>
+                </select>
+                <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSubmit}
+                fullWidth
+                disabled={
+                  !formData.name ||
+                  (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                  (isGooglePse && !formData.cx.trim()) ||
+                  saving ||
+                  (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)
+                }
+              >
+                {saving ? t("saving") : t("save")}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
+              </Button>
+            </div>
+          </>
         )}
-        <div className="flex gap-2">
-          <Button
-            onClick={handleSubmit}
-            fullWidth
-            disabled={
-              !formData.name ||
-              (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-              (isGooglePse && !formData.cx.trim()) ||
-              saving ||
-              (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)
-            }
-          >
-            {saving ? t("saving") : t("save")}
-          </Button>
-          <Button onClick={onClose} variant="ghost" fullWidth>
-            {t("cancel")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );
