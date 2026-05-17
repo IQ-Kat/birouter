@@ -337,6 +337,22 @@ export const importCodexAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
+// ──── Codex Import Bulk Schema ────
+
+export const importCodexAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
 // ──── API Key Schemas ────
 
 export const createKeySchema = z.object({
