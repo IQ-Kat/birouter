@@ -2693,6 +2693,20 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  hackclub: {
+    id: "hackclub",
+    alias: "hc",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ai.hackclub.com/proxy/v1/chat/completions",
+    modelsUrl: "https://ai.hackclub.com/proxy/v1/models",
+    authType: "optional",
+    authHeader: "bearer",
+    passthroughModels: true,
+    defaultContextLength: 128000,
+    models: [],
+  },
+
   deepinfra: {
     id: "deepinfra",
     alias: "deepinfra",

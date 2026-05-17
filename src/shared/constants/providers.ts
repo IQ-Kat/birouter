@@ -876,6 +876,19 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
   },
+  hackclub: {
+    id: "hackclub",
+    alias: "hc",
+    name: "Hackclub AI",
+    icon: "auto_awesome",
+    color: "#FF6B00",
+    textIcon: "HC",
+    website: "https://ai.hackclub.com",
+    hasFree: true,
+    freeNote: "Free AI for Hack Club members — 30+ models, no credit card.",
+    passthroughModels: true,
+    authHint: "Sign in with your Hack Club account at ai.hackclub.com.",
+  },
   "github-models": {
     id: "github-models",
     alias: "ghm",
@@ -1590,6 +1603,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "empower",
   "poe",
   "chutes",
+  "hackclub",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
@@ -2023,6 +2037,7 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "searxng-search" ||
     providerId === "petals" ||
     providerId === "pollinations" ||
+    providerId === "hackclub" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
