@@ -93,6 +93,10 @@ export default function SettingsPage() {
 
           {activeTab === "ai" && (
             <div className="flex flex-col gap-6">
+              <p className="text-sm text-text-muted">
+                {t("aiSettingsIntro") ||
+                  "AI-specific settings for thinking budget, model behavior, and compression."}
+              </p>
               <ThinkingBudgetTab />
               <Link
                 href="/dashboard/context/caveman"
@@ -124,6 +128,10 @@ export default function SettingsPage() {
 
           {activeTab === "routing" && (
             <div className="flex flex-col gap-6">
+              <p className="text-sm text-text-muted">
+                {t("routingSettingsIntro") ||
+                  "Controls how your requests are routed, transformed, and sent to AI providers."}
+              </p>
               <RoutingTab />
               <ModelRoutingSection />
               <ComboDefaultsTab />
@@ -132,7 +140,15 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {activeTab === "resilience" && <ResilienceTab />}
+          {activeTab === "resilience" && (
+            <div className="flex flex-col gap-6">
+              <p className="text-sm text-text-muted">
+                {t("resilienceSettingsIntro") ||
+                  "Automatic retry, cooldown, and fallback when providers fail."}
+              </p>
+              <ResilienceTab />
+            </div>
+          )}
 
           {activeTab === "advanced" && (
             <div className="flex flex-col gap-6">

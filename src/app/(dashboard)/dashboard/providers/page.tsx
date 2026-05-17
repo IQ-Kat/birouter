@@ -541,6 +541,40 @@ export default function ProvidersPage() {
     );
   }
 
+  const totalConfigured =
+    oauthProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+    apiKeyProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+    webCookieProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+    localProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length;
+
+  if (totalConfigured === 0 && !searchQuery) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
+          <span className="material-symbols-outlined text-[32px] text-primary">dns</span>
+        </div>
+        <h2 className="text-xl font-semibold text-text-main">
+          {t("addFirstProvider") || "Add your first provider"}
+        </h2>
+        <p className="text-sm text-text-muted mt-2 max-w-md">
+          {t("addFirstProviderDesc") ||
+            "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
+        </p>
+        <div className="flex items-center gap-3 mt-4">
+          <a
+            href="https://docs.omniroute.io/providers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">help</span>
+            {t("learnMore") || "Learn more"}
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Search Bar */}

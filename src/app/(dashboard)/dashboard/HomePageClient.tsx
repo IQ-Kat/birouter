@@ -787,14 +787,31 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {providerStats.map((item) => (
-            <ProviderOverviewCard
-              key={item.id}
-              item={item}
-              metrics={providerMetrics[item.provider.alias] || providerMetrics[item.id]}
-              onClick={() => setSelectedProvider(item)}
-            />
-          ))}
+          {providerStats
+            .filter((item) => item.total > 0)
+            .map((item) => (
+              <ProviderOverviewCard
+                key={item.id}
+                item={item}
+                metrics={providerMetrics[item.provider.alias] || providerMetrics[item.id]}
+                onClick={() => setSelectedProvider(item)}
+              />
+            ))}
+          {providerStats.filter((item) => item.total > 0).length === 0 && (
+            <div className="col-span-full py-8 text-center">
+              <span className="material-symbols-outlined text-[32px] text-text-muted/40">dns</span>
+              <p className="text-sm text-text-muted mt-2">
+                {t("noProvidersConfigured") || "No providers configured yet"}
+              </p>
+              <Link
+                href="/dashboard/providers"
+                className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
+              >
+                {t("addProvider") || "Add a provider"}{" "}
+                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </Link>
+            </div>
+          )}
         </div>
       </Card>
 
