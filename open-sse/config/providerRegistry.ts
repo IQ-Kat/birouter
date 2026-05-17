@@ -2384,20 +2384,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "hf",
     format: "openai",
     executor: "default",
-    // HuggingFace Inference API — OpenAI-compatible endpoint
-    // Users must set their provider-specific baseUrl (model endpoint) in providerSpecificData.baseUrl
-    // or use a fixed model like: https://router.huggingface.co/ngc/nvidia/llama-3_1-nemotron-51b-instruct
-    baseUrl:
-      "https://router.huggingface.co/hf-inference/models/meta-llama/Meta-Llama-3.1-70B-Instruct/v1/chat/completions",
+    baseUrl: "https://router.huggingface.co/v1/chat/completions",
+    modelsUrl: "https://router.huggingface.co/v1/models",
     authType: "apikey",
     authHeader: "bearer",
-    models: [
-      { id: "meta-llama/Meta-Llama-3.1-70B-Instruct", name: "Llama 3.1 70B Instruct" },
-      { id: "meta-llama/Meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B Instruct" },
-      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
-      { id: "mistralai/Mistral-7B-Instruct-v0.3", name: "Mistral 7B v0.3" },
-      { id: "microsoft/Phi-3.5-mini-instruct", name: "Phi-3.5 Mini" },
-    ],
+    models: [],
   },
 
   synthetic: {
