@@ -1058,6 +1058,9 @@ export default function ProviderDetailPage() {
     null
   );
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
+  const [applyCodexModalConnectionId, setApplyCodexModalConnectionId] = useState<string | null>(
+    null
+  );
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
   const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
   const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
@@ -2214,6 +2217,7 @@ export default function ProviderDetailPage() {
       }
 
       notify.success(defaultSuccess);
+      setApplyCodexModalConnectionId(null);
     } catch (error) {
       console.error("Error applying Codex auth locally:", error);
       notify.error(defaultError);
@@ -3439,7 +3443,7 @@ export default function ProviderDetailPage() {
                           isRefreshing={refreshingId === conn.id}
                           onApplyCodexAuthLocal={
                             providerId === "codex"
-                              ? () => handleApplyCodexAuthLocal(conn.id)
+                              ? () => setApplyCodexModalConnectionId(conn.id)
                               : undefined
                           }
                           isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
@@ -3601,7 +3605,7 @@ export default function ProviderDetailPage() {
                                 isRefreshing={refreshingId === conn.id}
                                 onApplyCodexAuthLocal={
                                   providerId === "codex"
-                                    ? () => handleApplyCodexAuthLocal(conn.id)
+                                    ? () => setApplyCodexModalConnectionId(conn.id)
                                     : undefined
                                 }
                                 isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
@@ -3767,6 +3771,15 @@ export default function ProviderDetailPage() {
           onStartCommandCodeAuth={handleStartCommandCodeAuth}
           onSave={handleSaveApiKey}
           onClose={handleCloseAddApiKeyModal}
+        />
+      )}
+      {providerId === "codex" && applyCodexModalConnectionId && (
+        <ApplyCodexAuthModal
+          key={applyCodexModalConnectionId}
+          connectionId={applyCodexModalConnectionId}
+          inProgress={!!applyingCodexAuthId}
+          onConfirm={handleApplyCodexAuthLocal}
+          onClose={() => setApplyCodexModalConnectionId(null)}
         />
       )}
       {!isUpstreamProxyProvider && (
@@ -6967,6 +6980,104 @@ function AddApiKeyModal({
             </div>
           </>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+function ApplyCodexAuthModal({
+  connectionId,
+  inProgress,
+  onConfirm,
+  onClose,
+}: {
+  connectionId: string | null;
+  inProgress: boolean;
+  onConfirm: (id: string) => Promise<void>;
+  onClose: () => void;
+}) {
+  const t = useTranslations("providers");
+  // `key`-reset pattern: caller re-mounts the modal each open (different
+  // connectionId triggers a new instance), so local confirmation state is
+  // naturally fresh without any post-render bookkeeping.
+  const [confirmed, setConfirmed] = useState(false);
+  const isOpen = !!connectionId;
+
+  if (!connectionId) return null;
+
+  const title =
+    typeof t.has === "function" && t.has("codexApplyModalTitle")
+      ? t("codexApplyModalTitle")
+      : "Apply to Local Codex";
+  const targetLabel =
+    typeof t.has === "function" && t.has("codexApplyTargetLabel")
+      ? t("codexApplyTargetLabel")
+      : "Target path";
+  const backupLabel =
+    typeof t.has === "function" && t.has("codexApplyBackupLabel")
+      ? t("codexApplyBackupLabel")
+      : "Backups";
+  const warning =
+    typeof t.has === "function" && t.has("codexApplyWarning")
+      ? t("codexApplyWarning")
+      : "This will replace the existing auth.json. Continue?";
+  const confirmText =
+    typeof t.has === "function" && t.has("codexApplyConfirmCheckbox")
+      ? t("codexApplyConfirmCheckbox")
+      : "I confirm I want to replace the existing auth.json";
+  const applyText = typeof t.has === "function" && t.has("codexApply") ? t("codexApply") : "Apply";
+
+  return (
+    <Modal isOpen={isOpen} title={title} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <div>
+          <div className="text-xs uppercase text-text-muted mb-1">{targetLabel}</div>
+          <code className="block rounded bg-sidebar px-2 py-1.5 text-xs font-mono text-text-main">
+            ~/.codex/auth.json
+          </code>
+          <p className="mt-1 text-xs text-text-muted">
+            Path is auto-detected per OS (Linux/Mac/Windows).
+          </p>
+        </div>
+        <div>
+          <div className="text-xs uppercase text-text-muted mb-1">{backupLabel}</div>
+          <ul className="text-xs text-text-muted space-y-0.5 list-disc pl-4">
+            <li>
+              <code className="text-text-main">~/.codex/auth-&lt;timestamp&gt;.bak</code> — quick
+              local rollback
+            </li>
+            <li>Centralized backup history (audit trail)</li>
+          </ul>
+        </div>
+        <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+          <div className="flex items-start gap-2">
+            <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+              warning
+            </span>
+            <span>{warning}</span>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-text-muted cursor-pointer">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+            className="rounded border-border"
+          />
+          {confirmText}
+        </label>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => void onConfirm(connectionId)}
+            fullWidth
+            disabled={!confirmed || inProgress}
+          >
+            {inProgress ? t("saving") : applyText}
+          </Button>
+          <Button onClick={onClose} variant="ghost" fullWidth disabled={inProgress}>
+            {t("cancel")}
+          </Button>
+        </div>
       </div>
     </Modal>
   );
