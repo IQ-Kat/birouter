@@ -10,6 +10,17 @@ import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { randomUUID } from "node:crypto";
 
+// Pre-read DATA_DIR from local .env before bootstrap resolves paths
+if (!process.env.DATA_DIR) {
+  try {
+    const raw = fs.readFileSync(path.join(process.cwd(), ".env"), "utf8");
+    const match = raw.match(/^DATA_DIR=(.+)$/m);
+    if (match?.[1]?.trim()) process.env.DATA_DIR = match[1].trim();
+  } catch {
+    /* .env ausente ou ilegível — ok, bootstrap usa o padrão */
+  }
+}
+
 // Add check for conflicting app/ directory (Issue #1206)
 const rootAppDir = path.join(process.cwd(), "app");
 if (fs.existsSync(rootAppDir) && fs.statSync(rootAppDir).isDirectory()) {
@@ -86,7 +97,7 @@ async function start() {
       await new Promise((resolve) => server.close(resolve));
       await nextApp.close();
     } catch (error) {
-      console.error(`[SHUTDOWN] Failed during ${signal}:`, error);
+      console.error("[SHUTDOWN] Failed during signal:", signal, error);
     } finally {
       process.exit(0);
     }

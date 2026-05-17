@@ -19,9 +19,11 @@ import {
   Toggle,
   Select,
   ProxyConfigModal,
+  NoAuthProviderCard,
 } from "@/shared/components";
 import {
   LOCAL_PROVIDERS,
+  FREE_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -1086,6 +1088,7 @@ export default function ProviderDetailPage() {
     providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
+  const isFreeNoAuth = FREE_PROVIDERS[providerId]?.noAuth === true;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
@@ -2545,7 +2548,7 @@ export default function ProviderDetailPage() {
     }
   };
 
-  const canImportModels = connections.some((conn) => conn.isActive !== false);
+  const canImportModels = isFreeNoAuth || connections.some((conn) => conn.isActive !== false);
 
   // Auto-sync toggle state: read from first active connection's providerSpecificData
   const autoSyncConnection = connections.find((conn: any) => conn.isActive !== false);
@@ -3174,7 +3177,8 @@ export default function ProviderDetailPage() {
       )}
 
       {/* Connections */}
-      {!isUpstreamProxyProvider && (
+      {!isUpstreamProxyProvider && isFreeNoAuth && <NoAuthProviderCard />}
+      {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-wrap items-center gap-2">

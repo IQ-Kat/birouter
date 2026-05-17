@@ -41,7 +41,7 @@ import {
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
-import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
+import { getProviderAlias, resolveProviderId, FREE_PROVIDERS } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
@@ -790,6 +790,29 @@ export async function getProviderCredentials(
 
   try {
     await currentMutex;
+
+    // noAuth free providers (e.g. opencode) need no DB connection — return synthetic credentials
+    // so the executor receives a valid credentials object without auth headers being added.
+    const resolvedId = resolveProviderId(provider);
+    if (FREE_PROVIDERS[resolvedId]?.noAuth) {
+      return {
+        apiKey: null,
+        accessToken: null,
+        refreshToken: null,
+        expiresAt: null,
+        projectId: null,
+        copilotToken: null,
+        providerSpecificData: {},
+        connectionId: "noauth",
+        testStatus: "active",
+        lastError: null,
+        lastErrorType: null,
+        lastErrorSource: null,
+        errorCode: null,
+        rateLimitedUntil: null,
+        maxConcurrent: null,
+      };
+    }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
     const bypassQuotaPolicy = options.bypassQuotaPolicy === true;

@@ -349,11 +349,20 @@ export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig: un
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorBody: { error?: string; error_description?: string } = {};
+      try {
+        errorBody = await response.json();
+      } catch {
+        const text = await response.text().catch(() => "unknown");
+        errorBody = { error: text };
+      }
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Claude OAuth token", {
         status: response.status,
-        error: errorText,
+        error: errorBody,
       });
+      if (errorBody.error === "invalid_grant" || errorBody.error === "invalid_request") {
+        return { error: errorBody.error, code: `http_${response.status}` };
+      }
       return null;
     }
 
@@ -1280,6 +1289,13 @@ export async function refreshWithRetry(
 
     try {
       const result = await withTimeout(refreshFn, REFRESH_TIMEOUT_MS);
+      if (isUnrecoverableRefreshError(result)) {
+        log?.warn?.(
+          "TOKEN_REFRESH",
+          `Unrecoverable refresh error for ${provider}: ${result.error} — skipping retries`
+        );
+        return result;
+      }
       if (result) {
         recordSuccess(provider);
         return result;

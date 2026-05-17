@@ -14,7 +14,7 @@ import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
-import { refreshWithRetry } from "../services/tokenRefresh.ts";
+import { refreshWithRetry, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import {
@@ -3530,6 +3530,9 @@ export async function handleChatCore({
       }
     } else {
       log?.warn?.("TOKEN", `${provider.toUpperCase()} | refresh failed`);
+      if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
+        await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+      }
     }
   }
 

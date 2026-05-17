@@ -1193,12 +1193,16 @@ export class CodexExecutor extends BaseExecutor {
       return null;
     }
     const result = await getAccessToken("codex", credentials, log);
-    if (!result || result.error) {
+    if (!result) {
+      log?.warn?.("TOKEN_REFRESH", "Codex: token refresh failed — re-authentication required");
+      return null;
+    }
+    if (result.error) {
       log?.warn?.(
         "TOKEN_REFRESH",
-        `Codex: token refresh failed${result?.error ? ` (${result.error})` : ""} — re-authentication required`
+        `Codex: token refresh failed (${result.error}) — re-authentication required`
       );
-      return null;
+      return result;
     }
     return result;
   }

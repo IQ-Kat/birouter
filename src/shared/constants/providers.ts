@@ -34,6 +34,22 @@ export const FREE_PROVIDERS = {
     authHint:
       "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
   },
+  opencode: {
+    id: "opencode",
+    alias: "oc",
+    name: "OpenCode Free",
+    icon: "terminal",
+    color: "#E87040",
+    textIcon: "OC",
+    website: "https://opencode.ai",
+    noAuth: true,
+    authHint: "No API key required — uses OpenCode's public free endpoint.",
+    freeNote:
+      "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
+    notice: {
+      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply.",
+    },
+  },
 };
 
 export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
