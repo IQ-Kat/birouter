@@ -65,18 +65,18 @@ function getConnectionErrorTag(connection) {
   if (!connection) return null;
 
   const explicitType = connection.lastErrorType;
-  if (explicitType === "runtime_error") return "RUNTIME";
+  if (explicitType === "runtime_error") return "Runtime";
   if (
     explicitType === "upstream_auth_error" ||
     explicitType === "auth_missing" ||
     explicitType === "token_refresh_failed" ||
     explicitType === "token_expired"
   ) {
-    return "AUTH";
+    return "Auth";
   }
-  if (explicitType === "upstream_rate_limited") return "429";
-  if (explicitType === "upstream_unavailable") return "5XX";
-  if (explicitType === "network_error") return "NET";
+  if (explicitType === "upstream_rate_limited") return "Rate limited";
+  if (explicitType === "upstream_unavailable") return "Server error";
+  if (explicitType === "network_error") return "Network";
 
   const numericCode = Number(connection.errorCode);
   if (Number.isFinite(numericCode) && numericCode >= 400) {
@@ -84,19 +84,19 @@ function getConnectionErrorTag(connection) {
   }
 
   const fromMessage = getErrorCode(connection.lastError);
-  if (fromMessage === "401" || fromMessage === "403") return "AUTH";
+  if (fromMessage === "401" || fromMessage === "403") return "Auth";
   if (fromMessage && fromMessage !== "ERR") return fromMessage;
 
   const msg = (connection.lastError || "").toLowerCase();
   if (msg.includes("runtime") || msg.includes("not runnable") || msg.includes("not installed"))
-    return "RUNTIME";
+    return "Runtime";
   if (
     msg.includes("invalid api key") ||
     msg.includes("token invalid") ||
     msg.includes("revoked") ||
     msg.includes("unauthorized")
   )
-    return "AUTH";
+    return "Auth";
 
   return "ERR";
 }
@@ -588,6 +588,40 @@ export default function ProvidersPage() {
       <div className="flex flex-col gap-8">
         <CardSkeleton />
         <CardSkeleton />
+      </div>
+    );
+  }
+
+  const totalConfigured =
+    oauthProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+    apiKeyProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+    webCookieProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
+    localProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length;
+
+  if (totalConfigured === 0 && !searchQuery) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
+          <span className="material-symbols-outlined text-[32px] text-primary">dns</span>
+        </div>
+        <h2 className="text-xl font-semibold text-text-main">
+          {t("addFirstProvider") || "Add your first provider"}
+        </h2>
+        <p className="text-sm text-text-muted mt-2 max-w-md">
+          {t("addFirstProviderDesc") ||
+            "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
+        </p>
+        <div className="flex items-center gap-3 mt-4">
+          <a
+            href="https://docs.omniroute.io/providers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">help</span>
+            {t("learnMore") || "Learn more"}
+          </a>
+        </div>
       </div>
     );
   }

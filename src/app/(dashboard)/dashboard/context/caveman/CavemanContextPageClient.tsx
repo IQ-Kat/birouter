@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { SegmentedControl } from "@/shared/components";
 import CompressionSettingsTab from "@/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab";
 
 type AnalyticsSummary = {
@@ -44,6 +45,7 @@ export default function CavemanContextPageClient() {
   const [settings, setSettings] = useState<CompressionSettings | null>(null);
   const [languagePacks, setLanguagePacks] = useState<LanguagePack[]>([]);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"simple" | "advanced">("simple");
 
   const refreshSettings = () => {
     fetch("/api/context/caveman/config")
@@ -116,7 +118,27 @@ export default function CavemanContextPageClient() {
   const previewPrompt = `[OmniRoute Caveman Output Mode]\n${t(`preview.${outputMode.intensity}`)}`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[30px] text-primary">compress</span>
+            <div>
+              <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
+              <p className="text-sm text-text-muted">{t("description")}</p>
+            </div>
+          </div>
+          <SegmentedControl
+            value={viewMode}
+            onChange={(v) => setViewMode(v as "simple" | "advanced")}
+            options={[
+              { value: "simple", label: t("simpleMode") || "Simple" },
+              { value: "advanced", label: t("advancedMode") || "Advanced" },
+            ]}
+          />
+        </div>
+      </header>
+
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         {statCards.map(([label, value]) => (
           <div key={label} className="rounded-lg border border-border bg-surface p-4">
@@ -246,7 +268,7 @@ export default function CavemanContextPageClient() {
         </div>
       </section>
 
-      <CompressionSettingsTab />
+      {viewMode === "advanced" && <CompressionSettingsTab />}
     </div>
   );
 }

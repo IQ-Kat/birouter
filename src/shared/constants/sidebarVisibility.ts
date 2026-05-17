@@ -91,6 +91,7 @@ export interface SidebarItemDefinition {
   id: HideableSidebarItemId;
   href: string;
   i18nKey: string;
+  subtitleKey?: string;
   icon: string;
   exact?: boolean;
   external?: boolean;
@@ -131,10 +132,28 @@ const HOME_ITEMS: readonly SidebarItemDefinition[] = [
 ];
 
 const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "endpoints", href: "/dashboard/endpoint", i18nKey: "endpoints", icon: "api" },
-  { id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
+  {
+    id: "endpoints",
+    href: "/dashboard/endpoint",
+    i18nKey: "endpoints",
+    subtitleKey: "endpointsSubtitle",
+    icon: "api",
+  },
+  {
+    id: "api-manager",
+    href: "/dashboard/api-manager",
+    i18nKey: "apiManager",
+    subtitleKey: "apiManagerSubtitle",
+    icon: "vpn_key",
+  },
   { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
-  { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
+  {
+    id: "combos",
+    href: "/dashboard/combos",
+    i18nKey: "combos",
+    subtitleKey: "combosSubtitle",
+    icon: "layers",
+  },
   { id: "limits", href: "/dashboard/limits", i18nKey: "quotaTracker", icon: "tune" },
 ];
 
@@ -148,12 +167,14 @@ const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       id: "context-caveman",
       href: "/dashboard/context/caveman",
       i18nKey: "contextCaveman",
+      subtitleKey: "contextCavemanSubtitle",
       icon: "compress",
     },
     {
       id: "context-rtk",
       href: "/dashboard/context/rtk",
       i18nKey: "contextRtk",
+      subtitleKey: "contextRtkSubtitle",
       icon: "filter_alt",
     },
     {
@@ -184,7 +205,13 @@ const INTEGRATIONS_GROUP: SidebarItemGroup = {
   titleFallback: "Integrations",
   items: [
     { id: "api-endpoints", href: "/dashboard/api-endpoints", i18nKey: "apiEndpoints", icon: "api" },
-    { id: "webhooks", href: "/dashboard/webhooks", i18nKey: "webhooks", icon: "webhook" },
+    {
+      id: "webhooks",
+      href: "/dashboard/webhooks",
+      i18nKey: "webhooks",
+      subtitleKey: "webhooksSubtitle",
+      icon: "webhook",
+    },
   ],
 };
 
@@ -319,7 +346,13 @@ const BATCH_GROUP: SidebarItemGroup = {
   titleKey: "batchGroup",
   titleFallback: "Batch",
   items: [
-    { id: "batch", href: "/dashboard/batch", i18nKey: "batch", icon: "view_list" },
+    {
+      id: "batch",
+      href: "/dashboard/batch",
+      i18nKey: "batch",
+      subtitleKey: "batchSubtitle",
+      icon: "view_list",
+    },
     { id: "batch-files", href: "/dashboard/batch/files", i18nKey: "batchFiles", icon: "folder" },
   ],
 };
