@@ -167,7 +167,12 @@ export default function BatchPage() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <BatchListTab batches={batches} files={files} loading={loading} />
+        <BatchListTab
+          batches={batches}
+          files={files}
+          loading={loading}
+          onRefresh={() => fetchData(false)}
+        />
         {loadingMore && batchesCount > 0 && (
           <div className="text-center text-sm">Loading more…</div>
         )}

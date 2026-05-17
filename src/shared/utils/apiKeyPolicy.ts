@@ -16,11 +16,10 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 
-const DEFAULT_RATE_LIMITS: RateLimitRule[] = [
-  { limit: 1000, window: 86400 }, // 1000 per day
-  { limit: 5000, window: 604800 }, // 5000 per week
-  { limit: 20000, window: 2592000 }, // 20000 per month
-];
+// Default to no per-key request cap. API keys can still opt into explicit
+// limits via Settings/API Manager, while provider/account quota controls remain
+// responsible for upstream 429 handling and fallback.
+const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
 
 interface AccessSchedule {
   enabled: boolean;

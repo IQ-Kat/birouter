@@ -14,6 +14,7 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
+import { TierCoverageWidget } from "./TierCoverageWidget";
 
 type UpdateStep = {
   step: string;
@@ -717,6 +718,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           </ol>
         </div>
       </Card>
+
+      {/* Tier Coverage */}
+      <TierCoverageWidget />
 
       {/* Provider Topology */}
       <Card>
