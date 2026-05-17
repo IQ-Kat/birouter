@@ -2542,7 +2542,7 @@ export default function ProviderDetailPage() {
     }
   };
 
-  const canImportModels = connections.some((conn) => conn.isActive !== false);
+  const canImportModels = isFreeNoAuth || connections.some((conn) => conn.isActive !== false);
 
   // Auto-sync toggle state: read from first active connection's providerSpecificData
   const autoSyncConnection = connections.find((conn: any) => conn.isActive !== false);
