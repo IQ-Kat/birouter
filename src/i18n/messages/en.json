@@ -2770,6 +2770,9 @@
   },
   "providers": {
     "title": "Providers",
+    "allProviders": "All Providers",
+    "audioProviders": "Audio Providers",
+    "showFreeOnly": "Free only",
     "addProvider": "Add Provider",
     "editProvider": "Edit Provider",
     "deleteProvider": "Delete Provider",
