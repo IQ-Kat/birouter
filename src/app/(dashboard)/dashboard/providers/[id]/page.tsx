@@ -1062,6 +1062,7 @@ export default function ProviderDetailPage() {
     null
   );
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
+  const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
   const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -3343,6 +3344,17 @@ export default function ProviderDetailPage() {
                           Experimental OAuth
                         </Button>
                       )}
+                      {providerId === "codex" && (
+                        <Button
+                          variant="secondary"
+                          icon="upload_file"
+                          onClick={() => setImportCodexModalOpen(true)}
+                        >
+                          {typeof t.has === "function" && t.has("importCodexAuth")
+                            ? t("importCodexAuth")
+                            : "Import auth"}
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
@@ -3798,6 +3810,17 @@ export default function ProviderDetailPage() {
           onClose={() => setShowEditNodeModal(false)}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
+        />
+      )}
+      {/* Codex Import Auth Modal */}
+      {providerId === "codex" && importCodexModalOpen && (
+        <ImportCodexAuthModal
+          key={importCodexModalOpen ? "open" : "closed"}
+          onClose={() => setImportCodexModalOpen(false)}
+          onSuccess={() => {
+            setImportCodexModalOpen(false);
+            fetchData();
+          }}
         />
       )}
       {/* Batch Test Results Modal */}
@@ -6980,6 +7003,279 @@ function AddApiKeyModal({
             </div>
           </>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+interface ImportCodexAuthModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function ImportCodexAuthModal({ onClose, onSuccess }: ImportCodexAuthModalProps) {
+  const t = useTranslations("providers");
+  const notify = useNotificationStore();
+  const [tab, setTab] = useState<"upload" | "paste">("upload");
+  const [pasteText, setPasteText] = useState("");
+  const [parsedJson, setParsedJson] = useState<unknown>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [detectedEmail, setDetectedEmail] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [overwriteExisting, setOverwriteExisting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [resultError, setResultError] = useState<string | null>(null);
+
+  function extractEmailFromJwt(idToken: string): string | null {
+    try {
+      const parts = idToken.split(".");
+      if (parts.length !== 3) return null;
+      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+      return typeof payload.email === "string" ? payload.email : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function tryParseAndPreview(json: unknown) {
+    setParseError(null);
+    setDetectedEmail(null);
+    setParsedJson(null);
+    try {
+      const doc = json && typeof json === "object" ? (json as Record<string, unknown>) : null;
+      if (!doc || doc.auth_mode !== "chatgpt") {
+        setParseError(t("codexImportInvalidShape") || "Not a valid Codex auth.json");
+        return;
+      }
+      const tokens =
+        doc.tokens && typeof doc.tokens === "object"
+          ? (doc.tokens as Record<string, unknown>)
+          : null;
+      if (!tokens?.id_token || typeof tokens.id_token !== "string") {
+        setParseError(t("codexImportInvalidShape") || "Not a valid Codex auth.json");
+        return;
+      }
+      const detected = extractEmailFromJwt(tokens.id_token as string);
+      setDetectedEmail(detected);
+      if (detected && !email) setEmail(detected);
+      setParsedJson(doc);
+    } catch {
+      setParseError(t("codexImportInvalidJson") || "Could not parse JSON");
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      try {
+        const json = JSON.parse(text);
+        tryParseAndPreview(json);
+        setParsedJson(json);
+      } catch {
+        setParseError(t("codexImportInvalidJson") || "Could not parse JSON");
+        setParsedJson(null);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function handlePasteChange(text: string) {
+    setPasteText(text);
+    if (!text.trim()) {
+      setParsedJson(null);
+      setParseError(null);
+      setDetectedEmail(null);
+      return;
+    }
+    try {
+      const json = JSON.parse(text);
+      tryParseAndPreview(json);
+    } catch {
+      setParseError(t("codexImportInvalidJson") || "Could not parse JSON");
+      setParsedJson(null);
+    }
+  }
+
+  async function handleSubmit() {
+    if (!parsedJson) return;
+    setLoading(true);
+    setResultError(null);
+    try {
+      const res = await fetch("/api/providers/codex-auth/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: { kind: "json", json: parsedJson },
+          name: name.trim() || undefined,
+          email: email.trim() || undefined,
+          overwriteExisting,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.code === "duplicate_account") {
+          setResultError(
+            t("codexImportDuplicate") ||
+              "Account already exists — enable Replace existing to overwrite"
+          );
+        } else {
+          setResultError(data.error || t("codexImportFailed") || "Failed to import Codex auth");
+        }
+        return;
+      }
+      notify.success(t("codexImportSuccess") || "Codex connection imported successfully");
+      onSuccess();
+    } catch {
+      setResultError(t("codexImportFailed") || "Failed to import Codex auth");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const canSubmit = !!parsedJson && !parseError && !loading;
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("codexImportModalTitle") || "Import Codex Auth"}
+      maxWidth="max-w-lg"
+    >
+      <div className="flex flex-col gap-4">
+        {/* Tabs */}
+        <div className="flex border-b border-border">
+          {(["upload", "paste"] as const).map((id) => (
+            <button
+              key={id}
+              onClick={() => {
+                setTab(id);
+                setParsedJson(null);
+                setParseError(null);
+                setDetectedEmail(null);
+              }}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                tab === id
+                  ? "border-primary text-primary"
+                  : "border-transparent text-text-muted hover:text-text-main"
+              }`}
+            >
+              {id === "upload"
+                ? t("codexImportTabUpload") || "Upload file"
+                : t("codexImportTabPaste") || "Paste JSON"}
+            </button>
+          ))}
+        </div>
+
+        {/* Upload tab */}
+        {tab === "upload" && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-text-main">
+              {t("codexImportFileLabel") || "Choose auth.json"}
+            </label>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleFileChange}
+              className="text-sm text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:text-xs file:bg-bg-subtle file:text-text-main hover:file:bg-bg-hover cursor-pointer"
+            />
+            <p className="text-xs text-text-muted">
+              {t("codexImportFileHint") ||
+                "Select the auth.json file exported from Codex or OmniRoute."}
+            </p>
+          </div>
+        )}
+
+        {/* Paste tab */}
+        {tab === "paste" && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-text-main">
+              {t("codexImportPasteLabel") || "Paste the JSON content"}
+            </label>
+            <textarea
+              value={pasteText}
+              onChange={(e) => handlePasteChange(e.target.value)}
+              rows={8}
+              placeholder='{ "auth_mode": "chatgpt", ... }'
+              className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-xs font-mono text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+            />
+          </div>
+        )}
+
+        {/* Parse error */}
+        {parseError && <p className="text-sm text-red-500">{parseError}</p>}
+
+        {/* Detected email preview */}
+        {detectedEmail && !parseError && (
+          <p className="text-xs text-text-muted">
+            {t("codexImportDetectedEmail", { email: detectedEmail }) ||
+              `Detected: ${detectedEmail}`}
+          </p>
+        )}
+
+        {/* Shared fields */}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-text-main">
+              {t("codexImportEmailLabel") || "Account email"}
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@example.com"
+              className="rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <p className="text-xs text-text-muted">
+              {t("codexImportEmailHint") || "Auto-detected from the file; edit if needed."}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-text-main">
+              {t("codexImportNameLabel") || "Connection name (optional)"}
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={email || "Codex (imported)"}
+              className="rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={overwriteExisting}
+              onChange={(e) => setOverwriteExisting(e.target.checked)}
+              className="rounded border-border"
+            />
+            <span className="text-sm text-text-main">
+              {t("codexImportOverwriteLabel") ||
+                "Replace existing connection if account already exists"}
+            </span>
+          </label>
+        </div>
+
+        {/* Result error banner */}
+        {resultError && (
+          <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            {resultError}
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-1">
+          <Button onClick={handleSubmit} disabled={!canSubmit} loading={loading} fullWidth>
+            {t("codexImportSubmit") || "Import"}
+          </Button>
+          <Button onClick={onClose} variant="ghost" fullWidth>
+            {t("cancel")}
+          </Button>
+        </div>
       </div>
     </Modal>
   );
