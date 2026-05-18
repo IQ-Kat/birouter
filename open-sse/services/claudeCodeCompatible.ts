@@ -13,7 +13,11 @@ import {
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
-import { fixToolPairs, stripTrailingAssistantOrphanToolUse } from "./contextManager.ts";
+import {
+  fixToolPairs,
+  fixToolAdjacency,
+  stripTrailingAssistantOrphanToolUse,
+} from "./contextManager.ts";
 
 /**
  * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
@@ -373,7 +377,8 @@ export async function buildAndSignClaudeCodeRequest(
     const b = body as Record<string, unknown>;
     if (Array.isArray(b.messages)) {
       const fixed = fixToolPairs(b.messages as Record<string, unknown>[]);
-      b.messages = stripTrailingAssistantOrphanToolUse(fixed);
+      const adjacent = fixToolAdjacency(fixed);
+      b.messages = stripTrailingAssistantOrphanToolUse(adjacent);
     }
   }
 

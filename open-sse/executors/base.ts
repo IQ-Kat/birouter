@@ -14,7 +14,11 @@ import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestD
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
-import { fixToolPairs, stripTrailingAssistantOrphanToolUse } from "../services/contextManager.ts";
+import {
+  fixToolPairs,
+  fixToolAdjacency,
+  stripTrailingAssistantOrphanToolUse,
+} from "../services/contextManager.ts";
 import { randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_VERSION,
@@ -874,7 +878,8 @@ export class BaseExecutor {
           const tb = transformedBody as Record<string, unknown>;
           if (Array.isArray(tb?.messages)) {
             const fixed = fixToolPairs(tb.messages as Record<string, unknown>[]);
-            tb.messages = stripTrailingAssistantOrphanToolUse(fixed);
+            const adjacent = fixToolAdjacency(fixed);
+            tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
           }
         }
         let bodyString = JSON.stringify(transformedBody);

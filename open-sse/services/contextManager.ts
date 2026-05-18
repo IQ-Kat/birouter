@@ -402,6 +402,69 @@ export function fixToolPairs(messages: Record<string, unknown>[]) {
 }
 
 /**
+ * Adjacency guard: Claude requires `tool_result` in the IMMEDIATELY NEXT
+ * message after `tool_use`, not just somewhere later in the array.
+ *
+ * `fixToolPairs` checks global ID presence but not adjacency. This function
+ * runs after `fixToolPairs` and removes `tool_use` blocks from assistant
+ * messages where the next message does not contain a matching `tool_result`.
+ */
+export function fixToolAdjacency(messages: Record<string, unknown>[]): Record<string, unknown>[] {
+  if (messages.length <= 1) return messages;
+
+  const result: Record<string, unknown>[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    const nextMsg = messages[i + 1];
+
+    if (msg.role === "assistant" && Array.isArray(msg.content) && nextMsg) {
+      // Collect tool_result IDs from the NEXT message
+      const nextToolResultIds = new Set<string>();
+      if (nextMsg.role === "tool" && nextMsg.tool_call_id) {
+        nextToolResultIds.add(String(nextMsg.tool_call_id));
+      }
+      if (nextMsg.role === "user" && Array.isArray(nextMsg.content)) {
+        for (const block of nextMsg.content as Record<string, unknown>[]) {
+          if (block.type === "tool_result" && block.tool_use_id) {
+            nextToolResultIds.add(String(block.tool_use_id));
+          }
+        }
+      }
+
+      // Filter tool_use blocks: only keep if next message has matching tool_result
+      const filteredContent = (msg.content as Record<string, unknown>[]).filter(
+        (block) => block.type !== "tool_use" || !block.id || nextToolResultIds.has(String(block.id))
+      );
+
+      if (filteredContent.length !== (msg.content as unknown[]).length) {
+        // Also filter tool_calls array if present
+        const newMsg: Record<string, unknown> = { ...msg, content: filteredContent };
+        if (Array.isArray(newMsg.tool_calls)) {
+          newMsg.tool_calls = (newMsg.tool_calls as Record<string, unknown>[]).filter(
+            (tc: Record<string, unknown>) => !tc.id || nextToolResultIds.has(String(tc.id))
+          );
+        }
+        // Drop assistant message if it became empty
+        const hasContent =
+          typeof newMsg.content === "string"
+            ? (newMsg.content as string).trim().length > 0
+            : Array.isArray(newMsg.content) && (newMsg.content as unknown[]).length > 0;
+        const hasToolCalls = Array.isArray(newMsg.tool_calls) && newMsg.tool_calls.length > 0;
+        if (!hasContent && !hasToolCalls) continue;
+        result.push(newMsg);
+      } else {
+        result.push(msg);
+      }
+    } else {
+      result.push(msg);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Upstream-send guard: after `fixToolPairs`, strip a trailing assistant
  * message whose only/remaining content is an orphan `tool_use` block.
  *
