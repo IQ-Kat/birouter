@@ -330,25 +330,23 @@ async function fetchJSON<T>(url: string, apiKey: string, timeoutMs: number): Pro
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  let response: Response;
   try {
-    response = await fetch(url, {
+    const response = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: controller.signal,
     });
+
+    if (!response.ok) {
+      throw new Error(`received HTTP ${response.status}`);
+    }
+
+    return (await response.json()) as T;
   } catch (err) {
-    throw new Error(
-      `@omniroute/opencode-provider: request to ${url} failed: ${(err as Error).message}`
-    );
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`@omniroute/opencode-provider: request to ${url} failed: ${message}`);
   } finally {
     clearTimeout(timer);
   }
-
-  if (!response.ok) {
-    throw new Error(`@omniroute/opencode-provider: received HTTP ${response.status} from ${url}`);
-  }
-
-  return response.json() as Promise<T>;
 }
 
 /**
@@ -403,7 +401,7 @@ export async function fetchLiveModels(
 
   const rawList: unknown[] = Array.isArray(body)
     ? body
-    : Array.isArray((body as { data?: unknown[] }).data)
+    : body && typeof body === "object" && Array.isArray((body as { data?: unknown[] }).data)
       ? ((body as { data: unknown[] }).data as unknown[])
       : [];
 
@@ -498,7 +496,7 @@ export async function listCombos(
   const body = await fetchJSON<unknown>(url, key, timeoutMs);
   const rawList: unknown[] = Array.isArray(body)
     ? body
-    : Array.isArray((body as { combos?: unknown[] }).combos)
+    : body && typeof body === "object" && Array.isArray((body as { combos?: unknown[] }).combos)
       ? ((body as { combos: unknown[] }).combos as unknown[])
       : [];
 
@@ -586,8 +584,11 @@ export function createOmniRouteComboConfig(
     payload.compressionOverride = options.compressionOverride;
   }
 
-  if (options.providers !== undefined && options.providers.length > 0) {
-    payload.providers = options.providers.filter((p) => typeof p === "string" && p.trim());
+  if (options.providers !== undefined) {
+    const providers = options.providers.filter((p) => typeof p === "string" && p.trim());
+    if (providers.length > 0) {
+      payload.providers = providers;
+    }
   }
 
   return payload;
