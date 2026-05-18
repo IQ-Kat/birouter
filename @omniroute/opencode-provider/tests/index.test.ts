@@ -5,13 +5,16 @@ import type { Server } from "node:http";
 
 import {
   buildOmniRouteOpenCodeConfig,
+  createOmniRouteAgentBlock,
   createOmniRouteComboConfig,
   createOmniRouteMCPEntry,
+  createOmniRouteModesBlock,
   createOmniRouteProvider,
   fetchLiveModels,
   listCombos,
   mergeIntoExistingConfig,
   normalizeBaseURL,
+  OMNIROUTE_DEFAULT_MODEL_CAPABILITIES,
   OMNIROUTE_DEFAULT_OPENCODE_MODELS,
   OMNIROUTE_MCP_DEFAULT_SCOPES,
   OMNIROUTE_PROVIDER_NPM,
@@ -74,6 +77,7 @@ test("createOmniRouteProvider seeds the default model catalog", () => {
   assert.deepEqual(modelIds, defaultIds);
   for (const id of defaultIds) {
     assert.equal(provider.models[id]?.name, id);
+    assert.equal(provider.models[id]?.attachment, true);
   }
 });
 
@@ -388,4 +392,176 @@ test("OMNIROUTE_DEFAULT_OPENCODE_MODELS includes cc/ prefixed models", () => {
     "should have cc/ prefixed models"
   );
   assert.ok(defaults.length >= 7, "should have at least 7 models");
+});
+
+test("OMNIROUTE_DEFAULT_MODEL_CAPABILITIES covers every default model id", () => {
+  for (const id of OMNIROUTE_DEFAULT_OPENCODE_MODELS) {
+    const caps = OMNIROUTE_DEFAULT_MODEL_CAPABILITIES[id];
+    assert.ok(caps, `default capabilities for ${id} missing`);
+    assert.equal(caps.attachment, true, `${id} should default to attachment=true`);
+    assert.equal(caps.tool_call, true, `${id} should default to tool_call=true`);
+  }
+});
+
+test("createOmniRouteProvider emits default capability flags inline with the model entry", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+  });
+  const entry = provider.models["cc/claude-opus-4-7"];
+  assert.equal(entry.name, "cc/claude-opus-4-7");
+  assert.equal(entry.attachment, true);
+  assert.equal(entry.reasoning, true);
+  assert.equal(entry.temperature, true);
+  assert.equal(entry.tool_call, true);
+});
+
+test("createOmniRouteProvider modelCapabilities overrides defaults and merges per id", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    modelCapabilities: {
+      "cc/claude-opus-4-7": { reasoning: false, label: "Opus (no thinking)" },
+    },
+  });
+  const entry = provider.models["cc/claude-opus-4-7"];
+  assert.equal(entry.name, "Opus (no thinking)");
+  assert.equal(entry.reasoning, false);
+  assert.equal(entry.attachment, true);
+  assert.equal(entry.tool_call, true);
+});
+
+test("createOmniRouteProvider applies capability overrides to non-default model ids", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: ["custom-model"],
+    modelCapabilities: {
+      "custom-model": { attachment: false, tool_call: true, label: "Custom" },
+    },
+  });
+  const entry = provider.models["custom-model"];
+  assert.equal(entry.name, "Custom");
+  assert.equal(entry.attachment, false);
+  assert.equal(entry.tool_call, true);
+  assert.equal(entry.reasoning, undefined);
+  assert.equal(entry.temperature, undefined);
+});
+
+test("createOmniRouteProvider modelLabels still works when modelCapabilities omits label", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: ["claude-opus-4-5-thinking"],
+    modelLabels: { "claude-opus-4-5-thinking": "Opus 4.5 (legacy label)" },
+  });
+  assert.equal(provider.models["claude-opus-4-5-thinking"].name, "Opus 4.5 (legacy label)");
+});
+
+test("createOmniRouteAgentBlock builds provider-prefixed entries per role", () => {
+  const block = createOmniRouteAgentBlock({
+    roles: {
+      build: { modelId: "claude-sonnet-4-5-thinking", temperature: 0.2 },
+      plan: { modelId: "claude-opus-4-5-thinking", top_p: 0.95 },
+      review: { modelId: "gemini-3-flash", temperature: 0.0 },
+    },
+  });
+  assert.equal(block.build.model, "omniroute/claude-sonnet-4-5-thinking");
+  assert.equal(block.build.temperature, 0.2);
+  assert.equal(block.plan.model, "omniroute/claude-opus-4-5-thinking");
+  assert.equal(block.plan.top_p, 0.95);
+  assert.equal(block.review.model, "omniroute/gemini-3-flash");
+  assert.equal(block.review.temperature, 0.0);
+});
+
+test("createOmniRouteAgentBlock omits optional fields when not supplied", () => {
+  const block = createOmniRouteAgentBlock({
+    roles: { build: { modelId: "claude-sonnet-4-5-thinking" } },
+  });
+  assert.equal(block.build.model, "omniroute/claude-sonnet-4-5-thinking");
+  assert.ok(!("temperature" in block.build));
+  assert.ok(!("top_p" in block.build));
+  assert.ok(!("tools" in block.build));
+  assert.ok(!("prompt" in block.build));
+});
+
+test("createOmniRouteAgentBlock skips roles with empty modelId", () => {
+  const block = createOmniRouteAgentBlock({
+    roles: {
+      build: { modelId: "claude-sonnet-4-5-thinking" },
+      plan: { modelId: "   " },
+      review: { modelId: "" },
+    },
+  });
+  assert.deepEqual(Object.keys(block), ["build"]);
+});
+
+test("createOmniRouteAgentBlock emits tools as Record<string, boolean> per OC schema", () => {
+  const block = createOmniRouteAgentBlock({
+    roles: {
+      build: {
+        modelId: "claude-sonnet-4-5-thinking",
+        tools: { edit: true, bash: true, web: false },
+        prompt: "Edit files carefully.",
+      },
+    },
+  });
+  assert.deepEqual(block.build.tools, { edit: true, bash: true, web: false });
+  assert.equal(block.build.prompt, "Edit files carefully.");
+});
+
+test("createOmniRouteAgentBlock filters invalid tool entries and omits empty maps", () => {
+  const block = createOmniRouteAgentBlock({
+    roles: {
+      build: {
+        modelId: "claude-sonnet-4-5-thinking",
+        // @ts-expect-error — exercising runtime guard against bad input
+        tools: { edit: true, bash: "yes", "": true, web: null },
+      },
+      plan: {
+        modelId: "claude-opus-4-5-thinking",
+        tools: {},
+      },
+    },
+  });
+  assert.deepEqual(block.build.tools, { edit: true });
+  assert.ok(!("tools" in block.plan));
+});
+
+test("createOmniRouteModesBlock builds provider-prefixed mode entries", () => {
+  const block = createOmniRouteModesBlock({
+    modes: {
+      build: { modelId: "claude-sonnet-4-5-thinking", tools: { edit: true, bash: true } },
+      plan: { modelId: "claude-opus-4-5-thinking", prompt: "Plan first, code later." },
+      review: { modelId: "gemini-3-flash" },
+    },
+  });
+  assert.equal(block.build.model, "omniroute/claude-sonnet-4-5-thinking");
+  assert.deepEqual(block.build.tools, { edit: true, bash: true });
+  assert.equal(block.plan.prompt, "Plan first, code later.");
+  assert.equal(block.review.model, "omniroute/gemini-3-flash");
+});
+
+test("createOmniRouteModesBlock skips modes with empty modelId", () => {
+  const block = createOmniRouteModesBlock({
+    modes: {
+      build: { modelId: "claude-sonnet-4-5-thinking" },
+      plan: { modelId: "" },
+    },
+  });
+  assert.deepEqual(Object.keys(block), ["build"]);
+});
+
+test("createOmniRouteModesBlock honours numeric overrides limited to OC schema", () => {
+  const block = createOmniRouteModesBlock({
+    modes: {
+      build: {
+        modelId: "claude-sonnet-4-5-thinking",
+        temperature: 0.7,
+        top_p: 0.9,
+      },
+    },
+  });
+  assert.equal(block.build.temperature, 0.7);
+  assert.equal(block.build.top_p, 0.9);
 });

@@ -55,6 +55,56 @@ export const OMNIROUTE_DEFAULT_OPENCODE_MODELS = [
   "gemini-3-flash",
 ] as const;
 
+/**
+ * Optional capability flags surfaced to OpenCode's model picker.
+ *
+ * OpenCode reads these per-model keys (snake_case in JSON) to render badges
+ * and to gate features such as image attachments, reasoning mode, temperature
+ * controls and tool-calling. Omitted flags default to OpenCode's heuristics.
+ *
+ * Mirrors the capability shape used by Alph4d0g/opencode-omniroute-auth
+ * (https://github.com/Alph4d0g/opencode-omniroute-auth, MIT).
+ */
+export interface ModelCapabilities {
+  /** Display label shown in the model picker. Falls back to the model id. */
+  label?: string;
+  /** Model accepts image / file attachments. */
+  attachment?: boolean;
+  /** Model exposes a "reasoning" / extended-thinking surface. */
+  reasoning?: boolean;
+  /** Model honours the `temperature` parameter. */
+  temperature?: boolean;
+  /** Model supports tool / function calling. */
+  tool_call?: boolean;
+}
+
+/**
+ * Default per-model capability hints for the curated default catalog.
+ *
+ * Conservative defaults: every default model accepts attachments, tool calls
+ * and temperature; `reasoning` is opt-in per model id. Callers override per
+ * model via `OmniRouteProviderOptions.modelCapabilities`.
+ */
+export const OMNIROUTE_DEFAULT_MODEL_CAPABILITIES: Record<string, ModelCapabilities> = {
+  "cc/claude-opus-4-7": { attachment: true, reasoning: true, temperature: true, tool_call: true },
+  "cc/claude-sonnet-4-6": { attachment: true, reasoning: true, temperature: true, tool_call: true },
+  "cc/claude-haiku-4-5-20251001": { attachment: true, temperature: true, tool_call: true },
+  "claude-opus-4-5-thinking": {
+    attachment: true,
+    reasoning: true,
+    temperature: true,
+    tool_call: true,
+  },
+  "claude-sonnet-4-5-thinking": {
+    attachment: true,
+    reasoning: true,
+    temperature: true,
+    tool_call: true,
+  },
+  "gemini-3.1-pro-high": { attachment: true, reasoning: true, temperature: true, tool_call: true },
+  "gemini-3-flash": { attachment: true, temperature: true, tool_call: true },
+};
+
 export interface OmniRouteProviderOptions {
   /** OmniRoute base URL, with or without trailing `/v1`. Required. */
   baseURL: string;
@@ -64,8 +114,14 @@ export interface OmniRouteProviderOptions {
   displayName?: string;
   /** Override the model catalog. Defaults to `OMNIROUTE_DEFAULT_OPENCODE_MODELS`. */
   models?: readonly string[];
-  /** Optional human-readable labels keyed by model id. */
+  /** Optional human-readable labels keyed by model id. Overridden by `modelCapabilities[id].label`. */
   modelLabels?: Record<string, string>;
+  /**
+   * Optional capability overrides keyed by model id. Merged on top of
+   * `OMNIROUTE_DEFAULT_MODEL_CAPABILITIES` for ids in the default catalog;
+   * for custom ids the override is used verbatim.
+   */
+  modelCapabilities?: Record<string, ModelCapabilities>;
   /**
    * Primary model for OpenCode (top-level `model` key).
    * Emitted as `"omniroute/<id>"`. When omitted the key is not written.
@@ -76,6 +132,15 @@ export interface OmniRouteProviderOptions {
    * Emitted as `"omniroute/<id>"`. When omitted the key is not written.
    */
   smallModel?: string;
+}
+
+/** Per-model entry written under `provider.omniroute.models[id]`. */
+export interface OpenCodeModelEntry {
+  name: string;
+  attachment?: boolean;
+  reasoning?: boolean;
+  temperature?: boolean;
+  tool_call?: boolean;
 }
 
 export interface OpenCodeProviderEntry {
@@ -89,7 +154,7 @@ export interface OpenCodeProviderEntry {
     apiKey: string;
   };
   /** Model catalog surfaced to OpenCode. */
-  models: Record<string, { name: string }>;
+  models: Record<string, OpenCodeModelEntry>;
 }
 
 export interface OpenCodeConfigDocument {
@@ -144,14 +209,28 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
       : [...OMNIROUTE_DEFAULT_OPENCODE_MODELS];
 
   const labels = options.modelLabels ?? {};
-  const models: Record<string, { name: string }> = {};
+  const overrides = options.modelCapabilities ?? {};
+  const models: Record<string, OpenCodeModelEntry> = {};
   const seen = new Set<string>();
   for (const raw of modelList) {
     const id = typeof raw === "string" ? raw.trim() : "";
     if (!id || seen.has(id)) continue;
     seen.add(id);
-    const label = typeof labels[id] === "string" && labels[id].trim() ? labels[id].trim() : id;
-    models[id] = { name: label };
+    const defaults = OMNIROUTE_DEFAULT_MODEL_CAPABILITIES[id] ?? {};
+    const override = overrides[id] ?? {};
+    const merged: ModelCapabilities = { ...defaults, ...override };
+    const explicitLabel =
+      typeof merged.label === "string" && merged.label.trim()
+        ? merged.label.trim()
+        : typeof labels[id] === "string" && labels[id].trim()
+          ? labels[id].trim()
+          : id;
+    const entry: OpenCodeModelEntry = { name: explicitLabel };
+    if (typeof merged.attachment === "boolean") entry.attachment = merged.attachment;
+    if (typeof merged.reasoning === "boolean") entry.reasoning = merged.reasoning;
+    if (typeof merged.temperature === "boolean") entry.temperature = merged.temperature;
+    if (typeof merged.tool_call === "boolean") entry.tool_call = merged.tool_call;
+    models[id] = entry;
   }
 
   return {
@@ -592,6 +671,163 @@ export function createOmniRouteComboConfig(
   }
 
   return payload;
+}
+
+/**
+ * Override fields supported per agent / mode entry. Mirrors the subset of
+ * OpenCode's `AgentConfig` schema that is safe to set declaratively from a
+ * config generator. Only fields present in
+ * https://opencode.ai/config.json#AgentConfig are exposed.
+ */
+export interface OmniRouteRoleOverrides {
+  /** Forward to OpenCode's `temperature` field. */
+  temperature?: number;
+  /** Forward to OpenCode's `top_p` field. */
+  top_p?: number;
+}
+
+/** Per-role binding used by `createOmniRouteAgentBlock`. */
+export interface OmniRouteAgentRole extends OmniRouteRoleOverrides {
+  /** OmniRoute model id, e.g. `"claude-sonnet-4-5-thinking"`. */
+  modelId: string;
+  /** Optional tools allow-list; per OpenCode schema, map of tool name → enabled. */
+  tools?: Record<string, boolean>;
+  /** Optional system prompt for this agent role. */
+  prompt?: string;
+}
+
+/** Options for `createOmniRouteAgentBlock`. */
+export interface OmniRouteAgentBlockOptions {
+  /** Per-role bindings. Keys become entries under OpenCode's `agent` block. */
+  roles: Record<string, OmniRouteAgentRole>;
+}
+
+/** Single entry inside the emitted OpenCode `agent` block. */
+export interface OpenCodeAgentEntry extends OmniRouteRoleOverrides {
+  /** Always emitted as `"omniroute/<modelId>"`. */
+  model: string;
+  /** Per OpenCode schema, `Record<string, boolean>`. */
+  tools?: Record<string, boolean>;
+  /** Optional system prompt. */
+  prompt?: string;
+}
+
+function buildAgentEntry(role: OmniRouteAgentRole): OpenCodeAgentEntry | undefined {
+  if (!role || typeof role.modelId !== "string") return undefined;
+  const modelId = role.modelId.trim();
+  if (!modelId) return undefined;
+  const entry: OpenCodeAgentEntry = { model: `${OMNIROUTE_PROVIDER_KEY}/${modelId}` };
+  if (typeof role.temperature === "number") entry.temperature = role.temperature;
+  if (typeof role.top_p === "number") entry.top_p = role.top_p;
+  if (role.tools && typeof role.tools === "object" && !Array.isArray(role.tools)) {
+    const tools: Record<string, boolean> = {};
+    for (const [name, enabled] of Object.entries(role.tools)) {
+      if (typeof name !== "string" || !name.trim()) continue;
+      if (typeof enabled !== "boolean") continue;
+      tools[name] = enabled;
+    }
+    if (Object.keys(tools).length > 0) entry.tools = tools;
+  }
+  if (typeof role.prompt === "string" && role.prompt.trim()) {
+    entry.prompt = role.prompt;
+  }
+  return entry;
+}
+
+/**
+ * Build the OpenCode `agent` block, pre-wired so each agent role routes to a
+ * specific OmniRoute model. Useful for `.opencode/agent/*.md` defaults and
+ * scaffolded `opencode.json` files.
+ *
+ * Emitted fields are limited to those declared in OpenCode's `AgentConfig`
+ * schema (`model`, `temperature`, `top_p`, `tools`, `prompt`). The `tools`
+ * field is a `Record<string, boolean>` per the schema, not a string array.
+ *
+ * Roles with empty / missing `modelId` are skipped.
+ *
+ * @example
+ * ```ts
+ * const agentBlock = createOmniRouteAgentBlock({
+ *   roles: {
+ *     build: { modelId: "claude-sonnet-4-5-thinking", temperature: 0.2 },
+ *     plan: { modelId: "claude-opus-4-5-thinking", top_p: 0.95 },
+ *     review: { modelId: "gemini-3-flash", tools: { edit: false, bash: false } },
+ *   },
+ * });
+ * // -> { build: { model: "omniroute/claude-sonnet-4-5-thinking", temperature: 0.2 }, ... }
+ * ```
+ */
+export function createOmniRouteAgentBlock(
+  options: OmniRouteAgentBlockOptions
+): Record<string, OpenCodeAgentEntry> {
+  const out: Record<string, OpenCodeAgentEntry> = {};
+  const roles = options.roles ?? {};
+  for (const [roleName, role] of Object.entries(roles)) {
+    const entry = buildAgentEntry(role);
+    if (entry) out[roleName] = entry;
+  }
+  return out;
+}
+
+/**
+ * Per-mode binding used by `createOmniRouteModesBlock`.
+ *
+ * @deprecated OpenCode's top-level `mode` block is deprecated in favour of
+ * `agent`. Prefer `OmniRouteAgentRole` + `createOmniRouteAgentBlock`. This
+ * type and the corresponding helper are kept for back-compat with configs
+ * still using `mode:`.
+ */
+export interface OmniRouteMode extends OmniRouteAgentRole {}
+
+/**
+ * Options for `createOmniRouteModesBlock`.
+ *
+ * @deprecated See `OmniRouteMode`.
+ */
+export interface OmniRouteModesBlockOptions {
+  /** Per-mode bindings. Keys become entries under OpenCode's deprecated top-level `mode` block. */
+  modes: Record<string, OmniRouteMode>;
+}
+
+/**
+ * Single entry inside the emitted OpenCode `mode` block.
+ *
+ * @deprecated See `OmniRouteMode`.
+ */
+export interface OpenCodeModeEntry extends OpenCodeAgentEntry {}
+
+/**
+ * Build the OpenCode top-level `mode` block, pre-wired so each mode routes to
+ * a specific OmniRoute model. Emits the same shape as the `agent` block since
+ * OpenCode's schema treats them identically (both reference `AgentConfig`).
+ *
+ * Modes with empty / missing `modelId` are skipped.
+ *
+ * @deprecated OpenCode's top-level `mode` block is deprecated in favour of
+ * `agent`. Prefer `createOmniRouteAgentBlock`. This helper is kept for
+ * back-compat with configs still using `mode:`.
+ *
+ * @example
+ * ```ts
+ * const modesBlock = createOmniRouteModesBlock({
+ *   modes: {
+ *     build: { modelId: "claude-sonnet-4-5-thinking", tools: { edit: true, bash: true } },
+ *     plan: { modelId: "claude-opus-4-5-thinking", prompt: "Plan first, code later." },
+ *     review: { modelId: "gemini-3-flash" },
+ *   },
+ * });
+ * ```
+ */
+export function createOmniRouteModesBlock(
+  options: OmniRouteModesBlockOptions
+): Record<string, OpenCodeModeEntry> {
+  const out: Record<string, OpenCodeModeEntry> = {};
+  const modes = options.modes ?? {};
+  for (const [modeName, mode] of Object.entries(modes)) {
+    const entry = buildAgentEntry(mode);
+    if (entry) out[modeName] = entry;
+  }
+  return out;
 }
 
 export default createOmniRouteProvider;
