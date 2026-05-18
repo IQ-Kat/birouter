@@ -11,7 +11,7 @@ const MonacoEditor = dynamic<EditorProps>(
   async () => {
     const [{ default: Editor, loader }, monaco] = await Promise.all([
       import("@monaco-editor/react"),
-      import("monaco-editor"),
+      import("monaco-editor/esm/vs/editor/editor.api"),
     ]);
     loader.config({ monaco });
     return Editor;
