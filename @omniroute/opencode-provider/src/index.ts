@@ -193,7 +193,9 @@ export function normalizeBaseURL(rawBaseURL: string): string {
     );
   }
   let base = trimmed;
-  while (base.endsWith("/")) base = base.slice(0, -1);
+  let end = base.length;
+  while (end > 0 && base[end - 1] === "/") end--;
+  base = end < base.length ? base.slice(0, end) : base;
   if (base.endsWith("/v1")) base = base.slice(0, -3);
   return base + "/v1";
 }

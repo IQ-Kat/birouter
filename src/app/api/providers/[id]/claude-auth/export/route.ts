@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildClaudeAuthFile, ClaudeAuthFileError } from "@/lib/oauth/utils/claudeAuthFile";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof ClaudeAuthFileError) {
@@ -13,7 +14,7 @@ function toErrorResponse(error: unknown) {
     );
   }
 
-  const message = error instanceof Error ? error.message : "Failed to export Claude auth file";
+  const message = sanitizeErrorMessage(error) || "Failed to export Claude auth file";
   return NextResponse.json({ error: message }, { status: 500 });
 }
 

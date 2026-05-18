@@ -82,7 +82,7 @@ async function handleVideo(nonce: string, prompt: string, aspectRatio: string): 
   });
   const sceneData = genResult.trim();
   if (!sceneData || sceneData === "0" || sceneData.toLowerCase().includes("error")) {
-    return errResp(`Video generation failed: ${sceneData}`);
+    return errResp("Video generation failed");
   }
 
   // Poll
@@ -123,7 +123,7 @@ async function handleImage(nonce: string, prompt: string, aspectRatio: string): 
   });
   const trimmed = result.trim();
   if (!trimmed || trimmed === "0" || trimmed.toLowerCase().includes("error")) {
-    return errResp(`Image generation failed: ${trimmed}`);
+    return errResp("Image generation failed");
   }
   // Response is comma-separated base64 PNGs or URLs
   const parts = trimmed
@@ -191,7 +191,7 @@ async function handleTTS(prompt: string, voice?: string, lang?: string): Promise
   } catch {
     /* not JSON */
   }
-  return errResp(`TTS unexpected response: ${data.slice(0, 200)}`);
+  return errResp("TTS unexpected response format");
 }
 
 async function handleEnhance(nonce: string, prompt: string): Promise<Response> {

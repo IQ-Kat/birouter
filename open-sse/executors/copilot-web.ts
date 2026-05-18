@@ -117,6 +117,7 @@ const sessionPool = new Map<string, CopilotSession>();
 let sessionRotationCount = 0;
 const MIN_REMAINING_TURNS = 5;
 const MAX_ROTATIONS = 1000;
+const MAX_POOL_SIZE = 100;
 
 // ─── Executor ───────────────────────────────────────────────────────────────
 
@@ -150,6 +151,10 @@ export class CopilotWebExecutor extends BaseExecutor {
     }
 
     const session = await this.createSession(accessToken, signal);
+    // Evict oldest entry if pool is at capacity (Map preserves insertion order)
+    if (sessionPool.size >= MAX_POOL_SIZE) {
+      sessionPool.delete(sessionPool.keys().next().value!);
+    }
     sessionPool.set(poolKey, session);
     sessionRotationCount++;
     return session;
@@ -214,11 +219,8 @@ export class CopilotWebExecutor extends BaseExecutor {
     accessToken?: string,
     signal?: AbortSignal
   ): Promise<ReadableStream<Uint8Array>> {
-    // Build WebSocket URL with optional auth
-    let wsUrl = `${COPILOT_WS_URL}&clientSessionId=${crypto.randomUUID()}`;
-    if (accessToken) {
-      wsUrl += `&accessToken=${encodeURIComponent(accessToken)}`;
-    }
+    // Build WebSocket URL without credentials in query string
+    const wsUrl = `${COPILOT_WS_URL}&clientSessionId=${crypto.randomUUID()}`;
 
     return new ReadableStream({
       start: async (controller) => {
@@ -261,13 +263,23 @@ export class CopilotWebExecutor extends BaseExecutor {
         signal?.addEventListener("abort", () => abort("Request aborted"), { once: true });
 
         try {
-          // Use Node.js built-in WebSocket if available, else dynamic import
+          // Use Node.js built-in WebSocket if available, else dynamic import.
+          // Pass the access token via Authorization header (not URL) to avoid
+          // credential exposure in server logs.
           let WS = globalThis.WebSocket;
           if (!WS) {
             // @ts-ignore — ws module has no type declarations in this project
             WS = (await import("ws")).default as unknown as typeof WebSocket;
+            if (accessToken) {
+              // @ts-ignore — ws module supports headers option in second arg
+              ws = new WS(wsUrl, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+              }) as WebSocket;
+            }
           }
-          ws = new WS(wsUrl) as WebSocket;
+          if (!ws) {
+            ws = new WS(wsUrl) as WebSocket;
+          }
 
           const timeout = setTimeout(() => abort("Copilot WebSocket timeout"), FETCH_TIMEOUT_MS);
 

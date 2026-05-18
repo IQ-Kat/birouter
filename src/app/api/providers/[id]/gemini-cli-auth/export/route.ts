@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildGeminiAuthFile, GeminiAuthFileError } from "@/lib/oauth/utils/geminiAuthFile";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof GeminiAuthFileError) {
@@ -13,7 +14,7 @@ function toErrorResponse(error: unknown) {
     );
   }
 
-  const message = error instanceof Error ? error.message : "Failed to export Gemini auth file";
+  const message = sanitizeErrorMessage(error) || "Failed to export Gemini auth file";
   return NextResponse.json({ error: message }, { status: 500 });
 }
 

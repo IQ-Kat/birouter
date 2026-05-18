@@ -30,6 +30,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 /**
  * Handle video generation request
@@ -200,7 +201,11 @@ async function handleComfyUIVideoGeneration({ model, provider, providerConfig, b
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Video provider error",
+    };
   }
 }
 
@@ -288,7 +293,11 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Video provider error",
+    };
   }
 }
 
@@ -419,7 +428,7 @@ async function handleKieVideoGeneration({
     return {
       success: false,
       status: isJsonObject(err) && Number.isFinite(Number(err.status)) ? Number(err.status) : 502,
-      error: `Video provider error: ${err instanceof Error ? err.message : String(err)}`,
+      error: sanitizeErrorMessage(err) || "Video provider error",
     };
   }
 }
@@ -619,7 +628,11 @@ async function handleRunwayVideoGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Video provider error",
+    };
   }
 }
 

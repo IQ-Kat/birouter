@@ -38,6 +38,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 interface KieImageOptions {
   model: string;
@@ -722,7 +723,11 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       requestBody: logRequestBody,
     }).catch(() => {});
 
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -1301,7 +1306,7 @@ async function handleFalAIImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: sanitizeErrorMessage(err) || "Image provider error",
     });
   }
 }
@@ -1491,7 +1496,7 @@ async function handleStabilityAIImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: sanitizeErrorMessage(err) || "Image provider error",
     });
   }
 }
@@ -1610,7 +1615,7 @@ async function handleBlackForestLabsImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: sanitizeErrorMessage(err) || "Image provider error",
     });
   }
 }
@@ -1685,7 +1690,7 @@ async function handleRecraftImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: sanitizeErrorMessage(err) || "Image provider error",
     });
   }
 }
@@ -1773,7 +1778,7 @@ async function handleTopazImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: sanitizeErrorMessage(err) || "Image provider error",
     });
   }
 }
@@ -2353,7 +2358,7 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
     return {
       success: false,
       status: 502,
-      error: `Image provider error: ${err.message}`,
+      error: sanitizeErrorMessage(err) || "Image provider error",
     };
   }
 }
@@ -2448,7 +2453,11 @@ async function handleHyperbolicImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -2702,7 +2711,11 @@ async function handleNanoBananaImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -2894,7 +2907,11 @@ async function handleSDWebUIImageGeneration({ model, provider, providerConfig, b
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -2996,7 +3013,11 @@ async function handleComfyUIImageGeneration({ model, provider, providerConfig, b
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -3104,7 +3125,11 @@ async function handleHaiperImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -3232,7 +3257,11 @@ async function handleLeonardoImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
@@ -3318,7 +3347,11 @@ async function handleIdeogramImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: sanitizeErrorMessage(err) || "Image provider error",
+    };
   }
 }
 
