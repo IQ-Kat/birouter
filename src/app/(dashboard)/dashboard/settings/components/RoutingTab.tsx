@@ -38,6 +38,26 @@ const OPENWEBUI_PARAGRAPH_ANCHORS = [
   "docs.openwebui.com",
 ];
 
+// Mirrors of ccBridgeTransforms.ts constants used by the native `claude` and
+// CC-bridge default pipelines.
+const DEFAULT_PARAGRAPH_REMOVAL_ANCHORS = [
+  "github.com/anomalyco/opencode",
+  "opencode.ai/docs",
+  "github.com/cline/cline",
+  "github.com/getcursor/cursor",
+  "continue.dev",
+];
+
+const DEFAULT_IDENTITY_PREFIXES = ["You are OpenCode"];
+
+const DEFAULT_TEXT_REPLACEMENTS = [
+  { match: "if OpenCode honestly", replacement: "if the assistant honestly" },
+  {
+    match: "Here is some useful information about the environment you are running in:",
+    replacement: "Environment context you are running in:",
+  },
+];
+
 const DEFAULT_OBFUSCATE_WORDS = [
   "opencode",
   "open-code",
@@ -61,16 +81,22 @@ const DEFAULT_OBFUSCATE_WORDS = [
 const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
   providers: {
     [PROVIDER_CLAUDE]: {
-      enabled: false,
+      enabled: true,
       pipeline: [
         {
           kind: "drop_paragraph_if_contains",
-          needles: [...OPENWEBUI_PARAGRAPH_ANCHORS],
+          needles: [...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS, ...OPENWEBUI_PARAGRAPH_ANCHORS],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: ["You are Open WebUI"],
+          prefixes: [...DEFAULT_IDENTITY_PREFIXES, "You are Open WebUI"],
         },
+        ...DEFAULT_TEXT_REPLACEMENTS.map((r) => ({
+          kind: "replace_text" as const,
+          match: r.match,
+          replacement: r.replacement,
+          allOccurrences: true,
+        })),
         {
           kind: "obfuscate_words",
           words: [...DEFAULT_OBFUSCATE_WORDS],
