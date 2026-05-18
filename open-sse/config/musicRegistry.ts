@@ -37,6 +37,27 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
     ],
   },
 
+  suno: {
+    id: "suno",
+    baseUrl: "https://studio-api.suno.ai/api/generate/v2/",
+    statusUrl: "https://studio-api.suno.ai/api/feed/",
+    authType: "cookie",
+    authHeader: "cookie",
+    format: "suno-music",
+    models: [
+      { id: "chirp-v3-5", name: "Chirp V3.5" },
+      { id: "chirp-v4", name: "Chirp V4" },
+    ],
+  },
+  udio: {
+    id: "udio",
+    baseUrl: "https://www.udio.com/api/generate-proxy",
+    statusUrl: "https://www.udio.com/api/songs",
+    authType: "cookie",
+    authHeader: "cookie",
+    format: "udio-music",
+    models: [{ id: "udio-default", name: "Udio Default" }],
+  },
   minimax: {
     id: "minimax",
     baseUrl: "https://api.minimax.io/v1/music_generation",
@@ -50,7 +71,6 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
       { id: "music-cover", name: "Music Cover" },
     ],
   },
-
   comfyui: {
     id: "comfyui",
     baseUrl: "http://localhost:8188",

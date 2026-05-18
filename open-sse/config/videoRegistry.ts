@@ -52,6 +52,24 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     ],
   },
 
+  haiper: {
+    id: "haiper",
+    baseUrl: "https://api.haiper.ai/v1/jobs/gen2/text2video",
+    statusUrl: "https://api.haiper.ai/v1/jobs",
+    authType: "apikey",
+    authHeader: "HAIPER_KEY",
+    format: "haiper-video",
+    models: [{ id: "gen2", name: "Gen 2" }],
+  },
+  leonardo: {
+    id: "leonardo",
+    baseUrl: "https://cloud.leonardo.ai/api/rest/v1/generations",
+    statusUrl: "https://cloud.leonardo.ai/api/rest/v1/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "leonardo-video",
+    models: [{ id: "phoenix", name: "Phoenix Video" }],
+  },
   pollinations: {
     id: "pollinations",
     baseUrl: "https://gen.pollinations.ai/video",
@@ -101,7 +119,6 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
       { id: "tencent/hunyuan-video", name: "Hunyuan Video" },
     ],
   },
-
   comfyui: {
     id: "comfyui",
     baseUrl: "http://localhost:8188",
