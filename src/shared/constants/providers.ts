@@ -912,6 +912,56 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3 — GitHub account only.",
     authHint: "Create a GitHub PAT with 'models: read' scope at github.com/settings/tokens",
   },
+  haiper: {
+    id: "haiper",
+    alias: "hp",
+    name: "Haiper",
+    icon: "videocam",
+    color: "#6366F1",
+    textIcon: "HP",
+    website: "https://haiper.ai",
+    authHint: "Get API key at haiper.ai/haiper-api",
+  },
+  leonardo: {
+    id: "leonardo",
+    alias: "leo",
+    name: "Leonardo AI",
+    icon: "palette",
+    color: "#8B5CF6",
+    textIcon: "LE",
+    website: "https://leonardo.ai",
+    authHint: "Get API key at leonardo.ai/developer",
+  },
+  ideogram: {
+    id: "ideogram",
+    alias: "ideo",
+    name: "Ideogram",
+    icon: "image",
+    color: "#EC4899",
+    textIcon: "ID",
+    website: "https://ideogram.ai",
+    authHint: "Get API key at ideogram.ai/docs/api",
+  },
+  suno: {
+    id: "suno",
+    alias: "suno",
+    name: "Suno",
+    icon: "music_note",
+    color: "#F59E0B",
+    textIcon: "SU",
+    website: "https://suno.ai",
+    authHint: "Paste session cookie from suno.ai (Clerk auth)",
+  },
+  udio: {
+    id: "udio",
+    alias: "udio",
+    name: "Udio",
+    icon: "music_note",
+    color: "#10B981",
+    textIcon: "UD",
+    website: "https://udio.com",
+    authHint: "Paste session cookie from udio.com (Supabase auth)",
+  },
   "cloudflare-ai": {
     id: "cloudflare-ai",
     alias: "cf",
@@ -1634,7 +1684,7 @@ export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
   "modal",
 ]);
 
-export const VIDEO_PROVIDER_IDS = new Set(["runwayml"]);
+export const VIDEO_PROVIDER_IDS = new Set(["runwayml", "haiper", "leonardo"]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
