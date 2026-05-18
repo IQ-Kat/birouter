@@ -878,7 +878,12 @@ export class BaseExecutor {
           const tb = transformedBody as Record<string, unknown>;
           if (Array.isArray(tb?.messages)) {
             const fixed = fixToolPairs(tb.messages as Record<string, unknown>[]);
-            const adjacent = fixToolAdjacency(fixed);
+            // fixToolAdjacency enforces Claude's strict adjacency rule
+            // (tool_result must be in immediately next message).
+            // Only apply for Claude/Claude-compatible — OpenAI allows results
+            // spread across multiple subsequent messages.
+            const isClaude = this.provider === "claude" || isClaudeCodeCompatible(this.provider);
+            const adjacent = isClaude ? fixToolAdjacency(fixed) : fixed;
             tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
           }
         }

@@ -422,44 +422,58 @@ export function fixToolAdjacency(messages: Record<string, unknown>[]): Record<st
     const msg = messages[i];
     const nextMsg = messages[i + 1];
 
-    if (msg.role === "assistant" && Array.isArray(msg.content) && nextMsg) {
-      // Collect tool_result IDs from the NEXT message
-      const nextToolResultIds = new Set<string>();
-      if (nextMsg.role === "tool" && nextMsg.tool_call_id) {
-        nextToolResultIds.add(String(nextMsg.tool_call_id));
-      }
-      if (nextMsg.role === "user" && Array.isArray(nextMsg.content)) {
-        for (const block of nextMsg.content as Record<string, unknown>[]) {
-          if (block.type === "tool_result" && block.tool_use_id) {
-            nextToolResultIds.add(String(block.tool_use_id));
-          }
+    if (msg.role !== "assistant" || !nextMsg) {
+      result.push(msg);
+      continue;
+    }
+
+    // Collect tool_result IDs from the NEXT message only
+    const nextToolResultIds = new Set<string>();
+    if (nextMsg.role === "tool" && nextMsg.tool_call_id) {
+      nextToolResultIds.add(String(nextMsg.tool_call_id));
+    }
+    if (nextMsg.role === "user" && Array.isArray(nextMsg.content)) {
+      for (const block of nextMsg.content as Record<string, unknown>[]) {
+        if (block.type === "tool_result" && block.tool_use_id) {
+          nextToolResultIds.add(String(block.tool_use_id));
         }
       }
+    }
 
-      // Filter tool_use blocks: only keep if next message has matching tool_result
-      const filteredContent = (msg.content as Record<string, unknown>[]).filter(
+    let modified = false;
+    const newMsg: Record<string, unknown> = { ...msg };
+
+    // Filter tool_use blocks in content array (Claude format)
+    if (Array.isArray(newMsg.content)) {
+      const filteredContent = (newMsg.content as Record<string, unknown>[]).filter(
         (block) => block.type !== "tool_use" || !block.id || nextToolResultIds.has(String(block.id))
       );
-
-      if (filteredContent.length !== (msg.content as unknown[]).length) {
-        // Also filter tool_calls array if present
-        const newMsg: Record<string, unknown> = { ...msg, content: filteredContent };
-        if (Array.isArray(newMsg.tool_calls)) {
-          newMsg.tool_calls = (newMsg.tool_calls as Record<string, unknown>[]).filter(
-            (tc: Record<string, unknown>) => !tc.id || nextToolResultIds.has(String(tc.id))
-          );
-        }
-        // Drop assistant message if it became empty
-        const hasContent =
-          typeof newMsg.content === "string"
-            ? (newMsg.content as string).trim().length > 0
-            : Array.isArray(newMsg.content) && (newMsg.content as unknown[]).length > 0;
-        const hasToolCalls = Array.isArray(newMsg.tool_calls) && newMsg.tool_calls.length > 0;
-        if (!hasContent && !hasToolCalls) continue;
-        result.push(newMsg);
-      } else {
-        result.push(msg);
+      if (filteredContent.length !== (newMsg.content as unknown[]).length) {
+        newMsg.content = filteredContent;
+        modified = true;
       }
+    }
+
+    // Filter tool_calls array (OpenAI format) — independently of content
+    if (Array.isArray(newMsg.tool_calls)) {
+      const filteredToolCalls = (newMsg.tool_calls as Record<string, unknown>[]).filter(
+        (tc: Record<string, unknown>) => !tc.id || nextToolResultIds.has(String(tc.id))
+      );
+      if (filteredToolCalls.length !== (newMsg.tool_calls as unknown[]).length) {
+        newMsg.tool_calls = filteredToolCalls;
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      // Drop assistant message if it became empty
+      const hasContent =
+        typeof newMsg.content === "string"
+          ? (newMsg.content as string).trim().length > 0
+          : Array.isArray(newMsg.content) && (newMsg.content as unknown[]).length > 0;
+      const hasToolCalls = Array.isArray(newMsg.tool_calls) && newMsg.tool_calls.length > 0;
+      if (!hasContent && !hasToolCalls) continue;
+      result.push(newMsg);
     } else {
       result.push(msg);
     }
