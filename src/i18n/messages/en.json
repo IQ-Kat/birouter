@@ -3152,7 +3152,7 @@
     "geminiImportBulkSuccess": "Imported {count} Gemini connections",
     "geminiImportBulkFailed": "Some entries failed to import",
     "geminiImportBulkZipExtracting": "Extracting ZIP…",
-    "geminiImportBulkZipError": "Failed to extract ZIP"
+    "geminiImportBulkZipError": "Failed to extract ZIP",
     "codexAuthAppliedLocal": "Codex auth.json applied locally",
     "codexAuthApplyFailed": "Failed to apply Codex auth.json locally",
     "codexAuthExported": "Codex auth.json exported",
