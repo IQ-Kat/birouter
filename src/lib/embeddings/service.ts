@@ -41,7 +41,7 @@ export async function createEmbeddingResponse(
         try {
           allCombos = await getCombos();
         } catch {}
-        
+
         let settings = {};
         try {
           settings = getDatabaseSettings();

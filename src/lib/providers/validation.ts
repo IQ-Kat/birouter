@@ -382,7 +382,13 @@ async function validateOpenAILikeProvider({
   }
 }
 
-async function validateDirectChatProvider({ url, headers, body, providerSpecificData = {}, isLocal = false }: any) {
+async function validateDirectChatProvider({
+  url,
+  headers,
+  body,
+  providerSpecificData = {},
+  isLocal = false,
+}: any) {
   try {
     const response = await validationWrite(
       url,
@@ -2175,7 +2181,11 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   }
 }
 
-async function validateAnthropicCompatibleProvider({ apiKey, providerSpecificData = {}, isLocal = false }: any) {
+async function validateAnthropicCompatibleProvider({
+  apiKey,
+  providerSpecificData = {},
+  isLocal = false,
+}: any) {
   let baseUrl = normalizeAnthropicBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for Anthropic compatible provider" };
@@ -3230,11 +3240,15 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
             ? providerSpecificData.baseUrl.trim()
             : "";
         const root = (configuredBaseUrl || "https://gitlab.com").replace(/\/$/, "");
-        const res = await validationWrite(`${root}/api/v4/code_suggestions/direct_access`, {
-          method: "POST",
-          headers: buildBearerHeaders(apiKey, providerSpecificData),
-          body: "{}",
-        }, isLocal);
+        const res = await validationWrite(
+          `${root}/api/v4/code_suggestions/direct_access`,
+          {
+            method: "POST",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+            body: "{}",
+          },
+          isLocal
+        );
         if (res.status === 401) {
           return { valid: false, error: "Invalid API key" };
         }
@@ -3269,15 +3283,19 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
     longcat: async ({ apiKey, providerSpecificData }: any) => {
       try {
-        const res = await validationWrite("https://api.longcat.chat/openai/v1/chat/completions", {
-          method: "POST",
-          headers: buildBearerHeaders(apiKey, providerSpecificData),
-          body: JSON.stringify({
-            model: "longcat",
-            messages: [{ role: "user", content: "test" }],
-            max_tokens: 1,
-          }),
-        }, isLocal);
+        const res = await validationWrite(
+          "https://api.longcat.chat/openai/v1/chat/completions",
+          {
+            method: "POST",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+            body: JSON.stringify({
+              model: "longcat",
+              messages: [{ role: "user", content: "test" }],
+              max_tokens: 1,
+            }),
+          },
+          isLocal
+        );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
         }
@@ -3296,15 +3314,19 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           providerSpecificData?.baseUrl || "https://api.xiaomimimo.com/v1"
         );
         const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
-        const res = await validationWrite(chatUrl, {
-          method: "POST",
-          headers: buildBearerHeaders(apiKey, providerSpecificData),
-          body: JSON.stringify({
-            model: "mimo-v2.5-pro",
-            messages: [{ role: "user", content: "test" }],
-            max_tokens: 1,
-          }),
-        }, isLocal);
+        const res = await validationWrite(
+          chatUrl,
+          {
+            method: "POST",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+            body: JSON.stringify({
+              model: "mimo-v2.5-pro",
+              messages: [{ role: "user", content: "test" }],
+              max_tokens: 1,
+            }),
+          },
+          isLocal
+        );
         if (res.status === 401 || res.status === 403) {
           return { valid: false, error: "Invalid API key" };
         }
