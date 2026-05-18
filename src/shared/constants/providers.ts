@@ -204,6 +204,18 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
   },
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    name: "Veo AI Free",
+    icon: "videocam",
+    color: "#8B5CF6",
+    textIcon: "VF",
+    website: "https://veoaifree.com",
+    hasFree: true,
+    freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
+    authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
+  },
 };
 
 // API Key Providers
@@ -1648,7 +1660,7 @@ export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
   "modal",
 ]);
 
-export const VIDEO_PROVIDER_IDS = new Set(["runwayml"]);
+export const VIDEO_PROVIDER_IDS = new Set(["runwayml", "veoaifree-web"]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
