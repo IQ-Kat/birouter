@@ -434,13 +434,20 @@ async function handleSunoMusicGeneration({
     const deadline = Date.now() + 300000;
     while (Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 5000));
-      const feedRes = await fetch(`https://studio-api.suno.ai/api/feed/?ids=${ids.join(",")}`, {
+      const feedRes = await fetch(`${providerConfig.statusUrl}?ids=${ids.join(",")}`, {
         headers: { Cookie: cookie },
       });
       const songs = await feedRes.json();
       const ready = songs.filter((s) => s.audio_url);
       if (ready.length > 0) {
         const audioRes = await fetch(ready[0].audio_url);
+        if (!audioRes.ok) {
+          return {
+            success: false,
+            status: audioRes.status,
+            error: `Failed to download audio: ${audioRes.status}`,
+          };
+        }
         const buf = await audioRes.arrayBuffer();
         saveCallLog({
           method: "POST",
@@ -545,6 +552,13 @@ async function handleUdioMusicGeneration({
       const ready = songs.filter((s) => s.finished && s.song_path);
       if (ready.length > 0) {
         const audioRes = await fetch(ready[0].song_path);
+        if (!audioRes.ok) {
+          return {
+            success: false,
+            status: audioRes.status,
+            error: `Failed to download audio: ${audioRes.status}`,
+          };
+        }
         const buf = await audioRes.arrayBuffer();
         saveCallLog({
           method: "POST",

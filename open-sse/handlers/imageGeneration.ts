@@ -3018,7 +3018,7 @@ async function handleHaiperImageGeneration({
     const res = await fetch(providerConfig.baseUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", HAIPER_KEY: token },
-      body: JSON.stringify({ prompt, aspect_ratio: "16:9" }),
+      body: JSON.stringify({ prompt, aspect_ratio: body.aspect_ratio || "16:9" }),
     });
     if (!res.ok) {
       const errorText = await res.text();
@@ -3045,6 +3045,13 @@ async function handleHaiperImageGeneration({
         const imgUrl = status.creation_url || status.output?.image_url;
         if (imgUrl) {
           const imgRes = await fetch(imgUrl);
+          if (!imgRes.ok) {
+            return {
+              success: false,
+              status: imgRes.status,
+              error: `Failed to download image: ${imgRes.status}`,
+            };
+          }
           const buf = await imgRes.arrayBuffer();
           saveCallLog({
             method: "POST",
@@ -3166,6 +3173,13 @@ async function handleLeonardoImageGeneration({
         const imgUrl = gen.generated_images?.[0]?.url;
         if (imgUrl) {
           const imgRes = await fetch(imgUrl);
+          if (!imgRes.ok) {
+            return {
+              success: false,
+              status: imgRes.status,
+              error: `Failed to download image: ${imgRes.status}`,
+            };
+          }
           const buf = await imgRes.arrayBuffer();
           saveCallLog({
             method: "POST",
@@ -3259,6 +3273,13 @@ async function handleIdeogramImageGeneration({
     if (data.data && data.data.length > 0) {
       const imgUrl = data.data[0].url;
       const imgRes = await fetch(imgUrl);
+      if (!imgRes.ok) {
+        return {
+          success: false,
+          status: imgRes.status,
+          error: `Failed to download image: ${imgRes.status}`,
+        };
+      }
       const buf = await imgRes.arrayBuffer();
       saveCallLog({
         method: "POST",

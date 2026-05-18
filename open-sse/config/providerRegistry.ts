@@ -1986,7 +1986,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "openai",
     executor: "default",
     baseUrl: "https://studio-api.suno.ai/api/generate/v2/",
-    authType: "apikey",
+    authType: "cookie",
     authHeader: "cookie",
     models: [
       { id: "chirp-v3-5", name: "Chirp V3.5" },
