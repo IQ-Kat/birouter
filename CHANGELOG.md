@@ -51,6 +51,7 @@
 
 ### Fixed
 
+- **fix(combos):** allow bracketed combo names (e.g. `Claude [1m]`) by updating validation schemas and pinning exact combo lookup behavior before model suffix parsing. ([#2354](https://github.com/diegosouzapw/OmniRoute/pull/2354) — thanks @congvc-dev)
 - **fix(v1/messages):** `POST /v1/messages` now defaults to non-streaming when the `stream` field is absent and the Anthropic source format is detected — prevents `STREAM_EARLY_EOF` errors from Anthropic SDK clients that omit the field per spec. ([#2326](https://github.com/diegosouzapw/OmniRoute/pull/2326) — thanks @thepigdestroyer)
 - **fix(claude):** `fitThinkingToMaxTokens` caps thinking budget to the model's output ceiling — eliminates HTTP 400 from Anthropic when `max_tokens + budget` exceeds model limits (e.g. Opus 4.7's 128K ceiling). ([#2327](https://github.com/diegosouzapw/OmniRoute/pull/2327) — thanks @thepigdestroyer)
 - **fix(codex):** Codex reasoning priority now resolves `modelEffort` before `explicitReasoning` — aligns with expected precedence and fixes suffix alias mismatches. ([#2335](https://github.com/diegosouzapw/OmniRoute/pull/2335) — thanks @terence71-glitch)
