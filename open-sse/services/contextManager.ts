@@ -128,7 +128,7 @@ export function compressContext(
 
   let messages = [...body.messages];
   let currentTokens = estimateTokens(JSON.stringify(messages));
-  const stats = { original: currentTokens, layers: [] };
+  const stats = { original: currentTokens, layers: [] as { name: string; tokens: number }[] };
 
   // Already fits
   if (currentTokens <= targetTokens) {

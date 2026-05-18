@@ -353,6 +353,68 @@ export const importCodexAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
+// ──── Claude Auth Import Schema ────
+
+export const importClaudeAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "Paste content must be under 256 KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Claude Auth Import Bulk Schema ────
+
+export const importClaudeAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Gemini CLI Auth Import Schema ────
+
+export const importGeminiAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "oauth_creds.json content exceeds 256KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Gemini CLI Auth Import Bulk Schema ────
+
+export const importGeminiAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
 // ──── API Key Schemas ────
 
 export const createKeySchema = z.object({

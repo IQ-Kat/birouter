@@ -70,6 +70,55 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "leonardo-video",
     models: [{ id: "phoenix", name: "Phoenix Video" }],
   },
+  pollinations: {
+    id: "pollinations",
+    baseUrl: "https://gen.pollinations.ai/video",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "pollinations-video",
+    models: [{ id: "default", name: "Pollinations Video (Free)" }],
+  },
+
+  minimax: {
+    id: "minimax",
+    baseUrl: "https://api.minimax.io/v1/video_generation",
+    statusUrl: "https://api.minimax.io/v1/query/video_generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "minimax-video",
+    models: [
+      { id: "MiniMax-Hailuo-2.3", name: "Hailuo 2.3" },
+      { id: "MiniMax-Hailuo-02", name: "Hailuo 02" },
+      { id: "T2V-01-Director", name: "T2V 01 Director" },
+    ],
+  },
+
+  together: {
+    id: "together",
+    baseUrl: "https://api.together.xyz/videos",
+    statusUrl: "https://api.together.xyz/videos",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "together-video",
+    models: [
+      { id: "wan-ai/wan2.1-t2v-480p", name: "Wan 2.1 T2V 480p" },
+      { id: "wan-ai/wan2.7-t2v", name: "Wan 2.7 T2V" },
+    ],
+  },
+
+  replicate: {
+    id: "replicate",
+    baseUrl: "https://api.replicate.com/v1/predictions",
+    statusUrl: "https://api.replicate.com/v1/predictions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "replicate-video",
+    models: [
+      { id: "minimax/video-01", name: "MiniMax Video 01" },
+      { id: "wan-ai/wan2.1-t2v-480p", name: "Wan 2.1 T2V" },
+      { id: "tencent/hunyuan-video", name: "Hunyuan Video" },
+    ],
+  },
   comfyui: {
     id: "comfyui",
     baseUrl: "http://localhost:8188",

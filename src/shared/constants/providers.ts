@@ -204,6 +204,18 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
   },
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    name: "Veo AI Free",
+    icon: "videocam",
+    color: "#8B5CF6",
+    textIcon: "VF",
+    website: "https://veoaifree.com",
+    hasFree: true,
+    freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
+    authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
+  },
 };
 
 // API Key Providers
@@ -886,6 +898,20 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
+  },
+  replicate: {
+    id: "replicate",
+    alias: "rep",
+    name: "Replicate",
+    icon: "auto_awesome",
+    color: "#3B82F6",
+    textIcon: "RE",
+    website: "https://replicate.com",
+    hasFree: true,
+    freeNote:
+      "Free community models — Llama 3.1, Mixtral, DeepSeek R1. Passthrough for SDXL, Whisper, MusicGen.",
+    passthroughModels: true,
+    authHint: "Get API token at replicate.com/account/api-tokens",
   },
   hackclub: {
     id: "hackclub",
@@ -1684,7 +1710,16 @@ export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
   "modal",
 ]);
 
-export const VIDEO_PROVIDER_IDS = new Set(["runwayml", "haiper", "leonardo"]);
+export const VIDEO_PROVIDER_IDS = new Set([
+  "runwayml",
+  "veoaifree-web",
+  "pollinations",
+  "minimax",
+  "together",
+  "replicate",
+  "haiper",
+  "leonardo",
+]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 

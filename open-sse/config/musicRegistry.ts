@@ -58,6 +58,19 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
     format: "udio-music",
     models: [{ id: "udio-default", name: "Udio Default" }],
   },
+  minimax: {
+    id: "minimax",
+    baseUrl: "https://api.minimax.io/v1/music_generation",
+    statusUrl: "https://api.minimax.io/v1/query/music_generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "minimax-music",
+    models: [
+      { id: "music-2.6", name: "Music 2.6" },
+      { id: "music-2.6-free", name: "Music 2.6 Free" },
+      { id: "music-cover", name: "Music Cover" },
+    ],
+  },
   comfyui: {
     id: "comfyui",
     baseUrl: "http://localhost:8188",
