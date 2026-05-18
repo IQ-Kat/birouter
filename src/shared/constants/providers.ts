@@ -1660,7 +1660,14 @@ export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
   "modal",
 ]);
 
-export const VIDEO_PROVIDER_IDS = new Set(["runwayml", "veoaifree-web"]);
+export const VIDEO_PROVIDER_IDS = new Set([
+  "runwayml",
+  "veoaifree-web",
+  "pollinations",
+  "minimax",
+  "together",
+  "replicate",
+]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
