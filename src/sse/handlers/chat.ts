@@ -314,8 +314,12 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   let autoVariant: AutoVariant | undefined;
   let isAutoRouting = resolvedModelStr === "auto" || resolvedModelStr.startsWith("auto/");
   if (isAutoRouting) {
-    // C2: Enforce autoRoutingEnabled setting
-    const settings = await getSettings();
+    // C2: Enforce autoRoutingEnabled setting.
+    // Issue #2346: `getSettings` was never imported in this module; only
+    // `getCachedSettings` is. Calling the bare name caused a ReferenceError
+    // on every auto-routed request. The cached variant has the same shape
+    // and benefits the auto-routing hot path.
+    const settings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
     if (settings?.autoRoutingEnabled === false) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
