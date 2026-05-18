@@ -2288,7 +2288,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "cohere",
     format: "openai",
     executor: "default",
-    baseUrl: "https://api.cohere.com/v2/chat",
+    // Issue #2360: Cohere's native /v2/chat endpoint returns the upstream
+    // proprietary shape ({ message: { content: [{type:"text", text:...}] } })
+    // which the combo test validator (extractComboTestResponseText) does not
+    // know how to read, surfacing as "Provider returned HTTP 200 but no text
+    // content." Cohere also publishes an OpenAI-compatible compatibility
+    // layer at /compatibility/v1 that returns the canonical
+    // { choices: [{ message: { content: "..." } }] } shape, so we route
+    // through it instead of needing a Cohere-specific response translator.
+    baseUrl: "https://api.cohere.com/compatibility/v1/chat/completions",
+    modelsUrl: "https://api.cohere.com/compatibility/v1/models",
     authType: "apikey",
     authHeader: "bearer",
     models: [
@@ -3118,6 +3127,30 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.bytez,
+  },
+
+  // Issue #2361: LLM7.io was visible in the dashboard provider list
+  // (entry in `src/shared/constants/providers.ts`) but missing from the
+  // executor registry, so test-connection and chat requests had no
+  // baseUrl / authType to route to and returned a credential error.
+  // The provider exposes a standard OpenAI-compatible v1 endpoint with
+  // an optional bearer token (set the literal string "unused" when no
+  // key is configured, per upstream docs).
+  llm7: {
+    id: "llm7",
+    alias: "llm7",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.llm7.io/v1/chat/completions",
+    modelsUrl: "https://api.llm7.io/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "gpt-4o-mini-2024-07-18", name: "GPT-4o mini (LLM7)" },
+      { id: "gpt-4.1-nano-2025-04-14", name: "GPT-4.1 nano (LLM7)" },
+      { id: "deepseek-r1-0528", name: "DeepSeek R1 (LLM7)" },
+      { id: "qwen2.5-coder-32b-instruct", name: "Qwen2.5 Coder 32B (LLM7)" },
+    ],
   },
 
   aimlapi: {
