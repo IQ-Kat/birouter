@@ -211,7 +211,15 @@ export async function validateResponseQuality(
 
   const content = message.content;
   const toolCalls = message.tool_calls;
-  const hasContent = content !== null && content !== undefined && content !== "";
+  // Issue #2341: Reasoning models (Kimi-K2.5-TEE, GLM-5-TEE, etc.) emit their
+  // output in `reasoning_content` (or `reasoning`) with `content: null`. The
+  // validator used to flag those as empty and trigger a false-positive 502
+  // fallback. Count a non-empty reasoning_content as valid output too.
+  const reasoningContent = message.reasoning_content ?? message.reasoning;
+  const hasReasoningContent =
+    typeof reasoningContent === "string" && reasoningContent.trim().length > 0;
+  const hasContent =
+    (content !== null && content !== undefined && content !== "") || hasReasoningContent;
   const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
 
   if (!hasContent && !hasToolCalls) {
