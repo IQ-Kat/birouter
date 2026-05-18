@@ -232,7 +232,10 @@ test("shouldRefreshClaudeConnection returns false when expiresAt > now + 10min",
 
 test("shouldRefreshClaudeConnection returns true when accessToken absent", () => {
   assert.equal(
-    shouldRefreshClaudeConnection({ accessToken: null, expiresAt: new Date(Date.now() + 3600 * 1000).toISOString() }),
+    shouldRefreshClaudeConnection({
+      accessToken: null,
+      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+    }),
     true
   );
 });
@@ -276,7 +279,12 @@ test("write read-modify-write merges claudeAiOauth while preserving mcpOAuth", (
     claudeAiOauth: { accessToken: "old-at", refreshToken: "old-rt", expiresAt: 0, scopes: [] },
   };
 
-  const newOauthBlock = { accessToken: "new-at", refreshToken: "new-rt", expiresAt: 1768000000000, scopes: ["user:inference"] };
+  const newOauthBlock = {
+    accessToken: "new-at",
+    refreshToken: "new-rt",
+    expiresAt: 1768000000000,
+    scopes: ["user:inference"],
+  };
   const merged = { ...existingDoc, claudeAiOauth: newOauthBlock };
 
   // mcpOAuth is preserved

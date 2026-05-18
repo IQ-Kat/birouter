@@ -245,12 +245,15 @@ test("enrichWithLoadCodeAssist: returns projectId on success", async () => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await mockFetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${p.accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ metadata: { ideType: "GEMINI_CLI", platform: "linux" } }),
-        signal: controller.signal,
-      });
+      const response = await mockFetch(
+        "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${p.accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ metadata: { ideType: "GEMINI_CLI", platform: "linux" } }),
+          signal: controller.signal,
+        }
+      );
       if (!response.ok) return { ...p, projectId: null };
       const data = (await response.json()) as Record<string, unknown>;
       const projectId =
@@ -268,7 +271,7 @@ test("enrichWithLoadCodeAssist: returns projectId on success", async () => {
     ({
       ok: true,
       json: async () => ({ projectId: "my-gcp-project-123" }),
-    } as Response);
+    }) as Response;
 
   const enriched = await enrichWithMockFetch(parsed, mockFetch as typeof fetch);
   assert.equal(enriched.projectId, "my-gcp-project-123");
@@ -293,12 +296,15 @@ test("enrichWithLoadCodeAssist: returns projectId null on 401 (best-effort)", as
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await mockFetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${p.accessToken}`, "Content-Type": "application/json" },
-        body: "{}",
-        signal: controller.signal,
-      });
+      const response = await mockFetch(
+        "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${p.accessToken}`, "Content-Type": "application/json" },
+          body: "{}",
+          signal: controller.signal,
+        }
+      );
       if (!response.ok) return { ...p, projectId: null };
       const data = (await response.json()) as Record<string, unknown>;
       const projectId = typeof data.projectId === "string" ? data.projectId || null : null;
@@ -310,7 +316,7 @@ test("enrichWithLoadCodeAssist: returns projectId null on 401 (best-effort)", as
     }
   }
 
-  const mockFetch = async () => ({ ok: false, status: 401 } as Response);
+  const mockFetch = async () => ({ ok: false, status: 401 }) as Response;
 
   const enriched = await enrichWithMockFetch(parsed, mockFetch as typeof fetch);
   assert.equal(enriched.projectId, null);
@@ -332,12 +338,15 @@ test("enrichWithLoadCodeAssist: returns projectId null on network error (best-ef
     mockFetch: typeof fetch
   ): Promise<{ projectId: string | null } & ParsedGeminiAuth> {
     try {
-      const response = await mockFetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${p.accessToken}`, "Content-Type": "application/json" },
-        body: "{}",
-        signal: new AbortController().signal,
-      });
+      const response = await mockFetch(
+        "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${p.accessToken}`, "Content-Type": "application/json" },
+          body: "{}",
+          signal: new AbortController().signal,
+        }
+      );
       if (!response.ok) return { ...p, projectId: null };
       return { ...p, projectId: null };
     } catch {
@@ -389,10 +398,7 @@ test("createConnectionFromAuthFile: allows update when exists + overwrite=true",
 });
 
 test("createConnectionFromAuthFile: throws 409 identity_unverified when no email + overwrite=false", () => {
-  function checkIdentity(
-    resolvedEmail: string | null,
-    overwriteExisting: boolean
-  ): string | null {
+  function checkIdentity(resolvedEmail: string | null, overwriteExisting: boolean): string | null {
     if (!resolvedEmail && !overwriteExisting) return "identity_unverified";
     return null;
   }
@@ -401,10 +407,7 @@ test("createConnectionFromAuthFile: throws 409 identity_unverified when no email
 });
 
 test("createConnectionFromAuthFile: allows create without email when overwrite=true", () => {
-  function checkIdentity(
-    resolvedEmail: string | null,
-    overwriteExisting: boolean
-  ): string | null {
+  function checkIdentity(resolvedEmail: string | null, overwriteExisting: boolean): string | null {
     if (!resolvedEmail && !overwriteExisting) return "identity_unverified";
     return null;
   }
@@ -416,7 +419,10 @@ test("createConnectionFromAuthFile: email from options.email takes precedence ov
   const resolveEmail = (optionsEmail: string | undefined, enrichedEmail: string | null) =>
     optionsEmail || enrichedEmail;
 
-  assert.equal(resolveEmail("override@example.com", "original@example.com"), "override@example.com");
+  assert.equal(
+    resolveEmail("override@example.com", "original@example.com"),
+    "override@example.com"
+  );
   assert.equal(resolveEmail(undefined, "original@example.com"), "original@example.com");
   assert.equal(resolveEmail(undefined, null), null);
 });

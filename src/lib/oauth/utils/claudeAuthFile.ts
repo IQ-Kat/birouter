@@ -182,9 +182,7 @@ async function resolveFreshClaudeConnection(connectionId: string): Promise<Claud
   }
 
   if (connection.authType !== "oauth") {
-    throw new ClaudeAuthFileError(
-      "Only OAuth Claude connections support credentials.json export"
-    );
+    throw new ClaudeAuthFileError("Only OAuth Claude connections support credentials.json export");
   }
 
   if (!shouldRefreshClaudeConnection(connection)) {

@@ -161,11 +161,19 @@ function parseAndValidateClaudeAuth(raw: unknown) {
   const refreshToken = toNonEmptyString(oauthBlock.refreshToken);
 
   if (!accessToken) {
-    throw new ParseError("accessToken is missing or empty in claudeAiOauth", 400, "missing_access_token");
+    throw new ParseError(
+      "accessToken is missing or empty in claudeAiOauth",
+      400,
+      "missing_access_token"
+    );
   }
 
   if (!refreshToken) {
-    throw new ParseError("refreshToken is missing or empty in claudeAiOauth", 400, "missing_refresh_token");
+    throw new ParseError(
+      "refreshToken is missing or empty in claudeAiOauth",
+      400,
+      "missing_refresh_token"
+    );
   }
 
   let expiresAt: string | null = null;

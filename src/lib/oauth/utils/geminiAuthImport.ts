@@ -119,18 +119,15 @@ export async function enrichWithLoadCodeAssist(
   const timer = setTimeout(() => controller.abort(), 8000);
 
   try {
-    const response = await fetch(
-      "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${parsed.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ metadata: { ideType: "GEMINI_CLI", platform: "linux" } }),
-        signal: controller.signal,
-      }
-    );
+    const response = await fetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${parsed.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ metadata: { ideType: "GEMINI_CLI", platform: "linux" } }),
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       return { ...parsed, projectId: null };
@@ -197,7 +194,7 @@ export async function createConnectionFromAuthFile(
           ...toRecord(existing.providerSpecificData),
           scope: enriched.scope,
           tokenType: enriched.tokenType,
-          projectId: enriched.projectId ?? (toRecord(existing.providerSpecificData).projectId),
+          projectId: enriched.projectId ?? toRecord(existing.providerSpecificData).projectId,
           importedAt: new Date().toISOString(),
         },
       });

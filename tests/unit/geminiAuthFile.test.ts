@@ -404,10 +404,7 @@ test("mergeGoogleAccountsFile: noop when active already equals newEmail", async 
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "gemini-test-"));
   const accountsPath = path.join(tmpDir, "google_accounts.json");
   try {
-    await fs.writeFile(
-      accountsPath,
-      JSON.stringify({ active: "same@google.com", old: [] }) + "\n"
-    );
+    await fs.writeFile(accountsPath, JSON.stringify({ active: "same@google.com", old: [] }) + "\n");
     const result = await mergeGoogleAccountsFile(accountsPath, "same@google.com");
     assert.equal(result.updated, false);
     assert.equal(result.savedBakPath, null);

@@ -887,6 +887,20 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
   },
+  replicate: {
+    id: "replicate",
+    alias: "rep",
+    name: "Replicate",
+    icon: "auto_awesome",
+    color: "#3B82F6",
+    textIcon: "RE",
+    website: "https://replicate.com",
+    hasFree: true,
+    freeNote:
+      "Free community models — Llama 3.1, Mixtral, DeepSeek R1. Passthrough for SDXL, Whisper, MusicGen.",
+    passthroughModels: true,
+    authHint: "Get API token at replicate.com/account/api-tokens",
+  },
   hackclub: {
     id: "hackclub",
     alias: "hc",

@@ -2684,6 +2684,43 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  replicate: {
+    id: "replicate",
+    alias: "rep",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://openai-proxy.replicate.com/v1/chat/completions",
+    modelsUrl: "https://openai-proxy.replicate.com/v1/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    passthroughModels: true,
+    defaultContextLength: 128000,
+    models: [
+      {
+        id: "meta/meta-llama-3.1-405b-instruct",
+        name: "Llama 3.1 405B Instruct (Free)",
+        contextLength: 128000,
+      },
+      {
+        id: "meta/meta-llama-3.1-70b-instruct",
+        name: "Llama 3.1 70B Instruct (Free)",
+        contextLength: 128000,
+      },
+      {
+        id: "mistralai/mixtral-8x7b-instruct-v0.1",
+        name: "Mixtral 8x7B Instruct (Free)",
+        contextLength: 32768,
+      },
+      {
+        id: "deepseek-ai/deepseek-r1",
+        name: "DeepSeek R1 (Free)",
+        contextLength: 65536,
+        supportsReasoning: true,
+      },
+    ],
+  },
+
   hackclub: {
     id: "hackclub",
     alias: "hc",

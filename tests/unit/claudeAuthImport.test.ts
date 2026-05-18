@@ -50,7 +50,9 @@ interface CreateConnectionOptions {
   overwriteExisting?: boolean;
 }
 
-function parseClaudeAuth(raw: unknown): ParsedClaudeAuth | { error: string; code: string; status: number } {
+function parseClaudeAuth(
+  raw: unknown
+): ParsedClaudeAuth | { error: string; code: string; status: number } {
   const doc = toRecord(raw);
   const oauthBlock = toRecord(doc.claudeAiOauth);
 
@@ -58,11 +60,19 @@ function parseClaudeAuth(raw: unknown): ParsedClaudeAuth | { error: string; code
   const refreshToken = toNonEmptyString(oauthBlock.refreshToken);
 
   if (!accessToken) {
-    return { error: "accessToken is missing or empty in claudeAiOauth", code: "missing_access_token", status: 400 };
+    return {
+      error: "accessToken is missing or empty in claudeAiOauth",
+      code: "missing_access_token",
+      status: 400,
+    };
   }
 
   if (!refreshToken) {
-    return { error: "refreshToken is missing or empty in claudeAiOauth", code: "missing_refresh_token", status: 400 };
+    return {
+      error: "refreshToken is missing or empty in claudeAiOauth",
+      code: "missing_refresh_token",
+      status: 400,
+    };
   }
 
   let expiresAt: string | null = null;
@@ -97,7 +107,8 @@ function checkCreateConnectionPreconditions(
 ): { error: string; code: string; status: number } | null {
   if (enriched.accountUUID && existingByAccountUUID && !options.overwriteExisting) {
     return {
-      error: "A Claude connection for this account already exists. Pass overwriteExisting: true to replace it.",
+      error:
+        "A Claude connection for this account already exists. Pass overwriteExisting: true to replace it.",
       code: "duplicate_account",
       status: 409,
     };
@@ -105,7 +116,8 @@ function checkCreateConnectionPreconditions(
 
   if (!enriched.email && !enriched.accountUUID && !options.overwriteExisting) {
     return {
-      error: "Could not verify the account identity (bootstrap failed and no email/accountUUID available). Pass overwriteExisting: true to import anyway.",
+      error:
+        "Could not verify the account identity (bootstrap failed and no email/accountUUID available). Pass overwriteExisting: true to import anyway.",
       code: "identity_unverified",
       status: 409,
     };
