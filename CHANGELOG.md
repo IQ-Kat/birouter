@@ -24,6 +24,7 @@
 - **feat(ui):** comprehensive dashboard UX rework including simple/advanced modes for RTK/Caveman, human-readable error badges, InfoTooltip/PresetSlider shared components, sidebar subtitles, and provider category filters. ([#2315](https://github.com/diegosouzapw/OmniRoute/pull/2315), [#2316](https://github.com/diegosouzapw/OmniRoute/pull/2316) — thanks @dhaern, @oyi77)
 - **feat(i18n):** add simple/advanced mode keys and missing provider filter keys (`allProviders`, `audioProviders`, `showFreeOnly`).
 - **feat(cli):** full i18n support — 42 locales, `--lang` flag, `config lang get/set/list` commands for CLI language selection. ([#2285](https://github.com/diegosouzapw/OmniRoute/pull/2285))
+- **feat(claude-code):** semantic passthrough for Claude Code `/v1/messages` payloads — preserves client `messages[]` structure (document blocks, tool_use/tool_result chains, cache_control, unknown content types) for native Claude OAuth and `anthropic-compatible-cc-*` relay routes, skipping broad normalization that could rewrite valid Claude Code semantics. ([#2351](https://github.com/diegosouzapw/OmniRoute/pull/2351) — thanks @terence71-glitch)
 
 ### Changed
 
@@ -55,6 +56,7 @@
 - **fix(codex):** Codex reasoning priority now resolves `modelEffort` before `explicitReasoning` — aligns with expected precedence and fixes suffix alias mismatches. ([#2335](https://github.com/diegosouzapw/OmniRoute/pull/2335) — thanks @terence71-glitch)
 - **fix(translator):** DeepSeek tool-call response lookup reads cached reasoning before falling back to empty string — preserves reasoning content in multi-turn tool-call flows. ([#2349](https://github.com/diegosouzapw/OmniRoute/pull/2349) — thanks @herjarsa)
 - **fix(providers):** providers page no longer deadlocks when no providers are configured — setup hint is shown instead of an empty filtered list, allowing the first provider to be added. ([#2329](https://github.com/diegosouzapw/OmniRoute/pull/2329) — thanks @slider23)
+- **fix(usage):** extract flat `cached_tokens` and `reasoning_tokens` from OpenAI-compatible usage objects — providers like Xiaomi MiMo that return these as top-level fields instead of nesting in `prompt_tokens_details`/`completion_tokens_details` now properly surface in call logs and dashboard. ([#2350](https://github.com/diegosouzapw/OmniRoute/pull/2350) — thanks @TF0rd)
 - **chore(providers):** update HuggingFace to use the new `/v1/` router endpoint with dynamic model list (`router.huggingface.co/v1/`), removing the stale static model list. ([#2322](https://github.com/diegosouzapw/OmniRoute/pull/2322) — thanks @backryun)
 - **fix(security):** resolve CodeQL ReDoS + URL sanitization alerts.
 - **fix(auth):** stop retrying unrecoverable token refresh failures and include connection id in token health check credentials.
