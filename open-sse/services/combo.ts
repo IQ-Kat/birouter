@@ -1840,7 +1840,17 @@ export async function handleComboChat({
         if (lkgpIndex < 0) {
           lkgpIndex = orderedTargets.findIndex(
             (target) =>
-              target.provider === providerName || target.modelStr.startsWith(`${providerName}/`)
+              target.provider === providerName ||
+              // Issue #2359: Defensive guard. The `target.modelStr` type
+              // annotation is `string`, but malformed combo entries (e.g.,
+              // local-provider rows whose `modelStr` failed to resolve when
+              // the executor catalogue was being rebuilt) have leaked
+              // through and surfaced as `e.startsWith is not a function`
+              // 500s on combo test/dispatch. The fast path stays
+              // unchanged for the common case; this only avoids the
+              // crash when the field is unexpectedly non-string.
+              (typeof target.modelStr === "string" &&
+                target.modelStr.startsWith(`${providerName}/`))
           );
         }
 
