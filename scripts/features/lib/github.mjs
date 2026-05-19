@@ -7,7 +7,13 @@ import { execFileSync } from "node:child_process";
 
 function runJson(cmd, args) {
   const out = execFileSync(cmd, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  return JSON.parse(out);
+  try {
+    return JSON.parse(out);
+  } catch (e) {
+    throw new Error(
+      `Failed to parse JSON from ${cmd}: ${e.message}\nOutput (first 200 chars): ${out.slice(0, 200)}`
+    );
+  }
 }
 
 function runText(cmd, args) {
