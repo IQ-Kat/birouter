@@ -741,21 +741,21 @@ async function validateGeminiLikeProvider({
       providerSpecificData.modelsUrl.trim() !== ""
         ? providerSpecificData.modelsUrl.trim()
         : `${baseUrl}/models`;
-        
+
     const urlWithKey =
       authType === "query" ? `${requestUrl}?key=${encodeURIComponent(apiKey)}` : requestUrl;
-      
+
     // Use the correct auth header based on provider config:
     // - gemini / gemini-cli (API key): x-goog-api-key
     // - gemini-cli (OAuth): Bearer token
     const headers: Record<string, string> = {};
-    
+
     if (authType === "header" || authType === "apikey") {
       headers["x-goog-api-key"] = apiKey;
     } else if (authType === "oauth" || apiKey.startsWith("ya29.")) {
       headers["Authorization"] = `Bearer ${apiKey}`;
     }
-    
+
     applyCustomUserAgent(headers, providerSpecificData);
 
     const response = await validationRead(

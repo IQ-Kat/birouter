@@ -610,10 +610,26 @@ interface EditConnectionModalConnection {
   maxConcurrent?: number | null;
   authType?: string;
   provider?: string;
+  apiKey?: string;
   providerSpecificData?: Record<string, unknown>;
   healthCheckInterval?: number;
   projectId?: string | null;
 }
+
+const formatTimeAgo = (dateStr: string): string => {
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  const diff = now - date;
+  if (diff < 0) return "just now";
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+};
 
 interface EditConnectionModalProps {
   isOpen: boolean;
@@ -8973,6 +8989,18 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const [saveError, setSaveError] = useState<string | null>(null);
   const [extraApiKeys, setExtraApiKeys] = useState<string[]>([]);
   const [newExtraKey, setNewExtraKey] = useState("");
+  const [apiKeyHealth, setApiKeyHealth] = useState<
+    Record<
+      string,
+      {
+        status: "active" | "warning" | "invalid";
+        failures: number;
+        lastFailure: string | null;
+        totalRequests?: number;
+        totalFailures?: number;
+      }
+    >
+  >({});
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { emailsVisible: showEmail, toggleEmailVisibility: toggleShowEmail } =
     useEmailPrivacyStore();
@@ -9058,6 +9086,20 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       // Load existing extra keys from providerSpecificData
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
+      // Load API key health status
+      const health = connection.providerSpecificData?.apiKeyHealth as
+        | Record<
+            string,
+            {
+              status: "active" | "warning" | "invalid";
+              failures: number;
+              lastFailure: string | null;
+              totalRequests?: number;
+              totalFailures?: number;
+            }
+          >
+        | undefined;
+      setApiKeyHealth(health || {});
       setNewExtraKey("");
       setShowAdvanced(!!existingCustomUserAgent);
       // email visibility controlled by global store
@@ -9607,6 +9649,57 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           </div>
         )}
 
+        {/* T07: API Key Health Status */}
+        {!isOAuth && connection?.apiKey && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-text-main">{t("apiKeyHealthLabel")}</label>
+            <div className="flex flex-col gap-1.5">
+              {/* Primary Key Health */}
+              {(() => {
+                const keyId = "primary";
+                const health = apiKeyHealth[keyId];
+                const statusColor =
+                  health?.status === "invalid"
+                    ? "text-red-400"
+                    : health?.status === "warning"
+                      ? "text-yellow-400"
+                      : "text-green-400";
+                const statusIcon =
+                  health?.status === "invalid" ? "🔴" : health?.status === "warning" ? "🟡" : "🟢";
+                const statusLabel =
+                  health?.status === "invalid"
+                    ? t("apiKeyStatusInvalid")
+                    : health?.status === "warning"
+                      ? t("apiKeyStatusWarning", { count: health.failures })
+                      : t("apiKeyStatusActive");
+
+                return (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate ${statusColor}`}
+                    >
+                      {statusIcon} {t("primaryKey")}: {connection.apiKey.slice(0, 6)}...
+                      {connection.apiKey.slice(-4)}
+                    </span>
+                    {health && (
+                      <span
+                        className="text-[10px] text-text-muted whitespace-nowrap"
+                        title={statusLabel}
+                      >
+                        {health.failures}x
+                        {health.lastFailure ? ` · ${formatTimeAgo(health.lastFailure)}` : ""}
+                        {health.totalRequests != null
+                          ? ` · (${health.totalRequests} req${health.totalFailures != null ? `, ${health.totalFailures} fail` : ""})`
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         {/* T07: Extra API Keys for round-robin rotation */}
         {!isOAuth && (
           <div className="flex flex-col gap-2">
@@ -9629,24 +9722,64 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             </div>
             {extraApiKeys.length > 0 && (
               <div className="flex flex-col gap-1.5">
-                {extraApiKeys.map((key, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <span className="flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate">
-                      {t("extraApiKeyMasked", {
-                        index: idx + 2,
-                        prefix: key.slice(0, 6),
-                        suffix: key.slice(-4),
-                      })}
-                    </span>
-                    <button
-                      onClick={() => setExtraApiKeys(extraApiKeys.filter((_, i) => i !== idx))}
-                      className="p-1.5 rounded hover:bg-red-500/10 text-red-400 hover:text-red-500"
-                      title={t("removeThisKey")}
-                    >
-                      <span className="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                  </div>
-                ))}
+                {extraApiKeys.map((key, idx) => {
+                  const keyId = `extra_${idx}`;
+                  const health = apiKeyHealth[keyId];
+                  const statusColor =
+                    health?.status === "invalid"
+                      ? "text-red-400"
+                      : health?.status === "warning"
+                        ? "text-yellow-400"
+                        : "text-green-400";
+                  const statusIcon =
+                    health?.status === "invalid"
+                      ? "🔴"
+                      : health?.status === "warning"
+                        ? "🟡"
+                        : "🟢";
+                  const statusLabel =
+                    health?.status === "invalid"
+                      ? t("apiKeyStatusInvalid")
+                      : health?.status === "warning"
+                        ? t("apiKeyStatusWarning", { count: health.failures })
+                        : t("apiKeyStatusActive");
+
+                  return (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span
+                        className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate ${statusColor}`}
+                      >
+                        {statusIcon}{" "}
+                        {t("extraApiKeyMasked", {
+                          index: idx + 2,
+                          prefix: key.slice(0, 6),
+                          suffix: key.slice(-4),
+                        })}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {health && (
+                          <span
+                            className="text-[10px] text-text-muted whitespace-nowrap"
+                            title={statusLabel}
+                          >
+                            {health.failures}x
+                            {health.lastFailure ? ` · ${formatTimeAgo(health.lastFailure)}` : ""}
+                            {health.totalRequests != null
+                              ? ` · (${health.totalRequests} req${health.totalFailures != null ? `, ${health.totalFailures} fail` : ""})`
+                              : ""}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setExtraApiKeys(extraApiKeys.filter((_, i) => i !== idx))}
+                          className="p-1.5 rounded hover:bg-red-500/10 text-red-400 hover:text-red-500"
+                          title={t("removeThisKey")}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">close</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
             <div className="flex gap-2">

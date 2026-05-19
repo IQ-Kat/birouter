@@ -133,10 +133,10 @@ export class GeminiCLIExecutor extends BaseExecutor {
     model?: string
   ) {
     void clientHeaders;
-    
+
     // Fallback to internal tracker if model not explicitly passed (matches older interface calls)
     const activeModel = model || this._currentModel || "unknown";
-    
+
     const raw = getGeminiCliHeaders(
       normalizeGeminiModel(activeModel),
       credentials.accessToken,

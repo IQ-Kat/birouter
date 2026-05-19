@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -78,9 +78,11 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
 }
 
 export default function HomePageClient({ machineId }: HomePageClientProps) {
+  const router = useRouter();
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const ts = useTranslations("sidebar");
+  const tp = useTranslations("providers");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +135,70 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // T07: Check for invalid API keys and show notification (once per session)
+  const notifiedInvalidKeys = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const checkApiKeyHealth = () => {
+      const newInvalidKeys = new Set<string>();
+      const invalidConnections: string[] = [];
+      let firstInvalidProviderId: string | null = null;
+
+      for (const conn of providerConnections) {
+        const health = conn.providerSpecificData?.apiKeyHealth as
+          | Record<
+              string,
+              {
+                status: "active" | "warning" | "invalid";
+                failures: number;
+                lastFailure: string | null;
+              }
+            >
+          | undefined;
+        if (!health) continue;
+
+        const invalidKeys = Object.entries(health).filter(([_, h]) => h.status === "invalid");
+
+        if (invalidKeys.length > 0) {
+          for (const [keyId] of invalidKeys) {
+            newInvalidKeys.add(`${conn.id}:${keyId}`);
+          }
+          if (firstInvalidProviderId === null) {
+            firstInvalidProviderId = conn.provider;
+          }
+          invalidConnections.push(conn.name || conn.id);
+        }
+      }
+
+      // Only notify for newly invalid keys (not already notified)
+      const hasNewInvalid = Array.from(newInvalidKeys).some(
+        (k) => !notifiedInvalidKeys.current.has(k)
+      );
+      if (hasNewInvalid) {
+        const navigateTo =
+          newInvalidKeys.size === 1 && firstInvalidProviderId
+            ? `/dashboard/providers/${firstInvalidProviderId}`
+            : "/dashboard/providers";
+
+        useNotificationStore.getState().addNotification({
+          type: "warning",
+          message: tp("apiKeyInvalidAlert", {
+            count: newInvalidKeys.size,
+            connections: invalidConnections.join(", "),
+          }),
+          title: tp("apiKeyInvalidAlertTitle"),
+          duration: 10000,
+          onClick: () => router.push(navigateTo),
+        });
+        // Mark all current invalid keys as notified
+        newInvalidKeys.forEach((k) => notifiedInvalidKeys.current.add(k));
+      }
+    };
+
+    if (providerConnections.length > 0) {
+      checkApiKeyHealth();
+    }
+  }, [providerConnections, t, tp, router]);
 
   const providerStats = useMemo(() => {
     return Object.entries(AI_PROVIDERS).map(([providerId, providerInfo]) => {

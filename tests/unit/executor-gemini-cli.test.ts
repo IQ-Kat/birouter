@@ -42,7 +42,7 @@ test("GeminiCLIExecutor.buildUrl and buildHeaders match the native Gemini CLI fi
   assert.equal(headers.Accept, "*/*");
 
   const apiKeyHeaders = executor.buildHeaders(
-    { apiKey: "gcli-api-key" }, 
+    { apiKey: "gcli-api-key" },
     false,
     undefined,
     "models/gemini-2.5-flash"

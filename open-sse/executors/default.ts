@@ -1,7 +1,8 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+import { getRotatingApiKey, getValidApiKey } from "../services/apiKeyRotator.ts";
+import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -253,9 +254,13 @@ export class DefaultExecutor extends BaseExecutor {
     // T07: resolve extra keys round-robin locally since DefaultExecutor overrides BaseExecutor buildHeaders
     const extraKeys =
       (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+    const health = credentials.providerSpecificData?.apiKeyHealth as
+      | Record<string, KeyHealth>
+      | undefined;
     const effectiveKey =
       extraKeys.length > 0 && credentials.connectionId && credentials.apiKey
-        ? getRotatingApiKey(credentials.connectionId, credentials.apiKey, extraKeys)
+        ? getValidApiKey(credentials.connectionId, credentials.apiKey, extraKeys, health) ||
+          credentials.apiKey
         : credentials.apiKey;
 
     switch (this.provider) {
