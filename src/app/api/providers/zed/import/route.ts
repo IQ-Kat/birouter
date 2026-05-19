@@ -14,6 +14,7 @@ import { discoverZedCredentials, isZedInstalled } from "@/lib/zed-oauth/keychain
 import { partitionZedCredentials } from "@/lib/zed-oauth/importUtils";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createProviderConnection } from "@/lib/db/providers";
+import { isRunningInDocker } from "@/lib/zed-oauth/dockerDetect";
 
 interface ImportResponse {
   success: boolean;
@@ -27,6 +28,7 @@ interface ImportResponse {
   }>;
   error?: string;
   zedInstalled?: boolean;
+  zedDockerEnvironment?: boolean;
 }
 
 export async function POST(request: Request): Promise<NextResponse<ImportResponse> | Response> {
@@ -82,7 +84,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
         });
         savedCount++;
       } catch (err) {
-        console.error(`[Zed Import] Failed to save credential for ${cred.provider}:`, err);
+        console.error("[Zed Import] Failed to save credential for %s:", cred.provider, err);
       }
     }
 

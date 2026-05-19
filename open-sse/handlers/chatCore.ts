@@ -3915,7 +3915,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -3933,7 +3934,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -3951,7 +3953,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else if (isContextOverflowError(statusCode, message)) {
@@ -3993,7 +3996,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -4011,7 +4015,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -4029,7 +4034,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else {
