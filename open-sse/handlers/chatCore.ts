@@ -422,6 +422,36 @@ export function shouldUseNativeCodexPassthrough({
   return segments.includes("responses");
 }
 
+export function isClaudeCodeSemanticPassthroughRequest({
+  provider,
+  sourceFormat,
+  targetFormat,
+  headers,
+  userAgent,
+}: {
+  provider?: string | null;
+  sourceFormat?: string | null;
+  targetFormat?: string | null;
+  headers?: Record<string, unknown> | Headers | null;
+  userAgent?: string | null;
+}): boolean {
+  const isDirectClaudeCodeProvider =
+    provider === "claude" || isClaudeCodeCompatibleProvider(provider);
+  if (!isDirectClaudeCodeProvider) return false;
+  if (sourceFormat !== FORMATS.CLAUDE) return false;
+  if (targetFormat !== FORMATS.CLAUDE) return false;
+
+  const headerUserAgent = getHeaderValueCaseInsensitive(headers, "user-agent");
+  const ua = `${userAgent || ""} ${headerUserAgent || ""}`.toLowerCase();
+  if (ua.includes("claude-code") || ua.includes("claude-cli")) return true;
+
+  const appHeader = getHeaderValueCaseInsensitive(headers, "x-app");
+  if (typeof appHeader === "string" && appHeader.trim().toLowerCase() === "cli") return true;
+
+  const sessionId = getHeaderValueCaseInsensitive(headers, "x-claude-code-session-id");
+  return typeof sessionId === "string" && sessionId.trim().length > 0;
+}
+
 function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
   if (!body || !Array.isArray(body.tools)) return null;
 
@@ -1683,10 +1713,13 @@ export async function handleChatCore({
 
   // Codex /responses/compact is JSON-only: Codex CLI does not send stream=false,
   // so route shape must override the usual Accept/header fallback.
+  // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
+  // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
+  // clients send Accept: */* without an explicit stream flag.
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader);
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
   const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
   effectiveServiceTier = resolveEffectiveServiceTier(body);
@@ -2405,6 +2438,13 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
+  const isClaudeCodeSemanticPassthrough = isClaudeCodeSemanticPassthroughRequest({
+    provider,
+    sourceFormat,
+    targetFormat,
+    headers: clientRawRequest?.headers,
+    userAgent,
+  });
   const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
   const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
@@ -2565,7 +2605,9 @@ export async function handleChatCore({
 
       // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
       // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
-      if (sourceFormat !== FORMATS.OPENAI) {
+      if (sourceFormat === FORMATS.CLAUDE && isClaudeCodeSemanticPassthrough) {
+        log?.debug?.("FORMAT", "claude-code semantic passthrough enabled for compatible bridge");
+      } else if (sourceFormat !== FORMATS.OPENAI) {
         const normalizeToolCallId = getModelNormalizeToolCallId(
           provider || "",
           model || "",
@@ -2600,6 +2642,7 @@ export async function handleChatCore({
         cwd: process.cwd(),
         now: new Date(),
         preserveCacheControl,
+        preserveClaudeMessages: sourceFormat === FORMATS.CLAUDE && isClaudeCodeSemanticPassthrough,
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough) {
@@ -2610,7 +2653,11 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (!isClaudeCodeSemanticPassthrough) {
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      } else {
+        log?.debug?.("FORMAT", "claude-code semantic passthrough enabled");
+      }
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
 
@@ -2962,6 +3009,7 @@ export async function handleChatCore({
     provider,
     model,
     connectionId,
+    clientResponseFormat,
   });
 
   const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };

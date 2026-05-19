@@ -794,7 +794,7 @@ export async function getProviderCredentials(
     // noAuth free providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if (FREE_PROVIDERS[resolvedId]?.noAuth) {
+    if ((FREE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth) {
       return {
         apiKey: null,
         accessToken: null,

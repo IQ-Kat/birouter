@@ -82,6 +82,28 @@ export const OAUTH_PROVIDERS = {
       "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
   },
   cursor: { id: "cursor", alias: "cu", name: "Cursor IDE", icon: "edit_note", color: "#00D4AA" },
+  zed: {
+    id: "zed",
+    alias: "zd",
+    name: "Zed IDE",
+    icon: "code",
+    color: "#084CCF",
+    textIcon: "ZD",
+    website: "https://zed.dev",
+    authHint:
+      "Zed stores LLM provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) in the OS keychain. Use the Import button below to discover and import them automatically.",
+  },
+  trae: {
+    id: "trae",
+    alias: "tr",
+    name: "Trae",
+    icon: "edit_square",
+    color: "#FF7849",
+    textIcon: "TR",
+    website: "https://trae.ai",
+    authHint:
+      "Trae is an AI-native IDE by ByteDance. Sign in inside Trae and paste your API token or use OAuth device flow here.",
+  },
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",
@@ -152,6 +174,17 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://grok.com",
     authHint: "Paste your sso= cookie value from grok.com",
   },
+  "gemini-web": {
+    id: "gemini-web",
+    alias: "gweb",
+    name: "Gemini Web (Free)",
+    icon: "auto_awesome",
+    color: "#4285F4",
+    textIcon: "GWeb",
+    website: "https://gemini.google.com",
+    authHint:
+      "Paste your __Secure-1PSID cookie value from gemini.google.com. Optionally add __Secure-1PSIDTS separated by semicolon.",
+  },
   "perplexity-web": {
     id: "perplexity-web",
     alias: "pplx-web",
@@ -192,6 +225,29 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "DS",
     website: "https://chat.deepseek.com",
     authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
+  },
+  "copilot-web": {
+    id: "copilot-web",
+    alias: "copilot",
+    name: "Microsoft Copilot Web",
+    icon: "auto_awesome",
+    color: "#0078D4",
+    textIcon: "CP",
+    website: "https://copilot.microsoft.com",
+    authHint:
+      "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
+  },
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    name: "Veo AI Free",
+    icon: "videocam",
+    color: "#8B5CF6",
+    textIcon: "VF",
+    website: "https://veoaifree.com",
+    hasFree: true,
+    freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
+    authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
   },
 };
 
@@ -875,6 +931,95 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
+  },
+  replicate: {
+    id: "replicate",
+    alias: "rep",
+    name: "Replicate",
+    icon: "auto_awesome",
+    color: "#3B82F6",
+    textIcon: "RE",
+    website: "https://replicate.com",
+    hasFree: true,
+    freeNote:
+      "Free community models — Llama 3.1, Mixtral, DeepSeek R1. Passthrough for SDXL, Whisper, MusicGen.",
+    passthroughModels: true,
+    authHint: "Get API token at replicate.com/account/api-tokens",
+  },
+  hackclub: {
+    id: "hackclub",
+    alias: "hc",
+    name: "Hackclub AI",
+    icon: "auto_awesome",
+    color: "#FF6B00",
+    textIcon: "HC",
+    website: "https://ai.hackclub.com",
+    hasFree: true,
+    freeNote: "Free AI for Hack Club members — 30+ models, no credit card.",
+    passthroughModels: true,
+    authHint: "Sign in with your Hack Club account at ai.hackclub.com.",
+  },
+  "github-models": {
+    id: "github-models",
+    alias: "ghm",
+    name: "GitHub Models",
+    icon: "code",
+    color: "#238636",
+    textIcon: "GH",
+    website: "https://github.com/marketplace/models",
+    hasFree: true,
+    freeNote: "Free GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3 — GitHub account only.",
+    authHint: "Create a GitHub PAT with 'models: read' scope at github.com/settings/tokens",
+  },
+  haiper: {
+    id: "haiper",
+    alias: "hp",
+    name: "Haiper",
+    icon: "videocam",
+    color: "#6366F1",
+    textIcon: "HP",
+    website: "https://haiper.ai",
+    authHint: "Get API key at haiper.ai/haiper-api",
+  },
+  leonardo: {
+    id: "leonardo",
+    alias: "leo",
+    name: "Leonardo AI",
+    icon: "palette",
+    color: "#8B5CF6",
+    textIcon: "LE",
+    website: "https://leonardo.ai",
+    authHint: "Get API key at leonardo.ai/developer",
+  },
+  ideogram: {
+    id: "ideogram",
+    alias: "ideo",
+    name: "Ideogram",
+    icon: "image",
+    color: "#EC4899",
+    textIcon: "ID",
+    website: "https://ideogram.ai",
+    authHint: "Get API key at ideogram.ai/docs/api",
+  },
+  suno: {
+    id: "suno",
+    alias: "suno",
+    name: "Suno",
+    icon: "music_note",
+    color: "#F59E0B",
+    textIcon: "SU",
+    website: "https://suno.ai",
+    authHint: "Paste session cookie from suno.ai (Clerk auth)",
+  },
+  udio: {
+    id: "udio",
+    alias: "udio",
+    name: "Udio",
+    icon: "music_note",
+    color: "#10B981",
+    textIcon: "UD",
+    website: "https://udio.com",
+    authHint: "Paste session cookie from udio.com (Supabase auth)",
   },
   "cloudflare-ai": {
     id: "cloudflare-ai",
@@ -1578,6 +1723,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "empower",
   "poe",
   "chutes",
+  "hackclub",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
@@ -1597,7 +1743,21 @@ export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
   "modal",
 ]);
 
-export const VIDEO_PROVIDER_IDS = new Set(["runwayml"]);
+export const VIDEO_PROVIDER_IDS = new Set([
+  "runwayml",
+  "veoaifree-web",
+  "pollinations",
+  "minimax",
+  "together",
+  "replicate",
+  "haiper",
+  "leonardo",
+]);
+
+// IDE Providers: editors with built-in AI subscription (separate section in UI).
+// These providers live in OAUTH_PROVIDERS but render under "IDE Providers"
+// instead of "OAuth Providers" to avoid visual duplication.
+export const IDE_PROVIDER_IDS = new Set(["cursor", "zed", "trae"]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
@@ -2011,11 +2171,42 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "searxng-search" ||
     providerId === "petals" ||
     providerId === "pollinations" ||
+    providerId === "copilot-web" ||
+    providerId === "hackclub" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
     isAnthropicCompatibleProvider(providerId)
   );
+}
+
+/**
+ * Providers explicitly excluded from bulk API key add — auth is heterogeneous,
+ * OAuth-based, multi-field, or requires manual setup per connection.
+ */
+const BULK_API_KEY_EXCLUDED = new Set([
+  "vertex",
+  "vertex-partner",
+  "ollama-local",
+  "grok-web",
+  "perplexity-web",
+  "blackbox-web",
+  "muse-spark-web",
+  "deepseek-web",
+  "qoder",
+  "google-pse-search",
+  "command-code",
+  "azure",
+  "cloudflare-ai",
+]);
+
+export function supportsBulkApiKey(providerId: unknown): boolean {
+  if (typeof providerId !== "string" || !providerId) return false;
+  if (BULK_API_KEY_EXCLUDED.has(providerId)) return false;
+  if (isLocalProvider(providerId)) return false;
+  if (isSelfHostedChatProvider(providerId)) return false;
+  if (isClaudeCodeCompatibleProvider(providerId)) return false;
+  return true;
 }
 
 // ── System Providers (virtual, not user-connectable) ──────────────────────────
