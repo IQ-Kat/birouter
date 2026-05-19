@@ -11,6 +11,7 @@ function makeDeps(state) {
     ghIssueListFeatureTitled: () => [],
     ghIssueView: (_o, _r, n) => state.issuesById[n],
     ghPrSearchMerged: (_o, _r, n) => state.prsByIssue[n] ?? [],
+    ghPrSearchOpen: (_o, _r, n) => state.openPrsByIssue?.[n] ?? [],
     gitTagsByDate: () => state.tags ?? [],
     gitLogGrep: (pattern) => state.commitsByPattern?.[pattern] ?? [],
     gitIsAncestor: () => true,
@@ -109,13 +110,10 @@ describe("feature-triage integration", () => {
           assignees: [],
           comments: [],
           reactionGroups: [],
-          timelineItems: [
-            {
-              __typename: "CrossReferencedEvent",
-              source: { __typename: "PullRequest", state: "OPEN", number: 999 },
-            },
-          ],
         },
+      },
+      openPrsByIssue: {
+        500: [{ number: 999, title: "WIP fix", body: "addresses #500" }],
       },
       prsByIssue: {
         300: [

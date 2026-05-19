@@ -144,6 +144,18 @@ async function main(argv, env, deps = defaultDeps) {
       continue;
     }
 
+    // Synthesize timelineItems from open PR search (gh issue view doesn't expose timelineItems)
+    let openPrs = [];
+    try {
+      openPrs = deps.ghPrSearchOpen(args.owner, args.repo, num);
+    } catch (e) {
+      warnings.push({ level: "warn", issue: num, message: `open PR search failed: ${e.message}` });
+    }
+    issue.timelineItems = openPrs.map((pr) => ({
+      __typename: "CrossReferencedEvent",
+      source: { __typename: "PullRequest", state: "OPEN", number: pr.number },
+    }));
+
     const mergedPrs = deps.ghPrSearchMerged(args.owner, args.repo, num);
     const gitCommits = deps.gitLogGrep(`#${num}`).filter((c) => deps.gitIsAncestor(c.hash, "main"));
     const del = detectDelivered(num, { mergedPrs, changelog: changelogText, gitCommits });

@@ -61,7 +61,24 @@ export function ghIssueView(owner, repo, number) {
     "--repo",
     `${owner}/${repo}`,
     "--json",
-    "number,title,url,body,state,stateReason,labels,author,assignees,createdAt,closedAt,comments,reactionGroups,timelineItems",
+    "number,title,url,body,state,stateReason,labels,author,assignees,createdAt,closedAt,comments,reactionGroups",
+  ]);
+}
+
+export function ghPrSearchOpen(owner, repo, issueNumber) {
+  return runJson("gh", [
+    "pr",
+    "list",
+    "--repo",
+    `${owner}/${repo}`,
+    "--state",
+    "open",
+    "--search",
+    `#${issueNumber}`,
+    "--json",
+    "number,title,body",
+    "--limit",
+    "10",
   ]);
 }
 
@@ -141,6 +158,7 @@ export const defaultDeps = {
   ghIssueListFeatureTitled,
   ghIssueView,
   ghPrSearchMerged,
+  ghPrSearchOpen,
   gitTagsByDate,
   gitLogGrep,
   gitIsAncestor,
