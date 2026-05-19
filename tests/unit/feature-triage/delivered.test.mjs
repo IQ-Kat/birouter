@@ -111,3 +111,28 @@ describe("detectDelivered", () => {
     assert.equal(r.confidence, "none");
   });
 });
+
+import { resolveVersion } from "../../../scripts/features/lib/delivered.mjs";
+
+describe("resolveVersion", () => {
+  it("returns first tag created after merge", () => {
+    const tags = [
+      { date: new Date("2026-03-01"), name: "v3.7.1" },
+      { date: new Date("2026-03-15"), name: "v3.7.2" },
+      { date: new Date("2026-04-01"), name: "v3.7.3" },
+    ];
+    const r = resolveVersion(new Date("2026-03-10"), tags, "release/v3.8.0");
+    assert.deepEqual(r, { version: "v3.7.2", version_source: "tag_after_merge" });
+  });
+
+  it("falls back to current release branch when no tag after merge", () => {
+    const tags = [{ date: new Date("2026-02-01"), name: "v3.7.0" }];
+    const r = resolveVersion(new Date("2026-05-10"), tags, "release/v3.8.0");
+    assert.deepEqual(r, { version: "release/v3.8.0", version_source: "branch_unreleased" });
+  });
+
+  it("falls back to 'unreleased' when no tag and no release branch", () => {
+    const r = resolveVersion(new Date("2026-05-10"), [], null);
+    assert.deepEqual(r, { version: "unreleased", version_source: "branch_unreleased" });
+  });
+});

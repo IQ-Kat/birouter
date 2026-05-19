@@ -86,3 +86,15 @@ export function detectDelivered(issueNumber, signals) {
 
   return { confidence, evidence };
 }
+
+export function resolveVersion(mergedAt, tagsByDate, currentReleaseBranch) {
+  const mergedTime = mergedAt instanceof Date ? mergedAt.getTime() : new Date(mergedAt).getTime();
+  const after = tagsByDate.find((t) => t.date.getTime() >= mergedTime);
+  if (after) {
+    return { version: after.name, version_source: "tag_after_merge" };
+  }
+  return {
+    version: currentReleaseBranch || "unreleased",
+    version_source: "branch_unreleased",
+  };
+}
