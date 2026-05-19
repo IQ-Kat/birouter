@@ -64,20 +64,26 @@ test("sessionPoolKey never returns 'default' (security regression guard)", () =>
   assert.notEqual(sessionPoolKey(undefined), "default");
 });
 
-test("sessionPoolKey is a 16-char lowercase hex string for any non-empty token", () => {
-  // HMAC-SHA-256 with a process-scope key, truncated to 16 hex chars (64 bits).
-  // We can't assert the exact output here (the HMAC key is randomized at
-  // process start to satisfy CodeQL js/insufficient-password-hash #245/#246),
-  // but the shape and uniqueness invariants still hold.
-  assert.match(sessionPoolKey("test-token"), /^[0-9a-f]{16}$/);
-  assert.match(sessionPoolKey("a"), /^[0-9a-f]{16}$/);
-  assert.match(sessionPoolKey("x".repeat(1024)), /^[0-9a-f]{16}$/);
+test("sessionPoolKey returns the token verbatim for any non-empty input", () => {
+  // After CodeQL #245/#246/#247: we no longer hash the token at all (any hash
+  // of a credential-named parameter re-triggers js/insufficient-password-hash,
+  // and bcrypt/scrypt/argon2 would be inappropriate for a high-entropy bearer
+  // used only as an in-memory Map key). The Map is bounded by MAX_POOL_SIZE
+  // with LRU eviction, and the token is already held in CopilotSession.cookies
+  // for each entry — so keying the Map by the token itself exposes nothing
+  // the process did not already hold.
+  assert.equal(sessionPoolKey("test-token"), "test-token");
+  assert.equal(sessionPoolKey("a"), "a");
+  assert.equal(sessionPoolKey("x".repeat(1024)), "x".repeat(1024));
 });
 
-test("sessionPoolKey output differs from the plain SHA-256 prefix of the token", () => {
-  // Regression guard for the HMAC migration: if someone ever reverts to
-  // `createHash("sha256")` the alert resurfaces, and this test catches it
-  // before CodeQL does.
+test("sessionPoolKey treats an empty string the same as undefined", () => {
+  assert.equal(sessionPoolKey(""), "anonymous");
+});
+
+test("sessionPoolKey output is not a SHA-256 prefix of the token (regression guard)", () => {
+  // If anyone re-introduces createHash/createHmac on the token, the alert
+  // resurfaces — this guard catches it before CodeQL does.
   const token = "regression-guard-token";
   const plainSha256Prefix =
     "5dd8c5e63dbfd4ccb09362efce82bcc3f5d2bb37f8f1cce03f47d7e57b1b1ec3".slice(0, 16);

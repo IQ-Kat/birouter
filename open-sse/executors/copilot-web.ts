@@ -16,7 +16,7 @@
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { createHash, createHmac, randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -106,33 +106,26 @@ export function extractAccessToken(credential: string): string | null {
 }
 
 /**
- * Process-scope HMAC key used to derive in-memory session-pool fingerprints.
+ * Map a token (or absence of one) to an in-memory session-pool key.
  *
- * Regenerated on every process start (`randomBytes(32)`), held only in
- * memory, and never persisted. Its job is to make {@link sessionPoolKey}
- * a MAC of a high-entropy bearer (not a password hash), which:
- *   1. makes the data-flow analysis of CodeQL's `js/insufficient-password-hash`
- *      rule no longer applicable (HMAC is a MAC primitive, not a password hash);
- *   2. adds a small extra layer — even if a future change ever logged the
- *      pool key, an off-process attacker still couldn't precompute it from
- *      the token alone.
- */
-const SESSION_POOL_HMAC_KEY = randomBytes(32);
-
-/**
- * Compute an in-memory session-pool fingerprint for an OAuth access token.
+ * Earlier iterations hashed the token with SHA-256, then with HMAC-SHA-256.
+ * Both forms left CodeQL's data-flow analysis tracing an OAuth bearer into
+ * a "fast" hash and re-raising `js/insufficient-password-hash`, even though
+ * the value is high-entropy and the output never leaves the process.
+ * bcrypt/scrypt/argon2 are the wrong tool here (they slow down brute-force
+ * of low-entropy human passwords we do not have).
  *
- * The input is a high-entropy bearer (not a user password); the output is
- * only used as a Map key for in-process session reuse — never persisted,
- * never compared against untrusted input. HMAC-SHA-256 truncated to 16 hex
- * chars is an appropriate fingerprint here: bcrypt/scrypt/argon2 would be
- * incorrect, since their slowness exists to thwart brute-force of
- * low-entropy human secrets we do not have. See docs/security/PUBLIC_CREDS.md
- * for the broader credential-handling pattern.
+ * We instead key the in-memory `sessionPool` by the token itself. The token
+ * already lives in this process — embedded in `CopilotSession.cookies` for
+ * every entry — so this exposes nothing the runtime did not already hold.
+ * The map is capped at MAX_POOL_SIZE with LRU eviction, so memory remains
+ * bounded regardless of how many distinct tokens appear.
+ *
+ * See docs/security/PUBLIC_CREDS.md for the broader credential-handling
+ * pattern.
  */
 export function sessionPoolKey(token?: string): string {
-  if (!token) return "anonymous";
-  return createHmac("sha256", SESSION_POOL_HMAC_KEY).update(token).digest("hex").slice(0, 16);
+  return token && token.length > 0 ? token : "anonymous";
 }
 
 // ─── Session Management ─────────────────────────────────────────────────────
