@@ -698,6 +698,25 @@ export function isProviderFailureCode(status: number): boolean {
   return PROVIDER_FAILURE_ERROR_CODES.has(status);
 }
 
+/**
+ * Returns true when a checkFallbackError result signals that the entire provider
+ * quota is exhausted for this request, so the combo router can skip remaining
+ * targets from the same provider (#1731).
+ *
+ * Covers:
+ *  - reason === "quota_exhausted"  (subscription, daily, credits)
+ *  - creditsExhausted flag
+ *  - dailyQuotaExhausted flag
+ */
+export function isProviderExhaustedReason(result: {
+  reason?: string;
+  creditsExhausted?: boolean;
+  dailyQuotaExhausted?: boolean;
+}): boolean {
+  if (result.creditsExhausted || result.dailyQuotaExhausted) return true;
+  return result.reason === RateLimitReason.QUOTA_EXHAUSTED;
+}
+
 // ─── Retry-After Parsing ────────────────────────────────────────────────────
 
 /**

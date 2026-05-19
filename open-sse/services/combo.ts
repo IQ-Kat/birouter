@@ -11,6 +11,7 @@ import {
   getRuntimeProviderProfile,
   recordProviderFailure,
   isProviderFailureCode,
+  isProviderExhaustedReason,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
@@ -1991,6 +1992,12 @@ export async function handleComboChat({
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
 
+  // #1731: Per-request in-memory set of providers whose quota is fully exhausted.
+  // When a target returns a quota-exhausted 429 (subscription/credits/daily),
+  // remaining targets from the same provider are skipped to avoid the
+  // 2–5 minute cascade through N same-provider targets.
+  const exhaustedProviders = new Set<string>();
+
   let lastError = null;
   let earliestRetryAfter = null;
   let lastStatus = null;
@@ -2013,6 +2020,17 @@ export async function handleComboChat({
         if (i > 0) fallbackCount++;
         continue;
       }
+    }
+
+    // #1731: Skip targets from a provider that already signaled full quota exhaustion
+    // this request.
+    if (provider && exhaustedProviders.has(provider)) {
+      log.info(
+        "COMBO",
+        `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
+      );
+      if (i > 0) fallbackCount++;
+      continue;
     }
 
     // Retry loop for transient errors
@@ -2218,7 +2236,7 @@ export async function handleComboChat({
       // treated as local to that target and the combo continues to the next target.
       // Error classification is retained only for retry/cooldown pacing; it must
       // not decide whether fallback happens, including for generic 400 responses.
-      const { cooldownMs } = checkFallbackError(
+      const fallbackResult = checkFallbackError(
         result.status,
         errorText,
         0,
@@ -2227,6 +2245,17 @@ export async function handleComboChat({
         result.headers,
         profile
       );
+      const { cooldownMs } = fallbackResult;
+
+      // #1731: If the entire provider quota is exhausted, mark it so subsequent
+      // same-provider targets are skipped immediately.
+      if (provider && isProviderExhaustedReason(fallbackResult)) {
+        exhaustedProviders.add(provider);
+        log.info(
+          "COMBO",
+          `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+        );
+      }
 
       // Trigger shared provider circuit breaker for 5xx errors and connection failures
       if (!isStreamReadinessFailure && isProviderFailureCode(result.status)) {
@@ -2367,6 +2396,11 @@ async function handleRoundRobinCombo({
   let fallbackCount = 0;
   let recordedAttempts = 0;
 
+  // #1731: Per-request in-memory set of providers whose quota is fully exhausted.
+  // When a target returns a quota-exhausted 429, remaining targets from the same
+  // provider are skipped to avoid the cascade through N same-provider targets.
+  const exhaustedProviders = new Set<string>();
+
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
     const modelIndex = (startIndex + offset) % modelCount;
@@ -2384,6 +2418,17 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         continue;
       }
+    }
+
+    // #1731: Skip targets from a provider that already signaled full quota exhaustion
+    // this request.
+    if (provider && exhaustedProviders.has(provider)) {
+      log.info(
+        "COMBO-RR",
+        `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
+      );
+      if (offset > 0) fallbackCount++;
+      continue;
     }
 
     // Acquire semaphore slot (may wait in queue)
@@ -2559,7 +2604,7 @@ async function handleRoundRobinCombo({
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
         // not to decide whether fallback is allowed.
-        const { cooldownMs } = checkFallbackError(
+        const fallbackResult = checkFallbackError(
           result.status,
           errorText,
           0,
@@ -2568,6 +2613,17 @@ async function handleRoundRobinCombo({
           result.headers,
           profile
         );
+        const { cooldownMs } = fallbackResult;
+
+        // #1731: If the entire provider quota is exhausted, mark it so subsequent
+        // same-provider targets are skipped immediately.
+        if (provider && isProviderExhaustedReason(fallbackResult)) {
+          exhaustedProviders.add(provider);
+          log.info(
+            "COMBO-RR",
+            `Provider ${provider} quota exhausted — marking for skip (#1731)`
+          );
+        }
 
         const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(
           result.status,
@@ -2590,6 +2646,10 @@ async function handleRoundRobinCombo({
             "COMBO-RR",
             `All accounts rate-limited for ${modelStr}, falling back to next model`
           );
+          // #1731: All-accounts-rate-limited 503 also counts as provider exhaustion
+          if (provider) {
+            exhaustedProviders.add(provider);
+          }
         }
 
         // Transient error → retry same model
