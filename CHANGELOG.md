@@ -139,6 +139,8 @@
 - **build(deps):** production group bumps — 4 updates. ([#2398](https://github.com/diegosouzapw/OmniRoute/pull/2398))
 - **build(deps):** development group bumps — 4 updates. ([#2399](https://github.com/diegosouzapw/OmniRoute/pull/2399))
 - **chore:** sync `release/v3.8.0` with `main` (CodeQL hotfixes + Dependabot bumps) via merge commit.
+- **fix(providers):** Kilo Code provider no longer blocks on a missing local `kilocode` CLI binary — the provider uses OAuth device flow + direct HTTPS to `api.kilo.ai` and never required the CLI at runtime; the connection test was hard-failing with "Local CLI runtime is not installed" even when the OAuth token was valid. CLI Tools integration (`/api/cli-tools/kilo-settings`) keeps its own runtime check. ([#2404](https://github.com/diegosouzapw/OmniRoute/issues/2404) — thanks @Flexible78)
+- **fix(db):** `bun add -g omniroute` (and other runtimes that skip postinstall) no longer surfaces a generic 500 — `isNativeSqliteLoadError` now also detects "Could not locate the bindings file" / `MODULE_NOT_FOUND`, so the user gets the friendly rebuild guide instead. ([#2358](https://github.com/diegosouzapw/OmniRoute/issues/2358) — thanks @yamansin)
 
 ### 🏆 v3.8.0 Hall of Fame — extended credits (post-release)
 
