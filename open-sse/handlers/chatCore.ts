@@ -4124,7 +4124,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     }
