@@ -44,6 +44,7 @@ import {
   safeLogEvents,
   withSessionHeader,
 } from "./chatHelpers";
+import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -1094,14 +1095,25 @@ async function handleSingleModelChat(
       }
 
       // 8. Fallback to next account
-      const { shouldFallback, cooldownMs } = await markAccountUnavailable(
-        credentials.connectionId,
-        result.status,
-        result.error,
-        provider,
-        model,
-        providerProfile
-      );
+      // A3 guard: if 401 and connection has extra keys, skip connection-level disable
+      // (key-level failure already recorded in chatCore.ts via T07)
+      // Check extra keys directly from credentials for reliability across restarts
+      const extraKeys =
+        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+      const hasExtraKeys = extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+      const is401 = result.status === 401;
+      const skipConnectionDisable = is401 && hasExtraKeys;
+
+      const { shouldFallback, cooldownMs } = skipConnectionDisable
+        ? { shouldFallback: false, cooldownMs: 0 }
+        : await markAccountUnavailable(
+            credentials.connectionId,
+            result.status,
+            result.error,
+            provider,
+            model,
+            providerProfile
+          );
 
       if (shouldFallback) {
         if (Number.isFinite(cooldownMs) && cooldownMs > 0) {

@@ -46,6 +46,15 @@ import {
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
+import {
+  recordKeyFailure,
+  recordKeySuccess,
+  getLastUsedKeyId,
+  getInvalidKeyCount,
+  trackConnectionExtraKeys,
+  connectionHasExtraKeys,
+  type KeyHealth,
+} from "../services/apiKeyRotator.ts";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -3164,6 +3173,43 @@ export async function handleChatCore({
               });
               trace("post_executor", { status: res?.response?.status });
 
+              // T07: Handle 401 authentication errors with API key health tracking
+              if (res.response.status === 401 && credentials?.connectionId) {
+                const psd = credentials.providerSpecificData as Record<string, unknown> | undefined;
+                const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
+                const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
+
+                // Track extra keys for A3 guard (prevents disabling entire connection on single-key failure)
+                trackConnectionExtraKeys(credentials.connectionId, extraKeys);
+
+                const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
+
+                // Record failure for the current key
+                const updatedHealth = recordKeyFailure(credentials.connectionId, currentKeyId);
+                log?.warn?.(
+                  "AUTH",
+                  `401 on connection ${credentials.connectionId.slice(0, 8)} - key marked as failed (${updatedHealth.failures}/${3})`
+                );
+
+                // Persist health status to DB if key is now invalid
+                if (
+                  updatedHealth.status === "invalid" &&
+                  health?.[currentKeyId]?.status !== "invalid"
+                ) {
+                  updateProviderConnection(credentials.connectionId, {
+                    providerSpecificData: {
+                      ...psd,
+                      apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+                    },
+                  }).catch((err) => {
+                    log?.error?.(
+                      "DB",
+                      `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+                    );
+                  });
+                }
+              }
+
               // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
               if (
                 provider === "qwen" &&
@@ -3313,6 +3359,65 @@ export async function handleChatCore({
 
         // Non-stream: release semaphore immediately after reading full response body.
         const status = rawResult.response.status;
+
+        // T07: Record API key health status
+        if (credentials?.connectionId && credentials?.apiKey) {
+          const psd = credentials.providerSpecificData as Record<string, unknown> | undefined;
+          const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
+          const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
+
+          if (status === 401) {
+            // Track extra keys for A3 guard (prevents disabling entire connection on single-key failure)
+            trackConnectionExtraKeys(credentials.connectionId, extraKeys);
+
+            // Authentication failed - mark current key as failed
+            const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
+            const updatedHealth = recordKeyFailure(credentials.connectionId, currentKeyId);
+            log?.warn?.(
+              "AUTH",
+              `401 on connection ${credentials.connectionId.slice(0, 8)} - key marked as failed (${updatedHealth.failures}/3)`
+            );
+
+            // Persist to DB if status changed to invalid
+            if (
+              updatedHealth.status === "invalid" &&
+              health?.[currentKeyId]?.status !== "invalid"
+            ) {
+              updateProviderConnection(credentials.connectionId, {
+                providerSpecificData: {
+                  ...psd,
+                  apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+                },
+              }).catch((err) => {
+                log?.error?.(
+                  "DB",
+                  `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+                );
+              });
+            }
+          } else if (status >= 200 && status < 300) {
+            // Success - mark current key as successful
+            const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
+            const updatedHealth = recordKeySuccess(credentials.connectionId, currentKeyId);
+
+            // Persist to DB if status was warning/invalid and now active
+            const prevStatus = health?.[currentKeyId]?.status;
+            if (prevStatus === "warning" || prevStatus === "invalid") {
+              updateProviderConnection(credentials.connectionId, {
+                providerSpecificData: {
+                  ...psd,
+                  apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+                },
+              }).catch((err) => {
+                log?.error?.(
+                  "DB",
+                  `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+                );
+              });
+            }
+          }
+        }
+
         const statusText = rawResult.response.statusText;
         const headers = new Headers(rawResult.response.headers);
         stripStaleForwardingHeaders(headers);
@@ -3637,16 +3742,29 @@ export async function handleChatCore({
             `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-          await updateProviderConnection(connectionId, {
-            isActive: false,
-            testStatus: "deactivated",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-          });
-          console.warn(
-            `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
-          );
+          // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
+          // Single-key connections still get disabled as before.
+          if (connectionHasExtraKeys(connectionId)) {
+            await updateProviderConnection(connectionId, {
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+            });
+            console.warn(
+              `[provider] Node ${connectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
+            );
+          } else {
+            await updateProviderConnection(connectionId, {
+              isActive: false,
+              testStatus: "deactivated",
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+            });
+            console.warn(
+              `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
           const quotaCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
@@ -4409,6 +4527,20 @@ export async function handleChatCore({
       recordCost(apiKeyInfo.id, estimatedCost);
     }
 
+    // ── Gamification event (fire-and-forget) ──
+    if (apiKeyInfo?.id) {
+      try {
+        const { emitGamificationEvent } = await import("@/lib/gamification/events");
+        emitGamificationEvent({
+          apiKeyId: apiKeyInfo.id,
+          action: "request",
+          metadata: { model, provider },
+        });
+      } catch (_) {
+        /* gamification optional */
+      }
+    }
+
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -4727,6 +4859,20 @@ export async function handleChatCore({
       shape: shapeForClientFormat(clientResponseFormat),
     })
   );
+
+  // ── Gamification event (fire-and-forget) ──
+  if (apiKeyInfo?.id) {
+    try {
+      const { emitGamificationEvent } = await import("@/lib/gamification/events");
+      emitGamificationEvent({
+        apiKeyId: apiKeyInfo.id,
+        action: "request",
+        metadata: { model, provider },
+      });
+    } catch (_) {
+      /* gamification optional */
+    }
+  }
 
   return {
     success: true,

@@ -1,5 +1,6 @@
 import { getModelInfo, getComboForModel } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
+import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import {
@@ -343,6 +344,21 @@ export async function executeChatWithBreaker({
           },
           onStreamFailure: async (failure: any) => {
             if (!credentials.connectionId) return;
+            // A3 guard: if 401 and connection has extra keys, skip connection-level disable
+            // (key-level failure already recorded in chatCore.ts via T07)
+            // Check extra keys directly from credentials for reliability across restarts
+            const extraKeys =
+              (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+            const hasExtraKeys =
+              extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+            const is401 = Number(failure?.status) === 401;
+            if (is401 && hasExtraKeys) {
+              log.debug(
+                "AUTH",
+                `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
+              );
+              return;
+            }
             await markAccountUnavailable(
               credentials.connectionId,
               Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
