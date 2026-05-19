@@ -37,7 +37,24 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
   if (authError) return authError;
 
   try {
-    // Check if Zed is installed
+    // Docker environments cannot access the host OS keychain or filesystem.
+    // Surface a clear error directing users to the manual import tab.
+    const inDocker = isRunningInDocker();
+    if (inDocker) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "OmniRoute is running inside Docker and cannot access the host keychain. " +
+            "Use the Manual Token Import tab to paste your API key directly.",
+          zedInstalled: false,
+          zedDockerEnvironment: true,
+        },
+        { status: 422 }
+      );
+    }
+
+    // Check if Zed is installed (non-Docker path)
     const zedInstalled = await isZedInstalled();
 
     if (!zedInstalled) {
@@ -46,6 +63,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
           success: false,
           error: "Zed IDE does not appear to be installed on this system.",
           zedInstalled: false,
+          zedDockerEnvironment: false,
         },
         { status: 404 }
       );
