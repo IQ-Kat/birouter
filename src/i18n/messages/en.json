@@ -3328,6 +3328,8 @@
     "bailianBaseUrlHint": "Bailian Base Url Hint",
     "blackboxWebCookieHint": "Blackbox Web Cookie Hint",
     "blackboxWebCookiePlaceholder": "Blackbox Web Cookie Placeholder",
+    "t3ChatWebCookieHint": "Open t3.chat → DevTools → Application → Local Storage → https://t3.chat, copy 'convex-session-id'. Then open DevTools → Network, copy the full Cookie header from any chat request. Paste both values in the fields below.",
+    "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
     "blockClaudeExtraUsageDescription": "Hide extra Claude usage rows reported by some providers when they duplicate primary token accounting.",
     "blockClaudeExtraUsageLabel": "Block duplicate Claude usage rows",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
