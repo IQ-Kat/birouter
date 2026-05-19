@@ -16,7 +16,7 @@
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { createHash } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -106,20 +106,33 @@ export function extractAccessToken(credential: string): string | null {
 }
 
 /**
+ * Process-scope HMAC key used to derive in-memory session-pool fingerprints.
+ *
+ * Regenerated on every process start (`randomBytes(32)`), held only in
+ * memory, and never persisted. Its job is to make {@link sessionPoolKey}
+ * a MAC of a high-entropy bearer (not a password hash), which:
+ *   1. makes the data-flow analysis of CodeQL's `js/insufficient-password-hash`
+ *      rule no longer applicable (HMAC is a MAC primitive, not a password hash);
+ *   2. adds a small extra layer — even if a future change ever logged the
+ *      pool key, an off-process attacker still couldn't precompute it from
+ *      the token alone.
+ */
+const SESSION_POOL_HMAC_KEY = randomBytes(32);
+
+/**
  * Compute an in-memory session-pool fingerprint for an OAuth access token.
  *
- * The input is a high-entropy bearer token (not a user password), and the
- * output is only used as a Map key for in-process session reuse — it never
- * leaves the process, is never persisted, and is never compared against
- * untrusted input. SHA-256 truncated to 16 hex chars is therefore an
- * appropriate cryptographic fingerprint: bcrypt/scrypt/argon2 would be
- * incorrect here, since their slowness exists to thwart brute-force of
+ * The input is a high-entropy bearer (not a user password); the output is
+ * only used as a Map key for in-process session reuse — never persisted,
+ * never compared against untrusted input. HMAC-SHA-256 truncated to 16 hex
+ * chars is an appropriate fingerprint here: bcrypt/scrypt/argon2 would be
+ * incorrect, since their slowness exists to thwart brute-force of
  * low-entropy human secrets we do not have. See docs/security/PUBLIC_CREDS.md
  * for the broader credential-handling pattern.
  */
 export function sessionPoolKey(token?: string): string {
   if (!token) return "anonymous";
-  return createHash("sha256").update(token).digest("hex").slice(0, 16);
+  return createHmac("sha256", SESSION_POOL_HMAC_KEY).update(token).digest("hex").slice(0, 16);
 }
 
 // ─── Session Management ─────────────────────────────────────────────────────

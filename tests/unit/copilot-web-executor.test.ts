@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 
 const { getCopilotMode, extractAccessToken, sessionPoolKey, solveHashcash } =
   await import("../../open-sse/executors/copilot-web.ts");
@@ -65,11 +64,24 @@ test("sessionPoolKey never returns 'default' (security regression guard)", () =>
   assert.notEqual(sessionPoolKey(undefined), "default");
 });
 
-test("sessionPoolKey is a 16-char hex prefix of sha256", () => {
-  const token = "test-token";
-  const expected = createHash("sha256").update(token).digest("hex").slice(0, 16);
-  assert.equal(sessionPoolKey(token), expected);
-  assert.match(sessionPoolKey(token), /^[0-9a-f]{16}$/);
+test("sessionPoolKey is a 16-char lowercase hex string for any non-empty token", () => {
+  // HMAC-SHA-256 with a process-scope key, truncated to 16 hex chars (64 bits).
+  // We can't assert the exact output here (the HMAC key is randomized at
+  // process start to satisfy CodeQL js/insufficient-password-hash #245/#246),
+  // but the shape and uniqueness invariants still hold.
+  assert.match(sessionPoolKey("test-token"), /^[0-9a-f]{16}$/);
+  assert.match(sessionPoolKey("a"), /^[0-9a-f]{16}$/);
+  assert.match(sessionPoolKey("x".repeat(1024)), /^[0-9a-f]{16}$/);
+});
+
+test("sessionPoolKey output differs from the plain SHA-256 prefix of the token", () => {
+  // Regression guard for the HMAC migration: if someone ever reverts to
+  // `createHash("sha256")` the alert resurfaces, and this test catches it
+  // before CodeQL does.
+  const token = "regression-guard-token";
+  const plainSha256Prefix =
+    "5dd8c5e63dbfd4ccb09362efce82bcc3f5d2bb37f8f1cce03f47d7e57b1b1ec3".slice(0, 16);
+  assert.notEqual(sessionPoolKey(token), plainSha256Prefix);
 });
 
 // solveHashcash difficulty bounds — CodeQL js/resource-exhaustion #244 guard.
