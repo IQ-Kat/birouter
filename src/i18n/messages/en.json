@@ -1640,7 +1640,25 @@
     "mitmClientsTab": "MITM Clients",
     "customCliTab": "Custom CLI",
     "toolCategories": "Tool Categories",
-    "visibleToolsCount": "{count} tools available"
+    "visibleToolsCount": "{count} tools available",
+    "customCliBuilderTitle": "OpenAI-compatible CLI builder",
+    "customCliBuilderDescription": "Generate env vars and JSON snippets for any CLI or SDK that accepts an OpenAI-compatible base URL, API key, and model ID.",
+    "customCliNoModels": "Connect at least one provider to populate the model selectors.",
+    "customCliNameLabel": "CLI name",
+    "customCliNamePlaceholder": "e.g. My Team CLI",
+    "customCliDefaultModelLabel": "Default model",
+    "customCliDefaultModelHelp": "Use any OmniRoute model ID or combo. Most OpenAI-compatible CLIs only need the /v1 base URL plus a model string.",
+    "customCliKeyHelper": "For local installs OmniRoute can use sk_omniroute. In cloud mode, pick one of your management API keys.",
+    "customCliAliasMappingsLabel": "Alias mappings",
+    "customCliAliasMappingsHelp": "Optional helper aliases for wrapper scripts or config files that want stable shorthand names.",
+    "customCliAddAlias": "Add alias",
+    "customCliNoMappings": "No alias mappings yet. Add one if your wrapper or team scripts use stable short names.",
+    "customCliAliasPlaceholder": "e.g. review",
+    "customCliTargetModelLabel": "Target model",
+    "customCliEndpointHintLabel": "How to wire the endpoint",
+    "customCliEndpointHint": "Point any OpenAI-compatible client to the OmniRoute /v1 base URL. The raw chat completions endpoint is {endpoint}. Use the JSON block when the tool wants a provider object, or the env script when it reads OPENAI_* variables.",
+    "customCliEnvBlockTitle": "Env / shell snippet",
+    "customCliJsonBlockTitle": "Provider JSON block"
   },
   "combos": {
     "title": "Combos",
@@ -2528,7 +2546,19 @@
     "episodic": "Episodic",
     "procedural": "Procedural",
     "semantic": "Semantic",
-    "a": "A"
+    "a": "A",
+    "pipelineOk": "Pipeline OK ({latencyMs}ms)",
+    "pipelineError": "Pipeline error",
+    "healthUnknown": "Health unknown",
+    "checkingHealth": "Checking…",
+    "checkHealth": "Check health",
+    "pageInfo": "Page {page} of {totalPages} ({total} total)",
+    "previous": "Previous",
+    "next": "Next",
+    "cancel": "Cancel",
+    "save": "Save",
+    "keyPlaceholder": "e.g. user.preferences.theme",
+    "contentPlaceholder": "Value or JSON content to remember"
   },
   "skills": {
     "title": "Skills",
@@ -2825,7 +2855,23 @@
     "failedAddProvider": "Failed to add provider. Try again.",
     "connectionError": "Connection error. Please try again.",
     "provider": "Provider",
-    "apiKeyHelp": "An API key is a password for AI services. Get one from your provider's website (e.g., platform.openai.com, console.anthropic.com)."
+    "apiKeyHelp": "An API key is a password for AI services. Get one from your provider's website (e.g., platform.openai.com, console.anthropic.com).",
+    "tier": {
+      "subtitle": "OmniRoute organises providers into three tiers so routing prefers the most reliable, lowest-cost path first.",
+      "tier1": {
+        "label": "Premium clients",
+        "description": "First-class CLIs with native auth flows and reasoning models."
+      },
+      "tier2": {
+        "label": "Cost-optimised",
+        "description": "Cheap, high-throughput providers used for everyday traffic."
+      },
+      "tier3": {
+        "label": "Fallback & specialty",
+        "description": "Locally-hosted or specialty endpoints used as fallbacks."
+      },
+      "configure": "Configure providers"
+    }
   },
   "providers": {
     "title": "Providers",
@@ -4426,6 +4472,16 @@
       },
       "streaming": {
         "prompt": "Tell me a short story about a robot learning to paint."
+      },
+      "vision": {
+        "system": "You are an assistant that describes images precisely.",
+        "userPrompt": "What is shown in this image?",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/600px-PNG_transparency_demonstration_1.png"
+      },
+      "schemaCoercion": {
+        "userPrompt": "Look up the weather for Tokyo using metric units and include the hourly breakdown.",
+        "toolDescription": "Fetch weather for a city with structured options.",
+        "cityDescription": "The city to query, e.g. 'Tokyo' or 'New York'."
       }
     },
     "openaiCompatibleLabel": "OpenAI Compatible",
@@ -4471,7 +4527,33 @@
     "eventSourceTranslatorPage": "• Translator page (Chat Tester, Test Bench)",
     "eventSourceMainPipeline": "• Main request pipeline (CLI/IDE/API traffic)",
     "liveMonitorDescriptionPrefix": "Shows translation events as API calls flow through OmniRoute. Events come from the in-memory buffer (resets on restart). Use",
-    "liveMonitorDescriptionSuffix": ", or external API calls to generate events."
+    "liveMonitorDescriptionSuffix": ", or external API calls to generate events.",
+    "streamTransformer": "Stream Transformer",
+    "modeDescriptionStreamTransformer": "Run chat completions SSE streams through the Responses transformer.",
+    "streamTransformerTitle": "Responses Stream Transformer",
+    "streamTransformerDescription": "Paste a chat completions SSE stream, run it through OmniRoute's Responses transformer, and inspect the emitted response.* events before wiring a client.",
+    "loadTextSample": "Load text sample",
+    "loadToolSample": "Load tool-call sample",
+    "transformToResponses": "Transform to Responses",
+    "rawChatSseInput": "Raw chat completions SSE",
+    "transformedResponsesSse": "Transformed Responses API SSE",
+    "noResultsYet": "No results yet",
+    "transformedEvents": "Transformed events",
+    "uniqueEventTypes": "Unique event types",
+    "inputLines": "Input lines",
+    "outputLines": "Output lines",
+    "transformedEventTimeline": "Transformed event timeline",
+    "transformerTimelineHint": "Run the transformer to inspect emitted response.output_* events in order.",
+    "eventType": "Event type",
+    "eventPreview": "Preview",
+    "comboRouted": "Combo routed",
+    "uniqueEndpoints": "Unique endpoints",
+    "routeDetails": "Route details",
+    "comboBadge": "Combo",
+    "routeEndpointLabel": "Endpoint",
+    "routeConnectionLabel": "Connection",
+    "scenarioVision": "Vision (image understanding)",
+    "scenarioSchemaCoercion": "Schema coercion (structured output)"
   },
   "usage": {
     "title": "Usage",
