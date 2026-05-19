@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
-const { getCopilotMode, extractAccessToken, sessionPoolKey } =
+const { getCopilotMode, extractAccessToken, sessionPoolKey, solveHashcash } =
   await import("../../open-sse/executors/copilot-web.ts");
 
 test("getCopilotMode maps known models to their Copilot modes", () => {
@@ -70,4 +70,22 @@ test("sessionPoolKey is a 16-char hex prefix of sha256", () => {
   const expected = createHash("sha256").update(token).digest("hex").slice(0, 16);
   assert.equal(sessionPoolKey(token), expected);
   assert.match(sessionPoolKey(token), /^[0-9a-f]{16}$/);
+});
+
+// solveHashcash difficulty bounds — CodeQL js/resource-exhaustion #244 guard.
+test("solveHashcash rejects out-of-range difficulty to avoid resource exhaustion", () => {
+  // Negative, zero, fractional, NaN, Infinity, and >8 must short-circuit.
+  assert.equal(solveHashcash("param", 0), null);
+  assert.equal(solveHashcash("param", -1), null);
+  assert.equal(solveHashcash("param", 1.5), null);
+  assert.equal(solveHashcash("param", Number.NaN), null);
+  assert.equal(solveHashcash("param", Number.POSITIVE_INFINITY), null);
+  assert.equal(solveHashcash("param", 9), null);
+  assert.equal(solveHashcash("param", 1_000_000), null);
+});
+
+test("solveHashcash succeeds for difficulty=1 (a single leading zero is common)", () => {
+  // ~1 in 16 chance of leading "0" — well within the 10M iteration budget.
+  const result = solveHashcash("any-parameter", 1);
+  assert.ok(typeof result === "number" && result >= 0, "expected a numeric nonce");
 });
