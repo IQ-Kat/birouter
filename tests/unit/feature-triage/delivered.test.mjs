@@ -39,4 +39,11 @@ describe("parseChangelog", () => {
     const r = parseChangelog(text, 980);
     assert.equal(r.version, "3.7.2");
   });
+
+  it("matches #N with word boundary (not only inside parentheses)", () => {
+    const text = `## [3.7.2]\n- Fixed by #980.\n`;
+    const r = parseChangelog(text, 980);
+    assert.equal(r.version, "3.7.2");
+    assert.match(r.line, /#980/);
+  });
 });

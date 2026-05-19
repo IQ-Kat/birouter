@@ -6,6 +6,7 @@ const VERSION_HEADER_RE = /^##\s+\[?(\d+\.\d+\.\d+)\]?/;
 
 export function parseChangelog(text, issueNumber) {
   if (typeof text !== "string") return null;
+  if (!Number.isInteger(issueNumber) || issueNumber <= 0) return null;
   const needle = `#${issueNumber}`;
   const lines = text.split("\n");
 
@@ -18,9 +19,14 @@ export function parseChangelog(text, issueNumber) {
       currentVersion = headerMatch[1];
       continue;
     }
-    if (line.includes(needle) && currentSection) {
-      const match = line.match(/\(#\d+\)/);
-      if (match && match[0] === `(${needle})`) {
+    if (!currentSection) continue;
+    // Match #N with word boundary: look for needle followed by non-word char or end
+    const idx = line.indexOf(needle);
+    if (idx !== -1) {
+      const nextIdx = idx + needle.length;
+      const nextChar = line[nextIdx];
+      const isWordBoundary = nextIdx >= line.length || /\W/.test(nextChar);
+      if (isWordBoundary) {
         return {
           section: currentSection,
           version: currentVersion,
