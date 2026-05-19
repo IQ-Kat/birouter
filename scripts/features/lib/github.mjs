@@ -146,8 +146,19 @@ export function gitIsAncestor(hash, ref) {
 export function gitCurrentReleaseBranch() {
   try {
     const out = runText("git", ["branch", "--format=%(refname:short)"]);
-    const found = out.split("\n").find((b) => /^release\/v\d+\.\d+\.\d+$/.test(b));
-    return found || null;
+    const branches = out.split("\n").filter((b) => /^release\/v\d+\.\d+\.\d+$/.test(b));
+    if (branches.length === 0) return null;
+    const current = runText("git", ["branch", "--show-current"]);
+    if (branches.includes(current)) return current;
+    branches.sort((a, b) => {
+      const av = a.replace("release/v", "").split(".").map(Number);
+      const bv = b.replace("release/v", "").split(".").map(Number);
+      for (let i = 0; i < 3; i++) {
+        if (av[i] !== bv[i]) return bv[i] - av[i];
+      }
+      return 0;
+    });
+    return branches[0];
   } catch {
     return null;
   }
