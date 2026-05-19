@@ -47,3 +47,67 @@ describe("parseChangelog", () => {
     assert.match(r.line, /#980/);
   });
 });
+
+import { detectDelivered } from "../../../scripts/features/lib/delivered.mjs";
+
+const CLOSES_PR = {
+  number: 2380,
+  title: "feat: add native playground",
+  body: "closes #1046",
+  mergedAt: "2026-03-10T00:00:00Z",
+  mergeCommit: { oid: "abc1234" },
+};
+const MENTION_PR = {
+  number: 2381,
+  title: "Improve foo",
+  body: "Related to #1046 and others",
+  mergedAt: "2026-03-12T00:00:00Z",
+  mergeCommit: { oid: "def5678" },
+};
+
+describe("detectDelivered", () => {
+  it("HIGH confidence when PR merged with 'closes #N'", () => {
+    const r = detectDelivered(1046, {
+      mergedPrs: [CLOSES_PR],
+      changelog: "",
+      gitCommits: [],
+    });
+    assert.equal(r.confidence, "high");
+    assert.equal(r.evidence.pr_merged.number, 2380);
+    assert.match(r.evidence.pr_merged.ref, /closes/i);
+  });
+
+  it("MEDIUM confidence when PR-mention + CHANGELOG", () => {
+    const r = detectDelivered(1046, {
+      mergedPrs: [MENTION_PR],
+      changelog: "## [3.7.2]\n- Foo (#1046)\n",
+      gitCommits: [],
+    });
+    assert.equal(r.confidence, "medium");
+    assert.equal(r.evidence.pr_merged.number, 2381);
+    assert.equal(r.evidence.changelog_section, "## [3.7.2]");
+  });
+
+  it("MEDIUM confidence when CHANGELOG + git log", () => {
+    const r = detectDelivered(1046, {
+      mergedPrs: [],
+      changelog: "## [3.7.2]\n- Foo (#1046)\n",
+      gitCommits: [{ hash: "abc", date: new Date("2026-03-10"), subject: "feat: thing #1046" }],
+    });
+    assert.equal(r.confidence, "medium");
+  });
+
+  it("LOW confidence when only CHANGELOG", () => {
+    const r = detectDelivered(1046, {
+      mergedPrs: [],
+      changelog: "## [3.7.2]\n- Foo (#1046)\n",
+      gitCommits: [],
+    });
+    assert.equal(r.confidence, "low");
+  });
+
+  it("NONE when no signals", () => {
+    const r = detectDelivered(1046, { mergedPrs: [], changelog: "", gitCommits: [] });
+    assert.equal(r.confidence, "none");
+  });
+});
