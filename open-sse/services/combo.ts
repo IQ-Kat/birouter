@@ -96,6 +96,10 @@ const DEFAULT_MODEL_P95_MS = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
+// Assumed fraction of tokens that are output when blending input+output prices
+// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
+// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
+const OUTPUT_TOKEN_RATIO = 0.4;
 const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
 const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const RESET_AWARE_REMAINING_WEIGHT = 0.55;
@@ -1219,8 +1223,14 @@ async function buildAutoCandidates(targets, comboName) {
       try {
         const pricing = await getPricingForModel(provider, model);
         const inputPrice = Number(pricing?.input);
+        const outputPrice = Number(pricing?.output);
         if (Number.isFinite(inputPrice) && inputPrice >= 0) {
-          costPer1MTokens = inputPrice;
+          if (Number.isFinite(outputPrice) && outputPrice >= 0) {
+            costPer1MTokens =
+              inputPrice * (1 - OUTPUT_TOKEN_RATIO) + outputPrice * OUTPUT_TOKEN_RATIO;
+          } else {
+            costPer1MTokens = inputPrice;
+          }
         }
       } catch {
         // keep default cost
