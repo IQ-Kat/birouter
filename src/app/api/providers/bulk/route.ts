@@ -21,6 +21,9 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { validateProviderApiKey } from "@/lib/providers/validation";
+import { getProxyForLevel, resolveProxyForProvider } from "@/lib/localDb";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 // POST /api/providers/bulk — create multiple API-key connections for a single provider.
 // Partial-failure semantics: each entry succeeds or fails independently; the
@@ -89,7 +92,17 @@ export async function POST(request: Request) {
   baseProviderSpecificData =
     normalizeProviderSpecificData(provider, baseProviderSpecificData) || null;
 
-  const origin = new URL(request.url).origin;
+  // Resolve proxy once for all entries — we call validateProviderApiKey directly
+  // instead of round-tripping through /api/providers/validate over HTTP. Direct
+  // invocation avoids SSRF risk from `new URL(request.url).origin` being driven
+  // by a spoofable Host header (CodeQL js/request-forgery #243).
+  const proxyToUse = validateKeys
+    ? (await resolveProxyForProvider(provider)) ||
+      (await getProxyForLevel("provider", provider)) ||
+      (await getProxyForLevel("global")) ||
+      null
+    : null;
+
   const created: Array<Record<string, unknown>> = [];
   const errors: Array<{ index: number; name: string; message: string }> = [];
 
@@ -99,17 +112,14 @@ export async function POST(request: Request) {
       let testStatus: "active" | "unknown" | "failed" = "unknown";
 
       if (validateKeys) {
-        const probe = await fetch(`${origin}/api/providers/validate`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Forward auth so the validate endpoint accepts the call.
-            ...passthroughAuthHeaders(request),
-          },
-          body: JSON.stringify({ provider, apiKey: entry.apiKey }),
-        });
-        const probeData = (await probe.json().catch(() => ({}))) as { valid?: boolean };
-        testStatus = probeData.valid ? "active" : "failed";
+        const probe = await runWithProxyContext(proxyToUse, () =>
+          validateProviderApiKey({
+            provider,
+            apiKey: entry.apiKey,
+            providerSpecificData: baseProviderSpecificData || {},
+          })
+        );
+        testStatus = probe?.valid ? "active" : "failed";
       }
 
       const newConnection = await createProviderConnection({
@@ -186,15 +196,6 @@ export async function POST(request: Request) {
     },
     { status: 200 }
   );
-}
-
-function passthroughAuthHeaders(request: Request): Record<string, string> {
-  const out: Record<string, string> = {};
-  const auth = request.headers.get("authorization");
-  if (auth) out.authorization = auth;
-  const cookie = request.headers.get("cookie");
-  if (cookie) out.cookie = cookie;
-  return out;
 }
 
 async function syncToCloudIfEnabled() {
