@@ -141,6 +141,9 @@
 - **chore:** sync `release/v3.8.0` with `main` (CodeQL hotfixes + Dependabot bumps) via merge commit.
 - **fix(providers):** Kilo Code provider no longer blocks on a missing local `kilocode` CLI binary — the provider uses OAuth device flow + direct HTTPS to `api.kilo.ai` and never required the CLI at runtime; the connection test was hard-failing with "Local CLI runtime is not installed" even when the OAuth token was valid. CLI Tools integration (`/api/cli-tools/kilo-settings`) keeps its own runtime check. ([#2404](https://github.com/diegosouzapw/OmniRoute/issues/2404) — thanks @Flexible78)
 - **fix(db):** `bun add -g omniroute` (and other runtimes that skip postinstall) no longer surfaces a generic 500 — `isNativeSqliteLoadError` now also detects "Could not locate the bindings file" / `MODULE_NOT_FOUND`, so the user gets the friendly rebuild guide instead. ([#2358](https://github.com/diegosouzapw/OmniRoute/issues/2358) — thanks @yamansin)
+- **feat(gamification):** implement Gamification & Leaderboard System with non-blocking event-driven updates. ([#2405](https://github.com/diegosouzapw/OmniRoute/pull/2405))
+- **feat(providers):** support Gemini API keys for Gemini CLI executor. ([#2408](https://github.com/diegosouzapw/OmniRoute/pull/2408) — thanks @benzntech)
+- **fix(resilience):** add API Key health tracking with automatic rotation and UI toast alerts. ([#2412](https://github.com/diegosouzapw/OmniRoute/pull/2412) — thanks @clousky2020)
 
 ### 🏆 v3.8.0 Hall of Fame — extended credits (post-release)
 
@@ -165,6 +168,8 @@ The following contributions landed after the initial v3.8.0 cut and supplement t
 | [@Rikonorus](https://github.com/Rikonorus)               | #2253, #2254                                                         | (new contributor — 2 PRs)                                                                                            |
 | [@8mbe](https://github.com/8mbe)                         | #2251                                                                | (new contributor — 1 PR)                                                                                             |
 | [@InkshadeWoods](https://github.com/InkshadeWoods)       | #2250, #2261                                                         | (+ already listed: #2202)                                                                                            |
+| [@clousky2020](https://github.com/clousky2020)           | #2412                                                                | (+ already listed: 15 PRs)                                                                                           |
+| [@benzntech](https://github.com/benzntech)               | #2408                                                                | (+ already listed: 8 PRs)                                                                                            |
 
 Thanks also to **@app/dependabot** for keeping our dependency tree current via #2178, #2228, #2288, #2397, #2398, #2399.
 
