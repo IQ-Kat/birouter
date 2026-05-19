@@ -35,6 +35,7 @@ import {
   type ScoringWeights,
 } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
+import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
@@ -1721,6 +1722,32 @@ export async function handleComboChat({
       }
     }
 
+    // Context-window pre-filter (#1808)
+    // Estimate input tokens once; exclude candidates whose known context limit is too small.
+    // Uses the same 4-chars-per-token heuristic as contextManager.ts::compressContext().
+    // Null/unknown limits are treated as "include" to avoid incorrectly dropping valid targets.
+    const estimatedInputTokens = estimateTokens(body?.messages ?? []);
+    if (estimatedInputTokens > 0) {
+      const filteredByContext = eligibleTargets.filter((target) => {
+        const limit = getModelContextLimitForModelString(target.modelStr);
+        if (limit === null || limit === undefined) return true; // unknown — include to be safe
+        return limit >= estimatedInputTokens;
+      });
+      if (filteredByContext.length > 0) {
+        log.debug(
+          "COMBO",
+          `Auto strategy: context-window filter kept ${filteredByContext.length}/${eligibleTargets.length} candidates (est. ${estimatedInputTokens} tokens)`
+        );
+        eligibleTargets = filteredByContext;
+      } else {
+        log.warn(
+          "COMBO",
+          `Auto strategy: all candidates filtered by context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool`
+        );
+        // eligibleTargets intentionally unchanged — same fallback contract as tool-calling filter
+      }
+    }
+
     const prompt = extractPromptForIntent(body);
     const systemPrompt =
       typeof combo?.system_message === "string" ? combo.system_message : undefined;
@@ -1775,7 +1802,7 @@ export async function handleComboChat({
         try {
           const decision = selectWithStrategy(
             candidates,
-            { taskType, requestHasTools, lastKnownGoodProvider },
+            { taskType, requestHasTools, lastKnownGoodProvider, estimatedInputTokens },
             routingStrategy
           );
           selectedProvider = decision.provider;
