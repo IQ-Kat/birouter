@@ -235,7 +235,10 @@ async function saveAndRespond(
           providerSpecificData.clientSecretExpiresAt = reg.clientSecretExpiresAt;
         }
       } catch (err) {
-        console.warn("[kiro auto-import] registerClient failed, continuing without isolated client:", err);
+        console.warn(
+          "[kiro auto-import] registerClient failed, continuing without isolated client:",
+          err
+        );
       }
     }
 

@@ -71,13 +71,10 @@ test("fast-skip on quota-exhausted 429: first same-provider target causes remain
       openaiCalls += 1;
       callSequence.push("openai");
       // Return quota exhausted on all openai calls
-      return new Response(
-        JSON.stringify({ error: { message: "Subscription quota exceeded" } }),
-        {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: { message: "Subscription quota exceeded" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     if (
@@ -111,7 +108,11 @@ test("fast-skip on quota-exhausted 429: first same-provider target causes remain
     "should fallback to anthropic"
   );
   // The key assertion: openai should only be called once (not twice for both gpt-4o-mini and gpt-3.5-turbo)
-  assert.equal(openaiCalls, 1, `openai should be called only once, but was called ${openaiCalls} times. Call sequence: ${callSequence.join(" -> ")}`);
+  assert.equal(
+    openaiCalls,
+    1,
+    `openai should be called only once, but was called ${openaiCalls} times. Call sequence: ${callSequence.join(" -> ")}`
+  );
   assert.equal(anthropicCalls, 1, "anthropic should be called once");
 });
 
@@ -131,11 +132,7 @@ test("fast-skip on credits-exhausted 429: same-provider targets are skipped (#17
     name: "credits-exhausted-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "openai/gpt-3.5-turbo",
-      "anthropic/claude-3-5-sonnet-20241022",
-    ],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
   });
 
   let openaiCalls = 0;
@@ -205,11 +202,7 @@ test("no skip on transient 429: plain rate-limit does not skip same-provider tar
     name: "transient-429-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "openai/gpt-3.5-turbo",
-      "anthropic/claude-3-5-sonnet-20241022",
-    ],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
   });
 
   let openaiCalls = 0;
@@ -253,10 +246,7 @@ test("no skip on transient 429: plain rate-limit does not skip same-provider tar
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.equal(
-    body.choices[0].message.content,
-    "anthropic recovered from transient 429"
-  );
+  assert.equal(body.choices[0].message.content, "anthropic recovered from transient 429");
   // Transient 429 should still try both openai targets (retries), then move to anthropic
   assert.ok(openaiCalls >= 2, "openai should be attempted multiple times for transient 429");
   assert.equal(anthropicCalls, 1);
@@ -363,11 +353,7 @@ test("exhaustion does not persist across requests: second request starts fresh (
     name: "persistence-test-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "openai/gpt-3.5-turbo",
-      "anthropic/claude-3-5-sonnet-20241022",
-    ],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
   });
 
   let requestCount = 0;
@@ -383,13 +369,10 @@ test("exhaustion does not persist across requests: second request starts fresh (
       openaiCalls += 1;
       // First request: openai fails with quota exhaustion
       if (requestCount === 0) {
-        return new Response(
-          JSON.stringify({ error: { message: "Subscription quota exceeded" } }),
-          {
-            status: 429,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: { message: "Subscription quota exceeded" } }), {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        });
       }
       // Second request: openai succeeds
       return new Response(JSON.stringify({ choices: [{ message: { content: "openai ok" } }] }), {
@@ -462,11 +445,7 @@ test("round-robin path fast-skip: round-robin combo also skips exhausted provide
     name: "rr-exhaustion-combo",
     strategy: "round-robin",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "openai/gpt-3.5-turbo",
-      "anthropic/claude-3-5-sonnet-20241022",
-    ],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo", "anthropic/claude-3-5-sonnet-20241022"],
   });
 
   let openaiCalls = 0;
@@ -480,13 +459,10 @@ test("round-robin path fast-skip: round-robin combo also skips exhausted provide
     if (authHeader === "Bearer sk-openai-rr-exhaustion") {
       openaiCalls += 1;
       if (openaiCalls === 1) {
-        return new Response(
-          JSON.stringify({ error: { message: "Daily quota exceeded" } }),
-          {
-            status: 429,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: { message: "Daily quota exceeded" } }), {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        });
       }
       throw new Error("Second openai call should have been skipped!");
     }
@@ -515,10 +491,7 @@ test("round-robin path fast-skip: round-robin combo also skips exhausted provide
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.equal(
-    body.choices[0].message.content,
-    "anthropic handled round-robin exhaustion"
-  );
+  assert.equal(body.choices[0].message.content, "anthropic handled round-robin exhaustion");
   assert.equal(openaiCalls, 1, "round-robin should skip second openai target");
   assert.equal(anthropicCalls, 1);
 });

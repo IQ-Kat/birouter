@@ -254,13 +254,20 @@ test("sanitizeUpstreamDetails — sanitizes string values (absolute path)", asyn
   const { sanitizeUpstreamDetails } = await import("../../open-sse/utils/error.ts");
   const input = { error: { message: "bad input at /srv/app/src/lib/db.ts:42" } };
   const out = sanitizeUpstreamDetails(input) as any;
-  assert.ok(!out.error.message.includes("/srv/app/src/lib/db.ts"), "absolute path must be stripped");
+  assert.ok(
+    !out.error.message.includes("/srv/app/src/lib/db.ts"),
+    "absolute path must be stripped"
+  );
   assert.ok(out.error.message.includes("<path>"), "path placeholder must be present");
 });
 
 test("sanitizeUpstreamDetails — removes blocked keys (stack, apiKey)", async () => {
   const { sanitizeUpstreamDetails } = await import("../../open-sse/utils/error.ts");
-  const input = { error: { message: "oops" }, stack: "Error\n    at foo.ts:1", apiKey: "sk-secret" };
+  const input = {
+    error: { message: "oops" },
+    stack: "Error\n    at foo.ts:1",
+    apiKey: "sk-secret",
+  };
   const out = sanitizeUpstreamDetails(input) as any;
   assert.ok(!("stack" in out), "stack key must be removed");
   assert.ok(!("apiKey" in out), "apiKey key must be removed");
@@ -286,7 +293,9 @@ test("buildErrorBody — without upstream details omits upstream_details field",
 
 test("buildErrorBody — with safe upstream details embeds upstream_details", async () => {
   const { buildErrorBody } = await import("../../open-sse/utils/error.ts");
-  const body = buildErrorBody(400, "bad request", { error: { message: "context_length_exceeded" } });
+  const body = buildErrorBody(400, "bad request", {
+    error: { message: "context_length_exceeded" },
+  });
   assert.ok("upstream_details" in body, "upstream_details must be present");
   assert.equal((body.upstream_details as any).error.message, "context_length_exceeded");
 });
@@ -295,7 +304,10 @@ test("buildErrorBody — upstream details with stack key are stripped", async ()
   const { buildErrorBody } = await import("../../open-sse/utils/error.ts");
   const body = buildErrorBody(500, "err", { stack: "Error\n    at foo.ts:1", code: "internal" });
   assert.ok("upstream_details" in body, "upstream_details must be present");
-  assert.ok(!("stack" in (body.upstream_details as any)), "stack must be stripped from upstream_details");
+  assert.ok(
+    !("stack" in (body.upstream_details as any)),
+    "stack must be stripped from upstream_details"
+  );
   assert.equal((body.upstream_details as any).code, "internal");
 });
 

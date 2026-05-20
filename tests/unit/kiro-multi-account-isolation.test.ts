@@ -32,7 +32,11 @@ function jsonResponse(body: unknown, status = 200) {
  *  - /token  → returns a minimal token refresh response
  *  - /client/register → returns the given registration pair
  */
-function buildFetchMock(registration: { clientId: string; clientSecret: string; clientSecretExpiresAt?: number }) {
+function buildFetchMock(registration: {
+  clientId: string;
+  clientSecret: string;
+  clientSecretExpiresAt?: number;
+}) {
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.endsWith("/client/register")) {
@@ -54,13 +58,21 @@ const VALID_REFRESH_TOKEN = "aorAAAAAG-mock-refresh-token-for-tests";
 
 test("validateImportToken registers a client and returns clientId + clientSecret", async () => {
   const service = new KiroService();
-  const reg = { clientId: "test-client-id", clientSecret: "test-client-secret", clientSecretExpiresAt: 9999999999 };
+  const reg = {
+    clientId: "test-client-id",
+    clientSecret: "test-client-secret",
+    clientSecretExpiresAt: 9999999999,
+  };
 
   await withMockedFetch(buildFetchMock(reg), async () => {
     const result = await service.validateImportToken(VALID_REFRESH_TOKEN);
     assert.equal(result.clientId, reg.clientId, "clientId should be returned");
     assert.equal(result.clientSecret, reg.clientSecret, "clientSecret should be returned");
-    assert.equal(result.clientSecretExpiresAt, reg.clientSecretExpiresAt, "clientSecretExpiresAt should be returned");
+    assert.equal(
+      result.clientSecretExpiresAt,
+      reg.clientSecretExpiresAt,
+      "clientSecretExpiresAt should be returned"
+    );
     assert.equal(result.authMethod, "imported");
     assert.equal(result.accessToken, "at-mock");
   });
@@ -70,26 +82,37 @@ test("validateImportToken succeeds without clientId when registerClient fails", 
   const service = new KiroService();
   let callCount = 0;
 
-  await withMockedFetch(async (input) => {
-    const url = String(input);
-    callCount++;
-    if (url.endsWith("/client/register")) {
-      return new Response("Service Unavailable", { status: 503 });
+  await withMockedFetch(
+    async (input) => {
+      const url = String(input);
+      callCount++;
+      if (url.endsWith("/client/register")) {
+        return new Response("Service Unavailable", { status: 503 });
+      }
+      return jsonResponse({
+        accessToken: "at-degraded",
+        refreshToken: "rt-degraded",
+        expiresIn: 3600,
+      });
+    },
+    async () => {
+      // Should not throw even though registerClient fails
+      const result = await service.validateImportToken(VALID_REFRESH_TOKEN);
+      assert.equal(
+        result.accessToken,
+        "at-degraded",
+        "import should succeed with a degraded token"
+      );
+      assert.equal(result.authMethod, "imported");
+      // clientId must not be set — the connection degrades to shared social-auth path
+      assert.equal(result.clientId, undefined, "clientId should be absent on degraded import");
+      assert.equal(
+        result.clientSecret,
+        undefined,
+        "clientSecret should be absent on degraded import"
+      );
     }
-    return jsonResponse({
-      accessToken: "at-degraded",
-      refreshToken: "rt-degraded",
-      expiresIn: 3600,
-    });
-  }, async () => {
-    // Should not throw even though registerClient fails
-    const result = await service.validateImportToken(VALID_REFRESH_TOKEN);
-    assert.equal(result.accessToken, "at-degraded", "import should succeed with a degraded token");
-    assert.equal(result.authMethod, "imported");
-    // clientId must not be set — the connection degrades to shared social-auth path
-    assert.equal(result.clientId, undefined, "clientId should be absent on degraded import");
-    assert.equal(result.clientSecret, undefined, "clientSecret should be absent on degraded import");
-  });
+  );
 
   assert.ok(callCount >= 1, "fetch should have been called at least once");
 });
@@ -122,8 +145,11 @@ test("two validateImportToken calls return different clientIds when registerClie
     const result1 = await service.validateImportToken(VALID_REFRESH_TOKEN);
     const result2 = await service.validateImportToken(VALID_REFRESH_TOKEN);
 
-    assert.notEqual(result1.clientId, result2.clientId,
-      "each import call should receive a distinct clientId for session isolation");
+    assert.notEqual(
+      result1.clientId,
+      result2.clientId,
+      "each import call should receive a distinct clientId for session isolation"
+    );
     assert.equal(result1.clientId, "client-alpha");
     assert.equal(result2.clientId, "client-beta");
   });
@@ -133,12 +159,15 @@ test("registerClient uses the provided region in the OIDC endpoint URL", async (
   const service = new KiroService();
   const calls: string[] = [];
 
-  await withMockedFetch(async (input) => {
-    calls.push(String(input));
-    return jsonResponse({ clientId: "cid", clientSecret: "csec" });
-  }, async () => {
-    await service.registerClient("ap-southeast-1");
-  });
+  await withMockedFetch(
+    async (input) => {
+      calls.push(String(input));
+      return jsonResponse({ clientId: "cid", clientSecret: "csec" });
+    },
+    async () => {
+      await service.registerClient("ap-southeast-1");
+    }
+  );
 
   assert.ok(
     calls.some((url) => url.includes("ap-southeast-1")),

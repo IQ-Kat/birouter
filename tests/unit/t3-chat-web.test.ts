@@ -2,9 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { T3ChatWebExecutor, T3_CHAT_BASE } = await import(
-  "../../open-sse/executors/t3-chat-web.ts"
-);
+const { T3ChatWebExecutor, T3_CHAT_BASE } = await import("../../open-sse/executors/t3-chat-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 
 // NOTE: These tests use mocked HTTP transport. The COMPLETION_URL constant in
@@ -117,7 +115,12 @@ function makeValidCreds() {
 
 function mockT3ChatSSEResponse(chunks: string[]) {
   const original = globalThis.fetch;
-  const calls: Array<{ url: string; method: string; headers: Record<string, string>; body: unknown }> = [];
+  const calls: Array<{
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    body: unknown;
+  }> = [];
 
   globalThis.fetch = async (url, opts) => {
     const urlStr = typeof url === "string" ? url : url.toString();

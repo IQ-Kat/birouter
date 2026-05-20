@@ -33,7 +33,10 @@ export async function POST(request: Request): Promise<NextResponse> {
   const parsed = manualImportSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json(
-      buildErrorBody(400, "Validation failed: " + parsed.error.issues.map((i) => i.message).join(", ")),
+      buildErrorBody(
+        400,
+        "Validation failed: " + parsed.error.issues.map((i) => i.message).join(", ")
+      ),
       { status: 400 }
     );
   }

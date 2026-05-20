@@ -3373,8 +3373,8 @@ export default function ProviderDetailPage() {
                   Import from Zed Keychain
                 </h2>
                 <p className="text-sm text-text-muted mt-1">
-                  Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that Zed
-                  IDE stored in the OS keychain and import them as connections. Requires Zed IDE
+                  Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that
+                  Zed IDE stored in the OS keychain and import them as connections. Requires Zed IDE
                   installed on this machine.
                 </p>
               </div>
@@ -3408,8 +3408,8 @@ export default function ProviderDetailPage() {
                   <p className="text-sm text-text-muted">
                     Use this when OmniRoute runs in Docker or the keychain is unavailable. Paste the
                     API key that Zed stored under{" "}
-                    <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy it
-                    from the Zed AI settings panel.
+                    <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy
+                    it from the Zed AI settings panel.
                   </p>
                   <div className="flex gap-2 flex-col sm:flex-row">
                     <select

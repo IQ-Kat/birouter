@@ -114,9 +114,9 @@ On success it returns:
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| 422 + `zedDockerEnvironment: true` | Running inside Docker | Use Manual Token Import tab |
-| 404 + `zedInstalled: false` | Zed not installed on host | Install Zed or use manual import |
-| 403 + keychain access denied | OS denied keychain access | Grant permission in OS prompt |
-| 404 + keychain service not available | `libsecret` missing on Linux | Install `libsecret-1-dev` |
+| Symptom                              | Cause                        | Fix                              |
+| ------------------------------------ | ---------------------------- | -------------------------------- |
+| 422 + `zedDockerEnvironment: true`   | Running inside Docker        | Use Manual Token Import tab      |
+| 404 + `zedInstalled: false`          | Zed not installed on host    | Install Zed or use manual import |
+| 403 + keychain access denied         | OS denied keychain access    | Grant permission in OS prompt    |
+| 404 + keychain service not available | `libsecret` missing on Linux | Install `libsecret-1-dev`        |
