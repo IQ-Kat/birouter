@@ -894,7 +894,10 @@ export class BaseExecutor {
             // Only apply for Claude/Claude-compatible — OpenAI allows results
             // spread across multiple subsequent messages.
             const isClaude = this.provider === "claude" || isClaudeCodeCompatible(this.provider);
-            const adjacent = isClaude ? fixToolAdjacency(fixed) : fixed;
+            // For Claude, fixToolAdjacency may strip tool_use blocks whose
+            // tool_result isn't in the next message; re-run fixToolPairs to
+            // drop any tool_result orphaned by that strip (discussion #2410).
+            const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
             tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
           }
         }
