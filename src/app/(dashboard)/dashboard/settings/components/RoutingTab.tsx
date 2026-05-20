@@ -996,7 +996,7 @@ export default function RoutingTab() {
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Antigravity Signature Cache Mode</h3>
+            <h3 className="text-lg font-semibold">{t("routingAntigravitySignatureTitle")}</h3>
             <p className="text-sm text-text-muted">
               Control whether OmniRoute reuses only stored Gemini thought signatures or accepts
               validated client-provided signatures in Antigravity-compatible tool-call flows.
@@ -1070,7 +1070,7 @@ export default function RoutingTab() {
         </div>
 
         <div className="mb-5">
-          <h4 className="text-sm font-semibold mb-2">Header fingerprint (per provider)</h4>
+          <h4 className="text-sm font-semibold mb-2">{t("routingHeaderFingerprintTitle")}</h4>
           <p className="text-xs text-text-muted mb-2">
             {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
           </p>
@@ -1230,7 +1230,7 @@ export default function RoutingTab() {
                     role="alert"
                     className="mb-3 rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-300"
                   >
-                    <span className="font-medium">⚠ Server rejected save:</span>{" "}
+                    <span className="font-medium">{t("routingServerRejectedSave")}</span>{" "}
                     <span className="break-words font-mono">{providerSaveErrors[providerId]}</span>
                     <p className="mt-1 text-[11px] text-red-200/80">
                       Your local edits are kept. Fix the field above and the next change will
@@ -1301,7 +1301,7 @@ export default function RoutingTab() {
                 {/* Add op row */}
                 <div className="flex items-end gap-2 mb-3">
                   <Select
-                    label="Add a transform op"
+                    label={t("routingAddTransformOp")}
                     className="flex-1"
                     value={selectedKind}
                     onChange={(e) =>
@@ -1400,7 +1400,7 @@ export default function RoutingTab() {
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Client Cache Control</h3>
+            <h3 className="text-lg font-semibold">{t("routingClientCacheControlTitle")}</h3>
             <p className="text-sm text-text-muted">
               Configure whether OmniRoute preserves client-provided cache_control markers
             </p>
@@ -1468,7 +1468,7 @@ export default function RoutingTab() {
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Zero-Config Auto-Routing</h3>
+              <h3 className="text-lg font-semibold">{t("routingZeroConfigTitle")}</h3>
               <p className="text-sm text-text-muted mt-1">
                 Enable automatic provider selection using the auto/ prefix. When enabled, requests
                 to auto, auto/coding, auto/fast, etc. will dynamically route across all connected
@@ -1490,7 +1490,7 @@ export default function RoutingTab() {
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-border/30">
-          <label className="block text-sm font-medium mb-2">Default Auto Variant</label>
+          <label className="block text-sm font-medium mb-2">{t("routingDefaultAutoVariant")}</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
               { value: "lkgp", label: "LKGP", desc: "Last Known Good Provider" },

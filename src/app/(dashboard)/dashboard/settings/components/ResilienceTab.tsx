@@ -416,7 +416,7 @@ function ConnectionCooldownCard({
               </p>
             </div>
             <NumberField
-              label="Max backoff steps"
+              label={t("resilienceMaxBackoffSteps")}
               value={current.maxBackoffSteps}
               min={0}
               onChange={(maxBackoffSteps) =>
@@ -427,27 +427,27 @@ function ConnectionCooldownCard({
         ) : (
           <>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Base cooldown</span>
+              <span className="text-text-muted">{t("resilienceBaseCooldownLabel")}</span>
               <span className="font-mono text-text-main">{formatMs(current.baseCooldownMs)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Use upstream retry hints</span>
+              <span className="text-text-muted">{t("resilienceUseUpstreamRetryHintsLabel")}</span>
               <span className="font-mono text-text-main">
-                {current.useUpstreamRetryHints ? "Yes" : "No"}
+                {current.useUpstreamRetryHints ? t("resilienceYes") : t("resilienceNo")}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Use upstream 429 hints (breaker)</span>
+              <span className="text-text-muted">{t("resilienceUseUpstream429BreakerLabel")}</span>
               <span className="font-mono text-text-main">
                 {current.useUpstream429BreakerHints === true
-                  ? "Yes"
+                  ? t("resilienceYes")
                   : current.useUpstream429BreakerHints === false
-                    ? "No"
-                    : "Default"}
+                    ? t("resilienceNo")
+                    : t("resilienceDefault")}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Max backoff steps</span>
+              <span className="text-text-muted">{t("resilienceMaxBackoffStepsLabel")}</span>
               <span className="font-mono text-text-main">{current.maxBackoffSteps}</span>
             </div>
           </>
@@ -462,7 +462,7 @@ function ConnectionCooldownCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">timer_off</span>
-            <h2 className="text-lg font-bold">Connection Cooldown</h2>
+            <h2 className="text-lg font-bold">{t("resilienceConnectionCooldownTitle")}</h2>
           </div>
           <SectionDescription
             scope="Individual connection"
@@ -526,6 +526,7 @@ function ProviderBreakerCard({
   onSave: (next: ResilienceResponse["providerBreaker"]) => Promise<void>;
   saving: boolean;
 }) {
+  const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -540,7 +541,7 @@ function ProviderBreakerCard({
         {editing ? (
           <>
             <NumberField
-              label="Failure threshold"
+              label={t("resilienceFailureThreshold")}
               value={current.failureThreshold}
               min={1}
               onChange={(failureThreshold) =>
@@ -548,7 +549,7 @@ function ProviderBreakerCard({
               }
             />
             <NumberField
-              label="Reset timeout"
+              label={t("resilienceResetTimeout")}
               value={current.resetTimeoutMs}
               min={1000}
               suffix="ms"
@@ -560,11 +561,11 @@ function ProviderBreakerCard({
         ) : (
           <>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Failure threshold</span>
+              <span className="text-text-muted">{t("resilienceFailureThresholdLabel")}</span>
               <span className="font-mono text-text-main">{current.failureThreshold}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Reset timeout</span>
+              <span className="text-text-muted">{t("resilienceResetTimeoutLabel")}</span>
               <span className="font-mono text-text-main">{formatMs(current.resetTimeoutMs)}</span>
             </div>
           </>
@@ -581,7 +582,7 @@ function ProviderBreakerCard({
             <span className="material-symbols-outlined text-xl text-primary">
               electrical_services
             </span>
-            <h2 className="text-lg font-bold">Circuit Breaker per Provider</h2>
+            <h2 className="text-lg font-bold">{t("resilienceProviderBreakerTitle")}</h2>
           </div>
           <SectionDescription
             scope="Entire provider"

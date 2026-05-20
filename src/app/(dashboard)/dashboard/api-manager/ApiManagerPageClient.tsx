@@ -1302,10 +1302,10 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-text-main">Custom Rate Limits</p>
-              <p className="text-xs text-text-muted">
-                Override global default limits. Leave empty to use defaults.
+              <p className="text-sm font-medium text-text-main">
+                {t("apiManagerCustomRateLimits")}
               </p>
+              <p className="text-xs text-text-muted">{t("apiManagerCustomRateLimitsDesc")}</p>
             </div>
             <button
               type="button"
@@ -1332,9 +1332,11 @@ const PermissionsModal = memo(function PermissionsModal({
                         return next;
                       });
                     }}
-                    placeholder="Requests"
+                    placeholder={t("apiManagerRateLimitRequestsPlaceholder")}
                   />
-                  <span className="text-sm text-text-muted shrink-0">req /</span>
+                  <span className="text-sm text-text-muted shrink-0">
+                    {t("apiManagerRateLimitReqPer")}
+                  </span>
                   <Input
                     type="number"
                     min={1}
@@ -1347,14 +1349,14 @@ const PermissionsModal = memo(function PermissionsModal({
                         return next;
                       });
                     }}
-                    placeholder="Seconds"
+                    placeholder={t("apiManagerRateLimitSecondsPlaceholder")}
                   />
                   <span className="text-sm text-text-muted shrink-0">sec</span>
                   <button
                     type="button"
                     onClick={() => setRateLimits((prev) => prev.filter((_, i) => i !== index))}
                     className="p-2 text-red-500 hover:bg-red-500/10 rounded transition-colors shrink-0"
-                    title="Remove limit"
+                    title={t("apiManagerRemoveLimitTitle")}
                   >
                     <span className="material-symbols-outlined text-[18px]">delete</span>
                   </button>
@@ -1454,7 +1456,7 @@ const PermissionsModal = memo(function PermissionsModal({
                   type="text"
                   value={scheduleTz}
                   onChange={(e) => setScheduleTz(e.target.value)}
-                  placeholder="America/Sao_Paulo"
+                  placeholder={t("apiManagerTimezonePlaceholder")}
                   className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main font-mono"
                 />
                 <p className="text-[10px] text-text-muted mt-1">{t("scheduleTimezoneHint")}</p>
