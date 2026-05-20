@@ -679,7 +679,30 @@
     "tokensMaxUses": "Max Uses",
     "tokensRedeemCode": "Redeem Code",
     "tokensRedeemCodePlaceholder": "Enter invite code",
-    "tokensYourActiveInvites": "Your Active Invites"
+    "tokensYourActiveInvites": "Your Active Invites",
+    "tierCoverageTitle": "Tier coverage",
+    "tierCoverageSubtitle": "Providers configured per fallback tier",
+    "batchDetailCopyId": "Copy ID",
+    "batchDetailClose": "Close",
+    "batchDetailEndpoint": "Endpoint",
+    "batchDetailModel": "Model",
+    "batchDetailWindow": "Window",
+    "batchDetailCreated": "Created",
+    "providerTopologyEmpty": "No providers connected yet",
+    "badgeToastUnlocked": "Badge Unlocked!",
+    "batchListSearchPlaceholder": "Search by ID, endpoint, model…",
+    "batchListDeleteAllCompletedTitle": "Delete all completed batches",
+    "batchListBatchesTable": "Batches",
+    "changelogViewerLoading": "Loading changelog from GitHub...",
+    "profileLoading": "Loading profile...",
+    "profileHowToEarn": "How to earn",
+    "bootstrapBannerDismiss": "Dismiss",
+    "batchListDeleteBatchTitle": "Delete batch and its files",
+    "leaderboardYourRank": "Your Rank",
+    "leaderboardLoading": "Loading leaderboard...",
+    "batchFileDetailCopyId": "Copy ID",
+    "batchFileDetailClose": "Close",
+    "batchFileDetailFailedToLoad": "Failed to load file contents"
   },
   "sidebar": {
     "home": "Home",
@@ -1177,7 +1200,19 @@
     "compressionAnalyticsCompletionTokens": "Completion tokens",
     "compressionAnalyticsTotalTokens": "Total tokens",
     "compressionAnalyticsCacheTokens": "Cache tokens",
-    "compressionAnalyticsNoDataYet": "No compression data yet"
+    "compressionAnalyticsNoDataYet": "No compression data yet",
+    "searchAnalyticsTotalSearches": "Total Searches",
+    "searchAnalyticsCacheHitRate": "Cache Hit Rate",
+    "searchAnalyticsTotalCost": "Total Cost",
+    "searchAnalyticsAvgResponse": "Avg Response",
+    "searchAnalyticsNoSearchesYet": "No searches yet",
+    "providerUtilizationTitle": "Provider utilization",
+    "providerUtilizationFailedToLoad": "Failed to load utilization data",
+    "providerUtilizationNoData": "No utilization data available",
+    "providerUtilizationGettingStarted": "Getting started",
+    "providerUtilizationLatestSnapshot": "Latest quota snapshot",
+    "providerUtilizationRemainingCapacity": "Remaining capacity",
+    "diversityScoreTitle": "Provider Diversity"
   },
   "apiManager": {
     "title": "API Keys",
@@ -1390,7 +1425,9 @@
     "rerank": "Rerank",
     "rerankModel": "Rerank Model",
     "positionDelta": "Position Change",
-    "emptyState": "Send a search query to see results"
+    "emptyState": "Send a search query to see results",
+    "copy": "Copy",
+    "resetToDefault": "Reset to default"
   },
   "cliTools": {
     "title": "CLI Tools",
@@ -1736,7 +1773,9 @@
     "copilotMaxInputTokens": "Max Input Tokens",
     "copilotMaxOutputTokens": "Max Output Tokens",
     "copilotToolCalling": "Tool Calling",
-    "copilotPasteInto": "Paste into: "
+    "copilotPasteInto": "Paste into: ",
+    "wireApiChatCompletions": "Chat Completions (/chat/completions)",
+    "wireApiResponses": "Responses API (/responses)"
   },
   "combos": {
     "title": "Combos",
@@ -2201,7 +2240,8 @@
     "agentFeaturesContextLengthHint": "Defines the context window for this combo in /v1/models.",
     "agentFeaturesContextLengthErrorInteger": "Context length must be a valid integer",
     "agentFeaturesContextLengthErrorRange": "Context length must be between 1000 and 2000000",
-    "compressionOverride": "Compression Override"
+    "compressionOverride": "Compression Override",
+    "modePack": "Mode Pack"
   },
   "costs": {
     "title": "Costs",
@@ -2457,7 +2497,15 @@
     "ngrokLastError": "Last error: {error}",
     "ngrokStarted": "ngrok tunnel started",
     "ngrokStopped": "ngrok tunnel stopped",
-    "ngrokRequestFailed": "Failed to update ngrok tunnel"
+    "ngrokRequestFailed": "Failed to update ngrok tunnel",
+    "tokenSaverSubtitle": "Spend less tokens on every request.",
+    "tokenSaverToolOutput": "Tool output",
+    "tokenSaverLlmOutput": "LLM output",
+    "tokenSaverInputCompression": "Input compression",
+    "apiEndpointsCatalogUnavailable": "API catalog unavailable",
+    "apiEndpointsSearchPlaceholder": "Search endpoints...",
+    "apiEndpointsRequiresAuth": "Requires auth",
+    "apiEndpointsNoMatch": "No endpoints match your filter"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -2541,7 +2589,8 @@
     "apiKeyId": "Api Key Id",
     "offset": "Offset",
     "limit": "Limit",
-    "tool": "Tool"
+    "tool": "Tool",
+    "mcpDashboardCopyUrl": "Copy URL"
   },
   "a2aDashboard": {
     "loading": "Loading A2A dashboard...",
@@ -2672,7 +2721,10 @@
     "networkAccess": "Network Access",
     "networkAccessDesc": "Allow outbound network requests",
     "mode": "Mode",
-    "q": "Q"
+    "q": "Q",
+    "filterSkillsPlaceholder": "Filter skills by name, description, or tag",
+    "allModes": "All modes",
+    "skillsMarketplace": "Skills Marketplace"
   },
   "health": {
     "title": "System Health",
@@ -2962,7 +3014,8 @@
         "description": "Locally-hosted or specialty endpoints used as fallbacks."
       },
       "configure": "Configure providers"
-    }
+    },
+    "tierFlowDiagramAlt": "OmniRoute 3-tier fallback diagram"
   },
   "providers": {
     "title": "Providers",
@@ -4448,7 +4501,15 @@
     "memorySkillsSkillsmpMarketplace": "SkillsMP Marketplace",
     "memorySkillsFailedToSave": "Failed to save",
     "memorySkillsApiKey": "API Key",
-    "memorySkillsActiveSkillsProvider": "Active Skills Provider"
+    "memorySkillsActiveSkillsProvider": "Active Skills Provider",
+    "cliproxyapiFallback": "CLIProxyAPI Fallback",
+    "cliproxyapiEnableFallback": "Enable CLIProxyAPI Fallback",
+    "cliproxyapiUrl": "CLIProxyAPI URL",
+    "cliproxyapiStatus": "CLIProxyAPI Status",
+    "cliproxyapiNotDetected": "Not detected",
+    "payloadRulesTitle": "Payload Rules",
+    "modelCooldownsTitle": "Models in cooldown",
+    "modelCooldownsEmpty": "No models in cooldown right now."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -4785,7 +4846,8 @@
     "routeEndpointLabel": "Endpoint",
     "routeConnectionLabel": "Connection",
     "scenarioVision": "Vision (image understanding)",
-    "scenarioSchemaCoercion": "Schema coercion (structured output)"
+    "scenarioSchemaCoercion": "Schema coercion (structured output)",
+    "techniques": "Techniques:"
   },
   "usage": {
     "title": "Usage",
@@ -5086,7 +5148,9 @@
     "budgetDailyDollar": "Daily $",
     "budgetWeeklyDollar": "Weekly $",
     "budgetMonthlyDollar": "Monthly $",
-    "budgetWarnAtPct": "Warn at %"
+    "budgetWarnAtPct": "Warn at %",
+    "quotaAlerts": "Quota alerts",
+    "quotaTableRefreshing": "⟳ Refreshing..."
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",
@@ -5847,7 +5911,10 @@
     "reasoningClearAll": "Clear Reasoning Cache",
     "reasoningClearSuccess": "Cleared {count} reasoning cache entries",
     "reasoningClearError": "Failed to clear reasoning cache",
-    "reasoningNoData": "No reasoning entries cached yet. Entries appear when thinking models use tool calling."
+    "reasoningNoData": "No reasoning entries cached yet. Entries appear when thinking models use tool calling.",
+    "cachePerformanceRetry": "Retry",
+    "cachePerformanceHitRate": "Hit Rate",
+    "cachePerformanceAvgLatency": "Avg Latency (ms)"
   },
   "proxyConfigModal": {
     "levelGlobal": "Global",
@@ -6027,7 +6094,8 @@
     "bulkImportErrorMissingHost": "Missing HOST",
     "bulkImportErrorInvalidPort": "Invalid PORT (must be 1-65535)",
     "bulkImportErrorInvalidType": "Invalid TYPE (use http, https, or socks5)",
-    "bulkImportErrorInvalidStatus": "Invalid STATUS (use active or inactive)"
+    "bulkImportErrorInvalidStatus": "Invalid STATUS (use active or inactive)",
+    "clearAssignment": "(clear assignment)"
   },
   "playground": {
     "title": "Model Playground",
@@ -6068,7 +6136,10 @@
       "music": "Music generation",
       "rerank": "Rerank",
       "search": "Web search"
-    }
+    },
+    "conversationalChat": "Conversational Chat",
+    "clearChat": "Clear chat",
+    "typeMessagePlaceholder": "Type a message... (Shift+Enter for new line)"
   },
   "requestLogger": {
     "recording": "Recording",
@@ -6306,6 +6377,10 @@
     "totalExceeded": "⚠ exceeds 100%",
     "addKey": "+ Add key…",
     "equalSplit": "Equal split",
-    "save": "Save allocations"
+    "save": "Save allocations",
+    "betaPreviewLabel": "Beta — UI preview.",
+    "betaConfigSavedPrefix": "A configuração é salva em",
+    "betaConfigSavedSuffix": "(não persiste no servidor ainda). A aplicação dos caps por request ainda não está conectada ao pipeline da proxy. Esta tela permite desenhar e visualizar a divisão de cota;",
+    "policyLabel": "Policy:"
   }
 }

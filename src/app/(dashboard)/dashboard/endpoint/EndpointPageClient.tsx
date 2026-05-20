@@ -1281,7 +1281,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-sm font-medium">Local Server</span>
+                <span className="text-sm font-medium">{t("localServer")}</span>
                 {resolvedMachineId && (
                   <span className="text-xs text-text-muted">· {resolvedMachineId.slice(0, 8)}</span>
                 )}

@@ -892,7 +892,7 @@ function BudgetRowExpanded({
               {t("budgetLoading")}
             </div>
           ) : breakdown.length === 0 ? (
-            <div className="text-[11px] text-text-muted py-2">No spend in last 30 days</div>
+            <div className="text-[11px] text-text-muted py-2">{t("noSpendLast30Days")}</div>
           ) : (
             <div className="space-y-1.5">
               {breakdown.slice(0, 5).map((b) => (

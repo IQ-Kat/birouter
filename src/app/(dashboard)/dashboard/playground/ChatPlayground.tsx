@@ -222,7 +222,7 @@ export default function ChatPlayground({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-text-muted">chat</span>
-              <h3 className="text-sm font-semibold text-text-main">Conversational Chat</h3>
+              <h3 className="text-sm font-semibold text-text-main">{t("conversationalChat")}</h3>
               {responseStatus !== null && (
                 <Badge variant={responseStatus < 400 ? "success" : "error"} size="sm">
                   {responseStatus}
@@ -235,7 +235,7 @@ export default function ChatPlayground({
             <button
               onClick={handleClear}
               className="p-1.5 rounded hover:bg-red-500/10 text-text-muted hover:text-red-500 transition-colors"
-              title="Clear chat"
+              title={t("clearChat")}
             >
               <span className="material-symbols-outlined text-[16px]">delete</span>
             </button>
@@ -292,7 +292,7 @@ export default function ChatPlayground({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message... (Shift+Enter for new line)"
+                placeholder={t("typeMessagePlaceholder")}
                 className="flex-1 min-h-[44px] max-h-[120px] bg-surface border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-y"
                 rows={1}
                 disabled={loading || noModels}

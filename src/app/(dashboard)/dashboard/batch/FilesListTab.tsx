@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import FileDetailModal from "./FileDetailModal";
 
 function relativeTime(ts: number): string {
@@ -84,6 +85,7 @@ export default function FilesListTab({
   onRefresh,
   batches,
 }: Readonly<FilesListTabProps>) {
+  const t = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
   const [purposeFilter, setPurposeFilter] = useState("all");
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
