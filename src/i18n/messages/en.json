@@ -702,7 +702,10 @@
     "leaderboardLoading": "Loading leaderboard...",
     "batchFileDetailCopyId": "Copy ID",
     "batchFileDetailClose": "Close",
-    "batchFileDetailFailedToLoad": "Failed to load file contents"
+    "batchFileDetailFailedToLoad": "Failed to load file contents",
+    "batchFilesListSearchPlaceholder": "Search by ID or filename…",
+    "batchFilesListFilesTable": "Files",
+    "batchPageLoadingMore": "Loading more…"
   },
   "sidebar": {
     "home": "Home",
@@ -2505,7 +2508,10 @@
     "apiEndpointsCatalogUnavailable": "API catalog unavailable",
     "apiEndpointsSearchPlaceholder": "Search endpoints...",
     "apiEndpointsRequiresAuth": "Requires auth",
-    "apiEndpointsNoMatch": "No endpoints match your filter"
+    "apiEndpointsNoMatch": "No endpoints match your filter",
+    "localServer": "Local Server",
+    "cloudOmniroute": "Cloud OmniRoute",
+    "copyUrl": "Copy URL"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -2724,7 +2730,8 @@
     "q": "Q",
     "filterSkillsPlaceholder": "Filter skills by name, description, or tag",
     "allModes": "All modes",
-    "skillsMarketplace": "Skills Marketplace"
+    "skillsMarketplace": "Skills Marketplace",
+    "installSkill": "Install Skill"
   },
   "health": {
     "title": "System Health",
@@ -5150,7 +5157,8 @@
     "budgetMonthlyDollar": "Monthly $",
     "budgetWarnAtPct": "Warn at %",
     "quotaAlerts": "Quota alerts",
-    "quotaTableRefreshing": "⟳ Refreshing..."
+    "quotaTableRefreshing": "⟳ Refreshing...",
+    "noSpendLast30Days": "No spend in last 30 days"
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",
@@ -5914,7 +5922,10 @@
     "reasoningNoData": "No reasoning entries cached yet. Entries appear when thinking models use tool calling.",
     "cachePerformanceRetry": "Retry",
     "cachePerformanceHitRate": "Hit Rate",
-    "cachePerformanceAvgLatency": "Avg Latency (ms)"
+    "cachePerformanceAvgLatency": "Avg Latency (ms)",
+    "cachePerformanceP95Latency": "p95 Latency (ms)",
+    "retry": "Retry",
+    "reasoningAvgChars": "Avg Chars"
   },
   "proxyConfigModal": {
     "levelGlobal": "Global",
@@ -6095,7 +6106,8 @@
     "bulkImportErrorInvalidPort": "Invalid PORT (must be 1-65535)",
     "bulkImportErrorInvalidType": "Invalid TYPE (use http, https, or socks5)",
     "bulkImportErrorInvalidStatus": "Invalid STATUS (use active or inactive)",
-    "clearAssignment": "(clear assignment)"
+    "clearAssignment": "(clear assignment)",
+    "bulkProxyAssignment": "Bulk Proxy Assignment"
   },
   "playground": {
     "title": "Model Playground",

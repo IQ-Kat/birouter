@@ -849,7 +849,7 @@ export default function ProxyRegistryManager() {
         onClose={() => {
           if (!bulkSaving) setBulkOpen(false);
         }}
-        title="Bulk Proxy Assignment"
+        title={t("bulkProxyAssignment")}
         maxWidth="lg"
       >
         <div className="flex flex-col gap-3">

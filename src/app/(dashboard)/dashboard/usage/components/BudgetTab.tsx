@@ -960,7 +960,7 @@ function BudgetRowExpanded({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
-            <label className="text-[11px] text-text-muted block mb-1">Reset interval</label>
+            <label className="text-[11px] text-text-muted block mb-1">{t("resetInterval")}</label>
             <select
               value={form.resetInterval}
               onChange={(e) =>
@@ -974,7 +974,7 @@ function BudgetRowExpanded({
             </select>
           </div>
           <Input
-            label="Reset time (UTC)"
+            label={t("resetTimeUtc")}
             type="time"
             value={form.resetTime}
             onChange={(e) => setForm({ ...form, resetTime: e.target.value })}

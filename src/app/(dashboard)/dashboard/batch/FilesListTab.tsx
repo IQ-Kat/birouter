@@ -131,7 +131,7 @@ export default function FilesListTab({
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
         <input
           type="text"
-          placeholder="Search by ID or filename…"
+          placeholder={t("batchFilesListSearchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 min-w-[200px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
@@ -151,7 +151,7 @@ export default function FilesListTab({
 
       {/* Table */}
       <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm" role="table" aria-label="Files">
+        <table className="w-full text-sm" role="table" aria-label={t("batchFilesListFilesTable")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
