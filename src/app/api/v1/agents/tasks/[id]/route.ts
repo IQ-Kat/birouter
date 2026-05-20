@@ -17,7 +17,13 @@ import pino from "pino";
 
 const logger = pino({ name: "cloud-agents-api" });
 
-createCloudAgentTaskTable();
+let _tableInit = false;
+function ensureTable() {
+  if (!_tableInit) {
+    createCloudAgentTaskTable();
+    _tableInit = true;
+  }
+}
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: getCloudAgentCorsHeaders(request) });
@@ -51,6 +57,7 @@ function cloudAgentCredentialsRequiredResponse(providerId: string, request: Next
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    ensureTable();
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
@@ -105,6 +112,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    ensureTable();
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
@@ -183,6 +191,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    ensureTable();
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
