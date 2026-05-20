@@ -303,6 +303,7 @@ function StringListEditor({
   onChange: (next: string[]) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("settings");
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs font-medium text-text-main">{label}</span>
@@ -324,7 +325,7 @@ function StringListEditor({
             size="sm"
             icon="close"
             disabled={disabled}
-            aria-label="Remove entry"
+            aria-label={t("routingRemoveEntry")}
             onClick={() => {
               const next = [...items];
               next.splice(idx, 1);
@@ -356,6 +357,7 @@ function OpEditor({
   onChange: (next: any) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("settings");
   const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
   const kind = op?.kind as TransformOpKind | undefined;
   const opDescription = kind ? OP_KIND_DESCRIPTIONS[kind] : null;
@@ -376,14 +378,14 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
-            label="Needles (substrings to match)"
+            label={t("routingNeedlesSubstrings")}
             hint={FIELD_HINTS.needles}
             items={op.needles || []}
             onChange={(next) => updateField("needles", next)}
             disabled={disabled}
           />
           <Toggle
-            label="Case sensitive"
+            label={t("routingCaseSensitive")}
             description={FIELD_HINTS.caseSensitive}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
@@ -396,14 +398,14 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
-            label="Prefixes"
+            label={t("routingPrefixes")}
             hint={FIELD_HINTS.prefixes}
             items={op.prefixes || []}
             onChange={(next) => updateField("prefixes", next)}
             disabled={disabled}
           />
           <Toggle
-            label="Case sensitive"
+            label={t("routingCaseSensitive")}
             description={FIELD_HINTS.caseSensitive}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
@@ -416,21 +418,21 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <Input
-            label="Match"
+            label={t("routingMatch")}
             hint={FIELD_HINTS.matchLiteral}
             value={op.match || ""}
             disabled={disabled}
             onChange={(e) => updateField("match", e.target.value)}
           />
           <Input
-            label="Replacement"
+            label={t("routingReplacement")}
             hint={FIELD_HINTS.replacementText}
             value={op.replacement || ""}
             disabled={disabled}
             onChange={(e) => updateField("replacement", e.target.value)}
           />
           <Toggle
-            label="Replace all occurrences"
+            label={t("routingReplaceAllOccurrences")}
             description={FIELD_HINTS.allOccurrences}
             checked={op.allOccurrences !== false}
             onChange={(c) => updateField("allOccurrences", c)}
@@ -443,21 +445,21 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <Input
-            label="Pattern (regex)"
+            label={t("routingPatternRegex")}
             hint={FIELD_HINTS.pattern}
             value={op.pattern || ""}
             disabled={disabled}
             onChange={(e) => updateField("pattern", e.target.value)}
           />
           <Input
-            label="Flags"
+            label={t("routingFlags")}
             hint={FIELD_HINTS.regexFlags}
             value={op.flags || "g"}
             disabled={disabled}
             onChange={(e) => updateField("flags", e.target.value)}
           />
           <Input
-            label="Replacement"
+            label={t("routingReplacement")}
             hint={FIELD_HINTS.replacementText}
             value={op.replacement || ""}
             disabled={disabled}
@@ -468,7 +470,7 @@ function OpEditor({
     case "drop_block_if_contains":
       return wrap(
         <StringListEditor
-          label="Needles"
+          label={t("routingNeedles")}
           hint={FIELD_HINTS.needles}
           items={op.needles || []}
           onChange={(next) => updateField("needles", next)}
@@ -480,7 +482,7 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-main">Block text</label>
+            <label className="text-sm font-medium text-text-main">{t("routingBlockText")}</label>
             <textarea
               rows={3}
               value={op.text || ""}
@@ -491,7 +493,7 @@ function OpEditor({
             <p className="text-xs text-text-muted">{FIELD_HINTS.blockText}</p>
           </div>
           <Input
-            label="Idempotency key"
+            label={t("routingIdempotencyKey")}
             hint={FIELD_HINTS.idempotencyKey}
             value={op.idempotencyKey || ""}
             disabled={disabled}
@@ -503,14 +505,14 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <Input
-            label="Entrypoint"
+            label={t("routingEntrypoint")}
             hint={FIELD_HINTS.billingEntrypoint}
             value={op.entrypoint || "sdk-cli"}
             disabled={disabled}
             onChange={(e) => updateField("entrypoint", e.target.value)}
           />
           <Select
-            label="Version format"
+            label={t("routingVersionFormat")}
             hint={FIELD_HINTS.billingVersionFormat}
             value={op.versionFormat || "ex-machina"}
             disabled={disabled}
@@ -521,7 +523,7 @@ function OpEditor({
             ]}
           />
           <Select
-            label="CCH algorithm"
+            label={t("routingCchAlgorithm")}
             hint={FIELD_HINTS.billingCchAlgo}
             value={op.cchAlgo || "sha256-first-user"}
             disabled={disabled}
@@ -538,7 +540,7 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
-            label="Words to obfuscate (ZWJ inserted after first char)"
+            label={t("routingWordsToObfuscate")}
             hint={FIELD_HINTS.obfuscateWords}
             items={op.words || []}
             onChange={(next) => updateField("words", next)}

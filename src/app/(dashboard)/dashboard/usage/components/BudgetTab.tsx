@@ -461,26 +461,29 @@ export default function BudgetTab() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-2">
-          <KpiBlock label="Today" value={formatCurrency(stats.today)} />
-          <KpiBlock label="This month" value={formatCurrency(stats.month)} />
+          <KpiBlock label={t("budgetKpiToday")} value={formatCurrency(stats.today)} />
+          <KpiBlock label={t("budgetKpiThisMonth")} value={formatCurrency(stats.month)} />
           <KpiBlock
-            label="Proj EOM"
+            label={t("budgetKpiProjEom")}
             value={formatCurrency(stats.projectionEom)}
             tone={projectionOverBudget ? "amber" : undefined}
             hint={projectionOverBudget ? "above limit ⚠" : "on track"}
           />
           <KpiBlock
-            label="Blocked"
+            label={t("budgetKpiBlocked")}
             value={String(stats.counts.blocked)}
             tone={stats.counts.blocked > 0 ? "red" : undefined}
           />
           <KpiBlock
-            label="At risk"
+            label={t("budgetKpiAtRisk")}
             value={String(stats.counts.alerting)}
             tone={stats.counts.alerting > 0 ? "amber" : undefined}
             hint="≥ warning"
           />
-          <KpiBlock label="Active keys" value={`${stats.counts.active} / ${rows.length}`} />
+          <KpiBlock
+            label={t("budgetKpiActiveKeys")}
+            value={`${stats.counts.active} / ${rows.length}`}
+          />
         </div>
       </Card>
 
@@ -493,7 +496,7 @@ export default function BudgetTab() {
             </span>
             <input
               type="text"
-              placeholder="Search keys..."
+              placeholder={t("budgetSearchKeysPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-3 py-2 bg-bg-base border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
@@ -504,10 +507,10 @@ export default function BudgetTab() {
             onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
             className="bg-bg-base border border-border rounded-md px-2 py-1.5 text-xs text-text-main cursor-pointer"
           >
-            <option value="usedDesc">Sort: % Used ↓</option>
-            <option value="todayDesc">Sort: Today $ ↓</option>
-            <option value="monthDesc">Sort: Month $ ↓</option>
-            <option value="name">Sort: Name (A–Z)</option>
+            <option value="usedDesc">{t("budgetSortPctUsed")}</option>
+            <option value="todayDesc">{t("budgetSortTodayDollar")}</option>
+            <option value="monthDesc">{t("budgetSortMonthDollar")}</option>
+            <option value="name">{t("budgetSortNameAZ")}</option>
           </select>
         </div>
 
@@ -601,9 +604,9 @@ export default function BudgetTab() {
           <div>Key</div>
           <div className="text-right">Today</div>
           <div className="text-right">Month</div>
-          <div className="text-right">Daily lim</div>
-          <div className="text-right">Monthly lim</div>
-          <div className="text-right">Used %</div>
+          <div className="text-right">{t("budgetColDailyLim")}</div>
+          <div className="text-right">{t("budgetColMonthlyLim")}</div>
+          <div className="text-right">{t("budgetColUsedPct")}</div>
           <div className="text-center">Status</div>
         </div>
 

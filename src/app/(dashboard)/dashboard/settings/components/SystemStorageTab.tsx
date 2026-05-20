@@ -551,7 +551,7 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-sm font-medium text-text-main">Logs Settings</p>
+            <p className="text-sm font-medium text-text-main">{t("logsSettingsTitle")}</p>
             <p className="text-xs text-text-muted">
               Configure detailed logging and call log pipeline settings
             </p>
@@ -560,26 +560,26 @@ export default function SystemStorageTab() {
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Detailed Logs Enabled</span>
-              <p className="text-xs text-text-muted">Enable detailed request/response logging</p>
+              <span className="font-medium">{t("detailedLogsLabel")}</span>
+              <p className="text-xs text-text-muted">{t("detailedLogsDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Call Log Pipeline</span>
-              <p className="text-xs text-text-muted">Enable call log processing pipeline</p>
+              <span className="font-medium">{t("callLogPipelineLabel")}</span>
+              <p className="text-xs text-text-muted">{t("callLogPipelineDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Max Detail Size (KB)</span>
-              <p className="text-xs text-text-muted">Maximum size for detailed log entries</p>
+              <span className="font-medium">{t("maxDetailSizeLabel")}</span>
+              <p className="text-xs text-text-muted">{t("maxDetailSizeDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Ring Buffer Size</span>
-              <p className="text-xs text-text-muted">Size of the ring buffer for logs</p>
+              <span className="font-medium">{t("ringBufferSizeLabel")}</span>
+              <p className="text-xs text-text-muted">{t("ringBufferSizeDesc")}</p>
             </label>
           </div>
         </div>
@@ -589,7 +589,7 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-sm font-medium text-text-main">Cache Settings</p>
+            <p className="text-sm font-medium text-text-main">{t("cacheSettings")}</p>
             <p className="text-xs text-text-muted">
               Configure semantic and prompt caching behavior
             </p>
@@ -598,7 +598,7 @@ export default function SystemStorageTab() {
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Semantic Cache Enabled</span>
+              <span className="font-medium">{t("semanticCacheEnabledLabel")}</span>
               <p className="text-xs text-text-muted">
                 Enable semantic caching for similar requests
               </p>
@@ -606,13 +606,13 @@ export default function SystemStorageTab() {
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Semantic Cache Max Size</span>
-              <p className="text-xs text-text-muted">Maximum number of semantic cache entries</p>
+              <span className="font-medium">{t("semanticCacheMaxSizeLabel")}</span>
+              <p className="text-xs text-text-muted">{t("semanticCacheMaxSizeDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Semantic Cache TTL</span>
+              <span className="font-medium">{t("semanticCacheTTLLabel")}</span>
               <p className="text-xs text-text-muted">
                 Time-to-live for semantic cache entries (ms)
               </p>
@@ -620,20 +620,20 @@ export default function SystemStorageTab() {
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Prompt Cache Enabled</span>
-              <p className="text-xs text-text-muted">Enable prompt caching</p>
+              <span className="font-medium">{t("promptCacheEnabledLabel")}</span>
+              <p className="text-xs text-text-muted">{t("promptCacheEnabledDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Prompt Cache Strategy</span>
-              <p className="text-xs text-text-muted">Strategy for prompt caching</p>
+              <span className="font-medium">{t("promptCacheStrategyLabel")}</span>
+              <p className="text-xs text-text-muted">{t("promptCacheStrategyDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Always Preserve Client Cache</span>
-              <p className="text-xs text-text-muted">Client cache preservation policy</p>
+              <span className="font-medium">{t("alwaysPreserveClientCacheLabel")}</span>
+              <p className="text-xs text-text-muted">{t("alwaysPreserveClientCacheDesc")}</p>
             </label>
           </div>
         </div>
@@ -642,7 +642,7 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-sm font-medium text-text-main">Log retention policy</p>
+            <p className="text-sm font-medium text-text-main">{t("logRetentionPolicyTitle")}</p>
             <p className="text-xs text-text-muted">
               Request logs retain up to <code>CALL_LOGS_TABLE_MAX_ROWS</code> rows (default:
               100,000). Proxy logs retain up to <code>PROXY_LOGS_TABLE_MAX_ROWS</code> rows. Older

@@ -140,7 +140,7 @@ export default function OneproxyTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-text-main">1proxy Free Proxy Marketplace</h2>
+          <h2 className="text-lg font-semibold text-text-main">{t("oneproxyTitle")}</h2>
           <p className="text-sm text-text-muted mt-1">
             Fetch and rotate free validated proxies from the 1proxy community platform
           </p>
@@ -173,7 +173,7 @@ export default function OneproxyTab() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
             <div className="text-2xl font-bold text-text-main">{stats.total}</div>
-            <div className="text-sm text-text-muted">Total Proxies</div>
+            <div className="text-sm text-text-muted">{t("oneproxyTotalProxies")}</div>
           </Card>
           <Card className="p-4">
             <div className="text-2xl font-bold text-green-600">{stats.active}</div>
@@ -183,7 +183,7 @@ export default function OneproxyTab() {
             <div className="text-2xl font-bold text-text-main">
               {stats.avgQuality != null ? `${stats.avgQuality}` : "—"}
             </div>
-            <div className="text-sm text-text-muted">Avg Quality</div>
+            <div className="text-sm text-text-muted">{t("oneproxyAvgQuality")}</div>
           </Card>
           <Card className="p-4">
             <div className="text-2xl font-bold text-text-main">

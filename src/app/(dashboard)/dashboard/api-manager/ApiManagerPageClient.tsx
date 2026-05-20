@@ -1279,7 +1279,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Max Sessions Limit (T08) */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Max Active Sessions</p>
+            <p className="text-sm font-medium text-text-main">{t("maxActiveSessions")}</p>
             <p className="text-xs text-text-muted">
               0 = unlimited. Return 429 when this key exceeds concurrent sticky sessions.
             </p>

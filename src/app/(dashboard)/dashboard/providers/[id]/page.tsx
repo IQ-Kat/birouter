@@ -3440,13 +3440,13 @@ export default function ProviderDetailPage() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
-                <div title="Apply Codex Fast tier to all Codex connections by default">
+                <div title={t("providerDetailFastTierTooltip")}>
                   <Toggle
                     size="sm"
                     checked={codexGlobalFastServiceTier}
                     onChange={handleToggleCodexGlobalFastServiceTier}
                     disabled={savingCodexGlobalFastServiceTier}
-                    label="Fast default"
+                    label={t("providerDetailFastDefaultLabel")}
                     ariaLabel="Toggle Codex Fast default"
                     className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
                   />
