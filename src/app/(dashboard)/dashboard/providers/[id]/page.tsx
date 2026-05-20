@@ -7184,7 +7184,9 @@ function AddApiKeyModal({
                     open_in_new
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-text-main">Browser/manual connect</p>
+                    <p className="font-medium text-text-main">
+                      {t("providerDetailBrowserManualConnect")}
+                    </p>
                     <p className="mt-1 text-xs text-text-muted">
                       Open Command Code Studio, then paste the returned key/JSON/URL into the API
                       key field below.
@@ -7197,7 +7199,9 @@ function AddApiKeyModal({
                     {commandCodeAuthState?.authUrl && (
                       <div className="mt-3 space-y-2">
                         <div>
-                          <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
+                          <p className="mb-1 text-xs font-medium text-text-main">
+                            {t("providerDetailAuthUrl")}
+                          </p>
                           <div className="flex gap-2">
                             <Input
                               value={commandCodeAuthState.authUrl}
@@ -7216,7 +7220,9 @@ function AddApiKeyModal({
                         </div>
                         {commandCodeAuthState.callbackUrl && (
                           <div>
-                            <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
+                            <p className="mb-1 text-xs font-medium text-text-main">
+                              {t("providerDetailCallbackUrl")}
+                            </p>
                             <div className="flex gap-2">
                               <Input
                                 value={commandCodeAuthState.callbackUrl}
@@ -8163,9 +8169,7 @@ function ApplyCodexAuthModal({
           <code className="block rounded bg-sidebar px-2 py-1.5 text-xs font-mono text-text-main">
             ~/.codex/auth.json
           </code>
-          <p className="mt-1 text-xs text-text-muted">
-            Path is auto-detected per OS (Linux/Mac/Windows).
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("providerDetailPathAutoDetectedAllOs")}</p>
         </div>
         <div>
           <div className="text-xs uppercase text-text-muted mb-1">{backupLabel}</div>
@@ -8619,7 +8623,9 @@ function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthModalProp
                   className="block w-full text-sm"
                 />
                 {singleJson && previewClaudeJson(singleJson).valid && (
-                  <p className="mt-1 text-xs text-emerald-500">Valid Claude credentials file</p>
+                  <p className="mt-1 text-xs text-emerald-500">
+                    {t("providerDetailValidClaudeCredentialsFile")}
+                  </p>
                 )}
                 {singleJson && !previewClaudeJson(singleJson).valid && (
                   <p className="mt-1 text-xs text-red-500">

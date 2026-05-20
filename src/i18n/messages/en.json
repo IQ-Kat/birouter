@@ -3615,7 +3615,12 @@
     "ideProvidersDesc": "Editors with built-in AI subscription. Use the provider page to import credentials directly from the IDE keychain.",
     "noIdeProviders": "No IDE providers match the current filters.",
     "providerDetailFastTierTooltip": "Apply Codex Fast tier to all Codex connections by default",
-    "providerDetailFastDefaultLabel": "Fast default"
+    "providerDetailFastDefaultLabel": "Fast default",
+    "providerDetailBrowserManualConnect": "Browser/manual connect",
+    "providerDetailAuthUrl": "Auth URL",
+    "providerDetailCallbackUrl": "Callback URL",
+    "providerDetailValidClaudeCredentialsFile": "Valid Claude credentials file",
+    "providerDetailPathAutoDetectedAllOs": "Path is auto-detected per OS (Linux/Mac/Windows)."
   },
   "settings": {
     "title": "Settings",
