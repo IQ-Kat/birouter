@@ -52,11 +52,7 @@ test("TC-1: large input exceeds small models — only large-context candidates s
     "anthropic/claude-3-5": 131072,
   };
 
-  const { result, didFallback } = contextWindowFilter(
-    targets,
-    20000,
-    (m) => limits[m] ?? null
-  );
+  const { result, didFallback } = contextWindowFilter(targets, 20000, (m) => limits[m] ?? null);
 
   assert.equal(result.length, 2, "Should keep 2 models with context >= 20k");
   assert.ok(
@@ -73,11 +69,7 @@ test("TC-2: all candidates too small — fallback to full pool", () => {
     { modelStr: "a/small3" },
   ];
 
-  const { result, didFallback } = contextWindowFilter(
-    targets,
-    20000,
-    () => 4096
-  );
+  const { result, didFallback } = contextWindowFilter(targets, 20000, () => 4096);
 
   assert.equal(result.length, 3, "Should preserve all targets when all filtered");
   assert.equal(didFallback, true, "Should indicate fallback occurred");
@@ -95,11 +87,7 @@ test("TC-3: null-limit candidates always included", () => {
     "a/unknown2": null,
   };
 
-  const { result, didFallback } = contextWindowFilter(
-    targets,
-    20000,
-    (m) => limits[m] ?? null
-  );
+  const { result, didFallback } = contextWindowFilter(targets, 20000, (m) => limits[m] ?? null);
 
   assert.equal(result.length, 2, "Should include 2 null-limit models, exclude small");
   assert.ok(
@@ -110,66 +98,39 @@ test("TC-3: null-limit candidates always included", () => {
 });
 
 test("TC-4: zero estimated tokens — filter is skipped, pool unchanged", () => {
-  const targets: Target[] = [
-    { modelStr: "a/m1" },
-    { modelStr: "a/m2" },
-  ];
+  const targets: Target[] = [{ modelStr: "a/m1" }, { modelStr: "a/m2" }];
 
-  const { result, didFallback } = contextWindowFilter(
-    targets,
-    0,
-    () => 4096
-  );
+  const { result, didFallback } = contextWindowFilter(targets, 0, () => 4096);
 
   assert.equal(result.length, 2, "Should not filter when tokens = 0");
   assert.equal(didFallback, false);
 });
 
 test("TC-5: exact context limit match passes", () => {
-  const targets: Target[] = [
-    { modelStr: "a/exact" },
-    { modelStr: "a/small" },
-  ];
+  const targets: Target[] = [{ modelStr: "a/exact" }, { modelStr: "a/small" }];
   const limits: Record<string, number> = {
     "a/exact": 10000,
     "a/small": 4096,
   };
 
-  const { result } = contextWindowFilter(
-    targets,
-    10000,
-    (m) => limits[m] ?? null
-  );
+  const { result } = contextWindowFilter(targets, 10000, (m) => limits[m] ?? null);
 
   assert.equal(result.length, 1, "Should include model with exact limit match");
   assert.deepEqual(result[0], { modelStr: "a/exact" });
 });
 
 test("TC-6: undefined limit (not null) treated as unknown — included", () => {
-  const targets: Target[] = [
-    { modelStr: "a/unknown" },
-  ];
+  const targets: Target[] = [{ modelStr: "a/unknown" }];
 
-  const { result } = contextWindowFilter(
-    targets,
-    5000,
-    (): (number | null) => undefined
-  );
+  const { result } = contextWindowFilter(targets, 5000, (): number | null => undefined);
 
   assert.equal(result.length, 1, "Should include model with undefined limit");
 });
 
 test("TC-7: negative estimated tokens treated as 0 — no filtering", () => {
-  const targets: Target[] = [
-    { modelStr: "a/m1" },
-    { modelStr: "a/m2" },
-  ];
+  const targets: Target[] = [{ modelStr: "a/m1" }, { modelStr: "a/m2" }];
 
-  const { result } = contextWindowFilter(
-    targets,
-    -100,
-    () => 4096
-  );
+  const { result } = contextWindowFilter(targets, -100, () => 4096);
 
   assert.equal(result.length, 2, "Should not filter on negative tokens");
 });
@@ -188,11 +149,7 @@ test("TC-8: mixed limits scenario", () => {
     "google/gemini": 32768,
   };
 
-  const { result, didFallback } = contextWindowFilter(
-    targets,
-    5000,
-    (m) => limits[m] ?? null
-  );
+  const { result, didFallback } = contextWindowFilter(targets, 5000, (m) => limits[m] ?? null);
 
   assert.equal(result.length, 3, "Should keep gpt-4 (8k), claude (unknown), gemini (32k)");
   assert.ok(

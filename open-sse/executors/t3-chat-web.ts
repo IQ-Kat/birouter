@@ -58,8 +58,7 @@ export interface T3ChatCredentials {
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function validateCredentials(creds: unknown): creds is T3ChatCredentials {
-  const raw =
-    typeof creds === "object" && creds !== null ? (creds as Record<string, unknown>) : {};
+  const raw = typeof creds === "object" && creds !== null ? (creds as Record<string, unknown>) : {};
   return (
     typeof raw.cookies === "string" &&
     raw.cookies.length > 0 &&
@@ -373,10 +372,7 @@ export class T3ChatWebExecutor extends BaseExecutor {
         // TODO(post-devtools-capture): Map the actual t3.chat non-streaming response
         // shape to OpenAI format once the real field names are confirmed.
         const content =
-          (json as any)?.content ??
-          (json as any)?.text ??
-          (json as any)?.message?.content ??
-          "";
+          (json as any)?.content ?? (json as any)?.text ?? (json as any)?.message?.content ?? "";
         const openaiResponse = {
           id: `chatcmpl-t3-${Date.now()}`,
           object: "chat.completion",

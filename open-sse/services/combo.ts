@@ -2658,10 +2658,7 @@ async function handleRoundRobinCombo({
         // same-provider targets are skipped immediately.
         if (provider && isProviderExhaustedReason(fallbackResult)) {
           exhaustedProviders.add(provider);
-          log.info(
-            "COMBO-RR",
-            `Provider ${provider} quota exhausted — marking for skip (#1731)`
-          );
+          log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
         }
 
         const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(

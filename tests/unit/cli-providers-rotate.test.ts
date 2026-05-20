@@ -65,7 +65,9 @@ test("providers rotate --from-env reads key from process.env and writes DB", asy
     process.env.TEST_ROTATION_KEY = "sk-new-rotated-key";
 
     // Mock fetch so isServerUp() returns false → direct DB path
-    globalThis.fetch = async () => { throw new Error("offline"); };
+    globalThis.fetch = async () => {
+      throw new Error("offline");
+    };
 
     const { runProvidersRotateCommand } = await import("../../bin/cli/commands/providers.mjs");
     const exitCode = await runProvidersRotateCommand(conn.id, {
@@ -78,7 +80,8 @@ test("providers rotate --from-env reads key from process.env and writes DB", asy
     assert.equal(exitCode, 0, "rotate should succeed with valid env var");
 
     // Verify key changed in DB
-    const { findProviderConnection, getProviderApiKey } = await import("../../bin/cli/provider-store.mjs");
+    const { findProviderConnection, getProviderApiKey } =
+      await import("../../bin/cli/provider-store.mjs");
     const db = new Database(path.join(dataDir, "storage.sqlite"));
     const updated = findProviderConnection(db, conn.id);
     db.close();
@@ -136,7 +139,9 @@ test("providers rotate prints oauth hint for non-apikey connections", async () =
 
 test("providers status exits 3 when server is offline", async () => {
   await withEnv(async (_dataDir) => {
-    globalThis.fetch = async () => { throw new Error("offline"); };
+    globalThis.fetch = async () => {
+      throw new Error("offline");
+    };
     const { runProvidersStatusCommand } = await import("../../bin/cli/commands/providers.mjs");
     const exitCode = await runProvidersStatusCommand({});
     assert.equal(exitCode, 3, "should exit 3 when server is offline");
@@ -146,8 +151,15 @@ test("providers status exits 3 when server is offline", async () => {
 test("providers status returns json when server returns expiration list", async () => {
   await withEnv(async (_dataDir) => {
     const mockList = [
-      { connectionId: "abc123", provider: "openai", name: "OpenAI", status: "active",
-        testStatus: "active", expiresAt: null, rateLimitedUntil: null }
+      {
+        connectionId: "abc123",
+        provider: "openai",
+        name: "OpenAI",
+        status: "active",
+        testStatus: "active",
+        expiresAt: null,
+        rateLimitedUntil: null,
+      },
     ];
     const mockFetch = async () => ({
       ok: true,

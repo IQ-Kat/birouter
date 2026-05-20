@@ -344,7 +344,10 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
     const readline = await import("node:readline");
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     newKey = await new Promise((resolve) =>
-      rl.question(`New API key for ${connection.name}: `, (a) => { rl.close(); resolve(a.trim()); })
+      rl.question(`New API key for ${connection.name}: `, (a) => {
+        rl.close();
+        resolve(a.trim());
+      })
     );
     if (!newKey) {
       console.error("No key provided.");
@@ -354,7 +357,9 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
 
   // --- Dry-run ---
   if (opts.dryRun) {
-    console.log(t("providers.rotate.dryRunResult", { name: connection.name, id: connection.id.slice(0, 8) }));
+    console.log(
+      t("providers.rotate.dryRunResult", { name: connection.name, id: connection.id.slice(0, 8) })
+    );
     return 0;
   }
 
@@ -363,7 +368,13 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
     const readline = await import("node:readline");
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const answer = await new Promise((resolve) =>
-      rl.question(t("providers.rotate.confirmPrompt", { name: connection.name, id: connection.id.slice(0, 8) }), resolve)
+      rl.question(
+        t("providers.rotate.confirmPrompt", {
+          name: connection.name,
+          id: connection.id.slice(0, 8),
+        }),
+        resolve
+      )
     );
     rl.close();
     if (!/^y(es|s)?$/i.test(answer)) {
@@ -378,7 +389,13 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
     try {
       const res = await apiFetch(`/api/providers/${encodeURIComponent(connection.id)}`, {
         method: "PATCH",
-        body: { apiKey: newKey, testStatus: "unknown", lastError: null, rateLimitedUntil: null, backoffLevel: 0 },
+        body: {
+          apiKey: newKey,
+          testStatus: "unknown",
+          lastError: null,
+          rateLimitedUntil: null,
+          backoffLevel: 0,
+        },
         retry: false,
         acceptNotOk: true,
       });
@@ -404,7 +421,9 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
     }
   }
 
-  console.log(t("providers.rotate.success", { name: connection.name, id: connection.id.slice(0, 8) }));
+  console.log(
+    t("providers.rotate.success", { name: connection.name, id: connection.id.slice(0, 8) })
+  );
 
   // --- Post-rotation test ---
   if (!opts.skipTest) {
@@ -468,8 +487,8 @@ export async function runProvidersStatusCommand(opts = {}) {
     const testColor = statusColor(testStatus);
     console.log(
       `${shortId.padEnd(10)} ${String(item.provider || "").padEnd(14)} ${String(item.name || "").padEnd(24)} ` +
-      `${expiry.padEnd(12)} ${expiryColor}${expiryStatus.padEnd(8)}\x1b[0m ` +
-      `${testColor}${testStatus.padEnd(12)}\x1b[0m ${cooldown}`
+        `${expiry.padEnd(12)} ${expiryColor}${expiryStatus.padEnd(8)}\x1b[0m ` +
+        `${testColor}${testStatus.padEnd(12)}\x1b[0m ${cooldown}`
     );
   }
 
@@ -543,7 +562,10 @@ export function registerProviders(program) {
     .option("--dry-run", t("providers.rotate.dryRunOpt"))
     .action(async (idOrName, opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
-      const exitCode = await runProvidersRotateCommand(idOrName, { ...opts, output: globalOpts.output });
+      const exitCode = await runProvidersRotateCommand(idOrName, {
+        ...opts,
+        output: globalOpts.output,
+      });
       if (exitCode !== 0) process.exit(exitCode);
     });
 

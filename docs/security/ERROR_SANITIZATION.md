@@ -139,6 +139,7 @@ parsed body from the upstream provider). When provided, it is sanitized by
 `sanitizeUpstreamDetails` before inclusion in the response as `upstream_details`.
 
 Sanitization rules applied to `upstreamDetails`:
+
 1. String leaves: run through `sanitizeErrorMessage` (strips stacks + absolute paths).
 2. Key blocklist: keys matching `/stack|trace|path|file|cwd|dir|password|secret|token|key/i`
    are removed.

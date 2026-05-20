@@ -3373,8 +3373,8 @@ export default function ProviderDetailPage() {
                   Import from Zed Keychain
                 </h2>
                 <p className="text-sm text-text-muted mt-1">
-                  Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that Zed
-                  IDE stored in the OS keychain and import them as connections. Requires Zed IDE
+                  Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that
+                  Zed IDE stored in the OS keychain and import them as connections. Requires Zed IDE
                   installed on this machine.
                 </p>
               </div>
@@ -3408,8 +3408,8 @@ export default function ProviderDetailPage() {
                   <p className="text-sm text-text-muted">
                     Use this when OmniRoute runs in Docker or the keychain is unavailable. Paste the
                     API key that Zed stored under{" "}
-                    <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy it
-                    from the Zed AI settings panel.
+                    <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy
+                    it from the Zed AI settings panel.
                   </p>
                   <div className="flex gap-2 flex-col sm:flex-row">
                     <select
@@ -3530,13 +3530,13 @@ export default function ProviderDetailPage() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
-                <div title="Apply Codex Fast tier to all Codex connections by default">
+                <div title={t("providerDetailFastTierTooltip")}>
                   <Toggle
                     size="sm"
                     checked={codexGlobalFastServiceTier}
                     onChange={handleToggleCodexGlobalFastServiceTier}
                     disabled={savingCodexGlobalFastServiceTier}
-                    label="Fast default"
+                    label={t("providerDetailFastDefaultLabel")}
                     ariaLabel="Toggle Codex Fast default"
                     className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
                   />
@@ -7274,7 +7274,9 @@ function AddApiKeyModal({
                     open_in_new
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-text-main">Browser/manual connect</p>
+                    <p className="font-medium text-text-main">
+                      {t("providerDetailBrowserManualConnect")}
+                    </p>
                     <p className="mt-1 text-xs text-text-muted">
                       Open Command Code Studio, then paste the returned key/JSON/URL into the API
                       key field below.
@@ -7287,7 +7289,9 @@ function AddApiKeyModal({
                     {commandCodeAuthState?.authUrl && (
                       <div className="mt-3 space-y-2">
                         <div>
-                          <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
+                          <p className="mb-1 text-xs font-medium text-text-main">
+                            {t("providerDetailAuthUrl")}
+                          </p>
                           <div className="flex gap-2">
                             <Input
                               value={commandCodeAuthState.authUrl}
@@ -7306,7 +7310,9 @@ function AddApiKeyModal({
                         </div>
                         {commandCodeAuthState.callbackUrl && (
                           <div>
-                            <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
+                            <p className="mb-1 text-xs font-medium text-text-main">
+                              {t("providerDetailCallbackUrl")}
+                            </p>
                             <div className="flex gap-2">
                               <Input
                                 value={commandCodeAuthState.callbackUrl}
@@ -8253,9 +8259,7 @@ function ApplyCodexAuthModal({
           <code className="block rounded bg-sidebar px-2 py-1.5 text-xs font-mono text-text-main">
             ~/.codex/auth.json
           </code>
-          <p className="mt-1 text-xs text-text-muted">
-            Path is auto-detected per OS (Linux/Mac/Windows).
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("providerDetailPathAutoDetectedAllOs")}</p>
         </div>
         <div>
           <div className="text-xs uppercase text-text-muted mb-1">{backupLabel}</div>
@@ -8709,7 +8713,9 @@ function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthModalProp
                   className="block w-full text-sm"
                 />
                 {singleJson && previewClaudeJson(singleJson).valid && (
-                  <p className="mt-1 text-xs text-emerald-500">Valid Claude credentials file</p>
+                  <p className="mt-1 text-xs text-emerald-500">
+                    {t("providerDetailValidClaudeCredentialsFile")}
+                  </p>
                 )}
                 {singleJson && !previewClaudeJson(singleJson).valid && (
                   <p className="mt-1 text-xs text-red-500">
@@ -9753,7 +9759,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                     ? "text-red-400"
                     : health?.status === "warning"
                       ? "text-yellow-400"
-                      : "text-green-400";
+                      : "text-text-muted";
                 const statusIcon =
                   health?.status === "invalid" ? "🔴" : health?.status === "warning" ? "🟡" : "🟢";
                 const statusLabel =
@@ -9766,7 +9772,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 return (
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate ${statusColor}`}
+                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
                     >
                       {statusIcon} {t("primaryKey")}: {connection.apiKey.slice(0, 6)}...
                       {connection.apiKey.slice(-4)}
@@ -9820,7 +9826,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                       ? "text-red-400"
                       : health?.status === "warning"
                         ? "text-yellow-400"
-                        : "text-green-400";
+                        : "text-text-muted";
                   const statusIcon =
                     health?.status === "invalid"
                       ? "🔴"
@@ -9837,7 +9843,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   return (
                     <div key={idx} className="flex items-center gap-2">
                       <span
-                        className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate ${statusColor}`}
+                        className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
                       >
                         {statusIcon}{" "}
                         {t("extraApiKeyMasked", {
