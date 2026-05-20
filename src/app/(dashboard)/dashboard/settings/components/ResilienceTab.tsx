@@ -627,6 +627,7 @@ function WaitForCooldownCard({
   onSave: (next: WaitForCooldownSettings) => Promise<void>;
   saving: boolean;
 }) {
+  const t = useTranslations("settings");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -640,7 +641,7 @@ function WaitForCooldownCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">hourglass_top</span>
-            <h2 className="text-lg font-bold">Wait for Cooldown</h2>
+            <h2 className="text-lg font-bold">{t("resilienceWaitForCooldown")}</h2>
           </div>
           <SectionDescription
             scope="Current client request"
@@ -671,19 +672,19 @@ function WaitForCooldownCard({
         {editing ? (
           <>
             <BooleanField
-              label="Enable server-side wait"
+              label={t("resilienceEnableServerSideWait")}
               description="When enabled, OmniRoute waits for the first cooldown to expire and retries automatically."
               checked={draft.enabled}
               onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
             />
             <NumberField
-              label="Maximum retries"
+              label={t("resilienceMaximumRetries")}
               value={draft.maxRetries}
               min={0}
               onChange={(maxRetries) => setDraft((prev) => ({ ...prev, maxRetries }))}
             />
             <NumberField
-              label="Maximum wait per retry"
+              label={t("resilienceMaximumWaitPerRetry")}
               value={draft.maxRetryWaitSec}
               min={0}
               suffix="sec"
@@ -693,17 +694,17 @@ function WaitForCooldownCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Enable server-side wait</div>
+              <div className="text-xs text-text-muted">{t("resilienceEnableServerSideWait")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.enabled ? "Enabled" : "Disabled"}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Maximum retries</div>
+              <div className="text-xs text-text-muted">{t("resilienceMaximumRetries")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">{value.maxRetries}</div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Maximum wait per retry</div>
+              <div className="text-xs text-text-muted">{t("resilienceMaximumWaitPerRetry")}</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.maxRetryWaitSec}s
               </div>
