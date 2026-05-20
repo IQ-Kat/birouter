@@ -291,9 +291,17 @@ export default function PlaygroundPage() {
       .catch(() => {});
   }, []);
 
-  const filteredModels = models
-    .filter((m) => !selectedProvider || m.id.startsWith(selectedProvider + "/"))
-    .map((m) => ({ value: m.id, label: m.id }));
+  const filteredModels = (() => {
+    const seen = new Set<string>();
+    const out: Array<{ value: string; label: string }> = [];
+    for (const m of models) {
+      if (selectedProvider && !m.id.startsWith(selectedProvider + "/")) continue;
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      out.push({ value: m.id, label: m.id });
+    }
+    return out;
+  })();
 
   const generateDefaultBody = (endpoint: string, model: string) => {
     const template = { ...DEFAULT_BODIES[endpoint] };
