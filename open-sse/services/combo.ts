@@ -11,6 +11,7 @@ import {
   getRuntimeProviderProfile,
   recordProviderFailure,
   isProviderFailureCode,
+  isProviderExhaustedReason,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
@@ -35,6 +36,7 @@ import {
   type ScoringWeights,
 } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
+import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
@@ -96,6 +98,10 @@ const DEFAULT_MODEL_P95_MS = {
   "deepseek-chat": 2000,
 };
 const MIN_HISTORY_SAMPLES = 10;
+// Assumed fraction of tokens that are output when blending input+output prices
+// for auto-combo cost scoring. 0.4 = 40% output, 60% input.
+// Matches the example in GitHub issue #1812 (e.g. o3-like model: $3 input/$15 output).
+const OUTPUT_TOKEN_RATIO = 0.4;
 const RESET_AWARE_SESSION_WINDOW_MS = 5 * 60 * 60 * 1000;
 const RESET_AWARE_WEEKLY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const RESET_AWARE_REMAINING_WEIGHT = 0.55;
@@ -1219,8 +1225,14 @@ async function buildAutoCandidates(targets, comboName) {
       try {
         const pricing = await getPricingForModel(provider, model);
         const inputPrice = Number(pricing?.input);
+        const outputPrice = Number(pricing?.output);
         if (Number.isFinite(inputPrice) && inputPrice >= 0) {
-          costPer1MTokens = inputPrice;
+          if (Number.isFinite(outputPrice) && outputPrice >= 0) {
+            costPer1MTokens =
+              inputPrice * (1 - OUTPUT_TOKEN_RATIO) + outputPrice * OUTPUT_TOKEN_RATIO;
+          } else {
+            costPer1MTokens = inputPrice;
+          }
         }
       } catch {
         // keep default cost
@@ -1713,6 +1725,32 @@ export async function handleComboChat({
       }
     }
 
+    // Context-window pre-filter (#1808)
+    // Estimate input tokens once; exclude candidates whose known context limit is too small.
+    // Uses the same 4-chars-per-token heuristic as contextManager.ts::compressContext().
+    // Null/unknown limits are treated as "include" to avoid incorrectly dropping valid targets.
+    const estimatedInputTokens = estimateTokens(body?.messages ?? []);
+    if (estimatedInputTokens > 0) {
+      const filteredByContext = eligibleTargets.filter((target) => {
+        const limit = getModelContextLimitForModelString(target.modelStr);
+        if (limit === null || limit === undefined) return true; // unknown — include to be safe
+        return limit >= estimatedInputTokens;
+      });
+      if (filteredByContext.length > 0) {
+        log.debug(
+          "COMBO",
+          `Auto strategy: context-window filter kept ${filteredByContext.length}/${eligibleTargets.length} candidates (est. ${estimatedInputTokens} tokens)`
+        );
+        eligibleTargets = filteredByContext;
+      } else {
+        log.warn(
+          "COMBO",
+          `Auto strategy: all candidates filtered by context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool`
+        );
+        // eligibleTargets intentionally unchanged — same fallback contract as tool-calling filter
+      }
+    }
+
     const prompt = extractPromptForIntent(body);
     const systemPrompt =
       typeof combo?.system_message === "string" ? combo.system_message : undefined;
@@ -1767,7 +1805,7 @@ export async function handleComboChat({
         try {
           const decision = selectWithStrategy(
             candidates,
-            { taskType, requestHasTools, lastKnownGoodProvider },
+            { taskType, requestHasTools, lastKnownGoodProvider, estimatedInputTokens },
             routingStrategy
           );
           selectedProvider = decision.provider;
@@ -1956,6 +1994,9 @@ export async function handleComboChat({
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
 
+  // #1731: Per-request in-memory set of providers whose quota is fully exhausted.
+  // When a target returns a quota-exhausted 429, remaining same-provider targets are skipped.
+  const exhaustedProviders = new Set<string>();
   let globalAttempts = 0;
 
   for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
@@ -1990,6 +2031,16 @@ export async function handleComboChat({
       const modelStr = target.modelStr;
       const provider = target.provider;
       const profile = await getRuntimeProviderProfile(provider);
+
+      // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
+      if (provider && exhaustedProviders.has(provider)) {
+        log.info(
+          "COMBO",
+          `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
+        );
+        if (i > 0) fallbackCount++;
+        continue;
+      }
 
       // Pre-check: skip models where all accounts are in cooldown
       if (isModelAvailable) {
@@ -2207,7 +2258,7 @@ export async function handleComboChat({
         // treated as local to that target and the combo continues to the next target.
         // Error classification is retained only for retry/cooldown pacing; it must
         // not decide whether fallback happens, including for generic 400 responses.
-        const { cooldownMs } = checkFallbackError(
+        const fallbackResult = checkFallbackError(
           result.status,
           errorText,
           0,
@@ -2216,6 +2267,17 @@ export async function handleComboChat({
           result.headers,
           profile
         );
+        const { cooldownMs } = fallbackResult;
+
+        // #1731: If the entire provider quota is exhausted, mark it so subsequent
+        // same-provider targets are skipped immediately.
+        if (provider && isProviderExhaustedReason(fallbackResult)) {
+          exhaustedProviders.add(provider);
+          log.info(
+            "COMBO",
+            `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+          );
+        }
 
         // Trigger shared provider circuit breaker for 5xx errors and connection failures.
         // If the next target in the combo is on the same provider, don't mark the provider
@@ -2370,6 +2432,11 @@ async function handleRoundRobinCombo({
   let fallbackCount = 0;
   let recordedAttempts = 0;
 
+  // #1731: Per-request in-memory set of providers whose quota is fully exhausted.
+  // When a target returns a quota-exhausted 429, remaining targets from the same
+  // provider are skipped to avoid the cascade through N same-provider targets.
+  const exhaustedProviders = new Set<string>();
+
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
     const modelIndex = (startIndex + offset) % modelCount;
@@ -2387,6 +2454,17 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         continue;
       }
+    }
+
+    // #1731: Skip targets from a provider that already signaled full quota exhaustion
+    // this request.
+    if (provider && exhaustedProviders.has(provider)) {
+      log.info(
+        "COMBO-RR",
+        `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
+      );
+      if (offset > 0) fallbackCount++;
+      continue;
     }
 
     // Acquire semaphore slot (may wait in queue)
@@ -2565,7 +2643,7 @@ async function handleRoundRobinCombo({
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
         // not to decide whether fallback is allowed.
-        const { cooldownMs } = checkFallbackError(
+        const fallbackResult = checkFallbackError(
           result.status,
           errorText,
           0,
@@ -2574,6 +2652,17 @@ async function handleRoundRobinCombo({
           result.headers,
           profile
         );
+        const { cooldownMs } = fallbackResult;
+
+        // #1731: If the entire provider quota is exhausted, mark it so subsequent
+        // same-provider targets are skipped immediately.
+        if (provider && isProviderExhaustedReason(fallbackResult)) {
+          exhaustedProviders.add(provider);
+          log.info(
+            "COMBO-RR",
+            `Provider ${provider} quota exhausted — marking for skip (#1731)`
+          );
+        }
 
         const isAllAccountsRateLimited = isAllAccountsRateLimitedResponse(
           result.status,
@@ -2596,6 +2685,10 @@ async function handleRoundRobinCombo({
             "COMBO-RR",
             `All accounts rate-limited for ${modelStr}, falling back to next model`
           );
+          // #1731: All-accounts-rate-limited 503 also counts as provider exhaustion
+          if (provider) {
+            exhaustedProviders.add(provider);
+          }
         }
 
         // Transient error → retry same model

@@ -57,7 +57,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `kimi-coding` | `kmc`        | Kimi Coding          | OAuth | —                                                                         | —                                                                                                                                                                     |
 | `windsurf`    | `ws`         | Windsurf (Devin CLI) | OAuth | [link](https://windsurf.com)                                              | Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.                  |
 
-## Web Cookie Providers (6)
+## Web Cookie Providers (7)
 
 | ID               | Alias      | Name                        | Tags       | Website                           | Notes                                                                                       |
 | ---------------- | ---------- | --------------------------- | ---------- | --------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -67,6 +67,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `grok-web`       | `gw`       | Grok Web (Subscription)     | Web cookie | [link](https://grok.com)          | Paste your sso= cookie value from grok.com                                                  |
 | `muse-spark-web` | `ms-web`   | Muse Spark Web (Meta AI)    | Web cookie | [link](https://www.meta.ai)       | Paste your abra_sess value or full cookie header from meta.ai                               |
 | `perplexity-web` | `pplx-web` | Perplexity Web (Pro/Max)    | Web cookie | [link](https://www.perplexity.ai) | Paste your \_\_Secure-next-auth.session-token cookie value from perplexity.ai               |
+| `t3-web`         | `t3chat`   | t3.chat (Pro/Free)          | Web cookie | [link](https://t3.chat)           | Pro: $8/mo, 50+ models. Free tier: limited models. Requires Cookie header + convex-session-id from DevTools. **Skeleton — endpoint URL not yet confirmed (TODO post-devtools-capture).** |
 
 ## API Key Providers (paid / paid-with-free-credits) (122)
 

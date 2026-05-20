@@ -1419,6 +1419,7 @@ export const cursorImportSchema = z.object({
 
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
+  region: z.string().trim().default("us-east-1"),
 });
 
 export const kiroSocialExchangeSchema = z.object({
