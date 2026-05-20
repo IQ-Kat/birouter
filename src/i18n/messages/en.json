@@ -3620,7 +3620,9 @@
     "providerDetailAuthUrl": "Auth URL",
     "providerDetailCallbackUrl": "Callback URL",
     "providerDetailValidClaudeCredentialsFile": "Valid Claude credentials file",
-    "providerDetailPathAutoDetectedAllOs": "Path is auto-detected per OS (Linux/Mac/Windows)."
+    "providerDetailPathAutoDetectedAllOs": "Path is auto-detected per OS (Linux/Mac/Windows).",
+    "providerDetailMyClaudeAccountPlaceholder": "My Claude account",
+    "providerDetailPathAutoDetected": "Path is auto-detected per OS (Linux/Mac)."
   },
   "settings": {
     "title": "Settings",
