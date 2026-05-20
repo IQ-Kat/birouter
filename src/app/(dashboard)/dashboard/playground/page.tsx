@@ -259,6 +259,7 @@ export default function PlaygroundPage() {
 
         const providerSet = new Set<string>();
         modelList.forEach((m) => {
+          if (typeof m?.id !== "string") return;
           const parts = m.id.split("/");
           if (parts.length >= 2) providerSet.add(parts[0]);
         });
@@ -270,7 +271,9 @@ export default function PlaygroundPage() {
           setSelectedProvider(providerOpts[0].value);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("[playground] Failed to load models:", err);
+      });
 
     // Fetch ALL connections (once)
     fetch("/api/providers/client")
@@ -295,6 +298,7 @@ export default function PlaygroundPage() {
     const seen = new Set<string>();
     const out: Array<{ value: string; label: string }> = [];
     for (const m of models) {
+      if (typeof m?.id !== "string") continue;
       if (selectedProvider && !m.id.startsWith(selectedProvider + "/")) continue;
       if (seen.has(m.id)) continue;
       seen.add(m.id);
@@ -315,7 +319,9 @@ export default function PlaygroundPage() {
     setSelectedProvider(newProvider);
     setSelectedConnection("");
     const providerModels = models
-      .filter((m) => !newProvider || m.id.startsWith(newProvider + "/"))
+      .filter(
+        (m) => typeof m?.id === "string" && (!newProvider || m.id.startsWith(newProvider + "/"))
+      )
       .map((m) => m.id);
     const firstModel = providerModels[0] || "";
     setSelectedModel(firstModel);
