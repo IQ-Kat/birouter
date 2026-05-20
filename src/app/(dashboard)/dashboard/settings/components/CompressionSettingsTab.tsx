@@ -613,7 +613,9 @@ export default function CompressionSettingsTab() {
             </label>
 
             <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">Auto clarity bypass</span>
+              <span className="text-sm text-text-muted">
+                {t("compressionSettingsAutoClarityBypass")}
+              </span>
               <button
                 onClick={() =>
                   save({

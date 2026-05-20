@@ -1468,7 +1468,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Privacy Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">No-Log Payload Privacy</p>
+            <p className="text-sm font-medium text-text-main">{t("noLogPayloadPrivacy")}</p>
             <p className="text-xs text-text-muted">
               Disable request/response payload persistence for this API key.
             </p>
@@ -1518,7 +1518,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Ban Toggle (SECURITY) */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-red-500/20 bg-red-500/5">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-bold text-red-700 dark:text-red-400">Banned Status</p>
+            <p className="text-sm font-bold text-red-700 dark:text-red-400">{t("bannedStatus")}</p>
             <p className="text-xs text-red-600 dark:text-red-300">
               Immediately revoke all access. Used for suspected abuse or compromised keys.
             </p>
@@ -1542,7 +1542,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Management API Access Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Management API Access</p>
+            <p className="text-sm font-medium text-text-main">{t("managementApiAccess")}</p>
             <p className="text-xs text-text-muted">
               Allow this key to call management routes (providers, combos, settings) via{" "}
               <code className="font-mono">Authorization: Bearer</code>. Use for LLM agents only.
@@ -1567,7 +1567,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Expiration Date */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Expiration Date</p>
+            <p className="text-sm font-medium text-text-main">{t("expirationDate")}</p>
             <p className="text-xs text-text-muted">
               Key will automatically stop working after this date.
             </p>
@@ -1585,7 +1585,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Management Access */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Management Access</p>
+            <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
             <p className="text-xs text-text-muted">
               Allow this API key to manage OmniRoute configuration.
             </p>
@@ -1774,7 +1774,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {allConnections.length > 0 && (
           <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-text-main">Allowed Connections</p>
+              <p className="text-sm font-medium text-text-main">{t("allowedConnections")}</p>
               <div className="flex gap-1 p-0.5 bg-surface rounded-md">
                 <button
                   onClick={() => {

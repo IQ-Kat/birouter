@@ -1296,7 +1296,13 @@
     "apiManagerRateLimitReqPer": "req /",
     "apiManagerRateLimitSecondsPlaceholder": "Seconds",
     "apiManagerRemoveLimitTitle": "Remove limit",
-    "apiManagerTimezonePlaceholder": "America/Sao_Paulo"
+    "apiManagerTimezonePlaceholder": "America/Sao_Paulo",
+    "noLogPayloadPrivacy": "No-Log Payload Privacy",
+    "bannedStatus": "Banned Status",
+    "managementApiAccess": "Management API Access",
+    "expirationDate": "Expiration Date",
+    "managementAccess": "Management Access",
+    "allowedConnections": "Allowed Connections"
   },
   "auditLog": {
     "title": "Audit Log",
@@ -4421,7 +4427,21 @@
     "storageIntegrityCheck": "Integrity Check",
     "storageIntegrityOk": "✓ OK",
     "storageIntegrityError": "✗ Error",
-    "storageUsageTokenBuffer": "Usage Token Buffer"
+    "storageUsageTokenBuffer": "Usage Token Buffer",
+    "compressionSettingsAutoTriggerMode": "Auto trigger mode",
+    "compressionSettingsMcpDescriptionCompression": "MCP description compression",
+    "compressionSettingsCavemanIntensity": "Caveman intensity",
+    "compressionSettingsCavemanOutputMode": "Caveman output mode",
+    "compressionSettingsOutputIntensity": "Output intensity",
+    "compressionSettingsAutoClarityBypass": "Auto clarity bypass",
+    "resilienceWaitForCooldown": "Wait for Cooldown",
+    "resilienceEnableServerSideWait": "Enable server-side wait",
+    "resilienceMaximumRetries": "Maximum retries",
+    "resilienceMaximumWaitPerRetry": "Maximum wait per retry",
+    "memorySkillsSkillsmpMarketplace": "SkillsMP Marketplace",
+    "memorySkillsFailedToSave": "Failed to save",
+    "memorySkillsApiKey": "API Key",
+    "memorySkillsActiveSkillsProvider": "Active Skills Provider"
   },
   "contextRtk": {
     "title": "RTK Engine",
