@@ -603,7 +603,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
                     {updateSteps.find((s) => s.step === "complete")?.message || "Update complete!"}
                   </p>
-                  <p className="text-xs text-text-muted mt-1">Reloading page automatically...</p>
+                  <p className="text-xs text-text-muted mt-1">{t("reloadingPageAutomatically")}</p>
                 </div>
               )}
             </div>
@@ -788,7 +788,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       <Card>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-base font-semibold">Provider Topology</h2>
+            <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
             <p className="text-xs text-text-muted">
               Connected providers routing through OmniRoute in real time
             </p>

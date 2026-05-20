@@ -1060,6 +1060,10 @@ export default function ProviderDetailPage() {
   >({});
   const [importingModels, setImportingModels] = useState(false);
   const [importingZed, setImportingZed] = useState(false);
+  const [showZedManual, setShowZedManual] = useState(false);
+  const [zedManualProvider, setZedManualProvider] = useState("openai");
+  const [zedManualToken, setZedManualToken] = useState("");
+  const [importingZedManual, setImportingZedManual] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importProgress, setImportProgress] = useState({
     current: 0,
@@ -1340,6 +1344,9 @@ export default function ProviderDetailPage() {
       const res = await fetch("/api/providers/zed/import", { method: "POST" });
       const data = await res.json();
       if (!res.ok || !data.success) {
+        if (data.zedDockerEnvironment) {
+          setShowZedManual(true);
+        }
         notify.error(data.error || "Zed import failed");
       } else if (!data.count) {
         const found = data.credentials?.length ?? 0;
@@ -1362,6 +1369,30 @@ export default function ProviderDetailPage() {
       setImportingZed(false);
     }
   }, [importingZed, notify, fetchConnections]);
+
+  const handleZedManualImport = useCallback(async () => {
+    if (importingZedManual || !zedManualToken.trim()) return;
+    setImportingZedManual(true);
+    try {
+      const res = await fetch("/api/providers/zed/manual-import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: zedManualProvider, token: zedManualToken.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        notify.error(data.error?.message ?? data.error ?? "Manual import failed");
+      } else {
+        notify.success(`Imported ${zedManualProvider} token from Zed`);
+        setZedManualToken("");
+        await fetchConnections();
+      }
+    } catch (e: any) {
+      notify.error(e?.message || "Manual import failed");
+    } finally {
+      setImportingZedManual(false);
+    }
+  }, [importingZedManual, zedManualProvider, zedManualToken, notify, fetchConnections]);
 
   useEffect(() => {
     if (providerId !== "codex") return;
@@ -3333,30 +3364,89 @@ export default function ProviderDetailPage() {
       </div>
 
       {providerId === "zed" && (
-        <Card>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px]">download</span>
-                Import from Zed Keychain
-              </h2>
-              <p className="text-sm text-text-muted mt-1">
-                Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that Zed
-                IDE stored in the OS keychain and import them as connections. Requires Zed IDE
-                installed on this machine.
-              </p>
+        <>
+          <Card>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[20px]">download</span>
+                  Import from Zed Keychain
+                </h2>
+                <p className="text-sm text-text-muted mt-1">
+                  Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that
+                  Zed IDE stored in the OS keychain and import them as connections. Requires Zed IDE
+                  installed on this machine.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={importingZed ? "sync" : "download"}
+                onClick={handleZedImport}
+                disabled={importingZed}
+              >
+                {importingZed ? "Importing…" : "Import from Zed"}
+              </Button>
             </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon={importingZed ? "sync" : "download"}
-              onClick={handleZedImport}
-              disabled={importingZed}
-            >
-              {importingZed ? "Importing…" : "Import from Zed"}
-            </Button>
-          </div>
-        </Card>
+          </Card>
+          <Card>
+            <div className="flex flex-col gap-3">
+              <button
+                className="flex items-center justify-between w-full text-left"
+                onClick={() => setShowZedManual((v) => !v)}
+              >
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[20px]">edit</span>
+                  Manual Token Import
+                </h2>
+                <span className="material-symbols-outlined text-[18px] text-text-muted">
+                  {showZedManual ? "expand_less" : "expand_more"}
+                </span>
+              </button>
+              {showZedManual && (
+                <div className="flex flex-col gap-3 mt-1">
+                  <p className="text-sm text-text-muted">
+                    Use this when OmniRoute runs in Docker or the keychain is unavailable. Paste the
+                    API key that Zed stored under{" "}
+                    <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy
+                    it from the Zed AI settings panel.
+                  </p>
+                  <div className="flex gap-2 flex-col sm:flex-row">
+                    <select
+                      className="input input-sm"
+                      value={zedManualProvider}
+                      onChange={(e) => setZedManualProvider(e.target.value)}
+                    >
+                      <option value="openai">OpenAI</option>
+                      <option value="anthropic">Anthropic</option>
+                      <option value="google">Google</option>
+                      <option value="mistral">Mistral</option>
+                      <option value="xai">xAI</option>
+                      <option value="openrouter">OpenRouter</option>
+                      <option value="deepseek">DeepSeek</option>
+                    </select>
+                    <input
+                      type="password"
+                      className="input input-sm flex-1"
+                      placeholder="Paste API key…"
+                      value={zedManualToken}
+                      onChange={(e) => setZedManualToken(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon={importingZedManual ? "sync" : "upload"}
+                      onClick={handleZedManualImport}
+                      disabled={importingZedManual || !zedManualToken.trim()}
+                    >
+                      {importingZedManual ? "Saving…" : "Import"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </>
       )}
 
       {isCompatible && providerNode && (
@@ -3440,13 +3530,13 @@ export default function ProviderDetailPage() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
-                <div title="Apply Codex Fast tier to all Codex connections by default">
+                <div title={t("providerDetailFastTierTooltip")}>
                   <Toggle
                     size="sm"
                     checked={codexGlobalFastServiceTier}
                     onChange={handleToggleCodexGlobalFastServiceTier}
                     disabled={savingCodexGlobalFastServiceTier}
-                    label="Fast default"
+                    label={t("providerDetailFastDefaultLabel")}
                     ariaLabel="Toggle Codex Fast default"
                     className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
                   />
@@ -7184,7 +7274,9 @@ function AddApiKeyModal({
                     open_in_new
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-text-main">Browser/manual connect</p>
+                    <p className="font-medium text-text-main">
+                      {t("providerDetailBrowserManualConnect")}
+                    </p>
                     <p className="mt-1 text-xs text-text-muted">
                       Open Command Code Studio, then paste the returned key/JSON/URL into the API
                       key field below.
@@ -7197,7 +7289,9 @@ function AddApiKeyModal({
                     {commandCodeAuthState?.authUrl && (
                       <div className="mt-3 space-y-2">
                         <div>
-                          <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
+                          <p className="mb-1 text-xs font-medium text-text-main">
+                            {t("providerDetailAuthUrl")}
+                          </p>
                           <div className="flex gap-2">
                             <Input
                               value={commandCodeAuthState.authUrl}
@@ -7216,7 +7310,9 @@ function AddApiKeyModal({
                         </div>
                         {commandCodeAuthState.callbackUrl && (
                           <div>
-                            <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
+                            <p className="mb-1 text-xs font-medium text-text-main">
+                              {t("providerDetailCallbackUrl")}
+                            </p>
                             <div className="flex gap-2">
                               <Input
                                 value={commandCodeAuthState.callbackUrl}
@@ -8163,9 +8259,7 @@ function ApplyCodexAuthModal({
           <code className="block rounded bg-sidebar px-2 py-1.5 text-xs font-mono text-text-main">
             ~/.codex/auth.json
           </code>
-          <p className="mt-1 text-xs text-text-muted">
-            Path is auto-detected per OS (Linux/Mac/Windows).
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("providerDetailPathAutoDetectedAllOs")}</p>
         </div>
         <div>
           <div className="text-xs uppercase text-text-muted mb-1">{backupLabel}</div>
@@ -8619,7 +8713,9 @@ function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthModalProp
                   className="block w-full text-sm"
                 />
                 {singleJson && previewClaudeJson(singleJson).valid && (
-                  <p className="mt-1 text-xs text-emerald-500">Valid Claude credentials file</p>
+                  <p className="mt-1 text-xs text-emerald-500">
+                    {t("providerDetailValidClaudeCredentialsFile")}
+                  </p>
                 )}
                 {singleJson && !previewClaudeJson(singleJson).valid && (
                   <p className="mt-1 text-xs text-red-500">

@@ -64,23 +64,17 @@ docker compose --profile cli up -d
 
 # Host profile (Linux-first; mounts host CLI binaries read-only)
 docker compose --profile host up -d
-
-# Combine CLI + CLIProxyAPI sidecar
-docker compose --profile cli --profile cliproxyapi up -d
 ```
 
 ## Available Profiles
 
-OmniRoute ships four Compose profiles. Pick the one that matches your environment.
+OmniRoute ships three Compose profiles. Pick the one that matches your environment.
 
-| Profile          | Service          | When to use                                                                                                                       | Command                                      |
-| ---------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (default) | `omniroute-base` | Headless server / minimal runtime, no provider CLIs bundled                                                                       | `docker compose --profile base up -d`        |
-| `cli`            | `omniroute-cli`  | Agentic workflows that call `omniroute providers/setup/doctor` and bundled CLIs (Codex, Claude Code, Droid, OpenClaw)             | `docker compose --profile cli up -d`         |
-| `host`           | `omniroute-host` | Linux hosts that want `network_mode`-like access to host CLIs by mounting `~/.local/bin`, `~/.codex`, `~/.claude`, etc. read-only | `docker compose --profile host up -d`        |
-| `cliproxyapi`    | `cliproxyapi`    | Run the [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar on port `8317` for upstream CLI proxying              | `docker compose --profile cliproxyapi up -d` |
-
-> Multiple profiles can be combined: `docker compose --profile cli --profile cliproxyapi up -d`.
+| Profile          | Service          | When to use                                                                                                                       | Command                               |
+| ---------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `base` (default) | `omniroute-base` | Headless server / minimal runtime, no provider CLIs bundled                                                                       | `docker compose --profile base up -d` |
+| `cli`            | `omniroute-cli`  | Agentic workflows that call `omniroute providers/setup/doctor` and bundled CLIs (Codex, Claude Code, Droid, OpenClaw)             | `docker compose --profile cli up -d`  |
+| `host`           | `omniroute-host` | Linux hosts that want `network_mode`-like access to host CLIs by mounting `~/.local/bin`, `~/.codex`, `~/.claude`, etc. read-only | `docker compose --profile host up -d` |
 
 ## Redis Sidecar
 
@@ -167,7 +161,6 @@ Beyond the defaults documented in [ENVIRONMENT.md](../reference/ENVIRONMENT.md),
 | `OMNIROUTE_MEMORY_MB`         | Node heap ceiling (`NODE_OPTIONS=--max-old-space-size`) baked into the image                        | `256` (set in Dockerfile) |
 | `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (20128) and API (20129)                                        | `20128` / `20129`         |
 | `PROD_DASHBOARD_PORT`         | Host-side dashboard port for `docker-compose.prod.yml`                                              | `20130`                   |
-| `CLIPROXYAPI_PORT`            | Host-side port for the `cliproxyapi` sidecar                                                        | `8317`                    |
 
 ## Docker Compose with Caddy (HTTPS Auto-TLS)
 

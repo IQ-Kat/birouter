@@ -1259,6 +1259,7 @@ export async function handleChatCore({
   comboExecutionKey = null,
   disableEmergencyFallback = false,
   cachedSettings = null,
+  skipUpstreamRetry = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // apiFormat is an optional custom-model marker injected by getModelInfo for
@@ -3170,6 +3171,7 @@ export async function handleChatCore({
                 upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
                 clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
                 onCredentialsRefreshed,
+                skipUpstreamRetry,
               });
               trace("post_executor", { status: res?.response?.status });
 
@@ -3661,6 +3663,7 @@ export async function handleChatCore({
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
           clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
           onCredentialsRefreshed,
+          skipUpstreamRetry: isCombo,
         });
 
         if (retryResult.response.ok) {
@@ -3915,7 +3918,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -3933,7 +3937,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -3951,7 +3956,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else if (isContextOverflowError(statusCode, message)) {
@@ -3993,7 +3999,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -4011,7 +4018,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -4029,7 +4037,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else {
@@ -4118,7 +4127,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     }
