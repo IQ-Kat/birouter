@@ -48,9 +48,18 @@ export default function ChatPlayground({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const filteredModels = models
-    .filter((m) => !selectedProvider || m.id.startsWith(selectedProvider + "/"))
-    .map((m) => ({ value: m.id, label: m.id }));
+  const filteredModels = (() => {
+    const seen = new Set<string>();
+    const out: Array<{ value: string; label: string }> = [];
+    for (const m of models) {
+      if (typeof m?.id !== "string") continue;
+      if (selectedProvider && !m.id.startsWith(selectedProvider + "/")) continue;
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      out.push({ value: m.id, label: m.id });
+    }
+    return out;
+  })();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -457,6 +457,24 @@ export function handleNoCredentials(
       credentials.retryAfterHuman
     );
   }
+
+  if (credentials?.allExpired) {
+    // Every connection for this provider is in a terminal state (expired,
+    // banned, or credits_exhausted). Surface as 401 with a re-auth hint
+    // instead of the generic 400 "No credentials", so dashboards/CLIs can
+    // distinguish "never configured" from "needs to reconnect".
+    const status = credentials.expiredStatus || "expired";
+    const count = credentials.expiredCount || 1;
+    const reason =
+      status === "credits_exhausted"
+        ? "credits exhausted"
+        : status === "banned"
+          ? "banned by upstream"
+          : "authentication expired";
+    const message = `[${provider}] All ${count} connection(s) ${reason} — please reconnect in the dashboard`;
+    log.warn("CHAT", message);
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, message);
+  }
   if (lastError && lastStatus) {
     log.warn("CHAT", "Preserving last upstream error after credential exhaustion", {
       provider,
