@@ -1732,7 +1732,7 @@ function ComboCard({
                 onChange={(e) => handleCompressionOverrideChange(e.target.value)}
                 disabled={isSavingCompression}
                 className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
-                title="Compression Override"
+                title={t("compressionOverride")}
               >
                 <option value="">Default</option>
                 <option value="off">Off</option>

@@ -611,7 +611,7 @@ export default function BudgetTab() {
         </div>
 
         {visibleRows.length === 0 ? (
-          <div className="py-10 text-center text-text-muted text-sm">No keys match filters</div>
+          <div className="py-10 text-center text-text-muted text-sm">{t("budgetNoKeysMatch")}</div>
         ) : (
           visibleRows.map((row, idx) => (
             <BudgetRow
@@ -856,16 +856,16 @@ function BudgetRowExpanded({
             <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
               Projection
             </h4>
-            <span className="text-[10px] text-text-muted">linear extrapolation</span>
+            <span className="text-[10px] text-text-muted">{t("budgetLinearExtrapolation")}</span>
           </div>
           <div className="flex items-baseline gap-3">
             <div>
-              <div className="text-[10px] text-text-muted">This month so far</div>
+              <div className="text-[10px] text-text-muted">{t("budgetThisMonthSoFar")}</div>
               <div className="text-lg font-bold tabular-nums">{formatCurrency(month)}</div>
             </div>
             <span className="text-text-muted">→</span>
             <div>
-              <div className="text-[10px] text-text-muted">Projected end of month</div>
+              <div className="text-[10px] text-text-muted">{t("budgetProjectedEndOfMonth")}</div>
               <div
                 className={`text-lg font-bold tabular-nums ${
                   projectionOver ? "text-amber-400" : "text-emerald-400"
@@ -885,10 +885,12 @@ function BudgetRowExpanded({
             <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
               Cost breakdown (30d)
             </h4>
-            <span className="text-[10px] text-text-muted">by provider</span>
+            <span className="text-[10px] text-text-muted">{t("budgetByProvider")}</span>
           </div>
           {breakdown === undefined ? (
-            <div className="text-[11px] text-text-muted py-2 animate-pulse">Loading…</div>
+            <div className="text-[11px] text-text-muted py-2 animate-pulse">
+              {t("budgetLoading")}
+            </div>
           ) : breakdown.length === 0 ? (
             <div className="text-[11px] text-text-muted py-2">No spend in last 30 days</div>
           ) : (
@@ -921,7 +923,7 @@ function BudgetRowExpanded({
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
           <Input
-            label="Daily $"
+            label={t("budgetDailyDollar")}
             type="number"
             step="0.01"
             min="0"
@@ -930,7 +932,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, dailyLimitUsd: e.target.value })}
           />
           <Input
-            label="Weekly $"
+            label={t("budgetWeeklyDollar")}
             type="number"
             step="0.01"
             min="0"
@@ -939,7 +941,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, weeklyLimitUsd: e.target.value })}
           />
           <Input
-            label="Monthly $"
+            label={t("budgetMonthlyDollar")}
             type="number"
             step="0.01"
             min="0"
@@ -948,7 +950,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, monthlyLimitUsd: e.target.value })}
           />
           <Input
-            label="Warn at %"
+            label={t("budgetWarnAtPct")}
             type="number"
             min="1"
             max="100"
