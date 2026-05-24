@@ -134,7 +134,6 @@ jobs:
 
   publish-opencode-plugin:
     runs-on: ubuntu-latest
-    environment: NPM_TOKEN
     steps:
       - name: Checkout
         uses: actions/checkout@v6
