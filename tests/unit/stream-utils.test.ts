@@ -124,6 +124,55 @@ test("createSSEStream passthrough normalizes tool-call finishes and reports the 
   assert.equal(onCompletePayload.clientPayload._streamed, true);
 });
 
+test("createSSEStream passthrough converts textual tool-call content into structured call log tool_calls", async () => {
+  let onCompletePayload = null;
+  const toolArgs = JSON.stringify({
+    command: 'sqlite3 /root/.o\u200dmniroute/omniroute.db ".tables"',
+  });
+  const toolText = `[Tool call: terminal]\nArguments: ${toolArgs}`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: {
+        messages: [{ role: "user", content: "inspect db" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal(onCompletePayload.status, 200);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: 'sqlite3 /root/.omniroute/omniroute.db ".tables"',
+  });
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+});
+
 test("createSSEStream passthrough flushes a buffered final line without a trailing newline", async () => {
   const text = await readTransformed(
     [

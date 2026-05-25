@@ -181,6 +181,60 @@ function appendBoundedText(current: string, next: string): string {
   return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
 }
 
+function stripZeroWidth(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripZeroWidth(item));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        stripZeroWidth(item),
+      ])
+    );
+  }
+  return value;
+}
+
+function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const match = normalized.match(
+    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
+  );
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    return { name, args: stripZeroWidth(JSON.parse(rawArgs)) };
+  } catch {
+    return null;
+  }
+}
+
+function collectPassthroughTextualToolCall(
+  text: string,
+  toolCalls: Map<string, ToolCall>
+): boolean {
+  const parsed = parseTextualToolCallFromContent(text);
+  if (!parsed) return false;
+  const key = `textual:${toolCalls.size}`;
+  toolCalls.set(key, {
+    id: `call_${Date.now()}_${toolCalls.size}`,
+    index: toolCalls.size,
+    type: "function",
+    function: {
+      name: parsed.name,
+      arguments: JSON.stringify(parsed.args || {}),
+    },
+  });
+  return true;
+}
+
 function toStreamFailureStatus(value: unknown): number | null {
   if (typeof value === "number" && Number.isInteger(value) && value >= 400 && value <= 599) {
     return value;
@@ -1211,6 +1265,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
 
                   const delta = parsed.choices?.[0]?.delta;
+                  let textualToolCallConverted = false;
 
                   // Extract <think> tags from streaming content
                   if (delta?.content && typeof delta.content === "string") {
@@ -1288,11 +1343,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (content && typeof content === "string") {
                     totalContentLength += content.length;
                   }
-                  if (typeof delta?.content === "string")
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
-                      delta.content
-                    );
+                  if (typeof delta?.content === "string") {
+                    if (collectPassthroughTextualToolCall(delta.content, passthroughToolCalls)) {
+                      passthroughHasToolCalls = true;
+                      textualToolCallConverted = true;
+                      delta.content = "";
+                    } else {
+                      passthroughAccumulatedContent = appendBoundedText(
+                        passthroughAccumulatedContent,
+                        delta.content
+                      );
+                    }
+                  }
                   if (typeof delta?.reasoning_content === "string")
                     passthroughAccumulatedReasoning = appendBoundedText(
                       passthroughAccumulatedReasoning,
@@ -1328,6 +1390,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   } else if (isFinishChunk && usage) {
                     const buffered = addBufferToUsage(usage);
                     parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
+                    output = `data: ${JSON.stringify(parsed)}\n`;
+                    injectedUsage = true;
+                  } else if (textualToolCallConverted) {
                     output = `data: ${JSON.stringify(parsed)}\n`;
                     injectedUsage = true;
                   } else if (idFixed || needsReserialization) {
