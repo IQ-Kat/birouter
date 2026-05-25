@@ -241,6 +241,11 @@ function containsTextualToolCallCandidate(text: unknown): boolean {
   return parseTextualToolCallCandidate(text) !== null;
 }
 
+function containsMalformedTextualToolCall(text: unknown): boolean {
+  if (typeof text !== "string") return false;
+  return text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:");
+}
+
 function collectPassthroughTextualToolCall(
   text: string,
   toolCalls: Map<string, ToolCall>
@@ -1746,6 +1751,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                 if (content && collectPassthroughTextualToolCall(content, passthroughToolCalls)) {
                   passthroughHasToolCalls = true;
                   content = "";
+                } else if (containsMalformedTextualToolCall(content)) {
+                  content = "";
                 }
                 const message: Record<string, unknown> = {
                   role: "assistant",
@@ -1986,6 +1993,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     arguments: JSON.stringify(textualToolCall.args || {}),
                   },
                 });
+                content = "";
+              } else if (containsMalformedTextualToolCall(content)) {
                 content = "";
               }
               const message: Record<string, unknown> = {

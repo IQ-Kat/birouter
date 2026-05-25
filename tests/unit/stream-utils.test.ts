@@ -267,6 +267,46 @@ test("createSSEStream passthrough suppresses malformed textual tool-call content
   assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
 });
 
+test("createSSEStream suppresses malformed compact textual tool-call content", async () => {
+  let onCompletePayload = null;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: "[Tool call: search_files_ide{file_glob:*combos*.ts,path:/opt/OmniRoute,target:files}]",
+                },
+              ],
+            },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({ candidates: [{ finishReason: "STOP" }] })}\n\n`,
+    ],
+    {
+      mode: "translate",
+      targetFormat: FORMATS.ANTIGRAVITY,
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect files" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call:/);
+});
+
 test("createSSEStream passthrough flushes a buffered final line without a trailing newline", async () => {
   const text = await readTransformed(
     [
