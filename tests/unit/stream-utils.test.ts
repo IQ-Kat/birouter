@@ -232,6 +232,53 @@ test("createSSEStream passthrough converts split textual tool-call content at co
   assert.doesNotMatch(text, /\[Tool call: terminal\]/);
 });
 
+test("createSSEStream passthrough suppresses textual tool calls for unknown tools", async () => {
+  let onCompletePayload = null;
+  const toolText = `[Tool call: search_files_ide]
+Arguments: {"path":"/opt/OmniRoute/src","target":"files"}`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_unknown_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_unknown_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: {
+        messages: [{ role: "user", content: "inspect files" }],
+        tools: [
+          { type: "function", function: { name: "search_files", parameters: { type: "object" } } },
+        ],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.doesNotMatch(text, /search_files_ide/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /search_files_ide/);
+});
+
 test("createSSEStream passthrough suppresses malformed textual tool-call content", async () => {
   let onCompletePayload = null;
   const malformedToolText = `(empty)[Tool call: terminal]\nArguments: {"command":"sqlite3 /opt/O\u200dmniRoute/data/o\u200dmniroute.`;

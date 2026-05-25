@@ -246,12 +246,34 @@ function containsMalformedTextualToolCall(text: unknown): boolean {
   return text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:");
 }
 
+function extractAllowedToolNames(body: unknown): Set<string> | null {
+  const record = asRecord(body);
+  const tools = record.tools;
+  if (!Array.isArray(tools)) return null;
+  const names = new Set<string>();
+  for (const tool of tools) {
+    if (!tool || typeof tool !== "object" || Array.isArray(tool)) continue;
+    const item = tool as JsonRecord;
+    const directName = typeof item.name === "string" ? item.name.trim() : "";
+    const fn =
+      item.function && typeof item.function === "object" && !Array.isArray(item.function)
+        ? (item.function as JsonRecord)
+        : null;
+    const functionName = typeof fn?.name === "string" ? fn.name.trim() : "";
+    const name = functionName || directName;
+    if (name) names.add(name);
+  }
+  return names.size > 0 ? names : null;
+}
+
 function collectPassthroughTextualToolCall(
   text: string,
-  toolCalls: Map<string, ToolCall>
+  toolCalls: Map<string, ToolCall>,
+  allowedToolNames?: Set<string> | null
 ): ToolCall | null {
   const parsed = parseTextualToolCallFromContent(text);
   if (!parsed) return null;
+  if (allowedToolNames?.size && !allowedToolNames.has(parsed.name)) return null;
   const key = `textual:${toolCalls.size}`;
   const toolCall: ToolCall = {
     id: `call_${Date.now()}_${toolCalls.size}`,
@@ -669,6 +691,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
   let passthroughToolCallSeq = 0;
+  const allowedToolNames = extractAllowedToolNames(body);
   let skipPassthroughEvent = false;
 
   // State for translate mode (accumulatedContent for call log response body)
@@ -1399,12 +1422,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                       if (parsedCandidate?.kind === "complete") {
                         const collectedToolCall = collectPassthroughTextualToolCall(
                           bufferedCandidate,
-                          passthroughToolCalls
+                          passthroughToolCalls,
+                          allowedToolNames
                         );
                         if (collectedToolCall) {
                           delta.tool_calls = [toStreamingToolCallDelta(collectedToolCall)];
+                          passthroughHasToolCalls = true;
                         }
-                        passthroughHasToolCalls = true;
                         textualToolCallConverted = true;
                         passthroughBufferedTextualToolCallContent = "";
                         delete delta.content;
@@ -1760,14 +1784,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (
                     collectPassthroughTextualToolCall(
                       finalBufferedTextualToolCall,
-                      passthroughToolCalls
+                      passthroughToolCalls,
+                      allowedToolNames
                     )
                   ) {
                     passthroughHasToolCalls = true;
                   }
                   passthroughBufferedTextualToolCallContent = "";
                 }
-                if (content && collectPassthroughTextualToolCall(content, passthroughToolCalls)) {
+                if (
+                  content &&
+                  collectPassthroughTextualToolCall(content, passthroughToolCalls, allowedToolNames)
+                ) {
                   passthroughHasToolCalls = true;
                   content = "";
                 } else if (containsMalformedTextualToolCall(content)) {
