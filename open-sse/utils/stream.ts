@@ -249,11 +249,11 @@ function containsMalformedTextualToolCall(text: unknown): boolean {
 function collectPassthroughTextualToolCall(
   text: string,
   toolCalls: Map<string, ToolCall>
-): boolean {
+): ToolCall | null {
   const parsed = parseTextualToolCallFromContent(text);
-  if (!parsed) return false;
+  if (!parsed) return null;
   const key = `textual:${toolCalls.size}`;
-  toolCalls.set(key, {
+  const toolCall: ToolCall = {
     id: `call_${Date.now()}_${toolCalls.size}`,
     index: toolCalls.size,
     type: "function",
@@ -261,8 +261,21 @@ function collectPassthroughTextualToolCall(
       name: parsed.name,
       arguments: JSON.stringify(parsed.args || {}),
     },
-  });
-  return true;
+  };
+  toolCalls.set(key, toolCall);
+  return toolCall;
+}
+
+function toStreamingToolCallDelta(toolCall: ToolCall) {
+  return {
+    index: toolCall.index,
+    id: toolCall.id,
+    type: toolCall.type,
+    function: {
+      name: toolCall.function.name,
+      arguments: toolCall.function.arguments,
+    },
+  };
 }
 
 function toStreamFailureStatus(value: unknown): number | null {
@@ -1384,11 +1397,17 @@ export function createSSEStream(options: StreamOptions = {}) {
                     ) {
                       const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
                       if (parsedCandidate?.kind === "complete") {
-                        collectPassthroughTextualToolCall(bufferedCandidate, passthroughToolCalls);
+                        const collectedToolCall = collectPassthroughTextualToolCall(
+                          bufferedCandidate,
+                          passthroughToolCalls
+                        );
+                        if (collectedToolCall) {
+                          delta.tool_calls = [toStreamingToolCallDelta(collectedToolCall)];
+                        }
                         passthroughHasToolCalls = true;
                         textualToolCallConverted = true;
                         passthroughBufferedTextualToolCallContent = "";
-                        delta.content = "";
+                        delete delta.content;
                       } else if (parsedCandidate?.kind === "partial") {
                         passthroughBufferedTextualToolCallContent = appendBoundedText(
                           passthroughBufferedTextualToolCallContent,

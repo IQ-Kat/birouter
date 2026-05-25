@@ -163,6 +163,9 @@ test("createSSEStream passthrough converts textual tool-call content into struct
   );
 
   assert.equal(onCompletePayload.status, 200);
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"name":"terminal"/);
+  assert.doesNotMatch(text, /"content":"\[Tool call: terminal/);
   const choice = onCompletePayload.responseBody.choices[0];
   assert.equal(choice.finish_reason, "tool_calls");
   assert.equal(choice.message.content, null);
@@ -216,6 +219,9 @@ test("createSSEStream passthrough converts split textual tool-call content at co
     }
   );
 
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"name":"terminal"/);
+  assert.doesNotMatch(text, /"content":"\[Tool call: terminal/);
   const choice = onCompletePayload.responseBody.choices[0];
   assert.equal(choice.finish_reason, "tool_calls");
   assert.equal(choice.message.content, null);
