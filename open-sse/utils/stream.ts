@@ -199,16 +199,19 @@ function stripZeroWidth(value: unknown): unknown {
   return value;
 }
 
-function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
+function parseTextualToolCallCandidate(
+  text: unknown
+): { kind: "complete"; name: string; args: unknown } | { kind: "partial" } | null {
   if (typeof text !== "string") return null;
   const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
   const toolCallIndex = normalized.lastIndexOf("[Tool call:");
-  const candidate = toolCallIndex >= 0 ? normalized.slice(toolCallIndex) : normalized;
+  if (toolCallIndex < 0) return null;
+  const candidate = normalized.slice(toolCallIndex);
   const headerMatch = candidate.match(/^\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*/);
-  if (!headerMatch) return null;
+  if (!headerMatch) return { kind: "partial" };
   const name = headerMatch[1]?.trim();
   const rawArgs = candidate.slice(headerMatch[0].length).trim();
-  if (!name || !rawArgs) return null;
+  if (!name || !rawArgs) return { kind: "partial" };
   const decoders = [
     (value: string) => value,
     (value: string) => {
@@ -223,10 +226,19 @@ function parseTextualToolCallFromContent(text: unknown): { name: string; args: u
     try {
       const decoded = decode(rawArgs);
       const parsed = JSON.parse(decoded);
-      return { name, args: stripZeroWidth(parsed) };
+      return { kind: "complete", name, args: stripZeroWidth(parsed) };
     } catch {}
   }
-  return null;
+  return { kind: "partial" };
+}
+
+function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
+  const candidate = parseTextualToolCallCandidate(text);
+  return candidate?.kind === "complete" ? { name: candidate.name, args: candidate.args } : null;
+}
+
+function containsTextualToolCallCandidate(text: unknown): boolean {
+  return parseTextualToolCallCandidate(text) !== null;
 }
 
 function collectPassthroughTextualToolCall(
@@ -659,6 +671,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   // Passthrough: accumulate content and reasoning separately for call log response body
   let passthroughAccumulatedContent = "";
   let passthroughAccumulatedReasoning = "";
+  let passthroughBufferedTextualToolCallContent = "";
   // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
   // used to backfill `response.completed.response.output` when upstream returns it
   // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
@@ -1357,14 +1370,38 @@ export function createSSEStream(options: StreamOptions = {}) {
                     totalContentLength += content.length;
                   }
                   if (typeof delta?.content === "string") {
-                    if (collectPassthroughTextualToolCall(delta.content, passthroughToolCalls)) {
-                      passthroughHasToolCalls = true;
-                      textualToolCallConverted = true;
-                      delta.content = "";
+                    const incomingContent = delta.content;
+                    const bufferedCandidate =
+                      passthroughBufferedTextualToolCallContent + incomingContent;
+                    if (
+                      passthroughBufferedTextualToolCallContent ||
+                      containsTextualToolCallCandidate(incomingContent)
+                    ) {
+                      const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
+                      if (parsedCandidate?.kind === "complete") {
+                        collectPassthroughTextualToolCall(bufferedCandidate, passthroughToolCalls);
+                        passthroughHasToolCalls = true;
+                        textualToolCallConverted = true;
+                        passthroughBufferedTextualToolCallContent = "";
+                        delta.content = "";
+                      } else if (parsedCandidate?.kind === "partial") {
+                        passthroughBufferedTextualToolCallContent = appendBoundedText(
+                          passthroughBufferedTextualToolCallContent,
+                          incomingContent
+                        );
+                        textualToolCallConverted = true;
+                        delta.content = "";
+                      } else {
+                        passthroughAccumulatedContent = appendBoundedText(
+                          passthroughAccumulatedContent,
+                          passthroughBufferedTextualToolCallContent + incomingContent
+                        );
+                        passthroughBufferedTextualToolCallContent = "";
+                      }
                     } else {
                       passthroughAccumulatedContent = appendBoundedText(
                         passthroughAccumulatedContent,
-                        delta.content
+                        incomingContent
                       );
                     }
                   }
@@ -1693,6 +1730,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                 const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
                 const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
                 let content = passthroughAccumulatedContent.trim() || "";
+                const finalBufferedTextualToolCall =
+                  passthroughBufferedTextualToolCallContent.trim();
+                if (finalBufferedTextualToolCall) {
+                  if (
+                    collectPassthroughTextualToolCall(
+                      finalBufferedTextualToolCall,
+                      passthroughToolCalls
+                    )
+                  ) {
+                    passthroughHasToolCalls = true;
+                  }
+                  passthroughBufferedTextualToolCallContent = "";
+                }
                 if (content && collectPassthroughTextualToolCall(content, passthroughToolCalls)) {
                   passthroughHasToolCalls = true;
                   content = "";

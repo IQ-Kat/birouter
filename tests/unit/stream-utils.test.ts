@@ -223,7 +223,48 @@ test("createSSEStream passthrough converts split textual tool-call content at co
   assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
     command: 'sqlite3 ~/.omniroute/omniroute.db ".tables"',
   });
-  assert.match(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+});
+
+test("createSSEStream passthrough suppresses malformed textual tool-call content", async () => {
+  let onCompletePayload = null;
+  const malformedToolText = `(empty)[Tool call: terminal]\nArguments: {"command":"sqlite3 /opt/O\u200dmniRoute/data/o\u200dmniroute.`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_malformed_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: malformedToolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_malformed_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect db" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "stop");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls, undefined);
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
 });
 
 test("createSSEStream passthrough flushes a buffered final line without a trailing newline", async () => {
