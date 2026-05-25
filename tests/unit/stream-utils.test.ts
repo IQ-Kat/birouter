@@ -173,6 +173,59 @@ test("createSSEStream passthrough converts textual tool-call content into struct
   assert.doesNotMatch(text, /\[Tool call: terminal\]/);
 });
 
+test("createSSEStream passthrough converts split textual tool-call content at completion", async () => {
+  let onCompletePayload = null;
+  const splitToolArgs = JSON.stringify({
+    command: 'sqlite3 ~/.o\u200dmniroute/o\u200dmniroute.db ".tables"',
+  });
+  const chunks = ["[Tool call: terminal]\n", `Arguments: ${splitToolArgs}`];
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { role: "assistant", content: chunks[0] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: { content: chunks[1] } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_split_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "antigravity/gemini-3.5-flash-low",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: { messages: [{ role: "user", content: "inspect db" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: 'sqlite3 ~/.omniroute/omniroute.db ".tables"',
+  });
+  assert.match(text, /\[Tool call: terminal\]/);
+});
+
 test("createSSEStream passthrough flushes a buffered final line without a trailing newline", async () => {
   const text = await readTransformed(
     [

@@ -202,18 +202,31 @@ function stripZeroWidth(value: unknown): unknown {
 function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
   if (typeof text !== "string") return null;
   const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
-  const match = normalized.match(
-    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
-  );
-  if (!match) return null;
-  const name = match[1]?.trim();
-  const rawArgs = match[2]?.trim();
+  const toolCallIndex = normalized.lastIndexOf("[Tool call:");
+  const candidate = toolCallIndex >= 0 ? normalized.slice(toolCallIndex) : normalized;
+  const headerMatch = candidate.match(/^\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*/);
+  if (!headerMatch) return null;
+  const name = headerMatch[1]?.trim();
+  const rawArgs = candidate.slice(headerMatch[0].length).trim();
   if (!name || !rawArgs) return null;
-  try {
-    return { name, args: stripZeroWidth(JSON.parse(rawArgs)) };
-  } catch {
-    return null;
+  const decoders = [
+    (value: string) => value,
+    (value: string) => {
+      if (value.startsWith('"') && value.endsWith('"')) {
+        const decoded = JSON.parse(value);
+        return typeof decoded === "string" ? decoded : value;
+      }
+      return value;
+    },
+  ];
+  for (const decode of decoders) {
+    try {
+      const decoded = decode(rawArgs);
+      const parsed = JSON.parse(decoded);
+      return { name, args: stripZeroWidth(parsed) };
+    } catch {}
   }
+  return null;
 }
 
 function collectPassthroughTextualToolCall(
@@ -1679,7 +1692,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                 const u = usage as Record<string, unknown> | null;
                 const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
                 const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
-                const content = passthroughAccumulatedContent.trim() || "";
+                let content = passthroughAccumulatedContent.trim() || "";
+                if (content && collectPassthroughTextualToolCall(content, passthroughToolCalls)) {
+                  passthroughHasToolCalls = true;
+                  content = "";
+                }
                 const message: Record<string, unknown> = {
                   role: "assistant",
                   content: content || null,
@@ -1892,27 +1909,42 @@ export function createSSEStream(options: StreamOptions = {}) {
               const u = state?.usage as Record<string, unknown> | null | undefined;
               const prompt = Number(u?.prompt_tokens ?? u?.input_tokens ?? 0);
               const completion = Number(u?.completion_tokens ?? u?.output_tokens ?? 0);
-              const content = (state?.accumulatedContent ?? "").trim() || "";
+              let content = (state?.accumulatedContent ?? "").trim() || "";
+              const normalizedToolCalls: ToolCall[] = state?.toolCalls?.size
+                ? [...state.toolCalls.values()]
+                    .map(
+                      (tc: Record<string, unknown>): ToolCall => ({
+                        id: (tc.id as string) ?? null,
+                        index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                        type: (tc.type as string) ?? "function",
+                        function: (tc.function as ToolCall["function"]) ?? {
+                          name: (tc.name as string) ?? "",
+                          arguments: "",
+                        },
+                      })
+                    )
+                    .sort((a, b) => a.index - b.index)
+                : [];
+              const textualToolCall = parseTextualToolCallFromContent(content);
+              if (textualToolCall) {
+                normalizedToolCalls.push({
+                  id: `call_${Date.now()}_${normalizedToolCalls.length}`,
+                  index: normalizedToolCalls.length,
+                  type: "function",
+                  function: {
+                    name: textualToolCall.name,
+                    arguments: JSON.stringify(textualToolCall.args || {}),
+                  },
+                });
+                content = "";
+              }
               const message: Record<string, unknown> = {
                 role: "assistant",
                 content: content || null,
               };
-              const hasToolCalls = state?.toolCalls?.size > 0;
+              const hasToolCalls = normalizedToolCalls.length > 0;
               if (hasToolCalls) {
-                // Normalize shape — translators may store different structures
-                message.tool_calls = [...state.toolCalls.values()]
-                  .map(
-                    (tc: Record<string, unknown>): ToolCall => ({
-                      id: (tc.id as string) ?? null,
-                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
-                      type: (tc.type as string) ?? "function",
-                      function: (tc.function as ToolCall["function"]) ?? {
-                        name: (tc.name as string) ?? "",
-                        arguments: "",
-                      },
-                    })
-                  )
-                  .sort((a, b) => a.index - b.index);
+                message.tool_calls = normalizedToolCalls;
               }
               const responseBody = {
                 choices: [
