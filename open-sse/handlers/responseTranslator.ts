@@ -34,6 +34,20 @@ function firstPositiveNumber(...values: unknown[]): number {
   return 0;
 }
 
+function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+  const match = text.match(/^\s*\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/);
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    return { name, args: JSON.parse(rawArgs) };
+  } catch {
+    return null;
+  }
+}
+
 function extractMessageOutputText(item: JsonRecord): string {
   if (!Array.isArray(item.content)) return "";
   let text = "";
@@ -302,8 +316,21 @@ export function translateNonStreamingResponse(
                   }
 
                   if (typeof partObj.text === "string") {
-                    textContent += partObj.text;
-                    contentParts.push({ type: "text", text: partObj.text });
+                    const textualToolCall = parseTextualToolCall(partObj.text);
+                    if (textualToolCall) {
+                      const toolCallId = `call_${toString(textualToolCall.name, "unknown")}_${Date.now()}_${toolCalls.length}`;
+                      toolCalls.push({
+                        id: toolCallId,
+                        type: "function",
+                        function: {
+                          name: textualToolCall.name,
+                          arguments: JSON.stringify(textualToolCall.args || {}),
+                        },
+                      });
+                    } else {
+                      textContent += partObj.text;
+                      contentParts.push({ type: "text", text: partObj.text });
+                    }
                   }
 
                   const inlineData = toRecord(partObj.inlineData ?? partObj.inline_data);

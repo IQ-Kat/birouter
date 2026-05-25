@@ -23,6 +23,20 @@ type GeminiFunctionCallPart = {
   };
 };
 
+function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
+  if (typeof text !== "string") return null;
+  const match = text.match(/^\s*\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/);
+  if (!match) return null;
+  const name = match[1]?.trim();
+  const rawArgs = match[2]?.trim();
+  if (!name || !rawArgs) return null;
+  try {
+    return { name, args: JSON.parse(rawArgs) };
+  } catch {
+    return null;
+  }
+}
+
 function buildToolCallId(
   functionCall: GeminiFunctionCallPart["functionCall"],
   toolName: string,
@@ -169,6 +183,15 @@ export function geminiToOpenAIResponse(chunk, state) {
         const hasTextContent = part.text !== undefined && part.text !== "";
         const hasFunctionCall = !!part.functionCall;
 
+        // Gemini/Antigravity can emit thoughtSignature as a standalone part
+        // immediately before the functionCall part. Keep it pending so the
+        // following functionCall is cached and can be re-attached on later
+        // turns; otherwise OpenAI-format clients lose the signature and the
+        // next Gemini request has to stringify historical tool calls.
+        if (hasThoughtSig && !hasTextContent && !hasFunctionCall) {
+          continue;
+        }
+
         if (hasTextContent) {
           results.push({
             id: `chatcmpl-${state.messageId}`,
@@ -191,8 +214,27 @@ export function geminiToOpenAIResponse(chunk, state) {
         continue;
       }
 
-      // Text content (non-thinking)
+      // Text content (non-thinking). Some Gemini/Antigravity turns can imitate
+      // the request-side signatureless history fallback and emit a textual
+      // "[Tool call: ...]" block instead of native functionCall. Convert that
+      // back to a structured OpenAI tool call so clients/tools do not see it as
+      // assistant prose.
       if (part.text !== undefined && part.text !== "") {
+        const textualToolCall = parseTextualToolCall(part.text);
+        if (textualToolCall) {
+          emitFunctionCallPart(
+            {
+              functionCall: {
+                name: textualToolCall.name,
+                args: textualToolCall.args,
+              },
+            },
+            state,
+            results
+          );
+          continue;
+        }
+
         results.push({
           id: `chatcmpl-${state.messageId}`,
           object: "chat.completion.chunk",

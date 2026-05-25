@@ -64,7 +64,9 @@ test("Gemini non-stream: multiple candidates keep multimodal content, reasoning 
               { thought: true, text: "Plan first." },
               { text: "Answer:" },
               { inlineData: { mimeType: "image/png", data: "abc123" } },
-              { functionCall: { id: "native-read-1", name: "read_file", args: { path: "/tmp/a" } } },
+              {
+                functionCall: { id: "native-read-1", name: "read_file", args: { path: "/tmp/a" } },
+              },
             ],
           },
           finishReason: "STOP",
@@ -283,10 +285,7 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
   );
 
   assert.equal(result[1].choices[0].delta.reasoning_content, "Need a plan.");
-  assert.equal(
-    result[2].choices[0].delta.tool_calls[0].id,
-    "native-call-1"
-  );
+  assert.equal(result[2].choices[0].delta.tool_calls[0].id, "native-call-1");
   assert.equal(
     result[2].choices[0].delta.tool_calls[0].function.name,
     "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2"
@@ -301,6 +300,85 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
   assert.equal(result[4].usage.completion_tokens, 5);
   assert.equal(result[4].usage.prompt_tokens_details.cached_tokens, 1);
   assert.equal(result[4].usage.completion_tokens_details.reasoning_tokens, 2);
+});
+
+test("Gemini stream: stores thoughtSignature when signature-only part precedes functionCall", async () => {
+  const { resolveGeminiThoughtSignature } =
+    await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+  const state = {
+    ...createStreamingState(),
+    signatureNamespace: "conn-antigravity-1",
+  };
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-split-signature",
+      modelVersion: "gemini-3-flash-agent",
+      candidates: [
+        {
+          content: {
+            parts: [
+              { thoughtSignature: "sig-split-1" },
+              {
+                functionCall: {
+                  id: "call_split_1",
+                  name: "read_file",
+                  args: { path: "/tmp/a" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.id, "call_split_1");
+  assert.equal(state.pendingThoughtSignature, null);
+  assert.equal(resolveGeminiThoughtSignature("conn-antigravity-1:call_split_1"), "sig-split-1");
+});
+
+test("Gemini stream: converts textual Tool call block to structured tool_calls", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '[Tool call: terminal]\nArguments: {"command":"sqlite3 ~/.omniroute/storage.sqlite \\"SELECT name FROM sqlite_master WHERE type=\'table\';\\""}',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.ok(toolCall.id.startsWith("terminal-"));
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({
+      command:
+        "sqlite3 ~/.omniroute/storage.sqlite \"SELECT name FROM sqlite_master WHERE type='table';\"",
+    })
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
 });
 
 test("Gemini stream: tool calls without native IDs keep deterministic fallback shape", () => {

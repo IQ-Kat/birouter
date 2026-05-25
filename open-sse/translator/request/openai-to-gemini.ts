@@ -347,12 +347,18 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
           }
 
           // Check if there are actual tool responses in the next messages
-          const hasSignaturelessTextResponses =
-            stringifySignaturelessToolCalls &&
-            msg.tool_calls.some(
-              (tc) =>
-                tc.type === "function" && !resolvedSignatures.has(tc.id) && toolResponses[tc.id]
-            );
+          const signaturelessToolCallIds = stringifySignaturelessToolCalls
+            ? msg.tool_calls
+                .filter(
+                  (tc) =>
+                    tc.type === "function" &&
+                    tc.id &&
+                    !resolvedSignatures.has(tc.id) &&
+                    toolResponses[tc.id]
+                )
+                .map((tc) => tc.id)
+            : [];
+          const hasSignaturelessTextResponses = signaturelessToolCallIds.length > 0;
           const hasActualResponses =
             toolCallIds.some((fid) => toolResponses[fid]) || hasSignaturelessTextResponses;
 
@@ -398,7 +404,7 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
               // functionResponse parts missing a matching thoughtSignature.
               for (const tc of msg.tool_calls) {
                 if (tc.type !== "function" || !tc.id) continue;
-                if (!resolvedSignatures.has(tc.id) && toolResponses[tc.id]) {
+                if (signaturelessToolCallIds.includes(tc.id)) {
                   const name = tcID2Name[tc.id] || tc.function?.name || "unknown";
                   const resp = toolResponses[tc.id];
                   toolParts.push({
@@ -605,6 +611,16 @@ function getAntigravityClaudeOutputTokens(body: Record<string, unknown>): number
 // OpenAI -> Antigravity (Sandbox Cloud Code with wrapper)
 export function openaiToAntigravityRequest(model, body, stream, credentials = null) {
   const isClaude = model.toLowerCase().includes("claude");
+  // All modern Gemini models (2.5+, 3.x, pro-agent, etc.) use thinking by default
+  // and require thought_signature for multi-turn tool calls.
+  // Safe default: all non-Claude models via Antigravity are thinking Gemini.
+  const modelLower = model.toLowerCase();
+  const isThinkingGemini =
+    !isClaude &&
+    (modelLower.includes("thinking") ||
+      modelLower.includes("gemini-3") ||
+      modelLower.includes("gemini-2.5") ||
+      modelLower.includes("gemini-pro"));
   const signatureNamespace =
     credentials &&
     typeof credentials === "object" &&
@@ -613,7 +629,7 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
       : null;
   const geminiCLI = openaiToGeminiCLIRequest(model, body, stream, {
     signatureNamespace,
-    signaturelessToolCallMode: isClaude ? "native" : "text",
+    signaturelessToolCallMode: isThinkingGemini ? "text" : "native",
   });
 
   if (isClaude) {

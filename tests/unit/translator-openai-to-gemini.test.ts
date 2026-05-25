@@ -689,6 +689,61 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
   );
 });
 
+test("OpenAI -> Antigravity preserves multiple signature-less historical tool responses as text", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-3.5-flash-low",
+    {
+      messages: [
+        { role: "user", content: "Inspect OmniRoute config" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_missing_db",
+              type: "function",
+              function: { name: "terminal", arguments: '{"command":"cat data/db.json"}' },
+            },
+            {
+              id: "call_list_dir",
+              type: "function",
+              function: { name: "terminal", arguments: '{"command":"ls ~/.omniroute"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_missing_db", content: "data/db.json: No such file" },
+        { role: "tool", tool_call_id: "call_list_dir", content: "storage.sqlite" },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "terminal",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    false,
+    { projectId: "proj-antigravity-gemini" } as any
+  );
+
+  const text = JSON.stringify(result.request.contents);
+  assert.ok(text.includes("[Tool call: terminal]"), "expected signature-less calls as text");
+  assert.ok(
+    text.includes("data/db.json: No such file"),
+    "expected first signature-less tool response as text"
+  );
+  assert.ok(
+    text.includes("storage.sqlite"),
+    "expected second signature-less tool response as text"
+  );
+  assert.equal(
+    result.request.contents.some((content) => content.parts.some((part) => part.functionResponse)),
+    false,
+    "signature-less historical responses must not be emitted as native functionResponse"
+  );
+});
+
 test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schema", () => {
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
