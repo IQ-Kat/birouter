@@ -25,7 +25,15 @@ type GeminiFunctionCallPart = {
 
 function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
   if (typeof text !== "string") return null;
-  const match = text.match(/^\s*\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/);
+
+  // Gemini/Antigravity sometimes imitates the request-side fallback with small
+  // variations, e.g. a leading "(empty)" marker or zero-width chars inserted
+  // into argument strings. Normalize those variants before parsing so the
+  // response is still surfaced as a structured OpenAI tool call.
+  const normalized = text.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const match = normalized.match(
+    /^[\s\S]*?\[Tool call:\s*([^\]\n]+)\]\s*\nArguments:\s*([\s\S]+?)\s*$/
+  );
   if (!match) return null;
   const name = match[1]?.trim();
   const rawArgs = match[2]?.trim();

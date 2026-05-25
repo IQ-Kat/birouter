@@ -381,6 +381,45 @@ test("Gemini stream: converts textual Tool call block to structured tool_calls",
   assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
 });
 
+test("Gemini stream: converts prefixed textual Tool call block with zero-width chars", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-prefixed",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '(empty)[Tool call: terminal]\nArguments: {"command":"sqlite3 ~/.o\u200dmniroute/storage.sqlite"}',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.ok(toolCall.id.startsWith("terminal-"));
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({
+      command: "sqlite3 ~/.omniroute/storage.sqlite",
+    })
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
 test("Gemini stream: tool calls without native IDs keep deterministic fallback shape", () => {
   const state = createStreamingState();
   const result = geminiToOpenAIResponse(
