@@ -441,6 +441,62 @@ test("createSSEStream translate mode converts Claude SSE into OpenAI chunks and 
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 4);
 });
 
+test("createSSEStream Responses passthrough converts textual tool-call deltas before streaming", async () => {
+  let onCompletePayload = null;
+  const toolText = `[Tool call: terminal]
+Arguments: {"command":"systemctl status omniroute"}`;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        type: "response.output_text.delta",
+        delta: toolText,
+      })}
+
+`,
+      `data: ${JSON.stringify({
+        type: "response.completed",
+        response: {
+          id: "resp_textual_tool",
+          object: "response",
+          model: "antigravity/gemini-3.5-flash-low",
+          status: "completed",
+          output: [],
+          usage: { input_tokens: 10, output_tokens: 4, total_tokens: 14 },
+        },
+      })}
+
+`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      clientResponseFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "antigravity",
+      model: "antigravity/gemini-3.5-flash-low",
+      body: {
+        input: "check service",
+        tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(text, /Arguments:/);
+  assert.match(text, /response.output_item.added/);
+  assert.match(text, /response.function_call_arguments.done/);
+  assert.match(text, /"name":"terminal"/);
+  assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
+  assert.equal(
+    onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name,
+    "terminal"
+  );
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.clientPayload), /\[Tool call: terminal\]/);
+});
+
 test("createSSEStream passthrough preserves Responses API events and completion summaries", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(
