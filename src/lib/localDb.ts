@@ -508,3 +508,26 @@ export {
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+// Quota Sharing — Group B (planos 16+22)
+export {
+  listPools,
+  getPool,
+  createPool,
+  updatePool,
+  deletePool,
+  upsertAllocations,
+  listAllocationsForApiKey,
+} from "./db/quotaPools";
+export {
+  getBucket,
+  incrementBucket,
+  getPair,
+  gcOlderThan as gcQuotaConsumption,
+} from "./db/quotaConsumption";
+export {
+  getPlan as getProviderPlan,
+  listPlans as listProviderPlans,
+  upsertPlan as upsertProviderPlan,
+  deletePlan as deleteProviderPlan,
+} from "./db/providerPlans";
