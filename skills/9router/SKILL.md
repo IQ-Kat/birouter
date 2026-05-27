@@ -10,8 +10,8 @@ Local/remote AI gateway exposing OpenAI-compatible REST. One key, many providers
 ## Setup
 
 ```bash
-export NINEROUTER_URL="http://localhost:20128"      # or VPS / tunnel URL
-export NINEROUTER_KEY="sk-..."                      # from Dashboard → Keys (only if requireApiKey=true)
+export NINEROUTER_URL="http://localhost:2004"      # or VPS / tunnel URL
+export NINEROUTER_KEY="bi-..."                      # from Dashboard → Keys (only if requireApiKey=true)
 ```
 
 All requests: `${NINEROUTER_URL}/v1/...` with header `Authorization: Bearer ${NINEROUTER_KEY}` (omit if auth disabled).

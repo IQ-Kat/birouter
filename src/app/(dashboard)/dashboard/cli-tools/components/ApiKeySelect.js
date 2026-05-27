@@ -57,7 +57,7 @@ export default function ApiKeySelect({ value, onChange, apiKeys = [], cloudEnabl
           type="text"
           value={customInput}
           onChange={handleCustomInput}
-          placeholder="sk-..."
+          placeholder="bi-..."
           className="w-full min-w-0 px-2 py-2 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 sm:py-1.5"
         />
       )}

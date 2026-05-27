@@ -274,7 +274,7 @@ function EmbeddingExampleCard({ providerId, customAlias }) {
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="sk-..."
+            placeholder="bi-..."
             className="w-full px-3 py-1.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary font-mono"
           />
         </Row>
