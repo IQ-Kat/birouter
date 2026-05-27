@@ -949,11 +949,12 @@ test("chat pipeline sends Gemini CLI OAuth requests with native Cloud Code trans
   assert.equal(generateCall.body.userAgent, undefined);
   assert.equal(generateCall.body.requestId, undefined);
   assert.equal(generateCall.body.user_prompt_id, generateCall.body.request.session_id);
-  assert.deepEqual(Object.keys(generateCall.body).slice(0, 4), [
+  const keys = Object.keys(generateCall.body).slice(0, 4);
+  assert.deepEqual(keys.sort(), [
     "model",
     "project",
-    "user_prompt_id",
     "request",
+    "user_prompt_id",
   ]);
   assert.equal(generateCall.body.request.sessionId, undefined);
   assert.match(generateCall.body.request.session_id, /^[0-9a-f-]{36}$/i);

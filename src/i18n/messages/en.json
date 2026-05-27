@@ -976,7 +976,94 @@
     "disable": "Disable",
     "noWebhooks": "No webhooks configured yet.",
     "signatureTitle": "Webhook Signatures",
-    "signatureDescription": "Each delivery includes an X-Webhook-Signature header signed with HMAC-SHA256 using the webhook secret. Verify the signature before trusting the payload."
+    "signatureDescription": "Each delivery includes an X-Webhook-Signature header signed with HMAC-SHA256 using the webhook secret. Verify the signature before trusting the payload.",
+    "wizard": {
+      "cancel": "Cancel",
+      "step1Title": "Select Integration",
+      "step2Title": "Configure Target",
+      "step3Title": "Events & Test",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "step1Desc": "Select the target integration system for this webhook."
+    },
+    "howItWorks": {
+      "step1": "Choose an integration provider (e.g. Slack, Discord, custom webhook) and set up the connection details.",
+      "step2": "Configure system events to subscribe to (e.g. completion errors, model fallbacks, or usage limits).",
+      "step3": "Verify the configuration by sending a test payload to make sure the endpoint receives it.",
+      "step4": "Secure your endpoint by validating the X-Webhook-Signature HMAC-SHA256 header using the webhook's secret.",
+      "title": "How Webhooks Work",
+      "customOnly": "Only applicable for custom endpoint integrations.",
+      "hmacRecipeTitle": "HMAC Verification Recipe",
+      "hmacRecipe": "To verify webhook payloads in Node.js, compute the HMAC-SHA256 of the raw request body using your secret key. Compare it to the X-Webhook-Signature header using timingSafeEqual.",
+      "timeoutNote": "Webhook deliveries have a timeout of 10 seconds.",
+      "retryNote": "Failed deliveries are retried up to 5 times with exponential backoff.",
+      "docsLink": "Read the full Webhooks developer guide",
+      "hmacRecipePython": "Python HMAC verification: hmac.new(secret, body, hashlib.sha256).hexdigest()",
+      "hmacRecipeBash": "Bash HMAC verification: echo -n \"$body\" | openssl dgst -sha256 -hmac \"$secret\""
+    },
+    "deliveries": {
+      "title": "Delivery Logs",
+      "loadFailed": "Failed to load webhook delivery logs.",
+      "empty": "No deliveries recorded yet. Trigger an event or send a test payload.",
+      "status": "Status",
+      "event": "Event",
+      "latency": "Latency",
+      "at": "Sent At"
+    },
+    "kinds": {
+      "comingSoon": "Coming Soon",
+      "slack": "Slack",
+      "slackDesc": "Post system events directly into a Slack channel",
+      "telegram": "Telegram",
+      "telegramDesc": "Send event messages using a Telegram bot",
+      "discord": "Discord",
+      "discordDesc": "Deliver real-time updates directly to a Discord server",
+      "custom": "Custom Webhook",
+      "customDesc": "Deliver system event payloads to any HTTPS endpoint",
+      "email": "Email Notification",
+      "emailDesc": "Receive summary updates via email",
+      "pagerduty": "PagerDuty",
+      "pagerdutyDesc": "Trigger alerts on PagerDuty for critical system issues",
+      "teams": "Microsoft Teams",
+      "teamsDesc": "Forward system notifications to Microsoft Teams channels"
+    },
+    "testPayloadSent": "Test Payload Sent",
+    "testResponse": "Test Response",
+    "validateUrl": {
+      "checking": "Checking URL...",
+      "ok": "URL is valid",
+      "blockedPrivate": "URL is a blocked private address",
+      "invalidUrl": "Invalid URL format"
+    },
+    "custom": {
+      "endpointUrl": "Endpoint URL",
+      "endpointUrlPlaceholder": "https://api.yourdomain.com/webhook",
+      "secretKey": "Secret Key",
+      "secretKeyPlaceholder": "Enter secret key or leave blank to auto-generate",
+      "secretKeyHint": "Used to sign the payload header for authentication."
+    },
+    "discord": {
+      "webhookUrl": "Discord Webhook URL",
+      "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
+      "webhookUrlHint": "The webhook URL copied from your Discord channel integration settings.",
+      "tutorial": "How to create a Discord webhook:"
+    },
+    "slack": {
+      "webhookUrl": "Slack Webhook URL",
+      "webhookUrlPlaceholder": "https://hooks.slack.com/services/...",
+      "webhookUrlHint": "The webhook URL copied from your Slack Incoming Webhooks integration.",
+      "tutorial": "How to create a Slack webhook:"
+    },
+    "telegram": {
+      "botToken": "Telegram Bot Token",
+      "botTokenPlaceholder": "123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ",
+      "botTokenHint": "The HTTP API token received from @BotFather when creating your bot.",
+      "chatId": "Telegram Chat ID / Channel",
+      "chatIdPlaceholder": "-100123456789 or @channelname",
+      "chatIdHint": "The unique numerical identifier or public username of the chat/channel.",
+      "tutorial": "How to configure Telegram webhook:"
+    }
   },
   "compliance": {
     "auditTitle": "Audit",
@@ -2702,7 +2789,17 @@
     "apiEndpointsNoMatch": "No endpoints match your filter",
     "localServer": "Local Server",
     "cloudOmniroute": "Cloud OmniRoute",
-    "copyUrl": "Copy URL"
+    "copyUrl": "Copy URL",
+    "badgeLoopbackTooltip": "This endpoint is only accessible locally (loopback only)",
+    "badgeAlwaysProtectedTooltip": "This endpoint is always protected and requires authorization",
+    "badgeInternalTooltip": "This is an internal system endpoint",
+    "tierAll": "All",
+    "tierAuth": "Authenticated",
+    "tierLoopback": "Loopback",
+    "tierAlwaysProtected": "Always Protected",
+    "tierPublic": "Public",
+    "hideInternal": "Hide Internal",
+    "showInternal": "Show Internal"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -5172,7 +5269,16 @@
     "resetAwareQuotaCacheMaxStale": "Max stale (seconds)",
     "qdrantCleanupSuccess": "OK: removed {count} point(s) (retention: {days} days)",
     "qdrantCleanupFailed": "Cleanup failed",
-    "qdrantCleanupError": "Error: {error}"
+    "qdrantCleanupError": "Error: {error}",
+    "vercelRelaySuccess": "Vercel Relay deployed successfully",
+    "vercelRelayButton": "Deploy Vercel Relay",
+    "vercelRelayModalTitle": "Deploy Vercel Relay",
+    "vercelRelayWarning": "Warning: A Vercel deployment token is required. This token will only be used to create the serverless relay and will never be stored by OmniRoute.",
+    "vercelRelayTokenLabel": "Vercel Access Token",
+    "vercelRelayProjectNameLabel": "Vercel Project Name",
+    "vercelRelayFreeTierNote": "Relays are lightweight proxy endpoints deployed on Vercel's free tier to bypass local network/region limitations.",
+    "vercelRelayDeploying": "Deploying...",
+    "vercelRelayDeploy": "Deploy"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -5853,7 +5959,9 @@
     "quotaTableRefreshing": "⟳ Refreshing...",
     "noSpendLast30Days": "No spend in last 30 days",
     "updatedShort": "Updated",
-    "lastRefreshed": "Last refreshed"
+    "lastRefreshed": "Last refreshed",
+    "providerQuota": "Provider Quota",
+    "providerQuotaHomeHint": "Live status across connected accounts"
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",
