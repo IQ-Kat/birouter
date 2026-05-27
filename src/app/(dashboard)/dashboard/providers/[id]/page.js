@@ -54,6 +54,9 @@ export default function ProviderDetailPage() {
   const [suggestedModels, setSuggestedModels] = useState([]);
   const [kiloFreeModels, setKiloFreeModels] = useState([]);
   const [disabledModelIds, setDisabledModelIds] = useState([]);
+  const [fetchedModels, setFetchedModels] = useState([]);
+  const [fetchedModelsAt, setFetchedModelsAt] = useState(null);
+  const [fetchingModels, setFetchingModels] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
   const [showAgRiskModal, setShowAgRiskModal] = useState(false);
   const [oneByOneRunning, setOneByOneRunning] = useState(false);
@@ -376,6 +379,37 @@ export default function ProviderDetailPage() {
     if (!fetcher) return;
     fetchSuggestedModels(fetcher).then(setSuggestedModels);
   }, [providerId]);
+
+  // Load previously fetched models from database
+  useEffect(() => {
+    fetch(`/api/providers/${providerId}/fetch-models`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.models?.length) setFetchedModels(data.models);
+        if (data.fetchedAt) setFetchedModelsAt(data.fetchedAt);
+      })
+      .catch(() => {});
+  }, [providerId]);
+
+  // Fetch models from provider's /v1/models endpoint using user's API key
+  const handleFetchModels = async () => {
+    if (fetchingModels) return;
+    setFetchingModels(true);
+    try {
+      const res = await fetch(`/api/providers/${providerId}/fetch-models`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.models) {
+        setFetchedModels(data.models);
+        setFetchedModelsAt(data.fetchedAt);
+      } else {
+        alert(data.error || "Failed to fetch models");
+      }
+    } catch (error) {
+      alert("Network error fetching models");
+    } finally {
+      setFetchingModels(false);
+    }
+  };
 
   const handleSetAlias = async (modelId, alias, providerAliasOverride = providerAlias) => {
     const fullModel = `${providerAliasOverride}/${modelId}`;
@@ -956,6 +990,70 @@ export default function ProviderDetailPage() {
             </div>
           );
         })()}
+
+        {/* Fetched Models — from provider /v1/models endpoint */}
+        <div className="w-full mt-4 border-t border-black/5 dark:border-white/5 pt-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium text-text-muted">
+                Fetched Models{fetchedModels.length > 0 ? ` (${fetchedModels.length})` : ""}
+              </p>
+              {fetchedModelsAt && (
+                <span className="text-[10px] text-text-muted/60">
+                  Last: {new Date(fetchedModelsAt).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleFetchModels}
+              disabled={fetchingModels || (connections.length === 0 && !isFreeNoAuth)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                fetchingModels
+                  ? "bg-primary/20 text-primary animate-pulse"
+                  : "bg-primary/10 text-primary hover:bg-primary/20"
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
+              title={connections.length === 0 && !isFreeNoAuth ? "Add a connection first" : "Fetch models from provider API"}
+            >
+              <span className={`material-symbols-outlined text-[14px]${fetchingModels ? " animate-spin" : ""}`}>
+                {fetchingModels ? "progress_activity" : "cloud_download"}
+              </span>
+              {fetchingModels ? "Fetching..." : "Fetch Models"}
+            </button>
+          </div>
+          {fetchedModels.length > 0 && (() => {
+            const addedFullModels = new Set(Object.values(modelAliases));
+            const hardcodedIds = new Set(models.map((m) => m.id));
+            const notAdded = fetchedModels.filter(
+              (m) => !addedFullModels.has(`${providerStorageAlias}/${m.id}`) && !hardcodedIds.has(m.id)
+            );
+            if (notAdded.length === 0) {
+              return <p className="text-[11px] text-text-muted/60">All fetched models are already added.</p>;
+            }
+            return (
+              <div className="flex flex-wrap gap-2">
+                {notAdded.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={async () => {
+                      const alias = m.id.split("/").pop();
+                      await handleSetAlias(m.id, alias, providerStorageAlias);
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
+                    title={m.name || m.id}
+                  >
+                    <span className="material-symbols-outlined text-[13px]">add</span>
+                    {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+          {fetchedModels.length === 0 && !fetchingModels && (
+            <p className="text-[11px] text-text-muted/60">
+              Click &quot;Fetch Models&quot; to discover available models from this provider.
+            </p>
+          )}
+        </div>
 
         {/* Disabled models — restorable */}
         {disabledDisplayModels.length > 0 && (

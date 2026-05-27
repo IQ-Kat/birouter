@@ -55,6 +55,11 @@ export {
   getDisabledModels, getDisabledByProvider, disableModels, enableModels,
 } from "./repos/disabledModelsRepo.js";
 
+// Fetched models (from provider /v1/models endpoint)
+export {
+  getAllFetchedModels, getFetchedModels, saveFetchedModels, deleteFetchedModels,
+} from "./repos/fetchedModelsRepo.js";
+
 // Usage
 export {
   statsEmitter, trackPendingRequest, getActiveRequests,

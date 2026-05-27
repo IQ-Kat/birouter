@@ -117,6 +117,9 @@ export default function ModelsCard({ providerId, kindFilter, providerAliasOverri
   const [testError, setTestError] = useState("");
   const [showAddCustomModel, setShowAddCustomModel] = useState(false);
   const [connections, setConnections] = useState([]);
+  const [fetchedModels, setFetchedModels] = useState([]);
+  const [fetchedModelsAt, setFetchedModelsAt] = useState(null);
+  const [fetchingModels, setFetchingModels] = useState(false);
 
   const providerAlias = providerAliasOverride || getProviderAlias(providerId);
   const effectiveType = kindFilter || "llm";
@@ -138,6 +141,32 @@ export default function ModelsCard({ providerId, kindFilter, providerAliasOverri
   }, [providerId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Load fetched models from database (shared with LLM provider page)
+  useEffect(() => {
+    fetch(`/api/providers/${providerId}/fetch-models`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.models?.length) setFetchedModels(data.models);
+        if (data.fetchedAt) setFetchedModelsAt(data.fetchedAt);
+      })
+      .catch(() => {});
+  }, [providerId]);
+
+  // Fetch models from provider's /v1/models endpoint
+  const handleFetchModels = async () => {
+    if (fetchingModels) return;
+    setFetchingModels(true);
+    try {
+      const res = await fetch(`/api/providers/${providerId}/fetch-models`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.models) {
+        setFetchedModels(data.models);
+        setFetchedModelsAt(data.fetchedAt);
+      }
+    } catch { /* silent */ }
+    finally { setFetchingModels(false); }
+  };
 
   const handleSetAlias = async (modelId, alias) => {
     const fullModel = `${providerAlias}/${modelId}`;
@@ -272,6 +301,83 @@ export default function ModelsCard({ providerId, kindFilter, providerAliasOverri
             <span className="material-symbols-outlined text-sm">add</span>
             Add Model
           </button>
+
+          {/* Fetched Models — from provider /v1/models endpoint, filtered by kind */}
+          {(() => {
+            // Filter fetched models by kind using keyword heuristics
+            const kindKeywords = {
+              embedding: ["embed", "embedding", "bge", "e5", "retrieval", "nomic-embed"],
+              tts: ["tts", "speech", "audio/speech", "speak", "voice"],
+              stt: ["whisper", "transcri", "asr", "listen", "stt"],
+              image: ["image", "dall-e", "flux", "stable-diffusion", "sdxl", "imagen", "dreamshaper"],
+            };
+            const keywords = kindKeywords[kindFilter] || [];
+            const matchesKind = (modelId) => {
+              const lower = (modelId || "").toLowerCase();
+              return keywords.some((kw) => lower.includes(kw));
+            };
+
+            const addedFullModels = new Set(Object.values(modelAliases));
+            const builtInIds = new Set(builtInModels.map((m) => m.id));
+            const customIds = new Set(myCustomModels.map((m) => m.id));
+
+            const relevantFetched = fetchedModels.filter(
+              (m) => matchesKind(m.id) && !builtInIds.has(m.id) && !customIds.has(m.id) && !addedFullModels.has(`${providerAlias}/${m.id}`)
+            );
+
+            if (relevantFetched.length === 0 && fetchedModels.length === 0) return null;
+
+            return (
+              <div className="w-full mt-3 border-t border-black/5 dark:border-white/5 pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-medium text-text-muted">
+                      Fetched Models{relevantFetched.length > 0 ? ` (${relevantFetched.length})` : ""}
+                    </p>
+                    {fetchedModelsAt && (
+                      <span className="text-[10px] text-text-muted/60">
+                        Last: {new Date(fetchedModelsAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleFetchModels}
+                    disabled={fetchingModels || connections.length === 0}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                      fetchingModels
+                        ? "bg-primary/20 text-primary animate-pulse"
+                        : "bg-primary/10 text-primary hover:bg-primary/20"
+                    } disabled:opacity-40 disabled:cursor-not-allowed`}
+                    title={connections.length === 0 ? "Add a connection first" : "Fetch models from provider API"}
+                  >
+                    <span className={`material-symbols-outlined text-[12px]${fetchingModels ? " animate-spin" : ""}`}>
+                      {fetchingModels ? "progress_activity" : "cloud_download"}
+                    </span>
+                    {fetchingModels ? "Fetching..." : "Fetch"}
+                  </button>
+                </div>
+                {relevantFetched.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {relevantFetched.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => handleAddCustomModel(m.id)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
+                        title={m.name || m.id}
+                      >
+                        <span className="material-symbols-outlined text-[13px]">add</span>
+                        {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
+                      </button>
+                    ))}
+                  </div>
+                ) : fetchedModels.length > 0 ? (
+                  <p className="text-[11px] text-text-muted/60">No matching {kindFilter} models found in fetched list.</p>
+                ) : (
+                  <p className="text-[11px] text-text-muted/60">Click &quot;Fetch&quot; to discover models from this provider.</p>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </Card>
 
