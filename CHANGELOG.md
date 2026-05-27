@@ -14,9 +14,9 @@
 
 - **ci:** build Docker platforms on native runners (linux/amd64 on ubuntu-24.04 and linux/arm64 on ubuntu-24.04-arm) instead of emulated QEMU, reducing build times significantly (#2774 — thanks @thanet-s)
 
-### 🏆 Hall de Contribuidores
+### 🏆 Hall of Contributors
 
-Um agradecimento especial a todos que contribuíram com código, revisões e testes para este release:
+A special thanks to everyone who contributed code, reviews, and tests for this release:
 @thanet-s
 
 ---
