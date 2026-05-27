@@ -508,3 +508,10 @@ export {
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+// T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
+export * from "./db/agentBridgeState";
+export * from "./db/agentBridgeMappings";
+export * from "./db/agentBridgeBypass";
+export * from "./db/inspectorCustomHosts";
+export * from "./db/inspectorSessions";
