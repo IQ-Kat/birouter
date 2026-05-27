@@ -930,7 +930,13 @@
     "settingsAuthzSubtitle": "Inventário de rotas e política de bypass",
     "docsSubtitle": "Documentação",
     "issuesSubtitle": "Reportar um bug",
-    "changelogSubtitle": "Notas de versão"
+    "changelogSubtitle": "Notas de versão",
+    "activity": "Atividade",
+    "activitySubtitle": "Feed amigável de eventos recentes",
+    "logsGroup": "Logs",
+    "systemGroup": "Sistema",
+    "costsOverview": "Visão geral",
+    "costsOverviewSubtitle": "Análise consolidada de custos"
   },
   "webhooks": {
     "title": "Webhooks",
