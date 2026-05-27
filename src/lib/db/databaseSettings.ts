@@ -265,8 +265,8 @@ export function updateDatabaseSettings(
   );
 
   const requestedLogs = updates.logs as Partial<UserDatabaseSettings["logs"]> | undefined;
-  const pipelineEnabled =
-    requestedLogs?.callLogPipelineEnabled ?? requestedLogs?.detailedLogsEnabled;
+  const pipelineEnabled = requestedLogs?.callLogPipelineEnabled;
+  const detailedEnabled = requestedLogs?.detailedLogsEnabled;
 
   const tx = db.transaction(() => {
     for (const section of DATABASE_SETTINGS_SECTIONS) {
