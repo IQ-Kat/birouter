@@ -63,6 +63,8 @@ export default function APIPageClient({ machineId }) {
   const [confirmState, setConfirmState] = useState(null);
 
   const [requireApiKey, setRequireApiKey] = useState(false);
+  const [rateLimitEnabled, setRateLimitEnabled] = useState(false);
+  const [rateLimitRpm, setRateLimitRpm] = useState(60);
   const [requireLogin, setRequireLogin] = useState(true);
   const [hasPassword, setHasPassword] = useState(true);
   const [tunnelDashboardAccess, setTunnelDashboardAccess] = useState(false);
@@ -234,6 +236,8 @@ export default function APIPageClient({ machineId }) {
       if (settingsRes.ok) {
         const data = await settingsRes.json();
         setRequireApiKey(data.requireApiKey || false);
+        setRateLimitEnabled(data.rateLimitEnabled || false);
+        setRateLimitRpm(data.rateLimitRpm || 60);
         setRequireLogin(data.requireLogin !== false);
         setHasPassword(data.hasPassword || false);
         setTunnelDashboardAccess(data.tunnelDashboardAccess || false);
@@ -286,6 +290,18 @@ export default function APIPageClient({ machineId }) {
       if (res.ok) setRequireApiKey(value);
     } catch (error) {
       console.log("Error updating requireApiKey:", error);
+    }
+  };
+
+  const handleUpdateRateLimit = async (enabled, rpm) => {
+    try {
+      await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rateLimitEnabled: enabled, rateLimitRpm: rpm }),
+      });
+    } catch (error) {
+      console.log("Error updating rate limit:", error);
     }
   };
 
@@ -1116,6 +1132,41 @@ export default function APIPageClient({ machineId }) {
             checked={requireApiKey}
             onChange={() => handleRequireApiKey(!requireApiKey)}
           />
+        </div>
+
+        <div className="flex items-center justify-between pb-4 mb-4 border-b border-border">
+          <div>
+            <p className="font-medium">Rate limiting</p>
+            <p className="text-sm text-text-muted">
+              Limit requests per minute per API key
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {rateLimitEnabled && (
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={1}
+                  max={10000}
+                  value={rateLimitRpm}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value) || 60;
+                    setRateLimitRpm(v);
+                    handleUpdateRateLimit(true, v);
+                  }}
+                  className="w-16 px-2 py-1 text-xs border border-border rounded-md bg-background focus:outline-none focus:border-primary text-center"
+                />
+                <span className="text-xs text-text-muted">RPM</span>
+              </div>
+            )}
+            <Toggle
+              checked={rateLimitEnabled}
+              onChange={(v) => {
+                setRateLimitEnabled(v);
+                handleUpdateRateLimit(v, rateLimitRpm);
+              }}
+            />
+          </div>
         </div>
 
         {keys.length === 0 ? (

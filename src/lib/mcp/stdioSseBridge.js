@@ -54,7 +54,7 @@ function collapseRepeated(text) {
       const headEnd = findNthSiblingEnd(lines, i, indent, role, COLLAPSE_KEEP_HEAD);
       const tailStart = findLastNSiblingStart(lines, j, indent, role, COLLAPSE_KEEP_TAIL);
       for (let k = i; k < headEnd; k++) out.push(lines[k]);
-      out.push(`${indent}... [${groupLen - COLLAPSE_KEEP_HEAD - COLLAPSE_KEEP_TAIL} similar "${role}" items omitted by 9router bridge]`);
+      out.push(`${indent}... [${groupLen - COLLAPSE_KEEP_HEAD - COLLAPSE_KEEP_TAIL} similar "${role}" items omitted by birouter bridge]`);
       for (let k = tailStart; k < j; k++) out.push(lines[k]);
     } else {
       for (let k = i; k < j; k++) out.push(lines[k]);

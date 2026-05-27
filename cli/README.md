@@ -37,7 +37,7 @@ birouter
 npx birouter
 ```
 
-🎉 Dashboard opens at `http://localhost:20128`
+🎉 Dashboard opens at `http://localhost:2004`
 
 **2. Connect a FREE provider (no signup needed):**
 
@@ -47,7 +47,7 @@ Dashboard → Providers → Connect **Kiro AI** (free Claude unlimited) or **Ope
 
 ```
 Claude Code/Codex/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:2004/v1
   API Key:  [copy from dashboard]
   Model:    kr/claude-sonnet-4.5
 ```
@@ -66,7 +66,7 @@ birouter --skip-update      # Skip auto-update check
 birouter --help             # Show all options
 ```
 
-**Dashboard**: `http://localhost:20128/dashboard`
+**Dashboard**: `http://localhost:2004/dashboard`
 
 ---
 

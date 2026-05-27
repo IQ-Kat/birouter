@@ -14,17 +14,17 @@ export default function OverviewCards({ stats }) {
         <span className="truncate text-2xl font-bold">{fmt(stats.totalRequests)}</span>
       </Card>
       <Card className="flex min-w-0 flex-col gap-1 px-4 py-3">
-        <span className="text-text-muted text-sm uppercase font-semibold">Total Input Tokens</span>
+        <span className="text-text-muted text-sm uppercase font-semibold">Input Tokens</span>
         <span className="truncate text-2xl font-bold text-primary">{fmt(stats.totalPromptTokens)}</span>
       </Card>
       <Card className="flex min-w-0 flex-col gap-1 px-4 py-3">
         <span className="text-text-muted text-sm uppercase font-semibold">Output Tokens</span>
         <span className="truncate text-2xl font-bold text-success">{fmt(stats.totalCompletionTokens)}</span>
       </Card>
-      <Card className="flex min-w-0 flex-col gap-1 px-4 py-3">
-        <span className="text-text-muted text-sm uppercase font-semibold">Est. Cost</span>
-        <span className="truncate text-2xl font-bold text-warning">~{fmtCost(stats.totalCost)}</span>
-        <span className="text-[10px] text-text-muted">Estimated, not actual billing</span>
+      <Card className="flex min-w-0 flex-col gap-1 px-4 py-3 border-green-500/20 bg-green-500/[0.03]">
+        <span className="text-green-600 dark:text-green-400 text-sm uppercase font-semibold">You Saved</span>
+        <span className="truncate text-2xl font-bold text-green-600 dark:text-green-400">~{fmtCost(stats.totalCost)}</span>
+        <span className="text-[10px] text-text-muted">By routing through Birouter</span>
       </Card>
     </div>
   );

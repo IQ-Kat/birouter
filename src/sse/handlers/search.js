@@ -6,6 +6,7 @@ import {
   isValidApiKey,
 } from "../services/auth.js";
 import { getSettings, getCombos } from "@/lib/localDb";
+import { checkRateLimit, rateLimitHeaders } from "../services/rateLimiter.js";
 import { AI_PROVIDERS, resolveProviderId } from "@/shared/constants/providers.js";
 import { handleSearchCore } from "open-sse/handlers/search/index.js";
 import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
@@ -56,6 +57,16 @@ export async function handleSearch(request) {
       log.warn("AUTH", "Invalid API key (requireApiKey=true)");
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
     }
+  }
+
+  // Rate limiting
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
+  const rlResult = checkRateLimit(settings, apiKey, clientIp);
+  if (rlResult?.limited) {
+    return new Response(JSON.stringify({ error: { message: "Rate limit exceeded", type: "rate_limit_error" } }), {
+      status: 429,
+      headers: { "Content-Type": "application/json", ...rateLimitHeaders(rlResult, settings) },
+    });
   }
 
   if (!providerInput || typeof providerInput !== "string") {

@@ -17,7 +17,7 @@ const { DATA_DIR, MITM_DIR } = require("./paths");
 const { log, err } = require("./logger");
 const { LSOF_BIN } = require("./config");
 
-const DEFAULT_MITM_ROUTER_BASE = "http://localhost:20128";
+const DEFAULT_MITM_ROUTER_BASE = "http://localhost:2004";
 
 function shellQuoteSingle(str) {
   if (str == null || str === "") return "''";
@@ -62,7 +62,7 @@ function resolveBundledServerPath() {
 }
 
 // Copy bundled server.js into DATA_DIR so MITM doesn't lock node_modules
-// (prevents EBUSY on `npm i -g 9router@latest` while MITM is running).
+// (prevents EBUSY on update while MITM is running).
 function ensureRuntimeServer(bundledPath) {
   try {
     if (!bundledPath || !fs.existsSync(bundledPath)) return bundledPath;
@@ -556,7 +556,7 @@ async function startServer(apiKey, sudoPassword, forceKillPort443 = false) {
     log(`[MITM] server.js missing at ${effectiveServerPath} → recopying`);
     effectiveServerPath = ensureRuntimeServer(resolveBundledServerPath());
     if (!effectiveServerPath || !fs.existsSync(effectiveServerPath)) {
-      throw new Error(`MITM server.js not found at ${effectiveServerPath}. Reinstall 9router.`);
+      throw new Error(`MITM server.js not found at ${effectiveServerPath}. Reinstall birouter.`);
     }
   }
   const mitmRouterBase = await resolveMitmRouterBaseUrl();

@@ -1,4 +1,4 @@
-docker stop 9router
-docker rm 9router
-docker build -t 9router .
-docker run -d --name 9router -p 20128:20128 --env-file .env -v 9router-data:/app/data 9router
+docker stop birouter
+docker rm birouter
+docker build -t birouter .
+docker run -d --name birouter -p 2004:2004 --env-file .env -v birouter-data:/app/data birouter

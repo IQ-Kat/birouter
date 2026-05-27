@@ -1,7 +1,7 @@
 import { getAdapter } from "../driver.js";
 import { parseJson, stringifyJson } from "../helpers/jsonCol.js";
 
-const DEFAULT_MITM_ROUTER_BASE = "http://localhost:20128";
+const DEFAULT_MITM_ROUTER_BASE = "http://localhost:2004";
 
 const DEFAULT_SETTINGS = {
   cloudEnabled: false,
@@ -36,6 +36,8 @@ const DEFAULT_SETTINGS = {
   rtkEnabled: true,
   cavemanEnabled: false,
   cavemanLevel: "full",
+  rateLimitEnabled: false,
+  rateLimitRpm: 60,
 };
 
 async function readRaw() {
