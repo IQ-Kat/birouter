@@ -9,6 +9,7 @@ import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
+import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -570,6 +571,7 @@ const comboRuntimeConfigSchema = z
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     fallbackDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     timeoutMs: z.coerce.number().int().min(1000).optional(),
+    targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
     healthCheckEnabled: z.boolean().optional(),
@@ -1756,6 +1758,7 @@ export const updateKeyPermissionsSchema = z
       ])
       .optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+    allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1772,7 +1775,8 @@ export const updateKeyPermissionsSchema = z
       value.maxSessions === undefined &&
       value.accessSchedule === undefined &&
       value.rateLimits === undefined &&
-      value.scopes === undefined
+      value.scopes === undefined &&
+      value.allowedEndpoints === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
