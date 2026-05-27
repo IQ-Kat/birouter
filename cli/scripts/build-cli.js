@@ -137,12 +137,36 @@ console.log("3️⃣  Copying Next.js standalone build to app/cli/app...");
 const standaloneRoot = path.join(appDir, ".next", "standalone");
 const standaloneRootResolved = path.join(buildDistDir, "standalone");
 const standaloneRootToUse = fs.existsSync(standaloneRootResolved) ? standaloneRootResolved : standaloneRoot;
-const standaloneApp = fs.existsSync(path.join(standaloneRootToUse, "server.js"))
-  ? standaloneRootToUse
-  : path.join(standaloneRootToUse, "app");
-if (!fs.existsSync(standaloneApp)) {
-  console.error("❌ Next.js standalone build not found under .next/standalone");
-  console.error("Expected either .next/standalone/server.js or .next/standalone/app/");
+
+let standaloneApp = "";
+if (fs.existsSync(path.join(standaloneRootToUse, "server.js"))) {
+  standaloneApp = standaloneRootToUse;
+} else if (fs.existsSync(standaloneRootToUse)) {
+  // Search for server.js in subdirectories (handles workspace structure)
+  const entries = fs.readdirSync(standaloneRootToUse, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const candidate = path.join(standaloneRootToUse, entry.name);
+      if (fs.existsSync(path.join(candidate, "server.js"))) {
+        standaloneApp = candidate;
+        console.log(`🔍 Found standalone build in: ${entry.name}`);
+        break;
+      }
+    }
+  }
+}
+
+// Fallback to 'app' if nothing found yet (for backward compatibility if needed)
+if (!standaloneApp) {
+  const legacyAppPath = path.join(standaloneRootToUse, "app");
+  if (fs.existsSync(legacyAppPath)) {
+    standaloneApp = legacyAppPath;
+  }
+}
+
+if (!standaloneApp) {
+  console.error(`❌ Next.js standalone build not found under ${standaloneRootToUse}`);
+  console.error("Expected server.js in the standalone root or a direct subdirectory.");
   process.exit(1);
 }
 copyRecursive(standaloneApp, cliAppDir);

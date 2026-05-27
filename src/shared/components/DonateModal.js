@@ -8,7 +8,7 @@ export default function DonateModal({ isOpen, onClose }) {
     <Modal isOpen={isOpen} title="About Birouter" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="Birouter" className="w-10 h-10" />
+          <img src="/favicon.png" alt="Birouter" className="w-10 h-10" />
           <div>
             <h3 className="font-semibold text-lg">Birouter</h3>
             <p className="text-sm text-text-muted">AI Router & Token Saver</p>
