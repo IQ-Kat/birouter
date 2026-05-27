@@ -8,6 +8,7 @@
 
 ### ✨ New Features
 
+- **auth:** support restricting API keys to specific endpoint categories (e.g., chat only, search only, embeddings only) with full dashboard configuration and centralized policy enforcement (#2777 — thanks @hijak)
 - **batch:** recover stale `in_progress` and `finalizing` batches back to `validating` state on startup, reset counters, and apply a configurable concurrency limit (`BATCH_MAX_CONCURRENT`) (#2755 — thanks @hartmark)
 
 ### 🔧 Bug Fixes
@@ -22,7 +23,7 @@
 ### 🏆 Hall of Contributors
 
 A special thanks to everyone who contributed code, reviews, and tests for this release:
-@hartmark, @rdself, @thanet-s
+@hartmark, @hijak, @rdself, @thanet-s
 
 ---
 
