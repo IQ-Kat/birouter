@@ -85,7 +85,7 @@ function parseStoredValue(rawValue: unknown): unknown {
 
 function toBooleanSetting(value: unknown): boolean | null {
   if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value !== 0;
+  if (typeof value === "number") return !Number.isNaN(value) && value !== 0;
   if (typeof value !== "string") return null;
 
   const normalized = value.trim().toLowerCase();
