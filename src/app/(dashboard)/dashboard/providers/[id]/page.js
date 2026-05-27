@@ -582,6 +582,19 @@ export default function ProviderDetailPage() {
       if (res.ok) {
         await fetchConnections();
         setShowAddApiKeyModal(false);
+
+        // Auto-fetch models if this is the first connection and no fetched models yet
+        if (fetchedModels.length === 0) {
+          fetch(`/api/providers/${providerId}/fetch-models`, { method: "POST" })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.models?.length) {
+                setFetchedModels(d.models);
+                setFetchedModelsAt(d.fetchedAt);
+              }
+            })
+            .catch(() => {});
+        }
         return;
       }
 
