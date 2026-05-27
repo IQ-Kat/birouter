@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+---
+
+## [3.8.5] — 2026-05-27
+
+### 🔧 Bug Fixes
+
+- **docker:** rebuild `better-sqlite3` native bindings after hardened install to resolve container startup crash (#2772 — thanks @thanet-s)
+
+### ⚡ Performance / CI
+
+- **ci:** build Docker platforms on native runners (linux/amd64 on ubuntu-24.04 and linux/arm64 on ubuntu-24.04-arm) instead of emulated QEMU, reducing build times significantly (#2774 — thanks @thanet-s)
+
+---
+
 ## [3.8.4] — 2026-05-26
 
 ### 🔒 Security
