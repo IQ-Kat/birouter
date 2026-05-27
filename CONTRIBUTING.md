@@ -233,6 +233,7 @@ tests/
 └── load/                   # Load tests
 
 docs/
+├── adr/                     # Architecture Decision Records
 ├── architecture/            # System architecture & resilience
 ├── comparison/              # OmniRoute vs alternatives
 ├── compression/             # Compression guides & rules
