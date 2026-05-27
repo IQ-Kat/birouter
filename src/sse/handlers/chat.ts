@@ -123,7 +123,7 @@ const COMBOS_CACHE_TTL_MS = 10_000;
 
 async function getCombosCachedForChat(): Promise<unknown[]> {
   const now = Date.now();
-  if (combosCachePromise && now - combosCacheTs < COMBOS_CACHE_TTL_MS) {
+  if (combosCachePromise !== null && now - combosCacheTs < COMBOS_CACHE_TTL_MS) {
     return combosCachePromise;
   }
 
@@ -152,6 +152,27 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 }
 
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+
+/**
+ * Wrap a Request-like object so callers reading `.signal` see a merged signal
+ * combining the original request signal with an extra per-call signal (e.g. a
+ * combo per-model timeout). Returns the original request unchanged when no
+ * extra signal is provided, so the hot path stays a no-op.
+ */
+function wrapRequestWithExtraSignal(request: any, extraSignal: AbortSignal | null) {
+  if (!extraSignal || !request) return request;
+  const baseSignal: AbortSignal | null | undefined = request?.signal ?? null;
+  const mergedSignal: AbortSignal = baseSignal
+    ? AbortSignal.any([baseSignal, extraSignal])
+    : extraSignal;
+  return new Proxy(request, {
+    get(target, prop, receiver) {
+      if (prop === "signal") return mergedSignal;
+      const value = target[prop];
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+}
 
 /**
  * Handle chat completion request
@@ -200,7 +221,10 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Log request endpoint and model
   const url = new URL(request.url);
-  const modelStr = body.model;
+  // `let` because the middleware-hook pipeline (line ~319) may reassign this
+  // when a hook rewrites the target model. Previously declared `const`, which
+  // broke turbopack/strict-mode builds (PR [PR #2670](file:///home/diegosouzapw/dev/proxys/OmniRoute/package.json#L2670) regression).
+  let modelStr = body.model;
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
@@ -308,7 +332,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     >,
     model: modelStr,
     combo: undefined,
-    apiKeyInfo: apiKeyInfo as Record<string, unknown> | undefined,
+    apiKeyInfo: apiKeyInfo as unknown as Record<string, unknown> | undefined,
     log,
   });
 
@@ -469,6 +493,11 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         resolvedModel,
         {
           sessionKey: sessionAffinityKey,
+          sessionAffinityTtlMs: Number.isFinite(
+            Number((settings as any)?.codexSessionAffinityTtlMs)
+          )
+            ? Number((settings as any).codexSessionAffinityTtlMs)
+            : null,
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
         }
       );
@@ -501,13 +530,15 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           stepId?: string | null;
           allowedConnectionIds?: string[] | null;
           failoverBeforeRetry?: boolean;
+          trafficType?: "production" | "shadow";
+          modelAbortSignal?: AbortSignal | null;
         }
       ) =>
         handleSingleModelChat(
           b,
           m,
           clientRawRequest,
-          request,
+          wrapRequestWithExtraSignal(request, target?.modelAbortSignal ?? null),
           combo.name,
           apiKeyInfo,
           telemetry,
@@ -520,6 +551,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            trafficType: target?.trafficType === "shadow" ? "shadow" : "production",
             preselectedCredentials: comboPreselectedCredentials.get(
               getComboCredentialCacheKey(m, target)
             ),
@@ -534,7 +566,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       allCombos,
       apiKeyAllowedConnections: apiKeyInfo?.allowedConnections ?? null,
       relayOptions:
-        combo.strategy === "context-relay"
+        combo.strategy === "context-relay" || combo.strategy === "auto"
           ? {
               sessionId,
               config: relayConfig,
@@ -653,6 +685,7 @@ async function handleSingleModelChat(
     skipUpstreamRetry?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
+    trafficType?: "production" | "shadow";
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -676,21 +709,12 @@ async function handleSingleModelChat(
     return handleComboChat({
       body,
       combo: redirectCombo,
-      handleSingleModel: (
-        b: any,
-        m: string,
-        target?: {
-          connectionId?: string | null;
-          executionKey?: string | null;
-          stepId?: string | null;
-          failoverBeforeRetry?: boolean;
-        }
-      ) =>
+      handleSingleModel: (b: any, m: string, target?: any) =>
         handleSingleModelChat(
           b,
           m,
           clientRawRequest,
-          request,
+          wrapRequestWithExtraSignal(request, target?.modelAbortSignal ?? null),
           redirectCombo.name ?? modelStr,
           apiKeyInfo,
           telemetry,
@@ -702,6 +726,7 @@ async function handleSingleModelChat(
             comboStepId: null,
             comboExecutionKey: null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            trafficType: target?.trafficType === "shadow" ? "shadow" : "production",
           },
           redirectCombo.strategy ?? "priority",
           false
@@ -717,6 +742,7 @@ async function handleSingleModelChat(
 
   const { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat } = resolved;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
+  const isShadowTraffic = runtimeOptions.trafficType === "shadow";
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
     runtimeOptions.forcedConnectionId.trim().length > 0;
@@ -811,6 +837,11 @@ async function handleSingleModelChat(
               {
                 sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
+                sessionAffinityTtlMs: Number.isFinite(
+                  Number((runtimeOptions.cachedSettings as any)?.codexSessionAffinityTtlMs)
+                )
+                  ? Number((runtimeOptions.cachedSettings as any).codexSessionAffinityTtlMs)
+                  : null,
                 ...(forceLiveComboTest
                   ? {
                       allowSuppressedConnections: true,
@@ -922,7 +953,11 @@ async function handleSingleModelChat(
           ...(workspaceId ? { workspaceId } : {}),
         });
       }
-      if (runtimeOptions.sessionId && body?._omnirouteInternalRequest !== "context-handoff") {
+      if (
+        !isShadowTraffic &&
+        runtimeOptions.sessionId &&
+        body?._omnirouteInternalRequest !== "context-handoff"
+      ) {
         touchSession(runtimeOptions.sessionId, credentials.connectionId);
         startQuotaMonitor(
           runtimeOptions.sessionId,
@@ -937,7 +972,7 @@ async function handleSingleModelChat(
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
       if (telemetry) telemetry.startPhase("connect");
       const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
-        bypassCircuitBreaker: forceLiveComboTest || hasForcedConnection,
+        bypassCircuitBreaker: forceLiveComboTest || hasForcedConnection || isShadowTraffic,
         breaker,
         body: requestBody,
         provider,
@@ -959,6 +994,7 @@ async function handleSingleModelChat(
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
+        trafficType: isShadowTraffic ? "shadow" : "production",
       });
       if (telemetry) telemetry.endPhase();
 
@@ -985,11 +1021,13 @@ async function handleSingleModelChat(
       });
 
       if (result.success) {
-        clearModelLock(provider, credentials.connectionId, model);
-        if (!forceLiveComboTest) {
+        if (!isShadowTraffic) {
+          clearModelLock(provider, credentials.connectionId, model);
+        }
+        if (!forceLiveComboTest && !isShadowTraffic) {
           breaker._onSuccess();
         }
-        if (injectedHandoff && runtimeOptions.sessionId && comboName) {
+        if (!isShadowTraffic && injectedHandoff && runtimeOptions.sessionId && comboName) {
           deleteHandoff(runtimeOptions.sessionId, comboName);
         }
         if (telemetry) telemetry.startPhase("finalize");
@@ -1073,7 +1111,7 @@ async function handleSingleModelChat(
 
       // Emergency fallback for budget exhaustion (402 / billing / quota keywords):
       // reroute to a free model (default provider/model: nvidia + openai/gpt-oss-120b) exactly once.
-      if (!runtimeOptions.emergencyFallbackTried) {
+      if (!isShadowTraffic && !isCombo && !runtimeOptions.emergencyFallbackTried) {
         const fallbackDecision = shouldUseFallback(
           Number(result.status || 0),
           String(result.error || ""),
@@ -1140,7 +1178,11 @@ async function handleSingleModelChat(
       // Daily quota lockout overrides subsequent rate_limited lockout, ensuring lockout until tomorrow 0:00
       let dailyQuotaExhausted = false;
       const errorStr = String(result.error || "");
-      if (result.status === 429 && isDailyQuotaExhausted(errorStr)) {
+      if (isCombo && comboStrategy !== "context-relay" && result.status === 429) {
+        return result.response;
+      }
+
+      if (!isShadowTraffic && result.status === 429 && isDailyQuotaExhausted(errorStr)) {
         // Parse which model is quota-limited
         const match = errorStr.match(/today's quota for model ([^,]+)/);
         const limitedModel = match ? match[1].trim() : model;
@@ -1172,7 +1214,7 @@ async function handleSingleModelChat(
       // 7. Mark account as quota-exhausted only for explicit long-window quota signals.
       // A plain 429/high-traffic response should trigger fallback/cooldown, not poison
       // quotaCache as exhausted for 5 minutes while usage quota may still be available.
-      if (!dailyQuotaExhausted) {
+      if (!isShadowTraffic && !dailyQuotaExhausted) {
         const passthroughModels = credentials.providerSpecificData?.passthroughModels;
         const failureKind =
           result.status === 429
@@ -1196,16 +1238,17 @@ async function handleSingleModelChat(
       const is401 = result.status === 401;
       const skipConnectionDisable = is401 && hasExtraKeys;
 
-      const { shouldFallback, cooldownMs } = skipConnectionDisable
-        ? { shouldFallback: false, cooldownMs: 0 }
-        : await markAccountUnavailable(
-            credentials.connectionId,
-            result.status,
-            result.error,
-            provider,
-            model,
-            providerProfile
-          );
+      const { shouldFallback, cooldownMs } =
+        skipConnectionDisable || isShadowTraffic
+          ? { shouldFallback: false, cooldownMs: 0 }
+          : await markAccountUnavailable(
+              credentials.connectionId,
+              result.status,
+              result.error,
+              provider,
+              model,
+              providerProfile
+            );
 
       if (shouldFallback) {
         if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
@@ -1223,6 +1266,7 @@ async function handleSingleModelChat(
 
       if (
         !forceLiveComboTest &&
+        !isShadowTraffic &&
         !isCombo &&
         PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
       ) {

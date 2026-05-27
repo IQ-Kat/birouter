@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/shared/components/Button";
 import Card from "@/shared/components/Card";
@@ -1760,6 +1761,14 @@ function ComboCard({
                 </option>
               </select>
             )}
+            <Link
+              href={`/dashboard/combos/${combo.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
+              title={getI18nOrFallback(t, "controlCenter", "Control Center")}
+            >
+              <span className="material-symbols-outlined text-[16px]">monitoring</span>
+            </Link>
             <button
               onClick={onTest}
               disabled={testing}

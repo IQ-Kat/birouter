@@ -190,6 +190,12 @@ export function getApiBridgeTimeoutConfig(
     proxyTimeoutMs > 0
       ? Math.max(proxyTimeoutMs, DEFAULT_API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS)
       : DEFAULT_API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS;
+  const serverRequestDefaultMs =
+    sharedRequestTimeoutMs !== undefined
+      ? sharedRequestTimeoutMs > 0
+        ? Math.max(sharedRequestTimeoutMs, derivedRequestTimeoutMs)
+        : 0
+      : derivedRequestTimeoutMs;
   const serverKeepAliveTimeoutMs = readTimeoutMs(
     env,
     "API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS",
@@ -214,9 +220,7 @@ export function getApiBridgeTimeoutConfig(
     serverRequestTimeoutMs: readTimeoutMs(
       env,
       "API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS",
-      sharedRequestTimeoutMs
-        ? Math.max(sharedRequestTimeoutMs, derivedRequestTimeoutMs)
-        : derivedRequestTimeoutMs,
+      serverRequestDefaultMs,
       {
         allowZero: true,
         logger,
