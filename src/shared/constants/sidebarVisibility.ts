@@ -504,18 +504,18 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     icon: "psychology",
   },
   {
-    id: "skills",
-    href: "/dashboard/skills",
-    i18nKey: "omniSkills",
-    subtitleKey: "omniSkillsSubtitle",
-    icon: "auto_fix_high",
-  },
-  {
     id: "agent-skills",
     href: "/dashboard/agent-skills",
     i18nKey: "agentSkills",
     subtitleKey: "agentSkillsSubtitle",
     icon: "share",
+  },
+  {
+    id: "skills",
+    href: "/dashboard/omni-skills",
+    i18nKey: "omniSkills",
+    subtitleKey: "omniSkillsSubtitle",
+    icon: "auto_fix_high",
   },
   MCP_GROUP,
   {
