@@ -1,5 +1,5 @@
 ---
-description: Create a new release, bump version up to the .10 patch threshold, update changelog, and manage Pull Requests
+description: Create a new release, bump version up to the .999 patch threshold, update changelog, and manage Pull Requests
 ---
 
 # Generate Release Workflow
@@ -9,9 +9,9 @@ Bump version, finalize CHANGELOG, commit, open a **PR to main** and wait for use
 > **VERSION RULE: Always use PATCH bumps (3.x.y → 3.x.y+1)**
 > NEVER use `npm version minor` or `npm version major`.
 > Always use: `npm version patch --no-git-tag-version`
-> The threshold rule: when `y` reaches 10, bump to `3.(x+1).0` — e.g. `3.8.10` → `3.9.0`.
+> The threshold rule: when `y` reaches 1000, bump to `3.(x+1).0` — e.g. `3.8.999` → `3.9.0`.
 
-> **🔴 SINGLE BRANCH RULE**: The `release/vX.Y.Z` branch is the **ONLY** development branch for the entire release cycle. ALL work — bug fixes, feature implementations, PR integrations, issue resolutions — MUST be committed directly on this branch. Never create separate `fix/`, `feat/`, or topic branches. When running `/resolve-issues`, `/implement-features`, or `/review-prs`, always work on the current release branch.
+> **🔴 INTEGRATION BRANCH RULE**: The `release/vX.Y.Z` branch is the **integration target** for the entire release cycle. Bug fixes and feature implementations land here **via per-issue PRs from short-lived `fix/<ISSUE>-<short>` or `feat/<ISSUE>-<short>` worktrees** (see `/resolve-issues`, `/implement-features`). Contributor PRs from `/review-prs` likewise merge into this branch. The release branch is then merged to `main` via a single release PR at the end of the cycle.
 
 ---
 

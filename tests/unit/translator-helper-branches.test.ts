@@ -594,6 +594,7 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
   assert.equal(result.messages[1].reasoning_content, "");
   assert.equal(getReasoningCacheServiceStats().replays, 0);
   clearReasoningCacheAll();
+});
 
   test("translateRequest injects thinking block into Claude-format messages for Kimi K2 reasoning models", () => {
     clearReasoningCacheAll();
@@ -739,4 +740,3 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
 
     clearReasoningCacheAll();
   });
-});

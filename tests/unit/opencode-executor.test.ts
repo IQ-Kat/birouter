@@ -44,10 +44,10 @@ describe("OpencodeExecutor", () => {
     originalFetch = globalThis.fetch;
     originalZenModels = [...(PROVIDER_MODELS["opencode-zen"] || [])];
     originalGoModels = [...(PROVIDER_MODELS["opencode-go"] || [])];
-    globalThis.fetch = async (url, options) => {
+    globalThis.fetch = (async (url, options) => {
       fetchCalls.push({ url, options });
       return createMockResponse();
-    };
+    }) as any;
   });
 
   afterEach(() => {
@@ -260,14 +260,14 @@ describe("OpencodeExecutor", () => {
 
     it("routes opencode-go catalog-only models to chat completions", async () => {
       // Register new models
-      registerModel("opencode-go", { id: "qwen3.7-max", name: "Qwen3.7 Max" });
+      registerModel("opencode-go", { id: "glm-6-max", name: "GLM-6 Max" });
       registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo-V2-Pro" });
       registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo-V2-Omni" });
       registerModel("opencode-go", { id: "hy3-preview", name: "Hunyuan3 Preview" });
 
-      // qwen3.7-max
-      const qwen37 = await goExecutor.execute(createInput("qwen3.7-max"));
-      assert.equal(qwen37.url, "https://opencode.ai/zen/go/v1/chat/completions");
+      // glm-6-max
+      const glm6 = await goExecutor.execute(createInput("glm-6-max"));
+      assert.equal(glm6.url, "https://opencode.ai/zen/go/v1/chat/completions");
 
       // mimo-v2-pro
       const mimoPro = await goExecutor.execute(createInput("mimo-v2-pro"));
