@@ -930,7 +930,13 @@
     "settingsAuthzSubtitle": "Route inventory and bypass policy",
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
-    "changelogSubtitle": "Release notes"
+    "changelogSubtitle": "Release notes",
+    "activity": "Activity",
+    "activitySubtitle": "Friendly feed of recent events",
+    "logsGroup": "Logs",
+    "systemGroup": "System",
+    "costsOverview": "Overview",
+    "costsOverviewSubtitle": "Consolidated cost analysis"
   },
   "webhooks": {
     "title": "Webhooks",
