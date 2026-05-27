@@ -1186,6 +1186,7 @@
     "memoryDescription": "Persistent conversational memory with semantic search and FTS5 full-text indexing",
     "skillsDescription": "Install and manage sandbox skills for automated prompt and tool execution",
     "agentSkillsDescription": "Agent-ready skills catalog with one-click URL copy for AI client integration",
+    "omniSkillsDescription": "Instale e gerencie skills sandbox para execução automatizada de prompts e ferramentas",
     "translatorDescription": "Translate and test prompts across API formats: OpenAI ↔ Claude ↔ Gemini",
     "playgroundDescription": "Test prompts interactively with live provider responses and format inspection",
     "searchToolsDescription": "Search analytics, provider breakdown, cache hit rates, and cost tracking",
@@ -7279,5 +7280,46 @@
     "policyLabel": "Política:",
     "resetIn": "redefinir em",
     "quotaTotal": "total"
+  },
+  "agentSkills": {
+    "pageTitle": "Agent Skills",
+    "pageSubtitle": "Ensine seu agente a operar o OmniRoute — 22 áreas de API + 20 famílias de CLI",
+    "conceptCard": {
+      "agent": {
+        "title": "Agent Skills — Saída",
+        "description": "Agent Skills são documentos SKILL.md legíveis por máquina que agentes externos (Claude Code, Cursor, Copilot…) baixam do GitHub para aprender a operar o OmniRoute via REST ou CLI. São lidos pelo agente, não executados pelo OmniRoute.",
+        "crossLinkLabel": "Entenda a diferença →"
+      },
+      "omni": {
+        "title": "Omni Skills — Entrada",
+        "description": "Omni Skills são ferramentas sandbox que o OmniRoute injeta no contexto do modelo a cada solicitação. São executadas pelo OmniRoute, não lidas pelo agente.",
+        "crossLinkLabel": "Entenda a diferença →"
+      }
+    },
+    "filters": {
+      "category": "Categoria",
+      "area": "Área",
+      "searchPlaceholder": "Buscar skills…"
+    },
+    "categoryApi": "API",
+    "categoryCli": "CLI",
+    "coverageLabel": "Cobertura",
+    "mcpUrl": "URL MCP",
+    "a2aLink": "A2A",
+    "copyUrl": "Copiar URL",
+    "viewOnGithub": "Ver no GitHub",
+    "previewLoading": "Carregando documentação da skill…",
+    "previewError": "Falha ao carregar documentação da skill.",
+    "previewEmpty": "Selecione uma skill para visualizar sua documentação.",
+    "generateButton": "Gerar skills faltantes",
+    "coverageBar": {
+      "complete": "Completo",
+      "partial": "Parcial"
+    },
+    "noSkillsFound": "Nenhuma skill encontrada para os filtros selecionados.",
+    "regenerateConfirm": "Isso irá regenerar todos os arquivos SKILL.md faltantes. Continuar?",
+    "regenerateRunning": "Regenerando skills…",
+    "regenerateSuccess": "Skills regeneradas com sucesso.",
+    "regenerateError": "Falha ao regenerar skills."
   }
 }
