@@ -1939,6 +1939,23 @@ export async function GET(
       });
     }
 
+    // GitLawB: OpenGateway API does not expose /models endpoint per provider-path.
+    // All models are registered statically in the provider registry and work via
+    // POST /chat/completions — return them from local catalog without a warning.
+    if (provider === "gitlawb" || provider === "gitlawb-gmi") {
+      const gitlawbModels = getModelsByProviderId(provider);
+      return buildResponse({
+        provider,
+        connectionId,
+        models: gitlawbModels.map((m: any) => ({
+          id: m.id,
+          name: m.name || m.id,
+          owned_by: provider,
+        })),
+        source: "local_catalog",
+      });
+    }
+
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
       return buildResponse({
