@@ -3,6 +3,7 @@
 // src/app/(dashboard)/dashboard/playground/components/tabs/BuildTab.tsx
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useToolsBuilder } from "../../hooks/useToolsBuilder";
 import { useStructuredOutput } from "../../hooks/useStructuredOutput";
 import ToolsBuilder from "../ToolsBuilder";
@@ -45,6 +46,7 @@ interface ToolResultDraft {
  * for the tool_result + "Send result" button to continue the conversation.
  */
 export default function BuildTab({ configState }: BuildTabProps) {
+  const t = useTranslations("playground");
   const toolsBuilder = useToolsBuilder();
   const structuredOutput = useStructuredOutput();
 
@@ -243,7 +245,7 @@ export default function BuildTab({ configState }: BuildTabProps) {
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-[14px]">play_arrow</span>
-            {running ? "Running…" : "Run"}
+            {running ? t("running") : t("runLabel")}
           </button>
 
           {messages.length > 0 && (
@@ -251,7 +253,7 @@ export default function BuildTab({ configState }: BuildTabProps) {
               onClick={clearConversation}
               className="text-xs px-2.5 py-1.5 rounded border border-border text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
-              Clear
+              {t("clearAll")}
             </button>
           )}
 

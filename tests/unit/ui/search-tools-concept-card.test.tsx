@@ -89,21 +89,22 @@ describe("SearchConceptCard", () => {
     const el = renderCard();
     const searchItem = el.querySelector("[data-testid='concept-item-search']");
     expect(searchItem).toBeTruthy();
-    expect(searchItem?.textContent).toContain("Search");
+    // useTranslations mock returns the key as text, so we assert on the i18n key
+    expect(searchItem?.textContent).toContain("searchConceptTitle");
   });
 
   it("renders Scrape concept item", () => {
     const el = renderCard();
     const scrapeItem = el.querySelector("[data-testid='concept-item-scrape']");
     expect(scrapeItem).toBeTruthy();
-    expect(scrapeItem?.textContent).toContain("Scrape");
+    expect(scrapeItem?.textContent).toContain("scrapeConceptTitle");
   });
 
   it("renders Compare concept item", () => {
     const el = renderCard();
     const compareItem = el.querySelector("[data-testid='concept-item-compare']");
     expect(compareItem).toBeTruthy();
-    expect(compareItem?.textContent).toContain("Compare");
+    expect(compareItem?.textContent).toContain("compareConceptTitle");
   });
 
   it("renders Rerank concept item", () => {

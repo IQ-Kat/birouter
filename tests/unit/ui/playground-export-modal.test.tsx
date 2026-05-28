@@ -3,6 +3,20 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string, values?: Record<string, unknown>) => {
+    if (values && Object.keys(values).length > 0) {
+      let s = key;
+      for (const [k, v] of Object.entries(values)) {
+        s = s.replace(`{${k}}`, String(v));
+      }
+      return s;
+    }
+    return key;
+  },
+}));
+
 import { API_KEY_PLACEHOLDER } from "../../../src/lib/playground/codeExport";
 
 const { default: ExportCodeModal } = await import(
@@ -52,7 +66,8 @@ describe("ExportCodeModal", () => {
 
   it("shows Export code title", () => {
     const el = renderModal();
-    expect(el.textContent).toContain("Export code");
+    // useTranslations mock returns key as text — the h2 uses exportCodeTitle
+    expect(el.textContent).toContain("exportCodeTitle");
   });
 
   it("shows curl code with $OMNIROUTE_API_KEY placeholder", () => {
@@ -84,7 +99,7 @@ describe("ExportCodeModal", () => {
     });
 
     const el = renderModal();
-    const copyBtn = el.querySelector("[aria-label='Copy curl code']") as HTMLButtonElement;
+    const copyBtn = el.querySelector("[aria-label='copyLangCode']") as HTMLButtonElement;
     expect(copyBtn).not.toBeNull();
 
     await act(async () => { copyBtn.click(); });
@@ -144,7 +159,7 @@ describe("ExportCodeModal", () => {
   it("calls onClose when Close button is clicked", () => {
     const onClose = vi.fn();
     const el = renderModal(BASE_STATE, onClose);
-    const closeBtn = el.querySelector("[aria-label='Close export modal']") as HTMLButtonElement;
+    const closeBtn = el.querySelector("[aria-label='closeExportModal']") as HTMLButtonElement;
     act(() => closeBtn.click());
     expect(onClose).toHaveBeenCalledTimes(1);
   });

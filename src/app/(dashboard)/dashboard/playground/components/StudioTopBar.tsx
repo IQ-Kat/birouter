@@ -3,6 +3,7 @@
 // src/app/(dashboard)/dashboard/playground/components/StudioTopBar.tsx
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import TokenCostCounter from "./TokenCostCounter";
 import ExportCodeModal from "./ExportCodeModal";
 import type { StreamMetrics } from "@/shared/schemas/playground";
@@ -20,15 +21,15 @@ interface StudioTopBarProps {
 
 interface TabConfig {
   id: StudioTab;
-  label: string;
+  labelKey: "tabChat" | "tabCompare" | "tabApi" | "tabBuild";
   icon: string;
 }
 
 const TABS: TabConfig[] = [
-  { id: "chat", label: "Chat", icon: "chat" },
-  { id: "compare", label: "Compare", icon: "compare" },
-  { id: "api", label: "API", icon: "api" },
-  { id: "build", label: "Build", icon: "build" },
+  { id: "chat", labelKey: "tabChat", icon: "chat" },
+  { id: "compare", labelKey: "tabCompare", icon: "compare" },
+  { id: "api", labelKey: "tabApi", icon: "api" },
+  { id: "build", labelKey: "tabBuild", icon: "build" },
 ];
 
 /**
@@ -36,6 +37,7 @@ const TABS: TabConfig[] = [
  * Export code modal uses ExportCodeModal (F7) when exportState is provided.
  */
 export default function StudioTopBar({ activeTab, onTabChange, metrics, exportState }: StudioTopBarProps) {
+  const t = useTranslations("playground");
   const [exportOpen, setExportOpen] = useState(false);
 
   return (
@@ -56,7 +58,7 @@ export default function StudioTopBar({ activeTab, onTabChange, metrics, exportSt
               }`}
             >
               <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span>{t(tab.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -72,11 +74,11 @@ export default function StudioTopBar({ activeTab, onTabChange, metrics, exportSt
           <button
             onClick={() => setExportOpen(true)}
             className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded border border-border hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-            title="Export code"
-            aria-label="Export code"
+            title={t("exportCode")}
+            aria-label={t("exportCode")}
           >
             <span className="font-mono text-[11px]">&lt;/&gt;</span>
-            <span>Export</span>
+            <span>{t("exportShort")}</span>
           </button>
         </div>
       </div>
@@ -95,17 +97,17 @@ export default function StudioTopBar({ activeTab, onTabChange, metrics, exportSt
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-text-main">Export code</h2>
+              <h2 className="text-sm font-semibold text-text-main">{t("exportCodeTitle")}</h2>
               <button
                 onClick={() => setExportOpen(false)}
                 className="text-text-muted hover:text-text-main"
-                aria-label="Close export modal"
+                aria-label={t("closeExportModal")}
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
             <p className="text-sm text-text-muted">
-              No playground state available to export.
+              {t("noStateToExport")}
             </p>
           </div>
         </div>

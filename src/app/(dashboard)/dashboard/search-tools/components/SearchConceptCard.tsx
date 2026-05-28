@@ -1,39 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+
+type ConceptKey = "search" | "scrape" | "compare" | "rerank" | "auto";
 
 interface ConceptItem {
   icon: string;
-  title: string;
-  description: string;
+  key: ConceptKey;
+  titleKey:
+    | "searchConceptTitle"
+    | "scrapeConceptTitle"
+    | "compareConceptTitle"
+    | "rerankConceptTitle"
+    | "autoConceptTitle";
+  descKey:
+    | "searchConceptDesc"
+    | "scrapeConceptDesc"
+    | "compareConceptDesc"
+    | "rerankConceptDesc"
+    | "autoConceptDesc";
 }
 
 const CONCEPTS: ConceptItem[] = [
-  {
-    icon: "🔍",
-    title: "Search",
-    description: "Search = busca na web (lista de links com título, URL, snippet e score de relevância)",
-  },
-  {
-    icon: "📄",
-    title: "Scrape",
-    description: "Scrape = extrai o conteúdo completo de uma URL (markdown, texto ou HTML)",
-  },
-  {
-    icon: "⚖",
-    title: "Compare",
-    description: "Compare = executa a mesma query em N providers side-by-side para comparar latência, custo e overlap de resultados",
-  },
-  {
-    icon: "↕",
-    title: "Rerank",
-    description: "Rerank = reordena resultados via LLM para melhorar relevância baseada na query",
-  },
-  {
-    icon: "⚡",
-    title: "Auto (cheapest)",
-    description: "Auto (cheapest) = escolhe automaticamente o provider mais barato disponível e com credenciais configuradas",
-  },
+  { icon: "🔍", key: "search", titleKey: "searchConceptTitle", descKey: "searchConceptDesc" },
+  { icon: "📄", key: "scrape", titleKey: "scrapeConceptTitle", descKey: "scrapeConceptDesc" },
+  { icon: "⚖", key: "compare", titleKey: "compareConceptTitle", descKey: "compareConceptDesc" },
+  { icon: "↕", key: "rerank", titleKey: "rerankConceptTitle", descKey: "rerankConceptDesc" },
+  { icon: "⚡", key: "auto", titleKey: "autoConceptTitle", descKey: "autoConceptDesc" },
 ];
 
 interface SearchConceptCardProps {
@@ -42,6 +36,7 @@ interface SearchConceptCardProps {
 }
 
 export default function SearchConceptCard({ defaultCollapsed = false }: SearchConceptCardProps) {
+  const t = useTranslations("search");
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   return (
@@ -58,7 +53,7 @@ export default function SearchConceptCard({ defaultCollapsed = false }: SearchCo
       >
         <span className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
           <span>ⓘ</span>
-          <span>Guia de modalidades</span>
+          <span>{t("modalitiesGuide")}</span>
         </span>
         <span className="text-text-muted text-xs" aria-hidden="true">
           {collapsed ? "▶" : "▼"}
@@ -74,16 +69,16 @@ export default function SearchConceptCard({ defaultCollapsed = false }: SearchCo
         >
           {CONCEPTS.map((c) => (
             <div
-              key={c.title}
+              key={c.key}
               className="flex gap-3 p-3 bg-bg-alt rounded-lg border border-border"
-              data-testid={`concept-item-${c.title.toLowerCase()}`}
+              data-testid={`concept-item-${c.key}`}
             >
               <span className="text-lg shrink-0" aria-hidden="true">
                 {c.icon}
               </span>
               <div>
-                <div className="text-xs font-semibold text-text-main mb-0.5">{c.title}</div>
-                <div className="text-[11px] text-text-muted leading-relaxed">{c.description}</div>
+                <div className="text-xs font-semibold text-text-main mb-0.5">{t(c.titleKey)}</div>
+                <div className="text-[11px] text-text-muted leading-relaxed">{t(c.descKey)}</div>
               </div>
             </div>
           ))}

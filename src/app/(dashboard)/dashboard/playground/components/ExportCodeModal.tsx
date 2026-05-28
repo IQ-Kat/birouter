@@ -3,6 +3,7 @@
 // src/app/(dashboard)/dashboard/playground/components/ExportCodeModal.tsx
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import type { PlaygroundState, ExportLanguage } from "@/lib/playground/codeExport";
 import { exportAllLanguages, API_KEY_PLACEHOLDER } from "@/lib/playground/codeExport";
 
@@ -23,6 +24,7 @@ const LANGUAGE_TABS: Array<{ id: ExportLanguage; label: string }> = [
  * Security: always uses API_KEY_PLACEHOLDER ("$OMNIROUTE_API_KEY") — never a real key (D11 / Hard Rule #1).
  */
 export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps) {
+  const t = useTranslations("playground");
   const [activeLanguage, setActiveLanguage] = useState<ExportLanguage>("curl");
   const [copied, setCopied] = useState(false);
 
@@ -63,7 +65,7 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Export code"
+      aria-label={t("exportCode")}
     >
       <div
         className="bg-surface border border-border rounded-xl w-[640px] max-w-[96vw] max-h-[80vh] flex flex-col shadow-2xl"
@@ -73,12 +75,12 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-text-muted">&lt;/&gt;</span>
-            <h2 className="text-sm font-semibold text-text-main">Export code</h2>
+            <h2 className="text-sm font-semibold text-text-main">{t("exportCodeTitle")}</h2>
           </div>
           <button
             onClick={onClose}
             className="p-1 rounded text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            aria-label="Close export modal"
+            aria-label={t("closeExportModal")}
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -110,8 +112,7 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
         <div className="flex-1 overflow-y-auto px-4 pt-3 pb-4 min-h-0">
           {hasRealKey ? (
             <div className="text-xs text-destructive bg-destructive/10 rounded p-3">
-              Security warning: export blocked — a real API key was detected in the output.
-              Please reset your API key and try again.
+              {t("exportRealKeyWarning")}
             </div>
           ) : (
             <pre className="text-xs font-mono text-text-main bg-bg-alt border border-border rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all">
@@ -121,9 +122,9 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
 
           {/* Placeholder hint */}
           <p className="text-[11px] text-text-muted mt-2">
-            Replace{" "}
+            {t("placeholderHintPrefix")}{" "}
             <code className="font-mono text-primary">{API_KEY_PLACEHOLDER}</code>
-            {" "}with your actual API key, or set it as an environment variable.
+            {" "}{t("placeholderHintSuffix")}
           </p>
         </div>
 
@@ -133,7 +134,7 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
             onClick={onClose}
             className="text-xs px-3 py-1.5 rounded border border-border text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
-            Close
+            {t("close")}
           </button>
           <button
             onClick={handleCopy}
@@ -143,12 +144,12 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
                 ? "border-green-500 text-green-500 bg-green-500/10"
                 : "border-primary text-primary hover:bg-primary/10"
             } disabled:opacity-40 disabled:cursor-not-allowed`}
-            aria-label={`Copy ${activeLanguage} code`}
+            aria-label={t("copyLangCode", { language: activeLanguage })}
           >
             <span className="material-symbols-outlined text-[14px]">
               {copied ? "check" : "content_copy"}
             </span>
-            {copied ? "Copied!" : "Copy"}
+            {copied ? t("copiedCode") : t("copy")}
           </button>
         </div>
       </div>

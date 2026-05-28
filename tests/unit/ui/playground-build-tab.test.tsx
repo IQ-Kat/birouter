@@ -4,6 +4,10 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
 vi.mock("remark-gfm", () => ({ default: () => {} }));
 vi.mock("react-markdown", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -73,7 +77,7 @@ describe("BuildTab", () => {
   it("renders Run button", () => {
     const el = renderBuildTab();
     const runBtn = el.querySelector("[class*='bg-primary']");
-    expect(runBtn?.textContent).toContain("Run");
+    expect(runBtn?.textContent).toContain("runLabel");
   });
 
   it("renders Function calling section", () => {
@@ -193,10 +197,10 @@ describe("BuildTab", () => {
     const promptTextarea = el.querySelector("textarea[placeholder*='message']") as HTMLTextAreaElement;
     act(() => setInputValue(promptTextarea, "Run this tool"));
 
-    // Click Run
+    // Click Run (label is "runLabel" via mocked t())
     const runBtns = el.querySelectorAll("button");
     const runBtn = Array.from(runBtns).find(
-      (b) => b.textContent?.includes("Run") && !b.textContent?.includes("Clear"),
+      (b) => b.textContent?.includes("runLabel") && !b.textContent?.includes("clearAll"),
     ) as HTMLButtonElement;
     await act(async () => { runBtn.click(); });
     await act(async () => {

@@ -184,11 +184,16 @@ describe("StudioConfigPane", () => {
     expect(setConfigState).toHaveBeenCalled();
   });
 
-  it("renders endpoint select with all 10 options", () => {
+  it("renders endpoint select with all 13 options (D4-rev2)", () => {
     const config = makeConfig();
     const el = renderPane(config, vi.fn());
-    const select = el.querySelector("select") as HTMLSelectElement | null;
-    expect(select).toBeTruthy();
-    expect(select?.options.length).toBe(10);
+    // Multiple <select> elements may exist (PresetPicker also renders one).
+    // The endpoint select is the one with our 13 endpoint values.
+    const selects = Array.from(el.querySelectorAll<HTMLSelectElement>("select"));
+    const endpointSelect = selects.find(
+      (s) => Array.from(s.options).some((o) => o.value === "chat.completions")
+    );
+    expect(endpointSelect).toBeTruthy();
+    expect(endpointSelect?.options.length).toBe(13);
   });
 });

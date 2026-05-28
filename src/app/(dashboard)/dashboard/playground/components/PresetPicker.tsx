@@ -3,6 +3,7 @@
 // src/app/(dashboard)/dashboard/playground/components/PresetPicker.tsx
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { usePresets } from "../hooks/usePresets";
 import type { ConfigState } from "./StudioConfigPane";
 
@@ -18,6 +19,7 @@ interface PresetPickerProps {
  * Load applies preset values to configState; Save opens a name-input modal.
  */
 export default function PresetPicker({ configState, setConfigState }: PresetPickerProps) {
+  const t = useTranslations("playground");
   const { presets, loading, list, create, remove } = usePresets();
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
@@ -47,7 +49,7 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
 
   async function handleSave() {
     if (!presetName.trim()) {
-      setSaveError("Name is required");
+      setSaveError(t("nameRequired"));
       return;
     }
 
@@ -65,7 +67,7 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
     setSaving(false);
 
     if (result == null) {
-      setSaveError("Failed to save preset");
+      setSaveError(t("failedToSavePreset"));
       return;
     }
 
@@ -89,7 +91,7 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
     <>
       <div className="flex flex-col gap-2">
         <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
-          Presets
+          {t("presetsLabel")}
         </span>
 
         {/* Load preset select */}
@@ -105,10 +107,10 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
             }}
             defaultValue=""
             className="flex-1 text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Load a preset"
+            aria-label={t("loadPreset")}
           >
             <option value="" disabled>
-              {loading ? "Loading…" : presets.length === 0 ? "No presets" : "Load preset…"}
+              {loading ? t("loadingPresets") : presets.length === 0 ? t("noPresets") : t("loadPresetPlaceholder")}
             </option>
             {presets.map((preset) => (
               <option key={preset.id} value={preset.id}>
@@ -120,9 +122,9 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
           <button
             onClick={openSave}
             className="text-xs px-2.5 py-1.5 rounded border border-border text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
-            aria-label="Save current config as preset"
+            aria-label={t("savePreset")}
           >
-            Save
+            {t("save")}
           </button>
         </div>
 
@@ -162,13 +164,13 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
           onClick={closeSave}
           role="dialog"
           aria-modal="true"
-          aria-label="Save preset"
+          aria-label={t("savePreset")}
         >
           <div
             className="bg-surface border border-border rounded-xl p-5 w-80 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-text-main mb-4">Save preset</h3>
+            <h3 className="text-sm font-semibold text-text-main mb-4">{t("savePreset")}</h3>
 
             <div className="flex flex-col gap-3">
               <input
@@ -179,7 +181,7 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
                   if (e.key === "Enter") void handleSave();
                   if (e.key === "Escape") closeSave();
                 }}
-                placeholder="Preset name"
+                placeholder={t("presetNamePlaceholder")}
                 autoFocus
                 className="text-xs bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
               />
@@ -193,14 +195,14 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
                   onClick={closeSave}
                   className="text-xs px-3 py-1.5 rounded border border-border text-text-muted hover:text-text-main transition-colors"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   onClick={() => void handleSave()}
                   disabled={saving}
                   className="text-xs px-3 py-1.5 rounded bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
-                  {saving ? "Saving…" : "Save"}
+                  {saving ? t("savingPreset") : t("save")}
                 </button>
               </div>
             </div>

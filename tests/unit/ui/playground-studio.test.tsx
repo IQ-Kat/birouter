@@ -82,6 +82,12 @@ vi.mock("@/store/emailPrivacyStore", () => ({
 
 vi.mock("@/lib/playground/codeExport", () => ({
   endpointToPath: (ep: string) => `/v1/${ep}`,
+  exportAllLanguages: () => ({
+    curl: "curl mock",
+    python: "python mock",
+    typescript: "ts mock",
+  }),
+  API_KEY_PLACEHOLDER: "$OMNIROUTE_API_KEY",
 }));
 
 vi.mock("@/lib/playground/types", () => ({
@@ -156,23 +162,23 @@ describe("PlaygroundStudio", () => {
     expect(tabButtons.length).toBe(4);
 
     const textContents = Array.from(tabButtons).map((b) => b.textContent?.trim() ?? "");
-    // Tab buttons contain icon text + label text (e.g. "chatChat") — use includes
-    expect(textContents.some((t) => t.includes("Chat"))).toBe(true);
-    expect(textContents.some((t) => t.includes("Compare"))).toBe(true);
-    expect(textContents.some((t) => t.includes("API"))).toBe(true);
-    expect(textContents.some((t) => t.includes("Build"))).toBe(true);
+    // Tab labels come from useTranslations mock — keys are returned as text
+    expect(textContents.some((t) => t.includes("tabChat"))).toBe(true);
+    expect(textContents.some((t) => t.includes("tabCompare"))).toBe(true);
+    expect(textContents.some((t) => t.includes("tabApi"))).toBe(true);
+    expect(textContents.some((t) => t.includes("tabBuild"))).toBe(true);
   });
 
   it("defaults to Chat tab as active", () => {
     const el = renderStudio();
     const activeTab = el.querySelector("[role='tab'][aria-selected='true']");
-    expect(activeTab?.textContent?.trim()).toContain("Chat");
+    expect(activeTab?.textContent?.trim()).toContain("tabChat");
   });
 
   it("switches to API tab when clicked", () => {
     const el = renderStudio();
     const tabButtons = el.querySelectorAll("[role='tab']");
-    const apiTab = Array.from(tabButtons).find((b) => b.textContent?.includes("API")) as HTMLButtonElement | undefined;
+    const apiTab = Array.from(tabButtons).find((b) => b.textContent?.includes("tabApi")) as HTMLButtonElement | undefined;
 
     expect(apiTab).toBeTruthy();
     act(() => {
@@ -180,35 +186,39 @@ describe("PlaygroundStudio", () => {
     });
 
     const activeTab = el.querySelector("[role='tab'][aria-selected='true']");
-    expect(activeTab?.textContent?.trim()).toContain("API");
+    expect(activeTab?.textContent?.trim()).toContain("tabApi");
   });
 
-  it("switches to Compare tab and shows placeholder", () => {
+  it("switches to Compare tab and marks it active", () => {
     const el = renderStudio();
     const tabButtons = el.querySelectorAll("[role='tab']");
     const compareTab = Array.from(tabButtons).find((b) =>
-      b.textContent?.includes("Compare")
+      b.textContent?.includes("tabCompare")
     ) as HTMLButtonElement | undefined;
 
     act(() => {
       compareTab?.click();
     });
 
-    expect(el.textContent).toContain("F7 implementation pending");
+    // After F7+F9: Compare tab renders the real CompareTab UI, no placeholder
+    const activeTab = el.querySelector("[role='tab'][aria-selected='true']");
+    expect(activeTab?.textContent?.trim()).toContain("tabCompare");
   });
 
-  it("switches to Build tab and shows placeholder", () => {
+  it("switches to Build tab and marks it active", () => {
     const el = renderStudio();
     const tabButtons = el.querySelectorAll("[role='tab']");
     const buildTab = Array.from(tabButtons).find((b) =>
-      b.textContent?.includes("Build")
+      b.textContent?.includes("tabBuild")
     ) as HTMLButtonElement | undefined;
 
     act(() => {
       buildTab?.click();
     });
 
-    expect(el.textContent).toContain("F7 implementation pending");
+    // After F7+F9: Build tab renders the real BuildTab UI, no placeholder
+    const activeTab = el.querySelector("[role='tab'][aria-selected='true']");
+    expect(activeTab?.textContent?.trim()).toContain("tabBuild");
   });
 
   it("preserves config pane state when switching tabs", () => {
@@ -234,19 +244,20 @@ describe("PlaygroundStudio", () => {
 
   it("renders the export button in the top bar", () => {
     const el = renderStudio();
-    const exportBtn = el.querySelector("button[aria-label='Export code']");
+    const exportBtn = el.querySelector("button[aria-label='exportCode']");
     expect(exportBtn).toBeTruthy();
   });
 
   it("opens export modal when export button is clicked", () => {
     const el = renderStudio();
-    const exportBtn = el.querySelector("button[aria-label='Export code']") as HTMLButtonElement | null;
+    const exportBtn = el.querySelector("button[aria-label='exportCode']") as HTMLButtonElement | null;
 
     act(() => {
       exportBtn?.click();
     });
 
-    expect(el.textContent).toContain("Export code");
+    // mock returns i18n key as text — assert on the key
+    expect(el.textContent).toContain("exportCode");
   });
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import ExportCodeModal from "@/app/(dashboard)/dashboard/playground/components/ExportCodeModal";
 import type { PlaygroundState } from "@/lib/playground/codeExport";
 
@@ -14,10 +15,10 @@ interface SearchToolsTopBarProps {
   exportState?: PlaygroundState;
 }
 
-const TABS: { id: ActiveTab; icon: string; label: string }[] = [
-  { id: "search", icon: "🔍", label: "Search" },
-  { id: "scrape", icon: "📄", label: "Scrape" },
-  { id: "compare", icon: "⚖", label: "Compare" },
+const TABS: { id: ActiveTab; icon: string; labelKey: "tabSearch" | "tabScrape" | "tabCompare" }[] = [
+  { id: "search", icon: "🔍", labelKey: "tabSearch" },
+  { id: "scrape", icon: "📄", labelKey: "tabScrape" },
+  { id: "compare", icon: "⚖", labelKey: "tabCompare" },
 ];
 
 export default function SearchToolsTopBar({
@@ -27,6 +28,8 @@ export default function SearchToolsTopBar({
   costUsd,
   exportState,
 }: SearchToolsTopBarProps) {
+  const t = useTranslations("search");
+  const tPlayground = useTranslations("playground");
   const [exportOpen, setExportOpen] = useState(false);
 
   return (
@@ -36,7 +39,7 @@ export default function SearchToolsTopBar({
         data-testid="search-tools-topbar"
       >
         {/* Tab switcher */}
-        <div className="flex gap-1" role="tablist" aria-label="Search Tools tabs">
+        <div className="flex gap-1" role="tablist" aria-label={t("searchTools")}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -54,7 +57,7 @@ export default function SearchToolsTopBar({
               data-testid={`tab-${tab.id}`}
             >
               <span aria-hidden="true">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span>{t(tab.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -74,11 +77,11 @@ export default function SearchToolsTopBar({
           <button
             className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-surface border border-border text-text-muted hover:text-text-main hover:border-border-hover transition-colors"
             onClick={() => setExportOpen(true)}
-            aria-label="Export code"
+            aria-label={tPlayground("exportCode")}
             data-testid="export-code-button"
           >
             <span className="font-mono text-[11px]">{"/>"}</span>
-            <span>Export</span>
+            <span>{tPlayground("exportShort")}</span>
           </button>
         </div>
       </div>

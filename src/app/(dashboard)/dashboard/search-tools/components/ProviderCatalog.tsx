@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
 
 interface ProviderCatalogProps {
@@ -11,6 +12,7 @@ interface ProviderCatalogProps {
 }
 
 function StatusBadge({ status }: { status: SearchProviderCatalogItem["status"] }) {
+  const t = useTranslations("search");
   if (status === "configured") {
     return (
       <span
@@ -18,7 +20,7 @@ function StatusBadge({ status }: { status: SearchProviderCatalogItem["status"] }
         data-testid="status-configured"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" aria-hidden="true" />
-        Configurado
+        {t("statusConfigured")}
       </span>
     );
   }
@@ -29,7 +31,7 @@ function StatusBadge({ status }: { status: SearchProviderCatalogItem["status"] }
         data-testid="status-rate-limited"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" aria-hidden="true" />
-        Rate limited
+        {t("statusRateLimited")}
       </span>
     );
   }
@@ -39,7 +41,7 @@ function StatusBadge({ status }: { status: SearchProviderCatalogItem["status"] }
       data-testid="status-missing"
     >
       <span className="w-1.5 h-1.5 rounded-full bg-border inline-block" aria-hidden="true" />
-      Sem credencial
+      {t("statusMissing")}
     </span>
   );
 }
@@ -53,6 +55,7 @@ function ProviderCard({
   selected: boolean;
   onSelect?: () => void;
 }) {
+  const t = useTranslations("search");
   const isClickable = item.status !== "missing" && onSelect;
 
   return (
@@ -80,7 +83,7 @@ function ProviderCard({
         <div>
           <div className="text-xs font-semibold text-text-main">{item.name}</div>
           <div className="text-[10px] text-text-muted mt-0.5">
-            {item.kind === "search" ? "Search" : "Fetch/Scrape"}
+            {item.kind === "search" ? t("kindSearch") : t("kindFetch")}
           </div>
         </div>
         <StatusBadge status={item.status} />

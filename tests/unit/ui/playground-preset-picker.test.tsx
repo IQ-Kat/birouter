@@ -4,6 +4,10 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
 const { DEFAULT_PARAMS } = await import(
   "../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders"
 );
@@ -109,8 +113,8 @@ describe("PresetPicker", () => {
   it("renders Load preset dropdown and Save button", () => {
     vi.stubGlobal("fetch", buildFetchMock([]));
     const el = renderPicker();
-    expect(el.textContent).toContain("Presets");
-    const saveBtn = el.querySelector("[aria-label='Save current config as preset']");
+    expect(el.textContent).toContain("presetsLabel");
+    const saveBtn = el.querySelector("[aria-label='savePreset']");
     expect(saveBtn).not.toBeNull();
   });
 
@@ -151,13 +155,13 @@ describe("PresetPicker", () => {
     vi.stubGlobal("fetch", buildFetchMock([]));
     const el = renderPicker();
 
-    const saveBtn = el.querySelector("[aria-label='Save current config as preset']") as HTMLButtonElement;
+    const saveBtn = el.querySelector("[aria-label='savePreset']") as HTMLButtonElement;
     await act(async () => { saveBtn.click(); });
 
     // Modal should appear
     const modal = el.querySelector("[role='dialog']");
     expect(modal).not.toBeNull();
-    expect(modal?.textContent).toContain("Save preset");
+    expect(modal?.textContent).toContain("savePreset");
   });
 
   it("calls create hook (POST to /api/playground/presets) when saving", async () => {
@@ -166,7 +170,7 @@ describe("PresetPicker", () => {
     const el = renderPicker();
 
     // Open modal
-    const saveBtn = el.querySelector("[aria-label='Save current config as preset']") as HTMLButtonElement;
+    const saveBtn = el.querySelector("[aria-label='savePreset']") as HTMLButtonElement;
     await act(async () => { saveBtn.click(); });
 
     // Enter name
@@ -194,13 +198,13 @@ describe("PresetPicker", () => {
     vi.stubGlobal("fetch", buildFetchMock([]));
     const el = renderPicker();
 
-    const saveBtn = el.querySelector("[aria-label='Save current config as preset']") as HTMLButtonElement;
+    const saveBtn = el.querySelector("[aria-label='savePreset']") as HTMLButtonElement;
     await act(async () => { saveBtn.click(); });
 
     // Submit without entering a name
     const submitBtn = el.querySelector("[role='dialog'] button:last-child") as HTMLButtonElement;
     await act(async () => { submitBtn.click(); });
 
-    expect(el.textContent).toContain("Name is required");
+    expect(el.textContent).toContain("nameRequired");
   });
 });
