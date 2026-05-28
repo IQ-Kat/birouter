@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Button, Card } from "@/shared/components";
@@ -140,6 +140,21 @@ export default function StreamTransformerAccordion({
   const [open, setOpen] = useState(Boolean(forceOpen));
   // D7 lazy-render guard: once mounted, keep content in DOM.
   const [hasOpened, setHasOpened] = useState(Boolean(forceOpen));
+  // Track previous forceOpen value to detect false→true transitions only.
+  const prevForceOpen = useRef(Boolean(forceOpen));
+
+  // Sync forceOpen changes from parent after mount (deep-link / back-forward navigation).
+  // Only reacts to a false→true transition so a manual close is not overridden while
+  // forceOpen remains true (e.g. user toggles closed after a deep-link open).
+  useEffect(() => {
+    const prev = prevForceOpen.current;
+    prevForceOpen.current = Boolean(forceOpen);
+    if (!prev && forceOpen) {
+      setOpen(true);
+      setHasOpened(true);
+      onOpenChange?.(true);
+    }
+  }, [forceOpen, onOpenChange]);
 
   const handleToggle = useCallback(() => {
     const next = !open;

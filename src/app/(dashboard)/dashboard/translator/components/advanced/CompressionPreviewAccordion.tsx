@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Select } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
@@ -216,6 +216,21 @@ export default function CompressionPreviewAccordion({
   // Lazy-render guard (D7): track whether the accordion has ever been opened.
   const [hasOpened, setHasOpened] = useState(forceOpen);
   const [open, setOpen] = useState(forceOpen);
+  // Track previous forceOpen value to detect false→true transitions only.
+  const prevForceOpen = useRef(forceOpen);
+
+  // Sync forceOpen changes from parent after mount (deep-link / back-forward navigation).
+  // Only reacts to a false→true transition so a manual close is not overridden while
+  // forceOpen remains true (e.g. user toggles closed after a deep-link open).
+  useEffect(() => {
+    const prev = prevForceOpen.current;
+    prevForceOpen.current = Boolean(forceOpen);
+    if (!prev && forceOpen) {
+      setOpen(true);
+      setHasOpened(true);
+      onOpenChange?.(true);
+    }
+  }, [forceOpen, onOpenChange]);
 
   const handleToggle = useCallback(() => {
     const next = !open;
