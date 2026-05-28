@@ -138,4 +138,14 @@ describe("ConversationTab separators rendering logic", () => {
     const totalTurns = request.length + response.length;
     assert.equal(totalTurns, 2);
   });
+
+  it("conversationNotAvailable key resolves when body is null (normalizeConversation returns null)", () => {
+    // When requestBody is null and responseBody is null, normalizeConversation returns null.
+    // The ConversationTab renders t("conversationNotAvailable") in that case.
+    const req = makeRequest({ requestBody: null, responseBody: null });
+    const result = normalizeConversation(req);
+
+    // Must return null so the component falls through to the conversationNotAvailable branch.
+    assert.equal(result, null, "normalizeConversation must return null for non-LLM / null body");
+  });
 });
