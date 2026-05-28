@@ -6,32 +6,43 @@ export interface ActivityIconSpec {
 }
 
 export const ACTIVITY_ICONS: Record<string, ActivityIconSpec> = {
-  "provider.added": { icon: "extension", i18nKeyVerb: "providerAdded" },
-  "provider.removed": { icon: "extension_off", i18nKeyVerb: "providerRemoved" },
-  "provider.tested": { icon: "network_check", i18nKeyVerb: "providerTested" },
-  "combo.created": { icon: "layers", i18nKeyVerb: "comboCreated" },
-  "combo.updated": { icon: "tune", i18nKeyVerb: "comboUpdated" },
-  "combo.deleted": { icon: "layers_clear", i18nKeyVerb: "comboDeleted" },
-  "apikey.created": { icon: "vpn_key", i18nKeyVerb: "apiKeyCreated" },
-  "apikey.revoked": { icon: "key_off", i18nKeyVerb: "apiKeyRevoked" },
-  "apikey.rotated": { icon: "sync", i18nKeyVerb: "apiKeyRotated" },
-  "budget.threshold_reached": { icon: "warning", i18nKeyVerb: "budgetThreshold" },
-  "setting.updated": { icon: "settings", i18nKeyVerb: "settingUpdated" },
-  "auth.login": { icon: "login", i18nKeyVerb: "authLogin" },
-  "auth.logout": { icon: "logout", i18nKeyVerb: "authLogout" },
-  "cloud_agent.session.created": { icon: "cloud", i18nKeyVerb: "cloudAgentSession" },
-  "mcp.tool.registered": { icon: "hub", i18nKeyVerb: "mcpToolRegistered" },
-  "webhook.created": { icon: "webhook", i18nKeyVerb: "webhookCreated" },
-  "webhook.deleted": { icon: "webhook", i18nKeyVerb: "webhookDeleted" },
+  // providers
+  "provider.credentials.created": { icon: "extension", i18nKeyVerb: "providerCredentialsCreated" },
+  "provider.credentials.applied": { icon: "check_circle", i18nKeyVerb: "providerCredentialsApplied" },
+  "provider.credentials.updated": { icon: "edit", i18nKeyVerb: "providerCredentialsUpdated" },
+  "provider.credentials.revoked": { icon: "extension_off", i18nKeyVerb: "providerCredentialsRevoked" },
+  "provider.credentials.batch_revoked": { icon: "extension_off", i18nKeyVerb: "providerCredentialsBatchRevoked" },
+  "provider.credentials.bulk_created": { icon: "extension", i18nKeyVerb: "providerCredentialsBulkCreated" },
+  "provider.credentials.bulk_imported": { icon: "upload", i18nKeyVerb: "providerCredentialsBulkImported" },
+  "provider.credentials.imported": { icon: "upload", i18nKeyVerb: "providerCredentialsImported" },
+  "provider.validation.ssrf_blocked": { icon: "block", i18nKeyVerb: "providerSsrfBlocked" },
+
+  // auth
+  "auth.login.success": { icon: "login", i18nKeyVerb: "authLoginSuccess" },
+  "auth.login.error": { icon: "error", i18nKeyVerb: "authLoginError" },
+  "auth.login.failed": { icon: "error", i18nKeyVerb: "authLoginFailed" },
+  "auth.login.locked": { icon: "lock", i18nKeyVerb: "authLoginLocked" },
+  "auth.login.misconfigured": { icon: "warning", i18nKeyVerb: "authLoginMisconfigured" },
+  "auth.login.setup_required": { icon: "warning", i18nKeyVerb: "authLoginSetupRequired" },
+  "auth.logout.success": { icon: "logout", i18nKeyVerb: "authLogoutSuccess" },
+
+  // sync
+  "sync.token.created": { icon: "sync", i18nKeyVerb: "syncTokenCreated" },
+  "sync.token.revoked": { icon: "sync_disabled", i18nKeyVerb: "syncTokenRevoked" },
+
+  // settings
+  "settings.update": { icon: "settings", i18nKeyVerb: "settingsUpdate" },
+  "settings.update_failed": { icon: "warning", i18nKeyVerb: "settingsUpdateFailed" },
+
+  // service
+  "service.reveal_api_key": { icon: "visibility", i18nKeyVerb: "serviceRevealApiKey" },
+
+  // quota
   "quota.pool.created": { icon: "pie_chart", i18nKeyVerb: "quotaPoolCreated" },
   "quota.pool.updated": { icon: "edit_note", i18nKeyVerb: "quotaPoolUpdated" },
   "quota.pool.deleted": { icon: "delete", i18nKeyVerb: "quotaPoolDeleted" },
   "quota.plan.updated": { icon: "fact_check", i18nKeyVerb: "quotaPlanUpdated" },
   "quota.store.driver_changed": { icon: "storage", i18nKeyVerb: "quotaStoreDriverChanged" },
-  "update.applied": { icon: "system_update", i18nKeyVerb: "updateApplied" },
-  "deploy.completed": { icon: "rocket_launch", i18nKeyVerb: "deployCompleted" },
-  "skill.installed": { icon: "auto_fix_high", i18nKeyVerb: "skillInstalled" },
-  "skill.removed": { icon: "auto_fix_off", i18nKeyVerb: "skillRemoved" },
 };
 
 export function getActivityIcon(action: string): ActivityIconSpec {
