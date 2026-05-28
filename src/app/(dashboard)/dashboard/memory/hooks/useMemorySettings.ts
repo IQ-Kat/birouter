@@ -1,48 +1,68 @@
 "use client";
 
-import useSWR from "swr";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MemorySettingsExtended } from "@/shared/schemas/memory";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export interface UseMemorySettingsResult {
   settings: MemorySettingsExtended | null;
   isLoading: boolean;
   isError: boolean;
-  mutate: () => void;
+  mutate: () => Promise<void>;
   save: (updates: Partial<MemorySettingsExtended>) => Promise<boolean>;
 }
 
+/**
+ * Lightweight settings fetcher + saver.
+ * Avoids the swr dependency (not installed in this project) while keeping a
+ * compatible mutate()/save() surface for callers.
+ */
 export function useMemorySettings(): UseMemorySettingsResult {
-  const { data, error, isLoading, mutate } = useSWR<MemorySettingsExtended>(
-    "/api/settings/memory",
-    fetcher,
+  const [settings, setSettings] = useState<MemorySettingsExtended | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<boolean>(false);
+  const mounted = useRef(true);
+
+  const fetchOnce = useCallback(async (): Promise<void> => {
+    try {
+      const res = await fetch("/api/settings/memory");
+      if (!res.ok) throw new Error(`status_${res.status}`);
+      const data = (await res.json()) as MemorySettingsExtended;
+      if (mounted.current) {
+        setSettings(data);
+        setIsError(false);
+      }
+    } catch {
+      if (mounted.current) setIsError(true);
+    } finally {
+      if (mounted.current) setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    mounted.current = true;
+    void fetchOnce();
+    return () => {
+      mounted.current = false;
+    };
+  }, [fetchOnce]);
+
+  const save = useCallback(
+    async (updates: Partial<MemorySettingsExtended>): Promise<boolean> => {
+      try {
+        const res = await fetch("/api/settings/memory", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        });
+        if (!res.ok) return false;
+        await fetchOnce();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [fetchOnce]
   );
 
-  const save = async (updates: Partial<MemorySettingsExtended>): Promise<boolean> => {
-    try {
-      const current = data ?? {};
-      const next = { ...current, ...updates };
-      const res = await fetch("/api/settings/memory", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next),
-      });
-      if (res.ok) {
-        await mutate();
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  return {
-    settings: data ?? null,
-    isLoading,
-    isError: Boolean(error),
-    mutate,
-    save,
-  };
+  return { settings, isLoading, isError, mutate: fetchOnce, save };
 }
