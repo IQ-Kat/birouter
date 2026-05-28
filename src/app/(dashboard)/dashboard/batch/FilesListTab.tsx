@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import FileDetailModal from "./FileDetailModal";
+import ExpirationBadge from "./components/ExpirationBadge";
 
 function relativeTime(ts: number): string {
   // ts is in seconds (Unix timestamp)
@@ -17,19 +18,6 @@ function relativeTime(ts: number): string {
   return `${diffDays}d ago`;
 }
 
-function relativeExpiration(ts: number | null): string {
-  if (!ts) return "Never";
-  const diffMs = ts * 1000 - Date.now();
-  if (diffMs <= 0) return "Expired";
-  const diffSec = Math.round(diffMs / 1000);
-  if (diffSec < 60) return `${diffSec}s`;
-  const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m`;
-  const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h`;
-  const diffDays = Math.round(diffHr / 24);
-  return `${diffDays}d`;
-}
 
 interface FileRecord {
   id: string;
@@ -292,7 +280,11 @@ export default function FilesListTab({
                       {fileCreatedAt ? relativeTime(fileCreatedAt) : "—"}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
-                      {fileExpiresAt ? relativeExpiration(fileExpiresAt) : "Never"}
+                      {fileExpiresAt ? (
+                        <ExpirationBadge expiresAt={fileExpiresAt} variant="compact" />
+                      ) : (
+                        <span className="text-xs text-[var(--color-text-muted)]">Never</span>
+                      )}
                     </td>
                     {/* Actions column */}
                     <td

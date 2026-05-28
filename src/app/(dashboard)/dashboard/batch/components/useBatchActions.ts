@@ -54,14 +54,14 @@ export function useBatchActions(opts: {
         if (!res.ok) {
           // Log technical context; surface sanitized i18n key to user (D14)
           console.error("[useBatchActions] cancel", batchId, "status", res.status);
-          setError(opts.t("batchActionCancel"));
+          setError(opts.t("batchActionCancelError"));
           return;
         }
         opts.onRefresh?.();
       } catch (e) {
         // Never expose e.message/stack in UI — diagnostics only (D14)
         console.error("[useBatchActions] cancel threw", e);
-        setError(opts.t("batchActionCancel"));
+        setError(opts.t("batchActionCancelError"));
       } finally {
         setCancelling(false);
       }
@@ -101,7 +101,7 @@ export function useBatchActions(opts: {
             "error",
             errorRes.status,
           );
-          setError(opts.t("batchActionRetry"));
+          setError(opts.t("batchActionRetryError"));
           return null;
         }
 
@@ -114,7 +114,7 @@ export function useBatchActions(opts: {
         if (plan.retriableLines === 0) {
           // i18n key surfaced to user; technical context stays in console
           console.error("[useBatchActions] retry: no retriable lines found for", batch.id);
-          setError(opts.t("batchActionRetry"));
+          setError(opts.t("batchActionRetryError"));
           return null;
         }
 
@@ -130,7 +130,7 @@ export function useBatchActions(opts: {
         const fileRes = await fetch("/api/v1/files", { method: "POST", body: formData });
         if (!fileRes.ok) {
           console.error("[useBatchActions] retry file upload failed", fileRes.status);
-          setError(opts.t("batchActionRetry"));
+          setError(opts.t("batchActionRetryError"));
           return null;
         }
 
@@ -149,7 +149,7 @@ export function useBatchActions(opts: {
 
         if (!batchRes.ok) {
           console.error("[useBatchActions] retry batch create failed", batchRes.status);
-          setError(opts.t("batchActionRetry"));
+          setError(opts.t("batchActionRetryError"));
           return null;
         }
 
@@ -159,7 +159,7 @@ export function useBatchActions(opts: {
       } catch (e) {
         // Never surface e.message/stack to UI (D14)
         console.error("[useBatchActions] retry threw", e);
-        setError(opts.t("batchActionRetry"));
+        setError(opts.t("batchActionRetryError"));
         return null;
       } finally {
         setRetrying(false);

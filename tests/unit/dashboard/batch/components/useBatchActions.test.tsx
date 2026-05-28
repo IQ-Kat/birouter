@@ -127,7 +127,7 @@ describe("useBatchActions — cancel", () => {
       await hook.get()!.cancel("batch-abc");
     });
 
-    expect(hook.get()!.error).toBe("batchActionCancel");
+    expect(hook.get()!.error).toBe("batchActionCancelError");
     expect(hook.get()!.cancelling).toBe(false);
     // Sanitization: error must not leak paths or stack traces
     const errStr = hook.get()!.error ?? "";
@@ -147,7 +147,7 @@ describe("useBatchActions — cancel", () => {
       await hook.get()!.cancel("batch-xyz");
     });
 
-    expect(hook.get()!.error).toBe("batchActionCancel");
+    expect(hook.get()!.error).toBe("batchActionCancelError");
     expect(hook.get()!.cancelling).toBe(false);
     // The raw error message must NOT appear in error state
     const errStr = hook.get()!.error ?? "";
@@ -209,7 +209,7 @@ describe("useBatchActions — retry", () => {
     });
 
     expect(result).toBeNull();
-    expect(hook.get()!.error).toBe("batchActionRetry");
+    expect(hook.get()!.error).toBe("batchActionRetryError");
     expect(hook.get()!.retrying).toBe(false);
   });
 
@@ -287,7 +287,7 @@ describe("useBatchActions — retry", () => {
     });
 
     expect(result).toBeNull();
-    expect(hook.get()!.error).toBe("batchActionRetry");
+    expect(hook.get()!.error).toBe("batchActionRetryError");
     const errStr = hook.get()!.error ?? "";
     expect(errStr).not.toMatch(/\/home\//);
     expect(errStr).not.toMatch(/at \//);
@@ -313,7 +313,7 @@ describe("useBatchActions — retry", () => {
     });
 
     expect(result).toBeNull();
-    expect(hook.get()!.error).toBe("batchActionRetry");
+    expect(hook.get()!.error).toBe("batchActionRetryError");
     const errStr = hook.get()!.error ?? "";
     expect(errStr).not.toContain("/home/");
     expect(errStr).not.toContain("route.ts");
@@ -385,7 +385,7 @@ describe("useBatchActions — sanitization invariant", () => {
 
     const errStr = hook.get()!.error ?? "";
     // Must be an i18n key, never a raw error message
-    expect(errStr).toBe("batchActionCancel");
+    expect(errStr).toBe("batchActionCancelError");
     expect(errStr).not.toContain("/home/");
     expect(errStr).not.toContain("/dev/proxys");
     expect(errStr).not.toContain("route.ts");

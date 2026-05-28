@@ -778,7 +778,11 @@
     "batchDetailActionCancel": "Cancelar batch",
     "batchDetailActionRetry": "Refazer falhas",
     "batchDetailCancelling": "Cancelando…",
-    "batchDetailRetrying": "Preparando retry…"
+    "batchDetailRetrying": "Preparando retry…",
+    "batchDetailCancelConfirm": "Cancelar este batch? Requisições em andamento serão interrompidas.",
+    "batchActionCancelError": "Falha ao cancelar o batch. Tente novamente.",
+    "batchActionRetryError": "Falha ao refazer requisições com falha. Tente novamente.",
+    "batchConceptRetentionNote": "Arquivos de resultado e erro ficam retidos por 30 dias (Anthropic: 29 dias)"
   },
   "sidebar": {
     "home": "Início",

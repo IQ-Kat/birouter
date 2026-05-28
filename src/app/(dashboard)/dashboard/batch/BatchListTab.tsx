@@ -164,7 +164,7 @@ function BatchRowActions({
       {canCancel && (
         <button
           onClick={async () => {
-            if (window.confirm(t("batchActionCancel") + "?")) {
+            if (window.confirm(t("batchDetailCancelConfirm"))) {
               await actions.cancel(batch.id);
             }
           }}
@@ -450,9 +450,14 @@ export default function BatchListTab({
                     <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">
                       {batch.model ?? "—"}
                     </td>
-                    {/* Progress — ProgressBarBicolor from F3 */}
+                    {/* Progress — ProgressBarBicolor from F3; spinner when validating (G2) */}
                     <td className="px-4 py-3 min-w-[140px]">
-                      {total > 0 ? (
+                      {batch.status === "validating" ? (
+                        <div className="flex items-center gap-2 text-xs text-yellow-400">
+                          <span className="material-symbols-outlined text-[14px] animate-spin">hourglass_top</span>
+                          Validating…
+                        </div>
+                      ) : total > 0 ? (
                         <ProgressBarBicolor
                           total={total}
                           completed={done}
