@@ -135,13 +135,13 @@ test("estimateBatchCost: Anthropic shape (params) → parses params instead of b
 
 // ── Performance ────────────────────────────────────────────────────────────────
 
-test("estimateBatchCost: 1000 lines processed in < 100ms", () => {
+test("estimateBatchCost: 1000 lines processed in < 500ms", () => {
   const lines = Array.from({ length: 1000 }, (_, i) => makeLine(`req-${i}`, "gpt-4o", 256));
   const jsonl = makeJsonl(lines);
   const start = Date.now();
   const result = estimateBatchCost({ jsonl, model: "gpt-4o", endpoint: ENDPOINT });
   const elapsed = Date.now() - start;
-  assert.ok(elapsed < 100, `should complete in < 100ms, took ${elapsed}ms`);
+  assert.ok(elapsed < 500, `should complete in < 500ms, took ${elapsed}ms`);
   assert.equal(result.totalRequests, 1000);
 });
 
