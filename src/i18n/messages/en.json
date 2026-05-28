@@ -7388,7 +7388,9 @@
     "back": "Back",
     "next": "Next",
     "done": "Done",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "riskNoticeTitle": "Risk acknowledgment",
+    "riskNoticeBody": "AgentBridge will intercept HTTPS traffic from this agent by redirecting its API hosts via DNS. Only enable if you accept responsibility for compliance with the agent's terms of service and any applicable network policies."
   },
   "trafficInspector": {
     "title": "Traffic Inspector",
@@ -7457,6 +7459,11 @@
     "copy": "Copy",
     "httpProxyTitle": "HTTP Proxy Snippet — port {port}",
     "notRecording": "Not recording",
-    "anyStatus": "Any status"
+    "anyStatus": "Any status",
+    "viewingRecordedSession": "Viewing recorded session",
+    "backToLive": "Back to live",
+    "untitledSession": "Untitled session",
+    "contextHistory": "Context History",
+    "modelResponse": "Model Response"
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 import { normalizeConversation } from "@/mitm/inspector/conversationNormalizer";
 import { ChatBubble } from "../chat/ChatBubble";
@@ -9,6 +10,7 @@ interface ConversationTabProps {
 }
 
 export function ConversationTab({ request }: ConversationTabProps) {
+  const t = useTranslations("trafficInspector");
   const conversation = normalizeConversation(request);
 
   if (!conversation) {
@@ -36,9 +38,30 @@ export function ConversationTab({ request }: ConversationTabProps) {
           <span className="font-mono text-blue-400">#{conversation.contextKey.slice(0, 12)}</span>
         </div>
       )}
-      {allTurns.map((turn, i) => (
-        <ChatBubble key={i} turn={turn} />
-      ))}
+      {conversation.request.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 mt-2 mb-1 text-[11px] uppercase tracking-wider text-text-muted font-semibold">
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+            <span>{t("contextHistory")}</span>
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+          </div>
+          {conversation.request.map((turn, i) => (
+            <ChatBubble key={`req-${i}`} turn={turn} />
+          ))}
+        </>
+      )}
+      {conversation.response.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 mt-3 mb-1 text-[11px] uppercase tracking-wider text-text-muted font-semibold">
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+            <span>{t("modelResponse")}</span>
+            <span className="h-px flex-1 bg-border" aria-hidden="true" />
+          </div>
+          {conversation.response.map((turn, i) => (
+            <ChatBubble key={`res-${i}`} turn={turn} />
+          ))}
+        </>
+      )}
     </div>
   );
 }

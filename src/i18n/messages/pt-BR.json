@@ -7378,7 +7378,9 @@
     "back": "Voltar",
     "next": "Próximo",
     "done": "Concluído",
-    "loading": "Carregando…"
+    "loading": "Carregando…",
+    "riskNoticeTitle": "Reconhecimento de risco",
+    "riskNoticeBody": "O AgentBridge irá interceptar o tráfego HTTPS deste agente redirecionando seus hosts de API via DNS. Ative somente se você aceita a responsabilidade pelo cumprimento dos termos de serviço do agente e das políticas de rede aplicáveis."
   },
   "trafficInspector": {
     "title": "Inspector de Tráfego",
@@ -7447,6 +7449,11 @@
     "copy": "Copiar",
     "httpProxyTitle": "Snippet de Proxy HTTP — porta {port}",
     "notRecording": "Sem gravação",
-    "anyStatus": "Qualquer status"
+    "anyStatus": "Qualquer status",
+    "viewingRecordedSession": "Visualizando sessão gravada",
+    "backToLive": "Voltar ao live",
+    "untitledSession": "Sessão sem nome",
+    "contextHistory": "Histórico do Contexto",
+    "modelResponse": "Resposta do Modelo"
   }
 }
