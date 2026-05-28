@@ -51,6 +51,19 @@ test.after(async () => {
 
 // ──────────────── getMemoryVecMeta initial state ────────────────
 
+test("getMemoryVecMeta() returns safe defaults when sentinel row is missing", () => {
+  // Simulate the edge case where the row was deleted (e.g. manual DB manipulation)
+  const db = core.getDbInstance();
+  db.prepare("DELETE FROM memory_vec_meta WHERE id = 1").run();
+
+  const meta = memoryVec.getMemoryVecMeta();
+
+  assert.equal(meta.activeDim, null);
+  assert.equal(meta.embeddingSignature, null);
+  assert.equal(meta.lastResetAt, null);
+  assert.equal(meta.vecLoaded, false);
+});
+
 test("getMemoryVecMeta() returns expected defaults on a fresh DB", () => {
   // getDbInstance() triggers migrations including 073_memory_vec.sql
   const db = core.getDbInstance();
