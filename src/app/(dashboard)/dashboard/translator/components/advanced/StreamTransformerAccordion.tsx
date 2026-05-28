@@ -140,16 +140,17 @@ export default function StreamTransformerAccordion({
   const [open, setOpen] = useState(Boolean(forceOpen));
   // D7 lazy-render guard: once mounted, keep content in DOM.
   const [hasOpened, setHasOpened] = useState(Boolean(forceOpen));
-  // Track previous forceOpen value to detect false→true transitions only.
+  // Track previous forceOpen so the effect only reacts to false→true transitions.
+  // Without this, a manual close while forceOpen stays true would re-open the accordion
+  // on the very next render.
   const prevForceOpen = useRef(Boolean(forceOpen));
 
   // Sync forceOpen changes from parent after mount (deep-link / back-forward navigation).
-  // Only reacts to a false→true transition so a manual close is not overridden while
-  // forceOpen remains true (e.g. user toggles closed after a deep-link open).
   useEffect(() => {
     const prev = prevForceOpen.current;
     prevForceOpen.current = Boolean(forceOpen);
     if (!prev && forceOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing deep-link prop into local state
       setOpen(true);
       setHasOpened(true);
       onOpenChange?.(true);

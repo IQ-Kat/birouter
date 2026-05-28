@@ -216,16 +216,17 @@ export default function CompressionPreviewAccordion({
   // Lazy-render guard (D7): track whether the accordion has ever been opened.
   const [hasOpened, setHasOpened] = useState(forceOpen);
   const [open, setOpen] = useState(forceOpen);
-  // Track previous forceOpen value to detect false→true transitions only.
+  // Track previous forceOpen so the effect only reacts to false→true transitions.
+  // Without this, a manual close while forceOpen stays true would re-open the accordion
+  // on the very next render (the test "toggle closes accordion again" guards this).
   const prevForceOpen = useRef(forceOpen);
 
   // Sync forceOpen changes from parent after mount (deep-link / back-forward navigation).
-  // Only reacts to a false→true transition so a manual close is not overridden while
-  // forceOpen remains true (e.g. user toggles closed after a deep-link open).
   useEffect(() => {
     const prev = prevForceOpen.current;
     prevForceOpen.current = Boolean(forceOpen);
     if (!prev && forceOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing deep-link prop into local state
       setOpen(true);
       setHasOpened(true);
       onOpenChange?.(true);
