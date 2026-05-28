@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { CustomHostsManager } from "./CustomHostsManager";
 import { HttpProxySnippetCard } from "./HttpProxySnippetCard";
@@ -17,6 +18,7 @@ interface CaptureModesToolbarProps {
 }
 
 export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProps) {
+  const t = useTranslations("trafficInspector");
   const [modes, setModes] = useState<CaptureModeState>({
     agentBridge: true,
     customHosts: false,
@@ -39,18 +41,18 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
     warn?: boolean;
     extra?: React.ReactNode;
   }> = [
-    { key: "agentBridge", label: "AgentBridge", alwaysOn: true },
+    { key: "agentBridge", label: t("agentBridgeMode"), alwaysOn: true },
     {
       key: "customHosts",
-      label: `Custom hosts (${customHostCount})`,
+      label: `${t("customHostsMode")} (${customHostCount})`,
     },
     {
       key: "httpProxy",
-      label: `HTTP_PROXY :${proxyPort}`,
+      label: `${t("httpProxyMode")} :${proxyPort}`,
     },
     {
       key: "systemWide",
-      label: "System-wide",
+      label: t("systemWideMode"),
       warn: true,
     },
   ];
@@ -94,14 +96,14 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
             onClick={() => setShowHosts(true)}
             className="text-xs text-text-muted hover:text-text-main focus-ring rounded"
           >
-            ⚙ Manage hosts
+            ⚙ {t("manageHosts")}
           </button>
           <button
             type="button"
             onClick={() => setShowProxy(true)}
             className="text-xs text-text-muted hover:text-text-main focus-ring rounded"
           >
-            ⬇ Copy proxy snippet
+            ⬇ {t("copySnippet")}
           </button>
         </div>
       </div>

@@ -877,8 +877,8 @@
     "cliToolsSubtitle": "Configurar runtimes CLI",
     "agentsSubtitle": "Gerenciar agentes locais",
     "cloudAgentsSubtitle": "Gerenciar agentes na nuvem",
-    "agentBridge": "AgentBridge",
-    "agentBridgeSubtitle": "Interceptador MITM para agentes de IDE",
+    "agentBridge": "Agent Bridge",
+    "agentBridgeSubtitle": "Interceptar tráfego de agentes IDE",
     "apiEndpointsSubtitle": "Expor endpoints customizados",
     "proxySubtitle": "Configurações do proxy HTTP",
     "mitmProxySubtitle": "Interceptação MITM",
@@ -933,8 +933,6 @@
     "docsSubtitle": "Documentação",
     "issuesSubtitle": "Reportar um bug",
     "changelogSubtitle": "Notas de versão",
-    "agentBridge": "Agent Bridge",
-    "agentBridgeSubtitle": "Interceptar tráfego de agentes IDE",
     "trafficInspector": "Inspector de Tráfego",
     "trafficInspectorSubtitle": "Monitorar chamadas LLM + debugar tráfego HTTPS"
   },
@@ -7441,6 +7439,13 @@
     "llmMessages": "Mensagens",
     "llmStream": "Stream",
     "llmMappedTo": "Mapeado para",
-    "llmCostEstimate": "Estimativa de custo"
+    "llmCostEstimate": "Estimativa de custo",
+    "customHostsTitle": "Hosts Personalizados",
+    "loading": "Carregando…",
+    "copied": "Copiado!",
+    "copy": "Copiar",
+    "httpProxyTitle": "Snippet de Proxy HTTP — porta {port}",
+    "notRecording": "Sem gravação",
+    "anyStatus": "Qualquer status"
   }
 }

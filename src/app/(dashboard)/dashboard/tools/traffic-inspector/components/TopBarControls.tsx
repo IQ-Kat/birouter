@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ListFilters } from "@/mitm/inspector/types";
 import type { AgentId } from "@/mitm/types";
 import { cn } from "@/shared/utils/cn";
@@ -8,6 +9,9 @@ import { SessionPicker } from "./session/SessionPicker";
 import type { SessionInfo } from "../hooks/useSessionRecorder";
 
 type Profile = "llm" | "custom" | "all";
+
+// PROFILES labels are resolved inside the component via useTranslations
+const PROFILE_IDS: Profile[] = ["llm", "custom", "all"];
 
 interface TopBarControlsProps {
   filters: ListFilters;
@@ -34,11 +38,6 @@ interface TopBarControlsProps {
   onSessionDelete: (id: string) => void;
 }
 
-const PROFILES: Array<{ id: Profile; label: string }> = [
-  { id: "llm", label: "LLM only" },
-  { id: "custom", label: "Custom" },
-  { id: "all", label: "All" },
-];
 
 export function TopBarControls({
   filters,
@@ -63,7 +62,14 @@ export function TopBarControls({
   onSessionSelect,
   onSessionDelete,
 }: TopBarControlsProps) {
+  const t = useTranslations("trafficInspector");
   const profile: Profile = (filters.profile as Profile) ?? "llm";
+
+  const profileLabels: Record<Profile, string> = {
+    llm: t("profileLlmOnly"),
+    custom: t("profileCustom"),
+    all: t("profileAll"),
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border bg-bg-subtle px-3 py-2">
@@ -73,21 +79,21 @@ export function TopBarControls({
         aria-label="Traffic profile"
         className="flex items-center gap-1 rounded border border-border bg-surface p-0.5"
       >
-        {PROFILES.map((p) => (
+        {PROFILE_IDS.map((id) => (
           <button
-            key={p.id}
+            key={id}
             type="button"
             role="radio"
-            aria-checked={profile === p.id}
-            onClick={() => onProfileChange(p.id)}
+            aria-checked={profile === id}
+            onClick={() => onProfileChange(id)}
             className={cn(
               "px-2 py-0.5 text-xs rounded focus-ring",
-              profile === p.id
+              profile === id
                 ? "bg-blue-600 text-white"
                 : "text-text-muted hover:text-text-main"
             )}
           >
-            {p.label}
+            {profileLabels[id]}
           </button>
         ))}
       </div>
@@ -95,7 +101,7 @@ export function TopBarControls({
       {/* Host filter */}
       <input
         type="text"
-        placeholder="Filter host…"
+        placeholder={t("filterHost")}
         defaultValue={filters.host ?? ""}
         onChange={(e) => onHostChange(e.target.value || undefined)}
         className="rounded border border-border bg-bg-subtle px-2 py-1 text-xs text-text-main w-32 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -109,7 +115,7 @@ export function TopBarControls({
         }
         className="rounded border border-border bg-bg-subtle px-2 py-1 text-xs text-text-main focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
-        <option value="">Any status</option>
+        <option value="">{t("anyStatus")}</option>
         <option value="2xx">2xx</option>
         <option value="3xx">3xx</option>
         <option value="4xx">4xx</option>
@@ -122,36 +128,36 @@ export function TopBarControls({
         type="button"
         onClick={paused ? onResume : onPause}
         className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-xs text-text-muted hover:text-text-main focus-ring"
-        title={paused ? "Resume streaming" : "Pause streaming"}
+        title={paused ? t("resumeBtn") : t("pauseBtn")}
       >
         <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
           {paused ? "play_arrow" : "pause"}
         </span>
-        {paused ? "Resume" : "Pause"}
+        {paused ? t("resumeBtn") : t("pauseBtn")}
       </button>
 
       <button
         type="button"
         onClick={onClear}
         className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-xs text-text-muted hover:text-red-400 focus-ring"
-        title="Clear all requests"
+        title={t("clearBtn")}
       >
         <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
           delete_sweep
         </span>
-        Clear
+        {t("clearBtn")}
       </button>
 
       <button
         type="button"
         onClick={onExport}
         className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-xs text-text-muted hover:text-text-main focus-ring"
-        title="Export as .har"
+        title={t("exportHar")}
       >
         <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
           download
         </span>
-        .har
+        {t("exportHar")}
       </button>
 
       {/* Session controls */}
@@ -178,7 +184,7 @@ export function TopBarControls({
               connected ? "bg-green-400 animate-pulse" : "bg-gray-500"
             )}
           />
-          {connected ? "live" : "offline"}
+          {connected ? t("liveBadge") : t("offlineBadge")}
           <span className="text-text-muted font-mono">
             {total}/{maxSize}
           </span>
