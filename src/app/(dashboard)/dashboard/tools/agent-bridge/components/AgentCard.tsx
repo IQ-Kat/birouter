@@ -6,9 +6,28 @@ import { AgentIcon } from "./shared/AgentIcon";
 import { DnsStatusBadge } from "./shared/DnsStatusBadge";
 import { ModelMappingTable } from "./ModelMappingTable";
 import { SetupWizard } from "./SetupWizard";
+import { RiskNoticeModal } from "@/shared/components/RiskNoticeModal";
 import type { MitmTarget } from "@/mitm/types";
 import type { AgentStateEntry } from "../AgentBridgePageClient";
 import type { MappingRow } from "./ModelMappingTable";
+
+const RISK_STORAGE_KEY_PREFIX = "omniroute-agentbridge-risk-dismissed-";
+
+function hasAcceptedRisk(agentId: string): boolean {
+  try {
+    return localStorage.getItem(RISK_STORAGE_KEY_PREFIX + agentId) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function markRiskAccepted(agentId: string): void {
+  try {
+    localStorage.setItem(RISK_STORAGE_KEY_PREFIX + agentId, "true");
+  } catch {
+    // ignore storage errors
+  }
+}
 
 interface AgentCardProps {
   target: MitmTarget;
@@ -34,6 +53,7 @@ export function AgentCard({
   const [expanded, setExpanded] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [dnsLoading, setDnsLoading] = useState(false);
+  const [riskModalOpen, setRiskModalOpen] = useState(false);
 
   const dnsEnabled = agentState?.dns_enabled ?? false;
   const setupCompleted = agentState?.setup_completed ?? false;
@@ -73,13 +93,28 @@ export function AgentCard({
     );
   };
 
-  const handleDnsToggle = async () => {
+  const reallyToggleDns = async (enabled: boolean) => {
     setDnsLoading(true);
     try {
-      await onDnsToggle(target.id, !dnsEnabled);
+      await onDnsToggle(target.id, enabled);
     } finally {
       setDnsLoading(false);
     }
+  };
+
+  const handleDnsToggle = async () => {
+    const enabling = !dnsEnabled;
+    if (enabling && !hasAcceptedRisk(target.id)) {
+      setRiskModalOpen(true);
+      return;
+    }
+    await reallyToggleDns(enabling);
+  };
+
+  const handleRiskAccept = async () => {
+    markRiskAccepted(target.id);
+    setRiskModalOpen(false);
+    await reallyToggleDns(true);
   };
 
   return (
@@ -227,6 +262,15 @@ export function AgentCard({
           onDnsToggle={onDnsToggle}
         />
       )}
+
+      <RiskNoticeModal
+        open={riskModalOpen}
+        title={t("riskNoticeTitle")}
+        body={t("riskNoticeBody")}
+        dontShowAgainKey={RISK_STORAGE_KEY_PREFIX + target.id}
+        onAccept={handleRiskAccept}
+        onCancel={() => setRiskModalOpen(false)}
+      />
     </>
   );
 }
