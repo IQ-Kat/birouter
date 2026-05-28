@@ -8,8 +8,6 @@ import type { AdvancedSlug } from "../../types";
 export interface AdvancedSectionProps {
   /** Slug to force-open on initial mount (deep-link from URL). */
   forceOpenSlug?: AdvancedSlug | null;
-  /** Callback when a sub-accordion opens or closes (F9 syncs with URL). */
-  onSlugChange?: (slug: AdvancedSlug | null) => void;
   /** F9 passes the 5 accordions as children, each with a slug prop. */
   children?: ReactNode;
 }
@@ -25,7 +23,6 @@ export interface AdvancedSectionProps {
  */
 export default function AdvancedSection({
   forceOpenSlug,
-  onSlugChange: _onSlugChange,
   children,
 }: AdvancedSectionProps) {
   const t = useTranslations("translator");
