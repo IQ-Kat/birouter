@@ -592,23 +592,39 @@ function startServer(latestVersion) {
   });
 
   // Handle all exit scenarios
+  // On Windows, closing the terminal sends CTRL_CLOSE_EVENT (mapped to SIGINT by Node).
+  // We want the server to keep running in background (detached: true already set).
+  // Only kill server when user explicitly chooses "Exit" from menu or tray quit.
+  const isExplicitExit = { value: false };
+
   process.on("SIGINT", () => {
     if (isShuttingDown) return;
     isShuttingDown = true;
-    console.log("\nExiting...");
-    cleanup();
+    if (isExplicitExit.value) {
+      console.log("\nExiting...");
+      cleanup();
+    }
+    // If not explicit exit (terminal closed), just let parent die — server stays alive (detached)
     setTimeout(() => process.exit(0), 100);
   });
   process.on("SIGTERM", () => {
     if (isShuttingDown) return;
     isShuttingDown = true;
-    cleanup();
+    if (isExplicitExit.value) {
+      cleanup();
+    }
     setTimeout(() => process.exit(0), 100);
   });
   process.on("SIGHUP", () => {
     if (isShuttingDown) return;
+    // Terminal closed — keep server running in background
+    if (process.platform === "win32") {
+      return;
+    }
     isShuttingDown = true;
-    cleanup();
+    if (isExplicitExit.value) {
+      cleanup();
+    }
     setTimeout(() => process.exit(0), 100);
   });
 
@@ -619,6 +635,7 @@ function startServer(latestVersion) {
       initTray({
         port,
         onQuit: () => {
+          isExplicitExit.value = true;
           isShuttingDown = true;
           console.log("\n👋 Shutting down from tray...");
           cleanup();
@@ -659,6 +676,7 @@ function startServer(latestVersion) {
         const choice = await showInterfaceMenu(latestVersion);
 
         if (choice === "update") {
+          isExplicitExit.value = true;
           isShuttingDown = true;
           const { clearScreen } = require("./src/cli/utils/display");
           clearScreen();
@@ -721,9 +739,11 @@ function startServer(latestVersion) {
           console.log(`\n💡 You can close this terminal. Right-click tray icon to quit.\n`);
 
           // cleanup() kills server so bgProcess can claim the port fresh
+          isExplicitExit.value = true;
           cleanup();
           process.exit(0);
         } else if (choice === "exit") {
+          isExplicitExit.value = true;
           isShuttingDown = true;
           console.log("\nExiting...");
           cleanup();
