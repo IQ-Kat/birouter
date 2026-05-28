@@ -10,6 +10,7 @@ import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
+import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
 
 // Store server process
 let serverProcess: ChildProcess | null = null;
@@ -30,6 +31,7 @@ export function clearCachedPassword(): void {
 
 const PID_FILE = path.join(resolveMitmDataDir(), "mitm", ".mitm.pid");
 const TARGETS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "targets.json");
+const BYPASS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "bypass.json");
 
 /**
  * Write the canonical `targets.json` consumed by `server.cjs` at startup.
@@ -57,6 +59,35 @@ export function writeTargetsJson(targets: MitmTarget[] = ALL_TARGETS): void {
     })),
   };
   fs.writeFileSync(TARGETS_JSON_FILE, JSON.stringify(payload, null, 2));
+}
+
+/**
+ * Write the canonical `bypass.json` file consumed by `server.cjs` at startup.
+ *
+ * Only USER-configured patterns are persisted here — the default bypass
+ * regexes (banks/gov/okta/auth0) live hard-coded in `server.cjs` and in
+ * `src/mitm/passthrough.ts` so they apply even when the file is missing.
+ *
+ * Plan reference: 11-agent-bridge.plan.md §4.6 + master-plan-group-A.md §3.7.
+ * Hard Rule #13: no shell interpolation, file only.
+ */
+export function writeBypassJson(userPatterns?: string[]): void {
+  const dir = path.join(resolveMitmDataDir(), "mitm");
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    // mkdir failures are non-fatal; the write below will report the real error.
+  }
+  const patterns =
+    Array.isArray(userPatterns) && userPatterns.length >= 0
+      ? userPatterns
+      : getUserBypassPatterns();
+  const payload = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    patterns,
+  };
+  fs.writeFileSync(BYPASS_JSON_FILE, JSON.stringify(payload, null, 2));
 }
 
 export interface AgentStatus {
@@ -167,6 +198,17 @@ export async function startMitm(
   } catch (err) {
     console.error(
       `[MITM] Failed to write targets.json (continuing): ${(err as Error).message ?? err}`
+    );
+  }
+
+  // 0b. Persist the user bypass patterns to bypass.json so server.cjs can
+  //     route CONNECT tunnels for those hostnames without TLS decryption.
+  //     Defaults (banks/gov/okta/auth0) are hard-coded in server.cjs.
+  try {
+    writeBypassJson();
+  } catch (err) {
+    console.error(
+      `[MITM] Failed to write bypass.json (continuing): ${(err as Error).message ?? err}`
     );
   }
 
