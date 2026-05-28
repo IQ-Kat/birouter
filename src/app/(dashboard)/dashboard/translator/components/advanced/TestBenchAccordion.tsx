@@ -25,6 +25,18 @@ import type { AdvancedAccordionProps } from "../../types";
  * Reuses useProviderOptions("openai") + useAvailableModels() (D12).
  */
 
+/**
+ * Strips upstream stack traces, API keys, and Bearer tokens from error messages
+ * before they are displayed in the UI (Hard Rule #12).
+ */
+function sanitizeError(raw: unknown): string {
+  const msg = raw instanceof Error ? raw.message : String(raw ?? "");
+  return msg
+    .replace(/\s+at\s+\/[^\s]+/g, "")
+    .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, "[REDACTED]")
+    .replace(/\bBearer\s+[A-Za-z0-9_.-]+/gi, "Bearer [REDACTED]");
+}
+
 const SCENARIOS = [
   { id: "simple-chat", icon: "chat", templateId: "simple-chat" },
   { id: "tool-calling", icon: "build", templateId: "tool-calling" },
@@ -177,8 +189,7 @@ function TestBenchContent() {
         [scenario.id]: { status: "pass", latency: Date.now() - start, chunks },
       }));
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : t("errorMessage", { message: "Unknown error" });
+      const errorMessage = sanitizeError(err);
       setResults((prev) => ({
         ...prev,
         [scenario.id]: { status: "error", error: errorMessage, latency: Date.now() - start },

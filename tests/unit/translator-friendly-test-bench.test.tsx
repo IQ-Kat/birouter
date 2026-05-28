@@ -715,6 +715,42 @@ describe("TestBenchAccordion", () => {
     expect(text).toContain("Network error");
   });
 
+  it("sanitizes stack trace from error: 'at /path' patterns are stripped from UI (Hard Rule #12)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url: string) => {
+        if ((url as string).includes("/api/translator/translate")) {
+          const errWithStack = new Error("foo\n    at /home/user/dev/file.ts:42:10\n    at /node_modules/bar.js:1:1");
+          return Promise.reject(errWithStack);
+        }
+        return Promise.reject(new Error("Unexpected"));
+      }),
+    );
+
+    const { default: TestBenchAccordion } = await import(
+      "@/app/(dashboard)/dashboard/translator/components/advanced/TestBenchAccordion"
+    );
+    const container = makeContainer();
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<TestBenchAccordion forceOpen={true} />);
+    });
+
+    const buttons = container.querySelectorAll("[data-testid='button']");
+    const firstRunBtn = Array.from(buttons).find((b) =>
+      b.textContent?.includes("Run Test"),
+    ) as HTMLButtonElement | undefined;
+    await act(async () => {
+      firstRunBtn?.click();
+    });
+
+    const text = container.textContent ?? "";
+    // Error should be displayed
+    expect(text).toContain("❌");
+    // Stack trace 'at /' patterns MUST NOT appear in the rendered UI (Hard Rule #12)
+    expect(text).not.toContain("at /");
+  });
+
   // ── onOpenChange callback ─────────────────────────────────────────────────
 
   it("calls onOpenChange(true) when accordion opens for the first time", async () => {

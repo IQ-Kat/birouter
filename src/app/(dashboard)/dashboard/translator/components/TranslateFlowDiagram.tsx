@@ -88,7 +88,7 @@ export default function TranslateFlowDiagram() {
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr] gap-2 sm:gap-3 sm:items-stretch">
+    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] gap-2 sm:gap-3 sm:items-stretch">
       <FlowNode
         icon="smart_toy"
         color="primary"
@@ -107,6 +107,17 @@ export default function TranslateFlowDiagram() {
         )}
       />
       <FlowArrow label={tr("conceptDiagramArrow2", "Translator")} />
+      <FlowNode
+        icon="hub"
+        color="emerald"
+        title={tr("conceptDiagramHubLabel", "OpenAI (hub)")}
+        example={tr("conceptDiagramExampleHub", "formato pivô")}
+        tooltipContent={tr(
+          "conceptDiagramHubTooltip",
+          "Hub intermediário usado pelo translator para converter entre formatos não-compatíveis diretamente. Todos os formatos passam por OpenAI como pivô.",
+        )}
+      />
+      <FlowArrow label={tr("conceptDiagramArrow3", "→")} />
       <FlowNode
         icon="auto_awesome"
         color="blue"

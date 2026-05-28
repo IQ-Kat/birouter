@@ -73,7 +73,7 @@ describe("TranslatorConceptCard", () => {
     expect(iconTexts).toContain("info");
   });
 
-  it("renders the flow diagram with 3 FlowNode elements (app, source, target)", async () => {
+  it("renders the flow diagram with 4 FlowNode elements (app, source, hub, target)", async () => {
     const { default: TranslatorConceptCard } = await import(
       "@/app/(dashboard)/dashboard/translator/components/TranslatorConceptCard"
     );
@@ -82,11 +82,12 @@ describe("TranslatorConceptCard", () => {
     await act(async () => {
       root.render(<TranslatorConceptCard />);
     });
-    // The diagram grid should contain 3 node icons (smart_toy, psychology, auto_awesome)
+    // The diagram grid should contain 4 node icons (smart_toy, psychology, hub, auto_awesome)
     const icons = container.querySelectorAll(".material-symbols-outlined");
     const iconTexts = Array.from(icons).map((el) => el.textContent?.trim());
     expect(iconTexts).toContain("smart_toy");
     expect(iconTexts).toContain("psychology");
+    expect(iconTexts).toContain("hub");
     expect(iconTexts).toContain("auto_awesome");
   });
 
@@ -101,8 +102,8 @@ describe("TranslatorConceptCard", () => {
     });
     const icons = container.querySelectorAll(".material-symbols-outlined");
     const iconTexts = Array.from(icons).map((el) => el.textContent?.trim());
-    // Two arrows between 3 nodes
-    expect(iconTexts.filter((t) => t === "arrow_forward").length).toBeGreaterThanOrEqual(2);
+    // Three arrows between 4 nodes
+    expect(iconTexts.filter((t) => t === "arrow_forward").length).toBeGreaterThanOrEqual(3);
   });
 
   it("toggle button starts collapsed (aria-expanded=false)", async () => {
@@ -226,7 +227,7 @@ describe("TranslateFlowDiagram", () => {
     expect(typeof mod.default).toBe("function");
   });
 
-  it("renders all 3 flow node icons", async () => {
+  it("renders all 4 flow node icons (app, source, hub, target)", async () => {
     const { default: TranslateFlowDiagram } = await import(
       "@/app/(dashboard)/dashboard/translator/components/TranslateFlowDiagram"
     );
@@ -237,12 +238,14 @@ describe("TranslateFlowDiagram", () => {
     });
     const icons = container.querySelectorAll(".material-symbols-outlined");
     const iconTexts = Array.from(icons).map((el) => el.textContent?.trim());
+    // 4 nodes: app, source format, OpenAI hub, target provider
     expect(iconTexts).toContain("smart_toy");
     expect(iconTexts).toContain("psychology");
+    expect(iconTexts).toContain("hub");
     expect(iconTexts).toContain("auto_awesome");
   });
 
-  it("renders exactly 2 arrow_forward separators between nodes", async () => {
+  it("renders exactly 3 arrow_forward separators between 4 nodes", async () => {
     const { default: TranslateFlowDiagram } = await import(
       "@/app/(dashboard)/dashboard/translator/components/TranslateFlowDiagram"
     );
@@ -253,7 +256,7 @@ describe("TranslateFlowDiagram", () => {
     });
     const icons = container.querySelectorAll(".material-symbols-outlined");
     const iconTexts = Array.from(icons).map((el) => el.textContent?.trim());
-    expect(iconTexts.filter((t) => t === "arrow_forward")).toHaveLength(2);
+    expect(iconTexts.filter((t) => t === "arrow_forward")).toHaveLength(3);
   });
 
   it("renders a responsive grid container", async () => {
@@ -288,6 +291,8 @@ describe("TranslateFlowDiagram", () => {
     expect(text).toContain("ex: SDK Anthropic");
     expect(text).toContain("Formato origem");
     expect(text).toContain("claude");
+    // 4th node: OpenAI hub
+    expect(text).toContain("OpenAI (hub)");
     expect(text).toContain("Provider destino");
     expect(text).toContain("Gemini");
   });

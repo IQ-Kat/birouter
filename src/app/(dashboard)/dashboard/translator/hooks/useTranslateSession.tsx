@@ -170,22 +170,27 @@ export function useTranslateSession(): UseTranslateSessionReturn {
           }
           const reader = sendRes.body?.getReader();
           if (reader) {
-            const decoder = new TextDecoder();
-            let buf = "";
-            while (buf.length < 500) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buf += decoder.decode(value, { stream: true });
-            }
-            responsePreview = buf.slice(0, 500);
-            // Drain remaining (don't block UI).
             try {
-              while (true) {
-                const { done } = await reader.read();
+              const decoder = new TextDecoder();
+              let buf = "";
+              while (buf.length < 500) {
+                const { done, value } = await reader.read();
                 if (done) break;
+                buf += decoder.decode(value, { stream: true });
               }
-            } catch {
-              /* ignore */
+              responsePreview = buf.slice(0, 500);
+              // Drain remaining (don't block UI).
+              try {
+                while (true) {
+                  const { done } = await reader.read();
+                  if (done) break;
+                }
+              } catch {
+                /* ignore */
+              }
+            } finally {
+              try { reader.cancel(); } catch { /* swallow — connection might already be closed */ }
+              try { (reader as { releaseLock?: () => void }).releaseLock?.(); } catch { /* same */ }
             }
           }
         }
