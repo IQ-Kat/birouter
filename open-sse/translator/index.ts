@@ -290,7 +290,7 @@ export function translateRequest(
     model: normalizedModel,
     thinkingEnabled: hasThinkingConfig(result),
     supportsReasoning: supportsReasoning({ provider: normalizedProvider, model: normalizedModel }),
-    interleavedField: resolvedCapabilities.interleavedField,
+    interleavedField: resolvedCapabilities?.interleavedField ?? null,
     allowLegacyFallback: false,
   });
   if (isReasoner && result.messages && Array.isArray(result.messages)) {
