@@ -7451,6 +7451,7 @@
     "llmMessages": "Messages",
     "llmStream": "Stream",
     "llmMappedTo": "Mapped to",
-    "llmCostEstimate": "Cost estimate"
+    "llmCostEstimate": "Cost estimate",
+    "systemProxyExitWarning": "System-wide proxy still active — leave page anyway?"
   }
 }

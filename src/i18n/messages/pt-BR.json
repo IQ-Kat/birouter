@@ -7441,6 +7441,7 @@
     "llmMessages": "Mensagens",
     "llmStream": "Stream",
     "llmMappedTo": "Mapeado para",
-    "llmCostEstimate": "Estimativa de custo"
+    "llmCostEstimate": "Estimativa de custo",
+    "systemProxyExitWarning": "Proxy do sistema ainda está ativo — sair mesmo assim?"
   }
 }
