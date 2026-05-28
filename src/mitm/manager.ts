@@ -5,6 +5,9 @@ import { resolveMitmDataDir } from "./dataDir.ts";
 import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCert } from "./cert/install.ts";
+import { ALL_TARGETS } from "./targets/index.ts";
+import { detectAgent } from "./detection/index.ts";
+import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 
 // Store server process
 let serverProcess: ChildProcess | null = null;
@@ -24,6 +27,57 @@ export function clearCachedPassword(): void {
 }
 
 const PID_FILE = path.join(resolveMitmDataDir(), "mitm", ".mitm.pid");
+const TARGETS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "targets.json");
+
+/**
+ * Write the canonical `targets.json` consumed by `server.cjs` at startup.
+ *
+ * The file mirrors the static `ALL_TARGETS` registry; server.cjs treats it as
+ * an extension of its baseline antigravity hosts. Hard Rule #13: only the
+ * declarative target hosts are persisted — no runtime paths, no shell escapes.
+ */
+export function writeTargetsJson(targets: MitmTarget[] = ALL_TARGETS): void {
+  const dir = path.join(resolveMitmDataDir(), "mitm");
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    // mkdir failures are non-fatal; the write below will report the real error.
+  }
+  const payload = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    targets: targets.map((t) => ({
+      id: t.id,
+      name: t.name,
+      hosts: t.hosts,
+      endpointPatterns: t.endpointPatterns,
+      viability: t.viability ?? "supported",
+    })),
+  };
+  fs.writeFileSync(TARGETS_JSON_FILE, JSON.stringify(payload, null, 2));
+}
+
+export interface AgentStatus {
+  id: AgentId;
+  name: string;
+  hosts: string[];
+  viability: "supported" | "investigating" | "deprecated";
+  detection: DetectionResult;
+}
+
+/**
+ * Aggregate every registered MITM target with its current installation
+ * detection result. Read-only — used by the AgentBridge dashboard.
+ */
+export function getAllAgentsStatus(): AgentStatus[] {
+  return ALL_TARGETS.map((t) => ({
+    id: t.id,
+    name: t.name,
+    hosts: t.hosts,
+    viability: t.viability ?? "supported",
+    detection: detectAgent(t.id),
+  }));
+}
 const MITM_SERVER_URL = new URL("./server.cjs", import.meta.url);
 const urlPath =
   process.platform === "win32" && MITM_SERVER_URL.pathname.startsWith("/")
@@ -102,6 +156,16 @@ export async function startMitm(
   // Check if already running
   if (serverProcess && !serverProcess.killed) {
     throw new Error("MITM proxy is already running");
+  }
+
+  // 0. Persist the canonical targets.json so server.cjs can pick up the full
+  //    AgentBridge target registry alongside its hard-coded antigravity baseline.
+  try {
+    writeTargetsJson();
+  } catch (err) {
+    console.error(
+      `[MITM] Failed to write targets.json (continuing): ${(err as Error).message ?? err}`
+    );
   }
 
   // 1. Generate SSL certificate if not exists
