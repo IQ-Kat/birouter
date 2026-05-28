@@ -693,6 +693,22 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  gitlawb: {
+    url: "https://opengateway.gitlawb.com/v1/xiaomi-mimo/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
+  "gitlawb-gmi": {
+    url: "https://opengateway.gitlawb.com/v1/gmi-cloud/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
 };
 
 /**
@@ -1939,22 +1955,7 @@ export async function GET(
       });
     }
 
-    // GitLawB: OpenGateway API does not expose /models endpoint per provider-path.
-    // All models are registered statically in the provider registry and work via
-    // POST /chat/completions — return them from local catalog without a warning.
-    if (provider === "gitlawb" || provider === "gitlawb-gmi") {
-      const gitlawbModels = getModelsByProviderId(provider);
-      return buildResponse({
-        provider,
-        connectionId,
-        models: gitlawbModels.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          owned_by: provider,
-        })),
-        source: "local_catalog",
-      });
-    }
+
 
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
