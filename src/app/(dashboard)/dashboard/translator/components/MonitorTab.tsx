@@ -215,6 +215,7 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
               {autoRefresh ? "radio_button_checked" : "radio_button_unchecked"}
             </span>
             <button
+              type="button"
               onClick={() => setAutoRefresh((prev) => !prev)}
               className="text-sm text-text-main hover:text-primary transition-colors"
               aria-label={
@@ -237,6 +238,7 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
                 : translateOrFallback("paused", "Paused")}
             </Badge>
             <button
+              type="button"
               onClick={() => void fetchHistory()}
               className="flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors"
               aria-label={tc("refresh")}
