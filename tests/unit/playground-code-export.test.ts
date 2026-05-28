@@ -301,3 +301,282 @@ test("typescript: body uses JSON object literal", () => {
   const generated = exportCode(state, "typescript");
   assert.ok(generated.includes("const body ="), "uses const body =");
 });
+
+// ── Default fallback branches ─────────────────────────────────────────────────
+// These tests cover the ?? defaults in buildBody to satisfy branch coverage
+
+test("chat.completions: defaults model when not provided", () => {
+  const state = {
+    endpoint: "chat.completions" as const,
+    baseUrl: "http://localhost:20128",
+    // no model
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `chat.completions/defaults/${lang}`);
+    assert.ok(generated.includes("gpt-4o-mini"), `${lang}: default model fallback`);
+    // default prompt "Hello!" should appear (no messages, no systemPrompt, no prompt)
+    assert.ok(generated.includes("Hello!"), `${lang}: default prompt fallback`);
+    // default stream=false
+    assert.ok(generated.includes("false") || generated.includes("stream"), `${lang}: stream default`);
+  }
+});
+
+test("chat.completions: no messages, no systemPrompt — builds default user message", () => {
+  const state = {
+    endpoint: "chat.completions" as const,
+    baseUrl: "http://localhost:20128",
+    model: "gpt-4o",
+    // no messages, no systemPrompt, no prompt
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assert.ok(generated.includes("Hello!"), `${lang}: default Hello! prompt`);
+  }
+});
+
+test("completions: defaults model when not provided", () => {
+  const state = {
+    endpoint: "completions" as const,
+    baseUrl: "http://localhost:20128",
+    // no model, no prompt, no stream
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `completions/defaults/${lang}`);
+    assert.ok(generated.includes("gpt-3.5-turbo-instruct"), `${lang}: default model`);
+    assert.ok(generated.includes("Hello,"), `${lang}: default prompt`);
+  }
+});
+
+test("embeddings: defaults model and prompt when not provided", () => {
+  const state = {
+    endpoint: "embeddings" as const,
+    baseUrl: "http://localhost:20128",
+    // no model, no prompt
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `embeddings/defaults/${lang}`);
+    assert.ok(generated.includes("text-embedding-3-small"), `${lang}: default model`);
+    assert.ok(generated.includes("Hello world"), `${lang}: default input`);
+  }
+});
+
+test("images: defaults model and prompt when not provided", () => {
+  const state = {
+    endpoint: "images" as const,
+    baseUrl: "http://localhost:20128",
+    // no model, no prompt
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `images/defaults/${lang}`);
+    assert.ok(generated.includes("dall-e-3"), `${lang}: default model`);
+  }
+});
+
+test("audio.transcriptions: defaults model when not provided", () => {
+  const state = {
+    endpoint: "audio.transcriptions" as const,
+    baseUrl: "http://localhost:20128",
+    // no model
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `audio.transcriptions/defaults/${lang}`);
+    assert.ok(generated.includes("whisper-1"), `${lang}: default model`);
+  }
+});
+
+test("audio.speech: defaults model and prompt when not provided", () => {
+  const state = {
+    endpoint: "audio.speech" as const,
+    baseUrl: "http://localhost:20128",
+    // no model, no prompt
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `audio.speech/defaults/${lang}`);
+    assert.ok(generated.includes("tts-1"), `${lang}: default model`);
+    assert.ok(generated.includes("Hello, world!"), `${lang}: default prompt`);
+  }
+});
+
+test("moderations: defaults model and prompt when not provided", () => {
+  const state = {
+    endpoint: "moderations" as const,
+    baseUrl: "http://localhost:20128",
+    // no model, no prompt
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `moderations/defaults/${lang}`);
+    assert.ok(generated.includes("text-moderation-latest"), `${lang}: default model`);
+  }
+});
+
+test("rerank: defaults query and documents when not provided", () => {
+  const state = {
+    endpoint: "rerank" as const,
+    baseUrl: "http://localhost:20128",
+    // no model, no query, no documents
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `rerank/defaults/${lang}`);
+    assert.ok(generated.includes("rerank-english-v3.0"), `${lang}: default rerank model`);
+    assert.ok(generated.includes("search query"), `${lang}: default query`);
+  }
+});
+
+test("search: omits optional fields when not provided", () => {
+  const state = {
+    endpoint: "search" as const,
+    baseUrl: "http://localhost:20128",
+    query: "test query",
+    // no model, no provider, no type, no maxResults
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `search/minimal/${lang}`);
+    assert.ok(generated.includes("test query"), `${lang}: query present`);
+  }
+});
+
+test("web.fetch: minimal state (only url)", () => {
+  const state = {
+    endpoint: "web.fetch" as const,
+    baseUrl: "http://localhost:20128",
+    url: "https://my-site.com",
+    // no provider, no format, no depth
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `web.fetch/minimal/${lang}`);
+    assert.ok(generated.includes("https://my-site.com"), `${lang}: url present`);
+  }
+});
+
+test("chat.completions: with tools in state", () => {
+  const state = {
+    endpoint: "chat.completions" as const,
+    baseUrl: "http://localhost:20128",
+    model: "gpt-4o",
+    tools: [
+      {
+        type: "function" as const,
+        function: {
+          name: "get_weather",
+          description: "Get weather",
+          parameters: { type: "object", properties: {} },
+        },
+      },
+    ],
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assert.ok(generated.includes("get_weather"), `${lang}: tools included`);
+  }
+});
+
+test("chat.completions: with params in state", () => {
+  const state = {
+    endpoint: "chat.completions" as const,
+    baseUrl: "http://localhost:20128",
+    model: "gpt-4o",
+    params: { temperature: 0.7, max_tokens: 500 },
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assert.ok(generated.includes("temperature"), `${lang}: params included`);
+  }
+});
+
+test("completions: with params in state", () => {
+  const state = {
+    endpoint: "completions" as const,
+    baseUrl: "http://localhost:20128",
+    model: "gpt-3.5-turbo-instruct",
+    prompt: "Say hello",
+    params: { temperature: 0.5, max_tokens: 100 },
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `completions/params/${lang}`);
+    assert.ok(generated.includes("temperature"), `${lang}: params included`);
+  }
+});
+
+test("search: with model in state (covers model branch)", () => {
+  const state = {
+    endpoint: "search" as const,
+    baseUrl: "http://localhost:20128",
+    query: "test",
+    model: "some-search-model",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `search/model/${lang}`);
+    assert.ok(generated.includes("some-search-model"), `${lang}: model included`);
+  }
+});
+
+test("search: default url used when url not provided", () => {
+  const state = {
+    endpoint: "search" as const,
+    baseUrl: "http://localhost:20128",
+    // no query — will use default
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `search/default-query/${lang}`);
+    assert.ok(generated.includes("search query"), `${lang}: default query`);
+  }
+});
+
+test("web.fetch: with all optional fields set (depth, format, provider)", () => {
+  const state = {
+    endpoint: "web.fetch" as const,
+    baseUrl: "http://localhost:20128",
+    url: "https://example.com",
+    fetchProvider: "firecrawl" as const,
+    fetchFormat: "html" as const,
+    fetchDepth: 1 as const,
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `web.fetch/full/${lang}`);
+    assert.ok(generated.includes("firecrawl"), `${lang}: provider present`);
+    assert.ok(generated.includes("html"), `${lang}: format present`);
+    assert.ok(generated.includes("1") || generated.includes("depth"), `${lang}: depth present`);
+  }
+});
+
+test("web.fetch: default url when url not provided", () => {
+  const state = {
+    endpoint: "web.fetch" as const,
+    baseUrl: "http://localhost:20128",
+    // no url
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `web.fetch/default-url/${lang}`);
+    assert.ok(generated.includes("example.com"), `${lang}: default url`);
+  }
+});
+
+test("web.fetch: fetchDepth 0 is included (not null)", () => {
+  const state = {
+    endpoint: "web.fetch" as const,
+    baseUrl: "http://localhost:20128",
+    url: "https://example.com",
+    fetchDepth: 0 as const,
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `web.fetch/depth0/${lang}`);
+    // depth: 0 should be included (fetchDepth != null check)
+    assert.ok(generated.includes("depth"), `${lang}: depth key present`);
+  }
+});

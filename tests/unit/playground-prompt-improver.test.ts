@@ -182,6 +182,17 @@ test("parseImprovedContent: trims whitespace", () => {
   assert.equal(result.improvedPrompt, "Fix this code.");
 });
 
+test("parseImprovedContent: reversed order (<<PROMPT>> before <<SYSTEM>>)", () => {
+  // LLM might respond with <<PROMPT>> first then <<SYSTEM>>
+  const raw = "<<PROMPT>>\nWrite clean code.\n\n<<SYSTEM>>\nYou are a helpful coder.";
+  const result = parseImprovedContent(raw, true, true);
+  // Both markers present, <<PROMPT>> is at index < <<SYSTEM>> index
+  // sysStart > promptStart in this case — covers else branch for sysContent
+  // and the if(hasSystemMarker && systemIndex > promptStart) branch for promptContent
+  assert.ok(result.improvedSystem !== undefined || result.improvedPrompt !== undefined,
+    "should parse at least one field from reversed markers");
+});
+
 // ── ImprovePromptRequestSchema validation ─────────────────────────────────────
 
 test("ImprovePromptRequestSchema: valid with system only", () => {
