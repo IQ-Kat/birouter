@@ -162,6 +162,70 @@ export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
   process.env.QUOTA_SOFT_DEPRIORITIZE_FACTOR ?? "0.7"
 );
 
+// G2: Module-level registry of active combo execution candidates.
+// Maps executionKey → Map<stepId, candidate mutable ref>.
+// Populated by buildAutoCandidates registrations; cleaned up after each execution.
+// This allows chatCore.ts to mark a candidate's quotaSoftPenalty flag so that
+// subsequent scoring iterations (auto-combo fallback) deprioritize it.
+const _activeExecutionCandidates = new Map<string, Map<string, { quotaSoftPenalty?: boolean }>>();
+
+/**
+ * Mark a specific candidate (by comboExecutionKey + stepId) with soft quota penalty.
+ * Called from chatCore.ts when enforceQuotaShare returns a "soft deprioritize" decision.
+ * The flag is read on subsequent auto-combo scoring iterations (fallback chain)
+ * within the same combo execution via scoreAutoTargets → QUOTA_SOFT_DEPRIORITIZE_FACTOR.
+ *
+ * Guards:
+ * - null executionKey or stepId → no-op (non-combo or context not available).
+ * - unknown executionKey → no-op (candidate not yet registered or already cleaned up).
+ * - Idempotent: calling twice with the same (key, stepId, true) is safe.
+ */
+export function setCandidateQuotaSoftPenalty(
+  comboExecutionKey: string | null,
+  comboStepId: string | null,
+  penalty: boolean
+): void {
+  if (!comboExecutionKey || !comboStepId) return;
+  const byStep = _activeExecutionCandidates.get(comboExecutionKey);
+  if (!byStep) return;
+  const candidate = byStep.get(comboStepId);
+  if (candidate) {
+    candidate.quotaSoftPenalty = penalty;
+  }
+}
+
+/**
+ * Register candidates for a combo execution so setCandidateQuotaSoftPenalty can
+ * locate them by (executionKey, stepId).
+ * Each candidate object is stored by reference — mutations via setCandidateQuotaSoftPenalty
+ * propagate back to the original candidate array used by scoreAutoTargets.
+ * @internal — not exported; only called within combo.ts by buildAutoCandidates callers.
+ */
+function _registerExecutionCandidates(
+  candidates: Array<{ executionKey: string; stepId: string; quotaSoftPenalty?: boolean }>
+): void {
+  for (const candidate of candidates) {
+    if (!candidate.executionKey) continue;
+    let byStep = _activeExecutionCandidates.get(candidate.executionKey);
+    if (!byStep) {
+      byStep = new Map();
+      _activeExecutionCandidates.set(candidate.executionKey, byStep);
+    }
+    byStep.set(candidate.stepId, candidate);
+  }
+}
+
+/**
+ * Unregister all candidates for a given execution key once the execution completes.
+ * Prevents unbounded memory growth.
+ * @internal — not exported; called after each handleComboChat iteration.
+ */
+function _unregisterExecutionCandidates(executionKeys: string[]): void {
+  for (const key of executionKeys) {
+    _activeExecutionCandidates.delete(key);
+  }
+}
+
 const RESET_WINDOW_NAMES = ["weekly", "session", "monthly"] as const;
 type ResetWindowName = (typeof RESET_WINDOW_NAMES)[number];
 type QuotaFetchCacheConfig = {
@@ -2877,6 +2941,8 @@ export async function handleComboChat({
       relayOptions?.sessionId,
       resetWindowConfig
     );
+    // G2: Register candidates so chatCore can mark quotaSoftPenalty via setCandidateQuotaSoftPenalty.
+    _registerExecutionCandidates(candidates);
     if (candidates.length > 0) {
       let selectedProvider: string | null = null;
       let selectedModel: string | null = null;
@@ -3117,8 +3183,13 @@ export async function handleComboChat({
     log
   );
 
+  // G2: Collect execution keys registered by _registerExecutionCandidates above (auto strategy).
+  // We snapshot them now so cleanup can happen after the attempt loop finishes.
+  const _registeredExecutionKeys = orderedTargets.map((t) => t.executionKey).filter(Boolean);
+
   let globalAttempts = 0;
 
+  try {
   for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
     // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
     // Reset each retry so providers excluded in a previous attempt get another chance.
@@ -3648,6 +3719,10 @@ export async function handleComboChat({
   }
 
   return errorResponse(503, "Combo routing completed without an upstream response");
+  } finally {
+    // G2: Clean up candidate registry to prevent unbounded memory growth.
+    _unregisterExecutionCandidates(_registeredExecutionKeys);
+  }
 }
 
 /**
