@@ -53,8 +53,8 @@ const hasOmniRouteConfig = (content: string | null): boolean => {
 const readConfig = async (): Promise<string | null> => {
   try {
     return await fs.readFile(getDeepseekTuiConfigPath(), "utf-8");
-  } catch (err: any) {
-    if (err.code === "ENOENT") return null;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
   }
 };

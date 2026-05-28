@@ -113,15 +113,15 @@ afterEach(() => {
 
 describe("CliToolCard", () => {
   it("renders tool name", () => {
-    const container = renderCard(makeTool(), makeBatchStatus(), "/dashboard/cli-tools/claude", true);
+    const container = renderCard(makeTool(), makeBatchStatus(), "/dashboard/cli-code/claude", true);
     expect(container.textContent).toContain("Claude Code");
   });
 
   it("links to detailHref", () => {
-    const container = renderCard(makeTool(), makeBatchStatus(), "/dashboard/cli-tools/claude", true);
+    const container = renderCard(makeTool(), makeBatchStatus(), "/dashboard/cli-code/claude", true);
     const link = container.querySelector("a");
     expect(link).not.toBeNull();
-    expect(link!.getAttribute("href")).toBe("/dashboard/cli-tools/claude");
+    expect(link!.getAttribute("href")).toBe("/dashboard/cli-code/claude");
   });
 
   it("shows version when installed", () => {

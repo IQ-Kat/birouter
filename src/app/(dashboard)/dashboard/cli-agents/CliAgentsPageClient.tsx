@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { CLI_TOOLS } from "@/shared/constants/cliTools";
+import { CardSkeleton } from "@/shared/components";
 import { CliToolCard, CliConceptCard, CliComparisonCard } from "@/shared/components/cli";
 import { useToolBatchStatuses } from "@/shared/hooks/cli/useToolBatchStatuses";
 
@@ -123,11 +124,7 @@ export default function CliAgentsPageClient({ machineId: _machineId }: CliAgents
       {loading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {agentTools.map((tool) => (
-            <div
-              key={tool.id}
-              className="h-[180px] animate-pulse bg-black/[0.04] dark:bg-white/[0.04] rounded-lg"
-              aria-hidden="true"
-            />
+            <CardSkeleton key={tool.id} />
           ))}
         </div>
       ) : filteredTools.length === 0 ? (

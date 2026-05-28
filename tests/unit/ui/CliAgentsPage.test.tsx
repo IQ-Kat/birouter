@@ -36,7 +36,7 @@ vi.mock("next-intl", () => ({
 }));
 
 // Stub CliStatusBadge so it doesn't depend on next-intl internals
-vi.mock("@/app/(dashboard)/dashboard/cli-tools/components/CliStatusBadge", () => ({
+vi.mock("@/app/(dashboard)/dashboard/cli-code/components/CliStatusBadge", () => ({
   default: ({
     effectiveConfigStatus,
   }: {

@@ -17,7 +17,6 @@ import {
   KiloToolCard,
   OpenClawToolCard,
 } from "./index";
-import CliproxyapiToolCard from "./CliproxyapiToolCard";
 
 export interface ToolDetailClientProps {
   toolId: string;
@@ -211,8 +210,6 @@ export default function ToolDetailClient({ toolId, category }: ToolDetailClientP
         return <HermesAgentToolCard {...cardProps} />;
       case "antigravity":
         return <AntigravityToolCard {...cardProps} />;
-      case "cliproxyapi":
-        return <CliproxyapiToolCard isExpanded={true} onToggle={() => {}} />;
       case "custom":
         return <CustomCliCard {...cardProps} />;
       default:

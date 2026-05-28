@@ -40,8 +40,8 @@ const readConfig = async (): Promise<Record<string, unknown> | null> => {
   try {
     const content = await fs.readFile(getJcodeConfigPath(), "utf-8");
     return JSON.parse(content) as Record<string, unknown>;
-  } catch (err: any) {
-    if (err.code === "ENOENT") return null;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
   }
 };
@@ -193,8 +193,8 @@ export async function DELETE(request: Request) {
     try {
       const raw = await fs.readFile(configPath, "utf-8");
       existing = JSON.parse(raw) as Record<string, unknown>;
-    } catch (err: any) {
-      if (err.code === "ENOENT") {
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") {
         return NextResponse.json({ success: true, message: "No config file to reset" });
       }
       throw err;
