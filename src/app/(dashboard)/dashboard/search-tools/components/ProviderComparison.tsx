@@ -137,10 +137,7 @@ export default function ProviderComparison({
                 ))}
               </tr>
               <tr className="border-b border-border/50">
-                <td className="p-2 text-text-muted">
-                  {/* TODO(F9): replace with t("search.size") once i18n keys are added */}
-                  <span data-i18n="search.size">Size</span>
-                </td>
+                <td className="p-2 text-text-muted">{t("size")}</td>
                 {allResults.map((r) => (
                   <td
                     key={r.provider}
