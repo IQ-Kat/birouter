@@ -2,6 +2,14 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.2.2 (2026-05-28)
+
+### ✨ New Features
+
+- **Smart Pacing UI Control**: Added a dedicated card in Dashboard → Endpoint to manage anti-ban settings.
+  - **Human Simulator Toggle**: Manual control to enable/disable the human-like typing simulation (2-8s gaps).
+  - **Protection Toggle**: Easily enable/disable global request pacing.
+
 ## v0.2.1 (2026-05-28)
 
 ### 🐛 Bug Fixes

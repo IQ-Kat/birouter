@@ -69,6 +69,8 @@ export default function APIPageClient({ machineId }) {
   const [hasPassword, setHasPassword] = useState(true);
   const [tunnelDashboardAccess, setTunnelDashboardAccess] = useState(false);
   const [rtkEnabled, setRtkEnabledState] = useState(true);
+  const [smartPacingEnabled, setSmartPacingEnabled] = useState(true);
+  const [smartPacingMode, setSmartPacingMode] = useState("auto");
   const [cavemanEnabled, setCavemanEnabled] = useState(false);
   const [cavemanLevel, setCavemanLevel] = useState("full");
 
@@ -242,6 +244,8 @@ export default function APIPageClient({ machineId }) {
         setHasPassword(data.hasPassword || false);
         setTunnelDashboardAccess(data.tunnelDashboardAccess || false);
         setRtkEnabledState(data.rtkEnabled !== false);
+        setSmartPacingEnabled(data.smartPacingEnabled !== false);
+        setSmartPacingMode(data.smartPacingMode || "auto");
         setCavemanEnabled(!!data.cavemanEnabled);
         setCavemanLevel(data.cavemanLevel || "full");
       }
@@ -315,6 +319,32 @@ export default function APIPageClient({ machineId }) {
       if (res.ok) setRtkEnabledState(value);
     } catch (error) {
       console.log("Error updating rtkEnabled:", error);
+    }
+  };
+
+  const handleSmartPacingEnabled = async (value) => {
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ smartPacingEnabled: value }),
+      });
+      if (res.ok) setSmartPacingEnabled(value);
+    } catch (error) {
+      console.log("Error updating smartPacingEnabled:", error);
+    }
+  };
+
+  const handleSmartPacingMode = async (mode) => {
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ smartPacingMode: mode }),
+      });
+      if (res.ok) setSmartPacingMode(mode);
+    } catch (error) {
+      console.log("Error updating smartPacingMode:", error);
     }
   };
 
@@ -1030,6 +1060,59 @@ export default function APIPageClient({ machineId }) {
             <div className="flex items-center gap-1.5">
               <p className="font-medium text-sm">Allow dashboard access via tunnel</p>
               <Tooltip text="When enabled, the dashboard can be accessed through your tunnel or Tailscale URL (login still required). When disabled, dashboard access via tunnel/Tailscale is completely blocked." />
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Smart Pacing & Anti-Ban */}
+      <Card id="pacing">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">security</span>
+            Smart Pacing & Anti-Ban
+          </h2>
+        </div>
+        <div className="flex items-center justify-between pt-2 pb-4 border-b border-border gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">Enable Protection</p>
+            <p className="text-sm text-text-muted">
+              Simulates natural request patterns to prevent account bans.
+            </p>
+          </div>
+          <Toggle
+            checked={smartPacingEnabled}
+            onChange={() => handleSmartPacingEnabled(!smartPacingEnabled)}
+          />
+        </div>
+        {smartPacingEnabled && (
+          <div className="flex items-center justify-between pt-4 gap-4 flex-wrap">
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">Simulator Mode</p>
+              <p className="text-sm text-text-muted">
+                {smartPacingMode === "human-sim"
+                  ? "Human Simulator: Adds jitter and 2-8s gaps (maximum safety)"
+                  : "Auto: Adaptive delay based on account load (balanced)"}
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {[
+                { id: "auto", label: "Auto", desc: "Adaptive load-based delay" },
+                { id: "human-sim", label: "Human", desc: "Mimic human typing rhythm (2-8s delay)" },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => handleSmartPacingMode(m.id)}
+                  className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
+                    smartPacingMode === m.id
+                      ? "bg-primary text-white border-primary"
+                      : "bg-transparent border-border text-text-muted hover:bg-surface-2"
+                  }`}
+                  title={m.desc}
+                >
+                  {m.label}
+                </button>
+              ))}
             </div>
           </div>
         )}

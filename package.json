@@ -1,6 +1,6 @@
 {
   "name": "birouter-app",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Birouter web dashboard",
   "private": true,
   "scripts": {
