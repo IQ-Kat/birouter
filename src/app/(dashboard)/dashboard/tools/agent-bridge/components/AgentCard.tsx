@@ -21,13 +21,6 @@ function hasAcceptedRisk(agentId: string): boolean {
   }
 }
 
-function markRiskAccepted(agentId: string): void {
-  try {
-    localStorage.setItem(RISK_STORAGE_KEY_PREFIX + agentId, "true");
-  } catch {
-    // ignore storage errors
-  }
-}
 
 interface AgentCardProps {
   target: MitmTarget;
@@ -112,7 +105,6 @@ export function AgentCard({
   };
 
   const handleRiskAccept = async () => {
-    markRiskAccepted(target.id);
     setRiskModalOpen(false);
     await reallyToggleDns(true);
   };

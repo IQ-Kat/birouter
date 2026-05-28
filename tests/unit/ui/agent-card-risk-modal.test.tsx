@@ -204,6 +204,61 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
     expect(stored).toBe("true");
   }, 30000);
 
+  it("accepting risk writes localStorage exactly once (RiskNoticeModal is sole writer)", async () => {
+    const { AgentCard } = await import(
+      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
+    );
+
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+
+    const onDnsToggle = vi.fn().mockResolvedValue(undefined);
+    const container = makeContainer();
+
+    await act(async () => {
+      const root = createRoot(container);
+      root.render(
+        React.createElement(AgentCard, {
+          target: mockTarget,
+          agentState: baseAgentState,
+          serverRunning: true,
+          mappings: [],
+          onDnsToggle,
+          onMappingsSave: vi.fn(),
+        })
+      );
+    });
+
+    // Expand card
+    const header = container.querySelector("button[aria-expanded]");
+    await act(async () => {
+      header?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    // Click DNS toggle to open modal
+    const dnsBtn = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("startDns")
+    );
+    await act(async () => {
+      dnsBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    // Accept modal
+    const acceptBtn = Array.from(document.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("understand")
+    );
+    await act(async () => {
+      acceptBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const riskKey = "omniroute-agentbridge-risk-dismissed-copilot";
+    const riskWrites = setItemSpy.mock.calls.filter(([key]) => key === riskKey);
+    // Must be exactly ONE write — RiskNoticeModal is the sole persistence owner (D16)
+    expect(riskWrites).toHaveLength(1);
+    expect(riskWrites[0][1]).toBe("true");
+
+    setItemSpy.mockRestore();
+  }, 30000);
+
   it("second DNS activation does NOT open modal when localStorage flag is set", async () => {
     // Pre-set the localStorage flag (simulates accepted risk on previous session)
     try {
