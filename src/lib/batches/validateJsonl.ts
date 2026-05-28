@@ -67,7 +67,7 @@ function validateOneLine(
         field: "url",
       });
     }
-    if (typeof parsed.body !== "object" || parsed.body === null) {
+    if (typeof parsed.body !== "object" || parsed.body === null || Array.isArray(parsed.body)) {
       errors.push({ lineNumber: lineNo, reason: "body must be an object", field: "body" });
     }
   }
