@@ -155,10 +155,24 @@ export default function NewBatchWizard({
   const t = useTranslations("common");
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Escape key handler
+  // Escape closes wizard; Enter advances to next step when allowed (A-5).
+  // Skip Enter when focus is inside form controls so it doesn't interfere with typing.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && !state.creating) onClose();
+      if (state.creating) return;
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Enter") {
+        const tag = (e.target as HTMLElement | null)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        // canGoNext lives below; compute lazily via reading the disabled state of the Next button
+        const nextBtn = document.querySelector<HTMLButtonElement>(
+          'button[data-wizard-next="true"]'
+        );
+        if (nextBtn && !nextBtn.disabled) nextBtn.click();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -292,11 +306,16 @@ export default function NewBatchWizard({
       />
 
       {/* Panel */}
-      <div className="relative w-full sm:max-w-3xl max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden">
+      <div
+        className="relative w-full sm:max-w-3xl max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-batch-wizard-title"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[var(--color-border)] shrink-0">
           <div className="flex flex-col gap-2">
-            <h2 className="text-base font-semibold text-[var(--color-text)]">{t("wizardTitle")}</h2>
+            <h2 id="new-batch-wizard-title" className="text-base font-semibold text-[var(--color-text)]">{t("wizardTitle")}</h2>
             <StepIndicator current={state.step} t={t} />
           </div>
           <button
@@ -339,6 +358,7 @@ export default function NewBatchWizard({
             {state.step < 4 && (
               <button
                 type="button"
+                data-wizard-next="true"
                 onClick={handleNext}
                 disabled={!canGoNext}
                 className="rounded-lg px-4 py-2 text-sm font-medium bg-[var(--color-accent)] text-white disabled:opacity-40 hover:opacity-90 transition-opacity"

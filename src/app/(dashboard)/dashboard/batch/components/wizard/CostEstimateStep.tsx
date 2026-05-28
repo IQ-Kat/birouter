@@ -103,6 +103,15 @@ export default function CostEstimateStep({
               {estimate.estimatedOutputTokens.toLocaleString()} output tok
             </span>
           </div>
+
+          {/* Completion window — spec §5 "janela 24h" (A-3) */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <span className="text-xs text-[var(--color-text-muted)]">Window</span>
+            <span className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
+              <span className="material-symbols-outlined text-[12px]">schedule</span>
+              {t("wizardCostWindow24h")}
+            </span>
+          </div>
         </div>
       )}
 

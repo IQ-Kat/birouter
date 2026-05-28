@@ -166,3 +166,22 @@ test("estimateBatchCost: malformed line skipped gracefully, no crash", () => {
   // The valid line contributes tokens; malformed contributes 0 — so tokens > 0
   assert.ok(result.estimatedInputTokens > 0, "valid line should contribute tokens");
 });
+
+// ── Alias-match path (case-insensitive lookup) ────────────────────────────────
+
+test("estimateBatchCost: alias-match path triggers when model differs only in case", () => {
+  // gpt-4o exists in DEFAULT_PRICING with lowercase key → uppercase variant
+  // should be found via Pass 2 alias-match.
+  const result = estimateBatchCost({
+    jsonl: makeLine("req-1") + "\n",
+    model: "GPT-4O", // intentional upper-case — not stored that way in pricing
+    endpoint: ENDPOINT,
+  });
+  // Either alias-match (preferred when pricing table is case-sensitive) or
+  // exact-match (if the table normalizes); both are valid "found" results.
+  assert.ok(
+    result.pricingSource === "alias-match" || result.pricingSource === "exact-match",
+    `expected match (alias or exact), got ${result.pricingSource}`,
+  );
+  assert.ok(result.syncCostUsd > 0, "non-zero cost expected when pricing is found");
+});

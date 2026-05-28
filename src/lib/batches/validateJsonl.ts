@@ -100,7 +100,9 @@ export function validateJsonl(
   const maxHead = opts.maxLinesToInspect ?? 1000;
   const maxTail = opts.tailLinesToInspect ?? 100;
 
-  const lines = content.split(/\r?\n/);
+  // Strip UTF-8 BOM if present (Windows-saved files) so first line parses cleanly
+  const normalized = content.replace(/^﻿/, "");
+  const lines = normalized.split(/\r?\n/);
   // Drop trailing empty lines
   while (lines.length > 0 && lines.at(-1)!.trim() === "") lines.pop();
 

@@ -47,6 +47,8 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
   }
 
   async function processFile(file: File) {
+    // B-2 race guard — ignore concurrent drops while a read is in flight
+    if (isReading) return;
     const expectedExt = isJsonl ? ".jsonl" : ".csv";
     if (!file.name.toLowerCase().endsWith(expectedExt)) {
       // Soft warning — don't block, let validation catch it
@@ -130,30 +132,33 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
         </button>
       </div>
 
-      {/* Drop zone */}
+      {/* Drop zone — disabled while reading to prevent race (B-2) */}
       <div
         role="button"
-        tabIndex={0}
+        tabIndex={isReading ? -1 : 0}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => !isReading && fileInputRef.current?.click()}
         onKeyDown={(e) => {
+          if (isReading) return;
           if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
         }}
-        className={`rounded-xl border-2 border-dashed p-8 flex flex-col items-center gap-3 cursor-pointer transition-colors
+        aria-disabled={isReading}
+        className={`rounded-xl border-2 border-dashed p-8 flex flex-col items-center gap-3 transition-colors
+          ${isReading ? "cursor-wait opacity-60 pointer-events-none" : "cursor-pointer"}
           ${isDragging ? "border-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)] hover:border-[var(--color-accent)]/50"}`}
       >
         <span className="material-symbols-outlined text-3xl text-[var(--color-text-muted)]">
           upload_file
         </span>
         {isReading ? (
-          <span className="text-sm text-[var(--color-text-muted)]">Reading file…</span>
+          <span className="text-sm text-[var(--color-text-muted)]">{t("wizardInputReading")}</span>
         ) : hasFile ? (
           <div className="flex flex-col items-center gap-1">
             <span className="text-sm text-[var(--color-text)] font-medium">{input.fileName}</span>
             <span className="text-xs text-[var(--color-text-muted)]">
-              {isLargeFile ? "Large file — validation by sampling" : "Ready"}
+              {isLargeFile ? t("wizardInputLargeFileLabel") : t("wizardInputReady")}
             </span>
           </div>
         ) : (
@@ -171,8 +176,7 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
       {/* Large file warning */}
       {isLargeFile && (
         <div className="rounded-lg border border-yellow-500/25 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-400">
-          Large file detected — validation will run by sampling (first 5 MB + last 100 KB). Full
-          validation happens server-side.
+          {t("wizardInputLargeFileWarning")}
         </div>
       )}
 
@@ -187,7 +191,7 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
             onJsonlReady={handleJsonlReady}
           />
           {csvMappingReady && (
-            <p className="mt-3 text-xs text-emerald-400">JSONL generated — ready to validate.</p>
+            <p className="mt-3 text-xs text-emerald-400">{t("wizardInputCsvJsonlReady")}</p>
           )}
         </div>
       )}

@@ -187,3 +187,30 @@ test("validateJsonl: errors capped at 50 even with many invalid lines", () => {
   const result = validateJsonl(makeJsonl(lines), { endpoint: ENDPOINT });
   assert.ok(result.errors.length <= 50, `errors should be capped at 50, got ${result.errors.length}`);
 });
+
+// ── body must be object (not array) — Array.isArray guard ─────────────────────
+
+test("validateJsonl: rejects body that is an array (typeof []==='object' guard)", () => {
+  const line = JSON.stringify({ custom_id: "req-1", method: "POST", url: ENDPOINT, body: [] });
+  const result = validateJsonl(line, { endpoint: ENDPOINT });
+  assert.ok(!result.ok, "should be invalid");
+  assert.ok(
+    result.errors.some((e) => e.field === "body"),
+    `should flag body field; errors=${JSON.stringify(result.errors)}`,
+  );
+});
+
+// ── BOM stripping (Windows-saved files) ───────────────────────────────────────
+
+test("validateJsonl: strips UTF-8 BOM before parsing first line", () => {
+  const line = JSON.stringify({
+    custom_id: "req-1",
+    method: "POST",
+    url: ENDPOINT,
+    body: { model: "gpt-4o", messages: [{ role: "user", content: "hi" }] },
+  });
+  const result = validateJsonl("﻿" + line, { endpoint: ENDPOINT });
+  assert.ok(result.ok, `BOM should be stripped; got errors=${JSON.stringify(result.errors)}`);
+  assert.equal(result.totalLines, 1);
+  assert.equal(result.uniqueCustomIds, 1);
+});

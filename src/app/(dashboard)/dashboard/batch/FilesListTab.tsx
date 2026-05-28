@@ -176,7 +176,7 @@ export default function FilesListTab({
                 Purpose
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Size
+                {t("filesListSizeColumn")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 {t("filesListUsedByColumn")}

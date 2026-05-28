@@ -94,6 +94,17 @@ const STATUS_STYLES: Record<string, string> = {
   expired_with_failures: "bg-orange-500/15 text-orange-400 border-orange-500/25",
 };
 
+// A-1 — Derive Provider label from model id (no provider field on BatchRecord).
+// Heuristic-only display; no filter side-effect. Returns "—" for unknown shapes.
+function deriveProvider(model: string | null | undefined): string {
+  if (!model) return "—";
+  const lower = model.toLowerCase();
+  if (lower.startsWith("gpt-") || lower.startsWith("o1") || lower.startsWith("o3") || lower.startsWith("text-embedding-") || lower.startsWith("dall-e")) return "OpenAI";
+  if (lower.startsWith("claude-")) return "Anthropic";
+  if (lower.startsWith("gemini")) return "Gemini";
+  return "Other";
+}
+
 const STATUS_LABELS: Record<string, string> = {
   completed_with_failures: "completed with failures",
   in_progress_with_failures: "in progress (with failures)",
@@ -372,6 +383,9 @@ export default function BatchListTab({
                 ID
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
+                {t("batchListProviderColumn")}
+              </th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 Endpoint
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
@@ -395,7 +409,7 @@ export default function BatchListTab({
           <tbody>
             {loading && filtered.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={10} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
                     Loading…
@@ -404,7 +418,7 @@ export default function BatchListTab({
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={10} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   No batches found
                 </td>
               </tr>
@@ -446,6 +460,9 @@ export default function BatchListTab({
                       <span className="truncate block" title={batch.id}>
                         {batch.id}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-[var(--color-text-main)] text-xs whitespace-nowrap">
+                      {deriveProvider(batch.model)}
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-main)] text-xs">
                       {batch.endpoint}

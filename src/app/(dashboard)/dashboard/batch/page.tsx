@@ -33,9 +33,17 @@ export default function BatchPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+  const [createdBanner, setCreatedBanner] = useState<string | null>(null);
   const [providers, setProviders] = useState<Array<{ id: string; name: string; models: string[] }>>(
     [],
   );
+
+  // Auto-dismiss "batch created" banner after 5s (A-6)
+  useEffect(() => {
+    if (!createdBanner) return;
+    const id = setTimeout(() => setCreatedBanner(null), 5000);
+    return () => clearTimeout(id);
+  }, [createdBanner]);
 
   const [batchesHasMore, setBatchesHasMore] = useState(false);
   const [batchesLastId, setBatchesLastId] = useState<string | null>(null);
@@ -241,6 +249,26 @@ export default function BatchPage() {
       {/* Concept card (F3) */}
       <BatchConceptCard />
 
+      {/* "Batch created" success banner (A-6) — auto-dismiss 5s */}
+      {createdBanner && (
+        <div
+          role="status"
+          className="flex items-center justify-between gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2"
+        >
+          <div className="flex items-center gap-2 text-sm text-emerald-400">
+            <span className="material-symbols-outlined text-[16px]">check_circle</span>
+            {t("batchListBatchCreated", { id: createdBanner })}
+          </div>
+          <button
+            type="button"
+            onClick={() => setCreatedBanner(null)}
+            className="text-xs text-emerald-400/80 hover:text-emerald-300 transition-colors px-2 py-0.5 rounded"
+          >
+            {t("batchListBatchCreatedDismiss")}
+          </button>
+        </div>
+      )}
+
       {/* Toolbar: auto-refresh indicator + Refresh + New batch */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
@@ -258,7 +286,7 @@ export default function BatchPage() {
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            {loading ? "Refreshing…" : "Refresh"}
+            {loading ? t("batchListRefreshing") : t("batchListRefresh")}
           </button>
           <button
             onClick={() => setShowWizard(true)}
@@ -287,12 +315,13 @@ export default function BatchPage() {
         <div ref={bottomRefBatches} className="h-10" />
       </div>
 
-      {/* New batch wizard (F4 stub — replaced by F4 full implementation on merge) */}
+      {/* New batch wizard */}
       {showWizard && (
         <NewBatchWizard
           onClose={() => setShowWizard(false)}
-          onCreated={(_id) => {
+          onCreated={(id) => {
             setShowWizard(false);
+            setCreatedBanner(id);
             void fetchData(false);
           }}
           availableProviders={providers}

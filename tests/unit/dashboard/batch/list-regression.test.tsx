@@ -272,6 +272,54 @@ describe("BatchListTab — rendering", () => {
     expect(text).not.toMatch(/route\.ts/);
     expect(text).not.toMatch(/\.ts:\d/);
   });
+
+  it("16. expired batch with failures renders (partial) suffix on progress cell (G-AUD3)", () => {
+    const batches = [
+      makeBatch({
+        id: "batch-expired-partial",
+        status: "expired",
+        requestCountsTotal: 100,
+        requestCountsCompleted: 30,
+        requestCountsFailed: 10,
+      }),
+    ];
+    const el = render(
+      <BatchListTab batches={batches} files={[]} loading={false} />
+    );
+    // The i18n key is rendered literally in tests (mock useTranslations returns key)
+    expect(el.textContent).toContain("batchListProgressPartial");
+  });
+
+  it("17. cost cell renders -50% inline badge for batches with cost (G-AUD2)", () => {
+    const batches = [
+      makeBatch({
+        id: "batch-with-cost",
+        status: "in_progress",
+        requestCountsTotal: 100,
+        requestCountsCompleted: 10,
+        requestCountsFailed: 0,
+      }),
+    ];
+    const el = render(
+      <BatchListTab batches={batches} files={[]} loading={false} />
+    );
+    expect(el.textContent).toContain("-50%");
+  });
+
+  it("18. Provider column derives provider from model id (A-1)", () => {
+    const batches = [
+      makeBatch({ id: "batch-openai", model: "gpt-4o", status: "completed" }),
+      makeBatch({ id: "batch-anthropic", model: "claude-3-5-sonnet-20241022", status: "completed" }),
+      makeBatch({ id: "batch-gemini", model: "gemini-1.5-flash", status: "completed" }),
+    ];
+    const el = render(
+      <BatchListTab batches={batches} files={[]} loading={false} />
+    );
+    const text = el.textContent ?? "";
+    expect(text).toContain("OpenAI");
+    expect(text).toContain("Anthropic");
+    expect(text).toContain("Gemini");
+  });
 });
 
 // ── FilesListTab ──────────────────────────────────────────────────────────────

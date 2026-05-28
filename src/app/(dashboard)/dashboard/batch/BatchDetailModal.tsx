@@ -182,7 +182,12 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
       />
 
       {/* Panel */}
-      <div className="relative w-full sm:max-w-2xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-t-2xl sm:rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 max-h-[90vh] flex flex-col">
+      <div
+        className="relative w-full sm:max-w-2xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-t-2xl sm:rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 max-h-[90vh] flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="batch-detail-modal-title"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -190,7 +195,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
               pending_actions
             </span>
             <div>
-              <h2 className="text-base font-semibold text-[var(--color-text-main)]">
+              <h2 id="batch-detail-modal-title" className="text-base font-semibold text-[var(--color-text-main)]">
                 Batch Details
               </h2>
               <div className="flex items-center gap-2 mt-0.5">

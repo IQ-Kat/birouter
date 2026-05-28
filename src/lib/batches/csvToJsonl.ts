@@ -132,8 +132,9 @@ function setByPath(target: Record<string, unknown>, path: string, value: unknown
       const child: unknown = typeof next === "number" ? [] : Object.create(null);
       safePropSet(cur, k, child);
     }
-    cur = Object.prototype.hasOwnProperty.call(cur, k) ? cur[k] : undefined;
-    if (cur == null) return; // bail if tree navigation failed
+    const nextCur = Object.prototype.hasOwnProperty.call(cur, k) ? cur[k] : undefined;
+    if (nextCur == null || typeof nextCur !== "object") return; // bail if tree navigation failed
+    cur = nextCur as Record<string, unknown>;
   }
 
   const lastKey = tokens.at(-1)!;
@@ -159,7 +160,9 @@ export function csvToJsonl(rawInput: CsvToJsonlInput): {
   errors: Array<{ row: number; reason: string }>;
 } {
   const input = csvToJsonlInputSchema.parse(rawInput);
-  const lines = splitLines(input.csv);
+  // Strip UTF-8 BOM if present so the first header cell parses cleanly
+  const normalizedCsv = input.csv.replace(/^﻿/, "");
+  const lines = splitLines(normalizedCsv);
 
   if (lines.length < 2) {
     return {

@@ -3,8 +3,6 @@ import { SUPPORTED_BATCH_ENDPOINTS, type SupportedBatchEndpoint }
 
 // ── Wizard state ─────────────────────────────────────────────────────────────
 
-export type WizardStep = "destination" | "input" | "validate" | "cost";
-
 export interface WizardDestination {
   provider: "openai" | "anthropic" | "gemini";
   endpoint: SupportedBatchEndpoint;
@@ -74,12 +72,6 @@ export interface RetryPlan {
 
 export const BATCH_SUPPORTED_PROVIDERS = ["openai", "anthropic", "gemini"] as const;
 export type BatchProvider = (typeof BATCH_SUPPORTED_PROVIDERS)[number];
-
-export interface BatchProviderConfig {
-  provider: BatchProvider;
-  defaultEndpoint: SupportedBatchEndpoint;
-  defaultModels: string[];             // canonical model ids
-}
 
 // ── Re-exports ───────────────────────────────────────────────────────────────
 

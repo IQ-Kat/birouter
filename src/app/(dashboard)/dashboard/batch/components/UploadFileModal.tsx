@@ -207,7 +207,7 @@ export default function UploadFileModal({ onClose, onUploaded }: Props) {
                 }}
                 className="shrink-0 text-xs text-[var(--color-text-muted)] hover:text-red-400 transition-colors px-2 py-1 rounded border border-[var(--color-border)] hover:border-red-400/40"
               >
-                Remove
+                {t("uploadFileModalRemove")}
               </button>
             </div>
           )}
@@ -229,7 +229,7 @@ export default function UploadFileModal({ onClose, onUploaded }: Props) {
             {uploading ? (
               <>
                 <span className="animate-spin inline-block rounded-full h-4 w-4 border-b-2 border-white" />
-                Uploading…
+                {t("uploadFileModalUploading")}
               </>
             ) : (
               <>

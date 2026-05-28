@@ -64,14 +64,15 @@ export default function JsonlValidationStep({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* OK / Error banner */}
+      {/* OK / Error banner — spec §5 "campos OK" appended on success (A-7) */}
       {result.ok ? (
         <div className="flex items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
           <span className="material-symbols-outlined text-emerald-400">check_circle</span>
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium text-emerald-400">{t("wizardValidationOk")}</span>
             <span className="text-xs text-[var(--color-text-muted)]">
-              {result.totalLines} lines · {result.uniqueCustomIds} unique custom_ids
+              {result.totalLines} lines · {result.uniqueCustomIds} unique custom_ids ·{" "}
+              {t("wizardValidationFieldsOk")}
             </span>
           </div>
         </div>
