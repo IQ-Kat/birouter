@@ -7380,7 +7380,12 @@
     "done": "Concluído",
     "loading": "Carregando…",
     "riskNoticeTitle": "Reconhecimento de risco",
-    "riskNoticeBody": "O AgentBridge irá interceptar o tráfego HTTPS deste agente redirecionando seus hosts de API via DNS. Ative somente se você aceita a responsabilidade pelo cumprimento dos termos de serviço do agente e das políticas de rede aplicáveis."
+    "riskNoticeBody": "O AgentBridge irá interceptar o tráfego HTTPS deste agente redirecionando seus hosts de API via DNS. Ative somente se você aceita a responsabilidade pelo cumprimento dos termos de serviço do agente e das políticas de rede aplicáveis.",
+    "pageMoved": {
+      "goNow": "Ir agora",
+      "message": "O MITM Proxy agora vive no AgentBridge.",
+      "title": "Esta página foi movida"
+    }
   },
   "trafficInspector": {
     "title": "Inspector de Tráfego",
@@ -7454,6 +7459,17 @@
     "backToLive": "Voltar ao live",
     "untitledSession": "Sessão sem nome",
     "contextHistory": "Histórico do Contexto",
-    "modelResponse": "Resposta do Modelo"
+    "modelResponse": "Resposta do Modelo",
+    "conversationNoMessages": "Nenhuma mensagem encontrada nesta requisição.",
+    "conversationNotAvailable": "Dados de conversa indisponíveis. Pode não ser uma requisição LLM ou o body não pôde ser interpretado.",
+    "loadingCharts": "Carregando gráficos…",
+    "statsErrors": "Erros",
+    "statsLatency": "Latência (últimas 50 requisições)",
+    "statsNoData": "Sem requisições ainda. Inicie uma gravação de sessão para capturar dados para estatísticas.",
+    "statsStatusDistribution": "Distribuição de status",
+    "statsSuccessful": "Bem-sucedidas",
+    "statsTotalRequests": "Total de requisições",
+    "timingProxyOverhead": "Overhead do proxy",
+    "timingUpstreamResponse": "Resposta upstream"
   }
 }

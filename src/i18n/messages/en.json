@@ -7390,7 +7390,12 @@
     "done": "Done",
     "loading": "Loading…",
     "riskNoticeTitle": "Risk acknowledgment",
-    "riskNoticeBody": "AgentBridge will intercept HTTPS traffic from this agent by redirecting its API hosts via DNS. Only enable if you accept responsibility for compliance with the agent's terms of service and any applicable network policies."
+    "riskNoticeBody": "AgentBridge will intercept HTTPS traffic from this agent by redirecting its API hosts via DNS. Only enable if you accept responsibility for compliance with the agent's terms of service and any applicable network policies.",
+    "pageMoved": {
+      "goNow": "Go now",
+      "message": "The MITM Proxy now lives under AgentBridge.",
+      "title": "This page has moved"
+    }
   },
   "trafficInspector": {
     "title": "Traffic Inspector",
@@ -7464,6 +7469,17 @@
     "backToLive": "Back to live",
     "untitledSession": "Untitled session",
     "contextHistory": "Context History",
-    "modelResponse": "Model Response"
+    "modelResponse": "Model Response",
+    "conversationNoMessages": "No messages found in this request.",
+    "conversationNotAvailable": "Conversation data not available. This may not be an LLM request or the body could not be parsed.",
+    "loadingCharts": "Loading charts…",
+    "statsErrors": "Errors",
+    "statsLatency": "Latency (last 50 requests)",
+    "statsNoData": "No requests yet. Start a session recording to capture data for stats.",
+    "statsStatusDistribution": "Status distribution",
+    "statsSuccessful": "Successful",
+    "statsTotalRequests": "Total requests",
+    "timingProxyOverhead": "Proxy overhead",
+    "timingUpstreamResponse": "Upstream response"
   }
 }
