@@ -238,6 +238,19 @@ test("DELETE /api/quota/plans/[connectionId] clears override → 204; GET revert
   // After delete, should fall back to catalog or empty (source=auto or manual-empty)
   // For a connectionId with no catalog match, source=manual + dimensions=[]
   assert.ok(["auto", "manual"].includes(body.plan.source));
+
+  // B26: DELETE must emit logAuditEvent with quota.plan.updated + metadata.reverted=true
+  const logs = compliance.getAuditLog({ action: "quota.plan.updated", limit: 20 });
+  const events = Array.isArray(logs) ? logs : [];
+  const deleteEvt = events.find(
+    (e) =>
+      typeof e === "object" &&
+      e !== null &&
+      (e as Record<string, unknown>).action === "quota.plan.updated" &&
+      (e as Record<string, unknown>).target === connectionId &&
+      (e as { metadata?: { reverted?: boolean } }).metadata?.reverted === true
+  );
+  assert.ok(deleteEvt, "quota.plan.updated audit event (reverted=true) must be present after DELETE");
 });
 
 test("DELETE /api/quota/plans/[connectionId] is idempotent → 204 even when not found", async () => {

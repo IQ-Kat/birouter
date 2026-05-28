@@ -5,7 +5,7 @@
  *
  * Auth: requireManagementAuth
  * Zod:  PlanUpsertSchema from @/shared/schemas/quota (PUT only)
- * Audit: quota.plan.updated on PUT (B26)
+ * Audit: quota.plan.updated on PUT and DELETE (B26 — DELETE reverts override to auto/catalog)
  * Sanitization: all error responses via buildErrorBody (Hard Rule #12, B25)
  *
  * For PUT: provider is derived from the connectionId via getProviderConnectionById.
@@ -115,9 +115,21 @@ export async function DELETE(request: Request, { params }: RouteParams): Promise
 
   try {
     const { connectionId } = await params;
-    // deleteProviderPlan returns true if a row was deleted, false if not found
-    // We return 204 either way (idempotent delete)
+
+    const existing = getProviderPlan(connectionId);
+    const provider = existing?.provider ?? (await resolveProvider(connectionId));
+
     deleteProviderPlan(connectionId);
+
+    const ctx = getAuditRequestContext(request);
+    logAuditEvent({
+      action: "quota.plan.updated",
+      target: connectionId,
+      metadata: { provider, source: "auto", reverted: true },
+      ipAddress: ctx.ipAddress ?? undefined,
+      requestId: ctx.requestId,
+    });
+
     return new Response(null, { status: 204 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to delete plan";
