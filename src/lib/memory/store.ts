@@ -101,6 +101,19 @@ function findExistingMemory(
  * Fire-and-forget: generate embedding for a memory and upsert into sqlite-vec.
  * Errors are logged but never thrown — this must never block the SQLite write.
  */
+/**
+ * Best-effort: try to mark a memory needs_reindex. Swallows errors so that DB-closed
+ * states (e.g. test teardown after the parent promise resolved) never escape as
+ * unhandledRejection. Producing this side-effect is opportunistic by design.
+ */
+function safeMarkNeedsReindex(id: string, needs: boolean): void {
+  try {
+    markMemoryNeedsReindex(id, needs);
+  } catch {
+    // intentional swallow — DB may be closed (test teardown) or schema not yet ready
+  }
+}
+
 function scheduleVectorUpsert(id: string, content: string): void {
   setImmediate(async () => {
     try {
@@ -115,25 +128,25 @@ function scheduleVectorUpsert(id: string, content: string): void {
           reason: embeddingResult.reason,
           message: sanitizeErrorMessage(embeddingResult.message),
         });
-        markMemoryNeedsReindex(id, true);
+        safeMarkNeedsReindex(id, true);
         return;
       }
 
       const vec = getVectorStore();
       if (!vec) {
-        markMemoryNeedsReindex(id, true);
+        safeMarkNeedsReindex(id, true);
         return;
       }
 
       await vec.ensureReady(resolution);
       await vec.upsertVector(id, embeddingResult.vector);
-      markMemoryNeedsReindex(id, false);
+      safeMarkNeedsReindex(id, false);
     } catch (err: unknown) {
       log.warn("memory.vec.upsert.fail", {
         id,
         error: sanitizeErrorMessage(err instanceof Error ? err.message : String(err)),
       });
-      markMemoryNeedsReindex(id, true);
+      safeMarkNeedsReindex(id, true);
     }
   });
 }
