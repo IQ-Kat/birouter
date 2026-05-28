@@ -1137,7 +1137,9 @@
     "a2aEvents": "Eventos",
     "a2aArtifacts": "Artefatos",
     "a2aNoTasks": "Nenhuma tarefa A2A registrada.",
-    "a2aLoadingTasks": "Carregando tarefas A2A..."
+    "a2aLoadingTasks": "Carregando tarefas A2A...",
+    "actor": "Autor",
+    "actorPlaceholder": "Filtrar por autor"
   },
   "themesPage": {
     "title": "Themes",
@@ -3354,7 +3356,10 @@
       "fetchFailed": "Failed to fetch logs",
       "copyFailed": "Failed to copy log entry",
       "copyLogEntry": "Copy log entry"
-    }
+    },
+    "compressionLogTitle": "Compression Log",
+    "compressionLogEmpty": "No compressed requests yet. Compression stats will appear here when requests are processed with compression enabled.",
+    "tokens": "tokens"
   },
   "onboarding": {
     "welcome": "Bem-vindo",
