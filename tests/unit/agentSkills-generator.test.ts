@@ -174,9 +174,9 @@ test("apply mode writes SKILL.md for a CLI skill with correct structure", async 
 
     const content = fs.readFileSync(path.join(tmpDir, "cli-serve", "SKILL.md"), "utf-8");
     assert.ok(content.includes("name: cli-serve"), "Missing name in frontmatter");
-    assert.ok(content.includes("## Visão geral"), "Missing overview section");
-    assert.ok(content.includes("## Instalação rápida"), "Missing install section");
-    assert.ok(content.includes("## Subcomandos"), "Missing subcommands section");
+    assert.ok(content.includes("## Overview"), "Missing Overview section");
+    assert.ok(content.includes("## Quick install"), "Missing Quick install section");
+    assert.ok(content.includes("## Subcommands"), "Missing Subcommands section");
   } finally {
     rmTmpDir(tmpDir);
   }
@@ -195,8 +195,8 @@ test("apply mode writes SKILL.md for an API skill with correct sections", async 
 
     assert.equal(report.errors.length, 0);
     const content = fs.readFileSync(path.join(tmpDir, "omni-auth", "SKILL.md"), "utf-8");
-    assert.ok(content.includes("## Visão geral"), "Missing overview");
-    assert.ok(content.includes("## Autenticação"), "Missing auth section");
+    assert.ok(content.includes("## Overview"), "Missing Overview section");
+    assert.ok(content.includes("## Authentication"), "Missing Authentication section");
     assert.ok(content.includes("## Endpoints"), "Missing endpoints section");
     assert.ok(content.includes("## Payloads"), "Missing payloads section");
   } finally {
@@ -438,8 +438,8 @@ test("buildSkillMarkdown API skill body contains expected sections", () => {
   const sources = emptySources();
   const result = buildSkillMarkdown("omni-cache", sources);
 
-  assert.ok(result.body.includes("## Visão geral"), "Missing Visão geral section");
-  assert.ok(result.body.includes("## Autenticação"), "Missing Autenticação section");
+  assert.ok(result.body.includes("## Overview"), "Missing Overview section");
+  assert.ok(result.body.includes("## Authentication"), "Missing Authentication section");
   assert.ok(result.body.includes("## Endpoints"), "Missing Endpoints section");
   assert.ok(result.body.includes("## Payloads"), "Missing Payloads section");
 });
@@ -449,9 +449,9 @@ test("buildSkillMarkdown CLI skill body contains expected sections", () => {
   const sources = emptySources();
   const result = buildSkillMarkdown("cli-health", sources);
 
-  assert.ok(result.body.includes("## Visão geral"), "Missing Visão geral section");
-  assert.ok(result.body.includes("## Instalação rápida"), "Missing Instalação rápida section");
-  assert.ok(result.body.includes("## Subcomandos"), "Missing Subcomandos section");
+  assert.ok(result.body.includes("## Overview"), "Missing Overview section");
+  assert.ok(result.body.includes("## Quick install"), "Missing Quick install section");
+  assert.ok(result.body.includes("## Subcommands"), "Missing Subcommands section");
 });
 
 test("buildSkillMarkdown description is at most 2000 chars", () => {

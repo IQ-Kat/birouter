@@ -240,7 +240,8 @@ describe("AgentSkillsPageClient", () => {
     expect(cards.length).toBe(20);
   });
 
-  it("clicking a card triggers preview fetch", async () => {
+  it("clicking a card triggers preview fetch after 200ms debounce", async () => {
+    vi.useFakeTimers();
     const skills = make42Skills();
     const fetchMock = mockFetch(skills, FULL_COVERAGE, "# omni-skill-0 doc");
     vi.stubGlobal("fetch", fetchMock);
@@ -261,11 +262,24 @@ describe("AgentSkillsPageClient", () => {
       firstCard?.click();
     });
 
-    // A raw fetch should have been made
-    const rawFetchCalls = (fetchMock as ReturnType<typeof vi.fn>).mock.calls.filter(
+    // Before debounce fires — raw fetch should NOT have been made yet
+    const rawFetchCallsBefore = (fetchMock as ReturnType<typeof vi.fn>).mock.calls.filter(
       ([url]: [string]) => typeof url === "string" && url.includes("/raw"),
     );
-    expect(rawFetchCalls.length).toBeGreaterThan(0);
+    expect(rawFetchCallsBefore.length).toBe(0);
+
+    // Advance timers past the 200ms debounce
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
+
+    // Now the raw fetch should have been triggered
+    const rawFetchCallsAfter = (fetchMock as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([url]: [string]) => typeof url === "string" && url.includes("/raw"),
+    );
+    expect(rawFetchCallsAfter.length).toBeGreaterThan(0);
+
+    vi.useRealTimers();
   });
 
   it("preview pane shows empty state when no card is selected", async () => {

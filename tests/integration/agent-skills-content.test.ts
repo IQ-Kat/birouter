@@ -32,6 +32,7 @@ const CUSTOM_BLOCK_IDS = [
   "omni-resilience",
   "omni-inference",
   "cli-serve",
+  "omni-providers",
 ] as const;
 
 // ── §1: All 42 catalog IDs have skills/{id}/SKILL.md ─────────────────────────
@@ -112,7 +113,7 @@ for (const id of CUSTOM_BLOCK_IDS) {
 
 // ── Additional integrity checks ───────────────────────────────────────────────
 
-test("exactly 10 skills have custom blocks", () => {
+test("exactly 11 skills have custom blocks", () => {
   const withCustomBlocks: string[] = [];
   for (const id of ALL_IDS) {
     const skillPath = path.join(SKILLS_DIR, id, "SKILL.md");
@@ -127,7 +128,7 @@ test("exactly 10 skills have custom blocks", () => {
   assert.deepEqual(
     withCustomBlocks.sort(),
     expectedIds,
-    `Expected exactly these 10 custom-block IDs: ${expectedIds.join(", ")}\nActual: ${withCustomBlocks.join(", ")}`,
+    `Expected exactly these 11 custom-block IDs: ${expectedIds.join(", ")}\nActual: ${withCustomBlocks.join(", ")}`,
   );
 });
 

@@ -111,12 +111,20 @@ export function AgentSkillsPageClient(): JSX.Element {
     [markdownCache],
   );
 
+  // ── Debounced preview load (200ms) ───────────────────────────────────────
+  useEffect(() => {
+    if (!selectedId) return;
+    const timer = setTimeout(() => {
+      void loadPreview(selectedId);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [selectedId, loadPreview]);
+
   const handleSelectCard = useCallback(
     (id: string) => {
       setSelectedId(id);
-      void loadPreview(id);
     },
-    [loadPreview],
+    [],
   );
 
   const handleRefreshPreview = useCallback(() => {
@@ -242,7 +250,7 @@ export function AgentSkillsPageClient(): JSX.Element {
               }`}
             >
               {cat === "all"
-                ? "Todas"
+                ? t("filterAll")
                 : cat === "api"
                   ? t("categoryApi")
                   : t("categoryCli")}

@@ -75,11 +75,11 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
 
   const lines: string[] = [];
 
-  lines.push("## Visão geral\n");
+  lines.push("## Overview\n");
   lines.push(skill.description);
   lines.push("");
 
-  lines.push("## Autenticação\n");
+  lines.push("## Authentication\n");
   lines.push(
     "All requests require a valid Bearer token or session cookie. " +
       "Obtain a token via `POST /api/auth/login` or configure `REQUIRE_API_KEY=false` for local development.",
@@ -134,18 +134,18 @@ function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
 
   const lines: string[] = [];
 
-  lines.push("## Visão geral\n");
+  lines.push("## Overview\n");
   lines.push(skill.description);
   lines.push("");
 
-  lines.push("## Instalação rápida\n");
+  lines.push("## Quick install\n");
   lines.push("```bash");
   lines.push("npm install -g omniroute   # or: npx omniroute");
   lines.push("omniroute --version");
   lines.push("```");
   lines.push("");
 
-  lines.push("## Subcomandos\n");
+  lines.push("## Subcommands\n");
 
   if (cmds.length === 0) {
     lines.push("_No CLI subcommands mapped for this family yet._");
@@ -166,7 +166,7 @@ function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
         lines.push("");
       }
 
-      lines.push("**Exemplo:**\n");
+      lines.push("**Example:**\n");
       lines.push("```bash");
       lines.push(`omniroute ${cmd.name}`);
       lines.push("```");
