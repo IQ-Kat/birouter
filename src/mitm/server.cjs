@@ -367,11 +367,21 @@ async function intercept(req, res, bodyBuffer, mappedModel) {
     const body = JSON.parse(bodyBuffer.toString());
     body.model = mappedModel;
 
+    // C2 — Inject AgentBridge correlation headers per master plan §3.5.
+    // The OmniRoute router uses these to distinguish AgentBridge traffic from
+    // other inbound clients and to record the originating IDE agent id.
+    // Resolve agent id from the Host header against the target map; defensive
+    // fallback to "unknown" when the host is somehow not in the map.
+    const reqHost = String(req.headers.host || "").split(":")[0].toLowerCase();
+    const agentId = TARGET_HOST_AGENT.get(reqHost) || "unknown";
+
     const response = await fetch(ROUTER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${API_KEY}`,
+        "x-omniroute-source": "agent-bridge",
+        "x-omniroute-agent": agentId,
       },
       body: JSON.stringify(body),
     });
