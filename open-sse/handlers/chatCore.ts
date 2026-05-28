@@ -3418,9 +3418,18 @@ export async function handleChatCore({
       );
     }
   }
-  // Suppress unused variable lint warning — quotaSoftDeprioritize is available for
-  // combo.ts to read when candidateBuilder populates quotaSoftPenalty in the future.
-  void quotaSoftDeprioritize;
+  // G2: Propagate soft penalty to the current candidate so combo scoring can deprioritize.
+  if (quotaSoftDeprioritize && isCombo && comboStepId) {
+    try {
+      const { setCandidateQuotaSoftPenalty } = await import("../services/combo");
+      setCandidateQuotaSoftPenalty(comboExecutionKey, comboStepId, true);
+    } catch (err) {
+      log?.warn?.(
+        "QUOTA_SHARE",
+        `[quotaShare] could not set soft penalty on candidate: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
   // === /Quota Share enforcement PRE-hook ===
 
   // Get executor for this provider (with optional upstream proxy routing)
