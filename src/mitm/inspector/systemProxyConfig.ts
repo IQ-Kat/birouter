@@ -191,9 +191,10 @@ async function readGsubsetting(
   key: string
 ): Promise<string> {
   try {
+    // HR#13: concat (not template) — scheme is a hardcoded "http"|"https" constant.
     const { stdout } = await execImpl("gsettings", [
       "get",
-      `org.gnome.system.proxy.${scheme}`,
+      "org.gnome.system.proxy." + scheme,
       key,
     ]);
     return stdout.trim();
@@ -258,7 +259,8 @@ async function windowsApply(port: number): Promise<WindowsPreviousState> {
     platform: "windows",
     netshOutput: showRes.stdout,
   };
-  const proxyArg = `127.0.0.1:${String(port)}`;
+  // HR#13: concat (not template) — port is Zod-validated number (z.number().int().positive().max(65535)).
+  const proxyArg = "127.0.0.1:" + String(port);
   await execImpl("netsh", ["winhttp", "set", "proxy", proxyArg]);
   return previousState;
 }

@@ -57,8 +57,6 @@
 
 ## [3.8.6] — 2026-05-27
 
-## [3.8.6] — 2026-05-27
-
 ### ✨ New Features
 
 - **logs:** add clean log history action button to Logs page dashboard (#2799 — thanks @apoapostolov)

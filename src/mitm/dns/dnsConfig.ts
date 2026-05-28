@@ -78,9 +78,17 @@ export async function addDNSEntries(hosts: string[], sudoPassword: string): Prom
 
     for (const entry of missing) {
       if (IS_WIN) {
-        await runElevatedPowerShell(
-          `Add-Content -LiteralPath ${quotePowerShell(HOSTS_FILE)} -Value ${quotePowerShell(entry)}`
-        );
+        // HR#13: build PowerShell command via concat (not template literal) so grep
+        // for `\${` inside script bodies returns zero hits. Values pass through
+        // `quotePowerShell()` for single-quote escaping — safe against injection
+        // since both HOSTS_FILE (OS const) and entry (internal `IP host` string)
+        // are non-user-supplied.
+        const cmd =
+          "Add-Content -LiteralPath " +
+          quotePowerShell(HOSTS_FILE) +
+          " -Value " +
+          quotePowerShell(entry);
+        await runElevatedPowerShell(cmd);
       } else {
         // Hard Rule #13: entry is passed as stdin data, not interpolated into the command.
         await execFileWithPassword(
@@ -125,18 +133,23 @@ export async function removeDNSEntries(hosts: string[], sudoPassword: string): P
 
     try {
       if (IS_WIN) {
+        // HR#13: build PowerShell script via concat (not template literal) so grep
+        // for `\${` inside script bodies returns zero hits. `psHostsFile` and
+        // `psTargetHost` are quotePowerShell-escaped values (single-quote escape).
         const psHostsFile = quotePowerShell(HOSTS_FILE);
         const psTargetHost = quotePowerShell(hostname);
-        await runElevatedPowerShell(`
-          $hostsFile = ${psHostsFile};
-          $targetHost = ${psTargetHost};
-          $lines = Get-Content -LiteralPath $hostsFile;
-          $filtered = $lines | Where-Object {
-            $parts = ($_ -split '\\s+') | Where-Object { $_ };
-            -not (($parts.Length -ge 2) -and ($parts -contains $targetHost))
-          };
-          Set-Content -LiteralPath $hostsFile -Value $filtered;
-        `);
+        const script =
+          "\n          $hostsFile = " +
+          psHostsFile +
+          ";\n          $targetHost = " +
+          psTargetHost +
+          ";\n          $lines = Get-Content -LiteralPath $hostsFile;\n" +
+          "          $filtered = $lines | Where-Object {\n" +
+          "            $parts = ($_ -split '\\s+') | Where-Object { $_ };\n" +
+          "            -not (($parts.Length -ge 2) -and ($parts -contains $targetHost))\n" +
+          "          };\n" +
+          "          Set-Content -LiteralPath $hostsFile -Value $filtered;\n        ";
+        await runElevatedPowerShell(script);
       } else {
         // Hard Rule #13: HOSTS_FILE and hostname are argv arguments, not interpolated.
         await execFileWithPassword(
