@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Button, Select, SegmentedControl } from "@/shared/components";
 import { InfoTooltip } from "@/shared/components";
 import { FORMAT_OPTIONS, FORMAT_META, getExampleTemplates } from "../exampleTemplates";
-import { useProviderOptions } from "../hooks/useProviderOptions";
 import type { FormatId, TranslateMode } from "../types";
 
 interface SimpleControlsProps {
@@ -22,6 +21,8 @@ interface SimpleControlsProps {
   onSubmit: () => void;
   onOpenAdvanced: () => void;
   isLoading?: boolean;
+  providerOptions: Array<{ value: string; label: string }>;
+  loading?: boolean;
 }
 
 export default function SimpleControls({
@@ -38,9 +39,10 @@ export default function SimpleControls({
   onSubmit,
   onOpenAdvanced,
   isLoading = false,
+  providerOptions,
+  loading = false,
 }: SimpleControlsProps) {
   const t = useTranslations("translator");
-  const { providerOptions } = useProviderOptions(provider);
 
   const tr = useCallback(
     (key: string, fallback: string): string => {
@@ -150,6 +152,7 @@ export default function SimpleControls({
             options={providerOptions.length > 0 ? providerOptions : [{ value: provider, label: provider }]}
             value={provider}
             onChange={handleProviderChange}
+            disabled={loading}
           />
         </div>
       </div>

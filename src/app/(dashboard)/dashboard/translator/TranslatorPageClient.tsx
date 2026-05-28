@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Badge, Card, SegmentedControl } from "@/shared/components";
 import TranslatorConceptCard from "./components/TranslatorConceptCard";
@@ -9,10 +9,12 @@ import MonitorTab from "./components/MonitorTab";
 import AdvancedSection from "./components/advanced/AdvancedSection";
 import RawJsonPanel from "./components/advanced/RawJsonPanel";
 import PipelineView from "./components/advanced/PipelineView";
+import type { PipelineStep } from "./components/advanced/PipelineView";
 import StreamTransformerAccordion from "./components/advanced/StreamTransformerAccordion";
 import TestBenchAccordion from "./components/advanced/TestBenchAccordion";
 import CompressionPreviewAccordion from "./components/advanced/CompressionPreviewAccordion";
 import { useTranslateDeepLink } from "./hooks/useTranslateDeepLink";
+import { useTranslateSession } from "./hooks/useTranslateSession";
 import type { AdvancedSlug, TranslatorTab } from "./types";
 
 export default function TranslatorPageClient() {
@@ -28,6 +30,9 @@ function TranslatorPageClientInner() {
   const [sharedInputContent, setSharedInputContent] = useState("");
   const { state, setTab, setAdvanced } = useTranslateDeepLink();
 
+  // Lift session to shell so PipelineView can receive real steps
+  const session = useTranslateSession();
+
   const makeOpenHandler = (slug: AdvancedSlug) => (open: boolean) => {
     if (open) {
       setAdvanced(slug);
@@ -35,6 +40,80 @@ function TranslatorPageClientInner() {
       setAdvanced(null);
     }
   };
+
+  const tr = (key: string, fallback: string): string => {
+    try {
+      const v = t(key as Parameters<typeof t>[0]);
+      if (v === key || v === `translator.${key}`) return fallback;
+      return v as string;
+    } catch {
+      return fallback;
+    }
+  };
+
+  // Build PipelineStep[] from session.result so PipelineView reflects real state
+  const pipelineSteps = useMemo<PipelineStep[]>(() => {
+    const r = session.result;
+    if (r.status === "idle") return [];
+
+    const steps: PipelineStep[] = [];
+
+    // Step 1 — Client Request (always present once started)
+    steps.push({
+      id: "1",
+      name: tr("pipelineStepClientRequest", "Client Request"),
+      description: tr("pipelineStepClientRequestDesc", "Request received in client format"),
+      format: r.detected ?? "openai",
+      content: sharedInputContent.slice(0, 500),
+      status: r.status === "error" ? "error" : "done",
+    });
+
+    // Step 2 — Format Detected
+    steps.push({
+      id: "2",
+      name: tr("pipelineStepFormatDetected", "Format Detected"),
+      description: tr("pipelineStepFormatDetectedDesc", "Auto-detected source format"),
+      format: r.detected ?? null,
+      content: r.detected ? JSON.stringify({ detectedFormat: r.detected, confidence: "high" }, null, 2) : "",
+      status: r.detected ? "done" : r.status === "translating" ? "active" : "pending",
+    });
+
+    // Step 3 — OpenAI Intermediate (only when hub-and-spoke)
+    if (r.pipelinePath === "hub-and-spoke") {
+      steps.push({
+        id: "3",
+        name: tr("pipelineStepOpenAIIntermediate", "OpenAI Intermediate"),
+        description: tr("pipelineStepOpenAIIntermediateDesc", "Translated to OpenAI hub format"),
+        format: "openai",
+        content: r.intermediateJson ?? "",
+        status: r.intermediateJson ? "done" : r.status === "translating" ? "active" : "pending",
+      });
+    }
+
+    // Step 4 — Provider Format (translated result)
+    steps.push({
+      id: r.pipelinePath === "hub-and-spoke" ? "4" : "3",
+      name: tr("pipelineStepProviderFormat", "Provider Format"),
+      description: tr("pipelineStepProviderFormatDesc", "Translated to provider target format"),
+      format: r.target,
+      content: r.translatedJson ?? "",
+      status: r.translatedJson ? "done" : r.status === "translating" ? "active" : "pending",
+    });
+
+    // Step 5 — Provider Response (only when mode=send and response present)
+    if (r.responsePreview !== null) {
+      steps.push({
+        id: r.pipelinePath === "hub-and-spoke" ? "5" : "4",
+        name: tr("pipelineStepProviderResponse", "Provider Response"),
+        description: tr("pipelineStepProviderResponseDesc", "Streaming response from provider"),
+        format: "openai",
+        content: r.responsePreview,
+        status: r.status === "ok" ? "done" : r.status === "sending" ? "active" : "pending",
+      });
+    }
+
+    return steps;
+  }, [session.result, sharedInputContent]);
 
   const advancedSlot = (
     <AdvancedSection forceOpenSlug={state.advanced}>
@@ -47,7 +126,7 @@ function TranslatorPageClientInner() {
         slug="pipeline"
         forceOpen={state.advanced === "pipeline"}
         onOpenChange={makeOpenHandler("pipeline")}
-        steps={[]}
+        pipelineSteps={pipelineSteps.length > 0 ? pipelineSteps : undefined}
       />
       <StreamTransformerAccordion
         forceOpen={state.advanced === "streamtransform"}
@@ -92,6 +171,7 @@ function TranslatorPageClientInner() {
         <TranslateTab
           forceOpenAdvancedSlug={state.advanced}
           onAdvancedSlugChange={(slug) => setAdvanced(slug)}
+          session={session}
         />
       )}
 
@@ -111,7 +191,10 @@ function AutoFeaturesCard() {
   return (
     <Card className="border-primary/10 bg-primary/5">
       <button
+        type="button"
         onClick={() => setShowFeatures((prev) => !prev)}
+        aria-expanded={showFeatures}
+        aria-controls="auto-features-grid"
         className="flex w-full items-center justify-between p-4 text-left"
       >
         <div className="flex items-center gap-2">
@@ -130,6 +213,7 @@ function AutoFeaturesCard() {
 
       {showFeatures && (
         <div
+          id="auto-features-grid"
           className="grid grid-cols-1 gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-4"
           data-testid="auto-features-grid"
         >

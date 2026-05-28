@@ -88,22 +88,6 @@ vi.mock("@/shared/components", () => ({
   ),
 }));
 
-// --- Mock useProviderOptions ---
-vi.mock(
-  "@/app/(dashboard)/dashboard/translator/hooks/useProviderOptions",
-  () => ({
-    useProviderOptions: () => ({
-      provider: "openai",
-      setProvider: vi.fn(),
-      providerOptions: [
-        { value: "openai", label: "OpenAI" },
-        { value: "anthropic", label: "Anthropic" },
-      ],
-      loading: false,
-    }),
-  })
-);
-
 // --- Mock useAvailableModels ---
 vi.mock(
   "@/app/(dashboard)/dashboard/translator/hooks/useAvailableModels",
@@ -180,6 +164,8 @@ function makeProps(overrides: Partial<{
   onSubmit: () => void;
   onOpenAdvanced: () => void;
   isLoading: boolean;
+  providerOptions: Array<{ value: string; label: string }>;
+  loading: boolean;
 }> = {}) {
   return {
     source: "claude" as FormatId,
@@ -195,6 +181,8 @@ function makeProps(overrides: Partial<{
     onSubmit: vi.fn(),
     onOpenAdvanced: vi.fn(),
     isLoading: false,
+    providerOptions: [{ value: "openai", label: "OpenAI" }, { value: "anthropic", label: "Anthropic" }],
+    loading: false,
     ...overrides,
   };
 }

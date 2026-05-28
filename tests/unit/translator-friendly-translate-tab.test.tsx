@@ -197,7 +197,7 @@ describe("TranslateTab", () => {
     expect(gridEl?.className).toContain("lg:grid-cols-2");
   });
 
-  it("renders the advanced section slot (data-advanced-section)", async () => {
+  it("does not expose data-advanced-section placeholder div (GAP-5)", async () => {
     const { default: TranslateTab } = await import(
       "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
     );
@@ -206,8 +206,8 @@ describe("TranslateTab", () => {
     await act(async () => {
       root.render(<TranslateTab />);
     });
-    const advancedSlot = container.querySelector("[data-advanced-section]");
-    expect(advancedSlot).toBeTruthy();
+    // GAP-5: the data-advanced-section DOM data-leak placeholder must not exist
+    expect(container.querySelector("[data-advanced-section]")).toBeNull();
   });
 
   it("calls onAdvancedSlugChange with 'rawjson' when the Advanced button is clicked", async () => {
@@ -231,37 +231,6 @@ describe("TranslateTab", () => {
       advancedBtn?.click();
     });
     expect(onAdvancedSlugChange).toHaveBeenCalledWith("rawjson");
-  });
-
-  it("reflects forceOpenAdvancedSlug in data attribute", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
-    const container = makeContainer();
-    const root = createRoot(container);
-    const slug: AdvancedSlug = "pipeline";
-    await act(async () => {
-      root.render(
-        <TranslateTab forceOpenAdvancedSlug={slug} onAdvancedSlugChange={vi.fn()} />
-      );
-    });
-    const advancedSlot = container.querySelector("[data-advanced-section]");
-    expect(advancedSlot?.getAttribute("data-force-open-slug")).toBe("pipeline");
-  });
-
-  it("forceOpenAdvancedSlug=null results in empty data attribute", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
-    const container = makeContainer();
-    const root = createRoot(container);
-    await act(async () => {
-      root.render(
-        <TranslateTab forceOpenAdvancedSlug={null} onAdvancedSlugChange={vi.fn()} />
-      );
-    });
-    const advancedSlot = container.querySelector("[data-advanced-section]");
-    expect(advancedSlot?.getAttribute("data-force-open-slug")).toBe("");
   });
 
   it("renders without onAdvancedSlugChange prop (optional)", async () => {

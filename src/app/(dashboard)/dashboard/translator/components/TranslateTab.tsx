@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/shared/components";
 import { useTranslateSession } from "../hooks/useTranslateSession";
+import type { UseTranslateSessionReturn } from "../hooks/useTranslateSession";
 import { useProviderOptions } from "../hooks/useProviderOptions";
 import SimpleControls from "./SimpleControls";
 import ResultNarrated from "./ResultNarrated";
@@ -19,11 +20,18 @@ interface TranslateTabProps {
    * (open or close). F9 syncs this with the URL query string.
    */
   onAdvancedSlugChange?: (slug: AdvancedSlug | null) => void;
+  /**
+   * Optional session lifted from shell (TranslatorPageClient) so PipelineView
+   * can read the result at the shell level. When undefined, an internal session
+   * is used (isolated rendering mode, e.g. tests).
+   */
+  session?: UseTranslateSessionReturn;
 }
 
 export default function TranslateTab({
   forceOpenAdvancedSlug = null,
   onAdvancedSlugChange,
+  session: sessionProp,
 }: TranslateTabProps) {
   // Internal simple-mode state
   const [source, setSource] = useState<FormatId>("claude");
@@ -31,11 +39,14 @@ export default function TranslateTab({
   const [mode, setMode] = useState<TranslateMode>("send");
 
   // Provider/target state: derive from useProviderOptions
-  const { provider, setProvider, providerOptions } = useProviderOptions("openai");
+  // GAP-3: useProviderOptions lives only here; SimpleControls receives it as props
+  const { provider, setProvider, providerOptions, loading } = useProviderOptions("openai");
   // target FormatId mirrors provider selection; managed via SimpleControls callback
   const [target, setTarget] = useState<FormatId>("openai");
 
-  const { result, run } = useTranslateSession();
+  // Rules of Hooks: always call unconditionally; fall back to prop when provided
+  const internalSession = useTranslateSession();
+  const { result, run } = sessionProp ?? internalSession;
 
   const handleSubmit = () => {
     run({ source, target, provider, inputText, mode });
@@ -44,11 +55,6 @@ export default function TranslateTab({
   const handleOpenAdvanced = (slug: AdvancedSlug = "rawjson") => {
     if (onAdvancedSlugChange) {
       onAdvancedSlugChange(slug);
-    }
-    // Scroll to advanced section if it exists (guard for environments without scrollIntoView)
-    const advancedEl = document.querySelector("[data-advanced-section]");
-    if (advancedEl && typeof advancedEl.scrollIntoView === "function") {
-      advancedEl.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -59,10 +65,6 @@ export default function TranslateTab({
   const handleSeePipeline = () => {
     handleOpenAdvanced("pipeline");
   };
-
-  // Expose forceOpenAdvancedSlug to the advanced section slot via data attribute
-  // F4 will read this; for now we write it to a data attribute that F9 will wire
-  const advancedSlug = forceOpenAdvancedSlug;
 
   // Sync provider options: when providerOptions loads, keep provider in sync
   // (useProviderOptions handles this internally; we just need to expose setProvider)
@@ -90,6 +92,8 @@ export default function TranslateTab({
             onSubmit={handleSubmit}
             onOpenAdvanced={() => handleOpenAdvanced("rawjson")}
             isLoading={result.status === "translating" || result.status === "sending"}
+            providerOptions={providerOptions}
+            loading={loading}
           />
         </Card>
 
@@ -100,17 +104,6 @@ export default function TranslateTab({
           onSeePipeline={handleSeePipeline}
         />
       </div>
-
-      {/* Advanced section slot — F4 will mount AdvancedSection here.
-          F9 composes: <TranslateTab onAdvancedSlugChange={...} /> + <AdvancedSection forceOpenSlug={...} />.
-          For now we render the placeholder that F4/F9 will replace. */}
-      <div
-        data-advanced-section
-        data-force-open-slug={advancedSlug ?? ""}
-        data-provider-options={JSON.stringify(providerOptions.map((o) => o.value))}
-        data-source={source}
-        data-input-text={inputText.slice(0, 100)}
-      />
     </div>
   );
 }

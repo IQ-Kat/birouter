@@ -80,6 +80,28 @@ vi.mock("@/shared/components", () => ({
   ),
 }));
 
+// ── useTranslateSession stub (now lifted to shell) ────────────────────────────
+vi.mock(
+  "@/app/(dashboard)/dashboard/translator/hooks/useTranslateSession",
+  () => ({
+    useTranslateSession: () => ({
+      result: {
+        detected: null,
+        target: "openai",
+        status: "idle",
+        responsePreview: null,
+        translatedJson: null,
+        pipelinePath: null,
+        intermediateJson: null,
+        errorMessage: null,
+        latencyMs: null,
+      },
+      run: vi.fn(),
+      reset: vi.fn(),
+    }),
+  }),
+);
+
 // ── Sub-component stubs that capture received props ───────────────────────────
 const capturedTranslateTabProps: Array<{
   forceOpenAdvancedSlug?: string | null;
@@ -100,6 +122,7 @@ vi.mock(
     }: {
       forceOpenAdvancedSlug?: string | null;
       onAdvancedSlugChange?: (slug: string | null) => void;
+      session?: unknown;
     }) => {
       capturedTranslateTabProps.push({ forceOpenAdvancedSlug });
       return (
@@ -154,7 +177,7 @@ vi.mock(
 vi.mock(
   "@/app/(dashboard)/dashboard/translator/components/advanced/PipelineView",
   () => ({
-    default: ({ forceOpen }: { forceOpen?: boolean; steps?: unknown[] }) => (
+    default: ({ forceOpen }: { forceOpen?: boolean; pipelineSteps?: unknown[] }) => (
       <div data-testid="pipeline-view" data-force-open={String(forceOpen ?? false)} />
     ),
   }),
