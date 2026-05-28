@@ -6,6 +6,24 @@ import BatchListTab from "./BatchListTab";
 import { FileRecord } from "@/lib/db/files";
 import { BatchRecord } from "@/lib/db/batches";
 import { mapBatchApiToRecord, mapFileApiToRecord } from "./batch-utils";
+import BatchConceptCard from "./components/BatchConceptCard";
+import NewBatchWizard from "./components/NewBatchWizard";
+
+// ── Batch-capable providers (D16) ─────────────────────────────────────────────
+
+const BATCH_SUPPORTED = ["openai", "anthropic", "gemini"];
+const MODEL_DEFAULTS: Record<string, string[]> = {
+  openai: ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
+  anthropic: ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"],
+  gemini: ["gemini-1.5-flash", "gemini-1.5-pro"],
+};
+const PROVIDER_NAMES: Record<string, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  gemini: "Gemini",
+};
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function BatchPage() {
   const t = useTranslations("common");
@@ -14,6 +32,10 @@ export default function BatchPage() {
   const [batchesTotal, setBatchesTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [providers, setProviders] = useState<Array<{ id: string; name: string; models: string[] }>>(
+    [],
+  );
 
   const [batchesHasMore, setBatchesHasMore] = useState(false);
   const [batchesLastId, setBatchesLastId] = useState<string | null>(null);
@@ -46,17 +68,16 @@ export default function BatchPage() {
             setBatchesHasMore(Boolean(data.has_more));
             setBatchesLastId(data.last_id || null);
           } else if (isBackground) {
-            // Background refresh: merge new items with existing ones, preserve pagination state
+            // Background refresh: merge new items, preserve pagination state
             setBatches((prev) => {
               const batchMap = new Map(prev.map((b) => [b.id, b]));
               for (const m of mapped) {
                 batchMap.set(m.id, m);
               }
               return Array.from(batchMap.values()).sort(
-                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)
+                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id),
               );
             });
-            // Don't reset batchesLastId or batchesHasMore on background refresh
           } else {
             setBatches(mapped);
             setBatchesHasMore(Boolean(data.has_more));
@@ -75,7 +96,7 @@ export default function BatchPage() {
                 fileMap.set(m.id, m);
               }
               return Array.from(fileMap.values()).sort(
-                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)
+                (a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id),
               );
             });
           } else {
@@ -83,14 +104,14 @@ export default function BatchPage() {
           }
         }
       } catch (error) {
-        console.error("Failed to fetch batches/files", error);
+        console.error("[BatchPage] fetchData threw", error);
       } finally {
         isFetchingRef.current = false;
         if (!isBackground) setLoading(false);
         if (opts.appendBatches) setLoadingMore(false);
       }
     },
-    [batchesLastId]
+    [batchesLastId],
   );
 
   // Keep fetchData ref in sync
@@ -98,22 +119,66 @@ export default function BatchPage() {
     fetchDataRef.current = fetchData;
   }, [fetchData]);
 
-  // Track loadingMore in a ref for use in observer callback (avoids re-creating observer)
+  // Track loadingMore in a ref for use in observer callback
   const loadingMoreRef = useRef(loadingMore);
   useEffect(() => {
     loadingMoreRef.current = loadingMore;
   }, [loadingMore]);
 
-  // Initial fetch and background refresh timer (runs once on mount)
+  // Fetch available batch-capable providers on mount (D16).
+  // Intersects /api/providers with BATCH_SUPPORTED list.
+  // Falls back to hardcoded list if route errors or returns empty.
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/providers");
+        if (res.ok) {
+          const data = (await res.json()) as {
+            connections: Array<{ provider: string; is_active?: boolean }>;
+          };
+          const connected = new Set(
+            (data.connections ?? [])
+              .filter((c) => BATCH_SUPPORTED.includes(c.provider))
+              .map((c) => c.provider),
+          );
+          if (connected.size > 0) {
+            setProviders(
+              Array.from(connected).map((id) => ({
+                id,
+                name: PROVIDER_NAMES[id] ?? id,
+                models: MODEL_DEFAULTS[id] ?? [],
+              })),
+            );
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("[BatchPage] providers fetch error", e);
+      }
+      // Fallback: hardcoded list per D16
+      setProviders(
+        BATCH_SUPPORTED.map((id) => ({
+          id,
+          name: PROVIDER_NAMES[id] ?? id,
+          models: MODEL_DEFAULTS[id] ?? [],
+        })),
+      );
+    };
+    void load();
+  }, []);
+
+  // Initial fetch + 30s polling (D10). Pauses when tab is hidden.
   useEffect(() => {
     const scheduleRefresh = () => {
       refreshTimeoutRef.current = setTimeout(async () => {
-        await fetchDataRef.current?.(true);
+        if (!document.hidden) {
+          await fetchDataRef.current?.(true);
+        }
         scheduleRefresh();
-      }, 10_000);
+      }, 30_000);
     };
 
-    // Initial fetch (with loading)
+    // Initial fetch (with loading indicator)
     fetchDataRef.current?.();
     // Schedule background refreshes
     scheduleRefresh();
@@ -124,7 +189,32 @@ export default function BatchPage() {
         refreshTimeoutRef.current = null;
       }
     };
-  }, []); // Empty deps - only run once, uses ref for latest fetchData
+  }, []);
+
+  // Pause/resume polling on visibility change (D10)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
+          refreshTimeoutRef.current = null;
+        }
+      } else if (!refreshTimeoutRef.current) {
+        // Resume polling
+        const scheduleRefresh = () => {
+          refreshTimeoutRef.current = setTimeout(async () => {
+            if (!document.hidden) {
+              await fetchDataRef.current?.(true);
+            }
+            scheduleRefresh();
+          }, 30_000);
+        };
+        scheduleRefresh();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   // IntersectionObserver for infinite scroll on batches
   useEffect(() => {
@@ -134,7 +224,7 @@ export default function BatchPage() {
           fetchDataRef.current?.(true, { appendBatches: true });
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (bottomRefBatches.current) {
@@ -148,22 +238,41 @@ export default function BatchPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Toolbar */}
-      <div className="flex items-center justify-end gap-4 flex-wrap">
-        <button
-          onClick={() => fetchData(false)}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
-            bg-surface border border-border
-            text-text-secondary hover:text-text-primary
-            hover:border-primary transition-all duration-200
-            disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="material-symbols-outlined text-[16px]">refresh</span>
-          {loading ? "Refreshing…" : "Refresh"}
-        </button>
+      {/* Concept card (F3) */}
+      <BatchConceptCard />
+
+      {/* Toolbar: auto-refresh indicator + Refresh + New batch */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+          <span className="material-symbols-outlined text-[14px]">refresh</span>
+          {t("batchListAutoRefresh")}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => fetchData(false)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
+              bg-[var(--color-surface)] border border-[var(--color-border)]
+              text-[var(--color-text-secondary)] hover:text-[var(--color-text-main)]
+              hover:border-[var(--color-accent)] transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
+          <button
+            onClick={() => setShowWizard(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
+              bg-[var(--color-accent)] text-white hover:opacity-90
+              transition-all duration-200"
+          >
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            {t("batchListNewButton")}
+          </button>
+        </div>
       </div>
 
+      {/* Batch list + infinite scroll sentinel */}
       <div className="flex flex-col gap-6">
         <BatchListTab
           batches={batches}
@@ -177,6 +286,18 @@ export default function BatchPage() {
         )}
         <div ref={bottomRefBatches} className="h-10" />
       </div>
+
+      {/* New batch wizard (F4 stub — replaced by F4 full implementation on merge) */}
+      {showWizard && (
+        <NewBatchWizard
+          onClose={() => setShowWizard(false)}
+          onCreated={(_id) => {
+            setShowWizard(false);
+            void fetchData(false);
+          }}
+          availableProviders={providers}
+        />
+      )}
     </div>
   );
 }
