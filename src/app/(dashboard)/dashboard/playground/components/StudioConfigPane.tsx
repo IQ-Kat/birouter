@@ -24,11 +24,14 @@ interface StudioConfigPaneProps {
 
 const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; label: string }> = [
   { value: "chat.completions", label: "Chat completions" },
+  { value: "responses", label: "Responses" },
   { value: "completions", label: "Completions" },
   { value: "embeddings", label: "Embeddings" },
   { value: "images", label: "Images" },
   { value: "audio.transcriptions", label: "Audio transcriptions" },
   { value: "audio.speech", label: "Audio speech" },
+  { value: "video", label: "Video" },
+  { value: "music", label: "Music" },
   { value: "moderations", label: "Moderations" },
   { value: "rerank", label: "Rerank" },
   { value: "search", label: "Search" },

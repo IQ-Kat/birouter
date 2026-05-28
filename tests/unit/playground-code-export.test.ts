@@ -25,13 +25,16 @@ function assertSecurityInvariants(generated: string, label: string) {
 
 // ── endpointToPath ─────────────────────────────────────────────────────────────
 
-test("endpointToPath: maps all 10 endpoints correctly", () => {
+test("endpointToPath: maps all 13 endpoints correctly (D4-rev2)", () => {
   assert.equal(endpointToPath("chat.completions"), "/v1/chat/completions");
+  assert.equal(endpointToPath("responses"), "/v1/responses");
   assert.equal(endpointToPath("completions"), "/v1/completions");
   assert.equal(endpointToPath("embeddings"), "/v1/embeddings");
   assert.equal(endpointToPath("images"), "/v1/images/generations");
   assert.equal(endpointToPath("audio.transcriptions"), "/v1/audio/transcriptions");
   assert.equal(endpointToPath("audio.speech"), "/v1/audio/speech");
+  assert.equal(endpointToPath("video"), "/v1/videos/generations");
+  assert.equal(endpointToPath("music"), "/v1/music/generations");
   assert.equal(endpointToPath("moderations"), "/v1/moderations");
   assert.equal(endpointToPath("rerank"), "/v1/rerank");
   assert.equal(endpointToPath("search"), "/v1/search");
@@ -400,6 +403,96 @@ test("audio.speech: defaults model and prompt when not provided", () => {
     assertSecurityInvariants(generated, `audio.speech/defaults/${lang}`);
     assert.ok(generated.includes("tts-1"), `${lang}: default model`);
     assert.ok(generated.includes("Hello, world!"), `${lang}: default prompt`);
+  }
+});
+
+// ── responses (D4-rev2) ───────────────────────────────────────────────────────
+
+test("responses × all languages: security + path", () => {
+  const state = {
+    endpoint: "responses" as const,
+    baseUrl: "http://localhost:20128",
+    model: "gpt-4o",
+    prompt: "Summarize the news",
+    systemPrompt: "Be concise.",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `responses/${lang}`);
+    assert.ok(generated.includes("/v1/responses"), `${lang}: correct path`);
+    assert.ok(generated.includes("Summarize the news"), `${lang}: input present`);
+    assert.ok(generated.includes("Be concise."), `${lang}: instructions present`);
+  }
+});
+
+test("responses: defaults model and input when not provided", () => {
+  const state = {
+    endpoint: "responses" as const,
+    baseUrl: "http://localhost:20128",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `responses/defaults/${lang}`);
+    assert.ok(generated.includes("gpt-4o-mini"), `${lang}: default model`);
+    assert.ok(generated.includes("Hello!"), `${lang}: default input`);
+  }
+});
+
+// ── video (D4-rev2) ───────────────────────────────────────────────────────────
+
+test("video × all languages: security + path", () => {
+  const state = {
+    endpoint: "video" as const,
+    baseUrl: "http://localhost:20128",
+    model: "sora-1.0",
+    prompt: "A cat playing piano",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `video/${lang}`);
+    assert.ok(generated.includes("/v1/videos/generations"), `${lang}: correct path`);
+    assert.ok(generated.includes("A cat playing piano"), `${lang}: prompt present`);
+  }
+});
+
+test("video: defaults when no model/prompt provided", () => {
+  const state = {
+    endpoint: "video" as const,
+    baseUrl: "http://localhost:20128",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `video/defaults/${lang}`);
+    assert.ok(generated.includes("sora-1.0"), `${lang}: default model`);
+  }
+});
+
+// ── music (D4-rev2) ───────────────────────────────────────────────────────────
+
+test("music × all languages: security + path", () => {
+  const state = {
+    endpoint: "music" as const,
+    baseUrl: "http://localhost:20128",
+    model: "music-1",
+    prompt: "An ambient piano piece",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `music/${lang}`);
+    assert.ok(generated.includes("/v1/music/generations"), `${lang}: correct path`);
+    assert.ok(generated.includes("An ambient piano piece"), `${lang}: prompt present`);
+  }
+});
+
+test("music: defaults when no model/prompt provided", () => {
+  const state = {
+    endpoint: "music" as const,
+    baseUrl: "http://localhost:20128",
+  };
+  for (const lang of ["curl", "python", "typescript"] as const) {
+    const generated = exportCode(state, lang);
+    assertSecurityInvariants(generated, `music/defaults/${lang}`);
+    assert.ok(generated.includes("music-1"), `${lang}: default model`);
   }
 });
 

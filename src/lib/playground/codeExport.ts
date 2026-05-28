@@ -2,16 +2,24 @@
 import { z } from "zod";
 
 /**
- * Endpoint suportado pelo Playground Studio. Reflete os 10 endpoints da aba API
- * + os endpoints consumidos pelas tabs Chat/Compare/Build/Search/Scrape.
+ * Endpoint suportado pelo Playground Studio. Reflete os 13 endpoints da API OmniRoute
+ * consumíveis pelas tabs Chat/Compare/Build/Search/Scrape via Export Code.
+ *
+ * D4-rev2 (2026-05-28): contrato expandido de 10 → 13 incluindo `responses`, `video`,
+ * `music` para refletir a API real (`/v1/responses`, `/v1/videos/generations`,
+ * `/v1/music/generations`). A tab API (Monaco editor) mantém seu próprio sistema
+ * de endpoint values (D14) e não consome este type.
  */
 export type PlaygroundEndpoint =
   | "chat.completions"
+  | "responses"
   | "completions"
   | "embeddings"
   | "images"
   | "audio.transcriptions"
   | "audio.speech"
+  | "video"
+  | "music"
   | "moderations"
   | "rerank"
   | "search"
@@ -76,11 +84,14 @@ export interface PlaygroundState {
 export const PlaygroundStateSchema = z.object({
   endpoint: z.enum([
     "chat.completions",
+    "responses",
     "completions",
     "embeddings",
     "images",
     "audio.transcriptions",
     "audio.speech",
+    "video",
+    "music",
     "moderations",
     "rerank",
     "search",
@@ -116,11 +127,14 @@ export const API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY";
 export function endpointToPath(endpoint: PlaygroundEndpoint): string {
   const map: Record<PlaygroundEndpoint, string> = {
     "chat.completions": "/v1/chat/completions",
+    responses: "/v1/responses",
     completions: "/v1/completions",
     embeddings: "/v1/embeddings",
     images: "/v1/images/generations",
     "audio.transcriptions": "/v1/audio/transcriptions",
     "audio.speech": "/v1/audio/speech",
+    video: "/v1/videos/generations",
+    music: "/v1/music/generations",
     moderations: "/v1/moderations",
     rerank: "/v1/rerank",
     search: "/v1/search",
@@ -154,6 +168,18 @@ function buildBody(state: PlaygroundState): Record<string, unknown> {
         messages,
         stream: stream ?? false,
       };
+      if (params) Object.assign(body, params);
+      if (tools && tools.length > 0) body.tools = tools;
+      return body;
+    }
+
+    case "responses": {
+      const body: Record<string, unknown> = {
+        model: model ?? "gpt-4o-mini",
+        input: state.prompt ?? "Hello!",
+        stream: stream ?? false,
+      };
+      if (state.systemPrompt) body.instructions = state.systemPrompt;
       if (params) Object.assign(body, params);
       if (tools && tools.length > 0) body.tools = tools;
       return body;
@@ -200,6 +226,24 @@ function buildBody(state: PlaygroundState): Record<string, unknown> {
         input: state.prompt ?? "Hello, world!",
         voice: "alloy",
       };
+    }
+
+    case "video": {
+      const body: Record<string, unknown> = {
+        model: model ?? "sora-1.0",
+        prompt: state.prompt ?? "A cinematic shot of a city at sunset",
+      };
+      if (params) Object.assign(body, params);
+      return body;
+    }
+
+    case "music": {
+      const body: Record<string, unknown> = {
+        model: model ?? "music-1",
+        prompt: state.prompt ?? "An upbeat lo-fi instrumental",
+      };
+      if (params) Object.assign(body, params);
+      return body;
     }
 
     case "moderations": {
