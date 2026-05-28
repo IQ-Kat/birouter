@@ -765,7 +765,7 @@
     "batchActionDownloadOutput": "Download output",
     "batchActionDownloadErrors": "Download errors",
     "batchActionRetry": "Retry failed",
-    "batchActionRetryConfirm": "Retry {n} failed request(s)? Estimated cost: ~${cost}",
+    "batchActionRetryConfirm": "Retry {n} failed request(s)? Final cost depends on actual tokens consumed.",
     "expirationBadgeCritical": "Critical",
     "expirationBadgeWarning": "Soon",
     "expirationBadgeNormal": "Pending",

@@ -765,7 +765,7 @@
     "batchActionDownloadOutput": "Baixar saída",
     "batchActionDownloadErrors": "Baixar erros",
     "batchActionRetry": "Refazer falhas",
-    "batchActionRetryConfirm": "Refazer {n} requisição(ões) com falha? Custo estimado: ~${cost}",
+    "batchActionRetryConfirm": "Refazer {n} requisição(ões) com falha? O custo final depende dos tokens efetivamente consumidos.",
     "expirationBadgeCritical": "Crítico",
     "expirationBadgeWarning": "Em breve",
     "expirationBadgeNormal": "Pendente",

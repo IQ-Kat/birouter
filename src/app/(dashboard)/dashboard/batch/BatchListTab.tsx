@@ -91,6 +91,7 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-gray-500/15 text-gray-400 border-gray-500/25",
   cancelled_with_failures: "bg-red-500/15 text-red-400 border-red-500/25",
   expired: "bg-gray-500/15 text-gray-400 border-gray-500/25",
+  expired_with_failures: "bg-orange-500/15 text-orange-400 border-orange-500/25",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -98,6 +99,7 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress_with_failures: "in progress (with failures)",
   finalizing_with_failures: "finalizing (with failures)",
   cancelled_with_failures: "cancelled with failures",
+  expired_with_failures: "expired (partial)",
 };
 
 /** Returns a composite status key that reflects whether partial failures occurred. */
@@ -109,6 +111,7 @@ function effectiveStatus(batch: BatchRecord): string {
     in_progress: "in_progress_with_failures",
     finalizing: "finalizing_with_failures",
     cancelled: "cancelled_with_failures",
+    expired: "expired_with_failures",
   };
   return map[batch.status] ?? batch.status;
 }
@@ -210,7 +213,7 @@ function BatchRowActions({
           onClick={async () => {
             if (
               window.confirm(
-                t("batchActionRetryConfirm", { n: batch.requestCountsFailed, cost: "TBD" }),
+                t("batchActionRetryConfirm", { n: batch.requestCountsFailed }),
               )
             ) {
               await actions.retry({
