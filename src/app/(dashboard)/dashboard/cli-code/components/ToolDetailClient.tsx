@@ -84,12 +84,25 @@ export default function ToolDetailClient({ toolId, category }: ToolDetailClientP
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    // "Load data on mount" pattern: fetch* callbacks call setState internally
+    // after async resolution. The cancelled flag prevents setState after unmount.
+    // The react-hooks/set-state-in-effect rule flags this pattern conservatively
+    // (it cannot distinguish sync vs async setState), but this is the canonical
+    // way to load remote data on mount until we migrate to use()/Suspense.
+    /* eslint-disable react-hooks/set-state-in-effect */
     Promise.all([
       fetchConnections(),
       fetchApiKeys(),
       fetchCloudSettings(),
       fetchDynamicModels(),
-    ]).finally(() => setLoading(false));
+    ]).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    /* eslint-enable react-hooks/set-state-in-effect */
+    return () => {
+      cancelled = true;
+    };
   }, [fetchConnections, fetchApiKeys, fetchCloudSettings, fetchDynamicModels]);
 
   const getActiveProviders = useCallback(() => {
