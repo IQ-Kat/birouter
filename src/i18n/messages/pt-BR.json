@@ -7246,6 +7246,8 @@
     "betaDescription": "A configuração é salva em localStorage (ainda não persistida no servidor). A aplicação dos caps por request ainda não está conectada ao pipeline da proxy. Esta tela permite desenhar e visualizar a divisão de cota; a aplicação real virá em uma próxima iteração com persistência no banco e interceptação na chamada upstream.",
     "kpiActivePools": "Pools ativos",
     "kpiKeysAllocated": "Keys alocadas",
+    "kpiAvgUtilization": "Util média",
+    "kpiBorrowingNow": "Em empréstimo agora",
     "kpiAvgUnallocated": "Média não alocada",
     "kpiProvidersWithQuota": "Providers c/ cota",
     "emptyTitle": "Nenhum pool configurado",
