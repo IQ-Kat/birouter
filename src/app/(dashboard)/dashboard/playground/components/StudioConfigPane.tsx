@@ -6,6 +6,8 @@ import { useState } from "react";
 import ParamSliders, { type PlaygroundParams } from "./ParamSliders";
 import type { PlaygroundEndpoint } from "@/lib/playground/codeExport";
 import { endpointToPath } from "@/lib/playground/codeExport";
+import PresetPicker from "./PresetPicker";
+import ImprovePromptButton from "./ImprovePromptButton";
 
 export interface ConfigState {
   endpoint: PlaygroundEndpoint;
@@ -82,8 +84,8 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
       </div>
 
       <div className="flex flex-col gap-5 p-4">
-        {/* SLOT_PRESETS: F7 substituirá com PresetPicker */}
-        {/* SLOT_PRESETS */}
+        {/* PresetPicker — injected by F7 */}
+        <PresetPicker configState={configState} setConfigState={setConfigState} />
 
         {/* Endpoint */}
         <div className="flex flex-col gap-1.5">
@@ -129,8 +131,8 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
             rows={4}
             className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main resize-y"
           />
-          {/* SLOT_IMPROVE: F7 substituirá com ImprovePromptButton */}
-          {/* SLOT_IMPROVE */}
+          {/* ImprovePromptButton — injected by F7 */}
+          <ImprovePromptButton configState={configState} setConfigState={setConfigState} />
         </div>
 
         {/* Param sliders */}

@@ -4,7 +4,9 @@
 
 import { useState } from "react";
 import TokenCostCounter from "./TokenCostCounter";
+import ExportCodeModal from "./ExportCodeModal";
 import type { StreamMetrics } from "@/shared/schemas/playground";
+import type { PlaygroundState } from "@/lib/playground/codeExport";
 
 export type StudioTab = "chat" | "compare" | "api" | "build";
 
@@ -12,6 +14,8 @@ interface StudioTopBarProps {
   activeTab: StudioTab;
   onTabChange: (tab: StudioTab) => void;
   metrics: StreamMetrics;
+  /** Optional playground state for the Export code modal. If omitted, a minimal state is used. */
+  exportState?: PlaygroundState;
 }
 
 interface TabConfig {
@@ -29,9 +33,9 @@ const TABS: TabConfig[] = [
 
 /**
  * Top bar with tab switcher, token/cost counter, and export code button.
- * Export code modal is a placeholder in F6; F7 replaces it with ExportCodeModal.
+ * Export code modal uses ExportCodeModal (F7) when exportState is provided.
  */
-export default function StudioTopBar({ activeTab, onTabChange, metrics }: StudioTopBarProps) {
+export default function StudioTopBar({ activeTab, onTabChange, metrics, exportState }: StudioTopBarProps) {
   const [exportOpen, setExportOpen] = useState(false);
 
   return (
@@ -77,8 +81,11 @@ export default function StudioTopBar({ activeTab, onTabChange, metrics }: Studio
         </div>
       </div>
 
-      {/* Export code placeholder modal — F7 replaces with ExportCodeModal */}
-      {exportOpen && (
+      {/* Export code modal — uses ExportCodeModal (F7) */}
+      {exportOpen && exportState != null && (
+        <ExportCodeModal state={exportState} onClose={() => setExportOpen(false)} />
+      )}
+      {exportOpen && exportState == null && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           onClick={() => setExportOpen(false)}
@@ -98,7 +105,7 @@ export default function StudioTopBar({ activeTab, onTabChange, metrics }: Studio
               </button>
             </div>
             <p className="text-sm text-text-muted">
-              Export code modal — F7 implementation pending.
+              No playground state available to export.
             </p>
           </div>
         </div>

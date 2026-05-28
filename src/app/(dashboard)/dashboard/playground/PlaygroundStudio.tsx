@@ -13,6 +13,8 @@ import type { StreamMetrics } from "@/shared/schemas/playground";
 // Lazy-load tabs to reduce initial bundle size
 const ChatTab = dynamic(() => import("./components/tabs/ChatTab"), { ssr: false });
 const ApiTab = dynamic(() => import("./components/tabs/ApiTab"), { ssr: false });
+const CompareTab = dynamic(() => import("./components/tabs/CompareTab"), { ssr: false });
+const BuildTab = dynamic(() => import("./components/tabs/BuildTab"), { ssr: false });
 
 const INITIAL_METRICS: StreamMetrics = {
   ttftMs: null,
@@ -74,6 +76,13 @@ export function PlaygroundStudio() {
         activeTab={effectiveTab}
         onTabChange={handleTabChange}
         metrics={metrics}
+        exportState={{
+          endpoint: configState.endpoint,
+          baseUrl: configState.baseUrl,
+          model: configState.model,
+          systemPrompt: configState.systemPrompt,
+          params: configState.params,
+        }}
       />
 
       {/* Main content area: tab content + config pane */}
@@ -84,27 +93,13 @@ export function PlaygroundStudio() {
             <ChatTab configState={configState} onMetricsUpdate={handleMetricsUpdate} />
           )}
           {effectiveTab === "compare" && (
-            <div className="flex items-center justify-center h-full text-text-muted">
-              <div className="text-center space-y-2">
-                <span className="material-symbols-outlined text-[48px] text-text-muted/30">
-                  compare
-                </span>
-                <p className="text-sm">Compare tab — F7 implementation pending</p>
-              </div>
-            </div>
+            <CompareTab configState={configState} />
           )}
           {effectiveTab === "api" && (
             <ApiTab configState={configState} />
           )}
           {effectiveTab === "build" && (
-            <div className="flex items-center justify-center h-full text-text-muted">
-              <div className="text-center space-y-2">
-                <span className="material-symbols-outlined text-[48px] text-text-muted/30">
-                  build
-                </span>
-                <p className="text-sm">Build tab — F7 implementation pending</p>
-              </div>
-            </div>
+            <BuildTab configState={configState} />
           )}
         </div>
 
