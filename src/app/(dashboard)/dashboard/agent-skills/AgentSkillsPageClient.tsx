@@ -95,8 +95,8 @@ export function AgentSkillsPageClient(): JSX.Element {
       try {
         const res = await fetch(`/api/agent-skills/${id}/raw`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { body: string };
-        setMarkdownCache((prev) => new Map(prev).set(id, json.body ?? ""));
+        const body = await res.text();
+        setMarkdownCache((prev) => new Map(prev).set(id, body));
       } catch {
         setMarkdownCache((prev) => {
           const next = new Map(prev);

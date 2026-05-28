@@ -106,9 +106,9 @@ function mockFetch(skills: AgentSkill[], coverage: SkillCoverage, rawMarkdown = 
       });
     }
     if (/\/api\/agent-skills\/.+\/raw/.test(urlStr)) {
-      return new Response(JSON.stringify({ body: rawMarkdown }), {
+      return new Response(rawMarkdown, {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/markdown; charset=utf-8" },
       });
     }
     return new Response(JSON.stringify({}), { status: 404 });
