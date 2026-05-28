@@ -256,8 +256,8 @@ export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing
       hasKey = !!(
         creds &&
         !("allRateLimited" in creds && creds.allRateLimited) &&
-        ("apiKey" in creds ? !!creds.apiKey : false) ||
-        ("accessToken" in creds ? !!creds.accessToken : false)
+        (("apiKey" in creds ? !!creds.apiKey : false) ||
+          ("accessToken" in creds ? !!creds.accessToken : false))
       );
     } catch {
       hasKey = false;
