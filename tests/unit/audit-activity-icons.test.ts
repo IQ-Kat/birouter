@@ -4,10 +4,18 @@ import assert from "node:assert/strict";
 import { ACTIVITY_ICONS, getActivityIcon } from "../../src/lib/audit/activityIcons";
 import { HIGH_LEVEL_ACTIONS } from "../../src/lib/audit/highLevelActions";
 
-test("getActivityIcon('provider.added') returns correct spec", () => {
-  assert.deepEqual(getActivityIcon("provider.added"), {
+// B/G3: updated to reflect real action names aligned with logAuditEvent emitters.
+test("getActivityIcon('provider.credentials.created') returns correct spec", () => {
+  assert.deepEqual(getActivityIcon("provider.credentials.created"), {
     icon: "extension",
-    i18nKeyVerb: "providerAdded",
+    i18nKeyVerb: "providerCredentialsCreated",
+  });
+});
+
+test("getActivityIcon('auth.login.success') returns correct spec", () => {
+  assert.deepEqual(getActivityIcon("auth.login.success"), {
+    icon: "login",
+    i18nKeyVerb: "authLoginSuccess",
   });
 });
 

@@ -5,6 +5,7 @@ import { HIGH_LEVEL_ACTIONS, isHighLevelAction } from "../../src/lib/audit/highL
 
 const ALL = HIGH_LEVEL_ACTIONS as readonly string[];
 
+// B/G3: allowlist now has 26 real actions aligned with logAuditEvent emitters.
 test("HIGH_LEVEL_ACTIONS has exactly 26 entries", () => {
   assert.equal(ALL.length, 26);
 });
@@ -43,20 +44,44 @@ test("includes all 5 quota.* actions from B26", () => {
   }
 });
 
-test("includes provider lifecycle actions", () => {
-  for (const a of ["provider.added", "provider.removed", "provider.tested"]) {
-    assert.ok(ALL.includes(a));
+test("includes real provider credential actions", () => {
+  for (const a of [
+    "provider.credentials.created",
+    "provider.credentials.applied",
+    "provider.credentials.updated",
+    "provider.credentials.revoked",
+    "provider.credentials.batch_revoked",
+    "provider.credentials.bulk_created",
+    "provider.credentials.bulk_imported",
+    "provider.credentials.imported",
+    "provider.validation.ssrf_blocked",
+  ]) {
+    assert.ok(ALL.includes(a), `Missing ${a}`);
   }
 });
 
-test("includes combo lifecycle actions", () => {
-  for (const a of ["combo.created", "combo.updated", "combo.deleted"]) {
-    assert.ok(ALL.includes(a));
+test("includes real auth actions", () => {
+  for (const a of [
+    "auth.login.success",
+    "auth.login.error",
+    "auth.login.failed",
+    "auth.login.locked",
+    "auth.login.misconfigured",
+    "auth.login.setup_required",
+    "auth.logout.success",
+  ]) {
+    assert.ok(ALL.includes(a), `Missing ${a}`);
   }
 });
 
-test("includes apikey lifecycle actions", () => {
-  for (const a of ["apikey.created", "apikey.revoked", "apikey.rotated"]) {
-    assert.ok(ALL.includes(a));
+test("includes sync token actions", () => {
+  for (const a of ["sync.token.created", "sync.token.revoked"]) {
+    assert.ok(ALL.includes(a), `Missing ${a}`);
+  }
+});
+
+test("includes real settings and service actions", () => {
+  for (const a of ["settings.update", "settings.update_failed", "service.reveal_api_key"]) {
+    assert.ok(ALL.includes(a), `Missing ${a}`);
   }
 });
