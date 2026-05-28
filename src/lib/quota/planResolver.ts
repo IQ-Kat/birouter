@@ -34,13 +34,13 @@ export interface RuntimeSignals {
  *
  * @param connectionId   Unique provider connection ID (from DB).
  * @param provider       Provider name (e.g. "codex", "kimi").
- * @param runtimeSignals Optional upstream headers / signals (v1: ignored).
+ * @param _runtimeSignals Optional upstream headers / signals (v1: ignored, reserved for future use).
  * @returns              The effective ProviderPlan (never throws).
  */
 export function resolvePlan(
   connectionId: string,
   provider: string,
-  runtimeSignals?: RuntimeSignals // eslint-disable-line @typescript-eslint/no-unused-vars
+  _runtimeSignals?: RuntimeSignals
 ): ProviderPlan {
   // 1. Manual DB override
   try {
