@@ -219,6 +219,7 @@ export abstract class MitmHandlerBase {
           body,
           agentId: this.agentId,
           mappedModel,
+          sourceModel: this.extractSourceModel(body),
         });
       } catch {
         // Hook should never break interception — fall through to local stub.
