@@ -62,6 +62,10 @@ export async function GET(request: Request) {
       byType: result.byType ?? {},
       tokensUsed,
       hitRate,
+      // Plan 21 / D18: MemoriesTab uses cacheStats to decide whether to render
+      // the Hit Rate card (only when hits + misses > 0). Without this field
+      // the card would never appear even when hitRate > 0.
+      cacheStats: { hits: cacheStats.hits, misses: cacheStats.misses },
     };
 
     const responsePagination =
