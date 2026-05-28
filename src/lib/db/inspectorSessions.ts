@@ -6,6 +6,8 @@
 import { randomUUID } from "crypto";
 import { getDbInstance } from "./core";
 import type { InspectorSessionRow } from "./_rowTypes";
+import { InterceptedRequestSchema } from "../../mitm/inspector/types";
+import type { InterceptedRequest } from "../../mitm/inspector/types";
 
 interface InspectorSessionDbRow {
   id: string;
@@ -114,4 +116,42 @@ export function deleteSession(id: string): void {
   const db = getDbInstance();
   // Cascade via FK ON DELETE CASCADE for inspector_session_requests
   db.prepare("DELETE FROM inspector_sessions WHERE id = ?").run(id);
+}
+
+/**
+ * Return a parsed + validated snapshot of all requests for the given session,
+ * sorted by ascending seq.
+ *
+ * Returns null when the session does not exist.
+ * Rows whose payload fails InterceptedRequestSchema validation are silently
+ * skipped (defensive — protects callers from corrupt/partial rows).
+ *
+ * Satisfies master-plan §3.8 (F2 spec) named-export contract.
+ */
+export function snapshotSession(sessionId: string): InterceptedRequest[] | null {
+  // 1. Verify session exists.
+  const session = getSession(sessionId);
+  if (session === null) return null;
+
+  // 2. Retrieve raw rows (already ordered by seq ASC).
+  const rawRows = getSessionRequests(sessionId);
+
+  // 3. Parse each payload JSON, validate via Zod schema, skip bad rows.
+  const results: InterceptedRequest[] = [];
+  for (const row of rawRows) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(row.payload);
+    } catch {
+      // Corrupt JSON — skip.
+      continue;
+    }
+    const result = InterceptedRequestSchema.safeParse(parsed);
+    if (result.success) {
+      results.push(result.data as InterceptedRequest);
+    }
+    // Invalid rows are silently skipped per defensive contract.
+  }
+
+  return results;
 }

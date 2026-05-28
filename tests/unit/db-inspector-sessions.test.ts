@@ -147,3 +147,54 @@ test("getSessionRequests returns empty array for session with no requests", () =
   const requests = mod.getSessionRequests(id);
   assert.deepEqual(requests, []);
 });
+
+function makeValidInterceptedPayload(overrides: Record<string, unknown> = {}): string {
+  return JSON.stringify({
+    id: crypto.randomUUID(),
+    source: "agent-bridge",
+    timestamp: new Date().toISOString(),
+    method: "POST",
+    host: "api.example.com",
+    path: "/v1/chat/completions",
+    requestHeaders: { "content-type": "application/json" },
+    requestBody: null,
+    requestSize: 0,
+    responseHeaders: {},
+    responseBody: null,
+    responseSize: 0,
+    status: 200,
+    ...overrides,
+  });
+}
+
+test("snapshotSession returns parsed InterceptedRequest[] in seq order", () => {
+  const { id } = mod.createSession();
+  mod.appendSessionRequest(id, makeValidInterceptedPayload({ path: "/req-1" }));
+  mod.appendSessionRequest(id, makeValidInterceptedPayload({ path: "/req-2" }));
+  mod.appendSessionRequest(id, makeValidInterceptedPayload({ path: "/req-3" }));
+
+  const snapshot = mod.snapshotSession(id);
+  assert.ok(snapshot !== null);
+  assert.equal(snapshot.length, 3);
+  assert.equal(snapshot[0].path, "/req-1");
+  assert.equal(snapshot[1].path, "/req-2");
+  assert.equal(snapshot[2].path, "/req-3");
+});
+
+test("snapshotSession returns null for non-existent session", () => {
+  const snapshot = mod.snapshotSession("00000000-0000-4000-8000-000000000000");
+  assert.equal(snapshot, null);
+});
+
+test("snapshotSession silently skips rows that fail schema validation", () => {
+  const { id } = mod.createSession();
+  mod.appendSessionRequest(id, makeValidInterceptedPayload({ path: "/good" }));
+  mod.appendSessionRequest(id, JSON.stringify({ malformed: true }));
+  mod.appendSessionRequest(id, makeValidInterceptedPayload({ path: "/good-2" }));
+
+  const snapshot = mod.snapshotSession(id);
+  assert.ok(snapshot !== null);
+  assert.equal(snapshot.length, 2);
+  assert.equal(snapshot[0].path, "/good");
+  assert.equal(snapshot[1].path, "/good-2");
+});

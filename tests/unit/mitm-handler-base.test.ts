@@ -23,6 +23,13 @@ class TestHandler extends MitmHandlerBase {
   ): Promise<ReturnType<MitmHandlerBase["hookBufferStart"]>> {
     return this.hookBufferStart(req, body, mapped);
   }
+
+  publicHookUpdate(
+    intercepted: Parameters<MitmHandlerBase["hookBufferUpdate"]>[0],
+    opts?: Parameters<MitmHandlerBase["hookBufferUpdate"]>[1]
+  ): void {
+    return this.hookBufferUpdate(intercepted, opts);
+  }
 }
 
 function fakeReq(headers: Record<string, string> = {}): IncomingMessage {
@@ -85,6 +92,45 @@ test("base.hookBufferStart — body is captured (default shouldCaptureBody=true)
   const r = await h.publicHookStart(req, body, "x");
   assert.equal(r.requestSize, body.length);
   assert.ok(typeof r.requestBody === "string");
+});
+
+test("base.hookBufferUpdate — no-arg form (per spec §3.5) derives completion data from intercepted", async () => {
+  const h = new TestHandler();
+  const req = fakeReq();
+  const body = Buffer.from(JSON.stringify({ model: "gpt-4o", messages: [] }));
+  const intercepted = await h.publicHookStart(req, body, "gpt-4o-mapped");
+
+  // Mutate the completion fields on `intercepted` to simulate a finished request.
+  intercepted.status = 200;
+  intercepted.responseHeaders = { "content-type": "application/json" };
+  intercepted.responseBody = JSON.stringify({ ok: true });
+  intercepted.responseSize = 12;
+  intercepted.proxyLatencyMs = 5;
+  intercepted.upstreamLatencyMs = 120;
+
+  // Per master-plan §3.5, hookBufferUpdate(intercepted) without opts must
+  // succeed and update the buffer using fields already on `intercepted`.
+  // The local stub treats hook as absent, so this is effectively a no-op
+  // but must NOT throw.
+  assert.doesNotThrow(() => h.publicHookUpdate(intercepted));
+});
+
+test("base.hookBufferUpdate — extended opts form still works", async () => {
+  const h = new TestHandler();
+  const req = fakeReq();
+  const body = Buffer.from(JSON.stringify({ messages: [] }));
+  const intercepted = await h.publicHookStart(req, body, "mapped");
+
+  assert.doesNotThrow(() =>
+    h.publicHookUpdate(intercepted, {
+      status: 200,
+      responseHeaders: {},
+      responseBody: null,
+      responseSize: 0,
+      proxyLatencyMs: 1,
+      upstreamLatencyMs: 2,
+    })
+  );
 });
 
 test("base.writeError — writes sanitized JSON error body", async () => {

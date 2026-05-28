@@ -250,6 +250,13 @@ export abstract class MitmHandlerBase {
   /**
    * Update a previously published Traffic Inspector entry with completion data.
    * No-op when the inspector module is not present.
+   *
+   * Per master-plan §3.5: the canonical no-arg form `hookBufferUpdate(intercepted)`
+   * must update the buffer using completion fields already present on `intercepted`
+   * (status, responseBody, responseHeaders, responseSize, *LatencyMs). When the
+   * extended `opts` form is used (legacy internal callers), it overrides those
+   * fields explicitly. Both forms route through `recordRequestComplete` so the
+   * inspector receives a consistent shape.
    */
   protected hookBufferUpdate(
     intercepted: InterceptedRequest,
@@ -262,11 +269,18 @@ export abstract class MitmHandlerBase {
       upstreamLatencyMs: number;
     },
   ): void {
-    if (!opts) return;
+    const finalOpts = opts ?? {
+      status: typeof intercepted.status === "number" ? intercepted.status : 0,
+      responseHeaders: intercepted.responseHeaders,
+      responseBody: intercepted.responseBody,
+      responseSize: intercepted.responseSize,
+      proxyLatencyMs: intercepted.proxyLatencyMs ?? 0,
+      upstreamLatencyMs: intercepted.upstreamLatencyMs ?? 0,
+    };
     void loadAgentBridgeHook().then((hook) => {
       if (hook?.recordRequestComplete) {
         try {
-          hook.recordRequestComplete(intercepted, opts);
+          hook.recordRequestComplete(intercepted, finalOpts);
         } catch {
           // Hook should never break interception.
         }
