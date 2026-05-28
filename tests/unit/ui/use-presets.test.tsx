@@ -2,33 +2,32 @@
 // tests/unit/ui/use-presets.test.tsx
 // Runs via Vitest (vitest.config.ts)
 // Uses React DOM directly (no @testing-library/dom dep required).
-import React from "react";
-import { act } from "react";
+import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   usePresets,
 } from "../../../src/app/(dashboard)/dashboard/playground/hooks/usePresets";
-import type { UsePresets } from "../../../src/app/(dashboard)/dashboard/playground/hooks/usePresets";
 import type { PlaygroundPresetListItem } from "../../../src/shared/schemas/playground";
 
 // ─── Minimal hook test harness ────────────────────────────────────────────────
 
-interface HookCapture<T> {
-  current: T;
-}
+type HookResult<T> = { current: T };
 
 function mountHook<T>(useHook: () => T): {
-  result: HookCapture<T>;
+  hookRef: HookResult<T>;
   unmount: () => void;
 } {
-  const result: HookCapture<T> = { current: undefined as unknown as T };
+  const hookRef: HookResult<T> = { current: undefined as unknown as T };
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
 
   function HookComponent() {
-    result.current = useHook();
+    const captureRef = useRef<T>(undefined as unknown as T);
+    captureRef.current = useHook();
+    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
+    hookRef.current = captureRef.current;
     return null;
   }
 
@@ -37,7 +36,7 @@ function mountHook<T>(useHook: () => T): {
   });
 
   return {
-    result,
+    hookRef,
     unmount: () => {
       act(() => root.unmount());
       container.remove();
@@ -81,7 +80,7 @@ describe("usePresets", () => {
       const mockFetch = mockFetchOnce({ presets: [MOCK_PRESET] });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       await act(async () => {
         await result.current.list();
@@ -99,7 +98,7 @@ describe("usePresets", () => {
       const mockFetch = mockFetchOnce({ error: { message: "Unauthorized" } }, 401);
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       await act(async () => {
         await result.current.list();
@@ -113,7 +112,7 @@ describe("usePresets", () => {
     it("sets error when fetch throws a network error", async () => {
       vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       await act(async () => {
         await result.current.list();
@@ -141,7 +140,7 @@ describe("usePresets", () => {
         });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
       const input = {
         name: "Test Preset",
         endpoint: "chat.completions",
@@ -176,7 +175,7 @@ describe("usePresets", () => {
       const mockFetch = mockFetchOnce({ error: { message: "Bad request" } }, 400);
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       let created: PlaygroundPresetListItem | null = null;
       await act(async () => {
@@ -206,7 +205,7 @@ describe("usePresets", () => {
         });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
       const patch = { name: "Updated" };
 
       let res: PlaygroundPresetListItem | null = null;
@@ -240,7 +239,7 @@ describe("usePresets", () => {
         });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       await act(async () => {
         await result.current.remove(MOCK_PRESET.id);
@@ -260,7 +259,7 @@ describe("usePresets", () => {
       const mockFetch = mockFetchOnce({ error: { message: "Not found" } }, 404);
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       await act(async () => {
         await result.current.remove("nonexistent-id");
@@ -276,7 +275,7 @@ describe("usePresets", () => {
       const mockFetch = mockFetchOnce({ presets: [] });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { result, unmount } = mountHook(() => usePresets());
+      const { hookRef: result, unmount } = mountHook(() => usePresets());
 
       await act(async () => {
         await result.current.list();

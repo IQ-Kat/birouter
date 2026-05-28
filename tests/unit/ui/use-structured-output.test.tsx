@@ -2,8 +2,7 @@
 // tests/unit/ui/use-structured-output.test.tsx
 // Runs via Vitest (vitest.config.ts)
 // Uses React DOM directly (no @testing-library/dom dep required).
-import React from "react";
-import { act } from "react";
+import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect } from "vitest";
 import {
@@ -12,21 +11,22 @@ import {
 
 // ─── Minimal hook test harness ────────────────────────────────────────────────
 
-interface HookCapture<T> {
-  current: T;
-}
+type HookResult<T> = { current: T };
 
 function mountHook<T>(useHook: () => T): {
-  result: HookCapture<T>;
+  hookRef: HookResult<T>;
   unmount: () => void;
 } {
-  const result: HookCapture<T> = { current: undefined as unknown as T };
+  const hookRef: HookResult<T> = { current: undefined as unknown as T };
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
 
   function HookComponent() {
-    result.current = useHook();
+    const captureRef = useRef<T>(undefined as unknown as T);
+    captureRef.current = useHook();
+    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
+    hookRef.current = captureRef.current;
     return null;
   }
 
@@ -35,7 +35,7 @@ function mountHook<T>(useHook: () => T): {
   });
 
   return {
-    result,
+    hookRef,
     unmount: () => {
       act(() => root.unmount());
       container.remove();
@@ -73,7 +73,7 @@ const VALID_SCHEMA_NO_REQUIRED = {
 describe("useStructuredOutput", () => {
   describe("initial state", () => {
     it("starts with enabled=false, schema=null, error=null", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
       expect(result.current.enabled).toBe(false);
       expect(result.current.schema).toBeNull();
       expect(result.current.error).toBeNull();
@@ -83,7 +83,7 @@ describe("useStructuredOutput", () => {
 
   describe("setEnabled()", () => {
     it("sets enabled to true", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setEnabled(true);
@@ -94,7 +94,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("toggles enabled back to false", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setEnabled(true);
@@ -108,7 +108,7 @@ describe("useStructuredOutput", () => {
 
   describe("setSchema()", () => {
     it("accepts a valid schema and clears error", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA);
@@ -120,7 +120,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("sets error when schema name is empty", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema({ name: "", schema: { type: "object" } });
@@ -132,7 +132,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("sets error when name is too long (>64 chars)", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema({ name: "a".repeat(65), schema: { type: "object" } });
@@ -143,7 +143,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("clears error after previously invalid schema when valid one is set", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema({ name: "", schema: {} });
@@ -159,7 +159,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("accepts schema with strict=false", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema({ ...VALID_SCHEMA, strict: false });
@@ -171,7 +171,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("accepts schema without strict field", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA_NO_REQUIRED);
@@ -185,7 +185,7 @@ describe("useStructuredOutput", () => {
 
   describe("validateResponse()", () => {
     it("returns { valid: false, error } when no schema is set", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       const res = result.current.validateResponse({ temperature: 25, condition: "sunny" });
 
@@ -195,7 +195,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("parses JSON string and validates correctly", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA);
@@ -209,7 +209,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("returns { valid: false } when content is not valid JSON string", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA);
@@ -223,7 +223,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("validates object directly (no JSON.parse needed)", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA);
@@ -235,7 +235,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("returns { valid: false } when required field is missing", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA);
@@ -248,7 +248,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("returns { valid: false } when content is null", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA_NO_REQUIRED);
@@ -260,7 +260,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("returns { valid: false } when content is an array", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA_NO_REQUIRED);
@@ -272,7 +272,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("passes validation for schema without required field", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema(VALID_SCHEMA_NO_REQUIRED);
@@ -284,7 +284,7 @@ describe("useStructuredOutput", () => {
     });
 
     it("passes validation for schema with no properties field", () => {
-      const { result, unmount } = mountHook(() => useStructuredOutput());
+      const { hookRef: result, unmount } = mountHook(() => useStructuredOutput());
 
       act(() => {
         result.current.setSchema({ name: "AnyObj", schema: { type: "object" } });

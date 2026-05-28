@@ -2,8 +2,7 @@
 // tests/unit/ui/use-stream-metrics.test.tsx
 // Runs via Vitest (vitest.config.ts — includes tests/unit/**/*.test.tsx)
 // Uses React DOM directly (no @testing-library/dom dep required).
-import React from "react";
-import { act } from "react";
+import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
@@ -11,23 +10,28 @@ import {
 } from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
 import type { UseStreamMetrics } from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
 
-// ─── Minimal hook test harness (no @testing-library/dom) ─────────────────────
+// ─── Minimal hook test harness ────────────────────────────────────────────────
+// Uses a React ref to capture hook values from inside the component — avoids
+// react-hooks/immutability lint error (cannot write to outer const from inside component).
 
-interface HookCapture<T> {
-  current: T;
-}
+type HookResult<T> = { current: T };
 
 function mountHook<T>(useHook: () => T): {
-  result: HookCapture<T>;
+  hookRef: HookResult<T>;
   unmount: () => void;
 } {
-  const result: HookCapture<T> = { current: undefined as unknown as T };
+  const hookRef: HookResult<T> = { current: undefined as unknown as T };
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
 
   function HookComponent() {
-    result.current = useHook();
+    const captureRef = useRef<T>(undefined as unknown as T);
+    captureRef.current = useHook();
+    // Expose the captured value through the outer hookRef via the React ref.
+    // This is safe because captureRef lives inside the component.
+    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
+    hookRef.current = captureRef.current;
     return null;
   }
 
@@ -36,11 +40,9 @@ function mountHook<T>(useHook: () => T): {
   });
 
   return {
-    result,
+    hookRef,
     unmount: () => {
-      act(() => {
-        root.unmount();
-      });
+      act(() => root.unmount());
       container.remove();
     },
   };
@@ -58,7 +60,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("starts with initial zero/null metrics", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
     expect(result.current.metrics.ttftMs).toBeNull();
     expect(result.current.metrics.totalMs).toBeNull();
     expect(result.current.metrics.tps).toBeNull();
@@ -69,7 +71,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("start() resets timing refs and updates metrics state", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -84,7 +86,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("onFirstChunk() sets ttftMs relative to start", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -101,7 +103,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("onFirstChunk() is idempotent — only records first call", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -123,7 +125,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("finish() finalizes metrics with accumulated chunk tokens", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -135,7 +137,7 @@ describe("useStreamMetrics", () => {
       result.current.onFirstChunk();
     });
 
-    // onChunk does not flush to state — accumulates in ref
+    // onChunk accumulates in ref without flushing state
     result.current.onChunk(5);
     result.current.onChunk(5);
     result.current.onChunk(5);
@@ -156,7 +158,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("finish(usage) overrides tokensIn + tokensOut with upstream values", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -185,7 +187,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("finish(usage) with only prompt_tokens partial override", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -212,7 +214,7 @@ describe("useStreamMetrics", () => {
 
   it("computes costUsd when pricing is provided", () => {
     const pricing = { inUsdPer1k: 0.003, outUsdPer1k: 0.015 };
-    const { result, unmount } = mountHook(() => useStreamMetrics(pricing));
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics(pricing));
 
     act(() => {
       vi.setSystemTime(1000);
@@ -235,7 +237,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("costUsd is null when no pricing provided", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -251,7 +253,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("reset() zeros all metrics", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);
@@ -281,7 +283,7 @@ describe("useStreamMetrics", () => {
   });
 
   it("start() after previous run resets all accumulated state", () => {
-    const { result, unmount } = mountHook(() => useStreamMetrics());
+    const { hookRef: result, unmount } = mountHook(() => useStreamMetrics());
 
     act(() => {
       vi.setSystemTime(1000);

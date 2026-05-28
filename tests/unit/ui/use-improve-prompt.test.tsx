@@ -2,8 +2,7 @@
 // tests/unit/ui/use-improve-prompt.test.tsx
 // Runs via Vitest (vitest.config.ts)
 // Uses React DOM directly (no @testing-library/dom dep required).
-import React from "react";
-import { act } from "react";
+import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
@@ -13,21 +12,22 @@ import type { ImprovePromptResult } from "../../../src/lib/playground/promptImpr
 
 // ─── Minimal hook test harness ────────────────────────────────────────────────
 
-interface HookCapture<T> {
-  current: T;
-}
+type HookResult<T> = { current: T };
 
 function mountHook<T>(useHook: () => T): {
-  result: HookCapture<T>;
+  hookRef: HookResult<T>;
   unmount: () => void;
 } {
-  const result: HookCapture<T> = { current: undefined as unknown as T };
+  const hookRef: HookResult<T> = { current: undefined as unknown as T };
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
 
   function HookComponent() {
-    result.current = useHook();
+    const captureRef = useRef<T>(undefined as unknown as T);
+    captureRef.current = useHook();
+    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
+    hookRef.current = captureRef.current;
     return null;
   }
 
@@ -36,7 +36,7 @@ function mountHook<T>(useHook: () => T): {
   });
 
   return {
-    result,
+    hookRef,
     unmount: () => {
       act(() => root.unmount());
       container.remove();
@@ -65,7 +65,7 @@ describe("useImprovePrompt", () => {
   });
 
   it("starts with loading=false and no error", () => {
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
     unmount();
@@ -81,7 +81,7 @@ describe("useImprovePrompt", () => {
       }),
     );
 
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
 
     let returned: ImprovePromptResult | null = null;
     await act(async () => {
@@ -106,7 +106,7 @@ describe("useImprovePrompt", () => {
     });
     vi.stubGlobal("fetch", mockFetch);
 
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
     const req = {
       system: "You are helpful.",
       prompt: "Summarize this.",
@@ -139,7 +139,7 @@ describe("useImprovePrompt", () => {
       }),
     );
 
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
 
     let returned: ImprovePromptResult | null = null;
     await act(async () => {
@@ -158,7 +158,7 @@ describe("useImprovePrompt", () => {
       vi.fn().mockRejectedValue(new Error("Network failure")),
     );
 
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
 
     let returned: ImprovePromptResult | null = null;
     await act(async () => {
@@ -189,7 +189,7 @@ describe("useImprovePrompt", () => {
       });
     vi.stubGlobal("fetch", mockFetch);
 
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
 
     // First call — fails
     await act(async () => {
@@ -215,7 +215,7 @@ describe("useImprovePrompt", () => {
       }),
     );
 
-    const { result, unmount } = mountHook(() => useImprovePrompt());
+    const { hookRef: result, unmount } = mountHook(() => useImprovePrompt());
 
     await act(async () => {
       await result.current.improve({ prompt: "test", model: "gpt-4o" });

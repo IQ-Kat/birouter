@@ -2,8 +2,7 @@
 // tests/unit/ui/use-tools-builder.test.tsx
 // Runs via Vitest (vitest.config.ts)
 // Uses React DOM directly (no @testing-library/dom dep required).
-import React from "react";
-import { act } from "react";
+import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect } from "vitest";
 import {
@@ -13,21 +12,22 @@ import type { ToolDefinition } from "../../../src/lib/playground/codeExport";
 
 // ─── Minimal hook test harness ────────────────────────────────────────────────
 
-interface HookCapture<T> {
-  current: T;
-}
+type HookResult<T> = { current: T };
 
 function mountHook<T>(useHook: () => T): {
-  result: HookCapture<T>;
+  hookRef: HookResult<T>;
   unmount: () => void;
 } {
-  const result: HookCapture<T> = { current: undefined as unknown as T };
+  const hookRef: HookResult<T> = { current: undefined as unknown as T };
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
 
   function HookComponent() {
-    result.current = useHook();
+    const captureRef = useRef<T>(undefined as unknown as T);
+    captureRef.current = useHook();
+    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
+    hookRef.current = captureRef.current;
     return null;
   }
 
@@ -36,7 +36,7 @@ function mountHook<T>(useHook: () => T): {
   });
 
   return {
-    result,
+    hookRef,
     unmount: () => {
       act(() => root.unmount());
       container.remove();
@@ -73,7 +73,7 @@ const VALID_TOOL_2: ToolDefinition = {
 describe("useToolsBuilder", () => {
   describe("initial state", () => {
     it("starts with empty tools and empty errors", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
       expect(result.current.tools).toHaveLength(0);
       expect(result.current.errors.size).toBe(0);
       unmount();
@@ -82,7 +82,7 @@ describe("useToolsBuilder", () => {
 
   describe("add()", () => {
     it("returns { ok: false, error } when tool has empty name", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       const invalidTool = {
         type: "function" as const,
@@ -101,7 +101,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("returns { ok: false } when type is not 'function'", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       const invalidTool = {
         type: "not-function" as unknown as "function",
@@ -119,7 +119,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("adds a valid tool and returns { ok: true }", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       let outcome: ReturnType<typeof result.current.add> | undefined;
       act(() => {
@@ -133,7 +133,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("adds multiple valid tools", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -145,7 +145,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("does not add to tools when validation fails", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -159,7 +159,7 @@ describe("useToolsBuilder", () => {
 
   describe("remove()", () => {
     it("removes tool at given index", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -176,7 +176,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("is a no-op when index is out of bounds", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -191,7 +191,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("re-indexes errors after remove", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -219,7 +219,7 @@ describe("useToolsBuilder", () => {
 
   describe("update()", () => {
     it("updates a tool at given index after validation", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -242,7 +242,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("returns { ok: false, error } and stores error when validation fails", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -264,7 +264,7 @@ describe("useToolsBuilder", () => {
     });
 
     it("clears error for that index on successful update", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
@@ -285,7 +285,7 @@ describe("useToolsBuilder", () => {
 
   describe("clear()", () => {
     it("removes all tools and clears all errors", () => {
-      const { result, unmount } = mountHook(() => useToolsBuilder());
+      const { hookRef: result, unmount } = mountHook(() => useToolsBuilder());
 
       act(() => {
         result.current.add(VALID_TOOL);
