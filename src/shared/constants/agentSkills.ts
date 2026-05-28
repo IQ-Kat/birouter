@@ -431,16 +431,3 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
   },
 ];
 
-// ── Backward-compatible re-export ─────────────────────────────────────────────
-// TODO(F7): Remove AGENT_SKILLS alias once AgentSkillsPageClient is rewritten.
-// The old shape expected `endpoint` (singular string | null) instead of `endpoints` (array).
-// This shim preserves the old dashboard until F7 rewrites it.
-
-/** @deprecated Use getCatalog() from src/lib/agentSkills/catalog.ts instead. */
-export const AGENT_SKILLS: AgentSkill[] = CURATED_SKILLS.map((s) => ({
-  ...s,
-  endpoints: s.category === "api" ? [] : undefined,
-  cliCommands: s.category === "cli" ? [] : undefined,
-  rawUrl: getAgentSkillRawUrl(s.id),
-  githubUrl: getAgentSkillBlobUrl(s.id),
-}));
