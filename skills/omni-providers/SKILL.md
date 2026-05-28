@@ -177,3 +177,53 @@ curl https://localhost:20128/api/provider-models \
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+
+<!-- skill:custom-start -->
+## Additional endpoints
+
+### POST /api/providers/{id}/refresh
+
+Rotate / refresh OAuth tokens or re-validate credentials for a provider connection. Useful after token expiration or when credentials need to be renewed without deleting the connection.
+
+```bash
+curl -X POST https://localhost:20128/api/providers/{id}/refresh \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/provider-metrics
+
+Retrieve aggregated usage and performance metrics for all provider connections (request counts, error rates, latency percentiles, token usage). Used by dashboards and Auto-Combo scoring.
+
+```bash
+curl https://localhost:20128/api/provider-metrics \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+**Response example:**
+```json
+{
+  "providers": [
+    {
+      "id": "my-openai",
+      "requestCount": 1240,
+      "errorRate": 0.02,
+      "p50LatencyMs": 340,
+      "p99LatencyMs": 1200,
+      "tokensIn": 500000,
+      "tokensOut": 250000
+    }
+  ]
+}
+```
+
+### GET /api/providers/health-matrix
+
+Returns a health-matrix view of all providers with per-connection status, circuit-breaker state, and cooldown expiry. Useful for debugging routing decisions.
+
+```bash
+curl https://localhost:20128/api/providers/health-matrix \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+<!-- skill:custom-end -->
