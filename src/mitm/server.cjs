@@ -13,13 +13,21 @@ function getDataDir() {
 }
 
 // Configuration
-// Keep in sync with src/mitm/targets/antigravity.ts
+// Keep in sync with src/mitm/targets/antigravity.ts. Antigravity hosts are the
+// historical baseline — they remain hard-coded so the proxy keeps working even
+// if targets.json is missing or unreadable.
+// T-A-F3: baseline set extended at runtime via loadDynamicTargets() below.
 const TARGET_HOSTS = new Set([
   "daily-cloudcode-pa.sandbox.googleapis.com",
   "daily-cloudcode-pa.googleapis.com",
   "cloudcode-pa.googleapis.com",
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ]);
+
+// T-A-F3: track which agent each host belongs to (for logging only).
+const TARGET_HOST_AGENT = new Map();
+for (const h of TARGET_HOSTS) TARGET_HOST_AGENT.set(h, "antigravity");
+
 const parsedLocalPort = Number.parseInt(process.env.MITM_LOCAL_PORT || "443", 10);
 const LOCAL_PORT =
   Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
@@ -37,6 +45,44 @@ const API_KEY = process.env.ROUTER_API_KEY;
 const DATA_DIR = getDataDir();
 const DB_FILE = path.join(DATA_DIR, "db.json");
 const SQLITE_FILE = path.join(DATA_DIR, "storage.sqlite");
+
+// T-A-F3: dynamic-targets file written by manager.writeTargetsJson() (F3).
+// Schema: { targets: Array<{ id, hosts: string[] }> }. Missing/invalid file
+// is non-fatal — we keep the baseline antigravity hosts so existing installs
+// continue to function while AgentBridge targets roll out.
+const TARGETS_JSON_FILE = path.join(DATA_DIR, "mitm", "targets.json");
+function loadDynamicTargets() {
+  try {
+    if (!fs.existsSync(TARGETS_JSON_FILE)) return 0;
+    const raw = fs.readFileSync(TARGETS_JSON_FILE, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.targets)) return 0;
+    let added = 0;
+    for (const t of parsed.targets) {
+      if (!t || typeof t !== "object") continue;
+      const id = typeof t.id === "string" ? t.id : "unknown";
+      const hosts = Array.isArray(t.hosts) ? t.hosts : [];
+      for (const host of hosts) {
+        if (typeof host !== "string" || !host) continue;
+        const lower = host.toLowerCase();
+        if (!TARGET_HOSTS.has(lower)) {
+          TARGET_HOSTS.add(lower);
+          TARGET_HOST_AGENT.set(lower, id);
+          added++;
+        }
+      }
+    }
+    return added;
+  } catch (err) {
+    console.error(`[MITM] Failed to load targets.json: ${err.message}`);
+    return 0;
+  }
+}
+// T-A-F3: load dynamic targets at startup; antigravity baseline remains intact.
+const _dynamicAdded = loadDynamicTargets();
+if (_dynamicAdded > 0) {
+  console.log(`[MITM] Loaded ${_dynamicAdded} additional host(s) from targets.json`);
+}
 
 let _sqliteDb = null;
 
