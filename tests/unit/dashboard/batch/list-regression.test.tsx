@@ -341,7 +341,7 @@ describe("FilesListTab — rendering", () => {
     expect(el.textContent).toContain("filesListUsedByColumn");
   });
 
-  it("13. files with related batches (via inputFileId) show batch ID in used-by column", () => {
+  it("13. files with related batches (via inputFileId) show batch ID + role in used-by column", () => {
     const file = makeFile({ id: "file-used", purpose: "batch" });
     const batches = [
       {
@@ -357,7 +357,14 @@ describe("FilesListTab — rendering", () => {
     const el = render(
       <FilesListTab files={[file]} loading={false} batches={batches} />
     );
-    expect(el.textContent).toContain("batch-using-file");
+    // Truncated id prefix (12 chars) appears inline
+    expect(el.textContent).toContain("batch-using-");
+    // Role label is rendered next to the id (G-AUD1 — plan §4 "b1 (input)")
+    expect(el.textContent).toContain("filesListUsedByRoleInput");
+    // Tooltip carries the full id + role
+    const cell = el.querySelector("[title*='batch-using-file']");
+    expect(cell).not.toBeNull();
+    expect(cell?.getAttribute("title")).toContain("filesListUsedByRoleInput");
   });
 
   it("14. loading state shows spinner", () => {

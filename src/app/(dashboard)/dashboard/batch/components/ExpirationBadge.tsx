@@ -34,6 +34,10 @@ export default function ExpirationBadge({ expiresAt, variant = "default" }: Prop
       </span>
     );
   }
+  // D11 tiers: <1h critical (red) · <6h warning (yellow) · else normal (green).
+  // Plan specifies "<24h normal" — in practice batches always expire ≤24h (OpenAI window),
+  // so "else" maps to that case. If a provider (e.g. Gemini 48h) yields remaining >24h,
+  // we still render normal — graceful, no separate tier needed.
   let tone = "bg-emerald-500/15 text-emerald-400 border-emerald-500/25";
   let label = t("expirationBadgeNormal");
   if (remaining < 3600) {

@@ -249,31 +249,44 @@ export default function FilesListTab({
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {formatBytes(file.bytes)}
                     </td>
-                    {/* "Used by" column (D12) */}
+                    {/* "Used by" column (D12) — shows batch id + role (input/output/error) per plan §4 */}
                     <td className="px-4 py-3 text-xs">
                       {related.length === 0 ? (
                         <span className="text-[var(--color-text-muted)]">
                           {t("filesListUsedByNone")}
                         </span>
                       ) : (
-                        <div
-                          className="flex flex-col gap-0.5"
-                          title={related.map((b) => b.id).join(", ")}
-                        >
-                          {related.slice(0, 2).map((b) => (
-                            <span
-                              key={b.id}
-                              className="font-mono text-[10px] text-[var(--color-text-main)]"
+                        (() => {
+                          const roleFor = (b: BatchRecord): string =>
+                            b.inputFileId === file.id
+                              ? t("filesListUsedByRoleInput")
+                              : b.outputFileId === file.id
+                                ? t("filesListUsedByRoleOutput")
+                                : t("filesListUsedByRoleError");
+                          return (
+                            <div
+                              className="flex flex-col gap-0.5"
+                              title={related.map((b) => `${b.id} (${roleFor(b)})`).join(", ")}
                             >
-                              {b.id.slice(0, 16)}…
-                            </span>
-                          ))}
-                          {related.length > 2 && (
-                            <span className="text-[10px] text-[var(--color-text-muted)]">
-                              +{related.length - 2}
-                            </span>
-                          )}
-                        </div>
+                              {related.slice(0, 2).map((b) => (
+                                <span
+                                  key={b.id}
+                                  className="font-mono text-[10px] text-[var(--color-text-main)]"
+                                >
+                                  {b.id.slice(0, 12)}…{" "}
+                                  <span className="text-[var(--color-text-muted)]">
+                                    ({roleFor(b)})
+                                  </span>
+                                </span>
+                              ))}
+                              {related.length > 2 && (
+                                <span className="text-[10px] text-[var(--color-text-muted)]">
+                                  +{related.length - 2}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">

@@ -782,7 +782,11 @@
     "batchDetailCancelConfirm": "Cancel this batch? In-progress requests will stop.",
     "batchActionCancelError": "Failed to cancel batch. Try again.",
     "batchActionRetryError": "Failed to retry failed requests. Try again.",
-    "batchConceptRetentionNote": "Results and error files are retained for 30 days (Anthropic: 29 days)"
+    "batchConceptRetentionNote": "Results and error files are retained for 30 days (Anthropic: 29 days)",
+    "filesListUsedByRoleInput": "input",
+    "filesListUsedByRoleOutput": "output",
+    "filesListUsedByRoleError": "error",
+    "batchListProgressPartial": "(partial)"
   },
   "sidebar": {
     "home": "Otthon",

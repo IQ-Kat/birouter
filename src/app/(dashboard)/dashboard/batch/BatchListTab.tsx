@@ -453,7 +453,7 @@ export default function BatchListTab({
                     <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">
                       {batch.model ?? "—"}
                     </td>
-                    {/* Progress — ProgressBarBicolor from F3; spinner when validating (G2) */}
+                    {/* Progress — ProgressBarBicolor from F3; spinner when validating (G2); (partial) suffix when expired with failures (G-AUD3) */}
                     <td className="px-4 py-3 min-w-[140px]">
                       {batch.status === "validating" ? (
                         <div className="flex items-center gap-2 text-xs text-yellow-400">
@@ -461,19 +461,31 @@ export default function BatchListTab({
                           Validating…
                         </div>
                       ) : total > 0 ? (
-                        <ProgressBarBicolor
-                          total={total}
-                          completed={done}
-                          failed={failed}
-                          showLabels
-                        />
+                        <div className="flex flex-col gap-0.5">
+                          <ProgressBarBicolor
+                            total={total}
+                            completed={done}
+                            failed={failed}
+                            showLabels
+                          />
+                          {effectiveStatus(batch) === "expired_with_failures" && (
+                            <span className="text-[10px] text-orange-400 italic">
+                              {t("batchListProgressPartial")}
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-xs text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
-                    {/* Cost column — heuristic estimate (D8) */}
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
-                      {estimatedCost}
+                    {/* Cost column — heuristic estimate (D8) with -50% badge per wireframe §3 (G-AUD2) */}
+                    <td className="px-4 py-3 text-xs whitespace-nowrap">
+                      <span className="text-[var(--color-text-muted)]">{estimatedCost}</span>
+                      {estimatedCost !== "—" && (
+                        <span className="ml-1 text-[10px] text-emerald-500/90 bg-emerald-500/10 rounded px-1 py-0.5 align-middle">
+                          -50%
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {relativeTime(batch.createdAt)}
