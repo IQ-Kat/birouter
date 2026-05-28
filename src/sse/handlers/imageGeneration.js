@@ -9,6 +9,7 @@ import { getSettings } from "@/lib/localDb";
 import { getModelInfo, getComboModels } from "../services/model.js";
 import { handleImageGenerationCore } from "open-sse/handlers/imageGenerationCore.js";
 import { checkRateLimit, rateLimitHeaders } from "../services/rateLimiter.js";
+import { acquirePacingSlot } from "../services/smartPacing.js";
 import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
 import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh.js";
@@ -118,6 +119,15 @@ async function handleSingleModelImage(body, modelStr, { wantsStream, binaryOutpu
 
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
 
+    // Smart Pacing
+    const pacingSlot = await acquirePacingSlot({
+      connectionId: credentials.connectionId,
+      provider,
+      settings,
+      headers: null,
+    });
+
+    try {
     const result = await handleImageGenerationCore({
       body,
       modelInfo: { provider, model },
@@ -149,5 +159,8 @@ async function handleSingleModelImage(body, modelStr, { wantsStream, binaryOutpu
     }
 
     return result.response;
+    } finally {
+      pacingSlot.release();
+    }
   }
 }

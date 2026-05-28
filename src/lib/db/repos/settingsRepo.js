@@ -38,6 +38,11 @@ const DEFAULT_SETTINGS = {
   cavemanLevel: "full",
   rateLimitEnabled: false,
   rateLimitRpm: 60,
+  smartPacingEnabled: true,
+  smartPacingMode: "auto",
+  smartPacingProviderProfiles: {},
+  fingerprintEnabled: true,
+  stickyProxyEnabled: true,
 };
 
 async function readRaw() {

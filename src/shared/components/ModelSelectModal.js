@@ -45,6 +45,7 @@ export default function ModelSelectModal({
   const [providerNodes, setProviderNodes] = useState([]);
   const [customModels, setCustomModels] = useState([]);
   const [disabledModels, setDisabledModels] = useState({});
+  const [contextMap, setContextMap] = useState({});
 
   const fetchCombos = async () => {
     try {
@@ -108,6 +109,21 @@ export default function ModelSelectModal({
 
   useEffect(() => {
     if (isOpen) fetchDisabledModels();
+  }, [isOpen]);
+
+  const fetchContextMap = async () => {
+    try {
+      const res = await fetch("/api/models/context");
+      if (!res.ok) return;
+      const data = await res.json();
+      setContextMap(data.context || {});
+    } catch {
+      // Non-critical, silently ignore
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) fetchContextMap();
   }, [isOpen]);
 
   const allProviders = useMemo(() => ({ ...OAUTH_PROVIDERS, ...FREE_PROVIDERS, ...FREE_TIER_PROVIDERS, ...APIKEY_PROVIDERS }), []);
@@ -366,6 +382,18 @@ export default function ModelSelectModal({
     }
   };
 
+  // Format context length as human-readable badge (e.g. "128K", "1M")
+  const formatCtx = (len) => {
+    if (!len) return null;
+    if (len >= 1000000) return `${(len / 1000000).toFixed(len % 1000000 === 0 ? 0 : 1)}M`;
+    return `${Math.round(len / 1000)}K`;
+  };
+
+  // Lookup context length for a model by value or id
+  const getModelCtx = (model) => {
+    return contextMap[model.value] || contextMap[model.id] || null;
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -462,11 +490,12 @@ export default function ModelSelectModal({
               {group.models.map((model) => {
                 const isSelected = selectedModel === model.value;
                 const isPlaceholder = model.isPlaceholder;
+                const ctxLabel = formatCtx(getModelCtx(model));
                 return (
                   <button
                     key={model.value}
                     onClick={() => handleSelect(model)}
-                    title={isPlaceholder ? "Select to pre-fill, then edit model ID in the input" : undefined}
+                    title={isPlaceholder ? "Select to pre-fill, then edit model ID in the input" : ctxLabel ? `Context: ${getModelCtx(model).toLocaleString()} tokens` : undefined}
                     className={`
                       px-2 py-1 rounded-xl text-xs font-medium transition-all border hover:cursor-pointer
                       ${isPlaceholder
@@ -495,6 +524,9 @@ export default function ModelSelectModal({
                         </>
                       ) : (
                         model.name
+                      )}
+                      {ctxLabel && !isPlaceholder && (
+                        <span className={`text-[9px] font-normal opacity-60 ${isSelected || addedModelValues.includes(model.value) ? "opacity-80" : ""}`}>{ctxLabel}</span>
                       )}
                     </span>
                   </button>

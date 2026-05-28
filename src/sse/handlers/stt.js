@@ -10,6 +10,7 @@ import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
 import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import * as log from "../utils/logger.js";
+import { acquirePacingSlot } from "../services/smartPacing.js";
 
 // Providers requiring credentials for STT
 const CREDENTIALED_PROVIDERS = new Set(
@@ -86,6 +87,15 @@ export async function handleStt(request) {
 
     log.info("AUTH", `\x1b[32mUsing ${provider} account: ${credentials.connectionName}\x1b[0m`);
 
+    // Smart Pacing
+    const pacingSlot = await acquirePacingSlot({
+      connectionId: credentials.connectionId,
+      provider,
+      settings,
+      headers: request?.headers,
+    });
+
+    try {
     const result = await handleSttCore({ provider, model, formData, credentials });
 
     if (result.success) return result.response;
@@ -98,5 +108,8 @@ export async function handleStt(request) {
       continue;
     }
     return result.response || errorResponse(result.status, result.error);
+    } finally {
+      pacingSlot.release();
+    }
   }
 }

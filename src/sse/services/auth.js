@@ -1,5 +1,6 @@
 import { getProviderConnections, validateApiKey, updateProviderConnection, getSettings } from "@/lib/localDb";
 import { resolveConnectionProxyConfig } from "@/lib/network/connectionProxy";
+import { resolveStickyProxy, trackAndWarnSharedIP } from "./stickyProxy.js";
 import { formatRetryAfter, checkFallbackError, isModelLockActive, buildModelLockUpdate, getEarliestModelLockUntil } from "open-sse/services/accountFallback.js";
 import { MAX_RATE_LIMIT_COOLDOWN_MS } from "open-sse/config/errorConfig.js";
 import { resolveProviderId, FREE_PROVIDERS } from "@/shared/constants/providers.js";
@@ -158,6 +159,22 @@ export async function getProviderCredentials(provider, excludeConnectionIds = nu
 
     const resolvedProxy = await resolveConnectionProxyConfig(connection.providerSpecificData || {});
 
+    // Sticky proxy: override with bound proxy if available
+    let finalProxyUrl = resolvedProxy.connectionProxyUrl;
+    if (settings.stickyProxyEnabled !== false && resolvedProxy.connectionProxyEnabled) {
+      const sticky = await resolveStickyProxy({
+        connectionId: connection.id,
+        providerSpecificData: connection.providerSpecificData,
+        provider: providerId,
+      });
+      if (sticky.proxyUrl) {
+        finalProxyUrl = sticky.proxyUrl;
+      }
+    }
+
+    // Track IP usage and warn if multiple accounts share the same IP
+    trackAndWarnSharedIP(providerId, connection.id, finalProxyUrl || null);
+
     return {
       authType: connection.authType,
       apiKey: connection.apiKey,
@@ -169,7 +186,7 @@ export async function getProviderCredentials(provider, excludeConnectionIds = nu
       providerSpecificData: {
         ...(connection.providerSpecificData || {}),
         connectionProxyEnabled: resolvedProxy.connectionProxyEnabled,
-        connectionProxyUrl: resolvedProxy.connectionProxyUrl,
+        connectionProxyUrl: finalProxyUrl,
         connectionNoProxy: resolvedProxy.connectionNoProxy,
         connectionProxyPoolId: resolvedProxy.proxyPoolId || null,
         vercelRelayUrl: resolvedProxy.vercelRelayUrl || "",

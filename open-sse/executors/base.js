@@ -120,6 +120,11 @@ export class BaseExecutor {
       const transformedBody = this.transformRequest(model, body, stream, credentials);
       const headers = this.buildHeaders(credentials, stream);
 
+      // Fingerprint sanitization: strip leaked/dangerous headers
+      if (this._headerSanitizer) {
+        this._headerSanitizer(headers, this.provider);
+      }
+
       if (!retryAttemptsByUrl[urlIndex]) retryAttemptsByUrl[urlIndex] = 0;
 
       // Abort if upstream doesn't return response headers within FETCH_CONNECT_TIMEOUT_MS

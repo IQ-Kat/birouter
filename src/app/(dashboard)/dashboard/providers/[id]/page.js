@@ -1052,10 +1052,15 @@ export default function ProviderDetailPage() {
                       await handleSetAlias(m.id, alias, providerStorageAlias);
                     }}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
-                    title={m.name || m.id}
+                    title={`${m.name || m.id}${m.contextLength ? ` · ${m.contextLength >= 1000000 ? (m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1) + "M" : Math.round(m.contextLength / 1000) + "K"} ctx` : ""}`}
                   >
                     <span className="material-symbols-outlined text-[13px]">add</span>
                     {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
+                    {m.contextLength && (
+                      <span className="text-[9px] opacity-60 font-normal">
+                        {m.contextLength >= 1000000 ? `${(m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1)}M` : `${Math.round(m.contextLength / 1000)}K`}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

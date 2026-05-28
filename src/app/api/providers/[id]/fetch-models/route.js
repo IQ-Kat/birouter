@@ -68,7 +68,8 @@ function getModelsEndpoint(provider, apiKey, providerSpecificData) {
 }
 
 /**
- * Normalize model list from various provider response formats
+ * Normalize model list from various provider response formats.
+ * Extracts context_length when available from provider API responses.
  */
 function normalizeModels(rawJson, provider) {
   // Gemini returns { models: [...] } with name field like "models/gemini-2.5-flash"
@@ -79,6 +80,7 @@ function normalizeModels(rawJson, provider) {
       .map((m) => ({
         id: m.name.replace("models/", ""),
         name: m.displayName || m.name.replace("models/", ""),
+        ...(m.inputTokenLimit ? { contextLength: m.inputTokenLimit } : {}),
       }));
   }
 
@@ -95,10 +97,14 @@ function normalizeModels(rawJson, provider) {
   const models = rawJson.data || rawJson.models || [];
   if (!Array.isArray(models)) return [];
 
-  return models.map((m) => ({
-    id: m.id || m.name,
-    name: m.name || m.id,
-  })).filter((m) => m.id);
+  return models.map((m) => {
+    const ctx = m.context_length || m.context_window || m.max_model_len || null;
+    return {
+      id: m.id || m.name,
+      name: m.name || m.id,
+      ...(ctx ? { contextLength: ctx } : {}),
+    };
+  }).filter((m) => m.id);
 }
 
 /**

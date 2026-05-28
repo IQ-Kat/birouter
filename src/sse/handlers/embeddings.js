@@ -13,6 +13,7 @@ import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";
 import * as log from "../utils/logger.js";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh.js";
 import { checkRateLimit, rateLimitHeaders } from "../services/rateLimiter.js";
+import { acquirePacingSlot } from "../services/smartPacing.js";
 
 /**
  * Handle embeddings request for the SSE/Next.js server.
@@ -116,6 +117,15 @@ export async function handleEmbeddings(request) {
 
     log.info("AUTH", `\x1b[32mUsing ${provider} account: ${credentials.connectionName}\x1b[0m`);
 
+    // Smart Pacing
+    const pacingSlot = await acquirePacingSlot({
+      connectionId: credentials.connectionId,
+      provider,
+      settings,
+      headers: request?.headers,
+    });
+
+    try {
     const refreshedCredentials = await checkAndRefreshToken(provider, credentials);
 
     const result = await handleEmbeddingsCore({
@@ -149,5 +159,8 @@ export async function handleEmbeddings(request) {
     }
 
     return result.response;
+    } finally {
+      pacingSlot.release();
+    }
   }
 }

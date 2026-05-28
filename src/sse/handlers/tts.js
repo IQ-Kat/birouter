@@ -11,6 +11,7 @@ import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { handleComboChat } from "open-sse/services/combo.js";
 import * as log from "../utils/logger.js";
+import { acquirePacingSlot } from "../services/smartPacing.js";
 
 // Derived from providers.js: any TTS provider not noAuth requires stored credentials
 const CREDENTIALED_PROVIDERS = new Set(
@@ -112,6 +113,15 @@ async function handleSingleModelTts(body, modelStr, responseFormat, language) {
 
     log.info("AUTH", `\x1b[32mUsing ${provider} account: ${credentials.connectionName}\x1b[0m`);
 
+    // Smart Pacing
+    const pacingSlot = await acquirePacingSlot({
+      connectionId: credentials.connectionId,
+      provider,
+      settings,
+      headers: request?.headers,
+    });
+
+    try {
     const result = await handleTtsCore({ provider, model, input: body.input, credentials, responseFormat, language });
 
     if (result.success) return result.response;
@@ -124,5 +134,8 @@ async function handleSingleModelTts(body, modelStr, responseFormat, language) {
       continue;
     }
     return result.response || errorResponse(result.status, result.error);
+    } finally {
+      pacingSlot.release();
+    }
   }
 }

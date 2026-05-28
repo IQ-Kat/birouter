@@ -13,6 +13,7 @@ import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
 import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";
 import * as log from "../utils/logger.js";
 import { updateProviderCredentials, checkAndRefreshToken } from "../services/tokenRefresh.js";
+import { acquirePacingSlot } from "../services/smartPacing.js";
 import { handleComboChat, getComboModelsFromData } from "open-sse/services/combo.js";
 
 /**
@@ -179,6 +180,15 @@ async function handleSingleProviderSearch(body, providerInput, request, apiKey, 
 
     log.info("AUTH", `\x1b[32mUsing ${providerId} account: ${credentials.connectionName}\x1b[0m`);
 
+    // Smart Pacing
+    const pacingSlot = await acquirePacingSlot({
+      connectionId: credentials.connectionId,
+      provider: providerId,
+      settings,
+      headers: request?.headers,
+    });
+
+    try {
     const refreshedCredentials = await checkAndRefreshToken(providerId, credentials);
 
     const result = await handleSearchCore({
@@ -213,5 +223,8 @@ async function handleSingleProviderSearch(body, providerInput, request, apiKey, 
     }
 
     return result.response;
+    } finally {
+      pacingSlot.release();
+    }
   }
 }

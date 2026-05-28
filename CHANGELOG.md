@@ -2,6 +2,30 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.2.0 (2026-05-28)
+
+### ✨ New Features
+
+- **Smart Pacing (Natural Request Patterns)** — Prevents account flagging by simulating human-like request rhythms (Jitter & Pacing).
+  - **Adaptive Delay**: Automatically adds gaps (1-5s) between requests based on account activity.
+  - **Global Queueing**: Ensures accounts aren't "bombarded" by multiple users/agents simultaneously.
+  - **Human Simulator Mode**: Random "thinking time" (2-8s) for maximum safety in agentic workflows.
+- **Fingerprint Consistency** — Automatic header sanitization to prevent account bans.
+  - **Header Masking**: Strips dangerous headers like `x-forwarded-for`, `via`, and `cf-connecting-ip`.
+  - **Gemini Anti-Ban**: Specifically removes `x-goog-user-project` which is a known trigger for permanent bans.
+- **Sticky Proxy (IP Binding)** — Permanently binds each OAuth account to a specific proxy IP.
+  - **Consistent Network Identity**: Ensures an account always appears to come from the same location.
+  - **Auto-binding**: Automatically picks and locks a proxy from the pool on first use.
+- **Context Length Awareness** — Better model information and selection.
+  - **Metadata Fetching**: Automatically captures `context_length` from provider APIs during the "Fetch Models" process.
+  - **UI Badges**: Displays context length badges (e.g., "128k", "200k") next to model names in selection modals and combos.
+
+### 🔧 Improvements
+
+- **Integrated Pacing & Fingerprinting across all handlers**: Chat, Embeddings, Fetch, Search, Image Generation, STT, and TTS.
+- **Provider-specific Profiles**: Pre-tuned sensitivity settings for Anthropic, Gemini, OpenAI, and more.
+- **Stats Dashboard**: New endpoint `/api/settings/smart-pacing` to monitor pacing activity.
+
 ## v0.1.0 (2026-05-27)
 
 ### 🎉 Initial Fork Release

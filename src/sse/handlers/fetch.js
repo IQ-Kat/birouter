@@ -7,6 +7,7 @@ import {
 } from "../services/auth.js";
 import { getSettings, getCombos } from "@/lib/localDb";
 import { checkRateLimit, rateLimitHeaders } from "../services/rateLimiter.js";
+import { acquirePacingSlot } from "../services/smartPacing.js";
 import { AI_PROVIDERS, resolveProviderId } from "@/shared/constants/providers.js";
 import { handleFetchCore } from "open-sse/handlers/fetch/index.js";
 import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
@@ -180,6 +181,15 @@ async function handleSingleProviderFetch(body, providerInput, request, apiKey, s
 
     log.info("AUTH", `\x1b[32mUsing ${providerId} account: ${credentials.connectionName}\x1b[0m`);
 
+    // Smart Pacing
+    const pacingSlot = await acquirePacingSlot({
+      connectionId: credentials.connectionId,
+      provider: providerId,
+      settings,
+      headers: request?.headers,
+    });
+
+    try {
     const refreshedCredentials = await checkAndRefreshToken(providerId, credentials);
 
     const result = await handleFetchCore({
@@ -220,5 +230,8 @@ async function handleSingleProviderFetch(body, providerInput, request, apiKey, s
     }
 
     return errorResponse(result.status || HTTP_STATUS.BAD_GATEWAY, result.error || "Fetch failed");
+    } finally {
+      pacingSlot.release();
+    }
   }
 }
