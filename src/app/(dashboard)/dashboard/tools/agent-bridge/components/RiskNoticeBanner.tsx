@@ -1,26 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 const STORAGE_KEY = "omniroute-agentbridge-risk-dismissed";
 
+function isNotDismissed(): boolean {
+  try {
+    return !localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Amber dismissable banner shown at the top of the AgentBridge page.
  * Persisted via localStorage so it only shows once per user.
+ * Uses lazy useState initializer to read localStorage without useEffect.
  */
 export function RiskNoticeBanner() {
   const t = useTranslations("agentBridge");
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    try {
-      const dismissed = localStorage.getItem(STORAGE_KEY);
-      if (!dismissed) setVisible(true);
-    } catch {
-      setVisible(true);
-    }
-  }, []);
+  const [visible, setVisible] = useState<boolean>(isNotDismissed);
 
   const dismiss = () => {
     try {

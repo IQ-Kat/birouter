@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 interface ProviderModel {
@@ -29,15 +29,22 @@ export function ModelSelectorModal({
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const loadModels = useCallback(async () => {
+    try {
+      const r = await fetch("/api/v1/models");
+      const d = (await r.json()) as { data?: ProviderModel[] };
+      setModels(Array.isArray(d.data) ? d.data : []);
+    } catch {
+      setModels([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
-    fetch("/api/v1/models")
-      .then((r) => r.json())
-      .then((d: { data?: ProviderModel[] }) => setModels(Array.isArray(d.data) ? d.data : []))
-      .catch(() => setModels([]))
-      .finally(() => setLoading(false));
-  }, [open]);
+    loadModels();
+  }, [open, loadModels]);
 
   useEffect(() => {
     if (!open) return;
