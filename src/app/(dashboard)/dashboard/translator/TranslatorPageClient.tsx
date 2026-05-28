@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Badge, Card, SegmentedControl } from "@/shared/components";
 import TranslatorConceptCard from "./components/TranslatorConceptCard";
@@ -41,15 +41,18 @@ function TranslatorPageClientInner() {
     }
   };
 
-  const tr = (key: string, fallback: string): string => {
-    try {
-      const v = t(key as Parameters<typeof t>[0]);
-      if (v === key || v === `translator.${key}`) return fallback;
-      return v as string;
-    } catch {
-      return fallback;
-    }
-  };
+  const tr = useCallback(
+    (key: string, fallback: string): string => {
+      try {
+        const v = t(key as Parameters<typeof t>[0]);
+        if (v === key || v === `translator.${key}`) return fallback;
+        return v as string;
+      } catch {
+        return fallback;
+      }
+    },
+    [t],
+  );
 
   // Build PipelineStep[] from session.result so PipelineView reflects real state
   const pipelineSteps = useMemo<PipelineStep[]>(() => {
@@ -113,7 +116,7 @@ function TranslatorPageClientInner() {
     }
 
     return steps;
-  }, [session.result, sharedInputContent]);
+  }, [session.result, sharedInputContent, tr]);
 
   const advancedSlot = (
     <AdvancedSection forceOpenSlug={state.advanced}>
