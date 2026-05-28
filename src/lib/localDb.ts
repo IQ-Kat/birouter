@@ -508,3 +508,15 @@ export {
 } from "./db/freeProxies";
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+
+// Plan 21 — Memory Engine Redesign
+export {
+  getMemoryVecMeta,
+  setMemoryVecMeta,
+  markMemoryNeedsReindex,
+  markAllMemoriesNeedReindex,
+  getMemoryReindexQueue,
+  countMemoryReindexPending,
+} from "./db/memoryVec";
+
+export type { MemoryVecMeta } from "./db/memoryVec";
