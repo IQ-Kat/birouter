@@ -75,6 +75,10 @@ tags:
     description: Fallback chain management
   - name: Telemetry
     description: Telemetry and token health monitoring
+  - name: Agent Skills
+    description: >-
+      Agent Skills catalog — 42 SKILL.md files (22 REST API + 20 CLI) for external agents,
+      MCP clients, and A2A orchestrators to discover OmniRoute capabilities.
 
 paths:
   # ─── Proxy Endpoints ──────────────────────────────────────────
@@ -2730,6 +2734,232 @@ paths:
         "500":
           description: Failed to parse OpenAPI spec
 
+  # ─── Agent Skills Catalog ────────────────────────────────────────────────────
+
+  /api/agent-skills:
+    get:
+      tags: [Agent Skills]
+      summary: List agent skills catalog
+      description: |
+        Returns the full 42-entry Agent Skills catalog with optional filtering.
+        Skills describe how to use OmniRoute's REST API and CLI — they are structured
+        SKILL.md documentation files discoverable by external agents, MCP clients, and
+        A2A orchestrators. No authentication required.
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [api, cli]
+          description: Filter by category (api = REST API skills, cli = CLI skills)
+        - name: area
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by area slug (e.g. "providers", "models", "cli-serve")
+      responses:
+        "200":
+          description: Catalog list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [skills, count, coverage]
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AgentSkill"
+                  count:
+                    type: integer
+                  coverage:
+                    $ref: "#/components/schemas/SkillCoverage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/{id}:
+    get:
+      tags: [Agent Skills]
+      summary: Get a single agent skill
+      description: |
+        Returns metadata for a single agent skill by its canonical ID
+        (e.g. `omni-providers`, `cli-serve`). No authentication required.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9-]*$"
+          description: Canonical skill ID
+          example: omni-providers
+      responses:
+        "200":
+          description: Agent skill metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSkill"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/{id}/raw:
+    get:
+      tags: [Agent Skills]
+      summary: Get raw SKILL.md content
+      description: |
+        Returns the SKILL.md content for a skill as `text/markdown`.
+        Resolution order: local filesystem `skills/{id}/SKILL.md` → GitHub raw URL (1-hour cache).
+        No authentication required.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-z][a-z0-9-]*$"
+          description: Canonical skill ID
+          example: omni-providers
+      responses:
+        "200":
+          description: SKILL.md content as Markdown
+          headers:
+            X-Skill-Source:
+              schema:
+                type: string
+                enum: [filesystem, github, generated]
+              description: Where the content was loaded from
+            X-Skill-Fetched-At:
+              schema:
+                type: string
+                format: date-time
+              description: ISO timestamp of when the content was fetched
+            Cache-Control:
+              schema:
+                type: string
+              description: "public, max-age=3600"
+          content:
+            text/markdown:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "502":
+          description: Upstream GitHub fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/coverage:
+    get:
+      tags: [Agent Skills]
+      summary: Get SKILL.md coverage stats
+      description: |
+        Returns how many of the 22 API skills and 20 CLI skills have SKILL.md
+        files on the local filesystem vs the catalog totals. No authentication required.
+      responses:
+        "200":
+          description: Coverage stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillCoverage"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/agent-skills/generate:
+    post:
+      tags: [Agent Skills]
+      summary: Trigger SKILL.md generator
+      description: |
+        Runs the Agent Skills generator which writes `skills/{id}/SKILL.md` for
+        all 42 catalog entries (or a subset via `onlyIds`). Preserves
+        `<!-- skill:custom-start --> ... <!-- skill:custom-end -->` blocks.
+        **Requires management authentication.**
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dryRun:
+                  type: boolean
+                  default: true
+                  description: "If true, reports what would be generated without writing files"
+                prune:
+                  type: boolean
+                  default: false
+                  description: "If true, deletes skill directories not in the catalog"
+                onlyIds:
+                  type: array
+                  items:
+                    type: string
+                  description: "If provided, only regenerate these skill IDs"
+      responses:
+        "200":
+          description: Generator report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [generated, unchanged, pruned, orphansDetected, errors]
+                properties:
+                  generated:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs that got new/updated SKILL.md
+                  unchanged:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs whose content was already up to date
+                  pruned:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs whose directories were deleted (prune mode)
+                  orphansDetected:
+                    type: array
+                    items:
+                      type: string
+                    description: Directories found in skills/ not in the catalog
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, error]
+                      properties:
+                        id:
+                          type: string
+                        error:
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          description: Generator module not available
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2791,6 +3021,131 @@ components:
             $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+    AgentSkill:
+      type: object
+      description: >-
+        Single entry in the Agent Skills catalog. Describes one OmniRoute REST API surface
+        (category: api) or CLI subcommand group (category: cli) with a canonical ID and a
+        link to its SKILL.md documentation file.
+      required: [id, name, description, category, area, rawUrl, githubUrl]
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z][a-z0-9-]*$"
+          description: Canonical skill ID (e.g. "omni-providers", "cli-serve")
+          example: omni-providers
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Human-readable skill name
+          example: Provider Management
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: One-paragraph description of what the skill covers
+        category:
+          type: string
+          enum: [api, cli]
+          description: "api = REST API skill; cli = CLI subcommand skill"
+        area:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Functional area slug (e.g. "providers", "combos-routing", "cli-serve")
+          example: providers
+        endpoints:
+          type: array
+          items:
+            type: string
+          description: REST API endpoints (present for api-category skills only)
+          example: ["POST /api/providers", "GET /api/providers/:id"]
+        cliCommands:
+          type: array
+          items:
+            type: string
+          description: CLI subcommand names (present for cli-category skills only)
+          example: ["providers list", "providers test", "providers rotate"]
+        icon:
+          type: string
+          description: Material symbol icon name for dashboard display
+        isEntry:
+          type: boolean
+          description: Whether this is a recommended starting point
+        isNew:
+          type: boolean
+          description: Whether this skill was added in a recent release
+        rawUrl:
+          type: string
+          format: uri
+          description: GitHub raw URL of the SKILL.md file
+          example: "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills/omni-providers/SKILL.md"
+        githubUrl:
+          type: string
+          format: uri
+          description: GitHub blob URL for viewing the SKILL.md in the browser
+          example: "https://github.com/diegosouzapw/OmniRoute/blob/main/skills/omni-providers/SKILL.md"
+
+    SkillCoverage:
+      type: object
+      description: >-
+        Coverage statistics for the Agent Skills catalog: how many of the 22 REST API
+        skills and 20 CLI skills have generated SKILL.md files on the local filesystem.
+      required: [api, cli, totalSkills, generatedAt]
+      properties:
+        api:
+          type: object
+          required: [have, total]
+          properties:
+            have:
+              type: integer
+              minimum: 0
+              maximum: 22
+              description: Number of API skills with SKILL.md on disk
+            total:
+              type: integer
+              enum: [22]
+              description: Canonical API skill count (always 22)
+        cli:
+          type: object
+          required: [have, total]
+          properties:
+            have:
+              type: integer
+              minimum: 0
+              maximum: 20
+              description: Number of CLI skills with SKILL.md on disk
+            total:
+              type: integer
+              enum: [20]
+              description: Canonical CLI skill count (always 20)
+        totalSkills:
+          type: integer
+          minimum: 0
+          maximum: 42
+          description: Sum of api.have + cli.have
+        generatedAt:
+          type: string
+          format: date-time
+          description: ISO datetime when coverage was last computed
+
+    ErrorResponse:
+      type: object
+      description: Standard error response body
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+              description: Human-readable error message (never includes stack traces)
+            code:
+              type: string
+              description: Machine-readable error code
+
     ServiceStatus:
       type: object
       description: Live supervisor state for an embedded service
