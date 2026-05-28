@@ -470,3 +470,109 @@ test("Gemini stream: safety block without candidates emits role chunk then conte
 test("Gemini stream: null chunk is ignored", () => {
   assert.equal(geminiToOpenAIResponse(null, createStreamingState()), null);
 });
+
+test("Gemini stream: unwraps native functionCall args when emitted as JSON string", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-native-tool-json-string",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                functionCall: {
+                  name: "terminal",
+                  args: JSON.stringify({
+                    command: 'ssh test-vps "systemctl cat omniroute.service"',
+                  }),
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({ command: 'ssh test-vps "systemctl cat omniroute.service"' })
+  );
+});
+
+test("Gemini stream: converts JSON-string encoded textual Tool call arguments", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-json-string",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '[Tool call: terminal]\nArguments: "{\\\"command\\\":\\\"ssh test-vps \\\\\\\"systemctl cat omniroute.service\\\\\\\"\\\"}"',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result.find((event: any) => event.choices?.[0]?.delta?.tool_calls)?.choices[0]
+    .delta.tool_calls[0];
+  assert.ok(toolCall.id.startsWith("terminal-"));
+  assert.equal(toolCall.function.name, "terminal");
+  assert.equal(
+    toolCall.function.arguments,
+    JSON.stringify({ command: 'ssh test-vps "systemctl cat omniroute.service"' })
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "tool_calls");
+});
+
+test("Gemini stream: suppresses malformed textual Tool call marker", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-textual-tool-malformed",
+      modelVersion: "gemini-3.5-flash-low",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: '[Tool call: terminal]\nArguments: {"command":"unterminated}',
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.content?.includes("[Tool call:")),
+    false
+  );
+  assert.equal(
+    result.some((event: any) => event.choices?.[0]?.delta?.tool_calls),
+    false
+  );
+  assert.equal(result.at(-1).choices[0].finish_reason, "stop");
+});

@@ -23,6 +23,17 @@ type GeminiFunctionCallPart = {
   };
 };
 
+function normalizeToolCallArgs(args: unknown): unknown {
+  if (typeof args !== "string") return args;
+  const trimmed = args.trim();
+  if (!trimmed || !(trimmed.startsWith("{") || trimmed.startsWith("["))) return args;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return args;
+  }
+}
+
 function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
   if (typeof text !== "string") return null;
 
@@ -39,10 +50,24 @@ function parseTextualToolCall(text: unknown): { name: string; args: unknown } | 
   const rawArgs = match[2]?.trim();
   if (!name || !rawArgs) return null;
   try {
-    return { name, args: JSON.parse(rawArgs) };
-  } catch {
-    return null;
-  }
+    let args = JSON.parse(rawArgs);
+    if (typeof args === "string") {
+      const trimmed = args.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        args = JSON.parse(trimmed);
+      }
+    }
+    if (args && typeof args === "object" && !Array.isArray(args)) {
+      return { name, args };
+    }
+  } catch {}
+  return null;
+}
+
+function containsTextualToolCallMarker(text: unknown): boolean {
+  return (
+    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
+  );
 }
 
 function buildToolCallId(
@@ -69,7 +94,7 @@ function emitFunctionCallPart(
 ) {
   const rawToolName = part.functionCall.name;
   const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
-  const fcArgs = part.functionCall.args || {};
+  const fcArgs = normalizeToolCallArgs(part.functionCall.args || {});
   const toolCallIndex = state.functionIndex++;
   const toolCall = {
     id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
@@ -240,6 +265,14 @@ export function geminiToOpenAIResponse(chunk, state) {
             state,
             results
           );
+          continue;
+        }
+
+        // Never leak a malformed textual pseudo tool-call to clients. If the
+        // model emits the marker but the arguments are not parseable yet/at all,
+        // suppress the text; the final finish reason remains `stop` unless a
+        // structured tool call was emitted elsewhere.
+        if (containsTextualToolCallMarker(part.text)) {
           continue;
         }
 

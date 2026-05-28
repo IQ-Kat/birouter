@@ -41,6 +41,7 @@ import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
+import { looksLikeQuotaExhausted } from "@/shared/utils/classify429";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
 import { getProviderAlias, resolveProviderId, FREE_PROVIDERS } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
@@ -1604,7 +1605,13 @@ export async function markAccountUnavailable(
       (status === 404 || status === 429 || status >= 500)
     ) {
       const reason =
-        status === 404 ? "not_found" : status === 429 ? "rate_limited" : "server_error";
+        status === 404
+          ? "not_found"
+          : status === 429 && looksLikeQuotaExhausted(errorText)
+            ? "quota_exhausted"
+            : status === 429
+              ? "rate_limited"
+              : "server_error";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

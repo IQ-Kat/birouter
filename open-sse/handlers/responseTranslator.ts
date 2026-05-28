@@ -34,6 +34,17 @@ function firstPositiveNumber(...values: unknown[]): number {
   return 0;
 }
 
+function normalizeToolCallArgs(args: unknown): unknown {
+  if (typeof args !== "string") return args;
+  const trimmed = args.trim();
+  if (!trimmed || !(trimmed.startsWith("{") || trimmed.startsWith("["))) return args;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return args;
+  }
+}
+
 function parseTextualToolCall(text: unknown): { name: string; args: unknown } | null {
   if (typeof text !== "string") return null;
 
@@ -50,10 +61,24 @@ function parseTextualToolCall(text: unknown): { name: string; args: unknown } | 
   const rawArgs = match[2]?.trim();
   if (!name || !rawArgs) return null;
   try {
-    return { name, args: JSON.parse(rawArgs) };
-  } catch {
-    return null;
-  }
+    let args = JSON.parse(rawArgs);
+    if (typeof args === "string") {
+      const trimmed = args.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        args = JSON.parse(trimmed);
+      }
+    }
+    if (args && typeof args === "object" && !Array.isArray(args)) {
+      return { name, args };
+    }
+  } catch {}
+  return null;
+}
+
+function containsTextualToolCallMarker(text: unknown): boolean {
+  return (
+    typeof text === "string" && text.replace(/[\u200B-\u200D\uFEFF]/g, "").includes("[Tool call:")
+  );
 }
 
 function extractMessageOutputText(item: JsonRecord): string {
@@ -335,7 +360,7 @@ export function translateNonStreamingResponse(
                           arguments: JSON.stringify(textualToolCall.args || {}),
                         },
                       });
-                    } else {
+                    } else if (!containsTextualToolCallMarker(partObj.text)) {
                       textContent += partObj.text;
                       contentParts.push({ type: "text", text: partObj.text });
                     }
@@ -378,7 +403,7 @@ export function translateNonStreamingResponse(
                       type: "function",
                       function: {
                         name: restoredName,
-                        arguments: JSON.stringify(fn.args || {}),
+                        arguments: JSON.stringify(normalizeToolCallArgs(fn.args || {})),
                       },
                     });
                   }

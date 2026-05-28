@@ -840,6 +840,64 @@ export function createSSEStream(options: StreamOptions = {}) {
     return output;
   };
 
+  const applyTextualToolCallStreamingGuard = (parsed: Record<string, unknown>) => {
+    const choice = Array.isArray((parsed as JsonRecord).choices)
+      ? (((parsed as JsonRecord).choices as unknown[])[0] as JsonRecord | undefined)
+      : undefined;
+    const delta = asRecord(choice?.delta);
+    let textualToolCallConverted = false;
+
+    if (typeof delta?.content === "string") {
+      const incomingContent = delta.content;
+      const bufferedCandidate = passthroughBufferedTextualToolCallContent + incomingContent;
+      if (
+        passthroughBufferedTextualToolCallContent ||
+        containsTextualToolCallCandidate(incomingContent)
+      ) {
+        const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
+        if (parsedCandidate?.kind === "complete") {
+          const collectedToolCall = collectPassthroughTextualToolCall(
+            bufferedCandidate,
+            passthroughToolCalls,
+            allowedToolNames
+          );
+          if (collectedToolCall) {
+            parsed = toChatCompletionChunkWithToolCall(
+              parsed as JsonRecord,
+              collectedToolCall
+            ) as typeof parsed;
+            passthroughHasToolCalls = true;
+          } else {
+            delete delta.content;
+            delete delta.reasoning_content;
+          }
+          textualToolCallConverted = true;
+          passthroughBufferedTextualToolCallContent = "";
+        } else if (parsedCandidate?.kind === "partial") {
+          passthroughBufferedTextualToolCallContent = appendBoundedText(
+            passthroughBufferedTextualToolCallContent,
+            incomingContent
+          );
+          textualToolCallConverted = true;
+          delta.content = "";
+        } else {
+          passthroughAccumulatedContent = appendBoundedText(
+            passthroughAccumulatedContent,
+            passthroughBufferedTextualToolCallContent + incomingContent
+          );
+          passthroughBufferedTextualToolCallContent = "";
+        }
+      } else {
+        passthroughAccumulatedContent = appendBoundedText(
+          passthroughAccumulatedContent,
+          incomingContent
+        );
+      }
+    }
+
+    return { parsed, textualToolCallConverted };
+  };
+
   const emitSyntheticClaudeEmptyResponse = (
     controller: TransformStreamDefaultController,
     options: {
@@ -1536,53 +1594,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (content && typeof content === "string") {
                     totalContentLength += content.length;
                   }
-                  if (typeof delta?.content === "string") {
-                    const incomingContent = delta.content;
-                    const bufferedCandidate =
-                      passthroughBufferedTextualToolCallContent + incomingContent;
-                    if (
-                      passthroughBufferedTextualToolCallContent ||
-                      containsTextualToolCallCandidate(incomingContent)
-                    ) {
-                      const parsedCandidate = parseTextualToolCallCandidate(bufferedCandidate);
-                      if (parsedCandidate?.kind === "complete") {
-                        const collectedToolCall = collectPassthroughTextualToolCall(
-                          bufferedCandidate,
-                          passthroughToolCalls,
-                          allowedToolNames
-                        );
-                        if (collectedToolCall) {
-                          parsed = toChatCompletionChunkWithToolCall(
-                            parsed as JsonRecord,
-                            collectedToolCall
-                          ) as typeof parsed;
-                          passthroughHasToolCalls = true;
-                        } else {
-                          delete delta.content;
-                          delete delta.reasoning_content;
-                        }
-                        textualToolCallConverted = true;
-                        passthroughBufferedTextualToolCallContent = "";
-                      } else if (parsedCandidate?.kind === "partial") {
-                        passthroughBufferedTextualToolCallContent = appendBoundedText(
-                          passthroughBufferedTextualToolCallContent,
-                          incomingContent
-                        );
-                        textualToolCallConverted = true;
-                        delta.content = "";
-                      } else {
-                        passthroughAccumulatedContent = appendBoundedText(
-                          passthroughAccumulatedContent,
-                          passthroughBufferedTextualToolCallContent + incomingContent
-                        );
-                        passthroughBufferedTextualToolCallContent = "";
-                      }
-                    } else {
-                      passthroughAccumulatedContent = appendBoundedText(
-                        passthroughAccumulatedContent,
-                        incomingContent
-                      );
-                    }
+                  {
+                    const guarded = applyTextualToolCallStreamingGuard(
+                      parsed as Record<string, unknown>
+                    );
+                    parsed = guarded.parsed as typeof parsed;
+                    textualToolCallConverted = guarded.textualToolCallConverted;
                   }
                   if (typeof delta?.reasoning_content === "string")
                     passthroughAccumulatedReasoning = appendBoundedText(

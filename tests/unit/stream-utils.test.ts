@@ -232,6 +232,120 @@ test("createSSEStream passthrough converts split textual tool-call content at co
   assert.doesNotMatch(text, /\[Tool call: terminal\]/);
 });
 
+test("createSSEStream passthrough buffers fragmented textual tool-call JSON before emitting", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_fragmented_live_shape",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [
+          {
+            index: 0,
+            delta: { role: "assistant", content: '[Tool call: terminal]\nArguments: {"' },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_fragmented_live_shape",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [
+          {
+            index: 0,
+            delta: { content: 'command":"echo live_shape","timeout":10}' },
+          },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_fragmented_live_shape",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.doesNotMatch(text, /\[Tool call:/);
+  assert.doesNotMatch(text, /Arguments:/);
+  assert.match(text, /"tool_calls":\[/);
+  assert.match(text, /"finish_reason":"tool_calls"/);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "echo live_shape",
+    timeout: 10,
+  });
+});
+
+test("createSSEStream passthrough suppresses trailing prose plus textual tool call", async () => {
+  let onCompletePayload = null;
+  const toolArgs = JSON.stringify({
+    command: "echo should_not_leak",
+    timeout: 10,
+  });
+  const toolText = `Вот оно! Статические файлы Next.js отдают 404. Чанки не найдены.\n\n[Tool call: terminal]\nArguments: ${toolArgs}`;
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_trailing_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_trailing_textual_tool",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "MainAgent",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "omniroute",
+      model: "MainAgent",
+      body: { messages: [{ role: "user", content: "inspect static files" }] },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal(onCompletePayload.status, 200);
+  const choice = onCompletePayload.responseBody.choices[0];
+  assert.equal(choice.finish_reason, "tool_calls");
+  assert.equal(choice.message.content, null);
+  assert.equal(choice.message.tool_calls[0].function.name, "terminal");
+  assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), {
+    command: "echo should_not_leak",
+    timeout: 10,
+  });
+  assert.doesNotMatch(text, /\[Tool call: terminal\]/);
+  assert.doesNotMatch(text, /Arguments:/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /\[Tool call: terminal\]/);
+  assert.doesNotMatch(JSON.stringify(onCompletePayload.responseBody), /Arguments:/);
+});
+
 test("createSSEStream passthrough suppresses textual tool calls for unknown tools", async () => {
   let onCompletePayload = null;
   const toolText = `[Tool call: search_files_ide]
