@@ -35,6 +35,13 @@ vi.mock(
   "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/BurnRateChart",
   () => ({ default: () => <div data-testid="burn-rate-chart" /> })
 );
+vi.mock(
+  "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/StackedAllocationBar",
+  () => ({
+    default: ({ allocations }: { allocations: Array<unknown> }) =>
+      allocations.length > 0 ? <div data-testid="stacked-alloc-bar" /> : null,
+  })
+);
 
 const { default: PoolCard } = await import(
   "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/PoolCard"
@@ -113,6 +120,11 @@ describe("PoolCard", { timeout: 10000 }, () => {
     };
     await renderCard(usage);
     expect(document.querySelector("[data-testid='burn-rate-chart']")).not.toBeNull();
+  });
+
+  it("renders StackedAllocationBar when pool has allocations", async () => {
+    await renderCard();
+    expect(document.querySelector("[data-testid='stacked-alloc-bar']")).not.toBeNull();
   });
 
   it("calls onEdit when edit button clicked", async () => {

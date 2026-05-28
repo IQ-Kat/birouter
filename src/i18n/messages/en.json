@@ -7317,7 +7317,9 @@
     "migratedFromLocalStorageNotice": "Pools successfully migrated from localStorage.",
     "policyCapAbsoluteLabel": "Absolute cap",
     "policyCapAbsolutePlaceholder": "Numeric limit (optional)",
-    "multiDimensionLabel": "Multi-dimension"
+    "multiDimensionLabel": "Multi-dimension",
+    "stackedBarTitle": "Slices by API key",
+    "usedSuffix": "used {percent}%"
   },
   "quotaPlans": {
     "title": "Plans & Quotas",
