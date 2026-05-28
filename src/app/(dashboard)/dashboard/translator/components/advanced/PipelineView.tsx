@@ -167,6 +167,12 @@ export default function PipelineView({
     >
       {/* D7 lazy-render container */}
       <div
+        ref={(el) => {
+          if (el && !hasOpened) {
+            setHasOpened(true);
+            handleOpenChange(true);
+          }
+        }}
         className="space-y-2"
         data-pipeline-container="true"
       >
