@@ -26,17 +26,30 @@ interface TranslateTabProps {
    * is used (isolated rendering mode, e.g. tests).
    */
   session?: UseTranslateSessionReturn;
+  /**
+   * Callback to sync internal inputText with the shell-level sharedInputContent (GAP-NOVO-2).
+   * When provided, called every time inputText changes so CompressionPreviewAccordion
+   * and pipeline Step 1 see the real input text.
+   */
+  onInputChange?: (text: string) => void;
 }
 
 export default function TranslateTab({
   forceOpenAdvancedSlug = null,
   onAdvancedSlugChange,
   session: sessionProp,
+  onInputChange,
 }: TranslateTabProps) {
   // Internal simple-mode state
   const [source, setSource] = useState<FormatId>("claude");
   const [inputText, setInputText] = useState<string>("");
   const [mode, setMode] = useState<TranslateMode>("send");
+
+  // Unified input change handler — keeps internal state and notifies shell (GAP-NOVO-2)
+  const handleInputChange = (text: string) => {
+    setInputText(text);
+    onInputChange?.(text);
+  };
 
   // Provider/target state: derive from useProviderOptions
   // GAP-3: useProviderOptions lives only here; SimpleControls receives it as props
@@ -97,7 +110,7 @@ export default function TranslateTab({
             onSourceChange={setSource}
             onTargetChange={setTarget}
             onProviderChange={handleProviderChange}
-            onInputChange={setInputText}
+            onInputChange={handleInputChange}
             onModeChange={setMode}
             onSubmit={handleSubmit}
             onOpenAdvanced={() => handleOpenAdvanced("rawjson")}

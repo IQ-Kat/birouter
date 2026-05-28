@@ -134,6 +134,7 @@ vi.mock(
       forceOpenAdvancedSlug?: string | null;
       onAdvancedSlugChange?: (slug: string | null) => void;
       session?: unknown;
+      onInputChange?: (text: string) => void;
     }) => (
       <div
         data-testid="translate-tab"

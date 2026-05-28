@@ -171,6 +171,7 @@ function TranslatorPageClientInner() {
           forceOpenAdvancedSlug={state.advanced}
           onAdvancedSlugChange={(slug) => setAdvanced(slug)}
           session={session}
+          onInputChange={setSharedInputContent}
         />
       )}
 
