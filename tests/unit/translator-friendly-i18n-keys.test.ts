@@ -85,6 +85,25 @@ const NEW_KEYS = [
   "monitorOriginHint",
   "monitorEmptyCta",
   "monitorOpenTranslateButton",
+  // Pipeline step keys (GAP-NOVO-1)
+  "pipelineStepClientRequest",
+  "pipelineStepClientRequestDesc",
+  "pipelineStepFormatDetected",
+  "pipelineStepFormatDetectedDesc",
+  "pipelineStepOpenAIIntermediate",
+  "pipelineStepOpenAIIntermediateDesc",
+  "pipelineStepProviderFormat",
+  "pipelineStepProviderFormatDesc",
+  "pipelineStepProviderResponse",
+  "pipelineStepProviderResponseDesc",
+  // Concept diagram keys (GAP-NOVO-1)
+  "conceptDiagramArrow1",
+  "conceptDiagramArrow2",
+  "conceptDiagramArrow3",
+  "conceptDiagramExampleHub",
+  "conceptDiagramHubTooltip",
+  "conceptDiagramSourceTooltip",
+  "conceptDiagramTargetTooltip",
 ] as const;
 
 // ─── Keys that should obviously differ from English (spot check) ──────────────
