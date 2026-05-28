@@ -133,7 +133,6 @@ function TranslatorPageClientInner() {
         onOpenChange={makeOpenHandler("streamtransform")}
       />
       <TestBenchAccordion
-        slug="testbench"
         forceOpen={state.advanced === "testbench"}
         onOpenChange={makeOpenHandler("testbench")}
       />
