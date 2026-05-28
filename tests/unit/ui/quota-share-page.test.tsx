@@ -76,6 +76,19 @@ vi.mock(
   () => ({ useLocalStoragePoolMigration: mockMigration })
 );
 
+// ── usePoolsUsageAggregate mock ────────────────────────────────────────────
+vi.mock(
+  "../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/usePoolsUsageAggregate",
+  () => ({
+    usePoolsUsageAggregate: () => ({
+      avgUtilizationPercent: 42,
+      borrowingKeyCount: 3,
+      loading: false,
+      error: null,
+    }),
+  })
+);
+
 // ── fetch stub ─────────────────────────────────────────────────────────────
 vi.stubGlobal(
   "fetch",
@@ -165,5 +178,46 @@ describe("QuotaSharePageClient", { timeout: 15000 }, () => {
     await renderComponent();
     expect(document.body.innerHTML).not.toContain("localStorage");
     expect(document.body.innerHTML).not.toContain("betaPreviewLabel");
+  });
+
+  // ── KPI cards (Gap #5) ────────────────────────────────────────────────────
+
+  it("renders the 4 canonical KPI stat cards: kpiActivePools, kpiKeysAllocated, kpiAvgUtilization, kpiBorrowingNow", async () => {
+    await renderComponent();
+    await waitFor(() => document.body.innerHTML.includes("kpiActivePools"));
+    const html = document.body.innerHTML;
+    // i18n is stubbed to return key-as-label, so we check for the key strings
+    expect(html).toContain("kpiActivePools");
+    expect(html).toContain("kpiKeysAllocated");
+    expect(html).toContain("kpiAvgUtilization");
+    expect(html).toContain("kpiBorrowingNow");
+  });
+
+  it("shows stats.activePools value in the kpiActivePools card (2 mock pools)", async () => {
+    await renderComponent();
+    await waitFor(() => document.body.innerHTML.includes("kpiActivePools"));
+    const html = document.body.innerHTML;
+    // MOCK_POOLS has 2 pools → activePools = 2
+    expect(html).toContain("2");
+  });
+
+  it("shows borrowingKeyCount (3) from mocked usePoolsUsageAggregate in kpiBorrowingNow", async () => {
+    await renderComponent();
+    await waitFor(() => document.body.innerHTML.includes("kpiBorrowingNow"));
+    const html = document.body.innerHTML;
+    // usePoolsUsageAggregate mock returns borrowingKeyCount=3
+    expect(html).toContain("3");
+  });
+
+  it("does NOT render the duplicate Pools StatCard or kpiProvidersWithQuota", async () => {
+    await renderComponent();
+    await waitFor(() => document.body.innerHTML.includes("kpiActivePools"));
+    const html = document.body.innerHTML;
+    // Duplicate 'Pools' literal label must be absent
+    // (kpiActivePools key may appear, but raw text "Pools" as standalone label must not)
+    expect(html).not.toContain("kpiProvidersWithQuota");
+    // The old duplicate StatCard used the literal string "Pools" — ensure it is gone
+    // We check that the string ">Pools<" does not appear (it was a text node, not a key)
+    expect(html).not.toMatch(/>Pools</);
   });
 });

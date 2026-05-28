@@ -8,6 +8,7 @@ import type { QuotaPool, PoolAllocation } from "@/lib/quota/dimensions";
 import { usePools } from "./hooks/usePools";
 import { usePoolUsage } from "./hooks/usePoolUsage";
 import { useLocalStoragePoolMigration } from "./hooks/useLocalStoragePoolMigration";
+import { usePoolsUsageAggregate } from "./hooks/usePoolsUsageAggregate";
 import QuotaConceptCard from "./components/QuotaConceptCard";
 import PoolCard from "./components/PoolCard";
 import CreatePoolModal from "./components/CreatePoolModal";
@@ -119,7 +120,7 @@ export default function QuotaSharePageClient() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [plans, setPlans] = useState<Record<string, PlanInfo>>({});
-  const [sideLoading, setSideLoading] = useState(true);
+  const [, setSideLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<QuotaPool | null>(null);
 
@@ -189,12 +190,16 @@ export default function QuotaSharePageClient() {
     [connections]
   );
 
+  const aggregate = usePoolsUsageAggregate(pools);
+
   const stats = useMemo(
     () => ({
       activePools: pools.length,
-      allocations: pools.reduce((s, p) => s + p.allocations.length, 0),
+      keysAllocated: pools.reduce((s, p) => s + p.allocations.length, 0),
+      avgUtilization: aggregate.avgUtilizationPercent,
+      borrowingNow: aggregate.borrowingKeyCount,
     }),
-    [pools]
+    [pools, aggregate]
   );
 
   // ── Mutations ─────────────────────────────────────────────────────────────
@@ -257,12 +262,17 @@ export default function QuotaSharePageClient() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label={t("kpiActivePools")} value={String(stats.activePools)} />
-        <StatCard label={t("kpiKeysAllocated")} value={String(stats.allocations)} />
+        <StatCard label={t("kpiKeysAllocated")} value={String(stats.keysAllocated)} />
         <StatCard
-          label={t("kpiProvidersWithQuota")}
-          value={sideLoading ? "…" : String(connections.length)}
+          label={t("kpiAvgUtilization")}
+          value={`${Math.round(stats.avgUtilization)}%`}
+          tone={stats.avgUtilization > 80 ? "red" : stats.avgUtilization > 50 ? "amber" : "green"}
         />
-        <StatCard label="Pools" value={String(stats.activePools)} />
+        <StatCard
+          label={t("kpiBorrowingNow")}
+          value={String(stats.borrowingNow)}
+          tone={stats.borrowingNow > 0 ? "amber" : undefined}
+        />
       </div>
 
       {/* Pool list */}
