@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 interface HttpProxySnippetCardProps {
@@ -11,6 +12,7 @@ interface HttpProxySnippetCardProps {
 type Lang = "bash" | "python" | "node";
 
 export function HttpProxySnippetCard({ port, onClose }: HttpProxySnippetCardProps) {
+  const t = useTranslations("trafficInspector");
   const [lang, setLang] = useState<Lang>("bash");
   const [copied, setCopied] = useState(false);
 
@@ -31,7 +33,7 @@ export function HttpProxySnippetCard({ port, onClose }: HttpProxySnippetCardProp
       <div className="w-full max-w-lg rounded-xl border border-border bg-surface shadow-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-text-main">
-            HTTP Proxy Snippet — port {port}
+            {t("httpProxyTitle", { port })}
           </h2>
           <button
             type="button"
@@ -74,7 +76,7 @@ export function HttpProxySnippetCard({ port, onClose }: HttpProxySnippetCardProp
             <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
               {copied ? "check" : "content_copy"}
             </span>
-            {copied ? "Copied!" : "Copy"}
+            {copied ? t("copied") : t("copy")}
           </button>
         </div>
       </div>

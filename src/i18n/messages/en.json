@@ -877,8 +877,8 @@
     "cliToolsSubtitle": "Configure CLI runtimes",
     "agentsSubtitle": "Manage local agents",
     "cloudAgentsSubtitle": "Manage cloud-based agents",
-    "agentBridge": "AgentBridge",
-    "agentBridgeSubtitle": "MITM interceptor for IDE agents",
+    "agentBridge": "Agent Bridge",
+    "agentBridgeSubtitle": "Intercept IDE agent traffic",
     "apiEndpointsSubtitle": "Expose custom endpoints",
     "proxySubtitle": "HTTP proxy settings",
     "mitmProxySubtitle": "MITM interception",
@@ -933,8 +933,6 @@
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
     "changelogSubtitle": "Release notes",
-    "agentBridge": "Agent Bridge",
-    "agentBridgeSubtitle": "Intercept IDE agent traffic",
     "trafficInspector": "Traffic Inspector",
     "trafficInspectorSubtitle": "Monitor LLM calls + debug any HTTPS traffic"
   },
@@ -7452,6 +7450,13 @@
     "llmStream": "Stream",
     "llmMappedTo": "Mapped to",
     "llmCostEstimate": "Cost estimate",
-    "systemProxyExitWarning": "System-wide proxy still active — leave page anyway?"
+    "systemProxyExitWarning": "System-wide proxy still active — leave page anyway?",
+    "customHostsTitle": "Custom Hosts",
+    "loading": "Loading…",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "httpProxyTitle": "HTTP Proxy Snippet — port {port}",
+    "notRecording": "Not recording",
+    "anyStatus": "Any status"
   }
 }

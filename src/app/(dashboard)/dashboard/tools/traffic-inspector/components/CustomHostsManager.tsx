@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 
 interface CustomHost {
@@ -15,6 +16,7 @@ interface CustomHostsManagerProps {
 }
 
 export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
+  const t = useTranslations("trafficInspector");
   const [hosts, setHosts] = useState<CustomHost[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +82,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-xl border border-border bg-surface shadow-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-text-main">Custom Hosts</h2>
+          <h2 className="text-base font-semibold text-text-main">{t("customHostsTitle")}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -97,7 +99,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addHost()}
-            placeholder="api.openai.com"
+            placeholder={t("hostPlaceholder")}
             className="flex-1 rounded border border-border bg-bg-subtle px-3 py-1.5 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <button
@@ -105,15 +107,15 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
             onClick={addHost}
             className="rounded border border-border bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 focus-ring"
           >
-            Add
+            {t("addHost")}
           </button>
         </div>
         {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
 
         <div className="space-y-1 max-h-60 overflow-y-auto">
-          {loading && <p className="text-sm text-text-muted">Loading…</p>}
+          {loading && <p className="text-sm text-text-muted">{t("loading")}</p>}
           {!loading && hosts.length === 0 && (
-            <p className="text-sm text-text-muted italic">No custom hosts added yet.</p>
+            <p className="text-sm text-text-muted italic">{t("noHostsYet")}</p>
           )}
           {hosts.map((h) => (
             <div

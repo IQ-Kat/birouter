@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import type { SessionInfo } from "../../hooks/useSessionRecorder";
 
@@ -26,6 +27,7 @@ export function SessionRecorderBar({
   onStart,
   onStop,
 }: SessionRecorderBarProps) {
+  const t = useTranslations("trafficInspector");
   return (
     <div
       className={cn(
@@ -47,19 +49,19 @@ export function SessionRecorderBar({
             onClick={onStop}
             className="ml-auto rounded border border-red-500/50 px-2 py-0.5 text-xs hover:bg-red-800/30 focus-ring"
           >
-            Stop
+            {t("stopSession")}
           </button>
         </>
       ) : (
         <>
           <span className="inline-block h-2 w-2 rounded-full bg-gray-500" />
-          <span className="text-xs">Not recording</span>
+          <span className="text-xs">{t("notRecording")}</span>
           <button
             type="button"
             onClick={() => onStart()}
             className="ml-auto rounded border border-border px-2 py-0.5 text-xs hover:bg-surface focus-ring"
           >
-            REC
+            {t("recordSession")}
           </button>
         </>
       )}
