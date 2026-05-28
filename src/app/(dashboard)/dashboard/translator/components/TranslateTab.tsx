@@ -56,6 +56,16 @@ export default function TranslateTab({
     if (onAdvancedSlugChange) {
       onAdvancedSlugChange(slug);
     }
+    // Restore scroll-into-view after URL change (UX polish — was lost in GAP-5 cleanup)
+    if (typeof document !== "undefined") {
+      const advancedEl = document.getElementById("translator-advanced-section");
+      if (advancedEl && typeof advancedEl.scrollIntoView === "function") {
+        // Defer to next tick so React commits the open state first
+        requestAnimationFrame(() => {
+          advancedEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    }
   };
 
   const handleSeeTranslatedJson = () => {

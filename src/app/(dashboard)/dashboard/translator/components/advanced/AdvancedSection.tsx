@@ -43,7 +43,7 @@ export default function AdvancedSection({
   };
 
   return (
-    <Card className="border-amber-500/10 bg-amber-500/[0.02]">
+    <Card id="translator-advanced-section" className="border-amber-500/10 bg-amber-500/[0.02]">
       <div className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start gap-3">
