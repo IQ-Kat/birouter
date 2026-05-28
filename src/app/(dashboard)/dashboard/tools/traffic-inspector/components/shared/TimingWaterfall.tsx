@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 
 interface TimingWaterfallProps {
@@ -7,6 +8,7 @@ interface TimingWaterfallProps {
 }
 
 export function TimingWaterfall({ request }: TimingWaterfallProps) {
+  const t = useTranslations("trafficInspector");
   const { proxyLatencyMs, upstreamLatencyMs, totalLatencyMs } = request;
   const total = totalLatencyMs ?? (proxyLatencyMs ?? 0) + (upstreamLatencyMs ?? 0);
 
@@ -16,12 +18,12 @@ export function TimingWaterfall({ request }: TimingWaterfallProps) {
 
   const segments: Array<{ label: string; ms: number; color: string }> = [
     {
-      label: "Proxy overhead",
+      label: t("timingProxyOverhead"),
       ms: proxyLatencyMs ?? 0,
       color: "bg-blue-500",
     },
     {
-      label: "Upstream response",
+      label: t("timingUpstreamResponse"),
       ms: upstreamLatencyMs ?? 0,
       color: "bg-green-500",
     },

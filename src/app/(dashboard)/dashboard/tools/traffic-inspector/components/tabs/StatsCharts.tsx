@@ -10,6 +10,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import { useTranslations } from "next-intl";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 
 interface StatsChartsProps {
@@ -17,6 +18,8 @@ interface StatsChartsProps {
 }
 
 export default function StatsCharts({ requests }: StatsChartsProps) {
+  const t = useTranslations("trafficInspector");
+
   const statusDist = requests.reduce<Record<string, number>>((acc, r) => {
     const key =
       typeof r.status === "number" ? `${Math.floor(r.status / 100)}xx` : String(r.status);
@@ -34,7 +37,7 @@ export default function StatsCharts({ requests }: StatsChartsProps) {
     <div className="h-full overflow-auto p-4 space-y-6">
       <div>
         <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-          Status distribution
+          {t("statsStatusDistribution")}
         </h3>
         <div style={{ height: 160 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -51,7 +54,7 @@ export default function StatsCharts({ requests }: StatsChartsProps) {
       {latencyData.length > 1 && (
         <div>
           <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-            Latency (last 50 requests)
+            {t("statsLatency")}
           </h3>
           <div style={{ height: 160 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -75,13 +78,13 @@ export default function StatsCharts({ requests }: StatsChartsProps) {
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div className="rounded border border-border bg-bg-subtle p-3">
           <div className="text-2xl font-bold text-text-main">{requests.length}</div>
-          <div className="text-xs text-text-muted mt-1">Total requests</div>
+          <div className="text-xs text-text-muted mt-1">{t("statsTotalRequests")}</div>
         </div>
         <div className="rounded border border-border bg-bg-subtle p-3">
           <div className="text-2xl font-bold text-green-400">
             {requests.filter((r) => typeof r.status === "number" && r.status < 400).length}
           </div>
-          <div className="text-xs text-text-muted mt-1">Successful</div>
+          <div className="text-xs text-text-muted mt-1">{t("statsSuccessful")}</div>
         </div>
         <div className="rounded border border-border bg-bg-subtle p-3">
           <div className="text-2xl font-bold text-red-400">
@@ -92,7 +95,7 @@ export default function StatsCharts({ requests }: StatsChartsProps) {
               ).length
             }
           </div>
-          <div className="text-xs text-text-muted mt-1">Errors</div>
+          <div className="text-xs text-text-muted mt-1">{t("statsErrors")}</div>
         </div>
       </div>
     </div>

@@ -15,10 +15,7 @@ export function ConversationTab({ request }: ConversationTabProps) {
 
   if (!conversation) {
     return (
-      <div className="p-4 text-sm text-text-muted">
-        Conversation data not available. This may not be an LLM request or the body
-        could not be parsed.
-      </div>
+      <div className="p-4 text-sm text-text-muted">{t("conversationNotAvailable")}</div>
     );
   }
 
@@ -26,7 +23,7 @@ export function ConversationTab({ request }: ConversationTabProps) {
 
   if (allTurns.length === 0) {
     return (
-      <div className="p-4 text-sm text-text-muted">No messages found in this request.</div>
+      <div className="p-4 text-sm text-text-muted">{t("conversationNoMessages")}</div>
     );
   }
 
@@ -34,7 +31,7 @@ export function ConversationTab({ request }: ConversationTabProps) {
     <div className="h-full overflow-auto p-3 space-y-2">
       {conversation.contextKey && (
         <div className="text-xs text-text-muted mb-2">
-          Context fingerprint:{" "}
+          {t("contextFingerprint")}{" "}
           <span className="font-mono text-blue-400">#{conversation.contextKey.slice(0, 12)}</span>
         </div>
       )}
