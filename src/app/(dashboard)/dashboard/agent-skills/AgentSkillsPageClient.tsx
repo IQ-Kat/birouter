@@ -242,7 +242,7 @@ export function AgentSkillsPageClient(): JSX.Element {
               }`}
             >
               {cat === "all"
-                ? "Todas"
+                ? t("filterAll")
                 : cat === "api"
                   ? t("categoryApi")
                   : t("categoryCli")}

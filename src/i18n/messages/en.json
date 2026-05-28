@@ -7313,6 +7313,7 @@
     },
     "categoryApi": "API",
     "categoryCli": "CLI",
+    "filterAll": "All",
     "coverageLabel": "Coverage",
     "mcpUrl": "MCP URL",
     "a2aLink": "A2A",

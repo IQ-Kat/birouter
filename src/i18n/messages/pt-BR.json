@@ -7303,6 +7303,7 @@
     },
     "categoryApi": "API",
     "categoryCli": "CLI",
+    "filterAll": "Todas",
     "coverageLabel": "Cobertura",
     "mcpUrl": "URL MCP",
     "a2aLink": "A2A",
