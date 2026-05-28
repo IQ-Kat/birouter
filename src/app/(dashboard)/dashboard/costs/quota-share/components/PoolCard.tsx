@@ -8,6 +8,7 @@ import type { PoolUsageSnapshot } from "@/lib/quota/types";
 import DimensionBar from "./DimensionBar";
 import AllocationTable from "./AllocationTable";
 import BurnRateChart from "./BurnRateChart";
+import StackedAllocationBar from "./StackedAllocationBar";
 
 export interface PoolCardProps {
   pool: QuotaPool;
@@ -65,11 +66,8 @@ export default function PoolCard({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] shrink-0 {statusCls}">
+              <span className={`material-symbols-outlined text-[16px] shrink-0 ${statusCls}`}>
                 {statusIcon}
-              </span>
-              <span className={`text-[14px] shrink-0 ${statusCls}`}>
-                <span className="material-symbols-outlined text-[16px]">{statusIcon}</span>
               </span>
               <span className="text-sm font-bold text-text-main truncate">
                 {pool.name} · {connectionLabel}
@@ -121,6 +119,13 @@ export default function PoolCard({
           {t("multiDimensionLabel")} — {t("loading")}
         </div>
       )}
+
+      {/* Stacked allocation bar — per-key slices */}
+      <StackedAllocationBar
+        allocations={pool.allocations}
+        usage={usage}
+        keyLabels={keyLabels}
+      />
 
       {/* Allocation table */}
       <div className="mb-3">
