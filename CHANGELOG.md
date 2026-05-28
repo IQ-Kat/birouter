@@ -2,6 +2,16 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.2.1 (2026-05-28)
+
+### 🐛 Bug Fixes
+
+- **proxyFetch**: Restored missing `Readable` import causing runtime `ReferenceError` in DNS-bypass fetch path.
+
+### ⚡ Improvements
+
+- **Stream Stall**: Lowered stream stall timeout from 60s → 35s for faster hang detection.
+
 ## v0.2.0 (2026-05-28)
 
 ### ✨ New Features
