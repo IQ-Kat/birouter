@@ -109,6 +109,7 @@ export function AgentBridgeServerCard({
           type="button"
           onClick={() => runAction("start")}
           disabled={isRunning || loading !== null}
+          aria-label={t("startServer")}
           className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 px-3 py-1.5 text-xs font-medium hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
         >
           <span className="material-symbols-outlined text-[14px]">play_arrow</span>
@@ -119,6 +120,7 @@ export function AgentBridgeServerCard({
           type="button"
           onClick={() => runAction("stop")}
           disabled={!isRunning || loading !== null}
+          aria-label={t("stopServer")}
           className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 text-red-600 px-3 py-1.5 text-xs font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
         >
           <span className="material-symbols-outlined text-[14px]">stop</span>
@@ -129,6 +131,7 @@ export function AgentBridgeServerCard({
           type="button"
           onClick={() => runAction("restart")}
           disabled={loading !== null}
+          aria-label={t("restartServer")}
           className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 text-amber-600 px-3 py-1.5 text-xs font-medium hover:bg-amber-500/20 transition-colors disabled:opacity-50"
         >
           <span className="material-symbols-outlined text-[14px]">refresh</span>
@@ -139,6 +142,7 @@ export function AgentBridgeServerCard({
           type="button"
           onClick={() => runAction("trust-cert")}
           disabled={loading !== null}
+          aria-label={t("trustCert")}
           className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500/10 text-blue-600 px-3 py-1.5 text-xs font-medium hover:bg-blue-500/20 transition-colors disabled:opacity-50"
         >
           <span className="material-symbols-outlined text-[14px]">security</span>
@@ -148,6 +152,7 @@ export function AgentBridgeServerCard({
         <a
           href="/api/tools/agent-bridge/cert/download"
           download
+          aria-label={t("downloadCert")}
           className="inline-flex items-center gap-1.5 rounded-lg bg-violet-500/10 text-violet-600 px-3 py-1.5 text-xs font-medium hover:bg-violet-500/20 transition-colors"
         >
           <span className="material-symbols-outlined text-[14px]">download</span>
@@ -158,6 +163,7 @@ export function AgentBridgeServerCard({
           type="button"
           onClick={() => runAction("regenerate-cert")}
           disabled={loading !== null}
+          aria-label={t("regenerateCert")}
           className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-500/10 text-text-muted px-3 py-1.5 text-xs font-medium hover:bg-zinc-500/20 transition-colors disabled:opacity-50"
         >
           <span className="material-symbols-outlined text-[14px]">autorenew</span>
