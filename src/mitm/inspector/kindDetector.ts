@@ -61,12 +61,15 @@ export function detectKind(req: InterceptedRequest): "llm" | "app" | "unknown" {
   if (LLM_HOST_PATTERNS.some((re) => re.test(req.host))) return "llm";
   if (LLM_PATH_PATTERNS.some((re) => re.test(req.path))) return "llm";
 
+  let bodySignalFired = false;
   if (req.requestBody) {
     try {
       const parsed = JSON.parse(req.requestBody) as unknown;
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
         const body = parsed as Record<string, unknown>;
         if (LLM_BODY_SHAPES.some((shape) => matchesShape(body, shape))) return "llm";
+        // Body parsed as a JSON object but had no LLM shape — clear app signal.
+        bodySignalFired = true;
       }
     } catch {
       // Non-JSON body — cannot detect from body
@@ -76,7 +79,10 @@ export function detectKind(req: InterceptedRequest): "llm" | "app" | "unknown" {
   const ua = req.requestHeaders["user-agent"] ?? req.requestHeaders["User-Agent"] ?? "";
   if (LLM_UA_PATTERN.test(ua)) return "llm";
 
-  return "app";
+  // Return "app" only when at least one non-LLM signal fired (a parseable JSON body
+  // with no LLM shape), indicating the request has recognisable app context.
+  // Otherwise nothing was detectable — return "unknown".
+  return bodySignalFired ? "app" : "unknown";
 }
 
 /**

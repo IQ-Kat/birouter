@@ -65,8 +65,25 @@ test("detectKind — UA 'antigravity/1.0' → llm", () => {
   );
 });
 
-test("detectKind — random.example.com with no clues → app", () => {
-  assert.equal(detectKind(makeReq({ host: "random.example.com" })), "app");
+test("detectKind — random.example.com with no clues → unknown", () => {
+  assert.equal(detectKind(makeReq({ host: "random.example.com" })), "unknown");
+});
+
+test("detectKind — returns 'unknown' when nothing is detectable (empty body, no UA, unknown host)", () => {
+  const req = makeReq({
+    host: "internal.example.corp",
+    path: "/api/v2/resource",
+    requestBody: null,
+    requestHeaders: {},
+  });
+  assert.equal(detectKind(req), "unknown");
+});
+
+test("detectKind — non-LLM JSON body → app", () => {
+  const req = makeReq({
+    requestBody: JSON.stringify({ userId: 42, action: "click" }),
+  });
+  assert.equal(detectKind(req), "app");
 });
 
 test("detectKind — path /v1/chat/completions → llm", () => {
