@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import BatchDetailModal from "./BatchDetailModal";
+import ExpirationBadge from "./components/ExpirationBadge";
+import ProgressBarBicolor from "./components/ProgressBarBicolor";
+import { useBatchActions } from "./components/useBatchActions";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function relativeTime(ts: number): string {
   const diffMs = Date.now() - ts * 1000;
@@ -25,6 +30,8 @@ function relativeTime(ts: number): string {
   if (isFuture) return `in ${res}`;
   return `${res} ago`;
 }
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface BatchRecord {
   id: string;
@@ -69,6 +76,8 @@ interface BatchListTabProps {
   onRefresh?: () => void;
 }
 
+// ── Status helpers ────────────────────────────────────────────────────────────
+
 const STATUS_STYLES: Record<string, string> = {
   completed: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
   completed_with_failures: "bg-red-500/15 text-red-400 border-red-500/25",
@@ -91,7 +100,7 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled_with_failures: "cancelled with failures",
 };
 
-/** Returns a composite key that reflects whether partial failures occurred. */
+/** Returns a composite status key that reflects whether partial failures occurred. */
 function effectiveStatus(batch: BatchRecord): string {
   const hasFailed = (batch.requestCountsFailed ?? 0) > 0;
   if (!hasFailed) return batch.status;
@@ -127,6 +136,139 @@ const ALL_STATUSES = [
   "expired",
 ];
 
+// ── BatchRowActions (internal component) ──────────────────────────────────────
+
+/** Per-row action buttons: cancel, download output/errors, retry, delete. */
+function BatchRowActions({
+  batch,
+  onRefresh,
+  deletingId,
+  setDeletingId,
+}: Readonly<{
+  batch: BatchRecord;
+  onRefresh?: () => void;
+  deletingId: string | null;
+  setDeletingId: (id: string | null) => void;
+}>) {
+  const t = useTranslations("common");
+  const actions = useBatchActions({ onRefresh, t });
+
+  const isTerminal = ["completed", "failed", "cancelled", "expired"].includes(batch.status);
+  const canCancel = ["validating", "in_progress", "finalizing"].includes(batch.status);
+  const canRetry =
+    isTerminal && !!batch.errorFileId && (batch.requestCountsFailed ?? 0) > 0;
+
+  return (
+    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      {/* Cancel — only for non-terminal statuses */}
+      {canCancel && (
+        <button
+          onClick={async () => {
+            if (window.confirm(t("batchActionCancel") + "?")) {
+              await actions.cancel(batch.id);
+            }
+          }}
+          disabled={actions.cancelling}
+          title={t("batchActionCancel")}
+          className="flex items-center justify-center p-1 rounded text-[var(--color-text-muted)] hover:text-orange-400 hover:bg-orange-500/10 transition-colors disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-[13px]">
+            {actions.cancelling ? "hourglass_empty" : "block"}
+          </span>
+        </button>
+      )}
+
+      {/* Download output */}
+      {batch.outputFileId && (
+        <a
+          href={actions.downloadHrefOutput(batch.outputFileId) ?? "#"}
+          download={`batch-${batch.id}-output.jsonl`}
+          onClick={(e) => e.stopPropagation()}
+          title={t("batchActionDownloadOutput")}
+          className="flex items-center justify-center p-1 rounded text-[var(--color-text-muted)] hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[13px]">download</span>
+        </a>
+      )}
+
+      {/* Download errors */}
+      {batch.errorFileId && (
+        <a
+          href={actions.downloadHrefErrors(batch.errorFileId) ?? "#"}
+          download={`batch-${batch.id}-errors.jsonl`}
+          onClick={(e) => e.stopPropagation()}
+          title={t("batchActionDownloadErrors")}
+          className="flex items-center justify-center p-1 rounded text-[var(--color-text-muted)] hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[13px]">file_download</span>
+        </a>
+      )}
+
+      {/* Retry failed — only when terminal + has error file + has failures */}
+      {canRetry && (
+        <button
+          onClick={async () => {
+            if (
+              window.confirm(
+                t("batchActionRetryConfirm", { n: batch.requestCountsFailed, cost: "TBD" }),
+              )
+            ) {
+              await actions.retry({
+                id: batch.id,
+                inputFileId: batch.inputFileId,
+                errorFileId: batch.errorFileId,
+                endpoint: batch.endpoint,
+              });
+            }
+          }}
+          disabled={actions.retrying}
+          title={t("batchActionRetry")}
+          className="flex items-center justify-center p-1 rounded text-[var(--color-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-colors disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-[13px]">
+            {actions.retrying ? "hourglass_empty" : "replay"}
+          </span>
+        </button>
+      )}
+
+      {/* Delete — only for terminal statuses */}
+      {isTerminal && (
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            setDeletingId(batch.id);
+            try {
+              const res = await fetch(`/api/v1/batches/${batch.id}`, { method: "DELETE" });
+              if (res.ok) {
+                onRefresh?.();
+              } else {
+                console.error(
+                  "[BatchRowActions] DELETE returned non-ok status",
+                  batch.id,
+                  res.status,
+                );
+              }
+            } catch (err) {
+              console.error("[BatchRowActions] DELETE threw", batch.id, err);
+            } finally {
+              setDeletingId(null);
+            }
+          }}
+          disabled={deletingId === batch.id}
+          title={t("batchListDeleteBatchTitle")}
+          className="flex items-center justify-center p-1 rounded text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-[13px]">
+            {deletingId === batch.id ? "hourglass_empty" : "delete"}
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── BatchListTab ──────────────────────────────────────────────────────────────
+
 export default function BatchListTab({
   batches,
   files,
@@ -143,26 +285,6 @@ export default function BatchListTab({
 
   const completedBatches = batches.filter((b) => b.status === "completed");
 
-  const handleDeleteBatch = async (e: React.MouseEvent, batch: BatchRecord) => {
-    e.stopPropagation();
-    setDeletingId(batch.id);
-    try {
-      const res = await fetch(`/api/v1/batches/${batch.id}`, { method: "DELETE" });
-      if (res.ok) {
-        onRefresh?.();
-      } else {
-        console.error(
-          `[DeleteBatch] DELETE ${batch.id} returned ${res.status}`,
-          await res.text().catch(() => "")
-        );
-      }
-    } catch (err) {
-      console.error(`[DeleteBatch] DELETE ${batch.id} threw`, err);
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
   const handleRemoveCompleted = async () => {
     if (completedBatches.length === 0) return;
     setRemovingCompleted(true);
@@ -172,13 +294,13 @@ export default function BatchListTab({
         onRefresh?.();
       } else {
         console.error(
-          "[RemoveCompleted] DELETE /batches/delete-completed returned",
+          "[BatchListTab] DELETE /batches/delete-completed returned",
           res.status,
-          await res.text().catch(() => "")
+          await res.text().catch(() => ""),
         );
       }
     } catch (err) {
-      console.error("[RemoveCompleted] DELETE /batches/delete-completed threw", err);
+      console.error("[BatchListTab] DELETE /batches/delete-completed threw", err);
     } finally {
       setRemovingCompleted(false);
     }
@@ -235,7 +357,7 @@ export default function BatchListTab({
         </button>
       </div>
 
-      {/* Table */}
+      {/* Table — 9 columns: Status | ID | Endpoint | Model | Progress | Cost | Created | Expires | Actions */}
       <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
         <table className="w-full text-sm" role="table" aria-label={t("batchListBatchesTable")}>
           <thead>
@@ -256,6 +378,9 @@ export default function BatchListTab({
                 Progress
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
+                {t("batchListCostColumn")}
+              </th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 Created
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
@@ -267,7 +392,7 @@ export default function BatchListTab({
           <tbody>
             {loading && filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={9} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
                     Loading…
@@ -276,7 +401,7 @@ export default function BatchListTab({
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={9} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   No batches found
                 </td>
               </tr>
@@ -285,8 +410,26 @@ export default function BatchListTab({
                 const total = batch.requestCountsTotal || 0;
                 const done = batch.requestCountsCompleted || 0;
                 const failed = batch.requestCountsFailed || 0;
-                const donePct = total > 0 ? (done / total) * 100 : 0;
-                const failedPct = total > 0 ? (failed / total) * 100 : 0;
+
+                // Cost estimate — lightweight heuristic (D8).
+                // Full per-request estimate (using JSONL input) is shown in BatchDetailModal.
+                const estimatedCost = (() => {
+                  if (!batch.model || total === 0) return "—";
+                  // Prefer real usage data when available (completed batches)
+                  const usage = batch.usage as
+                    | { input_tokens?: number; output_tokens?: number }
+                    | null
+                    | undefined;
+                  if (usage?.input_tokens != null && usage?.output_tokens != null) {
+                    // batch rate ≈ $0.005/1K tokens (blended, already -50%)
+                    const cost = ((usage.input_tokens + usage.output_tokens) * 0.005) / 1000;
+                    return `~$${cost.toFixed(2)}`;
+                  }
+                  // Fallback heuristic: 500 avg tokens/request × batch rate
+                  const estCost = (total * 500 * 0.005) / 1000;
+                  return `~$${estCost.toFixed(2)}`;
+                })();
+
                 return (
                   <tr
                     key={batch.id}
@@ -307,51 +450,44 @@ export default function BatchListTab({
                     <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">
                       {batch.model ?? "—"}
                     </td>
+                    {/* Progress — ProgressBarBicolor from F3 */}
                     <td className="px-4 py-3 min-w-[140px]">
                       {total > 0 ? (
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
-                            <span>
-                              <span className="text-emerald-400">{done}</span>
-                              {failed > 0 && <span className="text-red-400"> / {failed} err</span>}
-                              <span> / {total}</span>
-                            </span>
-                            <span>{Math.round(donePct + failedPct)}%</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-[var(--color-bg-alt)] overflow-hidden flex">
-                            <div
-                              className="h-full bg-emerald-500 transition-all"
-                              style={{ width: `${donePct}%` }}
-                            />
-                            <div
-                              className="h-full bg-red-500 transition-all"
-                              style={{ width: `${failedPct}%` }}
-                            />
-                          </div>
-                        </div>
+                        <ProgressBarBicolor
+                          total={total}
+                          completed={done}
+                          failed={failed}
+                          showLabels
+                        />
                       ) : (
                         <span className="text-xs text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
+                    {/* Cost column — heuristic estimate (D8) */}
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
+                      {estimatedCost}
+                    </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {relativeTime(batch.createdAt)}
                     </td>
+                    {/* Expiration — countdown badge for active batches (D11) */}
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
-                      {batch.expiresAt ? relativeTime(batch.expiresAt) : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {["completed", "failed", "cancelled", "expired"].includes(batch.status) && (
-                        <button
-                          onClick={(e) => handleDeleteBatch(e, batch)}
-                          disabled={deletingId === batch.id}
-                          className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors whitespace-nowrap disabled:opacity-50"
-                          title={t("batchListDeleteBatchTitle")}
-                        >
-                          <span className="material-symbols-outlined text-[13px]">
-                            {deletingId === batch.id ? "hourglass_empty" : "delete"}
-                          </span>
-                        </button>
+                      {["in_progress", "validating", "finalizing"].includes(batch.status) ? (
+                        <ExpirationBadge expiresAt={batch.expiresAt ?? null} variant="compact" />
+                      ) : batch.expiresAt ? (
+                        relativeTime(batch.expiresAt)
+                      ) : (
+                        "—"
                       )}
+                    </td>
+                    {/* Actions — cancel / download / retry / delete */}
+                    <td className="px-4 py-3">
+                      <BatchRowActions
+                        batch={batch}
+                        onRefresh={onRefresh}
+                        deletingId={deletingId}
+                        setDeletingId={setDeletingId}
+                      />
                     </td>
                   </tr>
                 );
