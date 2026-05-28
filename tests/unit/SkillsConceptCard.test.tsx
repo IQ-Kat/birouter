@@ -65,7 +65,6 @@ describe("SkillsConceptCard", () => {
     const text = container.textContent ?? "";
     // The i18n mock returns the key itself, so these keys should appear.
     expect(text).toContain("conceptCard.agent.title");
-    expect(text).toContain("conceptCard.agent.description");
     expect(text).toContain("conceptCard.agent.crossLinkLabel");
   });
 
@@ -81,8 +80,56 @@ describe("SkillsConceptCard", () => {
 
     const text = container.textContent ?? "";
     expect(text).toContain("conceptCard.omni.title");
-    expect(text).toContain("conceptCard.omni.description");
     expect(text).toContain("conceptCard.omni.crossLinkLabel");
+  });
+
+  it("agent variant renders 5 comparison rows (whatIs, direction, executor, storage, tagline)", async () => {
+    const { SkillsConceptCard } = await import(
+      "../../src/shared/components/SkillsConceptCard.tsx"
+    );
+    const container = makeContainer();
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<SkillsConceptCard variant="agent" />);
+    });
+
+    const rows = container.querySelectorAll("[data-testid^='comparison-row-']");
+    expect(rows.length).toBe(5);
+
+    const rowIds = Array.from(rows).map((r) => r.getAttribute("data-testid"));
+    expect(rowIds).toContain("comparison-row-whatIs");
+    expect(rowIds).toContain("comparison-row-direction");
+    expect(rowIds).toContain("comparison-row-executor");
+    expect(rowIds).toContain("comparison-row-storage");
+    expect(rowIds).toContain("comparison-row-tagline");
+  });
+
+  it("omni variant renders 5 comparison rows", async () => {
+    const { SkillsConceptCard } = await import(
+      "../../src/shared/components/SkillsConceptCard.tsx"
+    );
+    const container = makeContainer();
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<SkillsConceptCard variant="omni" />);
+    });
+
+    const rows = container.querySelectorAll("[data-testid^='comparison-row-']");
+    expect(rows.length).toBe(5);
+  });
+
+  it("renders data-testid for variant", async () => {
+    const { SkillsConceptCard } = await import(
+      "../../src/shared/components/SkillsConceptCard.tsx"
+    );
+    const container = makeContainer();
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<SkillsConceptCard variant="agent" />);
+    });
+
+    const card = container.querySelector("[data-testid='skills-concept-card-agent']");
+    expect(card).not.toBeNull();
   });
 
   it("agent variant cross-link points to /dashboard/omni-skills", async () => {

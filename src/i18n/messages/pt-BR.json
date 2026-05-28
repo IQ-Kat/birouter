@@ -7294,6 +7294,35 @@
         "title": "Omni Skills — Entrada",
         "description": "Omni Skills são ferramentas sandbox que o OmniRoute injeta no contexto do modelo a cada solicitação. São executadas pelo OmniRoute, não lidas pelo agente.",
         "crossLinkLabel": "Entenda a diferença →"
+      },
+      "comparison": {
+        "colAgent": "Agent Skills",
+        "colOmni": "Omni Skills",
+        "whatIs": {
+          "label": "O que é",
+          "agent": "Documentação (SKILL.md) que ensina um agente externo a operar o OmniRoute",
+          "omni": "Ferramentas executáveis que o Omni injeta como tools nos requests LLM"
+        },
+        "direction": {
+          "label": "Direção",
+          "agent": "Outbound — externo aprende a controlar o Omni",
+          "omni": "Inbound — Omni dá tools aos modelos que passam por ele"
+        },
+        "executor": {
+          "label": "Executor",
+          "agent": "Agente externo (lê markdown → age via API/CLI)",
+          "omni": "O próprio Omni (intercepta tool_calls, sandbox Docker)"
+        },
+        "storage": {
+          "label": "Storage",
+          "agent": "Catálogo dinâmico (/api/agent-skills) → SKILL.md no GitHub",
+          "omni": "SQLite (SkillsMP / skills.sh / local)"
+        },
+        "tagline": {
+          "label": "Frase",
+          "agent": "Ensine seu agente a usar o OmniRoute",
+          "omni": "Dê ferramentas executáveis aos modelos do OmniRoute"
+        }
       }
     },
     "filters": {
