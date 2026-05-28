@@ -1,47 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-// TODO(F7-merge): replace MockExportCodeModal with playground/components/ExportCodeModal
-// once the F7 branch (feat/playground-ui-advanced-F7) is merged.
-interface MockExportCodeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  state?: Record<string, unknown>;
-}
-
-function MockExportCodeModal({ isOpen, onClose }: MockExportCodeModalProps) {
-  if (!isOpen) return null;
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      data-testid="export-code-modal"
-    >
-      <div className="bg-surface border border-border rounded-xl shadow-2xl w-[500px] max-w-[95vw] p-6">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-sm font-semibold text-text-main">Export Code</span>
-          <button
-            className="text-text-muted hover:text-text-main"
-            onClick={onClose}
-            aria-label="Close export modal"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="text-xs text-text-muted p-4 bg-bg-alt rounded-lg">
-          Export code modal — disponível após merge com F7 (
-          <code>feat/playground-ui-advanced-F7</code>).
-        </div>
-        <button
-          className="mt-4 text-xs px-3 py-1.5 rounded-md bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
-          onClick={onClose}
-        >
-          Fechar
-        </button>
-      </div>
-    </div>
-  );
-}
+import ExportCodeModal from "@/app/(dashboard)/dashboard/playground/components/ExportCodeModal";
+import type { PlaygroundState } from "@/lib/playground/codeExport";
 
 export type ActiveTab = "search" | "scrape" | "compare";
 
@@ -50,7 +11,7 @@ interface SearchToolsTopBarProps {
   onTabChange: (tab: ActiveTab) => void;
   latencyMs?: number | null;
   costUsd?: number | null;
-  exportState?: Record<string, unknown>;
+  exportState?: PlaygroundState;
 }
 
 const TABS: { id: ActiveTab; icon: string; label: string }[] = [
@@ -122,11 +83,13 @@ export default function SearchToolsTopBar({
         </div>
       </div>
 
-      <MockExportCodeModal
-        isOpen={exportOpen}
-        onClose={() => setExportOpen(false)}
-        state={exportState}
-      />
+      {exportState && (
+        <ExportCodeModal
+          isOpen={exportOpen}
+          onClose={() => setExportOpen(false)}
+          state={exportState}
+        />
+      )}
     </>
   );
 }

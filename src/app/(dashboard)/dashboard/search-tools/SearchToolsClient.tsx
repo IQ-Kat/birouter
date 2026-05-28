@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
+import type { PlaygroundState } from "@/lib/playground/codeExport";
 
 import SearchToolsTopBar, { type ActiveTab } from "./components/SearchToolsTopBar";
 import SearchToolsConfigPane, { type ConfigState } from "./components/SearchToolsConfigPane";
@@ -64,12 +65,12 @@ export default function SearchToolsClient() {
   };
 
   // Build export state from current config (passed to TopBar for ExportCodeModal)
-  const exportState: Record<string, unknown> = {
+  const exportState: PlaygroundState = {
     endpoint: activeTab === "scrape" ? "web.fetch" : "search",
-    provider: configState.provider,
+    baseUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:20128",
+    searchProvider: configState.provider,
     searchType: configState.searchType,
-    fetchFormat: configState.fetchFormat,
-    fullPage: configState.fullPage,
+    fetchFormat: configState.fetchFormat as PlaygroundState["fetchFormat"],
   };
 
   return (
