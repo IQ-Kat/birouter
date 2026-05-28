@@ -11,6 +11,7 @@ import { CaptureModesToolbar } from "./components/CaptureModesToolbar";
 import { TopBarControls } from "./components/TopBarControls";
 import { RequestStreamingList } from "./components/RequestStreamingList";
 import { DetailsPanel } from "./components/DetailsPanel";
+import { HistoricSessionBanner } from "./components/session/HistoricSessionBanner";
 
 const BUFFER_MAX = 1000;
 
@@ -86,6 +87,18 @@ export function TrafficInspectorPageClient() {
       <div className="shrink-0 px-4 pt-4 pb-2">
         <CaptureModesToolbar customHostCount={0} />
       </div>
+
+      {/* Historic session banner */}
+      {filters.sessionId !== undefined && (
+        <div className="shrink-0 px-4 pb-2">
+          <HistoricSessionBanner
+            sessionName={
+              recorder.sessions.find((s) => s.id === filters.sessionId)?.name ?? null
+            }
+            onBackToLive={() => setSessionId(undefined)}
+          />
+        </div>
+      )}
 
       {/* Top bar filter/controls */}
       <div className="shrink-0">
