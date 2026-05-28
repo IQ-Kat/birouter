@@ -456,7 +456,7 @@ export default function BatchDetailModal({ batch, files, onClose, onActionDone }
             {canCancel && (
               <button
                 onClick={async () => {
-                  if (window.confirm("Cancel this batch? In-progress requests will stop.")) {
+                  if (window.confirm(t("batchDetailCancelConfirm"))) {
                     await cancel(batch.id);
                     onClose();
                   }

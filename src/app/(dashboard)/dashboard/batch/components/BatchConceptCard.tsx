@@ -91,8 +91,7 @@ export default function BatchConceptCard({ className = "" }: Props) {
             <span className="material-symbols-outlined text-[16px] text-yellow-400 mt-0.5 shrink-0">
               timer
             </span>
-            {/* 4th bullet: 24h window + 29d retention general note (no dedicated key per §3.5) */}
-            <span>{t("batchConceptAsync24h")}</span>
+            <span>{t("batchConceptRetentionNote")}</span>
           </li>
         </ul>
       )}

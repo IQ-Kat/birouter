@@ -369,7 +369,7 @@ describe("useBatchActions — error sanitization", () => {
 
     const err = hook.get().error ?? "";
     assertSanitized(err, "useBatchActions cancel error");
-    expect(err).toBe("batchActionCancel");
+    expect(err).toBe("batchActionCancelError");
   });
 
   it("S7: retry with error containing stack trace → error is i18n key only", async () => {
@@ -401,7 +401,7 @@ describe("useBatchActions — error sanitization", () => {
 
     const err = hook.get().error ?? "";
     assertSanitized(err, "useBatchActions retry error");
-    expect(err).toBe("batchActionRetry");
+    expect(err).toBe("batchActionRetryError");
   });
 
   it("S8: cancel with HTTP 500 → error is i18n key, not status code or body", async () => {
@@ -416,7 +416,7 @@ describe("useBatchActions — error sanitization", () => {
 
     const err = hook.get().error ?? "";
     assertSanitized(err, "useBatchActions cancel 500 error");
-    expect(err).toBe("batchActionCancel");
+    expect(err).toBe("batchActionCancelError");
     // Must not expose HTTP status or internal message
     expect(err).not.toContain("500");
     expect(err).not.toContain("DB error");
