@@ -2,56 +2,53 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
-import ProviderIcon from "@/shared/components/ProviderIcon";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
-import {
-  getStoredClaudeAuthValue,
-  normalizeClaudeBaseUrl,
-} from "@/shared/services/claudeCliConfig";
+
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
-export default function ClaudeToolCard({
+export default function DroidToolCard({
   tool,
-  isExpanded,
-  onToggle,
-  activeProviders,
-  modelMappings,
-  onModelMappingChange,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   hasActiveProviders,
   apiKeys,
+  activeProviders,
   cloudEnabled,
   batchStatus,
   lastConfiguredAt,
 }) {
   const t = useTranslations("cliTools");
-  const [claudeStatus, setClaudeStatus] = useState(null);
-  const [checkingClaude, setCheckingClaude] = useState(false);
+  const [droidStatus, setDroidStatus] = useState(null);
+  const [checkingDroid, setCheckingDroid] = useState(false);
   const [applying, setApplying] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [message, setMessage] = useState(null);
-  const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const [selectedApiKeyId, setSelectedApiKeyId] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentEditingAlias, setCurrentEditingAlias] = useState(null);
-  const [selectedApiKey, setSelectedApiKey] = useState("");
   const [modelAliases, setModelAliases] = useState({});
   const [showManualConfigModal, setShowManualConfigModal] = useState(false);
   const [customBaseUrl, setCustomBaseUrl] = useState("");
-  const hasInitializedModels = useRef(false);
+  const hasInitializedModel = useRef(false);
   // Backups state
   const [backups, setBackups] = useState([]);
   const [showBackups, setShowBackups] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(null);
-  const cliReady = !!(claudeStatus?.installed && claudeStatus?.runnable);
+  const cliReady = !!(droidStatus?.installed && droidStatus?.runnable);
 
   const getConfigStatus = () => {
     if (!cliReady) return null;
-    const currentUrl = claudeStatus.settings?.env?.ANTHROPIC_BASE_URL;
-    if (!currentUrl) return "not_configured";
-    const localMatch = currentUrl.includes("localhost") || currentUrl.includes("127.0.0.1");
-    const cloudMatch = cloudEnabled && CLOUD_URL && currentUrl.startsWith(CLOUD_URL);
+    const currentConfig = droidStatus.settings?.customModels?.find(
+      (m) => m.id === "custom:OmniRoute-0"
+    );
+    if (!currentConfig) return "not_configured";
+    const localMatch =
+      currentConfig.baseUrl?.includes("localhost") || currentConfig.baseUrl?.includes("127.0.0.1");
+    const cloudMatch = cloudEnabled && CLOUD_URL && currentConfig.baseUrl?.startsWith(CLOUD_URL);
     if (localMatch || cloudMatch) return "configured";
     return "other";
   };
@@ -61,21 +58,21 @@ export default function ClaudeToolCard({
   // Use batch status as fallback when card hasn't been expanded yet
   const effectiveConfigStatus = configStatus || batchStatus?.configStatus || null;
 
+  // (#523) Store the key *id* (not the masked string) so the backend can
+  // resolve the real secret from DB before writing to config files.
   useEffect(() => {
-    // (#523) Store the key *id* (not the masked string) so the backend can
-    // resolve the real secret from DB before writing to settings.json.
-    if (apiKeys?.length > 0 && !selectedApiKey) {
-      setSelectedApiKey(apiKeys[0].id);
+    if (apiKeys?.length > 0 && !selectedApiKeyId) {
+      setSelectedApiKeyId(apiKeys[0].id);
     }
-  }, [apiKeys, selectedApiKey]);
+  }, [apiKeys, selectedApiKeyId]);
 
   useEffect(() => {
-    if (isExpanded && !claudeStatus) {
-      checkClaudeStatus();
+    if (isExpanded && !droidStatus) {
+      checkDroidStatus();
       fetchModelAliases();
       fetchBackups();
     }
-  }, [isExpanded, claudeStatus]);
+  }, [isExpanded, droidStatus]);
 
   const fetchModelAliases = async () => {
     try {
@@ -88,86 +85,71 @@ export default function ClaudeToolCard({
   };
 
   useEffect(() => {
-    if (claudeStatus?.installed && !hasInitializedModels.current) {
-      hasInitializedModels.current = true;
-      const env = claudeStatus.settings?.env || {};
-
-      tool.defaultModels.forEach((model) => {
-        if (model.envKey) {
-          const value = env[model.envKey] || model.defaultValue || "";
-          // Only sync initial values from file once
-          if (value) {
-            onModelMappingChange(model.alias, value);
-          }
+    if (droidStatus?.installed && !hasInitializedModel.current) {
+      hasInitializedModel.current = true;
+      const customModel = droidStatus.settings?.customModels?.find(
+        (m) => m.id === "custom:OmniRoute-0"
+      );
+      if (customModel) {
+        if (customModel.model) setSelectedModel(customModel.model);
+        if (customModel.apiKey) {
+          // (#523) Keys from /api/keys are masked. Match by prefix/suffix.
+          const fileKeyPrefix = customModel.apiKey.slice(0, 8);
+          const fileKeySuffix = customModel.apiKey.slice(-4);
+          const matchedKey = apiKeys?.find(
+            (k) => k.key && k.key.startsWith(fileKeyPrefix) && k.key.endsWith(fileKeySuffix)
+          );
+          if (matchedKey) setSelectedApiKeyId(matchedKey.id);
         }
-      });
-      // Restore selected key from file: match token stored in file against known keys
-      const tokenFromFile = getStoredClaudeAuthValue(env);
-      if (tokenFromFile) {
-        // (#523) Keys from /api/keys are masked (first 8 + "****" + last 4).
-        // Mask the token from file to compare against the masked list.
-        const maskedToken = tokenFromFile.slice(0, 8) + "****" + tokenFromFile.slice(-4);
-        const matchedKey = apiKeys?.find((k) => k.key === maskedToken);
-        if (matchedKey) setSelectedApiKey(matchedKey.id);
       }
     }
-  }, [claudeStatus, apiKeys, tool.defaultModels, onModelMappingChange]);
+  }, [droidStatus, apiKeys]);
 
-  const checkClaudeStatus = async () => {
-    setCheckingClaude(true);
+  const checkDroidStatus = async () => {
+    setCheckingDroid(true);
     try {
-      const res = await fetch("/api/cli-tools/claude-settings");
+      const res = await fetch("/api/cli-tools/droid-settings");
       const data = await res.json();
-      setClaudeStatus(data);
+      setDroidStatus(data);
     } catch (error) {
-      setClaudeStatus({ installed: false, error: error.message });
+      setDroidStatus({ installed: false, error: error.message });
     } finally {
-      setCheckingClaude(false);
+      setCheckingDroid(false);
     }
   };
 
   const getEffectiveBaseUrl = () => {
     const url = customBaseUrl || baseUrl;
-    return normalizeClaudeBaseUrl(url);
+    return url.endsWith("/v1") ? url : `${url}/v1`;
   };
 
   const getDisplayUrl = () => {
     const url = customBaseUrl || baseUrl;
-    return normalizeClaudeBaseUrl(url);
+    return url.endsWith("/v1") ? url : `${url}/v1`;
   };
 
   const handleApplySettings = async () => {
     setApplying(true);
     setMessage(null);
     try {
-      const env: any = { ANTHROPIC_BASE_URL: getEffectiveBaseUrl() };
-
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
-      // If no key is selected, leave auth unset so local installs can rely on
-      // anonymous access instead of persisting a fake placeholder token.
-      const selectedKeyId = selectedApiKey?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
+      const selectedKeyId =
+        selectedApiKeyId?.trim() || (apiKeys?.length > 0 ? apiKeys[0].id : null);
 
-      tool.defaultModels.forEach((model) => {
-        const targetModel = modelMappings[model.alias] || model.defaultValue || "";
-        if (targetModel && model.envKey) env[model.envKey] = targetModel;
-      });
-
-      const postBody: Record<string, unknown> = { env };
-      if (selectedKeyId) postBody.keyId = selectedKeyId;
-
-      const res = await fetch("/api/cli-tools/claude-settings", {
+      const res = await fetch("/api/cli-tools/droid-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postBody),
+        body: JSON.stringify({
+          baseUrl: getEffectiveBaseUrl(),
+          apiKey: !cloudEnabled ? "sk_omniroute" : null,
+          keyId: selectedKeyId,
+          model: selectedModel,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
         setMessage({ type: "success", text: t("settingsApplied") });
-        setClaudeStatus((prev) => ({
-          ...prev,
-          hasBackup: true,
-          settings: { ...prev?.settings, env },
-        }));
+        checkDroidStatus();
       } else {
         setMessage({
           type: "error",
@@ -187,14 +169,13 @@ export default function ClaudeToolCard({
     setRestoring(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/cli-tools/claude-settings", { method: "DELETE" });
+      const res = await fetch("/api/cli-tools/droid-settings", { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
         setMessage({ type: "success", text: t("settingsReset") });
-        tool.defaultModels.forEach((model) =>
-          onModelMappingChange(model.alias, model.defaultValue || "")
-        );
-        setSelectedApiKey("");
+        setSelectedModel("");
+        setSelectedApiKeyId("");
+        checkDroidStatus();
       } else {
         setMessage({
           type: "error",
@@ -210,41 +191,15 @@ export default function ClaudeToolCard({
     }
   };
 
-  const openModelSelector = (alias) => {
-    setCurrentEditingAlias(alias);
-    setModalOpen(true);
-  };
-
   const handleModelSelect = (model) => {
-    if (currentEditingAlias) onModelMappingChange(currentEditingAlias, model.value);
-  };
-
-  // Generate settings.json content for manual copy
-  const getManualConfigs = () => {
-    const env = { ANTHROPIC_BASE_URL: getEffectiveBaseUrl() };
-    if (selectedApiKey && selectedApiKey.trim()) {
-      env.ANTHROPIC_AUTH_TOKEN = "<API_KEY_FROM_DASHBOARD>";
-    } else if (cloudEnabled) {
-      env.ANTHROPIC_AUTH_TOKEN = "<API_KEY_FROM_DASHBOARD>";
-    }
-
-    tool.defaultModels.forEach((model) => {
-      const targetModel = modelMappings[model.alias];
-      if (targetModel && model.envKey) env[model.envKey] = targetModel;
-    });
-
-    return [
-      {
-        filename: "~/.claude/settings.json",
-        content: JSON.stringify({ env }, null, 2),
-      },
-    ];
+    setSelectedModel(model.value);
+    setModalOpen(false);
   };
 
   // ── Backups ──
   const fetchBackups = async () => {
     try {
-      const res = await fetch("/api/cli-tools/backups?tool=claude");
+      const res = await fetch("/api/cli-tools/backups?tool=droid");
       const data = await res.json();
       if (res.ok) setBackups(data.backups || []);
     } catch (error) {
@@ -259,12 +214,12 @@ export default function ClaudeToolCard({
       const res = await fetch("/api/cli-tools/backups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tool: "claude", backupId }),
+        body: JSON.stringify({ tool: "droid", backupId }),
       });
       const data = await res.json();
       if (res.ok) {
         setMessage({ type: "success", text: t("backupRestored") });
-        checkClaudeStatus();
+        checkDroidStatus();
         fetchBackups();
       } else {
         setMessage({
@@ -281,12 +236,48 @@ export default function ClaudeToolCard({
     }
   };
 
+  const getManualConfigs = () => {
+    // (#523) Look up the key object by id to get the masked display value.
+    const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
+    const keyToDisplay =
+      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : "<API_KEY_FROM_DASHBOARD>");
+
+    const settingsContent = {
+      customModels: [
+        {
+          model: selectedModel || "provider/model-id",
+          id: "custom:OmniRoute-0",
+          index: 0,
+          baseUrl: getEffectiveBaseUrl(),
+          apiKey: keyToDisplay,
+          displayName: selectedModel || "provider/model-id",
+          maxOutputTokens: 131072,
+          noImageSupport: false,
+          provider: "openai",
+        },
+      ],
+    };
+
+    const platform = typeof navigator !== "undefined" && navigator.platform;
+    const isWindows = platform?.toLowerCase().includes("win");
+    const settingsPath = isWindows
+      ? "%USERPROFILE%\\.factory\\settings.json"
+      : "~/.factory/settings.json";
+
+    return [
+      {
+        filename: settingsPath,
+        content: JSON.stringify(settingsContent, null, 2),
+      },
+    ];
+  };
+
   return (
     <Card padding="sm" className="overflow-hidden">
       <div className="flex items-center justify-between hover:cursor-pointer" onClick={onToggle}>
         <div className="flex items-center gap-3">
           <div className="size-8 flex items-center justify-center shrink-0">
-            <ProviderIcon providerId="claude" size={32} type="color" />
+            <ProviderIcon providerId="droid" size={32} type="color" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -297,7 +288,7 @@ export default function ClaudeToolCard({
                 lastConfiguredAt={lastConfiguredAt}
               />
             </div>
-            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.claude")}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.droid")}</p>
           </div>
         </div>
         <span
@@ -309,69 +300,40 @@ export default function ClaudeToolCard({
 
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-border flex flex-col gap-4">
-          {checkingClaude && (
+          {checkingDroid && (
             <div className="flex items-center gap-2 text-text-muted">
               <span className="material-symbols-outlined animate-spin">progress_activity</span>
-              <span>{t("checkingCli", { tool: "Claude" })}</span>
+              <span>{t("checkingCli", { tool: "Factory Droid" })}</span>
             </div>
           )}
 
-          {!checkingClaude && claudeStatus && !cliReady && (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <span className="material-symbols-outlined text-yellow-500">warning</span>
-                <div className="flex-1">
-                  <p className="font-medium text-yellow-600 dark:text-yellow-400">
-                    {claudeStatus.installed
-                      ? t("cliNotRunnable", { tool: "Claude" })
-                      : t("cliNotInstalled", { tool: "Claude" })}
-                  </p>
-                  <p className="text-sm text-text-muted">
-                    {claudeStatus.installed
-                      ? t("cliFoundFailedHealthcheck", {
-                          tool: "Claude",
-                          reason: claudeStatus.reason ? ` (${claudeStatus.reason})` : "",
-                        })
-                      : t("installCliPrompt", { tool: "Claude" })}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowInstallGuide(!showInstallGuide)}
-                >
-                  <span className="material-symbols-outlined text-[18px] mr-1">
-                    {showInstallGuide ? "expand_less" : "help"}
-                  </span>
-                  {showInstallGuide ? t("hide") : t("howToInstall")}
-                </Button>
+          {!checkingDroid && droidStatus && !cliReady && (
+            <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <span className="material-symbols-outlined text-yellow-500">warning</span>
+              <div className="flex-1">
+                <p className="font-medium text-yellow-600 dark:text-yellow-400">
+                  {droidStatus.installed
+                    ? t("cliNotRunnable", { tool: "Factory Droid" })
+                    : t("cliNotInstalled", { tool: "Factory Droid" })}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {droidStatus.installed
+                    ? t("cliFoundFailedHealthcheck", {
+                        tool: "Factory Droid",
+                        reason: droidStatus.reason ? ` (${droidStatus.reason})` : "",
+                      })
+                    : t("installCliPrompt", { tool: "Factory Droid" })}
+                </p>
               </div>
-              {showInstallGuide && (
-                <div className="p-4 bg-surface border border-border rounded-lg">
-                  <h4 className="font-medium mb-3">{t("installationGuide")}</h4>
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <p className="text-text-muted mb-1">{t("platforms")}</p>
-                      <code className="block px-3 py-2 bg-black/5 dark:bg-white/5 rounded font-mono text-xs">
-                        npm install -g @anthropic-ai/claude-code
-                      </code>
-                    </div>
-                    <p className="text-text-muted">
-                      {t("afterInstallationRun")}{" "}
-                      <code className="px-1 bg-black/5 dark:bg-white/5 rounded">claude</code>{" "}
-                      {t("toVerify")}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {!checkingClaude && cliReady && (
+          {!checkingDroid && cliReady && (
             <>
               <div className="flex flex-col gap-2">
                 {/* Current Base URL */}
-                {claudeStatus?.settings?.env?.ANTHROPIC_BASE_URL && (
+                {droidStatus?.settings?.customModels?.find((m) => m.id === "custom:OmniRoute-0")
+                  ?.baseUrl && (
                   <div className="flex items-center gap-2">
                     <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
                       {t("current")}
@@ -380,7 +342,10 @@ export default function ClaudeToolCard({
                       arrow_forward
                     </span>
                     <span className="flex-1 px-2 py-1.5 text-xs text-text-muted truncate">
-                      {claudeStatus.settings.env.ANTHROPIC_BASE_URL}
+                      {
+                        droidStatus.settings.customModels.find((m) => m.id === "custom:OmniRoute-0")
+                          .baseUrl
+                      }
                     </span>
                   </div>
                 )}
@@ -421,8 +386,8 @@ export default function ClaudeToolCard({
                   </span>
                   {apiKeys.length > 0 ? (
                     <select
-                      value={selectedApiKey}
-                      onChange={(e) => setSelectedApiKey(e.target.value)}
+                      value={selectedApiKeyId}
+                      onChange={(e) => setSelectedApiKeyId(e.target.value)}
                       className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                     >
                       {apiKeys.map((key) => (
@@ -433,45 +398,43 @@ export default function ClaudeToolCard({
                     </select>
                   ) : (
                     <span className="flex-1 text-xs text-text-muted px-2 py-1.5">
-                      {cloudEnabled ? t("noApiKeysCreateOne") : t("noApiKeysAvailable")}
+                      {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultOmnirouteKey")}
                     </span>
                   )}
                 </div>
 
-                {/* Model Mappings */}
-                {tool.defaultModels.map((model) => (
-                  <div key={model.alias} className="flex items-center gap-2">
-                    <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                      {model.name}
-                    </span>
-                    <span className="material-symbols-outlined text-text-muted text-[14px]">
-                      arrow_forward
-                    </span>
+                {/* Model */}
+                <div className="flex items-center gap-2">
+                  <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
+                    {t("model")}
+                  </span>
+                  <span className="material-symbols-outlined text-text-muted text-[14px]">
+                    arrow_forward
+                  </span>
+                  <input
+                    type="text"
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    placeholder={t("providerModelPlaceholder")}
+                    className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    disabled={!hasActiveProviders}
+                    className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
+                  >
+                    {t("selectModel")}
+                  </button>
+                  {selectedModel && (
                     <button
-                      onClick={() => openModelSelector(model.alias)}
-                      disabled={!hasActiveProviders}
-                      className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
+                      onClick={() => setSelectedModel("")}
+                      className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
+                      title={t("clear")}
                     >
-                      {t("selectModel")}
+                      <span className="material-symbols-outlined text-[14px]">close</span>
                     </button>
-                    <input
-                      type="text"
-                      value={modelMappings[model.alias] || ""}
-                      onChange={(e) => onModelMappingChange(model.alias, e.target.value)}
-                      placeholder={t("providerModelPlaceholder")}
-                      className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
-                    />
-                    {modelMappings[model.alias] && (
-                      <button
-                        onClick={() => onModelMappingChange(model.alias, "")}
-                        className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
-                        title={t("clear")}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">close</span>
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
 
               {message && (
@@ -490,7 +453,7 @@ export default function ClaudeToolCard({
                   variant="primary"
                   size="sm"
                   onClick={handleApplySettings}
-                  disabled={!hasActiveProviders}
+                  disabled={!selectedModel}
                   loading={applying}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>
@@ -500,7 +463,7 @@ export default function ClaudeToolCard({
                   variant="outline"
                   size="sm"
                   onClick={handleResetSettings}
-                  disabled={!claudeStatus?.hasOmniRoute}
+                  disabled={!droidStatus?.hasOmniRoute}
                   loading={restoring}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">restore</span>
@@ -525,7 +488,6 @@ export default function ClaudeToolCard({
                 </Button>
               </div>
 
-              {/* Backups Section */}
               {showBackups && (
                 <div className="mt-2 p-3 bg-surface border border-border rounded-lg">
                   <h4 className="text-xs font-semibold text-text-main mb-2 flex items-center gap-1">
@@ -572,16 +534,16 @@ export default function ClaudeToolCard({
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSelect={handleModelSelect}
-        selectedModel={currentEditingAlias ? modelMappings[currentEditingAlias] : null}
+        selectedModel={selectedModel}
         activeProviders={activeProviders}
         modelAliases={modelAliases}
-        title={t("selectModelForAlias", { alias: currentEditingAlias || "" })}
+        title={t("selectModelForTool", { tool: "Factory Droid" })}
       />
 
       <ManualConfigModal
         isOpen={showManualConfigModal}
         onClose={() => setShowManualConfigModal(false)}
-        title={t("claudeManualConfiguration")}
+        title={t("droidManualConfiguration")}
         configs={getManualConfigs()}
       />
     </Card>

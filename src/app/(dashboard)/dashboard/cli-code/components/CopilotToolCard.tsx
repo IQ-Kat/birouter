@@ -15,8 +15,8 @@ import { useTranslations } from "next-intl";
  */
 export default function CopilotToolCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   apiKeys,
   activeProviders = [],

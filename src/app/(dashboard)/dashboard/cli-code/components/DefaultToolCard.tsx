@@ -13,8 +13,8 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 export default function DefaultToolCard({
   toolId,
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   apiKeys,
   activeProviders = [],

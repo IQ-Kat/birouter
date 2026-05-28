@@ -10,8 +10,8 @@ import { normalizeCodexBaseUrl } from "@/shared/utils/codexBaseUrl";
 
 export default function CodexToolCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   apiKeys,
   activeProviders,

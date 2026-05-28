@@ -25,8 +25,8 @@ const HERMES_ROLES: Role[] = [
 
 export default function HermesAgentToolCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   apiKeys,
   activeProviders = [],
