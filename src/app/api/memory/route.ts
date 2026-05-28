@@ -6,6 +6,7 @@ import { MemoryType } from "@/lib/memory/types";
 import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const createMemorySchema = z.object({
   content: z.string().min(1),
@@ -78,8 +79,8 @@ export async function GET(request: Request) {
       stats,
     });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error }, { status: 500 });
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 500 });
   }
 }
 
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     const memoryId = await createMemory(validation.data);
     return NextResponse.json({ success: true, id: memoryId });
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error }, { status: 400 });
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 400 });
   }
 }
