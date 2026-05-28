@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import type { ToolBatchStatus } from "@/shared/types/cliBatchStatus";
-import CliStatusBadge from "@/app/(dashboard)/dashboard/cli-tools/components/CliStatusBadge";
+import CliStatusBadge from "@/app/(dashboard)/dashboard/cli-code/components/CliStatusBadge";
 import { cn } from "@/shared/utils/cn";
 
 export interface CliToolCardProps {
