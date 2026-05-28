@@ -430,10 +430,37 @@ function isRestrictedEnvironment() {
 }
 
 // Check if new version available, return latest version or null
-// Disabled for local fork — no npm registry to check against
 function checkForUpdate() {
+  if (skipUpdate) return Promise.resolve(null);
+  
   return new Promise((resolve) => {
-    resolve(null);
+    const timeout = setTimeout(() => resolve(null), 3000); // 3s timeout for check
+    
+    https.get(`https://registry.npmjs.org/${APP_NAME}/latest`, (res) => {
+      clearTimeout(timeout);
+      if (res.statusCode !== 200) {
+        resolve(null);
+        return;
+      }
+      
+      let data = "";
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
+        try {
+          const latest = JSON.parse(data).version;
+          if (latest && compareVersions(latest, pkg.version) > 0) {
+            resolve(latest);
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
+        }
+      });
+    }).on("error", () => {
+      clearTimeout(timeout);
+      resolve(null);
+    });
   });
 }
 

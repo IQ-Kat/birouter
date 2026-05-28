@@ -16,6 +16,9 @@ All notable changes to Birouter will be documented in this file.
 - **Sticky Proxy (IP Binding)** — Permanently binds each OAuth account to a specific proxy IP.
   - **Consistent Network Identity**: Ensures an account always appears to come from the same location.
   - **Auto-binding**: Automatically picks and locks a proxy from the pool on first use.
+- **CLI Auto-Update** — Stay up to date easily.
+  - **NPM Integration**: Birouter CLI now automatically checks for new versions on NPM registry during startup.
+  - **Seamless Update Flow**: Provides a direct update command and menu option when a newer version is detected.
 - **Context Length Awareness** — Better model information and selection.
   - **Metadata Fetching**: Automatically captures `context_length` from provider APIs during the "Fetch Models" process.
   - **UI Badges**: Displays context length badges (e.g., "128k", "200k") next to model names in selection modals and combos.

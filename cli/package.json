@@ -1,6 +1,6 @@
 {
   "name": "birouter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Birouter CLI - Start and manage Birouter server",
   "bin": {
     "birouter": "./cli.js"
