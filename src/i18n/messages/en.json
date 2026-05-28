@@ -930,7 +930,13 @@
     "settingsAuthzSubtitle": "Route inventory and bypass policy",
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
-    "changelogSubtitle": "Release notes"
+    "changelogSubtitle": "Release notes",
+    "cliCode": "CLI Code's",
+    "cliCodeSubtitle": "Code tools pointing to OmniRoute",
+    "cliAgents": "CLI Agents",
+    "cliAgentsSubtitle": "Autonomous CLI agents",
+    "acpAgents": "ACP Agents",
+    "acpAgentsSubtitle": "CLIs spawned by OmniRoute"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -7289,5 +7295,137 @@
     "policyLabel": "Policy:",
     "resetIn": "reset in",
     "quotaTotal": "total"
+  },
+  "cliCommon": {
+    "concept": {
+      "code": {
+        "title": "CLI Code's",
+        "phrase": "Code tools you point at OmniRoute",
+        "flow": "You → CLI Code → OmniRoute → Provider",
+        "seeOther": "See →"
+      },
+      "agent": {
+        "title": "CLI Agents",
+        "phrase": "Broad-purpose autonomous CLI agents you point at OmniRoute",
+        "flow": "You → CLI Agent → OmniRoute → Provider",
+        "seeOther": "See →"
+      },
+      "acp": {
+        "title": "ACP Agents",
+        "phrase": "CLIs that OmniRoute spawns as execution backend (reverse flow)",
+        "flow": "Client → OmniRoute → spawn CLI (stdio/ACP) → response",
+        "seeOther": "See →"
+      }
+    },
+    "comparison": {
+      "title": "Understand the 3 CLI types in OmniRoute",
+      "thisPage": "[This page ✓]",
+      "code": {
+        "title": "Code tool",
+        "desc": "Points to Omni",
+        "flow": "you → CLI → Omni → provider",
+        "examples": "e.g.: claude, codex"
+      },
+      "agent": {
+        "title": "Broad autonomous agent",
+        "desc": "Points to Omni",
+        "flow": "you → agent → Omni",
+        "examples": "e.g.: hermes, goose"
+      },
+      "acp": {
+        "title": "CLI used as backend by Omni",
+        "desc": "Reverse execution",
+        "flow": "Omni → spawn CLI → resp",
+        "examples": "e.g.: claude, codex (ACP)"
+      }
+    },
+    "card": {
+      "detected": "Detected",
+      "notDetected": "Not detected",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "configure": "Configure →",
+      "howToInstall": "How to install →",
+      "manualConfig": "Manual config",
+      "installGuide": "Install guide",
+      "endpointLabel": "Endpoint",
+      "baseUrlPartial": "Partial Base URL",
+      "refreshDetection": "Refresh detection",
+      "alsoAcp": "also ACP"
+    },
+    "detail": {
+      "back": "Back",
+      "apply": "Save",
+      "reset": "Clear",
+      "manualConfig": "Manual configuration",
+      "vendor": "Vendor",
+      "category": "Type",
+      "detectionStatus": "Detection",
+      "configStatus": "Configuration",
+      "baseUrlLabel": "Base URL",
+      "apiKeyLabel": "API Key",
+      "modelMappingLabel": "Model mapping",
+      "noActiveProviders": "No active providers.",
+      "noActiveProvidersDesc": "Go to Providers to connect at least 1 provider before configuring the CLI.",
+      "openProviders": "Open Providers →"
+    }
+  },
+  "cliCode": {
+    "pageTitle": "CLI Code's",
+    "pageSubtitle": "Code tools pointing to OmniRoute",
+    "searchPlaceholder": "Search CLI…",
+    "filterDetectionLabel": "Detection",
+    "filterBaseUrlLabel": "Base URL",
+    "detectionAll": "All",
+    "detectionInstalled": "Installed",
+    "detectionNotFound": "Not found",
+    "baseUrlAll": "All",
+    "baseUrlFull": "Full",
+    "baseUrlPartial": "Partial"
+  },
+  "cliAgents": {
+    "pageTitle": "CLI Agents",
+    "pageSubtitle": "Broad-purpose autonomous CLI agents",
+    "refreshDetection": "Refresh detection",
+    "searchPlaceholder": "Search agent…",
+    "detectionFilterLabel": "Detection",
+    "detectionAll": "All",
+    "detectionInstalled": "Installed",
+    "detectionNotInstalled": "Not installed",
+    "visibleCount": "{count} visible",
+    "emptyState": "No CLI agents found with the current filters."
+  },
+  "acpAgents": {
+    "pageTitle": "ACP Agents",
+    "pageSubtitle": "CLIs that OmniRoute spawns as execution backend",
+    "scanning": "Detecting agents…",
+    "refresh": "Refresh",
+    "setupGuideTitle": "Setup guide",
+    "setupGuideDetectCliTitle": "Detect CLI",
+    "setupGuideDetectCliDesc": "Agents are identified by running the --version command in PATH.",
+    "setupGuideCustomAgentTitle": "Add custom agent",
+    "setupGuideCustomAgentDesc": "Fill in the form below to register a custom CLI agent.",
+    "setupGuideCommandMissingTitle": "Command not found",
+    "setupGuideCommandMissingDesc": "Check that the binary is in PATH.",
+    "fingerprintSettingsHint": "Configure routing and fingerprints in",
+    "settingsRoutingLink": "Settings → Routing",
+    "installed": "Installed",
+    "notFound": "Not found",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "agentUseCaseHint": "Available for spawn via ACP.",
+    "remove": "Remove",
+    "addCustomAgent": "Add custom agent",
+    "addCustomAgentDesc": "Register a custom CLI agent to be spawned via ACP.",
+    "addAgent": "Add agent",
+    "agentName": "Name",
+    "agentNamePlaceholder": "e.g.: My Agent",
+    "binaryName": "Binary",
+    "binaryNamePlaceholder": "e.g.: myagent",
+    "versionCommand": "Version command",
+    "versionCommandPlaceholder": "e.g.: myagent --version",
+    "spawnArgs": "Spawn arguments",
+    "spawnArgsPlaceholder": "e.g.: --quiet, --json",
+    "cliCodeRedirectCta": "Open CLI Code's"
   }
 }

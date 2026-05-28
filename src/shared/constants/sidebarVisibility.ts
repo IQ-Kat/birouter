@@ -13,7 +13,8 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-rtk",
   "context-combos",
   // OmniProxy > Tools
-  "cli-tools",
+  "cli-code",
+  "cli-agents",
   "acp-agents",
   "cloud-agents",
   // OmniProxy > Integrations
@@ -229,18 +230,25 @@ const TOOLS_GROUP: SidebarItemGroup = {
   titleFallback: "Tools",
   items: [
     {
-      id: "cli-tools",
-      href: "/dashboard/cli-tools",
-      i18nKey: "cliTools",
-      subtitleKey: "cliToolsSubtitle",
+      id: "cli-code",
+      href: "/dashboard/cli-code",
+      i18nKey: "cliCode",
+      subtitleKey: "cliCodeSubtitle",
       icon: "terminal",
+    },
+    {
+      id: "cli-agents",
+      href: "/dashboard/cli-agents",
+      i18nKey: "cliAgents",
+      subtitleKey: "cliAgentsSubtitle",
+      icon: "smart_toy",
     },
     {
       id: "acp-agents",
       href: "/dashboard/acp-agents",
       i18nKey: "acpAgents",
       subtitleKey: "acpAgentsSubtitle",
-      icon: "smart_toy",
+      icon: "device_hub",
     },
     {
       id: "cloud-agents",
@@ -801,7 +809,8 @@ const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
   "context-caveman",
   "context-rtk",
   "context-combos",
-  "cli-tools",
+  "cli-code",
+  "cli-agents",
   "acp-agents",
   "api-endpoints",
   "analytics",
