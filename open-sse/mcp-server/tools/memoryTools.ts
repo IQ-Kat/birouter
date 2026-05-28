@@ -2,6 +2,7 @@ import { z } from "zod";
 import { retrieveMemories } from "@/lib/memory/retrieval";
 import { createMemory, deleteMemory, listMemories } from "@/lib/memory/store";
 import { MemoryType } from "@/lib/memory/types";
+import { getMemorySettings, toMemoryRetrievalConfig, DEFAULT_MEMORY_SETTINGS } from "@/lib/memory/settings";
 
 export const MemorySearchSchema = z.object({
   apiKeyId: z.string(),
@@ -32,14 +33,22 @@ export const memoryTools = {
     description: "Search memories by query, type, or API key with token budget enforcement",
     inputSchema: MemorySearchSchema,
     handler: async (args: z.infer<typeof MemorySearchSchema>) => {
+      const memorySettings = await getMemorySettings().catch(() => null);
+      const baseConfig = memorySettings
+        ? toMemoryRetrievalConfig(memorySettings)
+        : {
+            enabled: DEFAULT_MEMORY_SETTINGS.enabled,
+            maxTokens: DEFAULT_MEMORY_SETTINGS.maxTokens,
+            retrievalStrategy: "exact" as const,
+            autoSummarize: false,
+            persistAcrossModels: false,
+            retentionDays: DEFAULT_MEMORY_SETTINGS.retentionDays,
+            scope: "apiKey" as const,
+          };
+
       const config = {
-        enabled: true,
-        maxTokens: args.maxTokens || 2000,
-        retrievalStrategy: "exact" as const,
-        autoSummarize: false,
-        persistAcrossModels: false,
-        retentionDays: 30,
-        scope: "apiKey" as const,
+        ...baseConfig,
+        maxTokens: args.maxTokens || (baseConfig.maxTokens ?? DEFAULT_MEMORY_SETTINGS.maxTokens),
         query: args.query,
       };
 

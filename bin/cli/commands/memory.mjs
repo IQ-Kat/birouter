@@ -3,7 +3,14 @@ import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
-const VALID_TYPES = ["user", "feedback", "project", "reference"];
+const VALID_TYPES = ["factual", "episodic", "procedural", "semantic"];
+
+const LEGACY_TYPE_MAP = {
+  user: "factual",
+  feedback: "factual",
+  project: "factual",
+  reference: "factual",
+};
 
 function truncate(v, len = 60) {
   if (v == null) return "-";
@@ -72,9 +79,16 @@ export async function runMemoryAdd(opts, cmd) {
     process.stderr.write("--content or --file required\n");
     process.exit(2);
   }
+  let resolvedType = opts.type ?? "factual";
+  if (opts.type && Object.prototype.hasOwnProperty.call(LEGACY_TYPE_MAP, opts.type)) {
+    process.stderr.write(
+      `Warning: legacy type '${opts.type}' is deprecated; using 'factual'. Use --type factual|episodic|procedural|semantic.\n`
+    );
+    resolvedType = LEGACY_TYPE_MAP[opts.type];
+  }
   const body = {
     content,
-    type: opts.type ?? "user",
+    type: resolvedType,
     ...(opts.metadata ? { metadata: JSON.parse(opts.metadata) } : {}),
     ...(opts.apiKey ? { apiKey: opts.apiKey } : {}),
   };
