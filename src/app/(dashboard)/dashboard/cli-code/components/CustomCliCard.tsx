@@ -24,8 +24,8 @@ interface CustomCliMappingRow {
 
 export default function CustomCliCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   apiKeys,
   availableModels = [],

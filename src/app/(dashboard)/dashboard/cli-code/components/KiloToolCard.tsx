@@ -2,17 +2,17 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
-import ProviderIcon from "@/shared/components/ProviderIcon";
+import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
 import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
-export default function ClineToolCard({
+export default function KiloToolCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   hasActiveProviders,
   apiKeys,
@@ -22,8 +22,8 @@ export default function ClineToolCard({
   lastConfiguredAt,
 }) {
   const t = useTranslations("cliTools");
-  const [clineStatus, setClineStatus] = useState(null);
-  const [checkingCline, setCheckingCline] = useState(false);
+  const [kiloStatus, setKiloStatus] = useState(null);
+  const [checkingKilo, setCheckingKilo] = useState(false);
   const [applying, setApplying] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [message, setMessage] = useState(null);
@@ -38,16 +38,12 @@ export default function ClineToolCard({
   const [backups, setBackups] = useState([]);
   const [showBackups, setShowBackups] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(null);
-  const cliReady = !!(clineStatus?.installed && clineStatus?.runnable);
+  const cliReady = !!(kiloStatus?.installed && kiloStatus?.runnable);
 
   const getConfigStatus = () => {
     if (!cliReady) return null;
-    if (!clineStatus.hasOmniRoute) return "not_configured";
-    const baseUrlVal = clineStatus.settings?.openAiBaseUrl || "";
-    const localMatch = baseUrlVal.includes("localhost") || baseUrlVal.includes("127.0.0.1");
-    const cloudMatch = cloudEnabled && CLOUD_URL && baseUrlVal.startsWith(CLOUD_URL);
-    if (localMatch || cloudMatch) return "configured";
-    return "other";
+    if (!kiloStatus.hasOmniRoute) return "not_configured";
+    return "configured";
   };
 
   const configStatus = getConfigStatus();
@@ -64,22 +60,12 @@ export default function ClineToolCard({
   }, [apiKeys, selectedApiKeyId]);
 
   useEffect(() => {
-    if (isExpanded && !clineStatus) {
-      checkClineStatus();
+    if (isExpanded && !kiloStatus) {
+      checkKiloStatus();
       fetchModelAliases();
       fetchBackups();
     }
-  }, [isExpanded, clineStatus]);
-
-  useEffect(() => {
-    if (clineStatus?.settings && !hasInitializedModel.current) {
-      const currentModel = clineStatus.settings.openAiModelId;
-      if (currentModel) {
-        setSelectedModel(currentModel);
-        hasInitializedModel.current = true;
-      }
-    }
-  }, [clineStatus]);
+  }, [isExpanded, kiloStatus]);
 
   const fetchModelAliases = async () => {
     try {
@@ -95,7 +81,7 @@ export default function ClineToolCard({
 
   const fetchBackups = async () => {
     try {
-      const res = await fetch("/api/cli-tools/backups?tool=cline");
+      const res = await fetch("/api/cli-tools/backups?tool=kilo");
       if (res.ok) {
         const data = await res.json();
         setBackups(data.backups || []);
@@ -111,11 +97,11 @@ export default function ClineToolCard({
       const res = await fetch("/api/cli-tools/backups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tool: "cline", backupId }),
+        body: JSON.stringify({ tool: "kilo", backupId }),
       });
       if (res.ok) {
         setMessage({ type: "success", text: t("backupRestoredReloading") });
-        await checkClineStatus();
+        await checkKiloStatus();
         await fetchBackups();
       } else {
         const data = await res.json();
@@ -133,16 +119,16 @@ export default function ClineToolCard({
     }
   };
 
-  const checkClineStatus = async () => {
-    setCheckingCline(true);
+  const checkKiloStatus = async () => {
+    setCheckingKilo(true);
     try {
-      const res = await fetch("/api/cli-tools/cline-settings");
+      const res = await fetch("/api/cli-tools/kilo-settings");
       const data = await res.json();
-      setClineStatus(data);
+      setKiloStatus(data);
     } catch (error) {
-      setClineStatus({ error: error.message });
+      setKiloStatus({ error: error.message });
     } finally {
-      setCheckingCline(false);
+      setCheckingKilo(false);
     }
   };
 
@@ -163,7 +149,7 @@ export default function ClineToolCard({
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       const selectedKeyId = selectedApiKeyId?.trim() || null;
 
-      const res = await fetch("/api/cli-tools/cline-settings", {
+      const res = await fetch("/api/cli-tools/kilo-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -176,7 +162,7 @@ export default function ClineToolCard({
       const data = await res.json();
       if (res.ok) {
         setMessage({ type: "success", text: data.message || t("applied") });
-        await checkClineStatus();
+        await checkKiloStatus();
         await fetchBackups();
       } else {
         setMessage({
@@ -195,13 +181,13 @@ export default function ClineToolCard({
     setRestoring(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/cli-tools/cline-settings", { method: "DELETE" });
+      const res = await fetch("/api/cli-tools/kilo-settings", { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
         setMessage({ type: "success", text: data.message || t("resetDone") });
         setSelectedModel("");
         hasInitializedModel.current = false;
-        await checkClineStatus();
+        await checkKiloStatus();
         await fetchBackups();
       } else {
         setMessage({
@@ -241,7 +227,23 @@ export default function ClineToolCard({
       <div className="flex items-center justify-between hover:cursor-pointer" onClick={onToggle}>
         <div className="flex items-center gap-3">
           <div className="size-8 rounded-lg flex items-center justify-center shrink-0">
-            <ProviderIcon providerId={tool.id || "cline"} size={32} type="color" />
+            {tool.image ? (
+              <Image
+                src={tool.image}
+                alt={tool.name}
+                width={32}
+                height={32}
+                className="size-8 object-contain rounded-lg"
+                sizes="32px"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <span className="material-symbols-outlined text-xl" style={{ color: tool.color }}>
+                terminal
+              </span>
+            )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -252,7 +254,7 @@ export default function ClineToolCard({
                 lastConfiguredAt={lastConfiguredAt}
               />
             </div>
-            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.cline")}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.kilo")}</p>
           </div>
         </div>
         <span
@@ -264,16 +266,16 @@ export default function ClineToolCard({
 
       {isExpanded && (
         <div className="mt-6 pt-6 border-t border-border">
-          {checkingCline && (
+          {checkingKilo && (
             <div className="flex items-center gap-2 text-text-muted text-sm">
               <span className="material-symbols-outlined animate-spin text-base">
                 progress_activity
               </span>
-              <span>{t("checkingCli", { tool: "Cline" })}</span>
+              <span>{t("checkingCli", { tool: "Kilo Code" })}</span>
             </div>
           )}
 
-          {clineStatus && !checkingCline && (
+          {kiloStatus && !checkingKilo && (
             <div className="flex flex-col gap-4">
               {/* Runtime status */}
               <div className="flex items-start gap-3 p-3 rounded-lg border bg-bg-secondary/50 border-border">
@@ -285,24 +287,24 @@ export default function ClineToolCard({
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium">
                     {cliReady
-                      ? t("cliDetectedReady", { tool: "Cline" })
-                      : clineStatus.installed
-                        ? t("cliNotRunnable", { tool: "Cline" })
-                        : t("cliNotDetected", { tool: "Cline" })}
+                      ? t("cliDetectedReady", { tool: "Kilo Code" })
+                      : kiloStatus.installed
+                        ? t("cliNotRunnable", { tool: "Kilo Code" })
+                        : t("cliNotDetected", { tool: "Kilo Code" })}
                   </p>
-                  {clineStatus.commandPath && (
+                  {kiloStatus.commandPath && (
                     <p className="text-xs text-text-muted">
                       {t("binary")}:{" "}
                       <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
-                        {clineStatus.commandPath}
+                        {kiloStatus.commandPath}
                       </code>
                     </p>
                   )}
-                  {clineStatus.globalStatePath && (
+                  {kiloStatus.authPath && (
                     <p className="text-xs text-text-muted">
-                      {t("configPathShort")}:{" "}
+                      {t("auth")}:{" "}
                       <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
-                        {clineStatus.globalStatePath}
+                        {kiloStatus.authPath}
                       </code>
                     </p>
                   )}
@@ -322,8 +324,8 @@ export default function ClineToolCard({
                           {t("omnirouteConfiguredOpenAiCompatible")}
                         </p>
                         <p className="text-xs text-text-muted">
-                          {t("provider")}: <strong>openai</strong> • {t("model")}:{" "}
-                          <strong>{clineStatus.settings?.openAiModelId || "—"}</strong>
+                          {t("providers")}:{" "}
+                          <strong>{kiloStatus.settings?.auth?.join(", ") || "—"}</strong>
                         </p>
                       </div>
                     </div>
@@ -470,13 +472,13 @@ export default function ClineToolCard({
         onSelect={handleSelectModel}
         selectedModel={selectedModel}
         activeProviders={activeProviders}
-        title={t("selectModelForTool", { tool: "Cline" })}
+        title={t("selectModelForTool", { tool: "Kilo Code" })}
       />
       {showManualConfigModal && (
         <ManualConfigModal
           isOpen={showManualConfigModal}
           onClose={() => setShowManualConfigModal(false)}
-          title={t("clineManualConfiguration")}
+          title={t("kiloManualConfiguration")}
           {...({
             onApply: handleManualConfig,
             currentConfig: {

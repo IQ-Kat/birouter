@@ -23,7 +23,7 @@ interface UpdateInfo {
   updateAvailable: boolean;
 }
 
-export default function CliproxyapiToolCard({ isExpanded, onToggle }) {
+export default function CliproxyapiToolCard({ isExpanded = false, onToggle = () => {} }) {
   const [toolState, setToolState] = useState<ToolState | null>(null);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [loading, setLoading] = useState<string | null>(null);

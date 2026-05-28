@@ -8,8 +8,8 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 
 export default function AntigravityToolCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   apiKeys,
   activeProviders,

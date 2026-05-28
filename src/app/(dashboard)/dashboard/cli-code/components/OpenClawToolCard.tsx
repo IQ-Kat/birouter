@@ -10,8 +10,8 @@ const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
 export default function OpenClawToolCard({
   tool,
-  isExpanded,
-  onToggle,
+  isExpanded = false,
+  onToggle = () => {},
   baseUrl,
   hasActiveProviders,
   apiKeys,
