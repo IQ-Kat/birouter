@@ -119,9 +119,12 @@ src/
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `app/api/v1/`                                                                | Public OpenAI-compat API (~25 sub-routes: chat, completions, embeddings, files, batches, audio, images, videos, music, rerank, moderations, search, ws, agents, accounts, providers, etc.) |
 | `app/api/v1beta/`                                                            | Gemini-style API endpoints                                                                                                                                                                 |
+| `app/api/playground/`                                                        | Playground Studio routes: `improve-prompt/` (POST — LLM prompt rewriter), `presets/` (GET list / POST create), `presets/[id]/` (GET / PUT / DELETE) — see `docs/frameworks/PLAYGROUND_STUDIO.md` |
 | `app/api/` (non-v1)                                                          | Management/admin routes (~60 directories: providers, combos, settings, mcp, a2a, evals, memory, skills, webhooks, compliance, resilience, monitoring, tunnels, cli-tools, etc.)            |
 | `app/a2a/`                                                                   | A2A JSON-RPC 2.0 entry point (`POST /a2a`)                                                                                                                                                 |
 | `app/.well-known/agent.json/`                                                | A2A Agent Card (discovery)                                                                                                                                                                 |
+| `app/(dashboard)/dashboard/playground/`                                      | Playground Studio UI (4 tabs: Chat/Compare/API/Build + shared Config pane + hooks) — see `docs/frameworks/PLAYGROUND_STUDIO.md` |
+| `app/(dashboard)/dashboard/search-tools/`                                    | Search Tools Studio UI (3 tabs: Search/Scrape/Compare + SearchConceptCard + ProviderCatalog) — see `docs/frameworks/SEARCH_TOOLS_STUDIO.md` |
 | `app/(dashboard)/dashboard/`                                                 | Dashboard UI pages (~30 pages: providers, combos, settings, memory, skills, webhooks, evals, audit, batch, cache, costs, health, system, etc.)                                             |
 | `app/docs/`                                                                  | Embedded documentation viewer (renders `docs/*.md`)                                                                                                                                        |
 | `app/landing/`                                                               | Marketing landing page                                                                                                                                                                     |
@@ -159,6 +162,7 @@ src/
 | `plugins/`                               | Plugin registry                                                                                                                                          |
 | `promptCache/`                           | Anthropic-style prompt cache breakpoints                                                                                                                 |
 | `skills/`                                | Skills framework (built-in + marketplace + SkillsSH) — see `docs/frameworks/SKILLS.md`                                                                   |
+| `playground/`                            | Playground Studio shared helpers: `codeExport.ts` (curl/Python/TS generator), `promptImprover.ts` (meta-prompt builder), `streamMetrics.ts` (pure TTFT/TPS), `types.ts` (pricing table) — see `docs/frameworks/PLAYGROUND_STUDIO.md` |
 | `webhookDispatcher.ts`                   | HMAC webhook delivery — see `docs/frameworks/WEBHOOKS.md`                                                                                                |
 | `cloudflaredTunnel.ts`, `ngrokTunnel.ts` | Tunnel managers — see `docs/ops/TUNNELS_GUIDE.md`                                                                                                        |
 | `oneproxySync.ts`, `oneproxyRotator.ts`  | 1proxy free proxy marketplace — see `docs/ops/PROXY_GUIDE.md`                                                                                            |
@@ -172,7 +176,8 @@ src/
 | Subdir           | Purpose                                                                                                                                                                    |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `db/core.ts`     | `getDbInstance()` singleton with WAL journaling                                                                                                                            |
-| `db/migrations/` | 55 versioned SQL files (idempotent, transactional, numbered `001`..`055`)                                                                                                  |
+| `db/migrations/` | 76 versioned SQL files (idempotent, transactional, numbered `001`..`076`); `076` adds `playground_presets` table |
+| `db/playgroundPresets.ts` | CRUD module for Playground Studio presets (`listPlaygroundPresets`, `getPlaygroundPreset`, `createPlaygroundPreset`, `updatePlaygroundPreset`, `deletePlaygroundPreset`) |
 | `db/<domain>.ts` | One module per domain: providers, combos, apiKeys, users, sessions, usage, audit*log, webhooks, skills, memory_entries, cloud_agent_tasks, evals*\*, reasoning_cache, etc. |
 
 ### `src/domain/`

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
 
@@ -49,6 +50,7 @@ function getWorstIndex(values: number[], higherIsBetter = false): number {
 }
 
 export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
+  const t = useTranslations("search");
   const activeSearchProviders = providers.filter(
     (p) => p.kind === "search" && p.status === "configured",
   );
@@ -323,10 +325,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                   ))}
                 </tr>
                 <tr className="border-b border-border/50">
-                  {/* D22 / §3.9 — "Size" was hardcoded; use data-i18n attr for F9 replacement */}
-                  <td className="p-2 text-text-muted">
-                    <span data-i18n="search.size">Size</span>
-                  </td>
+                  <td className="p-2 text-text-muted">{t("size")}</td>
                   {results.map((r, i) => (
                     <td
                       key={r.provider}
