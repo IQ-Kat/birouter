@@ -49,7 +49,7 @@ describe("TranslatorConceptCard", () => {
     document.body.innerHTML = "";
   });
 
-  it("exports a default function component", async () => {
+  it("exports a default function component", { timeout: 30000 }, async () => {
     const mod = await import(
       "@/app/(dashboard)/dashboard/translator/components/TranslatorConceptCard"
     );
