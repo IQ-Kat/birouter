@@ -44,6 +44,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "costs-pricing",
   "costs-budget",
   "costs-quota-share",
+  "costs-quota-plans",
   // Monitoring > Audit
   "audit",
   "audit-mcp",
@@ -437,8 +438,13 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "costsQuotaShareSubtitle",
     icon: "pie_chart",
   },
-  // F9 ADDS ONE LINE HERE:
-  // { id: "costs-quota-plans", href: "/dashboard/costs/quota-share/plans", i18nKey: "costsQuotaPlans", subtitleKey: "costsQuotaPlansSubtitle", icon: "fact_check" },
+  {
+    id: "costs-quota-plans",
+    href: "/dashboard/costs/quota-share/plans",
+    i18nKey: "costsQuotaPlans",
+    subtitleKey: "costsQuotaPlansSubtitle",
+    icon: "fact_check",
+  },
 ];
 
 const AUDIT_GROUP: SidebarItemGroup = {
