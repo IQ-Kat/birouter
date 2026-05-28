@@ -31,6 +31,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
   "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass
+  "/api/tools/agent-bridge/", // AgentBridge: spawns MITM server + DNS edits (Hard Rules #15 + #17)
 ];
 
 /**
@@ -51,6 +52,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
 export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/runtime/",
   "/api/services/", // T-10: can run npm install + spawn node processes
+  "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
 ];
 
 /**
