@@ -3367,6 +3367,62 @@ export async function handleChatCore({
     return wrapper;
   };
 
+  // === Quota Share enforcement PRE-hook (B/F7) ===
+  // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
+  // before dispatcher. Fail-open per B16: errors → allow.
+  let quotaSoftDeprioritize = false;
+  if (apiKeyInfo?.id && credentials?.connectionId) {
+    try {
+      const { enforceQuotaShare } = await import("@/lib/quota/enforce");
+      const decision = await enforceQuotaShare({
+        apiKeyId: apiKeyInfo.id,
+        connectionId: credentials.connectionId,
+        provider: provider ?? "unknown",
+        estimatedCost: {},
+      }).catch((err: unknown) => {
+        log?.warn?.(
+          "QUOTA_SHARE",
+          `enforceQuotaShare failed; fail-open: ${err instanceof Error ? err.message : String(err)}`
+        );
+        return { kind: "allow" as const };
+      });
+
+      if (decision.kind === "block") {
+        const { buildErrorBody } = await import("../utils/error.ts");
+        log?.warn?.(
+          "QUOTA_SHARE",
+          `[quotaShare] blocked apiKeyId=${apiKeyInfo.id} provider=${provider ?? "unknown"}: ${decision.reason}`
+        );
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (decision.retryAfterSeconds) {
+          headers["Retry-After"] = String(decision.retryAfterSeconds);
+        }
+        return new Response(
+          JSON.stringify(buildErrorBody(429, decision.reason)),
+          { status: 429, headers }
+        );
+      }
+
+      if (decision.kind === "allow" && decision.deprioritize) {
+        quotaSoftDeprioritize = true;
+        log?.info?.(
+          "QUOTA_SHARE",
+          `[quotaShare] soft deprioritize active for apiKeyId=${apiKeyInfo.id} provider=${provider ?? "unknown"}`
+        );
+      }
+    } catch (err) {
+      // Outer fail-open guard — should not be reached (inner .catch covers it)
+      log?.warn?.(
+        "QUOTA_SHARE",
+        `[quotaShare] enforceQuotaShare unexpected error; fail-open: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+  // Suppress unused variable lint warning — quotaSoftDeprioritize is available for
+  // combo.ts to read when candidateBuilder populates quotaSoftPenalty in the future.
+  void quotaSoftDeprioritize;
+  // === /Quota Share enforcement PRE-hook ===
+
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
   const getExecutionCredentials = () => {
@@ -5020,6 +5076,33 @@ export async function handleChatCore({
       recordCost(apiKeyInfo.id, estimatedCost);
     }
 
+    // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
+    if (apiKeyInfo?.id && credentials?.connectionId) {
+      try {
+        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+        scheduleRecordConsumption(
+          {
+            apiKeyId: apiKeyInfo.id,
+            connectionId: credentials.connectionId,
+            provider: provider ?? "unknown",
+            cost: {
+              tokens:
+                usage && typeof usage === "object"
+                  ? ((usage as Record<string, unknown>).prompt_tokens as number ?? 0) +
+                    ((usage as Record<string, unknown>).completion_tokens as number ?? 0)
+                  : 0,
+              usd: estimatedCost > 0 ? estimatedCost : 0,
+              requests: 1,
+            },
+          },
+          log
+        );
+      } catch (_) {
+        // Outer fail-open — never throws to caller
+      }
+    }
+    // === /Quota Share POST-hook ===
+
     // ── Gamification event (fire-and-forget) ──
     if (apiKeyInfo?.id) {
       try {
@@ -5214,6 +5297,33 @@ export async function handleChatCore({
         })
         .catch(() => {});
     }
+
+    // === Quota Share POST-hook streaming (B/F7) — fire-and-forget, fail-open ===
+    if (apiKeyInfo?.id && credentials?.connectionId && streamStatus === 200) {
+      try {
+        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+        const su = streamUsage as Record<string, unknown> | null;
+        scheduleRecordConsumption(
+          {
+            apiKeyId: apiKeyInfo.id,
+            connectionId: credentials.connectionId,
+            provider: provider ?? "unknown",
+            cost: {
+              tokens: su
+                ? (Number(su.prompt_tokens ?? 0) || 0) +
+                  (Number(su.completion_tokens ?? 0) || 0)
+                : 0,
+              usd: 0, // estimatedCost resolved async above; omit to avoid dependency
+              requests: 1,
+            },
+          },
+          log
+        );
+      } catch (_) {
+        // Outer fail-open — never throws to caller
+      }
+    }
+    // === /Quota Share POST-hook streaming ===
 
     if (
       memoryOwnerId &&

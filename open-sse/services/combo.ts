@@ -152,6 +152,16 @@ const RESET_AWARE_DEFAULTS = {
   exhaustionGuardPercent: 10,
 };
 const RESET_WINDOW_DEFAULT_TIE_BAND_MS = 60_000;
+
+// Quota Share soft-policy deprioritization factor (B17).
+// When a candidate has quotaSoftPenalty === true, its auto-combo score is
+// multiplied by this factor so over-quota-soft keys are de-prioritized
+// without being fully blocked (that is done by "hard" policy).
+// Override via QUOTA_SOFT_DEPRIORITIZE_FACTOR env var (range 0..1, default 0.7).
+export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
+  process.env.QUOTA_SOFT_DEPRIORITIZE_FACTOR ?? "0.7"
+);
+
 const RESET_WINDOW_NAMES = ["weekly", "session", "monthly"] as const;
 type ResetWindowName = (typeof RESET_WINDOW_NAMES)[number];
 type QuotaFetchCacheConfig = {
@@ -242,6 +252,13 @@ type AutoProviderCandidate = ProviderCandidate & {
   stepId: string;
   executionKey: string;
   modelStr: string;
+  /**
+   * When true, this candidate's auto-combo score is multiplied by
+   * QUOTA_SOFT_DEPRIORITIZE_FACTOR (B17 soft-policy penalty).
+   * Set externally when enforceQuotaShare returns deprioritize=true
+   * for the key routed through this target's connectionId.
+   */
+  quotaSoftPenalty?: boolean;
 };
 
 function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date {
@@ -2392,9 +2409,14 @@ function scoreAutoTargets(
         taskType ?? "general",
         getTaskFitness
       );
+      let score = calculateScore(factors, weights);
+      // B17: Quota Share soft-policy deprioritization
+      if ("quotaSoftPenalty" in candidate && candidate.quotaSoftPenalty === true) {
+        score *= QUOTA_SOFT_DEPRIORITIZE_FACTOR;
+      }
       return {
         target,
-        score: calculateScore(factors, weights),
+        score,
       };
     })
     .filter((entry): entry is { target: ResolvedComboTarget; score: number } => entry !== null)
