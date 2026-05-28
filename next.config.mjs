@@ -133,6 +133,7 @@ const nextConfig = {
     "koffi",
     "tough-cookie",
     "@ngrok/ngrok",
+    "@huggingface/transformers",
     "child_process",
     "fs",
     "path",
