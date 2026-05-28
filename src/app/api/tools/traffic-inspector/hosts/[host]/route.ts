@@ -1,5 +1,5 @@
 /**
- * DELETE /api/tools/traffic-inspector/hosts/[host] — remove a custom host
+ * DELETE /api/tools/traffic-inspector/hosts/[host] — remove a custom host + DNS cleanup
  * PATCH  /api/tools/traffic-inspector/hosts/[host] — toggle enabled flag
  *
  * LOCAL_ONLY enforced by routeGuard.
@@ -8,6 +8,8 @@
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { z } from "zod";
 import { removeCustomHost, toggleCustomHost, listCustomHosts } from "@/lib/db/inspectorCustomHosts";
+import { getCachedPassword } from "@/mitm/manager";
+import { removeDNSEntries } from "@/mitm/dns/dnsConfig";
 
 interface Params {
   params: Promise<{ host: string }>;
@@ -23,7 +25,6 @@ export async function DELETE(_request: Request, { params }: Params): Promise<Res
 
   try {
     removeCustomHost(decodedHost);
-    return new Response(null, { status: 204 });
   } catch (err) {
     const msg = sanitizeErrorMessage(err);
     return new Response(JSON.stringify(buildErrorBody(500, msg || "Failed to remove host")), {
@@ -31,6 +32,33 @@ export async function DELETE(_request: Request, { params }: Params): Promise<Res
       headers: { "content-type": "application/json" },
     });
   }
+
+  // DNS cleanup — only possible when the MITM proxy is running (password cached).
+  const sudoPassword = getCachedPassword();
+  if (sudoPassword) {
+    try {
+      await removeDNSEntries([decodedHost], sudoPassword);
+    } catch {
+      // DNS cleanup failure is non-fatal: DB record was removed.
+      // Return 204 with a header warning rather than failing.
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "x-dns-warning": `DNS entry for ${decodedHost} could not be removed — restart the proxy or remove manually`,
+        },
+      });
+    }
+  } else {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "x-dns-warning":
+          "DNS routing requires the MITM proxy to be running with a cached sudo password",
+      },
+    });
+  }
+
+  return new Response(null, { status: 204 });
 }
 
 export async function PATCH(request: Request, { params }: Params): Promise<Response> {

@@ -2,12 +2,14 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { addDNSEntry, removeDNSEntry } from "./dns/dnsConfig.ts";
+import { addDNSEntry, addDNSEntries, removeDNSEntry } from "./dns/dnsConfig.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
+import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
+import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 
 // Store server process
 let serverProcess: ChildProcess | null = null;
@@ -178,9 +180,41 @@ export async function startMitm(
   // 2. Install certificate to system keychain
   await installCert(sudoPassword, certPath);
 
-  // 3. Add DNS entry
-  console.log("Adding DNS entry...");
+  // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
+  //    all custom hosts with enabled=true.
+  console.log("Adding DNS entries...");
   await addDNSEntry(sudoPassword);
+
+  // Collect hosts from agents that have dns_enabled=true in the DB.
+  try {
+    const agentStates = getAllAgentBridgeStates();
+    const agentHostsToAdd: string[] = [];
+    for (const state of agentStates) {
+      if (!state.dns_enabled) continue;
+      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
+      if (target) {
+        agentHostsToAdd.push(...target.hosts);
+      }
+    }
+    if (agentHostsToAdd.length > 0) {
+      console.log(`[MITM] Adding DNS for ${agentHostsToAdd.length} agent host(s)...`);
+      await addDNSEntries(agentHostsToAdd, sudoPassword);
+    }
+  } catch (err) {
+    console.error(`[MITM] Failed to add agent DNS entries (continuing): ${(err as Error).message ?? err}`);
+  }
+
+  // Collect enabled custom hosts.
+  try {
+    const customHosts = listCustomHosts({ enabledOnly: true });
+    const customHostNames = customHosts.map((h) => h.host);
+    if (customHostNames.length > 0) {
+      console.log(`[MITM] Adding DNS for ${customHostNames.length} custom host(s)...`);
+      await addDNSEntries(customHostNames, sudoPassword);
+    }
+  } catch (err) {
+    console.error(`[MITM] Failed to add custom host DNS entries (continuing): ${(err as Error).message ?? err}`);
+  }
 
   // 4. Start MITM server
   console.log("Starting MITM server...");
