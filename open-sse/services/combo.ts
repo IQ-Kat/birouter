@@ -75,6 +75,7 @@ import { getSessionConnection } from "./sessionManager.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
+import type { CompressionMode } from "./compression/types.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
 import {
@@ -3273,7 +3274,7 @@ export async function handleComboChat({
           const estimatedTokens = estimateTokens(JSON.stringify(attemptBody));
           if (estimatedTokens > (config.fallbackCompressionThreshold ?? 1000)) {
             const { applyCompression } = await import("./compression/strategySelector.ts");
-            const compressionResult = applyCompression(attemptBody, config.fallbackCompressionMode as any, { model: modelStr });
+            const compressionResult = applyCompression(attemptBody, config.fallbackCompressionMode as CompressionMode, { model: modelStr });
             if (compressionResult.compressed) {
               log.info("COMBO", `Proactive fallback compression applied (${config.fallbackCompressionMode}): ${estimatedTokens} -> ${compressionResult.stats?.compressedTokens} tokens`);
               attemptBody = compressionResult.body;
@@ -3532,7 +3533,10 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
-          return result;
+          // executeTarget must return the {ok,response} contract — a raw Response
+          // here makes the speculative loop's res.ok/res.response checks both miss,
+          // so the combo would wrongly fall through to the next model after a 499.
+          return { ok: false, response: result };
         }
 
         // Combo fallback is target-level orchestration: a non-ok target response is

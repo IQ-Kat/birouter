@@ -1,3 +1,8 @@
+---
+title: "Socket.dev Supply-Chain Finding Attestation"
+description: "Maintainer attestation for the AI-detected potential-malware findings raised against omniroute and the v3.8.6 mitigations applied at each flagged call site."
+---
+
 # Socket.dev / supply-chain finding attestation
 
 This document is the maintainer-authored attestation for the six
