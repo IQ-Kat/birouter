@@ -316,3 +316,23 @@ test("OAuth route: GET codex/authorize is NOT retired (regression check)", async
   } as never);
   assert.notEqual(response.status, 410);
 });
+
+// ─── Regression: mapTokens accepts {accessToken} object, returns string accessToken ─
+// Earlier signature was `mapTokens(token: string)` which crashed the SQLite
+// bind layer when the route called `mapTokens({ accessToken })`: the object
+// got stored as accessToken and SQLite rejected it with
+//   "SQLite3 can only bind numbers, strings, bigints, buffers, and null".
+test("windsurf mapTokens: accepts object {accessToken} and returns string accessToken", () => {
+  const provider = getProvider("windsurf");
+  const mapped = provider.mapTokens({ accessToken: "sk-ws-test-token-1234567890" });
+  assert.equal(typeof mapped.accessToken, "string");
+  assert.equal(mapped.accessToken, "sk-ws-test-token-1234567890");
+  assert.equal(mapped.refreshToken, null);
+});
+
+test("devin-cli mapTokens: accepts object {accessToken} and returns string accessToken", () => {
+  const provider = getProvider("devin-cli");
+  const mapped = provider.mapTokens({ accessToken: "sk-devin-test-token-1234567890" });
+  assert.equal(typeof mapped.accessToken, "string");
+  assert.equal(mapped.accessToken, "sk-devin-test-token-1234567890");
+});

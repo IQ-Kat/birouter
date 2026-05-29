@@ -39,12 +39,20 @@ export const windsurf = {
   /**
    * Map a pasted import token onto the connection record. The token IS the
    * Windsurf API key; there is no exchange step.
+   *
+   * NOTE: callers in `src/app/api/oauth/[provider]/[action]/route.ts` invoke
+   * this with `{ accessToken: token }` (object), matching the cursor/kiro
+   * signature. The earlier signature was `mapTokens(token: string)`, which
+   * caused the route to spread `{ accessToken: { accessToken: "sk-..." } }`
+   * into the DB layer and crashed the SQLite bind step:
+   *   `SQLite3 can only bind numbers, strings, bigints, buffers, and null`.
+   * Keep the object signature.
    */
-  mapTokens(token: string) {
+  mapTokens(tokens: { accessToken: string }) {
     return {
-      accessToken: token,
+      accessToken: tokens.accessToken,
       refreshToken: null,
-      expiresAt: null,
+      expiresIn: null as number | null,
     };
   },
 };
