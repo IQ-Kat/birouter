@@ -11,6 +11,9 @@ import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
+import { createLogger } from "@/shared/utils/logger.ts";
+
+const log = createLogger("mitm-manager");
 
 // Store server process
 let serverProcess: ChildProcess | null = null;
@@ -196,9 +199,7 @@ export async function startMitm(
   try {
     writeTargetsJson();
   } catch (err) {
-    console.error(
-      `[MITM] Failed to write targets.json (continuing): ${(err as Error).message ?? err}`
-    );
+    log.error({ err }, "Failed to write targets.json (continuing)");
   }
 
   // 0b. Persist the user bypass patterns to bypass.json so server.cjs can
@@ -207,15 +208,13 @@ export async function startMitm(
   try {
     writeBypassJson();
   } catch (err) {
-    console.error(
-      `[MITM] Failed to write bypass.json (continuing): ${(err as Error).message ?? err}`
-    );
+    log.error({ err }, "Failed to write bypass.json (continuing)");
   }
 
   // 1. Generate SSL certificate if not exists
   const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
   if (!fs.existsSync(certPath)) {
-    console.log("Generating SSL certificate...");
+    log.info("Generating SSL certificate...");
     await generateCert();
   }
 
@@ -224,7 +223,7 @@ export async function startMitm(
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true.
-  console.log("Adding DNS entries...");
+  log.info("Adding DNS entries...");
   await addDNSEntry(sudoPassword);
 
   // Collect hosts from agents that have dns_enabled=true in the DB.
@@ -239,11 +238,11 @@ export async function startMitm(
       }
     }
     if (agentHostsToAdd.length > 0) {
-      console.log(`[MITM] Adding DNS for ${agentHostsToAdd.length} agent host(s)...`);
+      log.info({ count: agentHostsToAdd.length }, "Adding DNS for agent host(s)...");
       await addDNSEntries(agentHostsToAdd, sudoPassword);
     }
   } catch (err) {
-    console.error(`[MITM] Failed to add agent DNS entries (continuing): ${(err as Error).message ?? err}`);
+    log.error({ err }, "Failed to add agent DNS entries (continuing)");
   }
 
   // Collect enabled custom hosts.
@@ -251,15 +250,15 @@ export async function startMitm(
     const customHosts = listCustomHosts({ enabledOnly: true });
     const customHostNames = customHosts.map((h) => h.host);
     if (customHostNames.length > 0) {
-      console.log(`[MITM] Adding DNS for ${customHostNames.length} custom host(s)...`);
+      log.info({ count: customHostNames.length }, "Adding DNS for custom host(s)...");
       await addDNSEntries(customHostNames, sudoPassword);
     }
   } catch (err) {
-    console.error(`[MITM] Failed to add custom host DNS entries (continuing): ${(err as Error).message ?? err}`);
+    log.error({ err }, "Failed to add custom host DNS entries (continuing)");
   }
 
   // 4. Start MITM server
-  console.log("Starting MITM server...");
+  log.info("Starting MITM server...");
   const port =
     typeof options.port === "number" &&
     Number.isInteger(options.port) &&
@@ -288,15 +287,15 @@ export async function startMitm(
 
   // Log server output
   proc.stdout?.on("data", (data) => {
-    console.log(`[MITM Server] ${data.toString().trim()}`);
+    log.info({ source: "mitm-server" }, data.toString().trim());
   });
 
   proc.stderr?.on("data", (data) => {
-    console.error(`[MITM Server Error] ${data.toString().trim()}`);
+    log.error({ source: "mitm-server" }, data.toString().trim());
   });
 
   proc.on("exit", (code) => {
-    console.log(`MITM server exited with code ${code}`);
+    log.info({ exitCode: code }, "MITM server exited");
     serverProcess = null;
     serverPid = null;
 
@@ -357,7 +356,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
   // 1. Kill server process (in-memory or from PID file)
   const proc = serverProcess;
   if (proc && !proc.killed) {
-    console.log("Stopping MITM server...");
+    log.info("Stopping MITM server...");
     proc.kill("SIGTERM");
     await new Promise((resolve) => setTimeout(resolve, 1000));
     if (!proc.killed) {
@@ -371,7 +370,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
       if (fs.existsSync(PID_FILE)) {
         const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
         if (savedPid && isProcessAlive(savedPid)) {
-          console.log(`Killing MITM server (PID: ${savedPid})...`);
+          log.info({ pid: savedPid }, "Killing MITM server by PID...");
           process.kill(savedPid, "SIGTERM");
           await new Promise((resolve) => setTimeout(resolve, 1000));
           if (isProcessAlive(savedPid)) {
@@ -387,7 +386,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
   }
 
   // 2. Remove DNS entry
-  console.log("Removing DNS entry...");
+  log.info("Removing DNS entry...");
   await removeDNSEntry(sudoPassword);
 
   // 3. Clean up
