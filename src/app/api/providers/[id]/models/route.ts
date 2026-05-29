@@ -93,6 +93,14 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function toGeminiCliProjectId(value: unknown): string | null {
+  const normalized = toNonEmptyString(value);
+  if (!normalized) return null;
+  const lower = normalized.toLowerCase();
+  if (lower === "default-project" || lower === "projects/default-project") return null;
+  return normalized;
+}
+
 function getProviderBaseUrl(providerSpecificData: unknown): string | null {
   const data = asRecord(providerSpecificData);
   const baseUrl = data.baseUrl;
@@ -1738,7 +1746,10 @@ export async function GET(
       }
 
       const psd = asRecord(connection.providerSpecificData);
-      const projectId = connection.projectId || psd.projectId || null;
+      const projectId =
+        toGeminiCliProjectId(psd.projectId) ||
+        toGeminiCliProjectId(psd.project) ||
+        toGeminiCliProjectId(connection.projectId);
 
       if (!projectId) {
         return NextResponse.json(
