@@ -39,6 +39,10 @@ import {
   sanitizeErrorMessage,
 } from "../utils/error.ts";
 import {
+  checkTokenLimits,
+  recordTokenUsage,
+} from "@omniroute/open-sse/services/tokenLimitCounter.ts";
+import {
   COOLDOWN_MS,
   HTTP_STATUS,
   FETCH_TIMEOUT_MS,
@@ -84,7 +88,12 @@ import {
   appendRequestLog,
   saveCallLog,
 } from "@/lib/usageDb";
-import { formatUsageLog } from "@/lib/usage/tokenAccounting";
+import {
+  formatUsageLog,
+  getLoggedInputTokens,
+  getLoggedOutputTokens,
+  getReasoningTokens,
+} from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
@@ -825,6 +834,16 @@ function createAbortError(signal: AbortSignal): Error {
   const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
   err.name = "AbortError";
   return err;
+}
+
+/** Billable token total — mirrors the columns persisted by saveRequestUsage so the
+ *  live token-limit counter stays consistent with usage_history seed-on-miss. */
+function computeBillableTokens(usage: unknown): number {
+  // Cache read/creation tokens are a BREAKDOWN already contained inside
+  // getLoggedInputTokens (prompt_tokens / input_tokens). Adding them here would
+  // double-count. Canonical billable total = input + output + reasoning, matching
+  // the columns persisted by saveRequestUsage and seedWindowUsageFromHistory.
+  return getLoggedInputTokens(usage) + getLoggedOutputTokens(usage) + getReasoningTokens(usage);
 }
 
 function getExecutorTimeoutMs(executor: unknown): number {
@@ -3887,6 +3906,35 @@ export async function handleChatCore({
     0;
   log?.debug?.("REQUEST", `${provider.toUpperCase()} | ${model} | ${msgCount} msgs`);
 
+  // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
+  if (apiKeyInfo?.id) {
+    try {
+      const tokenBreach = checkTokenLimits(apiKeyInfo.id, provider || undefined, model || undefined);
+      if (tokenBreach) {
+        const scopeLabel =
+          tokenBreach.scopeType === "global"
+            ? "account"
+            : `${tokenBreach.scopeType} "${tokenBreach.scopeValue}"`;
+        // FIX 6: clear the pending request marker before the early return so we do
+        // not leak a phantom pending request (start was tracked at line ~1847).
+        trackPendingRequest(model, provider, connectionId, false);
+        // FIX 5: tag this as a per-API-key token-limit breach (errorCode
+        // TOKEN_LIMIT_EXCEEDED) so the combo loop can distinguish it from an
+        // upstream 429 and NOT cool shared accounts / retry it transiently.
+        return createErrorResult(
+          HTTP_STATUS.RATE_LIMITED,
+          `Token limit exceeded for ${scopeLabel}: ${tokenBreach.tokensUsed}/${tokenBreach.limitValue} tokens used in the current window. Please try again later.`,
+          null,
+          "TOKEN_LIMIT_EXCEEDED"
+        );
+      }
+    } catch (err) {
+      // Fail-open at Tier 2: Tier 1 already enforced the model/global limit pre-dispatch.
+      // A transient counter read error here must not break an otherwise-valid request.
+      log?.warn?.("TOKEN_LIMIT", "Tier 2 token-limit check failed; allowing request", { err });
+    }
+  }
+
   // Execute request using executor (handles URL building, headers, fallback, transform)
   let providerResponse;
   let providerUrl;
@@ -4821,6 +4869,15 @@ export async function handleChatCore({
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
+
+      if (apiKeyInfo?.id) {
+        try {
+          const billable = computeBillableTokens(usage);
+          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+        } catch {
+          // never block the response on counter recording
+        }
+      }
     }
 
     // Translate response to client's expected format (usually OpenAI)
@@ -5201,6 +5258,15 @@ export async function handleChatCore({
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
+
+      if (apiKeyInfo?.id && streamStatus === 200) {
+        try {
+          const billable = computeBillableTokens(streamUsage);
+          if (billable > 0) recordTokenUsage(apiKeyInfo.id, provider || "unknown", model || "unknown", billable);
+        } catch {
+          // never block the stream on counter recording
+        }
+      }
     }
 
     persistAttemptLogs({
