@@ -4,10 +4,12 @@
  * LOCAL_ONLY: registered in routeGuard.ts
  *
  * Persistence: <dataDir>/mitm/upstream-ca.path  (one-line text file)
- * At runtime, calling configureUpstreamCa() with the stored path activates it.
+ * After persisting, configureUpstreamCa() is called immediately so the new CA
+ * takes effect without a reboot. Spec: plan 11 §4.7.
  */
 import { AgentBridgeUpstreamCaPostSchema } from "@/shared/schemas/agentBridge";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
+import { configureUpstreamCa } from "@/mitm/upstreamTrust";
 import path from "path";
 import fs from "fs";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -72,9 +74,18 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     writeStoredCaPath(caPath);
-    return Response.json({ ok: true, path: caPath });
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     return createErrorResponse({ status: 500, message: msg });
   }
+
+  // Activate the new CA immediately so it takes effect without a reboot.
+  try {
+    configureUpstreamCa(caPath);
+  } catch (err) {
+    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return createErrorResponse({ status: 400, message: msg });
+  }
+
+  return Response.json({ ok: true, path: caPath });
 }

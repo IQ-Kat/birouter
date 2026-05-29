@@ -11,6 +11,7 @@ import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
+import { configureUpstreamCa } from "./upstreamTrust.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
 
 const log = createLogger("mitm-manager");
@@ -35,6 +36,18 @@ export function clearCachedPassword(): void {
 const PID_FILE = path.join(resolveMitmDataDir(), "mitm", ".mitm.pid");
 const TARGETS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "targets.json");
 const BYPASS_JSON_FILE = path.join(resolveMitmDataDir(), "mitm", "bypass.json");
+const CA_PATH_FILE = path.join(resolveMitmDataDir(), "mitm", "upstream-ca.path");
+
+/** Read the persisted upstream CA path written by the POST upstream-ca route handler. */
+function readStoredUpstreamCaPath(): string | null {
+  try {
+    if (!fs.existsSync(CA_PATH_FILE)) return null;
+    const raw = fs.readFileSync(CA_PATH_FILE, "utf8").trim();
+    return raw || null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Write the canonical `targets.json` consumed by `server.cjs` at startup.
@@ -209,6 +222,22 @@ export async function startMitm(
     writeBypassJson();
   } catch (err) {
     log.error({ err }, "Failed to write bypass.json (continuing)");
+  }
+
+  // 0c. Apply upstream CA certificate (env var wins over stored path).
+  //     Spec: plan 11 §4.7 + acceptance criterion §12 #18.
+  try {
+    const storedCaPath = readStoredUpstreamCaPath();
+    const activeCaPath = process.env.AGENTBRIDGE_UPSTREAM_CA_CERT || storedCaPath;
+    if (activeCaPath) {
+      configureUpstreamCa(activeCaPath);
+      log.info({ caPath: activeCaPath }, "Upstream CA certificate configured");
+    }
+  } catch (err) {
+    log.error(
+      { err },
+      `AGENTBRIDGE_UPSTREAM_CA_CERT path invalid: ${(err as Error).message ?? err} (continuing without custom CA)`
+    );
   }
 
   // 1. Generate SSL certificate if not exists
