@@ -2373,13 +2373,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   phind: {
     id: "phind",
-    alias: "phind",
+    alias: "ph",
     format: "openai",
-    executor: "default",
-    baseUrl: "https://api.phind.com/v1/chat/completions",
+    executor: "phind",
+    baseUrl: "https://www.phind.com/api/chat",
     authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "Phind-70B", name: "Phind 70B" }],
+    authHeader: "cookie",
+    models: [
+      { id: "phind-model", name: "Phind Model (Auto)" },
+      { id: "gpt-4o", name: "GPT-4o (via Phind)" },
+      { id: "claude-3.5-sonnet", name: "Claude 3.5 Sonnet (via Phind)" },
+    ],
   },
 
   poolside: {
@@ -2417,13 +2421,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   huggingchat: {
     id: "huggingchat",
-    alias: "huggingchat",
+    alias: "hc",
     format: "openai",
-    executor: "default",
-    baseUrl: "https://huggingface.co/api/chat",
+    executor: "huggingchat",
+    baseUrl: "https://huggingface.co/chat/conversation",
     authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "meta-llama/llama-3-70b-instruct", name: "Llama 3 70B" }],
+    authHeader: "cookie",
+    models: [
+      { id: "meta-llama/Llama-3.3-70B-Instruct", name: "Llama 3.3 70B" },
+      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+      { id: "mistralai/Mistral-Small-24B-Instruct-2501", name: "Mistral Small 24B" },
+      { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
+    ],
   },
 
   iflytek: {
@@ -3901,6 +3910,34 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.venice,
+  },
+
+  "kimi-web": {
+    id: "kimi-web",
+    alias: "kimi",
+    format: "openai",
+    executor: "kimi-web",
+    baseUrl: "https://kimi.moonshot.cn/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "kimi-default", name: "Kimi Default" },
+      { id: "kimi-128k", name: "Kimi 128K (Long Context)" },
+    ],
+  },
+
+  "doubao-web": {
+    id: "doubao-web",
+    alias: "db",
+    format: "openai",
+    executor: "doubao-web",
+    baseUrl: "https://www.doubao.com/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "doubao-default", name: "Doubao Default" },
+      { id: "doubao-pro", name: "Doubao Pro" },
+    ],
   },
 
   codestral: {
