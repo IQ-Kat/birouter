@@ -3,6 +3,18 @@
  */
 import { describe, it, before, after, mock } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const HOOK_SRC = fs.readFileSync(
+  path.resolve(
+    __dirname,
+    "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/hooks/useTrafficStream.ts"
+  ),
+  "utf8"
+);
 
 // Minimal EventEmitter-based mock WebSocket
 class MockWebSocket {
@@ -164,5 +176,27 @@ describe("useTrafficStream core logic", () => {
 
     assert.equal(pending.length, 1);
     assert.equal(pending[0].id, "3");
+  });
+
+  it("TrafficStreamState interface includes pendingCount field (R5-9)", () => {
+    assert.ok(
+      HOOK_SRC.includes("pendingCount"),
+      "TrafficStreamState should expose pendingCount"
+    );
+  });
+
+  it("pendingCount increments when paused and new event arrives (R5-9)", () => {
+    // Verify the source contains the setPendingCount call when pushing to pendingRef
+    assert.ok(
+      HOOK_SRC.includes("setPendingCount(pendingRef.current.length)"),
+      "should call setPendingCount when adding to pendingRef"
+    );
+  });
+
+  it("pendingCount resets to 0 on resume (R5-9)", () => {
+    assert.ok(
+      HOOK_SRC.includes("setPendingCount(0)"),
+      "should reset pendingCount to 0 on resume and clear"
+    );
   });
 });

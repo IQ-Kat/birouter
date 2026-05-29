@@ -7478,6 +7478,8 @@
     "timingMethod": "Método",
     "timingStatus": "Status",
     "timingRequestSize": "Tamanho da requisição",
-    "timingResponseSize": "Tamanho da resposta"
+    "timingResponseSize": "Tamanho da resposta",
+    "pausedNewBadge": "{count} novos",
+    "clearContextFilter": "limpar"
   }
 }

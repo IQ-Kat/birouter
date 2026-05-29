@@ -27,6 +27,7 @@ interface TopBarControlsProps {
   connected: boolean;
   total: number;
   maxSize?: number;
+  pendingCount?: number;
   // session recorder
   recording: boolean;
   session: SessionInfo | null;
@@ -53,6 +54,7 @@ export function TopBarControls({
   connected,
   total,
   maxSize = 1000,
+  pendingCount = 0,
   recording,
   session,
   elapsed,
@@ -188,6 +190,11 @@ export function TopBarControls({
           <span className="text-text-muted font-mono">
             {total}/{maxSize}
           </span>
+          {paused && pendingCount > 0 && (
+            <span className="inline-flex items-center rounded bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-yellow-400 border border-yellow-500/40">
+              {t("pausedNewBadge", { count: pendingCount })}
+            </span>
+          )}
         </div>
       </div>
     </div>
