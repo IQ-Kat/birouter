@@ -53,6 +53,7 @@ async function loadAgentBridgeHook(): Promise<{
     body: Buffer;
     agentId: AgentId;
     mappedModel: string;
+    sourceModel?: string | null;
   }) => Promise<InterceptedRequest>;
   recordRequestComplete?: (
     intercepted: InterceptedRequest,
