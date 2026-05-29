@@ -93,6 +93,12 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "token_value user@example.com",
     acceptsFullCookieHeader: false,
   },
+  "duckduckgo-web": {
+    kind: "none",
+    credentialName: "",
+    placeholder: "",
+    acceptsFullCookieHeader: false,
+  },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(
