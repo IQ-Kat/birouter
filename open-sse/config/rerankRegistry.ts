@@ -8,7 +8,11 @@
  * keyed by provider ID (e.g. "cohere", "together").
  */
 
-export const RERANK_PROVIDERS = {
+let _RERANK_PROVIDERS: Record<string, any> | null = null;
+
+function getOrCreateRerankProviders(): Record<string, any> {
+  if (!_RERANK_PROVIDERS) {
+    _RERANK_PROVIDERS = {
   cohere: {
     id: "cohere",
     baseUrl: "https://api.cohere.com/v2/rerank",
@@ -71,7 +75,32 @@ export const RERANK_PROVIDERS = {
       { id: "jina-reranker-m0", name: "Jina Reranker m0" },
     ],
   },
-};
+  };
+}
+  return _RERANK_PROVIDERS;
+}
+
+export const RERANK_PROVIDERS = new Proxy({} as Record<string, any>, {
+  get(_, key: string) {
+    return getOrCreateRerankProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateRerankProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateRerankProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateRerankProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateRerankProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getRerankProviders(): Record<string, any> {
+  return getOrCreateRerankProviders();
+}
 
 const RERANK_PROVIDER_ALIASES = {
   jina: "jina-ai",
@@ -84,7 +113,7 @@ function resolveRerankProviderId(providerId) {
 
 function normalizeProviderScopedModelId(providerId, modelId) {
   const resolvedProvider = resolveRerankProviderId(providerId);
-  const provider = RERANK_PROVIDERS[resolvedProvider];
+  const provider = getOrCreateRerankProviders()[resolvedProvider];
   if (provider?.models.some((model) => model.id === modelId)) return modelId;
 
   const providerScopedModelId = `${resolvedProvider}/${modelId}`;
@@ -103,7 +132,7 @@ function toProviderScopedModelId(providerId, modelId) {
  * Get rerank provider config by ID
  */
 export function getRerankProvider(providerId) {
-  return RERANK_PROVIDERS[resolveRerankProviderId(providerId)] || null;
+  return getOrCreateRerankProviders()[resolveRerankProviderId(providerId)] || null;
 }
 
 /**
@@ -117,7 +146,7 @@ export function parseRerankModel(modelStr) {
   if (slashIdx > 0) {
     const rawProvider = modelStr.slice(0, slashIdx);
     const resolvedProvider = resolveRerankProviderId(rawProvider);
-    if (RERANK_PROVIDERS[resolvedProvider]) {
+    if (getOrCreateRerankProviders()[resolvedProvider]) {
       return {
         provider: resolvedProvider,
         model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
@@ -126,7 +155,7 @@ export function parseRerankModel(modelStr) {
   }
 
   // Try each provider prefix
-  for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateRerankProviders())) {
     if (modelStr.startsWith(providerId + "/")) {
       return {
         provider: providerId,
@@ -136,7 +165,7 @@ export function parseRerankModel(modelStr) {
   }
 
   // No provider prefix — search all providers for the model
-  for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateRerankProviders())) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
@@ -150,7 +179,7 @@ export function parseRerankModel(modelStr) {
  */
 export function getAllRerankModels() {
   const models = [];
-  for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateRerankProviders())) {
     for (const model of config.models) {
       models.push({
         id: toProviderScopedModelId(providerId, model.id),

@@ -45,7 +45,11 @@ export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): E
   };
 }
 
-export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
+let _EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> | null = null;
+
+function getOrCreateEmbeddingProviders(): Record<string, EmbeddingProvider> {
+  if (!_EMBEDDING_PROVIDERS) {
+    _EMBEDDING_PROVIDERS = {
   cohere: {
     id: "cohere",
     baseUrl: "https://api.cohere.com/v2/embed",
@@ -233,7 +237,32 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "jina-colbert-v2", name: "Jina ColBERT v2", dimensions: 128 },
     ],
   },
-};
+  };
+  }
+  return _EMBEDDING_PROVIDERS;
+}
+
+export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = new Proxy({} as Record<string, EmbeddingProvider>, {
+  get(_, key: string) {
+    return getOrCreateEmbeddingProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateEmbeddingProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateEmbeddingProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateEmbeddingProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateEmbeddingProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getEmbeddingProviders(): Record<string, EmbeddingProvider> {
+  return getOrCreateEmbeddingProviders();
+}
 
 const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {
   jina: "jina-ai",
@@ -246,7 +275,7 @@ function resolveEmbeddingProviderId(providerId: string): string {
 
 function normalizeProviderScopedModelId(providerId: string, modelId: string): string {
   const resolvedProvider = resolveEmbeddingProviderId(providerId);
-  const provider = EMBEDDING_PROVIDERS[resolvedProvider];
+  const provider = getOrCreateEmbeddingProviders()[resolvedProvider];
   if (provider?.models.some((model) => model.id === modelId)) return modelId;
 
   const providerScopedModelId = `${resolvedProvider}/${modelId}`;
@@ -265,7 +294,7 @@ function toProviderScopedModelId(providerId: string, modelId: string): string {
  * Get embedding provider config by ID
  */
 export function getEmbeddingProvider(providerId: string): EmbeddingProvider | null {
-  return EMBEDDING_PROVIDERS[resolveEmbeddingProviderId(providerId)] || null;
+  return getOrCreateEmbeddingProviders()[resolveEmbeddingProviderId(providerId)] || null;
 }
 
 /**
@@ -284,7 +313,7 @@ export function parseEmbeddingModel(
     const rawProvider = modelStr.slice(0, slashIdx);
     const resolvedProvider = resolveEmbeddingProviderId(rawProvider);
 
-    if (EMBEDDING_PROVIDERS[resolvedProvider]) {
+    if (getOrCreateEmbeddingProviders()[resolvedProvider]) {
       return {
         provider: resolvedProvider,
         model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
@@ -292,7 +321,7 @@ export function parseEmbeddingModel(
     }
 
     // Phase 1: Try each hardcoded provider prefix
-    for (const [providerId] of Object.entries(EMBEDDING_PROVIDERS)) {
+    for (const [providerId] of Object.entries(getOrCreateEmbeddingProviders())) {
       if (modelStr.startsWith(providerId + "/")) {
         return {
           provider: providerId,
@@ -315,7 +344,7 @@ export function parseEmbeddingModel(
   }
 
   // No provider prefix — search hardcoded providers for the model
-  for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateEmbeddingProviders())) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
@@ -334,7 +363,7 @@ export function getAllEmbeddingModels() {
     provider: string;
     dimensions: number | undefined;
   }> = [];
-  for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateEmbeddingProviders())) {
     for (const model of config.models) {
       models.push({
         id: toProviderScopedModelId(providerId, model.id),

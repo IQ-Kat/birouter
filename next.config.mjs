@@ -141,7 +141,6 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
-    "sql.js",
     "node-machine-id",
     "keytar",
     "wreq-js",
@@ -175,6 +174,43 @@ const nextConfig = {
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
     ];
+    config.optimization = config.optimization || {};
+    config.optimization.splitChunks = {
+      ...config.optimization.splitChunks,
+      cacheGroups: {
+        ...(config.optimization.splitChunks?.cacheGroups || {}),
+        recharts: {
+          test: /[\\/]node_modules[\\/]recharts[\\/]/,
+          name: "vendor-recharts",
+          chunks: "all",
+          priority: 20,
+        },
+        lobeIcons: {
+          test: /[\\/]node_modules[\\/]@lobehub[\\/]icons[\\/]/,
+          name: "vendor-lobe-icons",
+          chunks: "all",
+          priority: 20,
+        },
+        monaco: {
+          test: /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+          name: "vendor-monaco",
+          chunks: "all",
+          priority: 20,
+        },
+        xyflow: {
+          test: /[\\/]node_modules[\\/]@xyflow[\\/]/,
+          name: "vendor-xyflow",
+          chunks: "all",
+          priority: 20,
+        },
+        mermaid: {
+          test: /[\\/]node_modules[\\/]mermaid[\\/]/,
+          name: "vendor-mermaid",
+          chunks: "all",
+          priority: 20,
+        },
+      },
+    };
 
     if (isMinimalBuild) {
       // Mirror the turbopack.resolveAlias entries for webpack-built artifacts.

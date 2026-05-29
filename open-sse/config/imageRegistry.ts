@@ -107,12 +107,16 @@ function resolveImageModelAlias(modelStr) {
 }
 
 function findImageModelConfig(providerId, modelId) {
-  const provider = IMAGE_PROVIDERS[providerId];
+  const provider = getOrCreateImageProviders()[providerId];
   if (!provider) return null;
   return provider.models.find((model) => model.id === modelId) || null;
 }
 
-export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
+let _IMAGE_PROVIDERS: Record<string, ImageProviderConfig> | null = null;
+
+function getOrCreateImageProviders(): Record<string, ImageProviderConfig> {
+  if (!_IMAGE_PROVIDERS) {
+    _IMAGE_PROVIDERS = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/images/generations",
@@ -540,14 +544,35 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
 };
-
-/**
- * Get image provider config by ID
- */
-export function getImageProvider(providerId) {
-  return IMAGE_PROVIDERS[providerId] || null;
+}
+return _IMAGE_PROVIDERS;
 }
 
+export function getImageProviders(): Record<string, ImageProviderConfig> {
+  return getOrCreateImageProviders();
+}
+
+export const IMAGE_PROVIDERS = new Proxy({} as Record<string, ImageProviderConfig>, {
+  get(_, key: string) {
+    return getOrCreateImageProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateImageProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateImageProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateImageProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateImageProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getImageProvider(providerId) {
+  return getOrCreateImageProviders()[providerId] || null;
+}
 /**
  * Parse image model string (format: "provider/model")
  * Returns { provider, model }
@@ -561,7 +586,7 @@ export function parseImageModel(modelStr) {
   }
 
   // Try each provider prefix
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateImageProviders())) {
     if (modelStr.startsWith(providerId + "/")) {
       const model = modelStr.slice(providerId.length + 1);
       const aliased =
@@ -578,7 +603,7 @@ export function parseImageModel(modelStr) {
   }
 
   // No provider prefix — try to find the model in every provider
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateImageProviders())) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
@@ -592,7 +617,7 @@ export function parseImageModel(modelStr) {
  */
 export function getAllImageModels() {
   const models = [];
-  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateImageProviders())) {
     for (const model of config.models) {
       models.push({
         id: `${providerId}/${model.id}`,
@@ -606,7 +631,7 @@ export function getAllImageModels() {
   }
   for (const [alias, target] of Object.entries(IMAGE_MODEL_ALIASES)) {
     if (!target.listInCatalog) continue;
-    const providerConfig = IMAGE_PROVIDERS[target.provider];
+    const providerConfig = getOrCreateImageProviders()[target.provider];
     const modelConfig = findImageModelConfig(target.provider, target.model);
     models.push({
       id: alias,

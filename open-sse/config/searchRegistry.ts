@@ -26,7 +26,11 @@ export interface SearchProviderConfig {
   cacheTTLMs: number;
 }
 
-export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
+let _SEARCH_PROVIDERS: Record<string, SearchProviderConfig> | null = null;
+
+function getOrCreateSearchProviders(): Record<string, SearchProviderConfig> {
+  if (!_SEARCH_PROVIDERS) {
+    _SEARCH_PROVIDERS = {
   "serper-search": {
     id: "serper-search",
     name: "Serper Search",
@@ -218,14 +222,34 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 10_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
-};
+  };
+}
+  return _SEARCH_PROVIDERS;
+}
 
-/**
- * Credential fallback mapping — search providers that can reuse credentials
- * from a related provider (e.g., perplexity-search uses the same API key as perplexity chat).
- */
-export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {
-  "perplexity-search": "perplexity",
+export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = new Proxy({} as Record<string, SearchProviderConfig>, {
+  get(_, key: string) {
+    return getOrCreateSearchProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateSearchProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateSearchProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateSearchProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateSearchProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getSearchProviders(): Record<string, SearchProviderConfig> {
+  return getOrCreateSearchProviders();
+}
+
+export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {  "perplexity-search": "perplexity",
   "ollama-search": "ollama-cloud",
   "zai-search": "zai",
 };
@@ -234,7 +258,7 @@ export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {
  * Get search provider config by ID
  */
 export function getSearchProvider(providerId: string): SearchProviderConfig | null {
-  return SEARCH_PROVIDERS[providerId] || null;
+  return getOrCreateSearchProviders()[providerId] || null;
 }
 
 export function supportsSearchType(
@@ -255,7 +279,7 @@ export function getAllSearchProviders(): Array<{
   name: string;
   searchTypes: string[];
 }> {
-  return Object.values(SEARCH_PROVIDERS).map((p) => ({
+  return Object.values(getOrCreateSearchProviders()).map((p) => ({
     id: p.id,
     name: p.name,
     searchTypes: p.searchTypes,
@@ -272,13 +296,13 @@ export function selectProvider(
   searchType?: string
 ): SearchProviderConfig | null {
   if (explicitProvider) {
-    const provider = SEARCH_PROVIDERS[explicitProvider] || null;
+    const provider = getOrCreateSearchProviders()[explicitProvider] || null;
     if (!provider) return null;
     if (searchType && !supportsSearchType(provider, searchType)) return null;
     return provider;
   }
 
-  const providers = Object.values(SEARCH_PROVIDERS).filter((provider) =>
+  const providers = Object.values(getOrCreateSearchProviders()).filter((provider) =>
     searchType ? supportsSearchType(provider, searchType) : true
   );
   if (providers.length === 0) return null;

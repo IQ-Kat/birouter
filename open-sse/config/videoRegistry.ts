@@ -24,7 +24,11 @@ interface VideoProvider {
   models: VideoModel[];
 }
 
-export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
+let _VIDEO_PROVIDERS: Record<string, VideoProvider> | null = null;
+
+function getOrCreateVideoProviders(): Record<string, VideoProvider> {
+  if (!_VIDEO_PROVIDERS) {
+    _VIDEO_PROVIDERS = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
@@ -148,25 +152,41 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "runwayml",
     models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
   },
-};
+  };
+}
+  return _VIDEO_PROVIDERS;
+}
 
-/**
- * Get video provider config by ID
- */
+export const VIDEO_PROVIDERS: Record<string, VideoProvider> = new Proxy({} as Record<string, VideoProvider>, {
+  get(_, key: string) {
+    return getOrCreateVideoProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateVideoProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateVideoProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateVideoProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateVideoProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getVideoProviders(): Record<string, VideoProvider> {
+  return getOrCreateVideoProviders();
+}
+
 export function getVideoProvider(providerId: string): VideoProvider | null {
-  return VIDEO_PROVIDERS[providerId] || null;
+  return getOrCreateVideoProviders()[providerId] || null;
 }
 
-/**
- * Parse video model string (format: "provider/model" or just "model")
- */
 export function parseVideoModel(modelStr: string | null) {
-  return parseModelFromRegistry(modelStr, VIDEO_PROVIDERS);
+  return parseModelFromRegistry(modelStr, getOrCreateVideoProviders());
 }
 
-/**
- * Get all video models as a flat list
- */
 export function getAllVideoModels() {
-  return getAllModelsFromRegistry(VIDEO_PROVIDERS);
+  return getAllModelsFromRegistry(getOrCreateVideoProviders());
 }

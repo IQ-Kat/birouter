@@ -188,7 +188,8 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
   const thinkingModel = isThinkingModel(streamModel);
   const searchResults: DeepSeekSearchResult[] = [];
 
-  return new ReadableStream({
+  return new ReadableStream(
+    {
     async start(controller) {
       const reader = deepseekStream.getReader();
       let buffer = "";
@@ -353,7 +354,9 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
 
       finishStream();
     },
-  });
+    },
+    { highWaterMark: 16384 }
+  );
 }
 
 async function collectSSEContent(

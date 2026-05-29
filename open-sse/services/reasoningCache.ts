@@ -128,7 +128,8 @@ type ToolCallLike = {
 };
 
 const memoryCache = new Map<string, MemoryCacheEntry>();
-const MAX_MEMORY_ENTRIES = 2000;
+const MAX_MEMORY_ENTRIES = 200;
+const MAX_ENTRY_BYTES = 10000;
 const TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 // ──────────────── Counters ────────────────
@@ -186,6 +187,10 @@ export function cacheReasoningByKey(
   reasoning: string
 ): void {
   if (!key || !reasoning) return;
+
+  if (reasoning.length > MAX_ENTRY_BYTES) {
+    reasoning = reasoning.slice(0, MAX_ENTRY_BYTES);
+  }
 
   const now = Date.now();
 
@@ -303,15 +308,19 @@ export function lookupReasoning(toolCallId: string): string | null {
   }
   if (dbResult) {
     hits++;
+    let promotedReasoning = dbResult.reasoning;
+    if (promotedReasoning.length > MAX_ENTRY_BYTES) {
+      promotedReasoning = promotedReasoning.slice(0, MAX_ENTRY_BYTES);
+    }
     // Promote back to memory for fast subsequent lookups
     memoryCache.set(toolCallId, {
-      reasoning: dbResult.reasoning,
+      reasoning: promotedReasoning,
       provider: dbResult.provider,
       model: dbResult.model,
       expiresAt: Date.now() + TTL_MS,
       createdAt: Date.now(),
     });
-    return dbResult.reasoning;
+    return promotedReasoning;
   }
 
   // 3. Miss

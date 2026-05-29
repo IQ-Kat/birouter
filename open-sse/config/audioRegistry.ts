@@ -22,7 +22,11 @@ export interface AudioProvider {
   models: AudioModel[];
 }
 
-export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
+let _AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> | null = null;
+
+function getOrCreateTranscriptionProviders(): Record<string, AudioProvider> {
+  if (!_AUDIO_TRANSCRIPTION_PROVIDERS) {
+    _AUDIO_TRANSCRIPTION_PROVIDERS = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/audio/transcriptions",
@@ -145,9 +149,38 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
   },
-};
+  };
+}
+  return _AUDIO_TRANSCRIPTION_PROVIDERS;
+}
 
-export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
+export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = new Proxy({} as Record<string, AudioProvider>, {
+  get(_, key: string) {
+    return getOrCreateTranscriptionProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateTranscriptionProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateTranscriptionProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateTranscriptionProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateTranscriptionProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getTranscriptionProviders(): Record<string, AudioProvider> {
+  return getOrCreateTranscriptionProviders();
+}
+
+let _AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> | null = null;
+
+function getOrCreateSpeechProviders(): Record<string, AudioProvider> {
+  if (!_AUDIO_SPEECH_PROVIDERS) {
+    _AUDIO_SPEECH_PROVIDERS = {
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/audio/speech",
@@ -367,22 +400,39 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
     ],
   },
-};
+  };
+}
+  return _AUDIO_SPEECH_PROVIDERS;
+}
 
-/**
- * Get transcription provider config by ID
- */
+export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = new Proxy({} as Record<string, AudioProvider>, {
+  get(_, key: string) {
+    return getOrCreateSpeechProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateSpeechProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateSpeechProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateSpeechProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateSpeechProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getSpeechProviders(): Record<string, AudioProvider> {
+  return getOrCreateSpeechProviders();
+}
+
 export function getTranscriptionProvider(providerId: string): AudioProvider | null {
-  return AUDIO_TRANSCRIPTION_PROVIDERS[providerId] || null;
+  return getOrCreateTranscriptionProviders()[providerId] || null;
 }
-
-/**
- * Get speech provider config by ID
- */
 export function getSpeechProvider(providerId: string): AudioProvider | null {
-  return AUDIO_SPEECH_PROVIDERS[providerId] || null;
+  return getOrCreateSpeechProviders()[providerId] || null;
 }
-
 export interface ProviderNodeRow {
   prefix: string;
   name: string;
@@ -446,11 +496,11 @@ export function parseTranscriptionModel(
   modelStr: string | null,
   dynamicProviders?: AudioProvider[]
 ) {
-  return parseAudioModel(modelStr, AUDIO_TRANSCRIPTION_PROVIDERS, dynamicProviders);
+  return parseAudioModel(modelStr, getOrCreateTranscriptionProviders(), dynamicProviders);
 }
 
 export function parseSpeechModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
-  return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
+  return parseAudioModel(modelStr, getOrCreateSpeechProviders(), dynamicProviders);
 }
 
 /**
@@ -459,7 +509,7 @@ export function parseSpeechModel(modelStr: string | null, dynamicProviders?: Aud
 export function getAllAudioModels() {
   const models = [];
 
-  for (const [providerId, config] of Object.entries(AUDIO_TRANSCRIPTION_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateTranscriptionProviders())) {
     for (const model of config.models) {
       models.push({
         id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,
@@ -470,7 +520,7 @@ export function getAllAudioModels() {
     }
   }
 
-  for (const [providerId, config] of Object.entries(AUDIO_SPEECH_PROVIDERS)) {
+  for (const [providerId, config] of Object.entries(getOrCreateSpeechProviders())) {
     for (const model of config.models) {
       models.push({
         id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,

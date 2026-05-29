@@ -23,7 +23,11 @@ interface MusicProvider {
   models: MusicModel[];
 }
 
-export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
+let _MUSIC_PROVIDERS: Record<string, MusicProvider> | null = null;
+
+function getOrCreateMusicProviders(): Record<string, MusicProvider> {
+  if (!_MUSIC_PROVIDERS) {
+    _MUSIC_PROVIDERS = {
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",
@@ -82,25 +86,41 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
       { id: "musicgen-medium", name: "MusicGen Medium" },
     ],
   },
-};
+  };
+}
+  return _MUSIC_PROVIDERS;
+}
 
-/**
- * Get music provider config by ID
- */
+export const MUSIC_PROVIDERS: Record<string, MusicProvider> = new Proxy({} as Record<string, MusicProvider>, {
+  get(_, key: string) {
+    return getOrCreateMusicProviders()[key];
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getOrCreateMusicProviders());
+  },
+  has(_, key) {
+    return key in getOrCreateMusicProviders();
+  },
+  getOwnPropertyDescriptor(_, key) {
+    if (key in getOrCreateMusicProviders()) {
+      return { configurable: true, enumerable: true, value: getOrCreateMusicProviders()[key as string] };
+    }
+    return undefined;
+  },
+});
+
+export function getMusicProviders(): Record<string, MusicProvider> {
+  return getOrCreateMusicProviders();
+}
+
 export function getMusicProvider(providerId: string): MusicProvider | null {
-  return MUSIC_PROVIDERS[providerId] || null;
+  return getOrCreateMusicProviders()[providerId] || null;
 }
 
-/**
- * Parse music model string (format: "provider/model" or just "model")
- */
 export function parseMusicModel(modelStr: string | null) {
-  return parseModelFromRegistry(modelStr, MUSIC_PROVIDERS);
+  return parseModelFromRegistry(modelStr, getOrCreateMusicProviders());
 }
 
-/**
- * Get all music models as a flat list
- */
 export function getAllMusicModels() {
-  return getAllModelsFromRegistry(MUSIC_PROVIDERS);
+  return getAllModelsFromRegistry(getOrCreateMusicProviders());
 }
