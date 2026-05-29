@@ -2,6 +2,24 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.2.3 (2026-05-29)
+
+### 🚀 New Features
+
+- **Birouter Agentic Super Skill**: Introduced an independent agentic skill to eliminate reliance on external agents.
+  - Mandatory **300-Line Rule** (Chunked Write) protocol to bypass Kiro/Vertex server timeouts.
+  - Native **RTK Awareness** for intelligent token compression handling.
+  - Self-healing logic for 503, 429, and 401 errors.
+- **Bilingual Documentation**: Added full support for **Bahasa Indonesia** across README and Gitbook documentation.
+
+### 🛡️ Stability & Fixes
+
+- **Hermes Agent Stability**:
+  - Implemented dual-sync for `.env` and `config.yaml` to prevent configuration drops.
+  - Strengthened YAML parsing regex for better compatibility with manual edits.
+  - Expanded binary detection to support both `hermes` and `hermes-agent`.
+- **README Overhaul**: Professional redesign with better technical density, architecture diagrams, and clear bilingual instructions.
+
 ## v0.2.2 (2026-05-28)
 
 ### ✨ New Features
