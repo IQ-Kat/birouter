@@ -25,6 +25,13 @@ Connect your AI tools (Claude Code, Codex, Cursor, Cline, OpenClaw...) to 40+ pr
 
 ## ⚡ Quick Start
 
+**Install via NPM:**
+
+```bash
+npm install -g birouter
+birouter
+```
+
 **Run from source:**
 
 ```bash
@@ -54,6 +61,15 @@ Hubungkan alat AI Anda (Claude Code, Codex, Cursor, Cline...) ke 40+ penyedia & 
 - ✅ **40+ Penyedia** — OpenAI, Anthropic, Gemini, DeepSeek, Groq, Mistral, xAI, dan banyak lagi.
 
 ### Mulai Cepat
+
+**Instal via NPM:**
+
+```bash
+npm install -g birouter
+birouter
+```
+
+**Jalankan dari source:**
 
 ```bash
 git clone https://github.com/IQ-Kat/birouter.git
