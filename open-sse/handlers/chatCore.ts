@@ -3333,7 +3333,20 @@ export async function handleChatCore({
     // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
     const nativeExec = getExecutor(prov);
     const proxyExec = getExecutor("cliproxyapi");
-    const isRetryableStatus = (s: number) => s >= 500 || s === 429 || s === 0;
+
+    // Read custom fallback codes from settings. Default: 5xx + 429 + network errors.
+    let fallbackCodes: number[] = [429, 500, 502, 503, 504];
+    try {
+      const allSettings = await getCachedSettings();
+      if (typeof allSettings.cliproxyapi_fallback_codes === "string" && allSettings.cliproxyapi_fallback_codes.trim()) {
+        const parsed = allSettings.cliproxyapi_fallback_codes
+          .split(",")
+          .map((s: string) => parseInt(s.trim(), 10))
+          .filter((n: number) => !isNaN(n));
+        if (parsed.length > 0) fallbackCodes = parsed;
+      }
+    } catch { /* use defaults */ }
+    const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
     const wrapper = Object.create(nativeExec);
     wrapper.execute = async (input: {
