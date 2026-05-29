@@ -2224,9 +2224,60 @@ export async function handleChatCore({
     })
   ) {
     try {
+      // Plan 21 FAIL #1 fix: extract the last user message and pass it as
+      // `query`. Without this, `config.query` is undefined in retrieveMemories
+      // and the semantic/hybrid branches (sqlite-vec + RRF, and Qdrant
+      // tier-2) never fire from the chat hot path — they only fire in the
+      // Playground (retrievePreview, which gets `query` as a positional arg).
+      const lastUserQuery = ((): string => {
+        function pickFrom(arr: unknown[]): string {
+          for (let i = arr.length - 1; i >= 0; i--) {
+            const item = arr[i] as Record<string, unknown> | undefined;
+            if (!item) continue;
+            // Chat API: role==="user"; Responses API: role on input items, or
+            // type==="input_text"; some clients omit role entirely on the
+            // first input item — accept those too as a last resort.
+            if (
+              item.role !== undefined &&
+              item.role !== "user"
+            ) {
+              continue;
+            }
+            const content = item.content ?? item.text;
+            if (typeof content === "string" && content.trim().length > 0) {
+              return content;
+            }
+            if (Array.isArray(content)) {
+              const parts: string[] = [];
+              for (const p of content) {
+                if (typeof p === "string") {
+                  parts.push(p);
+                } else if (p && typeof p === "object") {
+                  const pp = p as Record<string, unknown>;
+                  const t = pp.text ?? pp.input_text;
+                  if (typeof t === "string") parts.push(t);
+                }
+              }
+              if (parts.length > 0) return parts.join(" ").trim();
+            }
+          }
+          return "";
+        }
+        const b = body as Record<string, unknown>;
+        if (Array.isArray(b.messages)) {
+          const r = pickFrom(b.messages);
+          if (r) return r;
+        }
+        if (Array.isArray(b.input)) {
+          const r = pickFrom(b.input);
+          if (r) return r;
+        }
+        return "";
+      })();
+
       const memories = await retrieveMemories(
         memoryOwnerId,
-        toMemoryRetrievalConfig(memorySettings)
+        toMemoryRetrievalConfig(memorySettings, { query: lastUserQuery })
       );
       if (memories.length > 0) {
         const injected = injectMemory(

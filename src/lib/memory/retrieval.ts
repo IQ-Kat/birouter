@@ -7,7 +7,7 @@ import { resolveEmbeddingSource, embed } from "./embedding";
 import { getVectorStore } from "./vectorStore";
 import { getMemorySettings } from "./settings";
 import { stats as embeddingCacheStats } from "./embedding/cache";
-import { getQdrantConfig, checkQdrantHealth } from "./qdrant";
+import { getQdrantConfig, checkQdrantHealth, searchSemanticMemory } from "./qdrant";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
 
 const log = logger("MEMORY_RETRIEVAL");
@@ -341,8 +341,13 @@ export async function retrieveMemories(
   const strategy = normalizedConfig.retrievalStrategy;
 
   const db = getDbInstance();
-  const memories: Array<{ memory: Memory; score: number; tier: "fts5" | "vector" | "hybrid-rrf" }> =
-    [];
+  // Plan 21 FAIL #2 fix: include "qdrant" in the tier union so that the
+  // Qdrant tier-2 branch in semantic/hybrid below can push hits with that tier.
+  const memories: Array<{
+    memory: Memory;
+    score: number;
+    tier: "fts5" | "vector" | "hybrid-rrf" | "qdrant";
+  }> = [];
   let totalTokens = 0;
 
   const useModernTable = hasTable("memories");
@@ -405,6 +410,67 @@ export async function retrieveMemories(
       if (config.query && useModernTable) {
         const resolution = resolveEmbeddingSource(settings);
         if (resolution.source !== null) {
+          // Plan 21 FAIL #2 fix (Bug #1): when the user opted into Qdrant
+          // (settings.vectorStore === "qdrant"), route the semantic search to
+          // Qdrant first. If Qdrant is unreachable or returns nothing, fall
+          // through to sqlite-vec — preserving the "degrades to sqlite-vec /
+          // FTS5" contract of §7.
+          if (settings.vectorStore === "qdrant") {
+            try {
+              const qres = await searchSemanticMemory(config.query, 100, {
+                apiKeyId,
+              });
+              if (qres.ok && qres.results && qres.results.length > 0) {
+                const hitIds = qres.results.map((r) => r.id);
+                const hitMemories = fetchMemoriesByIds(hitIds);
+                const scoreMap = new Map(
+                  qres.results.map((r) => [r.id, r.score])
+                );
+                let qdrantItems = hitMemories.map((m) => ({
+                  memory: m,
+                  score: scoreMap.get(m.id) ?? 0,
+                  tier: "qdrant" as const,
+                }));
+                if (
+                  settings.rerankEnabled &&
+                  settings.rerankProviderModel &&
+                  config.query
+                ) {
+                  qdrantItems = (await applyRerank(
+                    qdrantItems,
+                    config.query,
+                    settings.rerankProviderModel
+                  )) as typeof qdrantItems;
+                }
+                for (const entry of qdrantItems) {
+                  const memoryTokens = estimateTokens(entry.memory.content);
+                  if (totalTokens + memoryTokens > maxTokens) {
+                    if (memories.length === 0) {
+                      memories.push(entry);
+                      totalTokens += memoryTokens;
+                    }
+                    break;
+                  }
+                  memories.push(entry);
+                  totalTokens += memoryTokens;
+                }
+                log.info("memory.retrieval.complete", {
+                  apiKeyId,
+                  count: memories.length,
+                  tier: "qdrant",
+                });
+                return memories.map((e) => e.memory);
+              }
+            } catch (err: unknown) {
+              log.warn("memory.retrieval.qdrant.fail", {
+                error: sanitizeErrorMessage(
+                  err instanceof Error ? err.message : String(err)
+                ),
+              });
+              // fall through to sqlite-vec degradation
+            }
+          }
+
           const embeddingResult = await embed(config.query, settings);
           if ("vector" in embeddingResult) {
             const vec = getVectorStore();
@@ -481,6 +547,66 @@ export async function retrieveMemories(
       if (config.query && useModernTable) {
         const resolution = resolveEmbeddingSource(settings);
         if (resolution.source !== null) {
+          // Plan 21 FAIL #2 fix: tier-2 Qdrant route also covers hybrid strategy.
+          // Qdrant is vector-only (no FTS5 fusion), so this acts as the vector
+          // half of the hybrid contract. If Qdrant is down or empty, fall through
+          // to sqlite-vec's hybrid RRF (FTS5 + vector).
+          if (settings.vectorStore === "qdrant") {
+            try {
+              const qres = await searchSemanticMemory(config.query, 100, {
+                apiKeyId,
+              });
+              if (qres.ok && qres.results && qres.results.length > 0) {
+                const hitIds = qres.results.map((r) => r.id);
+                const hitMemories = fetchMemoriesByIds(hitIds);
+                const scoreMap = new Map(
+                  qres.results.map((r) => [r.id, r.score])
+                );
+                let qdrantItems = hitMemories.map((m) => ({
+                  memory: m,
+                  score: scoreMap.get(m.id) ?? 0,
+                  tier: "qdrant" as const,
+                }));
+                if (
+                  settings.rerankEnabled &&
+                  settings.rerankProviderModel &&
+                  config.query
+                ) {
+                  qdrantItems = (await applyRerank(
+                    qdrantItems,
+                    config.query,
+                    settings.rerankProviderModel
+                  )) as typeof qdrantItems;
+                }
+                for (const entry of qdrantItems) {
+                  const memoryTokens = estimateTokens(entry.memory.content);
+                  if (totalTokens + memoryTokens > maxTokens) {
+                    if (memories.length === 0) {
+                      memories.push(entry);
+                      totalTokens += memoryTokens;
+                    }
+                    break;
+                  }
+                  memories.push(entry);
+                  totalTokens += memoryTokens;
+                }
+                log.info("memory.retrieval.complete", {
+                  apiKeyId,
+                  count: memories.length,
+                  tier: "qdrant",
+                });
+                return memories.map((e) => e.memory);
+              }
+            } catch (err: unknown) {
+              log.warn("memory.retrieval.qdrant.fail", {
+                error: sanitizeErrorMessage(
+                  err instanceof Error ? err.message : String(err)
+                ),
+              });
+              // fall through to sqlite-vec hybrid RRF
+            }
+          }
+
           const embeddingResult = await embed(config.query, settings);
           if ("vector" in embeddingResult) {
             const vec = getVectorStore();
@@ -654,6 +780,78 @@ export async function retrievePreview(
 
   if (strategy === "semantic" || strategy === "hybrid") {
     if (resolution.source !== null && query) {
+      // Plan 21 FAIL #2 fix: when settings.vectorStore === "qdrant",
+      // the Playground must show what production retrieval would actually
+      // see — Qdrant tier-2. Falls through to sqlite-vec on failure.
+      if (settings.vectorStore === "qdrant") {
+        try {
+          const qres = await searchSemanticMemory(
+            query,
+            limit,
+            apiKeyId ? { apiKeyId } : undefined
+          );
+          if (qres.ok && qres.results && qres.results.length > 0) {
+            const hitIds = qres.results.map((r) => r.id);
+            const hitMemories = fetchMemoriesByIds(hitIds).slice(0, limit);
+            const scoreMap = new Map(
+              qres.results.map((r) => [r.id, r.score])
+            );
+            let items: Array<{
+              memory: Memory;
+              score: number;
+              tier: "qdrant";
+              vecScore: number | null;
+              ftsScore: null;
+            }> = hitMemories.map((m) => ({
+              memory: m,
+              score: scoreMap.get(m.id) ?? 0,
+              tier: "qdrant" as const,
+              vecScore: scoreMap.get(m.id) ?? null,
+              ftsScore: null,
+            }));
+
+            if (settings.rerankEnabled && settings.rerankProviderModel) {
+              items = (await applyRerank(
+                items,
+                query,
+                settings.rerankProviderModel
+              )) as typeof items;
+              rerankApplied = true;
+            }
+
+            for (const item of items) {
+              if (result.length >= limit) break;
+              const tokens = estimateTokens(item.memory.content);
+              if (totalTokens + tokens > maxTokens && result.length > 0) break;
+              result.push({ ...item, tokens });
+              totalTokens += tokens;
+            }
+
+            return {
+              items: result,
+              resolution: {
+                embeddingSource: resolution.source,
+                embeddingModel: resolution.model,
+                vectorStore: "qdrant",
+                strategyUsed: strategy,
+                rerankApplied,
+                fallbackReason: null,
+              },
+              totalTokens,
+              budgetMaxTokens: maxTokens,
+            };
+          }
+          // Qdrant returned nothing — fall through to sqlite-vec for parity
+          // with production (so the Playground reflects the same fallback).
+          fallbackReason = "Qdrant retornou 0 resultados — fallback p/ sqlite-vec";
+        } catch (err: unknown) {
+          fallbackReason = sanitizeErrorMessage(
+            err instanceof Error ? err.message : String(err)
+          );
+          log.warn("memory.preview.qdrant.fail", { error: fallbackReason });
+        }
+      }
+
       const embeddingResult = await embed(query, settings);
 
       if ("vector" in embeddingResult) {
@@ -907,8 +1105,11 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
       qdrantLatencyMs = health.latencyMs;
       qdrantError = health.error ? sanitizeErrorMessage(health.error) : null;
 
-      // If Qdrant is enabled and healthy, report it as the vector store backend
-      if (qdrantHealthy) {
+      // Plan 21 FAIL #2 fix: only claim vectorStore=qdrant when the user
+      // explicitly opted into it (settings.vectorStore === "qdrant"). Before,
+      // the status reported "qdrant" whenever the cluster was healthy even
+      // though the retrieval path always used sqlite-vec — engineStatus lied.
+      if (qdrantHealthy && settings.vectorStore === "qdrant") {
         vecBackend = "qdrant";
         vecAvailable = true;
         vecReason = `Qdrant configurado em ${qdrantCfg.host}:${qdrantCfg.port}`;

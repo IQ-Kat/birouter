@@ -130,10 +130,13 @@ export function toMemorySettingsUpdates(
   return updates;
 }
 
-export function toMemoryRetrievalConfig(settings: MemorySettings): Partial<MemoryConfig> {
+export function toMemoryRetrievalConfig(
+  settings: MemorySettings,
+  extra: { query?: string } = {}
+): Partial<MemoryConfig> & { query?: string } {
   const enabled = settings.enabled && settings.maxTokens > 0;
 
-  return {
+  const config: Partial<MemoryConfig> & { query?: string } = {
     enabled,
     maxTokens: enabled ? settings.maxTokens : 0,
     retrievalStrategy: settings.strategy === "recent" ? "exact" : settings.strategy,
@@ -142,6 +145,15 @@ export function toMemoryRetrievalConfig(settings: MemorySettings): Partial<Memor
     retentionDays: settings.retentionDays,
     scope: "apiKey",
   };
+
+  // Plan 21 FAIL #1 fix: forward the last user message as `query` so that
+  // semantic / hybrid strategies actually exercise the vector store in the
+  // chat hot path (chatCore.ts), not only in the Playground.
+  if (extra.query && extra.query.trim().length > 0) {
+    config.query = extra.query.trim();
+  }
+
+  return config;
 }
 
 export async function getMemorySettings(): Promise<MemorySettings> {
