@@ -75,3 +75,16 @@ export function touchLastSeen(host: string): void {
   const now = new Date().toISOString();
   db.prepare("UPDATE inspector_custom_hosts SET last_seen_at = ? WHERE host = ?").run(now, host);
 }
+
+/**
+ * Returns true when `host` is present in inspector_custom_hosts with enabled=1.
+ * Used by agentBridgeHook to distinguish custom-host intercepts from agent-bridge
+ * intercepts so that Mode 2 (Custom Hosts) entries appear in the "Custom" profile.
+ */
+export function isCustomHost(host: string): boolean {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT 1 AS found FROM inspector_custom_hosts WHERE host = ? AND enabled = 1")
+    .get(host) as { found: number } | undefined;
+  return row !== undefined;
+}

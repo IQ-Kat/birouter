@@ -14,6 +14,7 @@ import { sanitizeHeaders } from "../sanitizeHeaders.ts";
 import type { AgentId } from "../types.ts";
 import { globalTrafficBuffer } from "./buffer.ts";
 import type { InterceptedRequest } from "./types.ts";
+import { isCustomHost } from "@/lib/db/inspectorCustomHosts";
 
 export interface RecordRequestStartOpts {
   req: IncomingMessage;
@@ -42,13 +43,28 @@ export async function recordRequestStart(
   opts: RecordRequestStartOpts
 ): Promise<InterceptedRequest> {
   const requestBody = opts.body.length > 0 ? maskSecret(opts.body.toString("utf8")) : null;
+
+  // Determine whether this request originates from a custom-host intercept
+  // (Mode 2 / Custom Hosts) or a standard agent-bridge intercept (Mode 1).
+  //
+  // Both modes reach this hook via the same MITM server path: custom hosts are
+  // added to inspector_custom_hosts by the Mode 2 UI and are spoofed to
+  // 127.0.0.1 by /etc/hosts entries, so they arrive here just like agent
+  // targets. The DB lookup below is the cheapest reliable way to distinguish
+  // them without touching server.cjs — it costs one SQLite read per request.
+  //
+  // If the host resolves as a custom-host entry, source="custom-host" and
+  // agent is left undefined so the "Custom" profile filter matches correctly.
+  const host = opts.req.headers.host ?? "";
+  const customHost = isCustomHost(host);
+
   const intercepted: InterceptedRequest = {
     id: randomUUID(),
-    source: "agent-bridge",
-    agent: opts.agentId,
+    source: customHost ? "custom-host" : "agent-bridge",
+    agent: customHost ? undefined : opts.agentId,
     timestamp: new Date().toISOString(),
     method: opts.req.method ?? "GET",
-    host: opts.req.headers.host ?? "",
+    host,
     path: opts.req.url ?? "/",
     requestHeaders: sanitizeHeaders(opts.req.headers),
     requestBody,
