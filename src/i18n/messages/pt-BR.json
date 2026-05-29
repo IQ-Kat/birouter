@@ -780,6 +780,7 @@
     "batchListProgressPartial": "(parcial)",
     "batchListProviderColumn": "Provedor",
     "batchListProviderUnknown": "—",
+    "batchListProviderOther": "Outro",
     "batchListBatchCreated": "Batch {id} criado — atualizando lista…",
     "batchListBatchCreatedDismiss": "Fechar",
     "batchListRefreshing": "Atualizando…",

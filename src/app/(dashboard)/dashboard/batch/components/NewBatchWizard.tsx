@@ -166,8 +166,11 @@ export default function NewBatchWizard({
       }
       if (e.key === "Enter") {
         const tag = (e.target as HTMLElement | null)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-        // canGoNext lives below; compute lazily via reading the disabled state of the Next button
+        // Skip form controls (typing) AND buttons — a focused button (Next/Back/Cancel/
+        // Create) already activates natively on Enter; firing the global Next click too
+        // would double-dispatch and conflict with Back/Cancel. Only advance when focus is
+        // on a non-interactive element (the modal body).
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") return;
         const nextBtn = document.querySelector<HTMLButtonElement>(
           'button[data-wizard-next="true"]'
         );

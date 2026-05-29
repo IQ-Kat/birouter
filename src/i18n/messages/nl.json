@@ -802,7 +802,8 @@
     "wizardInputCsvJsonlReady": "JSONL generated — ready to validate.",
     "wizardInputLargeFileWarning": "Large file detected — validation runs by sampling (first 5 MB + last 100 KB). Full validation happens server-side.",
     "wizardCostWindow24h": "24h completion window",
-    "wizardValidationFieldsOk": "required fields valid"
+    "wizardValidationFieldsOk": "required fields valid",
+    "batchListProviderOther": "Other"
   },
   "sidebar": {
     "home": "Thuis",

@@ -36,6 +36,9 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isReading, setIsReading] = useState(false);
+  // B-2b — synchronous stale-proof guard for concurrent drops/picks in the same
+  // event-loop tick (React state lags behind dispatches within a tick).
+  const isReadingRef = useRef(false);
   const [csvJsonl, setCsvJsonl] = useState<string | null>(null);
 
   const isJsonl = input.kind === "jsonl";
@@ -47,8 +50,11 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
   }
 
   async function processFile(file: File) {
-    // B-2 race guard — ignore concurrent drops while a read is in flight
-    if (isReading) return;
+    // B-2/B-2b race guard — ref is checked & flipped synchronously so concurrent
+    // calls in the same tick (e.g. drop + file-input-change firing back-to-back)
+    // cannot both pass. State mirror is for UI only.
+    if (isReadingRef.current) return;
+    isReadingRef.current = true;
     const expectedExt = isJsonl ? ".jsonl" : ".csv";
     if (!file.name.toLowerCase().endsWith(expectedExt)) {
       // Soft warning — don't block, let validation catch it
@@ -65,6 +71,7 @@ export default function InputStep({ input, onChange, destination }: InputStepPro
     } catch (err) {
       console.error("[InputStep] file read error:", err);
     } finally {
+      isReadingRef.current = false;
       setIsReading(false);
     }
   }

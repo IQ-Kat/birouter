@@ -94,15 +94,28 @@ const STATUS_STYLES: Record<string, string> = {
   expired_with_failures: "bg-orange-500/15 text-orange-400 border-orange-500/25",
 };
 
-// A-1 — Derive Provider label from model id (no provider field on BatchRecord).
-// Heuristic-only display; no filter side-effect. Returns "—" for unknown shapes.
-function deriveProvider(model: string | null | undefined): string {
-  if (!model) return "—";
+// A-1 / R2 — Derive Provider label from model id (no provider field on BatchRecord).
+// Heuristic-only display; no filter side-effect. Vendor names are proper nouns and
+// stay un-translated; "other" / "unknown" return discriminators so the call-site can
+// translate via t() — keeps function pure & free of next-intl coupling.
+type ProviderLabel = "OpenAI" | "Anthropic" | "Gemini" | "other" | "unknown";
+function deriveProvider(model: string | null | undefined): ProviderLabel {
+  if (!model) return "unknown";
   const lower = model.toLowerCase();
-  if (lower.startsWith("gpt-") || lower.startsWith("o1") || lower.startsWith("o3") || lower.startsWith("text-embedding-") || lower.startsWith("dall-e")) return "OpenAI";
+  // OpenAI family: gpt-*, chatgpt-*, o-series (o1/o3/o4 + suffixes), embeddings, DALL·E
+  if (
+    lower.startsWith("gpt-") ||
+    lower.startsWith("chatgpt-") ||
+    /^o[1-9](?:-|$)/.test(lower) ||
+    lower.startsWith("text-embedding-") ||
+    lower.startsWith("dall-e") ||
+    lower.startsWith("whisper") ||
+    lower.startsWith("tts-")
+  )
+    return "OpenAI";
   if (lower.startsWith("claude-")) return "Anthropic";
   if (lower.startsWith("gemini")) return "Gemini";
-  return "Other";
+  return "other";
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -462,7 +475,12 @@ export default function BatchListTab({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-main)] text-xs whitespace-nowrap">
-                      {deriveProvider(batch.model)}
+                      {(() => {
+                        const p = deriveProvider(batch.model);
+                        if (p === "unknown") return t("batchListProviderUnknown");
+                        if (p === "other") return t("batchListProviderOther");
+                        return p;
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-main)] text-xs">
                       {batch.endpoint}

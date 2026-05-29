@@ -320,6 +320,37 @@ describe("BatchListTab — rendering", () => {
     expect(text).toContain("Anthropic");
     expect(text).toContain("Gemini");
   });
+
+  it("19. Provider derivation handles OpenAI variants: chatgpt-* and o-series (R2)", () => {
+    const batches = [
+      makeBatch({ id: "b-chatgpt", model: "chatgpt-4o-latest", status: "completed" }),
+      makeBatch({ id: "b-o1", model: "o1-preview", status: "completed" }),
+      makeBatch({ id: "b-o3", model: "o3-mini", status: "completed" }),
+    ];
+    const el = render(
+      <BatchListTab batches={batches} files={[]} loading={false} />
+    );
+    const text = el.textContent ?? "";
+    // All three are OpenAI families — the column should print "OpenAI" three times.
+    const occurrences = (text.match(/OpenAI/g) ?? []).length;
+    expect(occurrences).toBeGreaterThanOrEqual(3);
+  });
+
+  it("20. Provider derivation routes unknown / null model through i18n keys (R2)", () => {
+    const batches = [
+      makeBatch({ id: "b-unknown-model", model: "weird-model-name-not-recognized", status: "completed" }),
+      // makeBatch's default model is gpt-4o; explicitly null-ish models below
+      makeBatch({ id: "b-null-model", model: "", status: "completed" }),
+    ];
+    const el = render(
+      <BatchListTab batches={batches} files={[]} loading={false} />
+    );
+    const text = el.textContent ?? "";
+    // i18n mock returns the key literal — proves we route through t() and
+    // didn't leave hardcoded "Other" / "—" English strings in the cell.
+    expect(text).toContain("batchListProviderOther");
+    expect(text).toContain("batchListProviderUnknown");
+  });
 });
 
 // ── FilesListTab ──────────────────────────────────────────────────────────────
