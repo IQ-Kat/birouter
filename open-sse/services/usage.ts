@@ -1261,9 +1261,17 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
         quotas,
       };
     } else if (dataRecord.monthly_quotas || dataRecord.limited_user_quotas) {
-      // Free/limited plan format
+      // Free/limited plan format. NOTE (#2876): the upstream field
+      // `limited_user_quotas[name]` is the *remaining* count for the month
+      // (it counts down toward 0 and resets on `limited_user_reset_date`),
+      // NOT the used count. The pre-3.8.6 implementation inverted this and
+      // showed "0% when not used / 100% when fully used" on the dashboard.
+      // Confirmed against three independent upstream parsers:
+      //   - robinebers/openusage  docs/providers/copilot.md (Free Tier table)
+      //   - raycast/extensions    agent-usage/src/copilot/fetcher.ts (inline comment)
+      //   - looplj/axonhub        frontend/src/components/quota-badges.tsx
       const monthlyQuotas = toRecord(dataRecord.monthly_quotas);
-      const usedQuotas = toRecord(dataRecord.limited_user_quotas);
+      const remainingQuotas = toRecord(dataRecord.limited_user_quotas);
       const resetDate = getFieldValue(
         dataRecord,
         "limited_user_reset_date",
@@ -1274,14 +1282,18 @@ async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonR
 
       const addLimitedQuota = (name: string) => {
         const total = toNumber(getFieldValue(monthlyQuotas, name, name), 0);
-        const used = Math.max(0, toNumber(getFieldValue(usedQuotas, name, name), 0));
         if (total <= 0) return null;
-        const clampedUsed = Math.min(used, total);
+        const remainingRaw = Math.max(
+          0,
+          toNumber(getFieldValue(remainingQuotas, name, name), 0)
+        );
+        const remaining = Math.min(remainingRaw, total);
+        const used = Math.max(total - remaining, 0);
         quotas[name] = {
-          used: clampedUsed,
+          used,
           total,
-          remaining: Math.max(total - clampedUsed, 0),
-          remainingPercentage: clampPercentage(((total - clampedUsed) / total) * 100),
+          remaining,
+          remainingPercentage: clampPercentage((remaining / total) * 100),
           unlimited: false,
           resetAt,
         };

@@ -21,6 +21,13 @@ test.afterEach(() => {
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
+  // Free-plan fixture aligned with the upstream protocol (#2876): in
+  // `copilot_internal/user`, `limited_user_quotas[name]` is the REMAINING
+  // count for the month and counts down toward 0; `monthly_quotas[name]`
+  // is the total allowance. The chat numbers below (410 / 500) are the
+  // example values from robinebers/openusage docs/providers/copilot.md.
+  // We also keep an out-of-range premium_interactions remaining (70 > 50)
+  // to assert the defensive clamp at the upstream boundary.
   const calls: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     calls.push(init);
@@ -30,13 +37,13 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
         limited_user_reset_date: new Date(Date.now() + 60_000).toISOString(),
         monthly_quotas: {
           premium_interactions: 50,
-          chat: 25,
-          completions: 10,
+          chat: 500,
+          completions: 4000,
         },
         limited_user_quotas: {
           premium_interactions: 70,
-          chat: 5,
-          completions: 2,
+          chat: 410,
+          completions: 4000,
         },
       }),
       { status: 200 }
@@ -49,10 +56,21 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   });
 
   assert.equal(freeUsage.plan, "Copilot Free");
+  // premium_interactions: upstream remaining=70 clamped to total=50 → fully
+  // available, 0 used, 100% remaining.
   assert.equal(freeUsage.quotas.premium_interactions.total, 50);
-  assert.equal(freeUsage.quotas.premium_interactions.used, 50);
-  assert.equal(freeUsage.quotas.chat.remaining, 20);
-  assert.equal(freeUsage.quotas.completions.remainingPercentage, 80);
+  assert.equal(freeUsage.quotas.premium_interactions.remaining, 50);
+  assert.equal(freeUsage.quotas.premium_interactions.used, 0);
+  assert.equal(freeUsage.quotas.premium_interactions.remainingPercentage, 100);
+  // chat: 410 remaining of 500 → 82% remaining, 90 used.
+  assert.equal(freeUsage.quotas.chat.total, 500);
+  assert.equal(freeUsage.quotas.chat.remaining, 410);
+  assert.equal(freeUsage.quotas.chat.used, 90);
+  assert.equal(freeUsage.quotas.chat.remainingPercentage, 82);
+  // completions: untouched → 100% remaining.
+  assert.equal(freeUsage.quotas.completions.remaining, 4000);
+  assert.equal(freeUsage.quotas.completions.used, 0);
+  assert.equal(freeUsage.quotas.completions.remainingPercentage, 100);
   assert.equal(calls[0].headers.Authorization, "token gho-free");
   assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.45.1");
   assert.equal(calls[0].headers["Editor-Version"], "vscode/1.117.0");
