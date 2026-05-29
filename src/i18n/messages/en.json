@@ -3044,7 +3044,8 @@
       "qdrantDisabled": "Disabled",
       "qdrantOk": "Healthy ({latencyMs}ms)",
       "qdrantError": "Connection error",
-      "needsReindex": "{count} memory(ies) need reindexing"
+      "needsReindex": "{count} memory(ies) need reindexing",
+      "configureCta": "Configure"
     },
     "episodic": "Episodic",
     "export": "Export",

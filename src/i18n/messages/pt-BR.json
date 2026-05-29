@@ -3041,7 +3041,8 @@
       "qdrantDisabled": "Desabilitado",
       "qdrantOk": "Saudável ({latencyMs}ms)",
       "qdrantError": "Erro de conexão",
-      "needsReindex": "{count} memória(s) precisam de reindexação"
+      "needsReindex": "{count} memória(s) precisam de reindexação",
+      "configureCta": "Configurar"
     },
     "episodic": "Episódica",
     "export": "Exportar",
