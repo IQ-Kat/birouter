@@ -6,6 +6,7 @@ import {
   _injectModel,
   type PotionModel,
 } from "../../src/lib/memory/embedding/staticPotion";
+import type { EmbeddingError } from "../../src/lib/memory/embedding/types";
 import { invalidate as invalidateCache } from "../../src/lib/memory/embedding/cache";
 
 // ---- Mock model setup ----
@@ -120,14 +121,38 @@ describe("memory-embedding-static-potion embedStatic with mock", () => {
   });
 
   it("model load failure returns EmbeddingError with reason model_load_failed", async () => {
+    // Plan 21 fix: previously this test was tautological (`assert.ok(true)`).
+    // Force a real load-failure path: point the cache dir at /dev/null/<subdir>
+    // so fs.mkdir() fails with ENOTDIR (/dev/null is a file, not a dir).
+    // embedStatic catches the error and must return EmbeddingError with
+    // reason="model_load_failed" (staticPotion.ts:225-232).
     _injectModel(null);
-    // Clear the singleton so it tries to load (and fails)
-    // We need to make it fail on load; inject a model that throws
-    // But _injectModel(null) clears it → will try to download (which fails in test env)
-    // Let's not actually trigger the download; just verify the structure
-    // by injecting an error-inducing state
-    _injectModel(makeMockModel()); // restore for other tests
-    assert.ok(true, "Model injection pattern verified");
+    const prevCacheDir = process.env.MEMORY_STATIC_CACHE_DIR;
+    process.env.MEMORY_STATIC_CACHE_DIR = `/dev/null/potion-load-fail-${process.pid}-${Date.now()}`;
+    try {
+      const { embedStatic } = await import(
+        "../../src/lib/memory/embedding/staticPotion"
+      );
+      const result = await embedStatic("hello world");
+      assert.ok(
+        !("vector" in result),
+        `Expected EmbeddingError but got result with vector: ${JSON.stringify(result)}`
+      );
+      const err = result as EmbeddingError;
+      assert.strictEqual(err.source, "static");
+      assert.strictEqual(err.reason, "model_load_failed");
+      assert.ok(
+        typeof err.message === "string" && err.message.length > 0,
+        "EmbeddingError.message must be a non-empty sanitized string"
+      );
+    } finally {
+      if (prevCacheDir === undefined) {
+        delete process.env.MEMORY_STATIC_CACHE_DIR;
+      } else {
+        process.env.MEMORY_STATIC_CACHE_DIR = prevCacheDir;
+      }
+      _injectModel(makeMockModel()); // restore for other tests
+    }
   });
 
   it("second call reuses singleton model (no re-load)", async () => {

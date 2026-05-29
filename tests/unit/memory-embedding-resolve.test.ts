@@ -20,7 +20,11 @@ describe("resolveEmbeddingSource", () => {
   it("auto + no key + no static + no transformers => source null", () => {
     const res = resolveEmbeddingSource(makeSettings({ embeddingSource: "auto" }));
     assert.strictEqual(res.source, null);
-    assert.ok(res.reason.toLowerCase().includes("nenhuma") || res.reason.length > 0);
+    // The reason must indicate the lack of any source — not just be non-empty.
+    assert.ok(
+      res.reason.toLowerCase().includes("nenhuma"),
+      `expected reason to mention "nenhuma", got: ${res.reason}`
+    );
   });
 
   it("auto + embeddingProviderModel set to openai/... => source remote", () => {
@@ -58,7 +62,11 @@ describe("resolveEmbeddingSource", () => {
       embeddingProviderModel: null,
     }));
     assert.strictEqual(res.source, null);
-    assert.ok(res.reason.includes("no_key") || res.reason.includes("configurado") || res.reason.length > 0);
+    // The reason must reference the missing key, not just be non-empty.
+    assert.ok(
+      res.reason.includes("no_key") || res.reason.includes("configurado"),
+      `expected reason to mention "no_key" or "configurado", got: ${res.reason}`
+    );
   });
 
   it("explicit 'remote' + model set => source remote (no fallback)", () => {

@@ -35,11 +35,22 @@ export default function RerankConfigCard({ settings, providers, onSave, saving }
         <button
           type="button"
           data-testid="rerank-enabled-switch"
-          onClick={() => onSave({ rerankEnabled: !rerankEnabled })}
-          disabled={saving}
+          onClick={() => {
+            // Plan 21 D13 fix: block enabling rerank when no provider has a key.
+            // Allow disabling (turning OFF) always, even if no provider exists.
+            if (!rerankEnabled && !hasProvider) return;
+            onSave({ rerankEnabled: !rerankEnabled });
+          }}
+          disabled={saving || (!rerankEnabled && !hasProvider)}
+          aria-disabled={saving || (!rerankEnabled && !hasProvider)}
+          title={
+            !rerankEnabled && !hasProvider
+              ? t("rerank.noProviderWithKey")
+              : undefined
+          }
           role="switch"
           aria-checked={rerankEnabled}
-          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
             rerankEnabled ? "bg-violet-500" : "bg-border"
           }`}
         >

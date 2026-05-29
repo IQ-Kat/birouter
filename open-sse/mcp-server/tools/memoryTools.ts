@@ -33,23 +33,17 @@ export const memoryTools = {
     description: "Search memories by query, type, or API key with token budget enforcement",
     inputSchema: MemorySearchSchema,
     handler: async (args: z.infer<typeof MemorySearchSchema>) => {
-      const memorySettings = await getMemorySettings().catch(() => null);
-      const baseConfig = memorySettings
-        ? toMemoryRetrievalConfig(memorySettings)
-        : {
-            enabled: DEFAULT_MEMORY_SETTINGS.enabled,
-            maxTokens: DEFAULT_MEMORY_SETTINGS.maxTokens,
-            retrievalStrategy: "exact" as const,
-            autoSummarize: false,
-            persistAcrossModels: false,
-            retentionDays: DEFAULT_MEMORY_SETTINGS.retentionDays,
-            scope: "apiKey" as const,
-          };
+      // Plan 21 D16/Bug#7 fix: even on the error path the fallback must
+      // respect DEFAULT_MEMORY_SETTINGS.strategy instead of hardcoding "exact".
+      const memorySettings =
+        (await getMemorySettings().catch(() => null)) ?? DEFAULT_MEMORY_SETTINGS;
+      const baseConfig = toMemoryRetrievalConfig(memorySettings, {
+        query: args.query,
+      });
 
       const config = {
         ...baseConfig,
         maxTokens: args.maxTokens || (baseConfig.maxTokens ?? DEFAULT_MEMORY_SETTINGS.maxTokens),
-        query: args.query,
       };
 
       const memories = await retrieveMemories(args.apiKeyId, config);

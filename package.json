@@ -125,7 +125,7 @@
     "coverage:summary": "node scripts/check/test-report-summary.mjs --input coverage/coverage-summary.json --output coverage/coverage-report.md",
     "check:pr-test-policy": "node scripts/check/check-pr-test-policy.mjs",
     "coverage:report:legacy": "c8 report --output-dir coverage --exclude=open-sse --reporter=text --reporter=text-summary",
-    "test:all": "npm run test:unit && npm run test:vitest && npm run test:ecosystem && npm run test:e2e",
+    "test:all": "npm run test:unit && npm run test:vitest && npm run test:vitest:ui && npm run test:ecosystem && npm run test:e2e",
     "check": "npm run lint && npm run test",
     "prepublishOnly": "npm run build:cli-api && npm run build:cli && npm run check:pack-artifact",
     "postinstall": "node scripts/build/postinstall.mjs",

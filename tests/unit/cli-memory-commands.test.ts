@@ -82,7 +82,10 @@ test("runMemorySearch envia q e type na query", async () => {
 
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("q=react") && capturedUrl.includes("hooks"));
-  assert.ok(capturedUrl.includes("type=project"));
+  // Plan 21 / D17: legacy 'project' is remapped to canonical 'factual' by
+  // applyLegacyTypeMap in the CLI before reaching the backend.
+  assert.ok(capturedUrl.includes("type=factual"));
+  assert.ok(!capturedUrl.includes("type=project"));
   assert.ok(capturedUrl.includes("limit=10"));
 });
 
@@ -177,5 +180,8 @@ test("runMemoryClear --yes envia DELETE com filtro de type", async () => {
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("/api/memory"));
   assert.equal(capturedInit?.method, "DELETE");
-  assert.ok(capturedUrl.includes("type=project"));
+  // Plan 21 / D17: legacy 'project' is remapped to canonical 'factual' by
+  // applyLegacyTypeMap in the CLI before reaching the backend.
+  assert.ok(capturedUrl.includes("type=factual"));
+  assert.ok(!capturedUrl.includes("type=project"));
 });

@@ -3,8 +3,11 @@
 import { useTranslations } from "next-intl";
 import type { MemoryEngineStatus } from "@/shared/schemas/memory";
 
+type ConfigureTarget = "embedding" | "qdrant" | "rerank";
+
 interface Props {
   status: MemoryEngineStatus;
+  onConfigure?: (target: ConfigureTarget) => void;
 }
 
 type ChipColor = "green" | "gray" | "red";
@@ -23,8 +26,35 @@ function StatusChip({ color }: { color: ChipColor }) {
   );
 }
 
-export default function MemoryEngineStatus({ status }: Props) {
+function ConfigureLink({
+  onClick,
+  label,
+  testId,
+}: {
+  onClick: () => void;
+  label: string;
+  testId: string;
+}) {
+  return (
+    <button
+      type="button"
+      data-testid={testId}
+      onClick={onClick}
+      className="text-xs text-violet-400 hover:text-violet-300 underline-offset-2 hover:underline mt-1 inline-flex items-center gap-0.5"
+    >
+      {label}
+      <span aria-hidden="true">→</span>
+    </button>
+  );
+}
+
+export default function MemoryEngineStatus({ status, onConfigure }: Props) {
   const t = useTranslations("memory");
+
+  const embeddingOff = !status.embedding.available;
+  const qdrantOff = !status.qdrant.enabled;
+  const qdrantUnhealthy = status.qdrant.enabled && status.qdrant.healthy === false;
+  const rerankOff = !status.rerank.enabled || !status.rerank.available;
 
   const rows: Array<{ label: string; chip: ChipColor; reason: string; cta?: React.ReactNode }> = [
     {
@@ -36,6 +66,14 @@ export default function MemoryEngineStatus({ status }: Props) {
       label: t("engine.embeddingLabel"),
       chip: status.embedding.available ? "green" : "gray",
       reason: status.embedding.reason,
+      cta:
+        embeddingOff && onConfigure ? (
+          <ConfigureLink
+            testId="engine-cta-embedding"
+            onClick={() => onConfigure("embedding")}
+            label={t("engine.configureCta")}
+          />
+        ) : undefined,
     },
     {
       label: t("engine.vectorStoreLabel"),
@@ -62,11 +100,27 @@ export default function MemoryEngineStatus({ status }: Props) {
         : status.qdrant.healthy
           ? t("engine.qdrantOk", { latencyMs: status.qdrant.latencyMs ?? 0 })
           : (status.qdrant.error ?? t("engine.qdrantError")),
+      cta:
+        (qdrantOff || qdrantUnhealthy) && onConfigure ? (
+          <ConfigureLink
+            testId="engine-cta-qdrant"
+            onClick={() => onConfigure("qdrant")}
+            label={t("engine.configureCta")}
+          />
+        ) : undefined,
     },
     {
       label: t("engine.rerankLabel"),
       chip: !status.rerank.enabled ? "gray" : status.rerank.available ? "green" : "red",
       reason: status.rerank.reason,
+      cta:
+        rerankOff && onConfigure ? (
+          <ConfigureLink
+            testId="engine-cta-rerank"
+            onClick={() => onConfigure("rerank")}
+            label={t("engine.configureCta")}
+          />
+        ) : undefined,
     },
   ];
 

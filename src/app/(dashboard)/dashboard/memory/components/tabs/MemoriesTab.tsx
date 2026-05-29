@@ -160,20 +160,31 @@ export default function MemoriesTab() {
       const data = JSON.parse(text);
       const memoriesToImport = Array.isArray(data) ? data : [data];
 
+      // Plan 21 fix: validate each entry against the canonical type enum
+      // before POSTing. Previously only key/content presence was checked, so
+      // entries with invalid `type` (e.g. legacy "user") reached the backend
+      // and counted as skipped without a clear local reason.
+      const VALID_TYPES = new Set(["factual", "episodic", "procedural", "semantic"]);
       for (const m of memoriesToImport) {
-        if (!m.key || !m.content) {
+        if (!m || typeof m !== "object") {
           skipped++;
           continue;
         }
+        const key = typeof m.key === "string" ? m.key.trim() : "";
+        const content = typeof m.content === "string" ? m.content : "";
+        if (!key || !content) {
+          skipped++;
+          continue;
+        }
+        const type = typeof m.type === "string" && VALID_TYPES.has(m.type) ? m.type : "factual";
+        const metadata =
+          m.metadata && typeof m.metadata === "object" && !Array.isArray(m.metadata)
+            ? m.metadata
+            : {};
         const res = await fetch("/api/memory", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: m.type || "factual",
-            key: m.key,
-            content: m.content,
-            metadata: m.metadata || {},
-          }),
+          body: JSON.stringify({ type, key, content, metadata }),
         });
         if (res.ok) imported++;
         else skipped++;

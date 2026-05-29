@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 import MemoryEngineStatus from "../MemoryEngineStatus";
@@ -16,21 +16,38 @@ export default function EngineTab() {
   const { status, isLoading: statusLoading } = useEngineStatus();
   const { settings, save: saveSettings, isLoading: settingsLoading } = useMemorySettings();
   const [providers, setProviders] = useState<EmbeddingProviderListing[]>([]);
-  const [providersLoaded, setProvidersLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [reindexing, setReindexing] = useState(false);
   const [reindexMsg, setReindexMsg] = useState("");
 
-  // Lazy-load providers
-  if (!providersLoaded && !settingsLoading) {
-    setProvidersLoaded(true);
+  // Plan 21 fix: providers fetch moved from render body to useEffect to
+  // avoid setState-during-render anti-pattern (caused double fetch in
+  // React 18 Strict Mode).
+  useEffect(() => {
+    if (settingsLoading) return;
+    let cancelled = false;
     fetch("/api/memory/embedding-providers")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.providers) setProviders(data.providers);
+        if (!cancelled && data?.providers) setProviders(data.providers);
       })
       .catch(() => {});
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [settingsLoading]);
+
+  // CTA handler for MemoryEngineStatus rows — scrolls to the config card
+  // in the same tab so the user can fix the off/missing component.
+  const handleConfigure = useCallback(
+    (target: "embedding" | "qdrant" | "rerank") => {
+      const id = `engine-config-${target}`;
+      document
+        .getElementById(id)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    []
+  );
 
   const handleSaveSettings = async (updates: Parameters<typeof saveSettings>[0]) => {
     setSaving(true);
@@ -83,7 +100,7 @@ export default function EngineTab() {
           {isLoading || !status ? (
             <div className="text-sm text-text-muted">{t("loading")}</div>
           ) : (
-            <MemoryEngineStatus status={status} />
+            <MemoryEngineStatus status={status} onConfigure={handleConfigure} />
           )}
           {reindexMsg && (
             <p className="mt-3 text-xs text-text-muted">{reindexMsg}</p>
@@ -94,7 +111,7 @@ export default function EngineTab() {
       {/* Embedding source selector */}
       {settings && (
         <Card>
-          <div className="p-4">
+          <div id="engine-config-embedding" className="p-4 scroll-mt-4">
             <h3 className="text-sm font-semibold text-text-main mb-4">
               {t("engine.embeddingTitle")}
             </h3>
@@ -109,12 +126,14 @@ export default function EngineTab() {
       )}
 
       {/* Qdrant config */}
-      <QdrantConfigCard />
+      <div id="engine-config-qdrant" className="scroll-mt-4">
+        <QdrantConfigCard />
+      </div>
 
       {/* Rerank config */}
       {settings && (
         <Card>
-          <div className="p-4">
+          <div id="engine-config-rerank" className="p-4 scroll-mt-4">
             <h3 className="text-sm font-semibold text-text-main mb-4">
               {t("engine.rerankTitle")}
             </h3>
