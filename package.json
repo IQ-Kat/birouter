@@ -1,7 +1,7 @@
 {
   "name": "birouter-app",
   "version": "0.2.2",
-  "description": "Birouter web dashboard",
+  "description": "Birouter — AI Router & Token Saver",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack --port 2004",

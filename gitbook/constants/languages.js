@@ -2,6 +2,7 @@ export const DEFAULT_LANG = "en";
 
 export const LANGUAGES = [
   { code: "en", name: "English", native: "English", flag: "🇺🇸" },
+  { code: "id", name: "Indonesian", native: "Bahasa Indonesia", flag: "🇮🇩" },
   { code: "vi", name: "Vietnamese", native: "Tiếng Việt", flag: "🇻🇳" },
   { code: "zh-CN", name: "Chinese (Simplified)", native: "简体中文", flag: "🇨🇳" },
   { code: "es", name: "Spanish", native: "Español", flag: "🇪🇸" },

@@ -6,11 +6,9 @@
 
 Connect your AI tools (Claude Code, Codex, Cursor, Cline, OpenClaw...) to 40+ providers & 100+ models through a single local gateway.
 
+[🇮🇩 Baca dalam Bahasa Indonesia](#-bahasa-indonesia)
+
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-[🚀 Quick Start](#-quick-start) • [💡 Features](#-features) • [📖 Setup](#-setup) • [💝 Support](#-support)
-
-</div>
 
 ---
 
@@ -21,32 +19,7 @@ Connect your AI tools (Claude Code, Codex, Cursor, Cline, OpenClaw...) to 40+ pr
 - ✅ **Multi-account** — Round-robin between accounts per provider
 - ✅ **Format translation** — OpenAI ↔ Claude ↔ Gemini ↔ Vertex ↔ any format
 - ✅ **40+ providers** — OpenAI, Anthropic, Gemini, DeepSeek, Groq, Mistral, xAI, and more
-- ✅ **Fetch Models** — Discover available models from any provider with one click
-- ✅ **Rate limiting** — Configurable RPM per API key (default off)
 - ✅ **Savings tracker** — See how much money you've saved
-
----
-
-## 🔄 How It Works
-
-```
-┌─────────────┐
-│  Your CLI   │  (Claude Code, Codex, Cursor, Cline, OpenClaw...)
-│   Tool      │
-└──────┬──────┘
-       │ http://localhost:2004/v1
-       ↓
-┌─────────────────────────────────────────────┐
-│           Birouter (Smart Router)           │
-│  • RTK Token Saver (cut tool_result tokens) │
-│  • Format translation (OpenAI ↔ Claude)     │
-│  • Quota tracking & auto-fallback           │
-└──────┬──────────────────────────────────────┘
-       │
-       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex, GitHub Copilot
-       ├─→ [Tier 2: CHEAP] GLM, MiniMax, DeepSeek
-       └─→ [Tier 3: FREE] Kiro, OpenCode Free, Vertex
-```
 
 ---
 
@@ -56,7 +29,7 @@ Connect your AI tools (Claude Code, Codex, Cursor, Cline, OpenClaw...) to 40+ pr
 
 ```bash
 git clone https://github.com/IQ-Kat/birouter.git
-cd birouter
+cd birouter/router-app
 cp .env.example .env
 npm install
 npm run dev
@@ -64,20 +37,33 @@ npm run dev
 
 🎉 Dashboard opens at `http://localhost:2004`
 
-**Connect your CLI tool:**
+---
 
-```
-Endpoint: http://localhost:2004/v1
-API Key:  [copy from dashboard]
-Model:    kr/claude-sonnet-4.5
-```
+## 🇮🇩 Bahasa Indonesia
 
-**Docker:**
+**Satu endpoint untuk semua penyedia AI Anda. Routing cerdas, fallback otomatis, dan penghematan token 20-40%.**
+
+Hubungkan alat AI Anda (Claude Code, Codex, Cursor, Cline...) ke 40+ penyedia & 100+ model melalui satu gateway lokal.
+
+### Mengapa Birouter?
+
+- ✅ **RTK Token Saver** — Kompres output tool secara otomatis, hemat 20-40% token per permintaan.
+- ✅ **Auto fallback** — Langganan → Murah → Gratis, tanpa downtime.
+- ✅ **Multi-akun** — Round-robin antar akun per penyedia.
+- ✅ **Translasi Format** — OpenAI ↔ Claude ↔ Gemini ↔ Vertex ↔ format apa pun.
+- ✅ **40+ Penyedia** — OpenAI, Anthropic, Gemini, DeepSeek, Groq, Mistral, xAI, dan banyak lagi.
+
+### Mulai Cepat
 
 ```bash
-docker build -t birouter .
-docker run -d --name birouter -p 2004:2004 --env-file .env -v birouter-data:/app/data birouter
+git clone https://github.com/IQ-Kat/birouter.git
+cd birouter/router-app
+cp .env.example .env
+npm install
+npm run dev
 ```
+
+🎉 Dashboard terbuka di `http://localhost:2004`
 
 ---
 
@@ -89,16 +75,8 @@ docker run -d --name birouter -p 2004:2004 --env-file .env -v birouter-data:/app
 | 🪨 **Caveman Mode** | Terse LLM replies — save up to 65% output tokens |
 | 🎯 **Smart Fallback** | Auto-route: Subscription → Cheap → Free |
 | 🔄 **Format Translation** | OpenAI ↔ Claude ↔ Gemini ↔ Vertex ↔ Cursor ↔ Kiro |
-| 👥 **Multi-Account** | Round-robin between accounts per provider |
-| 🔍 **Fetch Models** | Discover models from provider API with one click |
 | 📊 **Usage Analytics** | Track tokens, cost, savings over time |
 | 💰 **Savings Tracker** | See estimated money saved by using Birouter |
-| ⏱️ **Rate Limiting** | Configurable RPM per API key (default off) |
-| 🎨 **Custom Combos** | Create model fallback sequences |
-| 🔐 **API Key Auth** | Optional key requirement for remote access |
-| 🌐 **Tunnel Support** | Cloudflare / Tailscale tunnel for remote access |
-| 🎵 **Media Providers** | TTS, STT, Image, Embedding — all through one endpoint |
-| 💾 **Cloud Sync** | Sync config across devices |
 
 ---
 
