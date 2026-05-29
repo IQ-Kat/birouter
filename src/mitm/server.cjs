@@ -547,6 +547,22 @@ function rawTcpForward(clientSocket, head, host, port, label) {
   });
 }
 
+// CONNECT handler — scope note (plan 11 §4.6):
+//
+// This fires ONLY when a client uses this server as an explicit HTTPS proxy and
+// sends a `CONNECT host:port` line *inside* an already-established TLS session
+// (HTTPS-proxy-tunneled-in-TLS). The primary "no config required" AgentBridge
+// flow does NOT use it: there the IDE is pointed at 127.0.0.1 via /etc/hosts DNS
+// spoofing and opens TLS DIRECTLY, so requests are routed by the decrypted Host
+// header in the request handler above (target → intercept, otherwise passthrough).
+// Likewise, bypass/passthrough for *unmapped* hosts in the DNS-spoof model is
+// handled by DNS scoping (only spoofed hosts ever resolve to 127.0.0.1), and the
+// System-wide proxy mode (plan 12 §2.5.4) routes through httpProxyServer.ts (:8080),
+// which has its own CONNECT handling. This handler is retained for the explicit-
+// proxy edge case and to honor the routeBypass precedence (bypass > target >
+// passthrough); true on-wire bypass-without-decrypt at :443 under direct TLS would
+// require SNI sniffing on the raw 'connection' event, which is intentionally out
+// of scope for this release.
 server.on("connect", (req, clientSocket, head) => {
   const authority = String(req.url || "");
   const { host: connectHost, port: connectPort } = parseConnectAuthority(authority);
@@ -589,6 +605,10 @@ server.listen(LOCAL_PORT, () => {
 });
 
 server.on("connection", (socket) => {
+  // Guard against double-counting: a CONNECT "target" tunnel re-emits an
+  // already-counted socket into the TLS layer via emit("connection") above.
+  if (socket.__mitmCounted) return;
+  socket.__mitmCounted = true;
   stats.activeConnections++;
   writeStats();
   socket.on("close", () => {

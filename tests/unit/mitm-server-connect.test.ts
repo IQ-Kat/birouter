@@ -273,3 +273,43 @@ test("C1 contract — server.cjs registers a CONNECT handler", async () => {
     "server.cjs CONNECT path must reply with 200 Connection Established"
   );
 });
+
+test("R4 fix #5 — connection listener guards against double-count on re-emit", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const here = path.dirname(url.fileURLToPath(import.meta.url));
+  const serverPath = path.resolve(here, "../../src/mitm/server.cjs");
+  const src = fs.readFileSync(serverPath, "utf-8");
+  // The CONNECT "target" branch calls server.emit("connection", clientSocket)
+  // which re-enters the connection listener. Without a guard, activeConnections
+  // would be double-incremented for the same socket.
+  assert.match(
+    src,
+    /socket\.__mitmCounted/,
+    "connection listener must use socket.__mitmCounted guard to prevent double-count on CONNECT target re-emit"
+  );
+  assert.match(
+    src,
+    /if\s*\(\s*socket\.__mitmCounted\s*\)\s*return/,
+    "connection listener must early-return when socket is already counted"
+  );
+});
+
+test("R4 fix #5 — CONNECT handler scope is documented", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const here = path.dirname(url.fileURLToPath(import.meta.url));
+  const serverPath = path.resolve(here, "../../src/mitm/server.cjs");
+  const src = fs.readFileSync(serverPath, "utf-8");
+  // The CONNECT handler is documented as not exercised by the real DNS-spoof
+  // flow (it only fires for HTTPS-proxy-tunneled-in-TLS clients). The doc
+  // comment prevents future contributors from assuming it covers the primary
+  // AgentBridge flow.
+  assert.match(
+    src,
+    /HTTPS-proxy-tunneled-in-TLS|explicit HTTPS proxy/i,
+    "CONNECT handler must carry a comment clarifying its real scope"
+  );
+});
