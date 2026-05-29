@@ -1,96 +1,87 @@
-# Birouter - AI Router & Token Saver
+<div align="center">
 
-**Never stop coding. Save 20-40% tokens with RTK + auto-fallback to FREE & cheap AI models.**
+# 🚀 Birouter CLI — AI Router & Token Saver
 
-**Connect All AI Code Tools (Claude Code, Cursor, Antigravity, Copilot, Codex, Gemini, OpenCode, Cline, OpenClaw...) to 40+ AI Providers & 100+ Models.**
+**One endpoint for all your AI providers. Smart routing, auto-fallback, and 20-40% token savings.**
 
----
+*Satu endpoint untuk semua penyedia AI. Routing cerdas, fallback otomatis, dan hemat token 20-40%.*
 
-## 🤔 Why Birouter?
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![NPM Version](https://img.shields.io/npm/v/birouter.svg)](https://www.npmjs.com/package/birouter)
 
-**Stop wasting money, tokens and hitting limits:**
+[🚀 Quick Start](#-quick-start) • [💡 Features](#-features) • [📖 Documentation](https://github.com/IQ-Kat/birouter) • [🤝 Contributing](https://github.com/IQ-Kat/birouter/blob/master/router-app/docs/CONTRIBUTING.md)
 
-- ❌ Subscription quota expires unused every month
-- ❌ Rate limits stop you mid-coding
-- ❌ Tool outputs (git diff, grep, ls...) burn tokens fast
-- ❌ Expensive APIs ($20-50/month per provider)
-
-**Birouter solves this:**
-
-- ✅ **RTK Token Saver** - Auto-compress tool_result, save 20-40% tokens
-- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → Cheap → Free, zero downtime
-- ✅ **Multi-account** - Round-robin between accounts per provider
-- ✅ **Universal** - Works with any OpenAI/Claude-compatible CLI
+</div>
 
 ---
 
-## ⚡ Quick Start
+## 🤔 Why Birouter? / Mengapa Birouter?
 
-**npm (recommended for desktop):**
+Birouter is a smart local gateway that sits between your AI tools (Claude Code, Cursor, Cline, Aider...) and 40+ AI providers. It helps you **maximize subscriptions** and **minimize costs**.
 
+- 💰 **RTK Token Saver** — Auto-compress tool outputs (git diff, ls, grep), saving **20-40%** tokens.
+- 🔄 **Auto Fallback** — Smooth transition: **Subscription → Cheap → Free**. Never hit a rate limit again.
+- 🌍 **Universal Format** — Seamlessly translate between OpenAI, Claude, Gemini, and Vertex.
+- 📊 **Savings Tracker** — Real-time analytics on how much money and tokens you've saved.
+
+---
+
+## ⚡ Quick Start / Mulai Cepat
+
+### Installation / Instalasi
+
+**Install globally via npm:**
 ```bash
 npm install -g birouter
-birouter
-
-# Or run directly with npx
-npx birouter
 ```
 
-🎉 Dashboard opens at `http://localhost:2004`
-
-**2. Connect a FREE provider (no signup needed):**
-
-Dashboard → Providers → Connect **Kiro AI** (free Claude unlimited) or **OpenCode Free** (no auth) → Done!
-
-**3. Use in your CLI tool:**
-
-```
-Claude Code/Codex/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:2004/v1
-  API Key:  [copy from dashboard]
-  Model:    kr/claude-sonnet-4.5
-```
-
-That's it! Start coding with FREE AI models.
-
----
-
-## 🚀 CLI Options
-
+**Run Birouter:**
 ```bash
-birouter                    # Start with default settings
-birouter --port 8080        # Custom port
-birouter --no-browser       # Don't open browser
-birouter --skip-update      # Skip auto-update check
-birouter --help             # Show all options
+birouter
 ```
 
-**Dashboard**: `http://localhost:2004/dashboard`
+🎉 **Dashboard opens at `http://localhost:2004`**
+- Default Password: `123456` (change in dashboard)
+- API key is generated automatically.
 
 ---
 
-## 🛠️ Supported CLI Tools
+## 💡 Key Features / Fitur Unggulan
 
-Claude-Code • OpenClaw • Codex • OpenCode • Cursor • Antigravity • Cline • Continue • Droid • Roo • Copilot • Kilo Code • Gemini CLI • Qwen Code • iFlow • Crush • Crusher • Aider
-
-Any tool supporting OpenAI/Claude-compatible API works.
-
----
-
-## 💾 Data Location
-
-- **macOS/Linux**: `~/.birouter/db/data.sqlite`
-- **Windows**: `%APPDATA%/birouter/db/data.sqlite`
+| Feature / Fitur | Description / Deskripsi |
+|:--- |:--- |
+| 🚀 **RTK Token Saver** | Compresses tool outputs to save massive input tokens. / Kompres output tool untuk hemat token. |
+| 🪨 **Caveman Mode** | Forces terse LLM replies to save output tokens. / Paksa jawaban singkat untuk hemat token output. |
+| 🎯 **Smart Fallback** | Automatic routing across multiple tiers. / Routing otomatis antar tingkatan penyedia. |
+| 👥 **Multi-Account** | Round-robin between multiple accounts per provider. / Bergilir antar banyak akun per penyedia. |
+| 🔄 **Format Translation** | OpenAI ↔ Claude ↔ Gemini ↔ Vertex ↔ Kiro. |
+| 🔍 **Fetch Models** | Discover available models with one click. / Temukan model yang tersedia dengan satu klik. |
 
 ---
 
-## 📚 Documentation
+## 🛠️ Supported CLI Tools / Alat yang Didukung
 
-Based on [9Router](https://github.com/decolua/9router) (MIT License).
+Claude Code • Cursor • Cline • RooCode • Aider • OpenClaw • Codex • OpenCode • Continue • Droid • Copilot • Kilo Code • Gemini CLI • Qwen Code • iFlow ... and any OpenAI/Claude compatible tool!
 
 ---
 
-## 📄 License
+## 🇮🇩 Dokumentasi Bahasa Indonesia
 
-MIT License - see [LICENSE](LICENSE) for details.
+Tersedia panduan lengkap dalam Bahasa Indonesia di repositori utama kami:
+- [Panduan Mulai Cepat](https://github.com/IQ-Kat/birouter/blob/master/router-app/gitbook/content/id/getting-started/quick-start.md)
+- [Halaman Utama Dokumentasi](https://github.com/IQ-Kat/birouter/blob/master/router-app/gitbook/content/id/index.md)
+
+---
+
+## 💝 Support / Dukungan
+
+If Birouter helps you save money, consider supporting the development:
+*Jika Birouter membantu Anda berhemat, pertimbangkan untuk mendukung pengembangan:*
+
+[Support on Saweria](https://saweria.co/iqkat)
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by <a href="https://github.com/IQ-Kat">Ikbal (IQ-Kat)</a>. Based on 9Router.</sub>
+</div>
