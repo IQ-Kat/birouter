@@ -527,3 +527,16 @@ export type {
   UpsertTokenLimitInput,
   TokenWindowState,
 } from "./db/tokenLimits";
+
+export {
+  insertPlugin,
+  getPluginById,
+  getPluginByName,
+  listPlugins,
+  updatePluginStatus,
+  updatePluginConfig,
+  deletePlugin,
+  pluginExists,
+} from "./db/plugins";
+
+export type { PluginRow, PluginCreateInput } from "./db/plugins";

@@ -138,7 +138,7 @@ export async function rollupHourlyQuota(
  * The ON CONFLICT clause uses SUM so re-running is additive-safe: if a date already
  * has a partial rollup (e.g. from a previous partial cleanup), new rows accumulate.
  *
- * @param beforeDate - ISO date string (YYYY-MM-DD). Rows strictly before this date are rolled up.
+ * @param beforeDate - ISO timestamp/date boundary. Rows strictly before this value are rolled up.
  * @returns Aggregation result with counts
  */
 export async function rollupUsageHistoryBeforeDate(beforeDate: string): Promise<AggregationResult> {
@@ -162,7 +162,7 @@ export async function rollupUsageHistoryBeforeDate(beforeDate: string): Promise<
         COALESCE(SUM(tokens_output), 0) as total_output_tokens,
         0.0 as total_cost
       FROM usage_history
-      WHERE DATE(timestamp) < ?
+      WHERE timestamp < ?
         AND provider IS NOT NULL AND provider != ''
         AND model IS NOT NULL AND model != ''
       GROUP BY LOWER(provider), LOWER(model), DATE(timestamp)

@@ -90,18 +90,27 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
 
   const result: CleanupResult = { deleted: 0, errors: 0 };
 
-  try {
-    // Roll up rows that are about to be deleted into daily_usage_summary so that
-    // the analytics route can still surface historical data via the UNION query.
-    await rollupUsageHistoryBeforeDate(cutoffDateStr);
-  } catch (err: unknown) {
-    // Non-fatal: log but continue with deletion so cleanup still runs.
-    console.error("[Cleanup] Error rolling up usage_history before deletion:", err);
+  // Roll up rows that are about to be deleted into daily_usage_summary so that the
+  // analytics route can still surface historical data via the UNION query. The rollup
+  // uses the exact same day boundary as the DELETE below, so every deleted row
+  // is guaranteed to have been aggregated first.
+  //
+  // rollupUsageHistoryBeforeDate catches its own errors and reports them via the
+  // returned result, so we inspect that rather than relying on a thrown exception.
+  // If the rollup failed, abort the DELETE to avoid permanently losing raw usage data
+  // that was never aggregated.
+  const rollupResult = await rollupUsageHistoryBeforeDate(cutoffDateStr);
+  if (rollupResult.errors > 0) {
+    console.error(
+      "[Cleanup] Aborting usage_history deletion because the pre-delete rollup failed."
+    );
+    result.errors += rollupResult.errors;
+    return result;
   }
 
   try {
     const stmt = db.prepare("DELETE FROM usage_history WHERE timestamp < ?");
-    const runResult = stmt.run(cutoffISO);
+    const runResult = stmt.run(cutoffDateStr);
     result.deleted = runResult.changes;
 
     console.log(

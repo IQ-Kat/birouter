@@ -14,6 +14,8 @@
 
 ### 🔧 Bug Fixes
 
+- **sse:** guard against numeric or non-string upstream error codes and malformed model strings to prevent runtime string-method crashes in `proxyFetch`, `parseModel`, and combo routing (#2463)
+- **docker:** add dedicated `runner-web` Docker stage with Playwright + Chromium + system libs so web-cookie providers (Gemini Web, Claude Turnstile) work in container deployments without bloating the base image (#2832)
 - **token-accounting:** prefer `prompt_tokens` over compatibility `input_tokens` for Anthropic Claude streams to avoid double-counting cached tokens (#2904 — thanks @unitythemaker).
 
 - **agy:** add the **Antigravity CLI (`agy`)** as a standalone OAuth provider next to `gemini-cli`/`antigravity`. It reuses the antigravity inference backend (identical Google client, `daily-cloudcode-pa.googleapis.com`) but ships its own model catalog — notably the Claude models the backend exposes (`claude-opus-4-6-thinking`, `claude-sonnet-4-6`) — its own account pool, and connection methods: import the `agy` CLI token file (paste/upload), auto-detect a local CLI login (`~/.gemini/antigravity-cli/antigravity-oauth-token`), browser OAuth, and bulk/ZIP import. New routes: `POST /api/providers/agy-auth/{import,import-bulk,zip-extract,apply-local}`.
@@ -131,10 +133,39 @@
 - **gitignore:** ignore `.claude/settings.local.json` so per-user Claude Code permissions never get committed by accident
 - **release:** version bump and metadata sync (package.json, package-lock.json, electron, open-sse, openapi.yaml)
 
-### 🏆 Hall of Contributors
+### 🏆 Contributors
 
-A special thanks to everyone who contributed code, reviews, and tests for this release:
-@akarray, @alltomatos, @androw, @apoapostolov, @Ardem2025, @dhaern, @disonjer, @gogones, @hartmark, @herjarsa, @InkshadeWoods, @jeferssonlemes, @leninejunior, @levonk, @marchlhw, @mugnimaestra, @nickwizard, @oyi77, @RajvardhanPatil07, @rdself, @soyelmismo, @Tushar49, @yunaamelia
+A special thanks to everyone who contributed to this release. Ranked by commits since `v3.8.6` (105 commits total):
+
+| Contributor | Commits | PRs |
+| --- | ---: | --- |
+| [@diegosouzapw](https://github.com/diegosouzapw) | 38 | maintainer — releases, upstream ports & fixes |
+| [@oyi77](https://github.com/oyi77) | 10 | #2887, #2862, #2866, #2837, #2885, #2792, #2793 |
+| [@yunaamelia](https://github.com/yunaamelia) | 7 | #2884 |
+| [@herjarsa](https://github.com/herjarsa) | 6 | #2868, #2886, #2865, #2860, #2857, #2801 |
+| [@leninejunior](https://github.com/leninejunior) | 4 | #2818, #2824, #2825, #2816 |
+| [@jeferssonlemes](https://github.com/jeferssonlemes) | 3 | #2791, #2802, #2815, #2817 |
+| [@rdself](https://github.com/rdself) | 3 | #2874, #2875, #2880 |
+| Dmitry Kuznetsov | 3 | textual tool-call & lockout hardening |
+| [@apoapostolov](https://github.com/apoapostolov) | 2 | #2799, #2800 |
+| [@unitythemaker](https://github.com/unitythemaker) | 2 | #2904 |
+| Nikolay Alafuzov | 2 | reasoning interleaved gating |
+| [@Tushar49](https://github.com/Tushar49) | 2 | #2854, #2855, #2807 |
+| [@guanbear](https://github.com/guanbear) | 2 | #2908 |
+| [@soyelmismo](https://github.com/soyelmismo) | 2 | #2903, #2842 |
+| [@RajvardhanPatil07](https://github.com/RajvardhanPatil07) | 1 | #2861 |
+| [@mugnimaestra](https://github.com/mugnimaestra) | 1 | #2888 |
+| [@dhaern](https://github.com/dhaern) | 1 | #2878 |
+| [@hartmark](https://github.com/hartmark) | 1 | #2795, #2771 |
+| [@marchlhw](https://github.com/marchlhw) | 1 | #2821 |
+| [@alltomatos](https://github.com/alltomatos) | 1 | i18n pt-BR |
+| [@akarray](https://github.com/akarray) | 1 | #2796 |
+| [@gogones](https://github.com/gogones) | 1 | #2845 |
+| [@disonjer](https://github.com/disonjer) | 1 | #2840 |
+| [@nickwizard](https://github.com/nickwizard) | 1 | #2841 |
+| [@levonk](https://github.com/levonk) | 1 | #2806 |
+
+_Reviews & additional contributions: @androw, @Ardem2025, @InkshadeWoods._
 
 ---
 

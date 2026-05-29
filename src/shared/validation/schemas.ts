@@ -627,6 +627,12 @@ const comboRuntimeConfigSchema = z
     failoverBeforeRetry: z.boolean().optional(),
     maxSetRetries: z.coerce.number().int().min(0).max(10).optional(),
     setRetryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    zeroLatencyOptimizationsEnabled: z.boolean().optional(),
+    hedging: z.boolean().optional(),
+    hedgeDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    fallbackCompressionMode: compressionModeSchema.optional(),
+    fallbackCompressionThreshold: z.coerce.number().int().min(0).max(2_000_000).optional(),
+    predictiveTtftMs: z.coerce.number().int().min(0).max(300000).optional(),
     // Auto-Combo / LKGP Extensions
     candidatePool: z.array(z.string().min(1)).optional(),
     weights: scoringWeightsSchema.optional(),
@@ -654,7 +660,29 @@ const comboRuntimeConfigSchema = z
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((config, ctx) => {
+    if (config.zeroLatencyOptimizationsEnabled === true) return;
+
+    const addZeroLatencyIssue = (path: string[]) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "zeroLatencyOptimizationsEnabled must be true to enable zero-latency combo features",
+        path,
+      });
+    };
+
+    if (config.hedging === true) {
+      addZeroLatencyIssue(["hedging"]);
+    }
+    if (typeof config.predictiveTtftMs === "number" && config.predictiveTtftMs > 0) {
+      addZeroLatencyIssue(["predictiveTtftMs"]);
+    }
+    if (config.fallbackCompressionMode && config.fallbackCompressionMode !== "off") {
+      addZeroLatencyIssue(["fallbackCompressionMode"]);
+    }
+  });
 
 const comboNameSchema = z
   .string()

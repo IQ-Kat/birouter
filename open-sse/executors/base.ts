@@ -221,7 +221,8 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
  * through unchanged, and Claude models default to xhigh support unless marked
  * as legacy unsupported entries. max support is Claude/CC-compatible only and
  * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh.
+ * they do not support xhigh. For OpenAI-shape providers, normalize max to
+ * xhigh when that top tier is allowed; otherwise downgrade to high.
  */
 const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
@@ -251,9 +252,27 @@ export function sanitizeReasoningEffortForProvider(
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
   const modelStr = model || "";
 
-  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHighEffort(provider, modelStr);
+  const supportsXHigh = supportsXHighEffort(provider, modelStr);
+  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
+  const shouldNormalizeMaxToXHigh =
+    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && supportsXHigh;
   const shouldDowngradeMax =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr);
+    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr) && !supportsXHigh;
+
+  if (shouldNormalizeMaxToXHigh) {
+    log?.info?.(
+      "REASONING_SANITIZE",
+      `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
+    );
+    const next: Record<string, unknown> = { ...b };
+    if (hasTopLevelReasoningEffort) {
+      next.reasoning_effort = "xhigh";
+    }
+    if (reasoning) {
+      next.reasoning = { ...reasoning, effort: "xhigh" };
+    }
+    return next;
+  }
 
   if (shouldDowngradeXHigh || shouldDowngradeMax) {
     log?.info?.(
@@ -797,7 +816,10 @@ export class BaseExecutor {
               delete (tb.output_config as Record<string, unknown>).effort;
             }
             appliedEffort = "off";
-          } else if (headerEffort && ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)) {
+          } else if (
+            headerEffort &&
+            ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)
+          ) {
             const oc =
               tb.output_config && typeof tb.output_config === "object"
                 ? (tb.output_config as Record<string, unknown>)

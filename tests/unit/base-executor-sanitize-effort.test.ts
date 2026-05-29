@@ -43,6 +43,44 @@ test("sanitizeReasoningEffortForProvider: xiaomi-mimo downgrades max → high", 
   );
 });
 
+test("sanitizeReasoningEffortForProvider: OpenAI-compatible Gemini normalizes max → xhigh", () => {
+  const log = makeLog();
+  const body = {
+    model: "gemini-3.1-pro-preview",
+    reasoning_effort: "max",
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-free1",
+    "gemini-3.1-pro-preview",
+    log
+  );
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal((result as any).reasoning_effort, "xhigh");
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /max → xhigh/.test(m)),
+    "logs the normalization"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: nested OpenAI reasoning max normalizes to xhigh", () => {
+  const body = {
+    model: "gemini-3.1-pro-preview",
+    reasoning: { effort: "max", summary: "auto" },
+    input: [],
+  };
+  const result = sanitizeReasoningEffortForProvider(
+    body,
+    "openai-compatible-free1",
+    "gemini-3.1-pro-preview",
+    null
+  );
+  assert.equal((result as any).reasoning.effort, "xhigh");
+  assert.equal((result as any).reasoning.summary, "auto", "other reasoning fields preserved");
+  assert.equal((result as any).reasoning_effort, undefined);
+});
+
 test("sanitizeReasoningEffortForProvider: claude preserves max for Opus/Sonnet and downgrades Haiku", () => {
   const sonnetBody = {
     model: "claude-sonnet-4-6",

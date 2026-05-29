@@ -981,6 +981,12 @@ Combo target timeouts inherit the current request timeout by default. Use **Targ
 (seconds)** on combo defaults or an individual combo only when a shorter per-target limit should
 trigger faster fallback.
 
+Zero-latency combo optimizations are opt-in. Leave **Zero-latency optimizations** disabled to
+prevent these latency features from racing fallback targets, skipping targets based on TTFT
+history, or compressing fallback requests; enabling it allows configured hedging, predictive TTFT
+skips, and proactive fallback compression to trade routing/request fidelity for lower tail
+latency.
+
 ---
 
 ### Health Dashboard

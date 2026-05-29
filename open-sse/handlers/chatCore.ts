@@ -1525,6 +1525,51 @@ export async function handleChatCore({
   };
   let tokensCompressed: number | null = null;
   body = injectSystemPrompt(body);
+  // ── Plugin onRequest hook ──
+  // Dynamic import cached by Node.js after first call — minimal overhead
+  try {
+    const { runOnRequest } = await import("@/lib/plugins/index");
+    const pluginCtx = {
+      requestId: traceId,
+      body,
+      model,
+      provider,
+      apiKeyInfo,
+      metadata: {},
+    };
+    const pluginResult = await runOnRequest(pluginCtx);
+    if (pluginResult?.blocked) {
+      log?.info?.("PLUGIN", `Request blocked by plugin`);
+      return {
+        success: false,
+        status: 403,
+        error: "Request blocked by plugin",
+        response: pluginResult.response
+          ? new Response(JSON.stringify(pluginResult.response), {
+              status: 403,
+              headers: { "Content-Type": "application/json" },
+            })
+          : new Response(
+              JSON.stringify({
+                error: { message: "Request blocked by plugin", type: "plugin_block" },
+              }),
+              {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              }
+            ),
+      };
+    }
+    if (pluginResult?.ctx && "body" in pluginResult.ctx) {
+      body = (pluginResult.ctx as unknown as Record<string, unknown>).body;
+    }
+  } catch (pluginErr) {
+    log?.debug?.(
+      "PLUGIN",
+      `onRequest hook error (non-fatal): ${pluginErr instanceof Error ? pluginErr.message : String(pluginErr)}`
+    );
+  }
+
   type EffectiveServiceTier = "standard" | CodexServiceTier;
   let effectiveServiceTier: EffectiveServiceTier = "standard";
   const resolveEffectiveServiceTier = (requestBody?: unknown): EffectiveServiceTier => {
@@ -3199,6 +3244,20 @@ export async function handleChatCore({
       );
     }
   } catch (error) {
+    // ── Plugin onError hook ──
+    try {
+      const { runOnError } = await import("@/lib/plugins/index");
+      await runOnError(
+        { requestId: traceId, body, model, provider, apiKeyInfo, metadata: {} },
+        error instanceof Error ? error : new Error(String(error))
+      );
+    } catch (pluginErr) {
+      log?.debug?.(
+        "PLUGIN",
+        `onError hook error (non-fatal): ${pluginErr instanceof Error ? pluginErr.message : String(pluginErr)}`
+      );
+    }
+
     const parsedStatus = Number(error?.statusCode);
     const statusCode =
       Number.isInteger(parsedStatus) && parsedStatus >= 400 && parsedStatus <= 599
@@ -3254,10 +3313,16 @@ export async function handleChatCore({
   // Update model in body — use resolved alias so the provider gets the correct model ID (#472)
   // Strip provider/alias prefix if it exactly matches the routing prefix so upstream receives the raw model name (#1261)
   let finalModelToUpstream = effectiveModel;
-  if (finalModelToUpstream.startsWith(`${provider}/`)) {
-    finalModelToUpstream = finalModelToUpstream.slice(provider.length + 1);
-  } else if (alias && finalModelToUpstream.startsWith(`${alias}/`)) {
-    finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
+  // Defense-in-depth: only string-strip when effectiveModel is actually a string.
+  // The API guards `model` via Zod (z.string()), but internal callers could pass a
+  // non-string and a bare `.startsWith` would crash with `startsWith is not a
+  // function` (same class as #2359 / #2463). Mirrors 9router's `?.startsWith?.()`.
+  if (typeof finalModelToUpstream === "string") {
+    if (finalModelToUpstream.startsWith(`${provider}/`)) {
+      finalModelToUpstream = finalModelToUpstream.slice(provider.length + 1);
+    } else if (alias && finalModelToUpstream.startsWith(`${alias}/`)) {
+      finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
+    }
   }
   translatedBody.model = finalModelToUpstream;
 

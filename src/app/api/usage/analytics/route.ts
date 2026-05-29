@@ -361,17 +361,29 @@ export async function GET(request: Request) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Build a UNION data source that merges recent raw rows with aggregated history.
-    // daily_usage_summary rows are included only when the query window extends before rawCutoffIso.
-    // The api_key filter is intentionally NOT applied to daily_usage_summary (api_key not stored there).
-    const needsAggregated = !sinceIso || sinceIso < rawCutoffIso;
+    // daily_usage_summary rows are included only when the query window extends before
+    // rawCutoffIso. They are gated off entirely when an api_key filter is active:
+    // daily_usage_summary does not store api_key/connection, so including it under a
+    // key filter would leak other keys' aggregated usage. With a key filter we serve
+    // only raw rows (older key-scoped data beyond retention is intentionally unavailable).
+    const rawCutoffDate = rawCutoffIso.split("T")[0];
+    const needsAggregated = (!sinceIso || sinceIso < rawCutoffDate) && apiKeyIds.length === 0;
 
+    // Raw leg: when aggregated rows are also included, lower-bound the raw leg at the
+    // raw cutoff so the two legs never overlap (prevents double-counting).
     const rawConditions: string[] = [];
-    if (sinceIso) rawConditions.push("timestamp >= @since");
+    if (needsAggregated) {
+      rawConditions.push("timestamp >= @rawCutoff");
+      params.rawCutoff = rawCutoffDate;
+    } else if (sinceIso) {
+      rawConditions.push("timestamp >= @since");
+    }
     if (untilIso) rawConditions.push("timestamp <= @until");
     if (apiKeyWhere) rawConditions.push(apiKeyWhere);
     const rawWhere = rawConditions.length > 0 ? `WHERE ${rawConditions.join(" AND ")}` : "";
 
-    // Aggregated rows only span dates within the requested window (no api_key filter).
+    // Aggregated rows span the requested window but strictly before the raw cutoff,
+    // so they never overlap the raw leg above (no api_key filter — see note above).
     const aggConditions: string[] = [];
     if (sinceIso) {
       // Use date comparison on the summary's date column (YYYY-MM-DD).
@@ -384,6 +396,8 @@ export async function GET(request: Request) {
       aggConditions.push("date <= @untilDate");
       params.untilDate = untilDate;
     }
+    aggConditions.push("date < @rawCutoffDate");
+    params.rawCutoffDate = rawCutoffDate;
     const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
 
     // Unified source CTE: columns aligned to usage_history shape needed by analytics queries.
@@ -404,9 +418,7 @@ export async function GET(request: Request) {
             latency_ms,
             connection_id,
             api_key_id,
-            api_key_name,
-            combo_name,
-            requested_model
+            api_key_name
           FROM usage_history
           ${rawWhere}
           UNION ALL
@@ -424,22 +436,19 @@ export async function GET(request: Request) {
             0 as latency_ms,
             NULL as connection_id,
             NULL as api_key_id,
-            NULL as api_key_name,
-            NULL as combo_name,
-            NULL as requested_model
+            NULL as api_key_name
           FROM daily_usage_summary
           ${aggWhere}
-        )`
+         )`
       : `(SELECT
             timestamp, provider, model,
             tokens_input, tokens_output,
             tokens_cache_read, tokens_cache_creation, tokens_reasoning,
             service_tier, success, latency_ms,
-            connection_id, api_key_id, api_key_name,
-            combo_name, requested_model
+            connection_id, api_key_id, api_key_name
           FROM usage_history
           ${whereClause}
-        )`;
+         )`;
 
     // When using the unified source the WHERE filters are already embedded inside.
     // For the original whereClause-based queries that still reference usage_history directly
@@ -1214,10 +1223,16 @@ export async function GET(request: Request) {
         const presetParams: Record<string, string> = {};
 
         // Build unified source for preset cost queries (same UNION logic as main query).
-        const presetNeedsAggregated = !presetSinceIso || presetSinceIso < rawCutoffIso;
+        // Aggregated rows are gated off when an api_key filter is active (leakage) and
+        // bounded strictly before the raw cutoff (overlap / double-count) — see main query.
+        const presetNeedsAggregated =
+          (!presetSinceIso || presetSinceIso < rawCutoffDate) && apiKeyIds.length === 0;
 
         const presetRawConds: string[] = [];
-        if (presetSinceIso) {
+        if (presetNeedsAggregated) {
+          presetRawConds.push("timestamp >= @presetRawCutoff");
+          presetParams.presetRawCutoff = rawCutoffDate;
+        } else if (presetSinceIso) {
           presetRawConds.push("timestamp >= @presetSince");
           presetParams.presetSince = presetSinceIso;
         }
@@ -1234,6 +1249,8 @@ export async function GET(request: Request) {
           presetAggConds.push("date >= @presetSinceDate");
           presetParams.presetSinceDate = presetSinceDate;
         }
+        presetAggConds.push("date < @presetRawCutoffDate");
+        presetParams.presetRawCutoffDate = rawCutoffDate;
         const presetAggWhere =
           presetAggConds.length > 0 ? `WHERE ${presetAggConds.join(" AND ")}` : "";
 
@@ -1257,7 +1274,7 @@ export async function GET(request: Request) {
               FROM daily_usage_summary
               ${presetAggWhere}
             )`
-            : `(SELECT timestamp, provider, model, service_tier,
+          : `(SELECT timestamp, provider, model, service_tier,
                 tokens_input, tokens_output,
                 tokens_cache_read, tokens_cache_creation, tokens_reasoning
               FROM usage_history
