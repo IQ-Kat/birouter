@@ -42,7 +42,7 @@ export default function DestinationStep({
           href="/dashboard/providers"
           className="text-sm text-[var(--color-accent)] underline underline-offset-2 hover:opacity-80"
         >
-          Connect a provider
+          {t("wizardDestinationConnectProvider")}
         </Link>
       </div>
     );
@@ -109,7 +109,7 @@ export default function DestinationStep({
           value={selectedProvider}
           onChange={(e) => handleProviderChange(e.target.value)}
         >
-          <option value="">Select a provider…</option>
+          <option value="">{t("wizardDestinationSelectProvider")}</option>
           {batchProviders.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -148,7 +148,7 @@ export default function DestinationStep({
           disabled={!selectedProvider || providerModels.length === 0}
           onChange={(e) => handleModelChange(e.target.value)}
         >
-          <option value="">Select a model…</option>
+          <option value="">{t("wizardDestinationSelectModel")}</option>
           {providerModels.map((m) => (
             <option key={m} value={m}>
               {m}

@@ -168,7 +168,7 @@ describe("BatchListTab — rendering", () => {
     );
     // button text contains "Remove completed"
     const btn = Array.from(el.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("Remove completed")
+      b.textContent?.includes("batchListRemoveCompleted")
     );
     expect(btn).not.toBeNull();
     expect((btn as HTMLButtonElement).disabled).toBe(false);
@@ -185,7 +185,7 @@ describe("BatchListTab — rendering", () => {
     );
 
     const btn = Array.from(el.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("Remove completed")
+      b.textContent?.includes("batchListRemoveCompleted")
     );
     expect(btn).not.toBeNull();
 

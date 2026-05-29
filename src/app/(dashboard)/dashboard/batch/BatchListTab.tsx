@@ -118,12 +118,22 @@ function deriveProvider(model: string | null | undefined): ProviderLabel {
   return "other";
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  completed_with_failures: "completed with failures",
-  in_progress_with_failures: "in progress (with failures)",
-  finalizing_with_failures: "finalizing (with failures)",
-  cancelled_with_failures: "cancelled with failures",
-  expired_with_failures: "expired (partial)",
+// Maps each known status (raw + composite) to its i18n key in the `common` namespace.
+// Falls back to a snake→space transform at render-time if the status isn't mapped.
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  in_progress: "batchStatusInProgress",
+  validating: "batchStatusValidating",
+  finalizing: "batchStatusFinalizing",
+  completed: "batchStatusCompleted",
+  failed: "batchStatusFailed",
+  cancelled: "batchStatusCancelled",
+  cancelling: "batchStatusCancelling",
+  expired: "batchStatusExpired",
+  completed_with_failures: "batchStatusCompletedWithFailures",
+  in_progress_with_failures: "batchStatusInProgressWithFailures",
+  finalizing_with_failures: "batchStatusFinalizingWithFailures",
+  cancelled_with_failures: "batchStatusCancelledWithFailures",
+  expired_with_failures: "batchStatusExpiredWithFailures",
 };
 
 /** Returns a composite status key that reflects whether partial failures occurred. */
@@ -141,9 +151,11 @@ function effectiveStatus(batch: BatchRecord): string {
 }
 
 function StatusBadge({ batch }: Readonly<{ batch: BatchRecord }>) {
+  const t = useTranslations("common");
   const key = effectiveStatus(batch);
   const cls = STATUS_STYLES[key] ?? "bg-gray-500/15 text-gray-400 border-gray-500/25";
-  const label = STATUS_LABELS[key] ?? key.replaceAll("_", " ");
+  const labelKey = STATUS_LABEL_KEYS[key];
+  const label = labelKey ? t(labelKey as Parameters<typeof t>[0]) : key.replaceAll("_", " ");
   return (
     <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium border ${cls}`}>
       {label}
@@ -351,7 +363,9 @@ export default function BatchListTab({
       {/* Filters */}
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
         <span className="text-sm text-[var(--color-text-muted)] self-center">
-          {batchesTotal ? `${batchesTotal} batches` : "Batches"}
+          {batchesTotal
+            ? t("batchListCount", { count: batchesTotal })
+            : t("batchListTitle")}
         </span>
         <input
           type="text"
@@ -365,11 +379,14 @@ export default function BatchListTab({
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:outline-2 focus:outline-[var(--color-accent)]"
         >
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s === "all" ? "All statuses" : s}
-            </option>
-          ))}
+          {ALL_STATUSES.map((s) => {
+            const labelKey = s === "all" ? "batchStatusAll" : STATUS_LABEL_KEYS[s];
+            return (
+              <option key={s} value={s}>
+                {labelKey ? t(labelKey as Parameters<typeof t>[0]) : s}
+              </option>
+            );
+          })}
         </select>
         <button
           onClick={handleRemoveCompleted}
@@ -380,7 +397,7 @@ export default function BatchListTab({
           <span className="material-symbols-outlined text-[16px]">
             {removingCompleted ? "hourglass_empty" : "delete_sweep"}
           </span>
-          {removingCompleted ? "Removing…" : "Remove completed"}
+          {removingCompleted ? t("batchListRemovingCompleted") : t("batchListRemoveCompleted")}
         </button>
       </div>
 
@@ -390,31 +407,31 @@ export default function BatchListTab({
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Status
+                {t("batchListTableStatus")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                ID
+                {t("batchListTableId")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 {t("batchListProviderColumn")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Endpoint
+                {t("batchListTableEndpoint")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Model
+                {t("batchListTableModel")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Progress
+                {t("batchListTableProgress")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 {t("batchListCostColumn")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Created
+                {t("batchListTableCreated")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Expires
+                {t("batchListTableExpires")}
               </th>
               <th className="px-4 py-3" />
             </tr>
@@ -425,14 +442,14 @@ export default function BatchListTab({
                 <td colSpan={10} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
-                    Loading…
+                    {t("batchListLoading")}
                   </div>
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={10} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
-                  No batches found
+                  {t("batchListEmpty")}
                 </td>
               </tr>
             ) : (
@@ -493,7 +510,7 @@ export default function BatchListTab({
                       {batch.status === "validating" ? (
                         <div className="flex items-center gap-2 text-xs text-yellow-400">
                           <span className="material-symbols-outlined text-[14px] animate-spin">hourglass_top</span>
-                          Validating…
+                          {t("batchListValidating")}
                         </div>
                       ) : total > 0 ? (
                         <div className="flex flex-col gap-0.5">

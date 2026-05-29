@@ -57,7 +57,7 @@ export default function CostEstimateStep({
         <span className="material-symbols-outlined text-3xl text-[var(--color-accent)] animate-spin">
           progress_activity
         </span>
-        <span className="text-sm text-[var(--color-text-muted)]">Estimating cost…</span>
+        <span className="text-sm text-[var(--color-text-muted)]">{t("wizardCostEstimating")}</span>
       </div>
     );
   }
@@ -96,17 +96,17 @@ export default function CostEstimateStep({
 
           {/* Stats */}
           <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-xs text-[var(--color-text-muted)]">Requests</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{t("wizardCostRequests")}</span>
             <span className="text-xs text-[var(--color-text-muted)]">
               {estimate.totalRequests.toLocaleString()} ·{" "}
-              {estimate.estimatedInputTokens.toLocaleString()} input tok ·{" "}
-              {estimate.estimatedOutputTokens.toLocaleString()} output tok
+              {estimate.estimatedInputTokens.toLocaleString()} {t("wizardCostInputTok")} ·{" "}
+              {estimate.estimatedOutputTokens.toLocaleString()} {t("wizardCostOutputTok")}
             </span>
           </div>
 
           {/* Completion window — spec §5 "janela 24h" (A-3) */}
           <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-xs text-[var(--color-text-muted)]">Window</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{t("wizardCostWindow")}</span>
             <span className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
               <span className="material-symbols-outlined text-[12px]">schedule</span>
               {t("wizardCostWindow24h")}

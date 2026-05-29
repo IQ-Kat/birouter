@@ -54,6 +54,9 @@ export default function ExpirationBadge({ expiresAt, variant = "default" }: Prop
         className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-medium border ${tone}`}
         title={label}
       >
+        {/* P3 — sr-only label so screen-readers + colorblind users get the urgency
+            tier (Critical/Soon/Pending) and aren't forced to rely on color alone. */}
+        <span className="sr-only">{label}: </span>
         {display}
       </span>
     );
@@ -63,6 +66,7 @@ export default function ExpirationBadge({ expiresAt, variant = "default" }: Prop
       className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium border ${tone}`}
     >
       <span className="material-symbols-outlined text-[12px]">schedule</span>
+      <span className="sr-only">{label}: </span>
       {display}
     </span>
   );
