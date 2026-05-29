@@ -4,10 +4,11 @@
  * is host- and path-based; token counts come from the upstream `usage` block.
  *
  * Replaces the stub `extractLlmMetadata` left in `kindDetector.ts` by F1.
- * Cost estimation is deferred to a future audit pass; we return `null`.
+ * Cost estimation uses the minimal pricing table in `pricing.ts` (R5-11).
  */
 
 import { detectKind } from "./kindDetector.ts";
+import { estimateCost } from "./pricing.ts";
 import { mergeStream, parseSseStream } from "./sseMerger.ts";
 import type { InterceptedRequest, LlmMetadata } from "./types.ts";
 
@@ -177,6 +178,6 @@ export function extractLlmMetadata(req: InterceptedRequest): LlmMetadata | null 
     tokensOut,
     streamed,
     mappedTo,
-    costEstimateUsd: null, // cost table out of scope for F4
+    costEstimateUsd: estimateCost(model, tokensIn, tokensOut),
   };
 }
