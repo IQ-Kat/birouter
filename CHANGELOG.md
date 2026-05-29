@@ -14,6 +14,7 @@
 
 ### 🔧 Bug Fixes
 
+- **fix(opencode-go,opencode-zen):** mark qwen3.7-max / 3.6-plus / 3.5-plus as supportsVision:false to stop forwarding image blocks to vision-incapable upstream models ([#2822])
 - **nous-research:** append /chat/completions to provider baseUrl so DefaultExecutor's default URL builder hits the correct endpoint instead of returning 404 ([#2826])
 - **fix(quota):** honor explicit per-connection `quotaPreflightEnabled: false` even when the provider has global window defaults — adds early-return guard before the AND-of-negations gate in auth.ts ([#2831])
 - **api:** include noAuth providers (opencode, etc.) in `/v1/models` active aliases so their models surface without a DB connection row (#2798)
