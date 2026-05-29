@@ -243,16 +243,34 @@ function getOrCreateEmbeddingProviders(): Record<string, EmbeddingProvider> {
 }
 
 export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = new Proxy({} as Record<string, EmbeddingProvider>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateEmbeddingProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateEmbeddingProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateEmbeddingProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateEmbeddingProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateEmbeddingProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateEmbeddingProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateEmbeddingProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateEmbeddingProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateEmbeddingProviders()[key as string] };
     }
@@ -261,7 +279,7 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = new Proxy(
 });
 
 export function getEmbeddingProviders(): Record<string, EmbeddingProvider> {
-  return getOrCreateEmbeddingProviders();
+  return EMBEDDING_PROVIDERS;
 }
 
 const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {
@@ -275,7 +293,7 @@ function resolveEmbeddingProviderId(providerId: string): string {
 
 function normalizeProviderScopedModelId(providerId: string, modelId: string): string {
   const resolvedProvider = resolveEmbeddingProviderId(providerId);
-  const provider = getOrCreateEmbeddingProviders()[resolvedProvider];
+  const provider = EMBEDDING_PROVIDERS[resolvedProvider];
   if (provider?.models.some((model) => model.id === modelId)) return modelId;
 
   const providerScopedModelId = `${resolvedProvider}/${modelId}`;
@@ -294,7 +312,7 @@ function toProviderScopedModelId(providerId: string, modelId: string): string {
  * Get embedding provider config by ID
  */
 export function getEmbeddingProvider(providerId: string): EmbeddingProvider | null {
-  return getOrCreateEmbeddingProviders()[resolveEmbeddingProviderId(providerId)] || null;
+  return EMBEDDING_PROVIDERS[resolveEmbeddingProviderId(providerId)] || null;
 }
 
 /**
@@ -313,7 +331,7 @@ export function parseEmbeddingModel(
     const rawProvider = modelStr.slice(0, slashIdx);
     const resolvedProvider = resolveEmbeddingProviderId(rawProvider);
 
-    if (getOrCreateEmbeddingProviders()[resolvedProvider]) {
+    if (EMBEDDING_PROVIDERS[resolvedProvider]) {
       return {
         provider: resolvedProvider,
         model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
@@ -321,7 +339,7 @@ export function parseEmbeddingModel(
     }
 
     // Phase 1: Try each hardcoded provider prefix
-    for (const [providerId] of Object.entries(getOrCreateEmbeddingProviders())) {
+    for (const [providerId] of Object.entries(EMBEDDING_PROVIDERS)) {
       if (modelStr.startsWith(providerId + "/")) {
         return {
           provider: providerId,
@@ -344,7 +362,7 @@ export function parseEmbeddingModel(
   }
 
   // No provider prefix — search hardcoded providers for the model
-  for (const [providerId, config] of Object.entries(getOrCreateEmbeddingProviders())) {
+  for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
@@ -363,7 +381,7 @@ export function getAllEmbeddingModels() {
     provider: string;
     dimensions: number | undefined;
   }> = [];
-  for (const [providerId, config] of Object.entries(getOrCreateEmbeddingProviders())) {
+  for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
         id: toProviderScopedModelId(providerId, model.id),

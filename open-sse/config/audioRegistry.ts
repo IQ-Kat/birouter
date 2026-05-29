@@ -155,16 +155,34 @@ function getOrCreateTranscriptionProviders(): Record<string, AudioProvider> {
 }
 
 export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = new Proxy({} as Record<string, AudioProvider>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateTranscriptionProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateTranscriptionProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateTranscriptionProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateTranscriptionProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateTranscriptionProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateTranscriptionProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateTranscriptionProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateTranscriptionProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateTranscriptionProviders()[key as string] };
     }
@@ -173,7 +191,7 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = new 
 });
 
 export function getTranscriptionProviders(): Record<string, AudioProvider> {
-  return getOrCreateTranscriptionProviders();
+  return AUDIO_TRANSCRIPTION_PROVIDERS;
 }
 
 let _AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> | null = null;
@@ -406,16 +424,34 @@ function getOrCreateSpeechProviders(): Record<string, AudioProvider> {
 }
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = new Proxy({} as Record<string, AudioProvider>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateSpeechProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateSpeechProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateSpeechProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateSpeechProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateSpeechProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateSpeechProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateSpeechProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateSpeechProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateSpeechProviders()[key as string] };
     }
@@ -424,14 +460,14 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = new Proxy({
 });
 
 export function getSpeechProviders(): Record<string, AudioProvider> {
-  return getOrCreateSpeechProviders();
+  return AUDIO_SPEECH_PROVIDERS;
 }
 
 export function getTranscriptionProvider(providerId: string): AudioProvider | null {
-  return getOrCreateTranscriptionProviders()[providerId] || null;
+  return AUDIO_TRANSCRIPTION_PROVIDERS[providerId] || null;
 }
 export function getSpeechProvider(providerId: string): AudioProvider | null {
-  return getOrCreateSpeechProviders()[providerId] || null;
+  return AUDIO_SPEECH_PROVIDERS[providerId] || null;
 }
 export interface ProviderNodeRow {
   prefix: string;
@@ -496,11 +532,11 @@ export function parseTranscriptionModel(
   modelStr: string | null,
   dynamicProviders?: AudioProvider[]
 ) {
-  return parseAudioModel(modelStr, getOrCreateTranscriptionProviders(), dynamicProviders);
+  return parseAudioModel(modelStr, AUDIO_TRANSCRIPTION_PROVIDERS, dynamicProviders);
 }
 
 export function parseSpeechModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
-  return parseAudioModel(modelStr, getOrCreateSpeechProviders(), dynamicProviders);
+  return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
 }
 
 /**
@@ -509,7 +545,7 @@ export function parseSpeechModel(modelStr: string | null, dynamicProviders?: Aud
 export function getAllAudioModels() {
   const models = [];
 
-  for (const [providerId, config] of Object.entries(getOrCreateTranscriptionProviders())) {
+  for (const [providerId, config] of Object.entries(AUDIO_TRANSCRIPTION_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
         id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,
@@ -520,7 +556,7 @@ export function getAllAudioModels() {
     }
   }
 
-  for (const [providerId, config] of Object.entries(getOrCreateSpeechProviders())) {
+  for (const [providerId, config] of Object.entries(AUDIO_SPEECH_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
         id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,

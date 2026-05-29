@@ -81,16 +81,34 @@ function getOrCreateRerankProviders(): Record<string, any> {
 }
 
 export const RERANK_PROVIDERS = new Proxy({} as Record<string, any>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateRerankProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateRerankProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateRerankProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateRerankProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateRerankProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateRerankProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateRerankProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateRerankProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateRerankProviders()[key as string] };
     }
@@ -99,7 +117,7 @@ export const RERANK_PROVIDERS = new Proxy({} as Record<string, any>, {
 });
 
 export function getRerankProviders(): Record<string, any> {
-  return getOrCreateRerankProviders();
+  return RERANK_PROVIDERS;
 }
 
 const RERANK_PROVIDER_ALIASES = {
@@ -113,7 +131,7 @@ function resolveRerankProviderId(providerId) {
 
 function normalizeProviderScopedModelId(providerId, modelId) {
   const resolvedProvider = resolveRerankProviderId(providerId);
-  const provider = getOrCreateRerankProviders()[resolvedProvider];
+  const provider = RERANK_PROVIDERS[resolvedProvider];
   if (provider?.models.some((model) => model.id === modelId)) return modelId;
 
   const providerScopedModelId = `${resolvedProvider}/${modelId}`;
@@ -132,7 +150,7 @@ function toProviderScopedModelId(providerId, modelId) {
  * Get rerank provider config by ID
  */
 export function getRerankProvider(providerId) {
-  return getOrCreateRerankProviders()[resolveRerankProviderId(providerId)] || null;
+  return RERANK_PROVIDERS[resolveRerankProviderId(providerId)] || null;
 }
 
 /**
@@ -146,7 +164,7 @@ export function parseRerankModel(modelStr) {
   if (slashIdx > 0) {
     const rawProvider = modelStr.slice(0, slashIdx);
     const resolvedProvider = resolveRerankProviderId(rawProvider);
-    if (getOrCreateRerankProviders()[resolvedProvider]) {
+    if (RERANK_PROVIDERS[resolvedProvider]) {
       return {
         provider: resolvedProvider,
         model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
@@ -155,7 +173,7 @@ export function parseRerankModel(modelStr) {
   }
 
   // Try each provider prefix
-  for (const [providerId, config] of Object.entries(getOrCreateRerankProviders())) {
+  for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {
       return {
         provider: providerId,
@@ -165,7 +183,7 @@ export function parseRerankModel(modelStr) {
   }
 
   // No provider prefix — search all providers for the model
-  for (const [providerId, config] of Object.entries(getOrCreateRerankProviders())) {
+  for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
@@ -179,7 +197,7 @@ export function parseRerankModel(modelStr) {
  */
 export function getAllRerankModels() {
   const models = [];
-  for (const [providerId, config] of Object.entries(getOrCreateRerankProviders())) {
+  for (const [providerId, config] of Object.entries(RERANK_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
         id: toProviderScopedModelId(providerId, model.id),

@@ -228,16 +228,34 @@ function getOrCreateSearchProviders(): Record<string, SearchProviderConfig> {
 }
 
 export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = new Proxy({} as Record<string, SearchProviderConfig>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateSearchProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateSearchProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateSearchProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateSearchProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateSearchProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateSearchProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateSearchProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateSearchProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateSearchProviders()[key as string] };
     }
@@ -246,7 +264,7 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = new Proxy(
 });
 
 export function getSearchProviders(): Record<string, SearchProviderConfig> {
-  return getOrCreateSearchProviders();
+  return SEARCH_PROVIDERS;
 }
 
 export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {  "perplexity-search": "perplexity",
@@ -258,7 +276,7 @@ export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {  "perplexit
  * Get search provider config by ID
  */
 export function getSearchProvider(providerId: string): SearchProviderConfig | null {
-  return getOrCreateSearchProviders()[providerId] || null;
+  return SEARCH_PROVIDERS[providerId] || null;
 }
 
 export function supportsSearchType(
@@ -279,7 +297,7 @@ export function getAllSearchProviders(): Array<{
   name: string;
   searchTypes: string[];
 }> {
-  return Object.values(getOrCreateSearchProviders()).map((p) => ({
+  return Object.values(SEARCH_PROVIDERS).map((p) => ({
     id: p.id,
     name: p.name,
     searchTypes: p.searchTypes,
@@ -296,13 +314,13 @@ export function selectProvider(
   searchType?: string
 ): SearchProviderConfig | null {
   if (explicitProvider) {
-    const provider = getOrCreateSearchProviders()[explicitProvider] || null;
+    const provider = SEARCH_PROVIDERS[explicitProvider] || null;
     if (!provider) return null;
     if (searchType && !supportsSearchType(provider, searchType)) return null;
     return provider;
   }
 
-  const providers = Object.values(getOrCreateSearchProviders()).filter((provider) =>
+  const providers = Object.values(SEARCH_PROVIDERS).filter((provider) =>
     searchType ? supportsSearchType(provider, searchType) : true
   );
   if (providers.length === 0) return null;

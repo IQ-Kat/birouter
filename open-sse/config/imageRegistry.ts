@@ -107,7 +107,7 @@ function resolveImageModelAlias(modelStr) {
 }
 
 function findImageModelConfig(providerId, modelId) {
-  const provider = getOrCreateImageProviders()[providerId];
+  const provider = IMAGE_PROVIDERS[providerId];
   if (!provider) return null;
   return provider.models.find((model) => model.id === modelId) || null;
 }
@@ -549,20 +549,38 @@ return _IMAGE_PROVIDERS;
 }
 
 export function getImageProviders(): Record<string, ImageProviderConfig> {
-  return getOrCreateImageProviders();
+  return IMAGE_PROVIDERS;
 }
 
 export const IMAGE_PROVIDERS = new Proxy({} as Record<string, ImageProviderConfig>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateImageProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateImageProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateImageProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateImageProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateImageProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateImageProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateImageProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateImageProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateImageProviders()[key as string] };
     }
@@ -571,7 +589,7 @@ export const IMAGE_PROVIDERS = new Proxy({} as Record<string, ImageProviderConfi
 });
 
 export function getImageProvider(providerId) {
-  return getOrCreateImageProviders()[providerId] || null;
+  return IMAGE_PROVIDERS[providerId] || null;
 }
 /**
  * Parse image model string (format: "provider/model")
@@ -586,7 +604,7 @@ export function parseImageModel(modelStr) {
   }
 
   // Try each provider prefix
-  for (const [providerId, config] of Object.entries(getOrCreateImageProviders())) {
+  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
     if (modelStr.startsWith(providerId + "/")) {
       const model = modelStr.slice(providerId.length + 1);
       const aliased =
@@ -603,7 +621,7 @@ export function parseImageModel(modelStr) {
   }
 
   // No provider prefix — try to find the model in every provider
-  for (const [providerId, config] of Object.entries(getOrCreateImageProviders())) {
+  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
     if (config.models.some((m) => m.id === modelStr)) {
       return { provider: providerId, model: modelStr };
     }
@@ -617,7 +635,7 @@ export function parseImageModel(modelStr) {
  */
 export function getAllImageModels() {
   const models = [];
-  for (const [providerId, config] of Object.entries(getOrCreateImageProviders())) {
+  for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
         id: `${providerId}/${model.id}`,
@@ -631,7 +649,7 @@ export function getAllImageModels() {
   }
   for (const [alias, target] of Object.entries(IMAGE_MODEL_ALIASES)) {
     if (!target.listInCatalog) continue;
-    const providerConfig = getOrCreateImageProviders()[target.provider];
+    const providerConfig = IMAGE_PROVIDERS[target.provider];
     const modelConfig = findImageModelConfig(target.provider, target.model);
     models.push({
       id: alias,

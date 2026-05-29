@@ -92,16 +92,34 @@ function getOrCreateMusicProviders(): Record<string, MusicProvider> {
 }
 
 export const MUSIC_PROVIDERS: Record<string, MusicProvider> = new Proxy({} as Record<string, MusicProvider>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateMusicProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateMusicProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateMusicProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateMusicProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateMusicProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateMusicProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateMusicProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateMusicProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateMusicProviders()[key as string] };
     }
@@ -110,17 +128,17 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = new Proxy({} as Re
 });
 
 export function getMusicProviders(): Record<string, MusicProvider> {
-  return getOrCreateMusicProviders();
+  return MUSIC_PROVIDERS;
 }
 
 export function getMusicProvider(providerId: string): MusicProvider | null {
-  return getOrCreateMusicProviders()[providerId] || null;
+  return MUSIC_PROVIDERS[providerId] || null;
 }
 
 export function parseMusicModel(modelStr: string | null) {
-  return parseModelFromRegistry(modelStr, getOrCreateMusicProviders());
+  return parseModelFromRegistry(modelStr, MUSIC_PROVIDERS);
 }
 
 export function getAllMusicModels() {
-  return getAllModelsFromRegistry(getOrCreateMusicProviders());
+  return getAllModelsFromRegistry(MUSIC_PROVIDERS);
 }

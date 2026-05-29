@@ -158,16 +158,34 @@ function getOrCreateVideoProviders(): Record<string, VideoProvider> {
 }
 
 export const VIDEO_PROVIDERS: Record<string, VideoProvider> = new Proxy({} as Record<string, VideoProvider>, {
-  get(_, key: string) {
+  get(target, key: string) {
+    if (key in target) {
+      return target[key];
+    }
     return getOrCreateVideoProviders()[key];
   },
-  ownKeys() {
-    return Reflect.ownKeys(getOrCreateVideoProviders());
+  set(target, key: string, value) {
+    target[key] = value;
+    getOrCreateVideoProviders()[key] = value;
+    return true;
   },
-  has(_, key) {
-    return key in getOrCreateVideoProviders();
+  deleteProperty(target, key: string) {
+    delete target[key];
+    delete getOrCreateVideoProviders()[key];
+    return true;
   },
-  getOwnPropertyDescriptor(_, key) {
+  ownKeys(target) {
+    const targetKeys = Reflect.ownKeys(target);
+    const registryKeys = Reflect.ownKeys(getOrCreateVideoProviders());
+    return Array.from(new Set([...targetKeys, ...registryKeys]));
+  },
+  has(target, key) {
+    return key in target || key in getOrCreateVideoProviders();
+  },
+  getOwnPropertyDescriptor(target, key) {
+    if (key in target) {
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
     if (key in getOrCreateVideoProviders()) {
       return { configurable: true, enumerable: true, value: getOrCreateVideoProviders()[key as string] };
     }
@@ -176,17 +194,17 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = new Proxy({} as Re
 });
 
 export function getVideoProviders(): Record<string, VideoProvider> {
-  return getOrCreateVideoProviders();
+  return VIDEO_PROVIDERS;
 }
 
 export function getVideoProvider(providerId: string): VideoProvider | null {
-  return getOrCreateVideoProviders()[providerId] || null;
+  return VIDEO_PROVIDERS[providerId] || null;
 }
 
 export function parseVideoModel(modelStr: string | null) {
-  return parseModelFromRegistry(modelStr, getOrCreateVideoProviders());
+  return parseModelFromRegistry(modelStr, VIDEO_PROVIDERS);
 }
 
 export function getAllVideoModels() {
-  return getAllModelsFromRegistry(getOrCreateVideoProviders());
+  return getAllModelsFromRegistry(VIDEO_PROVIDERS);
 }

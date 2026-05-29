@@ -404,9 +404,7 @@ export async function GET(request: Request) {
             latency_ms,
             connection_id,
             api_key_id,
-            api_key_name,
-            combo_name,
-            requested_model
+            api_key_name
           FROM usage_history
           ${rawWhere}
           UNION ALL
@@ -424,22 +422,19 @@ export async function GET(request: Request) {
             0 as latency_ms,
             NULL as connection_id,
             NULL as api_key_id,
-            NULL as api_key_name,
-            NULL as combo_name,
-            NULL as requested_model
+            NULL as api_key_name
           FROM daily_usage_summary
           ${aggWhere}
-        )`
+         )`
       : `(SELECT
             timestamp, provider, model,
             tokens_input, tokens_output,
             tokens_cache_read, tokens_cache_creation, tokens_reasoning,
             service_tier, success, latency_ms,
-            connection_id, api_key_id, api_key_name,
-            combo_name, requested_model
+            connection_id, api_key_id, api_key_name
           FROM usage_history
           ${whereClause}
-        )`;
+         )`;
 
     // When using the unified source the WHERE filters are already embedded inside.
     // For the original whereClause-based queries that still reference usage_history directly
