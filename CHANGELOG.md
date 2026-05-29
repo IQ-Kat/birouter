@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **fix(usage):** add opencode-go / opencode / opencode-zen quota fetcher so the provider limits page surfaces $12/5h, $30/wk, $60/mo windows alongside other quota-aware providers ([#2852](https://github.com/diegosouzapw/OmniRoute/issues/2852) — thanks @apoapostolov)
+
 ---
 
 ## [3.8.6-patch] — 2026-05-27
