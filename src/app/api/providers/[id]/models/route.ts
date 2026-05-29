@@ -701,6 +701,22 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  gitlawb: {
+    url: "https://opengateway.gitlawb.com/v1/xiaomi-mimo/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
+  "gitlawb-gmi": {
+    url: "https://opengateway.gitlawb.com/v1/gmi-cloud/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
 };
 
 /**
@@ -1949,6 +1965,8 @@ export async function GET(
         source: "local_catalog",
       });
     }
+
+
 
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
