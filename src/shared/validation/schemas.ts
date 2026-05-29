@@ -491,7 +491,7 @@ export const importAgyAuthBulkSchema = z.object({
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
-  scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+  scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
 });
 
 export const createSyncTokenSchema = z.object({
@@ -1826,7 +1826,7 @@ export const updateKeyPermissionsSchema = z
         z.null(),
       ])
       .optional(),
-    scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+    scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
   })
   .superRefine((value, ctx) => {
