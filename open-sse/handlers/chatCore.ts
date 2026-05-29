@@ -5112,6 +5112,7 @@ export async function handleChatCore({
       status: failureResponse.status,
       error: reason,
       errorType: streamReadiness.type,
+      errorCode: streamReadiness.code,
       response: failureResponse,
     };
   }
