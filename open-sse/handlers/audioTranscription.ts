@@ -69,7 +69,7 @@ function getUploadedFileName(file: Blob & { name?: unknown }): string {
   return typeof file.name === "string" && file.name.length > 0 ? file.name : "audio.wav";
 }
 
-async function buildMultipartBody(
+export async function buildMultipartBody(
   file: Blob & { name?: unknown },
   fields: Record<string, string>
 ): Promise<{ body: Uint8Array; contentType: string }> {
@@ -85,7 +85,9 @@ async function buildMultipartBody(
     );
   }
 
-  const fileName = getUploadedFileName(file).replace(/["]/g, "_");
+  const fileName = getUploadedFileName(file)
+    .replace(/["]/g, "_")
+    .replace(/[\r\n]/g, "_");
   const fileBytes = new Uint8Array(await file.arrayBuffer());
   parts.push(
     encoder.encode(

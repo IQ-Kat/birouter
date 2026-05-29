@@ -755,7 +755,8 @@ test("OpenAI -> Antigravity preserves multiple signature-less historical tool re
   );
 
   const text = JSON.stringify(result.request.contents);
-  assert.ok(text.includes("[Tool call: terminal]"), "expected signature-less calls as text");
+  assert.ok(text.includes("Historical tool-call record only"), "expected signature-less calls as text");
+  assert.ok(text.includes("Tool name: terminal"), "expected signature-less calls as text");
   assert.ok(
     text.includes("data/db.json: No such file"),
     "expected first signature-less tool response as text"

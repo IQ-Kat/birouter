@@ -1421,7 +1421,7 @@ test("usage service covers NanoGPT PRO weekly token quota, FREE plan, auth denia
   assert.match(fetchError.message, /Unable to fetch usage: nano-gpt.com unreachable/i);
 });
 
-test("usage service opencode-go happy path returns plan and three quota windows", async () => {
+test("usage service opencode happy path returns plan and three quota windows", async () => {
   globalThis.fetch = async () =>
     new Response(
       JSON.stringify({
@@ -1435,7 +1435,7 @@ test("usage service opencode-go happy path returns plan and three quota windows"
     );
 
   const result: any = await usageService.getUsageForProvider({
-    provider: "opencode-go",
+    provider: "opencode",
     apiKey: "oc-happy-key",
   });
 
@@ -1448,9 +1448,9 @@ test("usage service opencode-go happy path returns plan and three quota windows"
   assert.equal(result.quotas["window_monthly"].total, 60);
 });
 
-test("usage service opencode-go no-key returns missing-key message", async () => {
+test("usage service opencode no-key returns missing-key message", async () => {
   const result: any = await usageService.getUsageForProvider({
-    provider: "opencode-go",
+    provider: "opencode",
     apiKey: "",
   });
 

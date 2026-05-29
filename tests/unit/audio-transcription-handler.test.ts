@@ -499,13 +499,11 @@ test("buildMultipartBody sanitizes filename with quotes and newlines", async () 
   const { buildMultipartBody } = await import("../../open-sse/handlers/audioTranscription.ts");
   const rawName = 'bad"name\r\n.wav';
   const file = new File([Buffer.from("x")], rawName, { type: "audio/wav" });
-  const { body, contentType } = await buildMultipartBody(file, { model: "test" });
+  const { body } = await buildMultipartBody(file, { model: "test" });
 
   const bodyText = new TextDecoder().decode(body);
-  assert.ok(!bodyText.includes('"'));
-  assert.ok(!bodyText.includes("\r"));
-  assert.ok(!bodyText.includes("\n"));
-  assert.ok(bodyText.includes("bad__name__.wav"));
+  assert.ok(bodyText.includes('filename="bad_name__.wav"'));
+  assert.ok(!bodyText.includes(rawName));
 });
 
 test("buildMultipartBody defaults to audio.wav for unnamed files", async () => {

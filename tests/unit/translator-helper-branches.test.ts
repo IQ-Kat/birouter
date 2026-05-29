@@ -672,6 +672,16 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
 
   test("translateRequest injects thinking block into Claude-format messages for Kimi K2 reasoning models", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      "kimi-coding": {
+        "kimi-k2.5": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
     cacheReasoningByKey(
       "toolu_kimi_claude",
       "kimi-coding",
@@ -727,11 +737,22 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
     assert.ok(thinkingIdx < toolUseIdx, "thinking block should be before tool_use");
 
     assert.equal(getReasoningCacheServiceStats().replays, 1);
+    clearModelsDevCapabilities();
     clearReasoningCacheAll();
   });
 
   test("translateRequest injects placeholder thinking block for Claude-format Kimi K2 on cache miss", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      "kimi-coding": {
+        "kimi-k2.6": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
 
     // No cache seeded - should fall back to placeholder
     const result = translateRequest(
@@ -769,11 +790,22 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
       "placeholder must be non-empty"
     );
 
+    clearModelsDevCapabilities();
     clearReasoningCacheAll();
   });
 
   test("translateRequest does NOT inject duplicate thinking for Claude-format messages with existing thinking block", () => {
     clearReasoningCacheAll();
+    clearModelsDevCapabilities();
+    saveModelsDevCapabilities({
+      "kimi-coding": {
+        "kimi-k2.5": buildCapability({
+          interleaved_field: "reasoning_content",
+          reasoning: true,
+          tool_call: true,
+        }),
+      },
+    });
 
     const result = translateRequest(
       FORMATS.OPENAI,
@@ -812,5 +844,6 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
       "original thinking should be preserved"
     );
 
+    clearModelsDevCapabilities();
     clearReasoningCacheAll();
   });
