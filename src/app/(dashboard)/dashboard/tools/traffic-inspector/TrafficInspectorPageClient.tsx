@@ -19,7 +19,7 @@ export function TrafficInspectorPageClient() {
   const [containerHeight, setContainerHeight] = useState(600);
   const listContainerRef = useRef<HTMLDivElement | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<InterceptedRequest | null>(null);
-  const { filters, setProfile, setHost, setAgent, setStatus, setSessionId } =
+  const { filters, setProfile, setHost, setAgent, setStatus, setSessionId, setSameContext } =
     useTrafficFilters();
   const [{ listWidth, collapsed }, { startDrag, toggleCollapse }] = useResizablePanels();
   const [streamState, streamActions] = useTrafficStream(filters);
@@ -52,7 +52,7 @@ export function TrafficInspectorPageClient() {
 
   const exportHar = useCallback(async () => {
     try {
-      const res = await fetch("/api/tools/traffic-inspector/export/har");
+      const res = await fetch("/api/tools/traffic-inspector/export.har");
       if (!res.ok) return;
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -116,6 +116,7 @@ export function TrafficInspectorPageClient() {
           connected={streamState.connected}
           total={streamState.total}
           maxSize={BUFFER_MAX}
+          pendingCount={streamState.pendingCount}
           recording={recorder.recording}
           session={recorder.session}
           elapsed={recorder.elapsed}
@@ -158,6 +159,9 @@ export function TrafficInspectorPageClient() {
                 selectedId={selectedRequest?.id ?? null}
                 onSelect={setSelectedRequest}
                 containerHeight={containerHeight}
+                onSameContext={setSameContext}
+                sameContextKey={filters.sameContextKey}
+                onClearContextFilter={() => setSameContext(undefined)}
               />
             </div>
           )}
