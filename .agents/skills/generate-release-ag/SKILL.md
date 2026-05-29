@@ -58,10 +58,12 @@ Fix or justify (per Hard Rule #14) any `high`/`critical` findings before proceed
 ### 1. Create or confirm release branch
 
 ```bash
-# First release on a new minor (e.g. starting 3.9.0):
+# To create a new release branch (MUST always be created from main):
+git checkout main
+git pull origin main
 git checkout -b release/v3.9.0
 
-# Continuing current cycle:
+# If continuing the current cycle, just verify:
 git branch --show-current
 ```
 

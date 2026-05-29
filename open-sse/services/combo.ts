@@ -2506,7 +2506,8 @@ export async function handleComboChat({
         const decoder = new TextDecoder();
         let tagInjected = false;
 
-        const transform = new TransformStream({
+        const transform = new TransformStream(
+          {
           transform(chunk, controller) {
             if (tagInjected) {
               // Already injected — passthrough
@@ -2571,7 +2572,10 @@ export async function handleComboChat({
               controller.enqueue(encoder.encode(tagChunk));
             }
           },
-        });
+        },
+        { highWaterMark: 16384 },
+        { highWaterMark: 16384 }
+        );
 
         const transformedStream = res.body.pipeThrough(transform);
         const headers = new Headers();

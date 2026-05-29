@@ -2277,10 +2277,8 @@ export function createSSEStream(options: StreamOptions = {}) {
         }
       },
     },
-    // Writable side backpressure — limit buffered chunks to avoid unbounded memory
-    { highWaterMark: 16 },
-    // Readable side backpressure — limit queued output chunks
-    { highWaterMark: 16 }
+    { highWaterMark: 16384 },
+    { highWaterMark: 16384 }
   );
 }
 

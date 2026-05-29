@@ -34,6 +34,9 @@ node_modules/
 !.yarn/versions
 .data/
 .next-playwright/
+.agents/
+workflows/
+.omo/
 
 # devbox
 .devbox/

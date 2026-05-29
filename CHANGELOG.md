@@ -2,7 +2,19 @@
 
 ## [Unreleased]
 
+---
+
+## [3.8.7] — 2026-05-29
+
 ### ✨ New Features
+
+- **api (self-service):** add `GET /api/v1/me/status` so a delegated API key can view its own usage (USD used, budget percent, token totals) and optional shared Codex account quota, backed by migration `075_api_key_self_service_usage_scopes` (#2908 — thanks @guanbear).
+- **analytics:** roll up usage logs to `daily_usage_summary` before raw log cleanup, and query a SQL `UNION` of raw and rolled-up data to prevent analytics history data loss (#2904 — thanks @unitythemaker).
+- **perf (RAM):** reduce server memory footprint by capping 11 in-memory caches, limiting SQLite page cache, lazy-loading provider registries via Proxy, and optimizing Next.js startup database probes (#2903 — thanks @soyelmismo).
+
+### 🔧 Bug Fixes
+
+- **token-accounting:** prefer `prompt_tokens` over compatibility `input_tokens` for Anthropic Claude streams to avoid double-counting cached tokens (#2904 — thanks @unitythemaker).
 
 - **agy:** add the **Antigravity CLI (`agy`)** as a standalone OAuth provider next to `gemini-cli`/`antigravity`. It reuses the antigravity inference backend (identical Google client, `daily-cloudcode-pa.googleapis.com`) but ships its own model catalog — notably the Claude models the backend exposes (`claude-opus-4-6-thinking`, `claude-sonnet-4-6`) — its own account pool, and connection methods: import the `agy` CLI token file (paste/upload), auto-detect a local CLI login (`~/.gemini/antigravity-cli/antigravity-oauth-token`), browser OAuth, and bulk/ZIP import. New routes: `POST /api/providers/agy-auth/{import,import-bulk,zip-extract,apply-local}`.
 

@@ -60,7 +60,9 @@ Fix or justify (with `vulnerability-scanner` skill or dismissal comment per Hard
 ### 1. Create or confirm release branch
 
 ```bash
-# If first release on this minor (e.g. starting 3.9.0):
+# To create a new release branch (MUST always be created from main):
+git checkout main
+git pull origin main
 git checkout -b release/v3.9.0
 
 # If continuing the current cycle, just verify:
