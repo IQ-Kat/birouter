@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { InterceptedRequest, ListFilters, WsEvent } from "@/mitm/inspector/types";
+import type { FiltersState } from "./useTrafficFilters";
 
 const WS_PATH = "/api/tools/traffic-inspector/ws";
 const INITIAL_BACKOFF_MS = 500;
@@ -13,6 +14,7 @@ export interface TrafficStreamState {
   connected: boolean;
   paused: boolean;
   total: number;
+  pendingCount: number;
 }
 
 export interface TrafficStreamActions {
@@ -22,11 +24,12 @@ export interface TrafficStreamActions {
 }
 
 export function useTrafficStream(
-  filters: ListFilters
+  filters: FiltersState | ListFilters
 ): [TrafficStreamState, TrafficStreamActions] {
   const [requests, setRequests] = useState<InterceptedRequest[]>([]);
   const [connected, setConnected] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
   const backoffRef = useRef(INITIAL_BACKOFF_MS);
@@ -44,13 +47,14 @@ export function useTrafficStream(
   });
 
   const applyFilter = useCallback((req: InterceptedRequest): boolean => {
-    const f = filtersRef.current;
+    const f = filtersRef.current as FiltersState;
     if (f.profile === "llm" && req.detectedKind !== "llm") return false;
     if (f.profile === "custom" && req.source !== "custom-host") return false;
     if (f.host && !req.host.includes(f.host)) return false;
     if (f.agent && req.agent !== f.agent) return false;
     if (f.source && req.source !== f.source) return false;
     if (f.sessionId && req.sessionId !== f.sessionId) return false;
+    if (f.sameContextKey && req.contextKey !== f.sameContextKey) return false;
     if (f.status) {
       const s = req.status;
       if (typeof s === "number") {
@@ -93,7 +97,10 @@ export function useTrafficStream(
         }
 
         if (pausedRef.current) {
-          if (event.type === "new") pendingRef.current.push(event.data);
+          if (event.type === "new") {
+            pendingRef.current.push(event.data);
+            setPendingCount(pendingRef.current.length);
+          }
           if (event.type === "update") {
             const idx = pendingRef.current.findIndex((r) => r.id === event.data.id);
             if (idx !== -1) pendingRef.current[idx] = event.data;
@@ -157,6 +164,7 @@ export function useTrafficStream(
     if (pendingRef.current.length > 0) {
       const pending = pendingRef.current.filter(applyFilter);
       pendingRef.current = [];
+      setPendingCount(0);
       setRequests((prev) => [...pending, ...prev].slice(0, 1000));
     }
   }, [applyFilter]);
@@ -164,6 +172,7 @@ export function useTrafficStream(
   const clear = useCallback(() => {
     setRequests([]);
     pendingRef.current = [];
+    setPendingCount(0);
   }, []);
 
   const state: TrafficStreamState = {
@@ -171,6 +180,7 @@ export function useTrafficStream(
     connected,
     paused,
     total: requests.length,
+    pendingCount,
   };
 
   return [state, { pause, resume, clear }];

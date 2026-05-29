@@ -9,6 +9,7 @@ interface RequestRowProps {
   request: InterceptedRequest;
   selected: boolean;
   onClick: () => void;
+  onSameContext?: (contextKey: string) => void;
   style?: React.CSSProperties;
 }
 
@@ -39,7 +40,7 @@ function formatTime(iso: string): string {
   }
 }
 
-export function RequestRow({ request, selected, onClick, style }: RequestRowProps) {
+export function RequestRow({ request, selected, onClick, onSameContext, style }: RequestRowProps) {
   const pathShort = request.path.length > 32 ? `…${request.path.slice(-30)}` : request.path;
   const sc = statusColor(request.status);
 
@@ -74,9 +75,17 @@ export function RequestRow({ request, selected, onClick, style }: RequestRowProp
           <span className="text-text-main">{pathShort}</span>
         </div>
         {request.contextKey && (
-          <div className="text-[10px] text-text-muted font-mono opacity-60">
+          <button
+            type="button"
+            className="text-[10px] text-text-muted font-mono opacity-60 hover:opacity-100 hover:text-blue-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+            title="Filter by this context"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSameContext?.(request.contextKey as string);
+            }}
+          >
             ctx #{request.contextKey.slice(0, 6)}
-          </div>
+          </button>
         )}
       </div>
     </div>
