@@ -9,14 +9,16 @@ import os from "os";
 
 const execAsync = promisify(exec);
 
-const PROVIDER_NAME = "9router";
+const PROVIDER_NAME = "birouter";
 const API_KEY_ENV = "OPENAI_API_KEY";
+const BASE_URL_ENV = "OPENAI_BASE_URL";
 
 const getHermesDir = () => path.join(os.homedir(), ".hermes");
 const getHermesConfigPath = () => path.join(getHermesDir(), "config.yaml");
 const getHermesEnvPath = () => path.join(getHermesDir(), ".env");
 
 // Match top-level "model:" block (until next non-indented, non-empty line)
+// Improved regex to handle various indentation styles and end-of-file scenarios
 const MODEL_BLOCK_RE = /^model:[ \t]*\r?\n((?:[ \t]+.*\r?\n?|[ \t]*\r?\n)*)/m;
 
 const buildModelBlock = (model, baseUrl) =>
@@ -28,6 +30,7 @@ const parseModelBlock = (yaml) => {
   if (!match) return null;
   const body = match[1] || "";
   const get = (key) => {
+    // Handle both key: value and key: "value" or key: 'value'
     const m = body.match(new RegExp(`^[ \\t]+${key}:[ \\t]*["']?([^"'\\r\\n]+)["']?`, "m"));
     return m ? m[1].trim() : null;
   };
@@ -40,7 +43,11 @@ const parseModelBlock = (yaml) => {
 
 const upsertModelBlock = (yaml, newBlock) => {
   if (MODEL_BLOCK_RE.test(yaml)) return yaml.replace(MODEL_BLOCK_RE, newBlock);
-  return yaml.length > 0 ? `${newBlock}\n${yaml}` : newBlock;
+  // If not found, append with a newline if needed
+  if (yaml.length > 0) {
+    return yaml.endsWith("\n") ? `${yaml}${newBlock}` : `${yaml}\n${newBlock}`;
+  }
+  return newBlock;
 };
 
 const removeModelBlock = (yaml) => yaml.replace(MODEL_BLOCK_RE, "").replace(/^\n+/, "");
@@ -61,7 +68,8 @@ const removeEnvVar = (envText, key) => {
 const checkHermesInstalled = async () => {
   try {
     const isWindows = os.platform() === "win32";
-    const command = isWindows ? "where hermes" : "which hermes";
+    // Check for both 'hermes' and 'hermes-agent' binaries
+    const command = isWindows ? "where hermes hermes-agent" : "which hermes || which hermes-agent";
     await execAsync(command, { windowsHide: true });
     return true;
   } catch {
@@ -92,7 +100,7 @@ const readEnvFile = async () => {
   }
 };
 
-// Detect 9router by base_url containing localhost/127.0.0.1 or matching tunnel URL
+// Detect birouter by base_url containing localhost/127.0.0.1 or matching tunnel URL
 const has9RouterConfig = (modelCfg) => {
   if (!modelCfg?.base_url) return false;
   return modelCfg.provider === "custom" && /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(modelCfg.base_url);
@@ -135,12 +143,15 @@ export async function POST(request) {
     const newYaml = upsertModelBlock(existingYaml, buildModelBlock(model, normalizedBaseUrl));
     await fs.writeFile(getHermesConfigPath(), newYaml);
 
-    // Update .env — upsert OPENAI_API_KEY only when caller provides one
+    // Update .env — upsert OPENAI_API_KEY and OPENAI_BASE_URL for compatibility
+    let existingEnv = await readEnvFile();
+    let newEnv = upsertEnvVar(existingEnv, BASE_URL_ENV, normalizedBaseUrl);
+    
     if (apiKey) {
-      const existingEnv = await readEnvFile();
-      const newEnv = upsertEnvVar(existingEnv, API_KEY_ENV, apiKey);
-      await fs.writeFile(getHermesEnvPath(), newEnv);
+      newEnv = upsertEnvVar(newEnv, API_KEY_ENV, apiKey);
     }
+    
+    await fs.writeFile(getHermesEnvPath(), newEnv);
 
     return NextResponse.json({
       success: true,
@@ -165,9 +176,18 @@ export async function DELETE() {
       }
       throw error;
     }
+    
+    // Remove model block from YAML
     const newYaml = removeModelBlock(yaml);
     await fs.writeFile(configPath, newYaml);
-    return NextResponse.json({ success: true, message: `${PROVIDER_NAME} model block removed` });
+    
+    // Also cleanup .env variables we injected
+    let env = await readEnvFile();
+    env = removeEnvVar(env, BASE_URL_ENV);
+    env = removeEnvVar(env, API_KEY_ENV);
+    await fs.writeFile(getHermesEnvPath(), env);
+    
+    return NextResponse.json({ success: true, message: `${PROVIDER_NAME} settings removed` });
   } catch (error) {
     console.log("Error resetting hermes settings:", error);
     return NextResponse.json({ error: "Failed to reset hermes settings" }, { status: 500 });

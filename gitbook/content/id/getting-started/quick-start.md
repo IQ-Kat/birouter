@@ -179,6 +179,8 @@ Gunakan di CLI: premium-coding
 - `kr/claude-sonnet-4.5` - Claude Sonnet 4.5
 - `kr/claude-haiku-4.5` - Claude Haiku 4.5
 
+> 💡 **Tips Stabilitas Hermes Agent:** Jika Anda menggunakan Hermes Agent, sangat disarankan menggunakan model dengan akhiran `-agentic` (contoh: `kr/claude-sonnet-4.5-agentic`). Ini akan mengaktifkan protokol penulisan bertahap untuk menghindari *server timeout* saat menulis file besar.
+
 ---
 
 ## Strategi Optimasi Biaya
