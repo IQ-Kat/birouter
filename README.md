@@ -84,8 +84,8 @@ birouter
 
 Kami menyediakan panduan lengkap dalam Bahasa Indonesia untuk memudahkan Anda:
 
-- [🏠 Halaman Utama Dokumentasi](router-app/gitbook/content/id/index.md)
-- [⚡ Panduan Mulai Cepat](router-app/gitbook/content/id/getting-started/quick-start.md)
+- [🏠 Halaman Utama Dokumentasi](gitbook/content/id/index.md)
+- [⚡ Panduan Mulai Cepat](gitbook/content/id/getting-started/quick-start.md)
 - [🛠️ Panduan Pengembangan](docs/DEVELOPER.md)
 
 ---
