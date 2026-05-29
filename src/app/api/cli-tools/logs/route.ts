@@ -1,13 +1,24 @@
 /**
- * Console Log API — GET /api/logs/console
+ * CLI Log Stream API — GET /api/cli-tools/logs
  *
- * Reads the application log file and returns entries from the last 1 hour.
- * Supports filtering by level and limiting the number of entries.
+ * Reads the application log file and returns matching entries.
+ * Called by the CLI `omniroute logs` command via
+ * `src/lib/cli-helper/log-streamer.ts`.
  *
  * Query params:
- *   - level: minimum log level (debug|info|warn|error) — default: all
- *   - limit: max entries to return — default: 500
- *   - component: filter by component/module name
+ *   - follow: boolean — kept for forward-compat; ignored in this
+ *       implementation (streaming follow-mode is handled client-side
+ *       by the log-streamer's ReadableStream).
+ *   - filter: comma-separated strings — entries whose `component`,
+ *       `module`, or `msg` fields match ANY token are included.
+ *       Case-insensitive substring match.
+ *   - limit: max number of entries to return — default 500, max 2000.
+ *
+ * Auth: Tier 3 MANAGEMENT — requireManagementAuth (same as all
+ *   other /api/cli-tools/* routes).
+ *
+ * Note: this route reads logs only and spawns no child processes,
+ * so it does NOT require isLocalOnlyPath() classification.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -15,15 +26,6 @@ import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-
-const LEVEL_ORDER: Record<string, number> = {
-  trace: 5,
-  debug: 10,
-  info: 20,
-  warn: 30,
-  error: 40,
-  fatal: 50,
-};
 
 // Map pino numeric levels to string levels
 const NUMERIC_LEVEL_MAP: Record<number, string> = {
@@ -34,10 +36,6 @@ const NUMERIC_LEVEL_MAP: Record<number, string> = {
   50: "error",
   60: "fatal",
 };
-
-function getLogFilePath(): string {
-  return getAppLogFilePath();
-}
 
 function parseLevel(raw: string | number): string {
   if (typeof raw === "number") {
@@ -53,7 +51,6 @@ function stringifyLogValue(value: unknown): string {
   if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
     return String(value);
   }
-
   try {
     const json = JSON.stringify(value);
     return typeof json === "string" ? json : String(value);
@@ -62,18 +59,31 @@ function stringifyLogValue(value: unknown): string {
   }
 }
 
+/**
+ * GET /api/cli-tools/logs
+ */
 export async function GET(req: NextRequest) {
   const authError = await requireManagementAuth(req);
   if (authError) return authError;
 
   try {
     const { searchParams } = new URL(req.url);
-    const levelFilter = searchParams.get("level") || "all";
+
+    // `follow` is accepted for forward-compat but not used server-side;
+    // the CLI's ReadableStream already handles reconnection client-side.
+    const _follow = searchParams.get("follow") === "true";
+
+    // Comma-separated filter tokens (e.g. "router,oauth")
+    const filterRaw = searchParams.get("filter") || "";
+    const filterTokens = filterRaw
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
     const rawLimit = parseInt(searchParams.get("limit") || "500", 10);
     const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 500, 2000);
-    const componentFilter = searchParams.get("component") || "";
 
-    const logPath = getLogFilePath();
+    const logPath = getAppLogFilePath();
 
     if (!existsSync(logPath)) {
       return NextResponse.json([], { status: 200 });
@@ -83,44 +93,44 @@ export async function GET(req: NextRequest) {
     const lines = raw.trim().split("\n").filter(Boolean);
 
     const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    const minLevel = LEVEL_ORDER[levelFilter] || 0;
-
-    const entries: any[] = [];
+    const entries: Record<string, unknown>[] = [];
 
     for (const line of lines) {
       try {
-        const entry = JSON.parse(line);
+        const entry = JSON.parse(line) as Record<string, unknown>;
 
         // Filter by time (last 1 hour)
         const ts = entry.time || entry.timestamp;
         if (ts) {
-          const entryTime = new Date(ts).getTime();
+          const entryTime = new Date(ts as string | number).getTime();
           if (entryTime < oneHourAgo) continue;
         }
 
-        // Normalize render-sensitive fields so malformed structured logs cannot crash the viewer.
-        entry.level = parseLevel(entry.level);
+        // Normalize fields
+        entry.level = parseLevel(entry.level as string | number);
         entry.msg = stringifyLogValue(entry.msg ?? entry.message ?? "");
         entry.message = stringifyLogValue(entry.message ?? entry.msg);
         if (entry.component !== undefined) entry.component = stringifyLogValue(entry.component);
         if (entry.module !== undefined) entry.module = stringifyLogValue(entry.module);
-        if (entry.correlationId !== undefined) {
-          entry.correlationId = stringifyLogValue(entry.correlationId);
-        }
-
-        // Filter by level
-        const entryLevelNum = LEVEL_ORDER[entry.level] || 0;
-        if (minLevel > 0 && entryLevelNum < minLevel) continue;
-
-        // Filter by component
-        if (componentFilter) {
-          const comp = entry.component || entry.module || "";
-          if (!comp.toLowerCase().includes(componentFilter.toLowerCase())) continue;
-        }
 
         // Normalize timestamp field
         if (entry.time && !entry.timestamp) {
           entry.timestamp = entry.time;
+        }
+
+        // Apply filter tokens — entry is included if ANY token matches
+        // component, module, or msg (case-insensitive substring)
+        if (filterTokens.length > 0) {
+          const haystack = [
+            String(entry.component || ""),
+            String(entry.module || ""),
+            String(entry.msg || ""),
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          const matches = filterTokens.some((token) => haystack.includes(token));
+          if (!matches) continue;
         }
 
         entries.push(entry);
@@ -138,9 +148,10 @@ export async function GET(req: NextRequest) {
         "Cache-Control": "no-store, no-cache, must-revalidate",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: sanitizeErrorMessage(err?.message) || "Failed to read logs" },
+      { error: sanitizeErrorMessage(message) || "Failed to read logs" },
       { status: 500 }
     );
   }
