@@ -61,6 +61,16 @@ export const CODEX_CONFIG = {
     id_token_add_organizations: "true",
     codex_cli_simplified_flow: "true",
     originator: "codex_cli_rs",
+    // prompt=login forces Auth0/OpenAI to RE-AUTHENTICATE the user instead of
+    // silently reusing an existing browser session. This is THE KEY parameter
+    // that enables multi-account OAuth on the same device + same client_id:
+    // without it, OAuth flow #2 carries over session state from OAuth flow #1
+    // and Auth0 invalidates the previous account's refresh_token family as a
+    // "session takeover". With prompt=login, each OAuth flow creates an
+    // isolated session that does not trample siblings.
+    // Ported from ndycode/codex-multi-auth (auth.ts: forceNewLogin option) —
+    // the only known tool that sustains multiple Codex OAuth accounts.
+    prompt: "login",
   },
 };
 
@@ -154,6 +164,7 @@ export const ANTIGRAVITY_CONFIG = {
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
   scopes: [
+    "openid",
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
@@ -178,6 +189,9 @@ export const ANTIGRAVITY_CONFIG = {
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
 // Re-uses CODEX_CONFIG.clientId to avoid duplication — same provider, different originator.
+// IMPORTANT: same Auth0 backend as Codex → same multi-account session-takeover
+// risk. `prompt: "login"` is mandatory to allow multiple OpenAI Native accounts
+// on the same device. See CODEX_CONFIG above for the full explanation.
 export const OPENAI_CONFIG = {
   clientId: CODEX_CONFIG.clientId,
   authorizeUrl: "https://auth.openai.com/oauth/authorize",
@@ -187,6 +201,7 @@ export const OPENAI_CONFIG = {
   extraParams: {
     id_token_add_organizations: "true",
     originator: "openai_native",
+    prompt: "login",
   },
 };
 
@@ -244,6 +259,15 @@ export const KIRO_CONFIG = {
   socialLoginUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/login",
   socialTokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/token",
   socialRefreshUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
+  // Social device-code flow (Google/GitHub).
+  // `socialClientId` is a public CLI identifier — Kiro's device endpoint accepts
+  // any non-empty string and behaves like a User-Agent rather than a secret.
+  // The env override exists so operators on locked-down builds can pin a
+  // custom value if AWS ever starts enforcing this field (Hard Rule #11 spirit).
+  socialClientId: process.env.KIRO_OAUTH_CLIENT_ID || "kiro-cli",
+  socialDeviceAuthorizeUrl:
+    "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/authorization",
+  socialDevicePollUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/poll",
   // Auth methods
   authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
@@ -276,37 +300,70 @@ export const CURSOR_CONFIG = {
   },
 };
 
+// Trae IDE Configuration (#2658)
+//
+// Trae is an AI-native IDE by ByteDance. Authentication is currently imported
+// token only — users sign in inside Trae and paste the resulting API token
+// here. ByteDance has not published a public OAuth client_id/secret or a CLI
+// with extractable credentials, so no automated discovery is possible yet.
+// If ByteDance ever publishes a public device-code or PKCE flow, swap
+// flowType in src/lib/oauth/providers/trae.ts and wire endpoints below.
+export const TRAE_CONFIG = {
+  apiEndpoint: "https://api.trae.ai",
+  clientType: "ide",
+  tokenStoragePaths: {
+    linux: "~/.config/Trae/User/globalStorage/state.vscdb",
+    macos: "/Users/<user>/Library/Application Support/Trae/User/globalStorage/state.vscdb",
+    windows: "%APPDATA%\\Trae\\User\\globalStorage\\state.vscdb",
+  },
+  // Chat completions path (mirrored from OpenAI-compatible providers)
+  chatEndpoint: "/v1/chat/completions",
+  // Trae website — users retrieve their token here after signing in
+  webUrl: "https://trae.ai",
+  // Token storage note for users — no automated extraction path is available
+  // because Trae does not expose a public SQLite / keychain location yet.
+  tokenNote: "Sign in to Trae IDE, then copy your API token from the account settings.",
+};
+
 // Windsurf / Devin CLI Configuration
 //
-// Authentication uses PKCE Authorization Code Flow — same pattern as Codex CLI.
-// Extracted from Devin CLI binary (model_configs_v2.bin + devin.exe strings):
+// 2026-05-29 (Phase 1 hotfix):
+//   The browser PKCE flow targeting https://app.devin.ai/editor/signin returned
+//   404 post-rebrand. PKCE-only fields (`authorizeUrl`, `codeChallengeMethod`,
+//   `callbackPort`, `callbackPath`, `apiServerUrl`, `exchangePath`) are kept
+//   below for archival reference but are NO LONGER consumed by any code path —
+//   the provider exports flowType="import_token" only.
 //
-//   Authorize URL:  https://app.devin.ai/editor/signin
-//   Params:         response_type=code, redirect_uri, code_challenge, code_challenge_method=S256
-//   Callback path:  /auth/callback  (local server on random port 127.0.0.1:0)
-//   Exchange:       POST https://server.codeium.com/<ExchangePKCEAuthorizationCode>
-//                   via Connect JSON protocol (Content-Type: application/json)
-//   Response field: windsurfApiKey  → stored as accessToken / WINDSURF_API_KEY
+//   Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser
+//   (ported from fendoushaonian/WindSurf-gRPC-API).
+//   Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
 //
-// Fallback: user can also paste a token from windsurf.com/show-auth-token
+// Active fields:
+//   - inferenceUrl       → used by WindsurfExecutor (open-sse/executors/windsurf.ts)
+//   - showAuthTokenUrl   → linked from OAuthModal "Get token" button
+//   - firebaseApiKey     → reserved for Phase 2
+//   - ideName            → sent in extension headers
 export const WINDSURF_CONFIG = {
-  // Browser-based PKCE authorize endpoint (extracted from devin.exe binary)
+  // RETIRED 2026-05-29 — endpoint returns 404 post-rebrand. Phase 2 will replace.
   authorizeUrl: "https://app.devin.ai/editor/signin",
+  // RETIRED 2026-05-29 — PKCE flow disabled, see header comment.
   codeChallengeMethod: "S256" as const,
-  // Local callback server — 0 = OS assigns a free port
+  // RETIRED 2026-05-29 — no callback server is started for windsurf/devin-cli.
   callbackPort: 0,
+  // RETIRED 2026-05-29 — no callback path is registered for windsurf/devin-cli.
   callbackPath: "/auth/callback",
-  // Token exchange via Windsurf Connect JSON (gRPC-web + JSON)
+  // RETIRED 2026-05-29 — exchange endpoint no longer reached because PKCE is disabled.
   apiServerUrl: "https://server.codeium.com",
+  // RETIRED 2026-05-29 — see apiServerUrl.
   exchangePath: "/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode",
+  // ── Active fields (still consumed by runtime) ─────────────────────────────
   // Inference server URL (gRPC-web requests go here)
   inferenceUrl: "https://server.self-serve.windsurf.com",
-  // Fallback: user visits this page, copies token, pastes it
+  // Primary login path: user visits this page, copies token, pastes it
   showAuthTokenUrl: "https://windsurf.com/show-auth-token",
-  // Token refresh via Firebase Secure Token Service (for short-lived browser-flow tokens).
+  // Token refresh via Firebase Secure Token Service (reserved for Phase 2).
   // Default is the public Firebase Web client identifier embedded in the
   // Windsurf/Devin CLI binary; users may override via WINDSURF_FIREBASE_API_KEY.
-  // Long-lived import tokens never need this — refresh is skipped when key is absent.
   firebaseApiKey: resolvePublicCred("windsurf_fb", "WINDSURF_FIREBASE_API_KEY"),
   firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
   // IDE identity sent with every gRPC request
@@ -337,4 +394,5 @@ export const PROVIDERS = {
   CLINE: "cline",
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
+  TRAE: "trae",
 };

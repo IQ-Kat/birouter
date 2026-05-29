@@ -635,6 +635,33 @@ export async function getSyncedAvailableModels(
 }
 
 /**
+ * Get synced available models for a provider grouped by connection id.
+ */
+export async function getSyncedAvailableModelsByConnection(
+  providerId: string
+): Promise<Record<string, SyncedAvailableModel[]>> {
+  const db = getDbInstance();
+  const prefix = `${providerId}:`;
+  const rows = db
+    .prepare(
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
+    )
+    .all(`${prefix}%`);
+  const result: Record<string, SyncedAvailableModel[]> = {};
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || value === null || !key.startsWith(prefix)) continue;
+    try {
+      const connectionId = key.slice(prefix.length);
+      result[connectionId] = normalizeSyncedAvailableModels(JSON.parse(value));
+    } catch {
+      // Ignore malformed legacy entries.
+    }
+  }
+  return result;
+}
+
+/**
  * Get all synced available models across all providers.
  */
 export async function getAllSyncedAvailableModels(): Promise<
@@ -722,6 +749,31 @@ export async function deleteSyncedAvailableModelsForProvider(providerId: string)
   backupDbFile("pre-write");
   return Number(result.changes || 0);
 }
+
+/**
+ * Prune stale synced available models for a provider, keeping only the specified allowed connection IDs.
+ * Returns the number of keys deleted.
+ */
+export async function pruneStaleSyncedAvailableModelsForProvider(
+  providerId: string,
+  allowedConnectionIds: string[]
+): Promise<number> {
+  const db = getDbInstance();
+  if (allowedConnectionIds.length === 0) {
+    return deleteSyncedAvailableModelsForProvider(providerId);
+  }
+  const placeholders = allowedConnectionIds.map(() => "?").join(",");
+  const keyPrefix = `${providerId}:`;
+  const allowedKeys = allowedConnectionIds.map((id) => `${providerId}:${id}`);
+  const result = db
+    .prepare(
+      `DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ? AND key NOT IN (${placeholders})`
+    )
+    .run(`${keyPrefix}%`, ...allowedKeys);
+  backupDbFile("pre-write");
+  return Number(result.changes || 0);
+}
+
 
 export async function updateCustomModel(
   providerId: string,

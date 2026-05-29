@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   parseQuotaData,
   formatQuotaLabel,
+  formatCountdown,
   normalizePlanTier,
   resolvePlanValue,
   calculatePercentage,
@@ -17,12 +18,9 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
-import ProviderGroup, { buildGridTemplate } from "./ProviderGroup";
-import AccountRow from "./AccountRow";
-import { getProviderColumns, groupConnectionsByProvider } from "./providerColumns";
+import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
-const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
@@ -43,6 +41,7 @@ const PROVIDER_LABEL: Record<string, string> = {
   glm: "GLM (Z.AI)",
   zai: "Z.AI",
   glmt: "GLM Thinking",
+  "opencode-go": "OpenCode Go",
   "kimi-coding": "Kimi Coding",
   minimax: "MiniMax",
   "minimax-cn": "MiniMax CN",
@@ -62,10 +61,11 @@ const PROVIDER_ORDER: Record<string, number> = {
   glm: 7,
   zai: 8,
   glmt: 9,
-  "kimi-coding": 10,
-  minimax: 11,
-  "minimax-cn": 12,
-  nanogpt: 13,
+  "opencode-go": 10,
+  "kimi-coding": 11,
+  minimax: 12,
+  "minimax-cn": 13,
+  nanogpt: 14,
 };
 
 const TIER_FILTERS = [
@@ -123,6 +123,25 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
   return soonest;
 }
 
+const getQuotaBarWidthClass = (pct: number) => {
+  if (pct <= 10) return "w-[10%]";
+  if (pct <= 20) return "w-1/5";
+  if (pct <= 30) return "w-[30%]";
+  if (pct <= 40) return "w-2/5";
+  if (pct <= 50) return "w-1/2";
+  if (pct <= 60) return "w-3/5";
+  if (pct <= 70) return "w-[70%]";
+  if (pct <= 80) return "w-4/5";
+  if (pct <= 90) return "w-[90%]";
+  return "w-full";
+};
+
+const getQuotaToneClasses = (pct: number) => {
+  if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "bg-red-500 text-red-500";
+  if (pct <= QUOTA_BAR_GREEN_THRESHOLD) return "bg-yellow-500 text-yellow-500";
+  return "bg-green-500 text-green-500";
+};
+
 const STATUS_TONE: Record<
   StatusKey,
   { bar: string; text: string; bg: string; ring: string; dot: string }
@@ -175,7 +194,22 @@ function aggregateWorst(statuses: StatusKey[]): "critical" | "alert" | "ok" | "e
   return worst;
 }
 
-export default function ProviderLimits() {
+function formatAutoRefreshCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+interface ProviderLimitsProps {
+  showFilters?: boolean;
+  autoRefreshInterval?: number;
+}
+
+export default function ProviderLimits({
+  showFilters = true,
+  autoRefreshInterval = 0,
+}: ProviderLimitsProps) {
   const t = useTranslations("usage");
   const tr = useCallback(
     (key: string, fallback: string, values?: UsageTranslationValues) =>
@@ -191,16 +225,6 @@ export default function ProviderLimits() {
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
-
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(LS_EXPANDED_ROWS);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
 
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
@@ -219,11 +243,11 @@ export default function ProviderLimits() {
     return localStorage.getItem(LS_ENV_FILTER) || "all";
   });
 
-  // Per-group bulk-refresh state; one spinner per provider key.
-  const [refreshingGroups, setRefreshingGroups] = useState<Set<string>>(new Set());
-
   const lastFetchTimeRef = useRef<Record<string, number>>({});
   const staleProbeRef = useRef<Record<string, number>>({});
+  const lastRefreshAllAtRef = useRef<number>(Date.now());
+  const autoRefreshIntervalMs = autoRefreshInterval > 0 ? autoRefreshInterval * 1000 : 0;
+  const [autoRefreshClock, setAutoRefreshClock] = useState(() => Date.now());
   const [cutoffModalConn, setCutoffModalConn] = useState<any | null>(null);
   const [cutoffModalWindows, setCutoffModalWindows] = useState<any[]>([]);
   const [providerWindowDefaults, setProviderWindowDefaults] = useState<
@@ -397,6 +421,9 @@ export default function ProviderLimits() {
   const refreshAll = useCallback(async () => {
     if (refreshingAllRef.current) return;
     refreshingAllRef.current = true;
+    const now = Date.now();
+    lastRefreshAllAtRef.current = now;
+    setAutoRefreshClock(now);
     setRefreshingAll(true);
     try {
       const response = await fetch("/api/usage/provider-limits", { method: "POST" });
@@ -418,30 +445,32 @@ export default function ProviderLimits() {
     }
   }, [applyCachedQuotaState, fetchConnections]);
 
-  // Bulk refresh all accounts inside one provider group. The per-account
-  // loading indicator is updated by each fetchQuota call; the group spinner
-  // is just a wrapper that flips while the Promise.all is in flight.
-  const refreshProviderGroup = useCallback(
-    async (providerKey: string, accountIds: string[]) => {
-      setRefreshingGroups((prev) => {
-        if (prev.has(providerKey)) return prev;
-        const next = new Set(prev);
-        next.add(providerKey);
-        return next;
-      });
-      try {
-        await Promise.all(accountIds.map((id) => fetchQuota(id, providerKey, { force: true })));
-      } finally {
-        setRefreshingGroups((prev) => {
-          if (!prev.has(providerKey)) return prev;
-          const next = new Set(prev);
-          next.delete(providerKey);
-          return next;
-        });
-      }
-    },
-    [fetchQuota]
-  );
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0) return;
+
+    const tick = () => setAutoRefreshClock(Date.now());
+    tick();
+
+    const timer = window.setInterval(tick, 1000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [autoRefreshIntervalMs]);
+
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0) return;
+    if (document.visibilityState !== "visible") return;
+    if (refreshingAllRef.current) return;
+    if (autoRefreshClock - lastRefreshAllAtRef.current >= autoRefreshIntervalMs) {
+      void refreshAll();
+    }
+  }, [autoRefreshClock, autoRefreshIntervalMs, refreshAll]);
 
   useEffect(() => {
     const init = async () => {
@@ -621,30 +650,6 @@ export default function ProviderLimits() {
     quotaData,
   ]);
 
-  // Group visible connections by provider, then resort group keys by
-  // PROVIDER_ORDER so the section sequence on the page is stable.
-  const providerGroups = useMemo(() => {
-    const groups = groupConnectionsByProvider(visibleConnections);
-    return new Map(
-      [...groups.entries()].sort(
-        ([a], [b]) => (PROVIDER_ORDER[a] || 99) - (PROVIDER_ORDER[b] || 99)
-      )
-    );
-  }, [visibleConnections]);
-
-  const toggleRow = useCallback((connectionId: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      next.has(connectionId) ? next.delete(connectionId) : next.add(connectionId);
-      try {
-        localStorage.setItem(LS_EXPANDED_ROWS, JSON.stringify([...next]));
-      } catch {
-        /* localStorage may be unavailable; persistence is best-effort */
-      }
-      return next;
-    });
-  }, []);
-
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);
     try {
@@ -671,6 +676,40 @@ export default function ProviderLimits() {
       /* ignore */
     }
   }, []);
+
+  const renderInlineQuotaSummary = (quotas: any[]) => {
+    if (!quotas || quotas.length === 0) return null;
+    return (
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted">
+        {quotas.slice(0, 3).map((q, index) => {
+          const pct = q.unlimited
+            ? 100
+            : Math.round(q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+          const cd = formatCountdown(q.resetAt);
+          const tone = getQuotaToneClasses(pct);
+          return (
+            <span
+              key={`${q.name || "quota"}-${q.modelKey || ""}-${index}`}
+              className="inline-flex items-center gap-1"
+              title={q.displayName || formatQuotaLabel(q.name)}
+            >
+              <span className={`tabular-nums ${tone.split(" ")[1]}`}>
+                {q.unlimited ? "∞" : `${pct}%`}
+              </span>
+              {!q.unlimited && (
+                <span className="h-1 w-14 rounded-sm bg-border/60 overflow-hidden">
+                  <span
+                    className={`block h-full ${tone.split(" ")[0]} ${getQuotaBarWidthClass(pct)}`}
+                  />
+                </span>
+              )}
+              {cd ? <span>{`⏱ ${cd}`}</span> : null}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
 
   if (initialLoading) {
     return (
@@ -713,148 +752,159 @@ export default function ProviderLimits() {
           onClick={refreshAll}
           disabled={refreshingAll}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")}
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
           >
-            refresh
+            {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
           </span>
-          {t("refreshAll")}
+          {refreshingAll
+            ? tr("refreshing", "Refreshing")
+            : autoRefreshIntervalMs > 0
+              ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
+                  Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
+                )}`
+              : t("refreshAll")}
         </button>
       </div>
 
-      {/* Summary stats — clickable status filter */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
-          const tone = STATUS_TONE[key];
-          const labelMap: Record<string, string> = {
-            all: tr("statTotal", "Total"),
-            critical: tr("statCritical", "Critical"),
-            alert: tr("statAlert", "Alert"),
-            ok: tr("statHealthy", "Healthy"),
-          };
-          const active = statusFilter === key;
-          const count = statusCounts[key] || 0;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => handleSetStatusFilter(key)}
-              className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
-              style={{
-                background: active ? tone.bg : "var(--color-surface)",
-                borderColor: active ? tone.ring : "var(--color-border)",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
-                  {labelMap[key]}
-                </span>
-                {key !== "all" && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: tone.dot }}
-                    aria-hidden
-                  />
-                )}
-              </div>
-              <div
-                className="mt-0.5 text-2xl font-bold tabular-nums"
-                style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
-              >
-                {count}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {showFilters && (
+        <>
+          {/* Summary stats — clickable status filter */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
+              const tone = STATUS_TONE[key];
+              const labelMap: Record<string, string> = {
+                all: tr("statTotal", "Total"),
+                critical: tr("statCritical", "Critical"),
+                alert: tr("statAlert", "Alert"),
+                ok: tr("statHealthy", "Healthy"),
+              };
+              const active = statusFilter === key;
+              const count = statusCounts[key] || 0;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleSetStatusFilter(key)}
+                  className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
+                  style={{
+                    background: active ? tone.bg : "var(--color-surface)",
+                    borderColor: active ? tone.ring : "var(--color-border)",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+                      {labelMap[key]}
+                    </span>
+                    {key !== "all" && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: tone.dot }}
+                        aria-hidden
+                      />
+                    )}
+                  </div>
+                  <div
+                    className="mt-0.5 text-2xl font-bold tabular-nums"
+                    style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
+                  >
+                    {count}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Purchase Type filter */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterPurchaseTypeLabel", "Type")}
-        </span>
-        {PURCHASE_TYPES.map((type) => {
-          const count = purchaseTypeCounts[type.key] || 0;
-          if (type.key !== "all" && count === 0) return null;
-          const active = purchaseTypeFilter === type.key;
-          return (
-            <button
-              key={type.key}
-              onClick={() => handleSetPurchaseFilter(type.key)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-              style={{
-                border: active
-                  ? "1px solid var(--color-primary, #E54D5E)"
-                  : "1px solid var(--color-border)",
-                background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-              }}
-            >
-              <span>{tr(type.labelKey, type.fallback)}</span>
-              <span className="opacity-85">{count}</span>
-            </button>
-          );
-        })}
-      </div>
+          {/* Purchase Type filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+              {tr("filterPurchaseTypeLabel", "Type")}
+            </span>
+            {PURCHASE_TYPES.map((type) => {
+              const count = purchaseTypeCounts[type.key] || 0;
+              if (type.key !== "all" && count === 0) return null;
+              const active = purchaseTypeFilter === type.key;
+              return (
+                <button
+                  key={type.key}
+                  onClick={() => handleSetPurchaseFilter(type.key)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                  style={{
+                    border: active
+                      ? "1px solid var(--color-primary, #E54D5E)"
+                      : "1px solid var(--color-border)",
+                    background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                    color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                  }}
+                >
+                  <span>{tr(type.labelKey, type.fallback)}</span>
+                  <span className="opacity-85">{count}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Tier filter */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterTierLabel", "Tier")}
-        </span>
-        {TIER_FILTERS.map((tier) => {
-          if (tier.key !== "all" && !tierCounts[tier.key]) return null;
-          const active = tierFilter === tier.key;
-          return (
-            <button
-              key={tier.key}
-              onClick={() => setTierFilter(tier.key)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-              style={{
-                border: active
-                  ? "1px solid var(--color-primary, #E54D5E)"
-                  : "1px solid var(--color-border)",
-                background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-              }}
-            >
-              <span>{tier.label || t(tier.labelKey!)}</span>
-              <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
-            </button>
-          );
-        })}
-      </div>
+          {/* Tier filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+              {tr("filterTierLabel", "Tier")}
+            </span>
+            {TIER_FILTERS.map((tier) => {
+              if (tier.key !== "all" && !tierCounts[tier.key]) return null;
+              const active = tierFilter === tier.key;
+              return (
+                <button
+                  key={tier.key}
+                  onClick={() => setTierFilter(tier.key)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                  style={{
+                    border: active
+                      ? "1px solid var(--color-primary, #E54D5E)"
+                      : "1px solid var(--color-border)",
+                    background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                    color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                  }}
+                >
+                  <span>{tier.label || t(tier.labelKey!)}</span>
+                  <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Env filter — only renders when at least one connection has a tag */}
-      {envTags.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-            {tr("filterEnvLabel", "Env")}
-          </span>
-          {(["all", ...envTags] as string[]).map((tag) => {
-            const count = envCounts[tag] || 0;
-            const active = envFilter === tag;
-            const label = tag === "all" ? tr("filterEnvAll", "All") : tag;
-            return (
-              <button
-                key={tag}
-                onClick={() => handleSetEnvFilter(tag)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-                style={{
-                  border: active
-                    ? "1px solid var(--color-primary, #E54D5E)"
-                    : "1px solid var(--color-border)",
-                  background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                  color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-                }}
-              >
-                <span>{label}</span>
-                <span className="opacity-85">{count}</span>
-              </button>
-            );
-          })}
-        </div>
+          {/* Env filter — only renders when at least one connection has a tag */}
+          {envTags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+                {tr("filterEnvLabel", "Env")}
+              </span>
+              {(["all", ...envTags] as string[]).map((tag) => {
+                const count = envCounts[tag] || 0;
+                const active = envFilter === tag;
+                const label = tag === "all" ? tr("filterEnvAll", "All") : tag;
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => handleSetEnvFilter(tag)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                    style={{
+                      border: active
+                        ? "1px solid var(--color-primary, #E54D5E)"
+                        : "1px solid var(--color-border)",
+                      background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                      color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                    }}
+                  >
+                    <span>{label}</span>
+                    <span className="opacity-85">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* Provider groups */}
@@ -872,75 +922,24 @@ export default function ProviderLimits() {
           </div>
         )}
 
-        {[...providerGroups.entries()].map(([providerKey, conns]) => {
-          // The group schema reflects the union of quotas across accounts so
-          // an account that only has a session still lines up under the
-          // session column even when its siblings also have weekly. We then
-          // resolve per-row schemas using the same column *keys* so missing
-          // windows render as em-dash cells.
-          const allQuotas = conns.flatMap((c) => quotaData[c.id]?.quotas || []);
-          const groupSchema = getProviderColumns(providerKey, allQuotas);
-          const grid = buildGridTemplate(groupSchema.columns.length);
-          const accountIds = conns.map((c) => c.id);
-          const worstGroupStatus = aggregateWorst(
-            conns.map((c) => statusByConnection[c.id] || "empty")
-          );
-
-          return (
-            <ProviderGroup
-              key={providerKey}
-              providerKey={providerKey}
-              providerLabel={PROVIDER_LABEL[providerKey] || providerKey}
-              accountCount={conns.length}
-              worstStatus={worstGroupStatus}
-              columns={groupSchema.columns}
-              overflowMax={groupSchema.overflowCount}
-              isRefreshing={refreshingGroups.has(providerKey)}
-              onRefreshGroup={() => refreshProviderGroup(providerKey, accountIds)}
-            >
-              {conns.map((conn, idx) => {
-                const rowQuotas = quotaData[conn.id]?.quotas || [];
-                const rowSchema = getProviderColumns(providerKey, rowQuotas);
-                // Align each row's column array with the group header by key.
-                // Missing windows on a row → null-quota cell; this keeps the
-                // grid columns aligned even when accounts diverge.
-                const rowColumns = groupSchema.columns.map((groupCol) => {
-                  const match = rowSchema.columns.find((c) => c.key === groupCol.key);
-                  return match || { ...groupCol, quota: null };
-                });
-                return (
-                  <AccountRow
-                    key={conn.id}
-                    connection={conn}
-                    quota={quotaData[conn.id]}
-                    loading={!!loading[conn.id]}
-                    error={errors[conn.id] || null}
-                    refreshedAt={lastRefreshedAt[conn.id]}
-                    tierMeta={tierByConnection[conn.id] || normalizePlanTier(null)}
-                    resolvedPlan={resolvedPlanByConnection[conn.id]}
-                    status={statusByConnection[conn.id] || "empty"}
-                    statusTone={STATUS_TONE[statusByConnection[conn.id] || "empty"]}
-                    columns={rowColumns}
-                    overflowCount={rowSchema.overflowCount}
-                    isExpanded={expandedRows.has(conn.id)}
-                    emailsVisible={emailsVisible}
-                    gridTemplateColumns={grid}
-                    onToggle={() => toggleRow(conn.id)}
-                    onRefresh={() => refreshProvider(conn.id, conn.provider)}
-                    onOpenCutoff={() => {
-                      const windows = (quotaData[conn.id]?.quotas || []).filter(
-                        (q: any) => q && typeof q.name === "string" && !q.isCredits
-                      );
-                      setCutoffModalWindows(windows);
-                      setCutoffModalConn(conn);
-                    }}
-                    isLast={idx === conns.length - 1}
-                  />
-                );
-              })}
-            </ProviderGroup>
-          );
-        })}
+        <QuotaCardGrid
+          connections={visibleConnections}
+          quotaData={quotaData}
+          loading={loading}
+          errors={errors}
+          lastRefreshedAt={lastRefreshedAt}
+          emailsVisible={emailsVisible}
+          providerLabels={PROVIDER_LABEL}
+          renderInlineQuotaSummary={(quota) => renderInlineQuotaSummary(quota.quotas)}
+          onRefresh={refreshProvider}
+          onOpenCutoff={(conn) => {
+            const windows = (quotaData[conn.id]?.quotas || []).filter(
+              (q: any) => q && typeof q.name === "string" && !q.isCredits
+            );
+            setCutoffModalWindows(windows);
+            setCutoffModalConn(conn);
+          }}
+        />
       </div>
 
       {cutoffModalConn && (
