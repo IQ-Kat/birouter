@@ -14,7 +14,7 @@
  *       Case-insensitive substring match.
  *   - limit: max number of entries to return — default 500, max 2000.
  *
- * Auth: Tier 3 MANAGEMENT — requireManagementAuth (same as all
+ * Auth: Tier 3 MANAGEMENT — requireCliToolsAuth (same shared guard as all
  *   other /api/cli-tools/* routes).
  *
  * Note: this route reads logs only and spawns no child processes,
@@ -24,7 +24,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 // Map pino numeric levels to string levels
@@ -62,12 +62,12 @@ function stringifyLogValue(value: unknown): string {
 /**
  * GET /api/cli-tools/logs
  */
-export async function GET(req: NextRequest) {
-  const authError = await requireManagementAuth(req);
+export async function GET(request: NextRequest) {
+  const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
 
     // `follow` is accepted for forward-compat but not used server-side;
     // the CLI's ReadableStream already handles reconnection client-side.
