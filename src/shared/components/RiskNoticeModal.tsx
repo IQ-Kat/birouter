@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/components/Button";
+import Button from "@/shared/components/Button";
 
 export interface RiskNoticeModalProps {
   open: boolean;

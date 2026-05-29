@@ -21,8 +21,12 @@ vi.mock("next/link", () => ({
     React.createElement("a", { href }, children),
 }));
 
+// Button.tsx exposes a default export — match the real module shape so
+// RiskNoticeModal (which uses `import Button from ...`) resolves correctly.
+// Round 3 had this as a named-export mock, which masked the production
+// `import { Button }` bug fixed in R4 #1.
 vi.mock("@/shared/components/Button", () => ({
-  Button: ({
+  default: ({
     children,
     onClick,
   }: {

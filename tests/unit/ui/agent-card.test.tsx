@@ -124,6 +124,13 @@ describe("AgentCard", { timeout: 30000 }, () => {
       "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
     );
 
+    // Simulate that the per-agent RiskNoticeModal (Fix4 M5) has already been
+    // accepted for this agent — otherwise the DNS click opens the modal first
+    // and onDnsToggle is only called after the user accepts. We test the
+    // "already accepted" path here; the modal flow is covered by
+    // tests/unit/ui/agent-card-risk-modal.test.tsx.
+    localStorage.setItem("omniroute-agentbridge-risk-dismissed-copilot", "true");
+
     const onDnsToggle = vi.fn().mockResolvedValue(undefined);
     const container = makeContainer();
 
