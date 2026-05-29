@@ -4,6 +4,14 @@
 
 ---
 
+## [3.8.6-patch] — 2026-05-27
+
+### 🔧 Bug Fixes
+
+- **fix(cli):** replace `cli-table3` dependency with a ~50-line hand-rolled ASCII formatter to resolve Node 24 / ESM interop breakage and remove tourniquet `package.json` overrides pinning `ansi-regex@^5`, `strip-ansi@^6`, `string-width@^4` ([#2752])
+
+---
+
 ## [3.8.6] — 2026-05-27
 
 ### ✨ New Features
