@@ -117,6 +117,10 @@ Birouter supports almost every major AI provider, including:
 
 We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) and [Developer Guide](docs/DEVELOPER.md) to get started.
 
+### 🤖 Agentic Super Skill
+If you want to use Birouter as a stable agent without external tools, paste this into your AI (Cursor/Claude):
+`https://raw.githubusercontent.com/IQ-Kat/birouter/refs/heads/master/router-app/skills/birouter-agent/SKILL.md`
+
 ---
 
 ## 💝 Support / Dukungan
