@@ -2,6 +2,7 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
+    "understand": "I understand",
     "delete": "Delete",
     "loading": "Loading...",
     "error": "An error occurred",
@@ -7480,6 +7481,13 @@
     "statsSuccessful": "Successful",
     "statsTotalRequests": "Total requests",
     "timingProxyOverhead": "Proxy overhead",
-    "timingUpstreamResponse": "Upstream response"
+    "timingUpstreamResponse": "Upstream response",
+    "timingNoData": "No timing data available.",
+    "timingTotalLatency": "Total latency",
+    "timingTimestamp": "Timestamp",
+    "timingMethod": "Method",
+    "timingStatus": "Status",
+    "timingRequestSize": "Request size",
+    "timingResponseSize": "Response size"
   }
 }

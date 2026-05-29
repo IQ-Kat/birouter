@@ -13,7 +13,7 @@ export function TimingWaterfall({ request }: TimingWaterfallProps) {
   const total = totalLatencyMs ?? (proxyLatencyMs ?? 0) + (upstreamLatencyMs ?? 0);
 
   if (!total) {
-    return <p className="text-sm text-text-muted">No timing data available.</p>;
+    return <p className="text-sm text-text-muted">{t("timingNoData")}</p>;
   }
 
   const segments: Array<{ label: string; ms: number; color: string }> = [
@@ -51,7 +51,7 @@ export function TimingWaterfall({ request }: TimingWaterfallProps) {
         })}
       </div>
       <div className="flex justify-between text-xs font-medium text-text-main border-t border-border pt-2">
-        <span>Total latency</span>
+        <span>{t("timingTotalLatency")}</span>
         <span>{total}ms</span>
       </div>
     </div>

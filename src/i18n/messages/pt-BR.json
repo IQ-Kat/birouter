@@ -2,6 +2,7 @@
   "common": {
     "save": "Salvar",
     "cancel": "Cancelar",
+    "understand": "Eu entendo",
     "delete": "Excluir",
     "loading": "Carregando...",
     "error": "Ocorreu um erro",
@@ -7470,6 +7471,13 @@
     "statsSuccessful": "Bem-sucedidas",
     "statsTotalRequests": "Total de requisições",
     "timingProxyOverhead": "Overhead do proxy",
-    "timingUpstreamResponse": "Resposta upstream"
+    "timingUpstreamResponse": "Resposta upstream",
+    "timingNoData": "Nenhum dado de tempo disponível.",
+    "timingTotalLatency": "Latência total",
+    "timingTimestamp": "Timestamp",
+    "timingMethod": "Método",
+    "timingStatus": "Status",
+    "timingRequestSize": "Tamanho da requisição",
+    "timingResponseSize": "Tamanho da resposta"
   }
 }
