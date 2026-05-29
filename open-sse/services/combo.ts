@@ -3713,7 +3713,8 @@ export async function handleComboChat({
           signal?.removeEventListener("abort", onClientAbort);
         }
       })().catch((err) => {
-        log.error("COMBO", `Speculative task error for target ${i}`, err);
+        const logError = log.error ?? log.warn;
+        logError("COMBO", `Speculative task error for target ${i}`, err);
       });
 
       runningTasks.add(task);
