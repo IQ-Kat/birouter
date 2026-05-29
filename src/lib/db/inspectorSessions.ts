@@ -77,8 +77,9 @@ export function getSession(id: string): InspectorSessionRow | null {
   return row ? mapSessionRow(row) : null;
 }
 
-export function appendSessionRequest(sessionId: string, payload: string): void {
+export function appendSessionRequest(sessionId: string, payload: string): number {
   const db = getDbInstance();
+  let insertedSeq = 0;
 
   const runTransaction = db.transaction(() => {
     // Get next seq atomically within transaction
@@ -97,9 +98,12 @@ export function appendSessionRequest(sessionId: string, payload: string): void {
     db.prepare(
       "UPDATE inspector_sessions SET request_count = request_count + 1 WHERE id = ?"
     ).run(sessionId);
+
+    insertedSeq = nextSeq;
   });
 
   runTransaction();
+  return insertedSeq;
 }
 
 export function getSessionRequests(sessionId: string): Array<{ seq: number; payload: string }> {

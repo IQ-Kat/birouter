@@ -32,6 +32,11 @@ export const InspectorAnnotationPutSchema = z.object({
   annotation: z.string().max(10_000),
 });
 
+// 1 MB cap — matches INSPECTOR_MAX_BODY_KB constant
+export const InspectorSessionRequestAppendSchema = z.object({
+  payload: z.string().max(1_048_576),
+});
+
 export const InspectorListQuerySchema = z.object({
   profile: z.enum(["llm", "custom", "all"]).optional(),
   host: z.string().optional(),
