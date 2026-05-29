@@ -635,9 +635,14 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     },
     models: [
       {
+        id: "claude-opus-4-8",
+        name: "Claude Opus 4.8",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
         id: "claude-opus-4-7",
         name: "Claude Opus 4.7",
-        supportsXHighEffort: true,
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
@@ -951,7 +956,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       {
         id: "claude-opus-4.6",
         name: "Claude Opus 4.6",
-        targetFormat: "openai-responses",
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
@@ -1292,9 +1296,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "mimo-v2-omni", name: "MiMo-V2-Omni" },
       { id: "minimax-m2.7", name: "MiniMax M2.7", targetFormat: "claude" },
       { id: "minimax-m2.5", name: "MiniMax M2.5", targetFormat: "claude" },
-      { id: "qwen3.7-max", name: "Qwen3.7 Max" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
+      // Issue #2292: Qwen models on opencode-go reject oa-compat format
+      // ("Model qwen3.x-* is not supported for format oa-compat") — same
+      // upstream behavior already declared for opencode-zen. Route them
+      // through /messages with the Claude translator.
+      // Issue #2822: These models are text-only — mark supportsVision: false
+      // so combo routing skips them when the request contains image blocks,
+      // preventing image content from reaching a vision-incapable upstream.
+      { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
       { id: "hy3-preview", name: "Hunyuan3 Preview" },
       { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
@@ -1370,8 +1381,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // Issue #2292: Qwen models return Claude-format SSE bodies even
       // when hitting /chat/completions. targetFormat: "claude" routes
       // through /messages and the Claude translator.
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
+      // Issue #2822: These models are text-only — supportsVision: false
+      // ensures combo routing skips them on image-bearing requests.
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
 
       // ── Free Tier ──────────────────────────────────────────────
       { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
@@ -2886,6 +2899,86 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "blackbox-web": {
+    id: "blackbox-web",
+    alias: "bb-web",
+    format: "openai",
+    executor: "blackbox-web",
+    baseUrl: "https://app.blackbox.ai/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "gpt-4-turbo", name: "GPT-4 Turbo" },
+      { id: "gpt-4", name: "GPT-4" },
+      { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
+      { id: "claude-3-opus", name: "Claude 3 Opus" },
+      { id: "claude-3-sonnet", name: "Claude 3 Sonnet" },
+      { id: "gemini-pro", name: "Gemini Pro" },
+    ],
+  },
+
+  "claude-web": {
+    id: "claude-web",
+    alias: "claude-web",
+    format: "openai",
+    executor: "claude-web",
+    baseUrl: "https://claude.ai/api/organizations",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "claude-3-opus-20250219", name: "Claude 3 Opus (web)" },
+      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet (web)" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku (web)" },
+    ],
+  },
+
+  "copilot-web": {
+    id: "copilot-web",
+    alias: "copilot-web",
+    format: "openai",
+    executor: "copilot-web",
+    baseUrl: "wss://copilot.microsoft.com/c/api/chat?api-version=2",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "copilot-pro", name: "Copilot Pro (web)" },
+      { id: "gpt-4-turbo", name: "GPT-4 Turbo (via Copilot)" },
+      { id: "gpt-4", name: "GPT-4 (via Copilot)" },
+    ],
+  },
+
+  "veoaifree-web": {
+    id: "veoaifree-web",
+    alias: "veo-free",
+    format: "openai",
+    executor: "veoaifree-web",
+    baseUrl: "https://veoaifree.com/wp-admin/admin-ajax.php",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "veo", name: "VEO 3.1" },
+      { id: "seedance", name: "Seedance" },
+    ],
+  },
+
+  "duckduckgo-web": {
+    id: "duckduckgo-web",
+    alias: "ddgw",
+    format: "openai",
+    executor: "duckduckgo-web",
+    baseUrl: "https://duckduckgo.com/duckchat/v1/chat",
+    authType: "none",
+    authHeader: "none",
+    models: [
+      { id: "gpt-4o-mini", name: "GPT-4o Mini" },
+      { id: "gpt-5-mini", name: "GPT-5 Mini" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku" },
+      { id: "llama-4-scout", name: "Llama 4 Scout" },
+      { id: "mistral-small-2501", name: "Mistral Small" },
+      { id: "o3-mini", name: "O3 Mini" },
+    ],
+  },
+
   together: {
     id: "together",
     alias: "together",
@@ -3951,7 +4044,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "nous",
     format: "openai",
     executor: "default",
-    baseUrl: "https://inference-api.nousresearch.com/v1",
+    baseUrl: "https://inference-api.nousresearch.com/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
     models: [
