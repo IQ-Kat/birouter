@@ -1,4 +1,4 @@
-import type { InterceptedRequest, LlmMetadata } from "./types";
+import type { InterceptedRequest } from "./types";
 
 /**
  * LLM host patterns — 18+ known LLM API hostnames.
@@ -85,10 +85,3 @@ export function detectKind(req: InterceptedRequest): "llm" | "app" | "unknown" {
   return bodySignalFired ? "app" : "unknown";
 }
 
-/**
- * Skeleton LLM metadata extractor. Full implementation in F4.
- */
-export function extractLlmMetadata(req: InterceptedRequest): LlmMetadata | null {
-  if (detectKind(req) !== "llm") return null;
-  return null; // stub — F4 will implement
-}
