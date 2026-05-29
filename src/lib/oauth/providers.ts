@@ -37,11 +37,7 @@ function hasCustomGoogleOAuthCredentials(providerName, env = process.env) {
  * public callback URL documented in .env.example / docs/README so the popup can
  * navigate back to OmniRoute instead of stalling on localhost.
  */
-export function resolveBrowserOAuthRedirectUri(
-  providerName,
-  redirectUri,
-  env = process.env
-) {
+export function resolveBrowserOAuthRedirectUri(providerName, redirectUri, env = process.env) {
   if (!GOOGLE_BROWSER_PROVIDERS.has(providerName)) {
     return redirectUri;
   }
@@ -89,11 +85,36 @@ export function getProviderNames() {
 }
 
 /**
- * Generate auth data for a provider
+ * Generate auth data for a provider.
+ *
+ * Returns `{ supported: false, error }` (no `authUrl`) for providers whose
+ * browser-OAuth flow is currently disabled — e.g. windsurf / devin-cli post
+ * 2026-05 rebrand, where the legacy PKCE endpoint at app.devin.ai returns 404.
+ * Callers (UI / API route) should surface the `error` string and route the
+ * user to the import-token flow instead.
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
   const { codeVerifier, codeChallenge, state } = generatePKCE();
+
+  if (provider.flowType === "import_token") {
+    const error =
+      providerName === "windsurf" || providerName === "devin-cli"
+        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
+        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    return {
+      authUrl: undefined,
+      state: undefined,
+      codeVerifier: undefined,
+      codeChallenge: undefined,
+      redirectUri,
+      flowType: provider.flowType,
+      fixedPort: provider.fixedPort,
+      callbackPath: provider.callbackPath || "/callback",
+      supported: false,
+      error,
+    };
+  }
 
   let authUrl;
   if (provider.flowType === "device_code") {

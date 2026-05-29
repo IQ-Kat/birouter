@@ -234,3 +234,29 @@ describe("DevinCli binary resolution", () => {
     }
   });
 });
+
+// ─── Phase 1 hotfix: windsurf/devin-cli import-token flow ────────────────────
+import { generateAuthData, getProvider } from "@/lib/oauth/providers";
+
+test("windsurf provider: flowType is import_token (PKCE disabled post-rebrand)", () => {
+  const provider = getProvider("windsurf");
+  assert.equal(provider.flowType, "import_token");
+});
+
+test("devin-cli provider: flowType is import_token (shares windsurf config)", () => {
+  const provider = getProvider("devin-cli");
+  assert.equal(provider.flowType, "import_token");
+});
+
+test("windsurf provider: generateAuthData returns no authUrl (PKCE flow disabled)", () => {
+  const data = generateAuthData("windsurf", "http://localhost:0/auth/callback");
+  assert.equal(data.authUrl, undefined);
+  assert.equal(data.supported, false);
+  assert.match(data.error ?? "", /import-token|disabled|app\.devin\.ai/i);
+});
+
+test("devin-cli provider: generateAuthData returns no authUrl", () => {
+  const data = generateAuthData("devin-cli", "http://localhost:0/auth/callback");
+  assert.equal(data.authUrl, undefined);
+  assert.equal(data.supported, false);
+});
