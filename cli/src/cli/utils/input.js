@@ -82,7 +82,7 @@ async function pause(message = "Press Enter to continue...") {
   return new Promise((resolve) => {
     primeRawOnce();
     const onKey = (_str, key) => {
-      if (key && (key.name === "return" || key.name === "enter")) {
+      if ((key && (key.name === "return" || key.name === "enter")) || _str === "\r" || _str === "\n") {
         process.stdin.removeListener("keypress", onKey);
         process.stdout.write("\n");
         resolve();
