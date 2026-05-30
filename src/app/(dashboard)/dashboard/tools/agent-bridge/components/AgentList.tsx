@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AgentCard } from "./AgentCard";
-import type { MitmTarget } from "@/mitm/types";
+import type { MitmTargetView } from "@/mitm/types";
 import type { AgentStateEntry, AgentMappingsMap } from "../AgentBridgePageClient";
 import type { MappingRow } from "./ModelMappingTable";
 
 interface AgentListProps {
-  targets: MitmTarget[];
+  targets: MitmTargetView[];
   agentStates: AgentStateEntry[];
   serverRunning: boolean;
   mappingsMap: AgentMappingsMap;

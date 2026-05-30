@@ -7,7 +7,7 @@ import { DnsStatusBadge } from "./shared/DnsStatusBadge";
 import { ModelMappingTable } from "./ModelMappingTable";
 import { SetupWizard } from "./SetupWizard";
 import { RiskNoticeModal } from "@/shared/components/RiskNoticeModal";
-import type { MitmTarget } from "@/mitm/types";
+import type { MitmTargetView } from "@/mitm/types";
 import type { AgentStateEntry } from "../AgentBridgePageClient";
 import type { MappingRow } from "./ModelMappingTable";
 
@@ -23,7 +23,7 @@ function hasAcceptedRisk(agentId: string): boolean {
 
 
 interface AgentCardProps {
-  target: MitmTarget;
+  target: MitmTargetView;
   agentState: AgentStateEntry | undefined;
   serverRunning: boolean;
   mappings: MappingRow[];
