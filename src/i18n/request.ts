@@ -3,71 +3,60 @@ import { cookies, headers } from "next/headers";
 import { LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "./config";
 import type { Locale } from "./config";
 
+const FALLBACK_LOCALE = "en";
+
 /**
- * Walk a nested messages object by a dot-separated path (namespace + key).
- * Returns the found value as string, or undefined when the path does not exist.
+ * Deep merge that mutates `target` with values from `source`.
+ * If both have an object at the same key, recurse.
+ * Otherwise prefer the existing value in `target` (locale-specific wins).
  */
-function getNestedValue(obj: Record<string, unknown>, namespace: string, key: string): string | undefined {
-  const ns = obj[namespace];
-  if (ns && typeof ns === "object" && !Array.isArray(ns)) {
-    const val = (ns as Record<string, unknown>)[key];
-    if (typeof val === "string") return val;
+export function deepMergeFallback(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>
+): Record<string, unknown> {
+  for (const [key, sourceValue] of Object.entries(source)) {
+    const targetValue = target[key];
+    if (
+      sourceValue !== null &&
+      typeof sourceValue === "object" &&
+      !Array.isArray(sourceValue) &&
+      targetValue !== null &&
+      typeof targetValue === "object" &&
+      !Array.isArray(targetValue)
+    ) {
+      deepMergeFallback(targetValue as Record<string, unknown>, sourceValue as Record<string, unknown>);
+    } else if (targetValue === undefined) {
+      target[key] = sourceValue;
+    }
   }
-  return undefined;
+  return target;
 }
 
 export default getRequestConfig(async () => {
-  // 1. Try cookie
   const cookieStore = await cookies();
   let locale: string = cookieStore.get(LOCALE_COOKIE)?.value || "";
 
-  // 2. Try custom header (set by middleware)
   if (!locale) {
     const headerStore = await headers();
     locale = headerStore.get("x-locale") || "";
   }
 
-  // 3. Validate & fallback
   if (!LOCALES.includes(locale as Locale)) {
     locale = DEFAULT_LOCALE;
   }
 
-  const messages = (await import(`./messages/${locale}.json`)).default;
+  const localeMessages = (await import(`./messages/${locale}.json`)).default;
 
-  // Always load EN so we can fall back to it when the active locale lacks a key.
-  // For EN itself the fallback is a no-op (same object), but the overhead is
-  // negligible since JSON imports are cached by the module loader.
-  const enMessages =
-    locale === DEFAULT_LOCALE
-      ? messages
-      : (await import(`./messages/${DEFAULT_LOCALE}.json`)).default;
+  // G1: fall back to EN for any missing key. EN is loaded only once per request
+  // and only when the active locale is not EN itself (no-op).
+  let messages = localeMessages as Record<string, unknown>;
+  if (locale !== FALLBACK_LOCALE) {
+    const fallbackMessages = (await import(`./messages/${FALLBACK_LOCALE}.json`)).default as Record<string, unknown>;
+    messages = deepMergeFallback({ ...localeMessages }, fallbackMessages);
+  }
 
   return {
     locale,
     messages,
-    getMessageFallback({
-      namespace,
-      key,
-    }: {
-      namespace: string | undefined;
-      key: string;
-      error: Error;
-    }): string {
-      // Try EN messages first.
-      if (namespace) {
-        const enValue = getNestedValue(
-          enMessages as Record<string, unknown>,
-          namespace,
-          key,
-        );
-        if (enValue !== undefined) return enValue;
-        // Return visible sentinel so QA notices missing keys.
-        return `${namespace}.${key}`;
-      }
-      // Top-level key (no namespace).
-      const topLevel = (enMessages as Record<string, unknown>)[key];
-      if (typeof topLevel === "string") return topLevel;
-      return key;
-    },
   };
 });
