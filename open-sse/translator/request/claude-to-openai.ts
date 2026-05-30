@@ -65,8 +65,17 @@ function hasClaudeServerWebSearchTool(tools: unknown): boolean {
   return Array.isArray(tools) && tools.some((tool) => isClaudeServerWebSearchTool(tool));
 }
 
+function shouldUseNativeResponsesWebSearch(credentials: unknown): boolean {
+  return (
+    credentials !== null &&
+    typeof credentials === "object" &&
+    !Array.isArray(credentials) &&
+    (credentials as JsonRecord)._targetFormat === FORMATS.OPENAI_RESPONSES
+  );
+}
+
 // Convert Claude request to OpenAI format
-export function claudeToOpenAIRequest(model, body, stream) {
+export function claudeToOpenAIRequest(model, body, stream, credentials: unknown = null) {
   const result: {
     model: string;
     messages: JsonRecord[];
@@ -127,11 +136,13 @@ export function claudeToOpenAIRequest(model, body, stream) {
   // Fix missing tool responses - OpenAI requires every tool_call to have a response
   fixMissingToolResponses(result.messages);
 
+  const useNativeResponsesWebSearch = shouldUseNativeResponsesWebSearch(credentials);
+
   // Tools
   if (body.tools && Array.isArray(body.tools)) {
     const normalizedTools = body.tools
       .map((tool) => {
-        if (isClaudeServerWebSearchTool(tool)) {
+        if (useNativeResponsesWebSearch && isClaudeServerWebSearchTool(tool)) {
           return convertClaudeServerWebSearchTool(tool);
         }
 
@@ -160,7 +171,7 @@ export function claudeToOpenAIRequest(model, body, stream) {
   if (body.tool_choice) {
     result.tool_choice = convertToolChoice(
       body.tool_choice,
-      hasClaudeServerWebSearchTool(body.tools)
+      useNativeResponsesWebSearch && hasClaudeServerWebSearchTool(body.tools)
     );
   }
 

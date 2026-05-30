@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const { claudeToOpenAIRequest } =
   await import("../../open-sse/translator/request/claude-to-openai.ts");
+const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 test("Claude -> OpenAI maps system blocks, parameters, tool declarations and tool choice", () => {
   const result = claudeToOpenAIRequest(
@@ -71,7 +73,8 @@ test("Claude -> OpenAI maps Claude server WebSearch to native Responses web_sear
       ],
       tool_choice: { type: "tool", name: "web_search" },
     },
-    true
+    true,
+    { _targetFormat: FORMATS.OPENAI_RESPONSES }
   );
 
   assert.deepEqual(result.tools, [
@@ -85,6 +88,46 @@ test("Claude -> OpenAI maps Claude server WebSearch to native Responses web_sear
     },
   ]);
   assert.deepEqual(result.tool_choice, { type: "web_search" });
+});
+
+test("translateRequest maps Claude server WebSearch natively only for Responses targets", () => {
+  const body = {
+    messages: [{ role: "user", content: "Search docs" }],
+    tools: [{ type: "web_search_20250305", name: "web_search" }],
+    tool_choice: { type: "tool", name: "web_search" },
+  };
+
+  const responses = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI_RESPONSES,
+    "gpt-5.5",
+    structuredClone(body),
+    true
+  );
+  assert.deepEqual(responses.tools, [{ type: "web_search" }]);
+  assert.deepEqual(responses.tool_choice, { type: "web_search" });
+
+  const chat = translateRequest(
+    FORMATS.CLAUDE,
+    FORMATS.OPENAI,
+    "gpt-4o",
+    structuredClone(body),
+    true
+  );
+  assert.deepEqual(chat.tools, [
+    {
+      type: "function",
+      function: {
+        name: "web_search",
+        description: "",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+  ]);
+  assert.deepEqual(chat.tool_choice, {
+    type: "function",
+    function: { name: "web_search" },
+  });
 });
 
 test("Claude -> OpenAI skips invalid tool payloads without crashing", () => {
