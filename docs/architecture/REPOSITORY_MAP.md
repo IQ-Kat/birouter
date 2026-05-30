@@ -127,6 +127,7 @@ src/
 | `app/a2a/`                                                                   | A2A JSON-RPC 2.0 entry point (`POST /a2a`)                                                                                                                                                 |
 | `app/.well-known/agent.json/`                                                | A2A Agent Card (discovery)                                                                                                                                                                 |
 | `app/(dashboard)/dashboard/`                                                 | Dashboard UI pages (~35 pages: providers, combos, settings, memory, skills, webhooks, evals, audit, batch, cache, costs, health, system, activity, etc.)                                   |
+| `app/(dashboard)/dashboard/memory/`                                          | Memory Studio (plan 21): `page.tsx` (3-tab shell), `components/` (MemoryConceptCard, MemoryEngineStatus, EmbeddingSourceSelector, EditMemoryModal, RetrievePreview, QdrantConfigCard, RerankConfigCard), `components/tabs/` (MemoriesTab, PlaygroundTab, EngineTab), `hooks/` (useEngineStatus, useMemorySettings) |
 | `app/(dashboard)/dashboard/tools/agent-bridge/`                              | AgentBridge dashboard page — server card, 9 agent cards, setup wizard, model mapping, bypass list. i18n PT-BR + EN. See `docs/frameworks/AGENTBRIDGE.md`.                                 |
 | `app/(dashboard)/dashboard/tools/traffic-inspector/`                         | Traffic Inspector dashboard page — DevTools split, 7 detail tabs, 4 capture mode toggles, session recorder, context colorization. i18n PT-BR + EN. See `docs/frameworks/TRAFFIC_INSPECTOR.md`. |
 | `app/(dashboard)/dashboard/activity/`                                        | Activity feed page (Group B): `page.tsx` (server) + `ActivityFeedClient.tsx` + `components/{ActivityFeed,ActivityItem,DayHeader,EventTypeFilter}.tsx` — see `docs/architecture/MONITORING_SECTIONS.md` |
@@ -164,7 +165,10 @@ src/
 | `evals/`                                 | Eval framework (suites, runner, runtime) — see `docs/frameworks/EVALS.md`                                                                                |
 | `guardrails/`                            | PII masker, prompt injection, vision bridge — see `docs/security/GUARDRAILS.md`                                                                          |
 | `jobs/`                                  | Background jobs (cron-like)                                                                                                                              |
-| `memory/`                                | Conversational memory (SQLite FTS5 + Qdrant) — see `docs/frameworks/MEMORY.md`                                                                           |
+| `memory/`                                | Conversational memory (SQLite FTS5 + sqlite-vec hybrid RRF + Qdrant tier 2) — see `docs/frameworks/MEMORY.md`                                            |
+| `memory/embedding/`                      | Multi-source embedding layer: `index.ts` (resolver), `remote.ts`, `staticPotion.ts`, `transformersLocal.ts`, `cache.ts`, `types.ts` (plan 21)             |
+| `memory/vectorStore.ts`                  | sqlite-vec v0.1.9 wrapper — KNN brute-force + hybrid RRF (FTS5 + vector, k=60). Lazy-init, degrades gracefully when sqlite-vec unavailable. (plan 21)    |
+| `memory/reindex.ts`                      | `runReindexBatch()` — processes memories with `needs_reindex=1` in background; called by `POST /api/memory/reindex` and lazy-backfill path. (plan 21)     |
 | `monitoring/`                            | Health checks, metrics emission                                                                                                                          |
 | `oauth/`                                 | OAuth flows for 14 providers (claude, codex, antigravity, cursor, github, gemini, kimi-coding, kilocode, cline, qwen, kiro, qoder, gitlab-duo, windsurf) |
 | `plugins/`                               | Plugin registry                                                                                                                                          |
@@ -183,7 +187,8 @@ src/
 | Subdir           | Purpose                                                                                                                                                                    |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `db/core.ts`     | `getDbInstance()` singleton with WAL journaling                                                                                                                            |
-| `db/migrations/` | 55 versioned SQL files (idempotent, transactional, numbered `001`..`055`)                                                                                                  |
+| `db/migrations/` | Versioned SQL files (idempotent, transactional). `073_memory_vec.sql` adds `memory_vec_meta` + `needs_reindex` column (plan 21). |
+| `db/memoryVec.ts`| CRUD for `memory_vec_meta` (active_dim, embedding_signature, last_reset_at, vec_loaded) + `markMemoryNeedsReindex`, `getMemoryReindexQueue`, etc. (plan 21)               |
 | `db/<domain>.ts` | One module per domain: providers, combos, apiKeys, users, sessions, usage, audit*log, webhooks, skills, memory_entries, cloud_agent_tasks, evals*\*, reasoning_cache, etc. |
 
 ### `src/domain/`

@@ -509,6 +509,17 @@ export {
 
 export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
 
+// Plan 21 — Memory Engine Redesign
+export {
+  getMemoryVecMeta,
+  setMemoryVecMeta,
+  markMemoryNeedsReindex,
+  markAllMemoriesNeedReindex,
+  getMemoryReindexQueue,
+  countMemoryReindexPending,
+} from "./db/memoryVec";
+
+export type { MemoryVecMeta } from "./db/memoryVec";
 // T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
 export * from "./db/agentBridgeState";
 export * from "./db/agentBridgeMappings";
