@@ -211,6 +211,12 @@ export function cloakThirdPartyToolNames(
   body: Record<string, unknown>,
   options?: CloakOptions
 ): Map<string, string> {
+  // Operator kill-switch (documented in .env.example / ENVIRONMENT.md). Checked
+  // here so every call site — native base.ts AND the CLIProxyAPI executor —
+  // honours it, rather than each caller having to remember to guard.
+  if (process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK === "true") {
+    return new Map<string, string>();
+  }
   const shouldCloak = (name: string): boolean =>
     needsThirdPartyCloak(name) && !(options?.skip ? options.skip(name) : false);
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
@@ -235,7 +241,12 @@ export function cloakThirdPartyToolNames(
   const aliasFor = (original: string): string => {
     const existing = assigned.get(original);
     if (existing) return existing;
-    const base = HARNESS_CANONICAL_MAP[original] ?? toPascalCaseToolName(original);
+    // Prefer the established Claude Code rename maps (TOOL_RENAME_MAP spreads
+    // EXTRA_TOOL_RENAME_MAP) so the CPA path matches the native path exactly:
+    // subagents->SubDispatch, session_status->CheckStatus, webfetch->WebFetch, …
+    // Then harness-canonical (read_file->Read), then a generic PascalCase.
+    const base =
+      TOOL_RENAME_MAP[original] ?? HARNESS_CANONICAL_MAP[original] ?? toPascalCaseToolName(original);
     let alias = base;
     let suffix = 2;
     while (alias !== original && used.has(alias)) {

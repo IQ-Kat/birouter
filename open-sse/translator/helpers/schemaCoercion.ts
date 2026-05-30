@@ -288,6 +288,14 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
 
   const result: JsonRecord = {};
   for (const [key, value] of Object.entries(schema)) {
+    // Coerce string-encoded numeric constraints (e.g. minimum: "5") to numbers —
+    // Anthropic rejects the string form. Done here so the Claude sanitizer covers
+    // every slot this function recurses into (incl. contains / propertyNames /
+    // additionalItems, which coerceSchemaNumericFields does not visit).
+    if ((NUMERIC_SCHEMA_FIELDS as readonly string[]).includes(key)) {
+      result[key] = coerceNumericString(value);
+      continue;
+    }
     if (ARRAY_SCHEMA_KEYS.includes(key)) {
       const array = coerceIndexedObjectToArray(value);
       if (array === null) continue; // drop invalid non-array keyword (e.g. enum: "[MaxDepth]")
@@ -350,10 +358,11 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
       result[key] = defs;
       continue;
     }
-    if (isSchemaPlaceholder(value)) {
-      result[key] = {};
-      continue;
-    }
+    // Placeholders are only coerced to {} in subschema-expecting positions
+    // (handled in the branches above). A placeholder in a scalar annotation
+    // keyword (description / title / pattern / format) must stay scalar —
+    // turning it into {} is itself invalid draft-2020-12 and would re-trigger
+    // the very 400 this sanitizer prevents.
     result[key] =
       isPlainObject(value) || Array.isArray(value) ? stripInvalidSchemaConstructs(value) : value;
   }
@@ -361,7 +370,12 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
 }
 
 export function sanitizeClaudeToolSchema(schema: unknown): unknown {
-  return stripInvalidSchemaConstructs(coerceSchemaNumericFields(schema));
+  // stripInvalidSchemaConstructs now also coerces numeric-string constraints, so
+  // it is the single pass for the Claude path. We deliberately do NOT compose
+  // coerceSchemaNumericFields: it strips the valid `default` keyword (Fix #1782,
+  // a translator concern) which on the native / passthrough surface would
+  // silently alter tool schemas that were previously forwarded verbatim.
+  return stripInvalidSchemaConstructs(schema);
 }
 
 export function sanitizeClaudeToolSchemas(tools: unknown): unknown {

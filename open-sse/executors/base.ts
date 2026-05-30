@@ -779,9 +779,7 @@ export class BaseExecutor {
           // Cloak third-party tool names + sanitize invalid tool schemas so
           // Anthropic does not refuse native Claude OAuth traffic with a
           // misleading "out of extra usage" placeholder. See Spec E.
-          if (process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK !== "true") {
-            cloakThirdPartyToolNames(tb);
-          }
+          cloakThirdPartyToolNames(tb);
           if (Array.isArray(tb.tools)) {
             tb.tools = sanitizeClaudeToolSchemas(tb.tools);
           }

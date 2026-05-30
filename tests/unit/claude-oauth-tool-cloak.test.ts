@@ -207,3 +207,66 @@ describe("cloakThirdPartyToolNames — non-mutating + skip option", () => {
     assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["mcp_call", "Read"]);
   });
 });
+
+describe("review fixes — schema sanitizer scalar / default / numeric", () => {
+  it("keeps a placeholder in a scalar annotation keyword as a scalar (not {})", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      description: "[Object]",
+      properties: { a: { type: "string", description: "[Truncated]" } },
+    }) as AnyRecord;
+    assert.equal(s.description, "[Object]");
+    assert.equal(((s.properties as AnyRecord).a as AnyRecord).description, "[Truncated]");
+  });
+
+  it("preserves the valid `default` keyword on the Claude path", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      properties: { mode: { type: "string", default: "replace" }, all: { type: "boolean", default: false } },
+    }) as AnyRecord;
+    const p = s.properties as AnyRecord;
+    assert.equal((p.mode as AnyRecord).default, "replace");
+    assert.equal((p.all as AnyRecord).default, false);
+  });
+
+  it("coerces numeric-string constraints inside contains (not only items)", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "array",
+      contains: { type: "object", properties: { n: { type: "integer", minimum: "5" } } },
+    }) as AnyRecord;
+    const n = ((s.contains as AnyRecord).properties as AnyRecord).n as AnyRecord;
+    assert.equal(n.minimum, 5);
+  });
+
+  it("still coerces a placeholder to {} in a real subschema slot", () => {
+    const s = sanitizeClaudeToolSchema({ type: "object", additionalProperties: "[MaxDepth]" }) as AnyRecord;
+    assert.deepEqual(s.additionalProperties, {});
+  });
+});
+
+describe("review fixes — established aliases + kill-switch", () => {
+  it("uses the established Claude Code aliases on the cloak path", () => {
+    const body: AnyRecord = {
+      tools: [{ name: "subagents" }, { name: "session_status" }, { name: "webfetch" }, { name: "todowrite" }],
+    };
+    cloakThirdPartyToolNames(body);
+    assert.deepEqual(
+      (body.tools as AnyRecord[]).map((t) => t.name),
+      ["SubDispatch", "CheckStatus", "WebFetch", "TodoWrite"]
+    );
+  });
+
+  it("CLAUDE_DISABLE_TOOL_NAME_CLOAK=true disables the cloak at the function level", () => {
+    const prev = process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK;
+    process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK = "true";
+    try {
+      const body: AnyRecord = { tools: [{ name: "mixture_of_agents" }] };
+      const map = cloakThirdPartyToolNames(body);
+      assert.equal((body.tools as AnyRecord[])[0].name, "mixture_of_agents");
+      assert.equal(map.size, 0);
+    } finally {
+      if (prev === undefined) delete process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK;
+      else process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK = prev;
+    }
+  });
+});
