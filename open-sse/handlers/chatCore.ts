@@ -2105,6 +2105,12 @@ export async function handleChatCore({
     clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : clientRawRequest?.headers?.["accept"] || clientRawRequest?.headers?.["Accept"];
+  const streamUserAgent = [
+    typeof userAgent === "string" ? userAgent : "",
+    getHeaderValueCaseInsensitive(clientRawRequest?.headers ?? null, "user-agent") || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
@@ -2130,7 +2136,7 @@ export async function handleChatCore({
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, streamUserAgent);
   const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,
