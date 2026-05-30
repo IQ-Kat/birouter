@@ -16,7 +16,6 @@ import {
   ClineToolCard,
   KiloToolCard,
   DefaultToolCard,
-  AntigravityToolCard,
   CopilotToolCard,
   CustomCliCard,
   HermesAgentToolCard,
@@ -44,7 +43,6 @@ const GUIDED_TOOL_IDS = new Set([
   "amp",
   "qwen",
 ]);
-const MITM_TOOL_IDS = new Set(["antigravity", "kiro"]);
 const CUSTOM_TOOL_IDS = new Set(["custom"]);
 
 export default function CLIToolsPageClient({ machineId: _machineId }) {
@@ -251,7 +249,6 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
     if (activeCategory === "all") return true;
     if (activeCategory === "auto") return AUTO_CONFIGURED_TOOL_IDS.has(toolId);
     if (activeCategory === "guided") return GUIDED_TOOL_IDS.has(toolId);
-    if (activeCategory === "mitm") return MITM_TOOL_IDS.has(toolId);
     if (activeCategory === "custom") return CUSTOM_TOOL_IDS.has(toolId);
     return true;
   });
@@ -311,16 +308,6 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
             cloudEnabled={cloudEnabled}
           />
         );
-      case "antigravity":
-        return (
-          <AntigravityToolCard
-            key={toolId}
-            {...commonProps}
-            activeProviders={getActiveProviders()}
-            hasActiveProviders={hasActiveProviders}
-            cloudEnabled={cloudEnabled}
-          />
-        );
       case "cline":
         return (
           <ClineToolCard
@@ -372,18 +359,6 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
           />
         );
       default:
-        // #487: Any tool with configType "mitm" should use the MITM card (Start/Stop controls)
-        if (tool.configType === "mitm") {
-          return (
-            <AntigravityToolCard
-              key={toolId}
-              {...commonProps}
-              activeProviders={getActiveProviders()}
-              hasActiveProviders={hasActiveProviders}
-              cloudEnabled={cloudEnabled}
-            />
-          );
-        }
         return (
           <DefaultToolCard
             key={toolId}
@@ -447,7 +422,6 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
             options={[
               { value: "auto", label: t("autoConfiguredTab") },
               { value: "guided", label: t("guidedClientsTab") },
-              { value: "mitm", label: t("mitmClientsTab") },
               {
                 value: "custom",
                 label: translateOrFallback("customCliTab", "Custom CLI"),
