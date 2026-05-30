@@ -1261,7 +1261,8 @@
     "settingsResilienceDescription": "Circuit breaker, retry, and fallback configuration",
     "settingsAdvancedDescription": "Advanced payload rules, request limits, and proxy API settings",
     "mitmProxyDescription": "Configure MITM proxy settings for traffic inspection and debugging",
-    "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining"
+    "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining",
+    "omniSkillsDescription": "Install and manage sandbox skills for automated prompt and tool execution"
   },
   "home": {
     "quickStart": "Quick Start",
@@ -7878,5 +7879,76 @@
     "spawnArgs": "Spawn arguments",
     "spawnArgsPlaceholder": "e.g.: --quiet, --json",
     "cliCodeRedirectCta": "Open CLI Code's"
+  },
+  "agentSkills": {
+    "pageTitle": "Agent Skills",
+    "pageSubtitle": "Teach your agent to operate OmniRoute — 22 API areas + 20 CLI families",
+    "conceptCard": {
+      "agent": {
+        "title": "Agent Skills — Outbound",
+        "description": "Agent Skills are machine-readable SKILL.md documents that external AI agents (Claude Code, Cursor, Copilot…) fetch from GitHub to learn how to operate OmniRoute via REST or CLI. They are read by the agent, not executed by OmniRoute.",
+        "crossLinkLabel": "Understand the difference →"
+      },
+      "omni": {
+        "title": "Omni Skills — Inbound",
+        "description": "Omni Skills are sandbox tools that OmniRoute injects into the model's context on every request. They are executed by OmniRoute, not read by the agent.",
+        "crossLinkLabel": "Understand the difference →"
+      },
+      "comparison": {
+        "colAgent": "Agent Skills",
+        "colOmni": "Omni Skills",
+        "whatIs": {
+          "label": "What it is",
+          "agent": "Machine-readable SKILL.md that teaches an external agent to operate OmniRoute",
+          "omni": "Executable tools that OmniRoute injects as tools into LLM requests"
+        },
+        "direction": {
+          "label": "Direction",
+          "agent": "Outbound — external agent learns to control OmniRoute",
+          "omni": "Inbound — OmniRoute gives tools to models passing through it"
+        },
+        "executor": {
+          "label": "Executor",
+          "agent": "External agent (reads markdown → acts via API/CLI)",
+          "omni": "OmniRoute itself (intercepts tool_calls, Docker sandbox)"
+        },
+        "storage": {
+          "label": "Storage",
+          "agent": "Dynamic catalog (/api/agent-skills) → SKILL.md on GitHub",
+          "omni": "SQLite (SkillsMP / skills.sh / local)"
+        },
+        "tagline": {
+          "label": "Tagline",
+          "agent": "Teach your agent to use OmniRoute",
+          "omni": "Give executable tools to OmniRoute models"
+        }
+      }
+    },
+    "filters": {
+      "category": "Category",
+      "area": "Area",
+      "searchPlaceholder": "Search skills…"
+    },
+    "categoryApi": "API",
+    "categoryCli": "CLI",
+    "filterAll": "All",
+    "coverageLabel": "Coverage",
+    "mcpUrl": "MCP URL",
+    "a2aLink": "A2A",
+    "copyUrl": "Copy URL",
+    "viewOnGithub": "View on GitHub",
+    "previewLoading": "Loading skill documentation…",
+    "previewError": "Failed to load skill documentation.",
+    "previewEmpty": "Select a skill to preview its documentation.",
+    "generateButton": "Generate missing skills",
+    "coverageBar": {
+      "complete": "Complete",
+      "partial": "Partial"
+    },
+    "noSkillsFound": "No skills found matching your filters.",
+    "regenerateConfirm": "This will regenerate all missing SKILL.md files. Continue?",
+    "regenerateRunning": "Regenerating skills…",
+    "regenerateSuccess": "Skills regenerated successfully.",
+    "regenerateError": "Failed to regenerate skills."
   }
 }

@@ -3110,7 +3110,8 @@
     "settingsResilienceDescription": "Circuit breaker, retry, and fallback configuration",
     "settingsAdvancedDescription": "Advanced payload rules, request limits, and proxy API settings",
     "mitmProxyDescription": "Configure MITM proxy settings for traffic inspection and debugging",
-    "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining"
+    "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining",
+    "omniSkillsDescription": "Instale e gerencie skills sandbox para execução automatizada de prompts e ferramentas"
   },
   "health": {
     "title": "Saúde do Sistema",
@@ -7870,5 +7871,76 @@
     "spawnArgs": "Argumentos de spawn",
     "spawnArgsPlaceholder": "ex: --quiet, --json",
     "cliCodeRedirectCta": "Abrir CLI Code's"
+  },
+  "agentSkills": {
+    "pageTitle": "Agent Skills",
+    "pageSubtitle": "Ensine seu agente a operar o OmniRoute — 22 áreas de API + 20 famílias de CLI",
+    "conceptCard": {
+      "agent": {
+        "title": "Agent Skills — Saída",
+        "description": "Agent Skills são documentos SKILL.md legíveis por máquina que agentes externos (Claude Code, Cursor, Copilot…) baixam do GitHub para aprender a operar o OmniRoute via REST ou CLI. São lidos pelo agente, não executados pelo OmniRoute.",
+        "crossLinkLabel": "Entenda a diferença →"
+      },
+      "omni": {
+        "title": "Omni Skills — Entrada",
+        "description": "Omni Skills são ferramentas sandbox que o OmniRoute injeta no contexto do modelo a cada solicitação. São executadas pelo OmniRoute, não lidas pelo agente.",
+        "crossLinkLabel": "Entenda a diferença →"
+      },
+      "comparison": {
+        "colAgent": "Agent Skills",
+        "colOmni": "Omni Skills",
+        "whatIs": {
+          "label": "O que é",
+          "agent": "Documentação (SKILL.md) que ensina um agente externo a operar o OmniRoute",
+          "omni": "Ferramentas executáveis que o Omni injeta como tools nos requests LLM"
+        },
+        "direction": {
+          "label": "Direção",
+          "agent": "Outbound — externo aprende a controlar o Omni",
+          "omni": "Inbound — Omni dá tools aos modelos que passam por ele"
+        },
+        "executor": {
+          "label": "Executor",
+          "agent": "Agente externo (lê markdown → age via API/CLI)",
+          "omni": "O próprio Omni (intercepta tool_calls, sandbox Docker)"
+        },
+        "storage": {
+          "label": "Storage",
+          "agent": "Catálogo dinâmico (/api/agent-skills) → SKILL.md no GitHub",
+          "omni": "SQLite (SkillsMP / skills.sh / local)"
+        },
+        "tagline": {
+          "label": "Frase",
+          "agent": "Ensine seu agente a usar o OmniRoute",
+          "omni": "Dê ferramentas executáveis aos modelos do OmniRoute"
+        }
+      }
+    },
+    "filters": {
+      "category": "Categoria",
+      "area": "Área",
+      "searchPlaceholder": "Buscar skills…"
+    },
+    "categoryApi": "API",
+    "categoryCli": "CLI",
+    "filterAll": "Todas",
+    "coverageLabel": "Cobertura",
+    "mcpUrl": "URL MCP",
+    "a2aLink": "A2A",
+    "copyUrl": "Copiar URL",
+    "viewOnGithub": "Ver no GitHub",
+    "previewLoading": "Carregando documentação da skill…",
+    "previewError": "Falha ao carregar documentação da skill.",
+    "previewEmpty": "Selecione uma skill para visualizar sua documentação.",
+    "generateButton": "Gerar skills faltantes",
+    "coverageBar": {
+      "complete": "Completo",
+      "partial": "Parcial"
+    },
+    "noSkillsFound": "Nenhuma skill encontrada para os filtros selecionados.",
+    "regenerateConfirm": "Isso irá regenerar todos os arquivos SKILL.md faltantes. Continuar?",
+    "regenerateRunning": "Regenerando skills…",
+    "regenerateSuccess": "Skills regeneradas com sucesso.",
+    "regenerateError": "Falha ao regenerar skills."
   }
 }

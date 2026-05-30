@@ -259,6 +259,12 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // Dashboard routes
+      {
+        source: "/dashboard/skills",
+        destination: "/dashboard/omni-skills",
+        permanent: true,
+      },
       // Architecture
       {
         source: "/docs/architecture",

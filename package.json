@@ -159,6 +159,7 @@
     "fumadocs-core": "^16.9.0",
     "fumadocs-mdx": "^15.0.7",
     "fumadocs-ui": "^16.9.0",
+    "gray-matter": "^4.0.3",
     "http-proxy-middleware": "^4.0.0",
     "https-proxy-agent": "^9.0.0",
     "ink": "^7.0.3",
@@ -217,6 +218,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/bun": "latest",
     "@types/keytar": "^4.4.2",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
@@ -239,8 +241,7 @@
     "typescript-eslint": "^8.59.4",
     "vitest": "^4.1.7",
     "wait-on": "^9.0.10",
-    "wtfnode": "^0.10.1",
-    "@types/bun": "latest"
+    "wtfnode": "^0.10.1"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
