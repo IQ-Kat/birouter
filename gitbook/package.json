@@ -1,6 +1,6 @@
 {
   "name": "birouter-docs",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "type": "module",
   "scripts": {
     "dev": "next dev -p 3001",
