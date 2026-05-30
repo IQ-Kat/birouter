@@ -216,8 +216,15 @@ export const AUTH_METHODS = {
 
 // Helper: Get provider by alias
 export function getProviderByAlias(alias) {
+  if (typeof alias !== "string") return null;
+  const lower = alias.toLowerCase();
   for (const provider of Object.values(AI_PROVIDERS)) {
     if (provider.alias === alias || provider.id === alias) {
+      return provider;
+    }
+  }
+  for (const provider of Object.values(AI_PROVIDERS)) {
+    if (provider.alias.toLowerCase() === lower || provider.id.toLowerCase() === lower) {
       return provider;
     }
   }

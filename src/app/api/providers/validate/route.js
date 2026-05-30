@@ -18,11 +18,26 @@ async function probeWebProvider(provider, apiKey) {
   if (!isWebOnly) return null;
   const cfg = p.searchConfig || p.fetchConfig;
   if (!cfg) return null;
-  if (cfg.authType === "none") return true; // no-auth (e.g. searxng)
 
   let url = cfg.baseUrl;
   const headers = { "Content-Type": "application/json" };
   let body;
+
+  // For no-auth providers (like searxng on localhost), we must verify they are actually reachable
+  if (cfg.authType === "none") {
+    try {
+      // Perform a quick ping check to see if the local/remote service is alive
+      const pingUrl = url.includes("?") ? `${url}&q=ping` : `${url}?q=ping`;
+      const res = await fetch(pingUrl, { 
+        method: "GET", 
+        headers, 
+        signal: AbortSignal.timeout(2000) // 2 seconds timeout for local connectivity check
+      });
+      return res.ok || res.status !== 404; // As long as we get a response that isn't a connection failure or severe error
+    } catch (e) {
+      return false; // Connection refused or timed out -> service is not running
+    }
+  }
 
   // Apply auth based on authHeader
   switch (cfg.authHeader) {

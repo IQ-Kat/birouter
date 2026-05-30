@@ -71,6 +71,9 @@ README1.md
 deploy*.sh
 ecosystem.config.*
 .kiro
+.vscode/*
+.github/*
+.antigravitycli/
 
 scripts/agSniffer/*
 gitbooks/*

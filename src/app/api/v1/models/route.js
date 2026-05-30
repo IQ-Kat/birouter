@@ -4,6 +4,7 @@ import {
   getProviderAlias,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
+  resolveProviderId,
 } from "@/shared/constants/providers";
 import { getProviderConnections, getCombos, getCustomModels, getModelAliases } from "@/lib/localDb";
 import { getDisabledModels } from "@/lib/disabledModelsDb";
@@ -177,8 +178,10 @@ export async function buildModelsList(kindFilter) {
 
   const activeConnectionByProvider = new Map();
   for (const conn of connections) {
-    if (!activeConnectionByProvider.has(conn.provider)) {
-      activeConnectionByProvider.set(conn.provider, conn);
+    const resolvedId = resolveProviderId(conn.provider);
+    if (!activeConnectionByProvider.has(resolvedId)) {
+      conn.provider = resolvedId; // normalize in-place for consistency
+      activeConnectionByProvider.set(resolvedId, conn);
     }
   }
 

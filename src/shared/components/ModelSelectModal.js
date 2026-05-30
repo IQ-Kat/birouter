@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import Modal from "./Modal";
 import ProviderIcon from "./ProviderIcon";
 import { getModelsByProviderId } from "@/shared/constants/models";
-import { OAUTH_PROVIDERS, APIKEY_PROVIDERS, FREE_PROVIDERS, FREE_TIER_PROVIDERS, AI_PROVIDERS, isOpenAICompatibleProvider, isAnthropicCompatibleProvider, getProviderAlias } from "@/shared/constants/providers";
+import { OAUTH_PROVIDERS, APIKEY_PROVIDERS, FREE_PROVIDERS, FREE_TIER_PROVIDERS, AI_PROVIDERS, isOpenAICompatibleProvider, isAnthropicCompatibleProvider, getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 
 // Provider order: OAuth first, then Free Tier, then API Key (matches dashboard/providers)
 const PROVIDER_ORDER = [
@@ -35,7 +35,8 @@ export default function ModelSelectModal({
   const filteredActiveProviders = useMemo(() => {
     if (!kindFilter) return activeProviders;
     return activeProviders.filter((p) => {
-      const info = AI_PROVIDERS[p.provider];
+      const normalizedId = resolveProviderId(p.provider);
+      const info = AI_PROVIDERS[normalizedId];
       const kinds = info?.serviceKinds || ["llm"];
       return kinds.includes(kindFilter);
     });
@@ -148,7 +149,8 @@ export default function ModelSelectModal({
     };
 
     // Get all active provider IDs from connections (filtered by kindFilter if set)
-    const activeConnectionIds = filteredActiveProviders.map(p => p.provider);
+    // Normalize IDs to canonical form (e.g. "SearXNG" → "searxng")
+    const activeConnectionIds = filteredActiveProviders.map(p => resolveProviderId(p.provider));
 
     // No-auth providers: filter by kindFilter as well
     const noAuthIds = kindFilter
