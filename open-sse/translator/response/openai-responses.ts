@@ -16,7 +16,7 @@ function stripEmptyOptionalToolArgs(value) {
     try {
       const parsed = JSON.parse(value);
       const cleaned = stripEmptyOptionalToolArgs(parsed);
-      return JSON.stringify(cleaned || {});
+      return JSON.stringify(cleaned ?? {});
     } catch {
       return value;
     }

@@ -242,6 +242,26 @@ test("Responses -> OpenAI: empty-name tool call is deferred until output_item.do
   );
 });
 
+test("Responses -> OpenAI: preserves falsy JSON-string tool arguments while cleaning", () => {
+  const state = {};
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_flag", name: "set_flag" },
+    },
+    state
+  );
+  const done = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: { type: "function_call", call_id: "call_flag", name: "set_flag", arguments: "false" },
+    },
+    state
+  );
+
+  assert.equal(done.choices[0].delta.tool_calls[0].function.arguments, "false");
+});
+
 test("Responses -> OpenAI: strips empty optional args from JSON-string output_item.done arguments", () => {
   const state = {};
   openaiResponsesToOpenAIResponse(
