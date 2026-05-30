@@ -78,10 +78,22 @@ async function confirm(question) {
 }
 
 async function pause(message = "Press Enter to continue...") {
-  return suspendRawFor(() => new Promise((resolve) => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.question(message, () => { rl.close(); resolve(); });
-  }));
+  process.stdout.write(message);
+  return new Promise((resolve) => {
+    primeRawOnce();
+    const onKey = (_str, key) => {
+      if (key && (key.name === "return" || key.name === "enter")) {
+        process.stdin.removeListener("keypress", onKey);
+        process.stdout.write("\n");
+        resolve();
+      }
+      if (key && key.ctrl && key.name === "c") {
+        process.stdin.removeListener("keypress", onKey);
+        process.exit(0);
+      }
+    };
+    process.stdin.on("keypress", onKey);
+  });
 }
 
 /**
