@@ -2136,7 +2136,10 @@ export async function handleChatCore({
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, streamUserAgent);
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
+          userAgent: streamUserAgent,
+          streamDefaultMode: apiKeyInfo?.streamDefaultMode,
+        });
   const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,

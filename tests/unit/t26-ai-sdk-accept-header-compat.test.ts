@@ -93,6 +93,17 @@ test("T26: Nextcloud OpenAI integration defaults to non-streaming JSON", () => {
   assert.equal(resolveStreamFlag(true, "application/json", "openai", ua), true);
 });
 
+test("T26: per-key JSON stream default keeps omitted stream non-streaming", () => {
+  const options = { streamDefaultMode: "json", userAgent: "generic-openai-client" };
+
+  assert.equal(resolveStreamFlag(undefined, undefined, "openai", options), false);
+  assert.equal(resolveStreamFlag(undefined, "*/*", "openai", options), false);
+  assert.equal(resolveStreamFlag(undefined, "application/json", "openai", options), false);
+  assert.equal(resolveStreamFlag(undefined, "text/event-stream", "openai", options), true);
+  assert.equal(resolveStreamFlag(true, "application/json", "openai", options), true);
+  assert.equal(resolveStreamFlag(false, "text/event-stream", "openai", options), false);
+});
+
 test("T26: explicit non-stream aliases are detected", () => {
   assert.equal(hasExplicitNoStreamParam({ non_stream: true }), true);
   assert.equal(hasExplicitNoStreamParam({ disable_stream: true }), true);

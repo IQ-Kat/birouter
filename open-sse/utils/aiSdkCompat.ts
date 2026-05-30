@@ -2,6 +2,28 @@
  * AI SDK compatibility helpers (T26).
  */
 
+export type StreamDefaultMode = "legacy" | "json";
+
+export interface ResolveStreamFlagOptions {
+  userAgent?: unknown;
+  streamDefaultMode?: unknown;
+}
+
+function normalizeResolveStreamFlagOptions(optionsOrUserAgent?: unknown): ResolveStreamFlagOptions {
+  if (
+    optionsOrUserAgent &&
+    typeof optionsOrUserAgent === "object" &&
+    !Array.isArray(optionsOrUserAgent)
+  ) {
+    return optionsOrUserAgent as ResolveStreamFlagOptions;
+  }
+  return { userAgent: optionsOrUserAgent };
+}
+
+export function normalizeStreamDefaultMode(value: unknown): StreamDefaultMode {
+  return value === "json" ? "json" : "legacy";
+}
+
 /**
  * Detects when a client explicitly prefers JSON (non-SSE) responses.
  */
@@ -30,11 +52,14 @@ export function resolveStreamFlag(
   bodyStream: unknown,
   acceptHeader: unknown,
   sourceFormat?: string,
-  userAgent?: unknown
+  optionsOrUserAgent?: unknown
 ): boolean {
   // Explicit body value always wins
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
+
+  const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
+  const streamDefaultMode = normalizeStreamDefaultMode(options.streamDefaultMode);
 
   const acceptsEventStream =
     typeof acceptHeader === "string" && /text\/event-stream/i.test(acceptHeader);
@@ -52,7 +77,14 @@ export function resolveStreamFlag(
   // does not set `stream: false`. With a wildcard/empty Accept header, the legacy
   // OmniRoute fallback would force SSE upstream and fail JSON-only providers as
   // STREAM_EARLY_EOF before Nextcloud could receive a response.
-  if (isKnownJsonOnlyClient(userAgent) && !acceptsEventStream) {
+  if (isKnownJsonOnlyClient(options.userAgent) && !acceptsEventStream) {
+    return false;
+  }
+
+  // Per-key compatibility mode for synchronous OpenAI-compatible clients that
+  // omit `stream`. This preserves legacy behavior by default while allowing an
+  // API key to use the OpenAI-compatible JSON default unless SSE is explicit.
+  if (streamDefaultMode === "json" && !acceptsEventStream) {
     return false;
   }
 
