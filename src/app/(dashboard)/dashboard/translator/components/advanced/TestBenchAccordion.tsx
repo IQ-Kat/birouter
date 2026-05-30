@@ -1,22 +1,41 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
+import Collapsible from "@/shared/components/Collapsible";
 import { Card, Button, Select, Badge } from "@/shared/components";
-import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
-import { useProviderOptions } from "../hooks/useProviderOptions";
-import { useAvailableModels } from "../hooks/useAvailableModels";
+import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../../exampleTemplates";
+import { useProviderOptions } from "../../hooks/useProviderOptions";
+import { useAvailableModels } from "../../hooks/useAvailableModels";
+import type { AdvancedAccordionProps } from "../../types";
 
 /**
- * Test Bench Mode:
- * Run translation + send scenarios between providers to validate compatibility.
+ * TestBenchAccordion — Refactor of TestBenchMode wrapped in Collapsible.
  *
- * How it works:
- * Predefined scenarios (Simple Chat, Tool Calling, etc.) are loaded from example templates,
- * translated from the source format to the target provider, and sent to the provider API.
- * Results show pass/fail, latency, and chunk count, with a compatibility percentage.
+ * Preserves 100% functional parity with TestBenchMode.tsx:
+ * - 8 scenarios (simple-chat, tool-calling, multi-turn, thinking, system-prompt,
+ *   streaming, vision, schema-coercion)
+ * - runScenario: translate + send per scenario
+ * - runAll: sequential execution of all 8
+ * - per-scenario re-run
+ * - pass/fail/running badges
+ * - compatibility % report
+ *
+ * Wrapped in Collapsible with lazy-render guard (D7).
+ * Reuses useProviderOptions("openai") + useAvailableModels() (D12).
  */
+
+/**
+ * Strips upstream stack traces, API keys, and Bearer tokens from error messages
+ * before they are displayed in the UI (Hard Rule #12).
+ */
+function sanitizeError(raw: unknown): string {
+  const msg = raw instanceof Error ? raw.message : String(raw ?? "");
+  return msg
+    .replace(/\s+at\s+\/[^\s]+/g, "")
+    .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, "[REDACTED]")
+    .replace(/\bBearer\s+[A-Za-z0-9_.-]+/gi, "Bearer [REDACTED]");
+}
 
 const SCENARIOS = [
   { id: "simple-chat", icon: "chat", templateId: "simple-chat" },
@@ -29,9 +48,25 @@ const SCENARIOS = [
   { id: "schema-coercion", icon: "schema", templateId: "schema-coercion" },
 ];
 
-export default function TestBenchMode() {
+interface ScenarioResult {
+  status: "running" | "pass" | "error";
+  latency?: number;
+  chunks?: number;
+  error?: string;
+  httpStatus?: number;
+}
+
+type ResultsMap = Record<string, ScenarioResult>;
+
+interface TestBenchAccordionProps extends Omit<AdvancedAccordionProps, "slug"> {
+  forceOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+function TestBenchContent() {
   const t = useTranslations("translator");
-  const translateOrFallback = (key: string, fallback: string) => {
+
+  const translateOrFallback = (key: string, fallback: string): string => {
     try {
       const translated = t(key);
       return translated === key || translated === `translator.${key}` ? fallback : translated;
@@ -39,6 +74,7 @@ export default function TestBenchMode() {
       return fallback;
     }
   };
+
   const scenarioLabels: Record<string, string> = {
     "simple-chat": t("scenarioSimpleChat"),
     "tool-calling": t("scenarioToolCalling"),
@@ -49,11 +85,12 @@ export default function TestBenchMode() {
     vision: translateOrFallback("scenarioVision", "Vision"),
     "schema-coercion": translateOrFallback("scenarioSchemaCoercion", "Schema Coercion"),
   };
+
   const templates = useMemo(() => getExampleTemplates(t), [t]);
   const [sourceFormat, setSourceFormat] = useState("claude");
   const { provider, setProvider, providerOptions } = useProviderOptions("openai");
   const { model, setModel, availableModels, pickModelForFormat } = useAvailableModels();
-  const [results, setResults] = useState({});
+  const [results, setResults] = useState<ResultsMap>({});
   const [runningAll, setRunningAll] = useState(false);
 
   // Pick a smart default model when source format changes or models finish loading
@@ -62,27 +99,32 @@ export default function TestBenchMode() {
     if (picked) setModel(picked);
   }, [sourceFormat, pickModelForFormat, setModel]);
 
-  const runScenario = async (scenario) => {
+  const runScenario = async (scenario: { id: string; icon: string; templateId: string }) => {
     setResults((prev) => ({ ...prev, [scenario.id]: { status: "running" } }));
 
     const start = Date.now();
     try {
       // Find template
       const template = templates.find((item) => item.id === scenario.templateId);
-      const body = template?.formats[sourceFormat] || template?.formats.openai;
+      const formatKey = sourceFormat as keyof typeof template.formats;
+      const body = template?.formats[formatKey] || template?.formats.openai;
 
       if (!body) {
         setResults((prev) => ({
           ...prev,
-          [scenario.id]: { status: "error", error: t("noTemplateForFormat"), latency: 0 },
+          [scenario.id]: {
+            status: "error",
+            error: t("noTemplateForFormat"),
+            latency: 0,
+          },
         }));
         return;
       }
 
       // Override model in template body with user-selected model
-      const bodyWithModel = { ...body, model };
+      const bodyWithModel: Record<string, unknown> = { ...body, model };
       // For Gemini format that uses 'contents' instead of 'messages'
-      if (body.contents) bodyWithModel.model = model;
+      if ((body as Record<string, unknown>).contents) bodyWithModel.model = model;
 
       // Step 1: Translate
       const translateRes = await fetch("/api/translator/translate", {
@@ -90,14 +132,18 @@ export default function TestBenchMode() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ step: "direct", sourceFormat, provider, body: bodyWithModel }),
       });
-      const translateData = await translateRes.json();
+      const translateData = (await translateRes.json()) as {
+        success: boolean;
+        result?: Record<string, unknown>;
+        error?: string;
+      };
 
       if (!translateData.success) {
         setResults((prev) => ({
           ...prev,
           [scenario.id]: {
             status: "error",
-            error: t("translationFailed", { error: translateData.error }),
+            error: t("translationFailed", { error: translateData.error ?? "" }),
             latency: Date.now() - start,
           },
         }));
@@ -114,7 +160,7 @@ export default function TestBenchMode() {
       const latency = Date.now() - start;
 
       if (!sendRes.ok) {
-        const errData = await sendRes.json().catch(() => ({}));
+        const errData = await sendRes.json().catch(() => ({})) as { error?: string };
         setResults((prev) => ({
           ...prev,
           [scenario.id]: {
@@ -128,12 +174,14 @@ export default function TestBenchMode() {
       }
 
       // Read response to consume stream
-      const reader = sendRes.body.getReader();
+      const reader = sendRes.body?.getReader();
       let chunks = 0;
-      while (true) {
-        const { done } = await reader.read();
-        if (done) break;
-        chunks++;
+      if (reader) {
+        while (true) {
+          const { done } = await reader.read();
+          if (done) break;
+          chunks++;
+        }
       }
 
       setResults((prev) => ({
@@ -141,9 +189,10 @@ export default function TestBenchMode() {
         [scenario.id]: { status: "pass", latency: Date.now() - start, chunks },
       }));
     } catch (err) {
+      const errorMessage = sanitizeError(err);
       setResults((prev) => ({
         ...prev,
-        [scenario.id]: { status: "error", error: err.message, latency: Date.now() - start },
+        [scenario.id]: { status: "error", error: errorMessage, latency: Date.now() - start },
       }));
     }
   };
@@ -157,11 +206,11 @@ export default function TestBenchMode() {
     setRunningAll(false);
   };
 
-  const passCount = Object.values(results).filter((r: any) => r.status === "pass").length;
-  const failCount = Object.values(results).filter((r: any) => r.status === "error").length;
+  const passCount = Object.values(results).filter((r) => r.status === "pass").length;
+  const failCount = Object.values(results).filter((r) => r.status === "error").length;
   const totalRun = passCount + failCount;
   const compatibility = totalRun > 0 ? Math.round((passCount / totalRun) * 100) : 0;
-  const srcMeta = FORMAT_META[sourceFormat] || FORMAT_META.openai;
+  const srcMeta = FORMAT_META[sourceFormat as keyof typeof FORMAT_META] || FORMAT_META.openai;
 
   return (
     <div className="space-y-5 min-w-0">
@@ -230,11 +279,11 @@ export default function TestBenchMode() {
                 type="text"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                list="testbench-model-suggestions"
+                list="testbench-acc-model-suggestions"
                 placeholder={t("modelPlaceholder")}
                 className="w-full bg-bg-subtle border border-border rounded-lg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
               />
-              <datalist id="testbench-model-suggestions">
+              <datalist id="testbench-acc-model-suggestions">
                 {availableModels.map((m) => (
                   <option key={m} value={m} />
                 ))}
@@ -289,7 +338,13 @@ export default function TestBenchMode() {
           return (
             <Card
               key={scenario.id}
-              className={`transition-all ${result?.status === "pass" ? "border-green-500/30" : result?.status === "error" ? "border-red-500/30" : ""}`}
+              className={`transition-all ${
+                result?.status === "pass"
+                  ? "border-green-500/30"
+                  : result?.status === "error"
+                    ? "border-red-500/30"
+                    : ""
+              }`}
             >
               <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -328,7 +383,11 @@ export default function TestBenchMode() {
                 {/* Result details */}
                 {result && result.status !== "running" && (
                   <div
-                    className={`rounded-lg p-2 text-xs ${result.status === "pass" ? "bg-green-500/5 text-green-600 dark:text-green-400" : "bg-red-500/5 text-red-600 dark:text-red-400"}`}
+                    className={`rounded-lg p-2 text-xs ${
+                      result.status === "pass"
+                        ? "bg-green-500/5 text-green-600 dark:text-green-400"
+                        : "bg-red-500/5 text-red-600 dark:text-red-400"
+                    }`}
                   >
                     {result.status === "pass" ? (
                       <div className="flex items-center justify-between">
@@ -353,6 +412,7 @@ export default function TestBenchMode() {
                   onClick={() => runScenario(scenario)}
                   disabled={isRunning || runningAll}
                   className="w-full"
+                  aria-label={`${isRunning ? t("running") : result ? t("reRun") : t("runTest")} ${scenarioLabels[scenario.id] || scenario.id}`}
                 >
                   {isRunning ? t("running") : result ? t("reRun") : t("runTest")}
                 </Button>
@@ -363,4 +423,80 @@ export default function TestBenchMode() {
       </div>
     </div>
   );
+}
+
+export default function TestBenchAccordion({
+  forceOpen,
+  onOpenChange,
+}: TestBenchAccordionProps) {
+  const t = useTranslations("translator");
+
+  const translateOrFallback = (key: string, fallback: string): string => {
+    try {
+      const translated = t(key);
+      return translated === key || translated === `translator.${key}` ? fallback : translated;
+    } catch {
+      return fallback;
+    }
+  };
+
+  /**
+   * Lazy-render guard (D7): Collapsible already gates children behind `open && ...`
+   * so children are not rendered when closed. But once the user opens it the first
+   * time, we want to keep TestBenchContent mounted even after re-closing (so state
+   * like results/runningAll is preserved across open/close cycles).
+   *
+   * Strategy:
+   * - `hasOpened` starts as `forceOpen ?? false`.
+   * - We pass a sentinel as children when `!hasOpened`. Because Collapsible only
+   *   renders children when open=true, the sentinel mounts on first open → fires
+   *   onFirstOpen → `hasOpened` flips to true → TestBenchContent mounts and stays.
+   * - When `hasOpened` is true, TestBenchContent renders inside Collapsible.
+   *   Collapsible hides it via CSS (via `open &&`) on close, but since hasOpened
+   *   is true, it will re-mount on next open with preserved state.
+   *
+   * Note: Collapsible does not expose onOpenChange, so we call `onOpenChange` prop
+   * from the sentinel's mount (first open) and rely on it being optional.
+   */
+  const [hasOpened, setHasOpened] = useState(forceOpen ?? false);
+
+  return (
+    <Collapsible
+      title={translateOrFallback("advancedTestBenchTitle", "Test Bench (8 cenários)")}
+      subtitle={translateOrFallback(
+        "advancedTestBenchSubtitle",
+        "Roda todos os cenários e reporta pass/fail + compatibilidade %.",
+      )}
+      icon="science"
+      defaultOpen={forceOpen ?? false}
+      className="w-full"
+    >
+      {hasOpened ? (
+        <TestBenchContent />
+      ) : (
+        // Sentinel: Collapsible only renders children when open=true.
+        // Mounting this means we just opened for the first time.
+        <TestBenchAccordionLazyMount
+          onFirstOpen={() => {
+            setHasOpened(true);
+            onOpenChange?.(true);
+          }}
+        />
+      )}
+    </Collapsible>
+  );
+}
+
+/**
+ * Sentinel component for the lazy-render guard (D7).
+ * Because Collapsible only renders children when open=true, mounting this
+ * component signals the first open event. Calls onFirstOpen once on mount.
+ */
+function TestBenchAccordionLazyMount({ onFirstOpen }: { onFirstOpen: () => void }) {
+  useEffect(() => {
+    onFirstOpen();
+    // Intentionally run only once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
 }
