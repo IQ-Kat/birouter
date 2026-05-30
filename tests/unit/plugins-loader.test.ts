@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-// Loader uses child_process.fork() — we test the module exports and types,
-// not actual fork behavior (that requires integration tests with real plugins).
-
-import type { LoadedPlugin } from "../../src/lib/plugins/loader.ts";
+import { loadPlugin, type LoadedPlugin } from "../../src/lib/plugins/loader.ts";
 import type { Plugin, PluginContext, PluginResult } from "../../src/lib/plugins/index.ts";
 
 // ── Type checks ──
@@ -75,4 +75,53 @@ test("PluginResult supports body modification", () => {
   };
   assert.equal(modified.body.model, "gpt-4-turbo");
   assert.equal(modified.metadata?.plugin, "model-switcher");
+});
+
+test("loadPlugin runs hooks in an isolated child process over IPC", async () => {
+  const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-loader-"));
+  const entryPoint = join(pluginDir, "index.mjs");
+
+  await writeFile(
+    entryPoint,
+    `
+export async function onRequest(ctx) {
+  return {
+    body: { ...ctx.body, touchedByPlugin: true },
+    metadata: { pluginHook: "onRequest" },
+  };
+}
+`,
+    "utf-8"
+  );
+
+  const loaded = await loadPlugin(entryPoint, {
+    name: "ipc-test",
+    version: "1.0.0",
+    license: "MIT",
+    main: "index.mjs",
+    source: "local",
+    tags: [],
+    requires: { permissions: [] },
+    hooks: { onRequest: true, onResponse: false, onError: false },
+    skills: [],
+    enabledByDefault: false,
+    configSchema: {},
+  });
+
+  try {
+    const result = await loaded.plugin.onRequest?.({
+      requestId: "test-request",
+      body: { model: "gpt-4" },
+      model: "gpt-4",
+      metadata: {},
+    });
+
+    assert.deepEqual(result, {
+      body: { model: "gpt-4", touchedByPlugin: true },
+      metadata: { pluginHook: "onRequest" },
+    });
+  } finally {
+    loaded.cleanup();
+    await rm(pluginDir, { recursive: true, force: true });
+  }
 });
