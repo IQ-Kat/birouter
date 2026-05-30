@@ -52,6 +52,73 @@ test("Claude -> OpenAI maps system blocks, parameters, tool declarations and too
   });
 });
 
+
+
+test("Claude -> OpenAI maps Claude server WebSearch to native Responses web_search", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5.5",
+    {
+      messages: [{ role: "user", content: "Search docs" }],
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          allowed_domains: ["docs.anthropic.com", ""],
+          blocked_domains: ["spam.example"],
+          max_uses: 8,
+          user_location: { type: "approximate", country: "US" },
+        },
+      ],
+      tool_choice: { type: "tool", name: "web_search" },
+    },
+    true
+  );
+
+  assert.deepEqual(result.tools, [
+    {
+      type: "web_search",
+      filters: {
+        allowed_domains: ["docs.anthropic.com"],
+        blocked_domains: ["spam.example"],
+      },
+      user_location: { type: "approximate", country: "US" },
+    },
+  ]);
+  assert.deepEqual(result.tool_choice, { type: "web_search" });
+});
+
+test("Claude -> OpenAI leaves ordinary web_search function tools as functions", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "Search docs" }],
+      tools: [
+        {
+          type: "custom",
+          name: "web_search",
+          description: "User-defined search function",
+          input_schema: { type: "object", properties: { query: { type: "string" } } },
+        },
+      ],
+      tool_choice: { type: "tool", name: "web_search" },
+    },
+    false
+  );
+
+  assert.deepEqual(result.tools[0], {
+    type: "function",
+    function: {
+      name: "web_search",
+      description: "User-defined search function",
+      parameters: { type: "object", properties: { query: { type: "string" } } },
+    },
+  });
+  assert.deepEqual(result.tool_choice, {
+    type: "function",
+    function: { name: "web_search" },
+  });
+});
+
 test("Claude -> OpenAI converts assistant text and both base64 and URL images", () => {
   const result = claudeToOpenAIRequest(
     "gpt-4o",
