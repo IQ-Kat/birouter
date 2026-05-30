@@ -277,10 +277,11 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
   return result;
 }
 
-/** Fast size estimator — walks object tree without JSON.stringify */
+/** Fast size estimator — walks object tree without JSON.stringify, with circular-ref protection */
 function estimateSizeFast(value: unknown): number {
   let bytes = 0;
   const stack: unknown[] = [value];
+  const seen = new WeakSet();
   while (stack.length > 0) {
     const v = stack.pop();
     if (v === null || v === undefined) continue;
@@ -290,6 +291,8 @@ function estimateSizeFast(value: unknown): number {
     } else if (typeof v === "number") bytes += 8;
     else if (typeof v === "boolean") bytes += 4;
     else if (typeof v === "object") {
+      if (seen.has(v as object)) continue;
+      seen.add(v as object);
       if (Array.isArray(v)) {
         for (let i = 0; i < v.length; i++) stack.push(v[i]);
       } else {
@@ -1544,7 +1547,14 @@ export async function handleChatCore({
   const trace = (label: string, extra?: Record<string, unknown>) => {
     if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
-    const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
+    let suffix = "";
+    if (extra) {
+      try {
+        suffix = ` ${JSON.stringify(extra)}`;
+      } catch {
+        suffix = " [unserializable]";
+      }
+    }
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
   };
   let tokensCompressed: number | null = null;
