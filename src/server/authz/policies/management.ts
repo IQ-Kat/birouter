@@ -13,6 +13,7 @@ import {
   isLocalOnlyBypassableByManageScope,
   isLocalOnlyPath,
   isLoopbackHost,
+  isPrivateLanHost,
 } from "../routeGuard";
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
@@ -24,6 +25,14 @@ function requestPeerAddress(ctx: PolicyContext): string | null {
 function isLoopbackRequest(ctx: PolicyContext): boolean {
   const peerAddress = requestPeerAddress(ctx);
   return peerAddress ? isLoopbackHost(peerAddress) : false;
+}
+
+// Owner-authorized (2026-05-30): allow LOCAL_ONLY *paths* from a trusted private
+// LAN, based on the real socket peer IP (not spoofable). Does NOT relax the
+// CLI-token gate, which stays strictly loopback.
+function isPrivateLanRequest(ctx: PolicyContext): boolean {
+  const peerAddress = requestPeerAddress(ctx);
+  return peerAddress ? isPrivateLanHost(peerAddress) : false;
 }
 
 function hasValidCliToken(ctx: PolicyContext): boolean {
@@ -70,7 +79,7 @@ export const managementPolicy: RoutePolicy = {
     //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx)) {
+    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         const apiKey = extractApiKey(ctx.request as unknown as Request);
         if (apiKey) {
