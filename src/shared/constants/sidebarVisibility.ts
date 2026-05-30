@@ -16,6 +16,8 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "cli-tools",
   "agents",
   "cloud-agents",
+  "agent-bridge",
+  "traffic-inspector",
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",
@@ -251,6 +253,20 @@ const TOOLS_GROUP: SidebarItemGroup = {
       i18nKey: "cloudAgents",
       subtitleKey: "cloudAgentsSubtitle",
       icon: "cloud",
+    },
+    {
+      id: "agent-bridge",
+      href: "/dashboard/tools/agent-bridge",
+      i18nKey: "agentBridge",
+      subtitleKey: "agentBridgeSubtitle",
+      icon: "link",
+    },
+    {
+      id: "traffic-inspector",
+      href: "/dashboard/tools/traffic-inspector",
+      i18nKey: "trafficInspector",
+      subtitleKey: "trafficInspectorSubtitle",
+      icon: "network_check",
     },
   ],
 };

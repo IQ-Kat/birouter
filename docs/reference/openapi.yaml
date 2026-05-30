@@ -75,6 +75,19 @@ tags:
     description: Fallback chain management
   - name: Telemetry
     description: Telemetry and token health monitoring
+  - name: AgentBridge
+    description: >-
+      MITM proxy manager for 9 IDE agents (Antigravity, Kiro, Copilot, Codex, Cursor, Zed,
+      Claude Code, Open Code, Trae). Controls server lifecycle, DNS/model mappings, bypass list,
+      and cert management. All routes are LOCAL_ONLY + SPAWN_CAPABLE (hard rules #15, #17).
+      See docs/frameworks/AGENTBRIDGE.md.
+  - name: Traffic Inspector
+    description: >-
+      LLM-aware HTTPS traffic debugger with 4 capture modes (AgentBridge, Custom Hosts,
+      HTTP_PROXY :8080, System-wide). Provides real-time WebSocket stream, session recording,
+      HAR export, SSE merge, and conversation normalization.
+      All routes are LOCAL_ONLY + SPAWN_CAPABLE (hard rules #15, #17).
+      See docs/frameworks/TRAFFIC_INSPECTOR.md.
 
 paths:
   # ─── Proxy Endpoints ──────────────────────────────────────────
@@ -3032,6 +3045,609 @@ paths:
         "200":
           description: Generated content
 
+  # ─── AgentBridge ──────────────────────────────────────────────
+
+  /api/tools/agent-bridge/agents:
+    get:
+      tags: [AgentBridge]
+      summary: List all 9 IDE agents with current state
+      description: >-
+        Returns the state (dns_enabled, cert_trusted, setup_completed, last_started_at,
+        last_error) for all 9 configured IDE agents. LOCAL_ONLY.
+      responses:
+        "200":
+          description: Array of agent state rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentBridgeAgentState"
+        "403":
+          description: Loopback-only — request came from a non-loopback address
+
+  /api/tools/agent-bridge/state:
+    get:
+      tags: [AgentBridge]
+      summary: Get global AgentBridge server state
+      description: Returns running status, port, cert info, and intercepted request count.
+      responses:
+        "200":
+          description: Server state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentBridgeServerState"
+
+  /api/tools/agent-bridge/server:
+    post:
+      tags: [AgentBridge]
+      summary: Control AgentBridge MITM server
+      description: Start, stop, restart, trust-cert, or regenerate-cert. SPAWN_CAPABLE.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeServerAction"
+      responses:
+        "200":
+          description: Action executed
+        "400":
+          description: Invalid action
+        "409":
+          description: Port 443 conflict
+
+  /api/tools/agent-bridge/agents/{agentId}/state:
+    get:
+      tags: [AgentBridge]
+      summary: Get state of one agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      responses:
+        "200":
+          description: Agent state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentBridgeAgentState"
+        "404":
+          description: Unknown agent ID
+
+  /api/tools/agent-bridge/agents/{agentId}/dns:
+    post:
+      tags: [AgentBridge]
+      summary: Enable or disable DNS for one agent
+      description: Adds or removes /etc/hosts entries for the agent's host list. SPAWN_CAPABLE.
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeDnsAction"
+      responses:
+        "200":
+          description: DNS updated
+        "400":
+          description: Validation error
+
+  /api/tools/agent-bridge/agents/{agentId}/mappings:
+    get:
+      tags: [AgentBridge]
+      summary: Get model mappings for one agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      responses:
+        "200":
+          description: Array of source→target model mappings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentBridgeMappingRow"
+    put:
+      tags: [AgentBridge]
+      summary: Update model mappings for one agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AgentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeMappingPut"
+      responses:
+        "200":
+          description: Mappings updated
+
+  /api/tools/agent-bridge/bypass:
+    get:
+      tags: [AgentBridge]
+      summary: List bypass patterns (hosts never decrypted)
+      responses:
+        "200":
+          description: Bypass patterns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentBridgeBypassRow"
+    put:
+      tags: [AgentBridge]
+      summary: Update user bypass patterns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeBypassUpsert"
+      responses:
+        "200":
+          description: Patterns updated
+
+  /api/tools/agent-bridge/cert:
+    post:
+      tags: [AgentBridge]
+      summary: Download or regenerate the AgentBridge CA certificate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [download, regenerate]
+      responses:
+        "200":
+          description: CA certificate PEM (download) or regeneration confirmation
+
+  /api/tools/agent-bridge/upstream-ca:
+    get:
+      tags: [AgentBridge]
+      summary: Get configured upstream CA cert path
+      responses:
+        "200":
+          description: Upstream CA configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  path:
+                    type: string
+                    nullable: true
+    post:
+      tags: [AgentBridge]
+      summary: Set upstream CA cert path for corporate TLS environments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentBridgeUpstreamCaPost"
+      responses:
+        "200":
+          description: Upstream CA configured
+        "400":
+          description: Path does not exist or is not readable
+
+  # ─── Traffic Inspector ─────────────────────────────────────────
+
+  /api/tools/traffic-inspector/requests:
+    get:
+      tags: [Traffic Inspector]
+      summary: List intercepted requests (filterable)
+      parameters:
+        - name: profile
+          in: query
+          schema:
+            type: string
+            enum: [llm, custom, all]
+        - name: host
+          in: query
+          schema:
+            type: string
+        - name: agent
+          in: query
+          schema:
+            $ref: "#/components/schemas/AgentId"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["2xx", "3xx", "4xx", "5xx", error]
+        - name: source
+          in: query
+          schema:
+            $ref: "#/components/schemas/CaptureSource"
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Array of intercepted requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InterceptedRequest"
+    delete:
+      tags: [Traffic Inspector]
+      summary: Clear the in-memory traffic buffer
+      responses:
+        "204":
+          description: Buffer cleared
+
+  /api/tools/traffic-inspector/requests/{id}:
+    get:
+      tags: [Traffic Inspector]
+      summary: Get a single intercepted request by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Intercepted request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterceptedRequest"
+        "404":
+          description: Request not found in buffer
+
+  /api/tools/traffic-inspector/requests/{id}/replay:
+    post:
+      tags: [Traffic Inspector]
+      summary: Replay a captured request through OmniRoute router
+      description: Re-executes the original request body against /v1/chat/completions. Consumes quota.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Replay response (streaming or JSON)
+        "404":
+          description: Request not found
+
+  /api/tools/traffic-inspector/requests/{id}/annotation:
+    put:
+      tags: [Traffic Inspector]
+      summary: Save or update annotation on a request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorAnnotationPut"
+      responses:
+        "200":
+          description: Annotation saved
+
+  /api/tools/traffic-inspector/ws:
+    get:
+      tags: [Traffic Inspector]
+      summary: Live WebSocket stream of intercepted requests
+      description: >-
+        Upgrade to WebSocket. On connect, server sends `{type:"snapshot", data:[...]}`.
+        Subsequent events: `{type:"new", data:{...}}`, `{type:"update", data:{...}}`,
+        `{type:"clear"}`. LOCAL_ONLY.
+      responses:
+        "101":
+          description: WebSocket upgrade successful
+        "403":
+          description: Non-loopback origin rejected
+
+  /api/tools/traffic-inspector/export.har:
+    get:
+      tags: [Traffic Inspector]
+      summary: Export current filtered request list as HAR 1.2
+      parameters:
+        - name: profile
+          in: query
+          schema:
+            type: string
+            enum: [llm, custom, all]
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: HAR file (JSON)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: HAR 1.2 format
+
+  /api/tools/traffic-inspector/hosts:
+    get:
+      tags: [Traffic Inspector]
+      summary: List custom capture hosts
+      responses:
+        "200":
+          description: Custom hosts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InspectorCustomHost"
+    post:
+      tags: [Traffic Inspector]
+      summary: Add a custom capture host (edits /etc/hosts)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorCustomHostCreate"
+      responses:
+        "201":
+          description: Host added
+        "409":
+          description: Host already exists
+
+  /api/tools/traffic-inspector/hosts/{host}:
+    delete:
+      tags: [Traffic Inspector]
+      summary: Remove a custom capture host
+      parameters:
+        - name: host
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Host removed
+    patch:
+      tags: [Traffic Inspector]
+      summary: Toggle enabled state of a custom host
+      parameters:
+        - name: host
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Host updated
+
+  /api/tools/traffic-inspector/capture-modes:
+    get:
+      tags: [Traffic Inspector]
+      summary: Get state of all 4 capture modes
+      responses:
+        "200":
+          description: Capture modes state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InspectorCaptureModesState"
+
+  /api/tools/traffic-inspector/capture-modes/http-proxy:
+    post:
+      tags: [Traffic Inspector]
+      summary: Start or stop the HTTP_PROXY listener (port 8080)
+      description: SPAWN_CAPABLE — spawns a net.Server listener.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorCaptureModeAction"
+      responses:
+        "200":
+          description: Action executed
+        "409":
+          description: Port conflict (EADDRINUSE) when starting
+
+  /api/tools/traffic-inspector/capture-modes/system-proxy:
+    post:
+      tags: [Traffic Inspector]
+      summary: Apply or revert system-wide proxy settings
+      description: SPAWN_CAPABLE — executes networksetup/gsettings/netsh. Requires admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorSystemProxyAction"
+      responses:
+        "200":
+          description: System proxy updated
+        "500":
+          description: OS command failed (permission error)
+
+  /api/tools/traffic-inspector/capture-modes/tls-intercept:
+    post:
+      tags: [Traffic Inspector]
+      summary: Toggle TLS body decryption in HTTP_PROXY mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorTlsInterceptToggle"
+      responses:
+        "200":
+          description: TLS intercept mode updated
+
+  /api/tools/traffic-inspector/sessions:
+    get:
+      tags: [Traffic Inspector]
+      summary: List all saved recording sessions
+      responses:
+        "200":
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InspectorSession"
+    post:
+      tags: [Traffic Inspector]
+      summary: Start a new recording session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorSessionStart"
+      responses:
+        "201":
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InspectorSession"
+
+  /api/tools/traffic-inspector/sessions/{id}:
+    get:
+      tags: [Traffic Inspector]
+      summary: Get session snapshot (all captured requests)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Session with embedded requests
+        "404":
+          description: Session not found
+    patch:
+      tags: [Traffic Inspector]
+      summary: Stop or rename a recording session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectorSessionPatch"
+      responses:
+        "200":
+          description: Session updated
+    delete:
+      tags: [Traffic Inspector]
+      summary: Delete a recording session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Session deleted
+
+  /api/tools/traffic-inspector/sessions/{id}/export.har:
+    get:
+      tags: [Traffic Inspector]
+      summary: Export a recorded session as HAR 1.2
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: HAR file for this session
+          content:
+            application/json:
+              schema:
+                type: object
+                description: HAR 1.2 format
+        "404":
+          description: Session not found
+
+  /api/tools/traffic-inspector/internal/ingest:
+    post:
+      tags: [Traffic Inspector]
+      summary: Internal ingest endpoint for server.cjs passthrough path
+      description: >-
+        Accepts a serialized InterceptedRequest from the CJS MITM server for requests
+        that do not go through TypeScript handlers (e.g., passthrough hosts). Requires
+        INSPECTOR_INTERNAL_INGEST_TOKEN header. LOCAL_ONLY.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InterceptedRequest"
+      responses:
+        "204":
+          description: Ingested
+        "401":
+          description: Invalid or missing ingest token
+
   # ─── OpenAPI Spec ──────────────────────────────────────────────
 
   /api/openapi/spec:
@@ -3160,6 +3776,389 @@ components:
             $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+
+    # ─── AgentBridge Schemas ────────────────────────────────────────
+
+    AgentId:
+      type: string
+      enum:
+        - antigravity
+        - kiro
+        - copilot
+        - codex
+        - cursor
+        - zed
+        - claude-code
+        - open-code
+        - trae
+      description: One of the 9 supported IDE agents
+
+    AgentBridgeAgentState:
+      type: object
+      description: Per-agent MITM state
+      properties:
+        agent_id:
+          $ref: "#/components/schemas/AgentId"
+        dns_enabled:
+          type: boolean
+        cert_trusted:
+          type: boolean
+        setup_completed:
+          type: boolean
+        last_started_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_error:
+          type: string
+          nullable: true
+
+    AgentBridgeServerState:
+      type: object
+      description: Global AgentBridge MITM server state
+      properties:
+        running:
+          type: boolean
+        port:
+          type: integer
+          example: 443
+        certReady:
+          type: boolean
+        interceptedCount:
+          type: integer
+        activeConnections:
+          type: integer
+        lastStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    AgentBridgeServerAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [start, stop, restart, trust-cert, regenerate-cert]
+
+    AgentBridgeDnsAction:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    AgentBridgeMappingRow:
+      type: object
+      properties:
+        agent_id:
+          $ref: "#/components/schemas/AgentId"
+        source_model:
+          type: string
+          example: gpt-4o
+        target_model:
+          type: string
+          example: claude-sonnet-4.7
+        updated_at:
+          type: string
+          format: date-time
+
+    AgentBridgeMappingPut:
+      type: object
+      required: [mappings]
+      properties:
+        mappings:
+          type: array
+          items:
+            type: object
+            required: [source, target]
+            properties:
+              source:
+                type: string
+                example: gpt-4o
+              target:
+                type: string
+                example: claude-sonnet-4.7
+
+    AgentBridgeBypassRow:
+      type: object
+      properties:
+        pattern:
+          type: string
+          example: "*.bank.*"
+        source:
+          type: string
+          enum: [default, user]
+        created_at:
+          type: string
+          format: date-time
+
+    AgentBridgeBypassUpsert:
+      type: object
+      required: [patterns]
+      properties:
+        patterns:
+          type: array
+          items:
+            type: string
+          example: ["*.bank.*", "*.gov.*"]
+
+    AgentBridgeUpstreamCaPost:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+          description: Absolute path to a PEM file for corporate upstream CA
+          example: "/etc/ssl/certs/corporate-ca.pem"
+
+    # ─── Traffic Inspector Schemas ──────────────────────────────────
+
+    CaptureSource:
+      type: string
+      enum: [agent-bridge, custom-host, http-proxy, system-proxy]
+
+    DetectedKind:
+      type: string
+      enum: [llm, app, unknown]
+
+    InterceptedRequest:
+      type: object
+      description: A single intercepted HTTP request captured by the Traffic Inspector
+      required: [id, source, timestamp, method, host, path, requestHeaders, requestSize, responseHeaders, responseSize, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/CaptureSource"
+        agent:
+          $ref: "#/components/schemas/AgentId"
+        timestamp:
+          type: string
+          format: date-time
+        method:
+          type: string
+          example: POST
+        host:
+          type: string
+          example: api.githubcopilot.com
+        path:
+          type: string
+          example: /v1/chat/completions
+        requestHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        requestBody:
+          type: string
+          nullable: true
+          description: Masked (secrets replaced with ***)
+        requestSize:
+          type: integer
+        responseHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        responseBody:
+          type: string
+          nullable: true
+        responseSize:
+          type: integer
+        status:
+          oneOf:
+            - type: integer
+            - type: string
+              enum: [in-flight, error]
+        proxyLatencyMs:
+          type: number
+          nullable: true
+        upstreamLatencyMs:
+          type: number
+          nullable: true
+        totalLatencyMs:
+          type: number
+          nullable: true
+        error:
+          type: string
+          nullable: true
+          description: Sanitized error message (no stack traces)
+        sourceModel:
+          type: string
+          nullable: true
+        mappedModel:
+          type: string
+          nullable: true
+        detectedKind:
+          $ref: "#/components/schemas/DetectedKind"
+        contextKey:
+          type: string
+          nullable: true
+          description: 12-char SHA-256 hex of the system prompt (for conversation grouping)
+          example: a3f9c2b1d5e4
+        annotation:
+          type: string
+          nullable: true
+        sessionId:
+          type: string
+          format: uuid
+          nullable: true
+        note:
+          type: string
+          nullable: true
+          description: Informational note (e.g. TLS tunnel metadata)
+
+    InspectorCustomHost:
+      type: object
+      properties:
+        host:
+          type: string
+          example: api.openai.com
+        enabled:
+          type: boolean
+        label:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          enum: [llm, app, custom]
+        added_at:
+          type: string
+          format: date-time
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    InspectorCustomHostCreate:
+      type: object
+      required: [host]
+      properties:
+        host:
+          type: string
+          minLength: 1
+          example: my-internal-llm.company.com
+        enabled:
+          type: boolean
+          default: true
+        label:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          enum: [llm, app, custom]
+          default: custom
+
+    InspectorCaptureModesState:
+      type: object
+      properties:
+        agentBridge:
+          type: object
+          properties:
+            active:
+              type: boolean
+        customHosts:
+          type: object
+          properties:
+            active:
+              type: boolean
+            count:
+              type: integer
+        httpProxy:
+          type: object
+          properties:
+            active:
+              type: boolean
+            port:
+              type: integer
+              example: 8080
+        systemProxy:
+          type: object
+          properties:
+            active:
+              type: boolean
+            guardMinutes:
+              type: integer
+
+    InspectorCaptureModeAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [start, stop]
+
+    InspectorSystemProxyAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [apply, revert]
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          example: 8080
+        guardMinutes:
+          type: integer
+          minimum: 1
+          example: 30
+
+    InspectorTlsInterceptToggle:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    InspectorAnnotationPut:
+      type: object
+      required: [annotation]
+      properties:
+        annotation:
+          type: string
+          maxLength: 10000
+
+    InspectorSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        request_count:
+          type: integer
+        profile:
+          type: string
+          enum: [llm, custom, all]
+          nullable: true
+
+    InspectorSessionStart:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Antigravity test run #1"
+
+    InspectorSessionPatch:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [stop, rename]
+        name:
+          type: string
     QuotaPool:
       type: object
       description: A quota sharing pool — binds a provider connection to allocation rules.

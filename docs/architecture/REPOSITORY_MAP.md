@@ -101,7 +101,9 @@ src/
 ├── shared/              # Shared between server and client where safe (constants, types, validation, contracts, utils)
 ├── i18n/                # next-intl config + per-locale message JSON (30+ locales)
 ├── middleware/          # Next.js middleware (request enrichment, locale detection)
-├── mitm/                # MITM proxy helpers (Linux cert install, antigravity stealth)
+├── mitm/                # MITM proxy core: cert gen/install, handlers, targets, inspector, masks, passthrough
+│   ├── handlers/        # 9 IDE-agent handler classes extending MitmHandlerBase (antigravity, kiro, copilot, codex, cursor, zed, claudeCode, openCode, trae)
+│   └── inspector/       # Traffic capture layer: buffer (in-memory ring), sseMerger, conversationNormalizer, kindDetector, contextKey, httpProxyServer, systemProxyConfig
 ├── models/              # Model adapter glue (legacy shim)
 ├── scripts/             # In-tree maintenance scripts (e.g., backfillAggregation)
 ├── sse/                 # Legacy SSE handlers/services (chat.ts, chatHelpers.ts, services/auth.ts)
@@ -120,9 +122,13 @@ src/
 | `app/api/v1/`                                                                | Public OpenAI-compat API (~25 sub-routes: chat, completions, embeddings, files, batches, audio, images, videos, music, rerank, moderations, search, ws, agents, accounts, providers, etc.) |
 | `app/api/v1beta/`                                                            | Gemini-style API endpoints                                                                                                                                                                 |
 | `app/api/` (non-v1)                                                          | Management/admin routes (~60 directories: providers, combos, settings, mcp, a2a, evals, memory, skills, webhooks, compliance, resilience, monitoring, tunnels, cli-tools, etc.)            |
+| `app/api/tools/agent-bridge/`                                                | AgentBridge REST API — 12 routes (server control, agent state/DNS/mappings, bypass, cert, upstream-CA). LOCAL_ONLY + SPAWN_CAPABLE. See `docs/frameworks/AGENTBRIDGE.md §7`.              |
+| `app/api/tools/traffic-inspector/`                                           | Traffic Inspector REST + WS API — 16+ routes (requests, sessions, hosts, capture-modes, export, ws). LOCAL_ONLY + SPAWN_CAPABLE. See `docs/frameworks/TRAFFIC_INSPECTOR.md §8`.           |
 | `app/a2a/`                                                                   | A2A JSON-RPC 2.0 entry point (`POST /a2a`)                                                                                                                                                 |
 | `app/.well-known/agent.json/`                                                | A2A Agent Card (discovery)                                                                                                                                                                 |
 | `app/(dashboard)/dashboard/`                                                 | Dashboard UI pages (~35 pages: providers, combos, settings, memory, skills, webhooks, evals, audit, batch, cache, costs, health, system, activity, etc.)                                   |
+| `app/(dashboard)/dashboard/tools/agent-bridge/`                              | AgentBridge dashboard page — server card, 9 agent cards, setup wizard, model mapping, bypass list. i18n PT-BR + EN. See `docs/frameworks/AGENTBRIDGE.md`.                                 |
+| `app/(dashboard)/dashboard/tools/traffic-inspector/`                         | Traffic Inspector dashboard page — DevTools split, 7 detail tabs, 4 capture mode toggles, session recorder, context colorization. i18n PT-BR + EN. See `docs/frameworks/TRAFFIC_INSPECTOR.md`. |
 | `app/(dashboard)/dashboard/activity/`                                        | Activity feed page (Group B): `page.tsx` (server) + `ActivityFeedClient.tsx` + `components/{ActivityFeed,ActivityItem,DayHeader,EventTypeFilter}.tsx` — see `docs/architecture/MONITORING_SECTIONS.md` |
 | `app/(dashboard)/dashboard/costs/quota-share/`                               | Quota Sharing page (Group B): `QuotaSharePageClient.tsx` + `components/{PoolCard,DimensionBar,AllocationTable,BurnRateChart,QuotaConceptCard,CreatePoolModal,EditAllocationsModal}.tsx` + `hooks/{usePools,usePoolUsage,useLocalStoragePoolMigration}.ts` |
 | `app/(dashboard)/dashboard/costs/quota-share/plans/`                         | Provider plan config page (Group B): `page.tsx` + `ProviderPlanConfigClient.tsx` — quota dimensions per connection override |

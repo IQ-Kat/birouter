@@ -862,6 +862,16 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `QUOTA_SATURATION_THRESHOLD` | `0.5` | `src/lib/quota/enforce.ts` | Pool saturation ratio (0..1); at/above it the pool enters strict mode (no borrowing). |
 | `QUOTA_SOFT_DEPRIORITIZE_FACTOR` | `0.7` | `open-sse/services/combo.ts` | Score multiplier (0..1) applied to a target when the soft quota policy deprioritizes it. |
 | `QUOTA_CONSUMPTION_RETENTION_DAYS` | `14` | `src/lib/db/quotaConsumption.ts` | Retention window (days) for `quota_consumption` buckets before GC (`gcQuotaConsumption`). |
+| `AGENTBRIDGE_UPSTREAM_CA_CERT` | _(unset)_ | `src/mitm/manager.ts` | Extra CA certificate (PEM) trusted for AgentBridge upstream TLS connections. |
+| `INSPECTOR_BUFFER_SIZE` | `1000` | `src/mitm/inspector/buffer.ts` | Max captured requests held in the Traffic Inspector ring buffer. |
+| `INSPECTOR_MAX_BODY_KB` | `1024` | `src/mitm/inspector/buffer.ts` | Max captured request/response body size (KB) before truncation. |
+| `INSPECTOR_HTTP_PROXY_PORT` | `8080` | `src/mitm/inspector/httpProxyServer.ts` | Local port for the Traffic Inspector HTTP proxy. |
+| `INSPECTOR_HTTP_PROXY_AUTOSTART` | `false` | `src/mitm/inspector/httpProxyServer.ts` | Auto-start the inspector HTTP proxy on boot. |
+| `INSPECTOR_TLS_INTERCEPT` | `false` | `src/lib/inspector/captureState.ts` | Enable TLS interception (MITM) for captured HTTPS traffic. |
+| `INSPECTOR_LLM_HOSTS_EXTRA` | _(unset)_ | `src/lib/inspector/captureState.ts` | Extra hostnames (comma-separated) treated as LLM endpoints for capture. |
+| `INSPECTOR_MASK_SECRETS` | `true` | `src/mitm/inspector/buffer.ts` | Mask secrets (auth headers / API keys) in captured traffic. |
+| `INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES` | `30` | `src/app/api/tools/traffic-inspector/capture-modes/system-proxy/route.ts` | Minutes before the system-proxy guard auto-reverts OS proxy settings. |
+| `INSPECTOR_INTERNAL_INGEST_TOKEN` | _(auto)_ | `src/app/api/tools/traffic-inspector/internal/ingest/route.ts` | Token authenticating internal capture ingest into the inspector. |
 
 ---
 
