@@ -85,7 +85,7 @@ export async function loadPlugin(
 
   const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
     env,
-    stdio: ["pipe", "pipe", "pipe", "ipc"],
+    stdio: ["ignore", "ignore", "ignore", "ipc"],
   });
 
   // Track pending calls with timeout support

@@ -39,7 +39,7 @@ test("Plugin interface supports lifecycle hooks", () => {
     onRequest: async (_ctx: PluginContext): Promise<PluginResult | void> => {
       return { blocked: false };
     },
-    onResponse: async (_ctx: PluginContext, response: any) => response,
+    onResponse: async (_ctx: PluginContext, response: unknown) => response,
     onError: async (_ctx: PluginContext, _error: Error) => null,
   };
   assert.equal(typeof plugin.onRequest, "function");
@@ -77,13 +77,22 @@ test("PluginResult supports body modification", () => {
   assert.equal(modified.metadata?.plugin, "model-switcher");
 });
 
-test("loadPlugin runs hooks in an isolated child process over IPC", async () => {
-  const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-loader-"));
-  const entryPoint = join(pluginDir, "index.mjs");
+test(
+  "loadPlugin runs hooks in an isolated child process over IPC",
+  { timeout: 5_000 },
+  async (t) => {
+    const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-loader-"));
+    const entryPoint = join(pluginDir, "index.mjs");
+    let loaded: LoadedPlugin | undefined;
 
-  await writeFile(
-    entryPoint,
-    `
+    t.after(async () => {
+      loaded?.cleanup();
+      await rm(pluginDir, { recursive: true, force: true });
+    });
+
+    await writeFile(
+      entryPoint,
+      `
 export async function onRequest(ctx) {
   return {
     body: { ...ctx.body, touchedByPlugin: true },
@@ -91,24 +100,23 @@ export async function onRequest(ctx) {
   };
 }
 `,
-    "utf-8"
-  );
+      "utf-8"
+    );
 
-  const loaded = await loadPlugin(entryPoint, {
-    name: "ipc-test",
-    version: "1.0.0",
-    license: "MIT",
-    main: "index.mjs",
-    source: "local",
-    tags: [],
-    requires: { permissions: [] },
-    hooks: { onRequest: true, onResponse: false, onError: false },
-    skills: [],
-    enabledByDefault: false,
-    configSchema: {},
-  });
+    loaded = await loadPlugin(entryPoint, {
+      name: "ipc-test",
+      version: "1.0.0",
+      license: "MIT",
+      main: "index.mjs",
+      source: "local",
+      tags: [],
+      requires: { permissions: [] },
+      hooks: { onRequest: true, onResponse: false, onError: false },
+      skills: [],
+      enabledByDefault: false,
+      configSchema: {},
+    });
 
-  try {
     const result = await loaded.plugin.onRequest?.({
       requestId: "test-request",
       body: { model: "gpt-4" },
@@ -120,8 +128,5 @@ export async function onRequest(ctx) {
       body: { model: "gpt-4", touchedByPlugin: true },
       metadata: { pluginHook: "onRequest" },
     });
-  } finally {
-    loaded.cleanup();
-    await rm(pluginDir, { recursive: true, force: true });
   }
-});
+);
