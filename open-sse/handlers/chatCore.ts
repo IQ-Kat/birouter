@@ -68,7 +68,7 @@ import {
   connectionHasExtraKeys,
   type KeyHealth,
 } from "../services/apiKeyRotator.ts";
-import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
+
 import {
   getCallLogPipelineCaptureStreamChunks,
   getChatLogTextLimit,
@@ -277,12 +277,32 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
   return result;
 }
 
-function isSmallEnoughForSemanticCache(value: unknown): boolean {
-  try {
-    return JSON.stringify(value).length <= 256 * 1024;
-  } catch {
-    return false;
+/** Fast size estimator — walks object tree without JSON.stringify */
+function estimateSizeFast(value: unknown): number {
+  let bytes = 0;
+  const stack: unknown[] = [value];
+  while (stack.length > 0) {
+    const v = stack.pop();
+    if (v === null || v === undefined) continue;
+    if (typeof v === "string") {
+      bytes += v.length;
+      if (bytes > 262144) return bytes;
+    } else if (typeof v === "number") bytes += 8;
+    else if (typeof v === "boolean") bytes += 4;
+    else if (typeof v === "object") {
+      if (Array.isArray(v)) {
+        for (let i = 0; i < v.length; i++) stack.push(v[i]);
+      } else {
+        const vals = Object.values(v);
+        for (let i = 0; i < vals.length; i++) stack.push(vals[i]);
+      }
+    }
   }
+  return bytes;
+}
+
+function isSmallEnoughForSemanticCache(value: unknown): boolean {
+  return estimateSizeFast(value) <= 256 * 1024;
 }
 
 function extractMemoryTextFromResponse(
@@ -1915,7 +1935,13 @@ export async function handleChatCore({
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
-  const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  // Consolidate settings reads — fetch once, reuse throughout the request
+  const settings = cachedSettings ?? (await getCachedSettings());
+  const detailedLoggingEnabled =
+    !noLogEnabled &&
+    (settings.call_log_pipeline_enabled === true ||
+      settings.call_log_pipeline_enabled === "1" ||
+      settings.call_log_pipeline_enabled === "true");
   const capturePipelineStreamChunks =
     detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
@@ -2134,7 +2160,6 @@ export async function handleChatCore({
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
-  const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
