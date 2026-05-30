@@ -1,14 +1,14 @@
 /**
  * Plugin loader — loads plugins in isolated child processes.
  *
- * Uses child_process.fork() for process-level isolation. Each plugin
+ * Uses a child Node.js process with IPC for process-level isolation. Each plugin
  * runs in a separate Node.js process with restricted environment.
  * Complies with Rule 3 (no eval/new Function/implied eval).
  *
  * @module plugins/loader
  */
 
-import { fork } from "child_process";
+import { spawn } from "child_process";
 import { writeFile, rm } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -29,7 +29,7 @@ export interface LoadedPlugin {
   cleanup: () => void;
 }
 
-// ── Plugin host script (runs in child process via fork) ──
+// ── Plugin host script (runs in child process over IPC) ──
 // Uses process.send()/process.on("message") — NOT worker_threads.
 // Written as .mjs to force ESM execution regardless of package.json.
 
@@ -83,10 +83,9 @@ export async function loadPlugin(
     PLUGIN_NAME: manifest.name,
   };
 
-  const child = fork(hostScriptPath, [entryPoint], {
+  const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
     env,
-    stdio: ["pipe", "pipe", "pipe", "ipc"],
-    execArgv: ["--no-warnings"],
+    stdio: ["ignore", "ignore", "ignore", "ipc"],
   });
 
   // Track pending calls with timeout support
