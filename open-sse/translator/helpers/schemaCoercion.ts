@@ -232,3 +232,122 @@ export function injectEmptyReasoningContentForToolCalls(
     return { ...message, reasoning_content: "" };
   });
 }
+
+/**
+ * Anthropic's first-party Messages API strictly validates tool `input_schema`
+ * against JSON Schema draft 2020-12. IDE/SDK agent harnesses that deep-truncate
+ * their schemas emit invalid constructs — most commonly an array keyword
+ * (`enum`, `required`, …) replaced by a placeholder string such as
+ * `"[MaxDepth]"`, or an index-keyed object (`{"0":"a","1":"b"}`) where an array
+ * is expected. Anthropic rejects these with
+ * `tools.N.custom.input_schema: JSON schema is invalid` (surfaced as a
+ * misleading `400 out of extra usage` placeholder when streaming). Non-Anthropic
+ * targets (OpenAI/Codex) tolerate them, which is why the same request succeeds
+ * on a fallback provider. This sanitizer coerces or drops the invalid
+ * constructs so legitimate native-Claude-OAuth traffic is not spuriously
+ * rejected. See Spec E (Claude Code OAuth wire compatibility).
+ */
+const SCHEMA_PLACEHOLDER_PATTERN = /^\[(?:MaxDepth|Truncated|Circular|Object|Array)\]$/;
+const ARRAY_SCHEMA_KEYS = ["enum", "required", "anyOf", "oneOf", "allOf", "prefixItems"];
+const SCHEMA_ARRAY_OF_SCHEMAS = new Set(["anyOf", "oneOf", "allOf", "prefixItems"]);
+const SCHEMA_SLOT_KEYS = [
+  "items",
+  "additionalProperties",
+  "propertyNames",
+  "contains",
+  "not",
+  "if",
+  "then",
+  "else",
+  "unevaluatedProperties",
+  "additionalItems",
+];
+
+function coerceIndexedObjectToArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) return value;
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value);
+    if (keys.length > 0 && keys.every((key, index) => String(index) === key)) {
+      return keys.map((key) => value[key]);
+    }
+  }
+  return null;
+}
+
+function isSchemaPlaceholder(value: unknown): boolean {
+  return typeof value === "string" && SCHEMA_PLACEHOLDER_PATTERN.test(value.trim());
+}
+
+export function stripInvalidSchemaConstructs(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((entry) => stripInvalidSchemaConstructs(entry));
+  }
+  if (!isPlainObject(schema)) {
+    return isSchemaPlaceholder(schema) ? {} : schema;
+  }
+
+  const result: JsonRecord = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (ARRAY_SCHEMA_KEYS.includes(key)) {
+      const array = coerceIndexedObjectToArray(value);
+      if (array === null) continue; // drop invalid non-array keyword (e.g. enum: "[MaxDepth]")
+      result[key] = SCHEMA_ARRAY_OF_SCHEMAS.has(key)
+        ? array.map((entry) => stripInvalidSchemaConstructs(entry))
+        : array;
+      continue;
+    }
+    if (SCHEMA_SLOT_KEYS.includes(key)) {
+      result[key] =
+        isPlainObject(value) || Array.isArray(value) ? stripInvalidSchemaConstructs(value) : {};
+      continue;
+    }
+    if (key === "const") {
+      if (isSchemaPlaceholder(value)) continue;
+      result[key] = value;
+      continue;
+    }
+    if (key === "properties" && isPlainObject(value)) {
+      const properties: JsonRecord = {};
+      for (const [propName, propSchema] of Object.entries(value)) {
+        properties[propName] = isPlainObject(propSchema)
+          ? stripInvalidSchemaConstructs(propSchema)
+          : {};
+      }
+      result[key] = properties;
+      continue;
+    }
+    if (
+      (key === "$defs" ||
+        key === "definitions" ||
+        key === "patternProperties" ||
+        key === "dependentSchemas") &&
+      isPlainObject(value)
+    ) {
+      const defs: JsonRecord = {};
+      for (const [defName, defSchema] of Object.entries(value)) {
+        defs[defName] = stripInvalidSchemaConstructs(defSchema);
+      }
+      result[key] = defs;
+      continue;
+    }
+    if (isSchemaPlaceholder(value)) {
+      result[key] = {};
+      continue;
+    }
+    result[key] =
+      isPlainObject(value) || Array.isArray(value) ? stripInvalidSchemaConstructs(value) : value;
+  }
+  return result;
+}
+
+export function sanitizeClaudeToolSchema(schema: unknown): unknown {
+  return stripInvalidSchemaConstructs(coerceSchemaNumericFields(schema));
+}
+
+export function sanitizeClaudeToolSchemas(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+  return tools.map((tool) => {
+    if (!isPlainObject(tool) || tool.input_schema === undefined) return tool;
+    return { ...tool, input_schema: sanitizeClaudeToolSchema(tool.input_schema) };
+  });
+}
