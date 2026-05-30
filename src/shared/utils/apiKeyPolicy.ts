@@ -13,11 +13,13 @@ import { getApiKeyMetadata, getComboByName, isModelAllowedForKey } from "@/lib/l
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { errorResponse, buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
+import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
+import { parseModel } from "@omniroute/open-sse/services/model.ts";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Manager, while provider/account quota controls remain
@@ -63,6 +65,7 @@ export interface ApiKeyMetadata {
   allowedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
+  allowedQuotas?: string[];
   noLog?: boolean;
   autoResolve?: boolean;
   budget?: number;
@@ -317,9 +320,49 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  // ── Check 3: Model restriction ──
+  // ── Check 3: Quota-exclusive enforcement (Phase A3) ──
+  //
+  // When a key has allowedQuotas, its access is governed entirely by its
+  // pools' providers — normal allowedModels/allowedCombos checks are skipped.
+  if (modelStr && apiKeyInfo.allowedQuotas && apiKeyInfo.allowedQuotas.length > 0) {
+    try {
+      const scope = await resolveQuotaKeyScope(apiKeyInfo.allowedQuotas);
+      const { provider } = parseModel(modelStr);
+      if (provider === null || scope.providers.length === 0 || !scope.providers.includes(provider)) {
+        const quotaBody = buildErrorBody(
+          HTTP_STATUS.FORBIDDEN,
+          `Model "${modelStr}" is not allowed for this quota-exclusive API key`
+        );
+        quotaBody.error.code = "QUOTA_ONLY";
+        return {
+          apiKey,
+          apiKeyInfo,
+          rejection: new Response(JSON.stringify(quotaBody), {
+            status: HTTP_STATUS.FORBIDDEN,
+            headers: { "Content-Type": "application/json" },
+          }),
+        };
+      }
+      // Provider is in scope — quota key governed by pools; skip allowedModels/allowedCombos.
+      // Continue to budget / rate-limit checks below.
+    } catch (error) {
+      log.error("API_POLICY", "Quota scope check failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(
+          HTTP_STATUS.SERVICE_UNAVAILABLE,
+          "API key quota policy unavailable"
+        ),
+      };
+    }
+  }
+
+  // ── Check 4: Model restriction (skipped when allowedQuotas governs access) ──
   let requestedComboName: string | null = null;
-  if (modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+  const isQuotaExclusive =
+    Boolean(apiKeyInfo.allowedQuotas) && (apiKeyInfo.allowedQuotas as string[]).length > 0;
+  if (!isQuotaExclusive && modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
     try {
       const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
       requestedComboName = comboAccess.comboName;
@@ -346,7 +389,8 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  const hasModelRestrictions = apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
+  const hasModelRestrictions =
+    !isQuotaExclusive && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
 
   if (!requestedComboName && modelStr && hasModelRestrictions) {
     try {
