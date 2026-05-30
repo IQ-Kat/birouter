@@ -66,6 +66,13 @@ export async function initializeApp() {
     }
 
     if (!g.signalHandlersRegistered) {
+      process.setMaxListeners(100);
+      process.stderr.on("error", (err) => {
+        if (err.code === "EPIPE") return;
+      });
+      process.stdout.on("error", (err) => {
+        if (err.code === "EPIPE") return;
+      });
       const cleanup = () => {
         try { removeAllDNSEntriesSync(); } catch { /* best effort */ }
         killCloudflared();
@@ -114,7 +121,7 @@ async function autoStartMitm() {
     const activeKey = keys.find(k => k.isActive !== false);
 
     console.log("[InitApp] MITM was enabled, auto-starting...");
-    await startMitm(activeKey?.key || "sk_9router", password);
+    await startMitm(activeKey?.key || "sk_birouter", password);
     console.log("[InitApp] MITM auto-started");
     try {
       await restoreToolDNS(password);

@@ -1,11 +1,11 @@
 ---
-name: 9router-tts
-description: Text-to-speech via 9Router /v1/audio/speech using OpenAI / ElevenLabs / Deepgram / Edge TTS / Google TTS / Hyperbolic / Inworld voices. Use when the user wants to convert text to speech, generate audio, voiceover, narrate, or read text aloud.
+name: birouter-tts
+description: Text-to-speech via Birouter /v1/audio/speech using OpenAI / ElevenLabs / Deepgram / Edge TTS / Google TTS / Hyperbolic / Inworld voices. Use when the user wants to convert text to speech, generate audio, voiceover, narrate, or read text aloud.
 ---
 
-# 9Router — Text-to-Speech
+# Birouter — Text-to-Speech
 
-Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.
+Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/IQ-Kat/birouter/refs/heads/master/skills/birouter/SKILL.md for setup.
 
 ## Discover
 

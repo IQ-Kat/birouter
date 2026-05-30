@@ -137,5 +137,5 @@ If Birouter helps you save money, consider supporting the development:
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/IQ-Kat">Ikbal (IQ-Kat)</a>. Based on 9Router.</sub>
+  <sub>Built with ❤️ by <a href="https://github.com/IQ-Kat">Ikbal (IQ-Kat)</a>. Based on Birouter.</sub>
 </div>

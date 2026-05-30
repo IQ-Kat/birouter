@@ -1,10 +1,10 @@
 # Integración con otras herramientas
 
-9Router es compatible con cualquier herramienta que soporte el formato de API de OpenAI. Esta guía cubre patrones de integración genéricos para varias herramientas y aplicaciones personalizadas.
+Birouter es compatible con cualquier herramienta que soporte el formato de API de OpenAI. Esta guía cubre patrones de integración genéricos para varias herramientas y aplicaciones personalizadas.
 
 ## Resumen
 
-9Router proporciona un endpoint de API compatible con OpenAI que funciona con:
+Birouter proporciona un endpoint de API compatible con OpenAI que funciona con:
 - Scripts y aplicaciones personalizadas
 - Clientes de API y herramientas de testing
 - Herramientas CLI y utilidades
@@ -13,20 +13,20 @@
 
 ## Patrón de configuración genérico
 
-Cualquier herramienta compatible con OpenAI puede conectarse a 9Router usando estas configuraciones:
+Cualquier herramienta compatible con OpenAI puede conectarse a Birouter usando estas configuraciones:
 
-**9Router local:**
+**Birouter local:**
 ```
 Base URL: http://localhost:2004/v1
 API Key: your-api-key-from-dashboard
-Model: cualquier modelo de 9Router (cc/*, cx/*, glm/*, etc.)
+Model: cualquier modelo de Birouter (cc/*, cx/*, glm/*, etc.)
 ```
 
-**9Router en la nube:**
+**Birouter en la nube:**
 ```
-Base URL: https://9router.com/v1
+Base URL: https://birouter.com/v1
 API Key: your-api-key-from-dashboard
-Model: cualquier modelo de 9Router (cc/*, cx/*, glm/*, etc.)
+Model: cualquier modelo de Birouter (cc/*, cx/*, glm/*, etc.)
 ```
 
 ## Modelos disponibles
@@ -318,9 +318,9 @@ def chat_with_retry(prompt, max_retries=3):
 
 ### Problemas de conexión
 
-**Problema:** No se puede conectar a 9Router
+**Problema:** No se puede conectar a Birouter
 ```bash
-# Verifica si 9Router está corriendo
+# Verifica si Birouter está corriendo
 curl http://localhost:2004/health
 
 # Respuesta esperada:
@@ -328,7 +328,7 @@ curl http://localhost:2004/health
 ```
 
 **Solución:**
-- Verifica que 9Router esté corriendo
+- Verifica que Birouter esté corriendo
 - Verifica que el puerto 2004 no esté bloqueado
 - Asegúrate de tener la URL base correcta (incluir `/v1`)
 
@@ -366,7 +366,7 @@ Error: Request timed out after 30s
 **Solución:**
 - Aumenta el timeout en la configuración del cliente
 - Usa modelos más rápidos para tareas sensibles al tiempo
-- Verifica la conexión de red a 9Router
+- Verifica la conexión de red a Birouter
 
 ### Rate limiting
 

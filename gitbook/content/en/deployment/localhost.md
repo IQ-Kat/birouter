@@ -1,15 +1,15 @@
 # 🏠 Localhost Deployment
 
-Run 9Router on your local machine for development and personal use.
+Run Birouter on your local machine for development and personal use.
 
 ---
 
 ## 📦 Installation
 
-Install 9Router globally via npm:
+Install Birouter globally via npm:
 
 ```bash
-npm install -g 9router
+npm install -g birouter
 ```
 
 **Requirements:**
@@ -20,10 +20,10 @@ npm install -g 9router
 
 ## 🚀 Starting the Server
 
-Start 9Router with a single command:
+Start Birouter with a single command:
 
 ```bash
-9router
+birouter
 ```
 
 The dashboard will automatically open in your browser at `http://localhost:3000`
@@ -31,7 +31,7 @@ The dashboard will automatically open in your browser at `http://localhost:3000`
 **Default Configuration:**
 - **Dashboard**: `http://localhost:3000`
 - **API Endpoint**: `http://localhost:2004/v1`
-- **Data Directory**: `~/.9router`
+- **Data Directory**: `~/.birouter`
 
 ---
 
@@ -42,7 +42,7 @@ The dashboard will automatically open in your browser at `http://localhost:3000`
 Set a custom data directory using environment variable:
 
 ```bash
-DATA_DIR=/path/to/data 9router
+DATA_DIR=/path/to/data birouter
 ```
 
 ### Custom Port
@@ -53,10 +53,10 @@ The API port (2004) and dashboard port (3000) are configured in the application.
 
 ## 🛑 Stopping the Server
 
-Press `Ctrl+C` in the terminal where 9Router is running.
+Press `Ctrl+C` in the terminal where Birouter is running.
 
 ```bash
-# In the terminal running 9router
+# In the terminal running birouter
 ^C  # Press Ctrl+C
 ```
 
@@ -69,25 +69,25 @@ The server will gracefully shut down and save all data.
 Simply run the start command again:
 
 ```bash
-9router
+birouter
 ```
 
 All your configurations, API keys, and combos are preserved in the data directory.
 
 ---
 
-## 📊 Updating 9Router
+## 📊 Updating Birouter
 
 Update to the latest version:
 
 ```bash
-npm update -g 9router
+npm update -g birouter
 ```
 
 Check your current version:
 
 ```bash
-npm list -g 9router
+npm list -g birouter
 ```
 
 ---
@@ -113,7 +113,7 @@ If you encounter permission errors during installation:
 
 ```bash
 # Use sudo (not recommended)
-sudo npm install -g 9router
+sudo npm install -g birouter
 
 # Or fix npm permissions (recommended)
 mkdir ~/.npm-global
@@ -128,10 +128,10 @@ If the data directory is not accessible:
 
 ```bash
 # Check permissions
-ls -la ~/.9router
+ls -la ~/.birouter
 
 # Fix permissions
-chmod 755 ~/.9router
+chmod 755 ~/.birouter
 ```
 
 ---
@@ -139,7 +139,7 @@ chmod 755 ~/.9router
 ## 📁 Data Directory Structure
 
 ```
-~/.9router/
+~/.birouter/
 ├── db.json           # Main database (providers, combos, settings)
 ├── logs/             # Application logs
 └── cache/            # Temporary cache files
@@ -149,10 +149,10 @@ chmod 755 ~/.9router
 
 ```bash
 # Backup
-cp -r ~/.9router ~/.9router.backup
+cp -r ~/.birouter ~/.birouter.backup
 
 # Restore
-cp -r ~/.9router.backup ~/.9router
+cp -r ~/.birouter.backup ~/.birouter
 ```
 
 ---

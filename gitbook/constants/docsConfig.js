@@ -233,10 +233,10 @@ export function getNavigation(lang) {
 
 // Static config (logo, urls, default English nav for backward compatibility).
 export const DOCS_CONFIG = {
-  title: "9Router Documentation",
+  title: "Birouter Documentation",
   description: "Smart AI model router - Maximize subscriptions, minimize costs",
-  logo: "9Router",
-  appUrl: "https://9router.com",
-  githubUrl: "https://github.com/decolua/9router",
+  logo: "Birouter",
+  appUrl: "https://birouter.com",
+  githubUrl: "https://github.com/IQ-Kat/birouter",
   navigation: getNavigation(DEFAULT_LANG)
 };

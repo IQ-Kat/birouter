@@ -101,7 +101,7 @@ const readEnvFile = async () => {
 };
 
 // Detect birouter by base_url containing localhost/127.0.0.1 or matching tunnel URL
-const has9RouterConfig = (modelCfg) => {
+const hasBirouterConfig = (modelCfg) => {
   if (!modelCfg?.base_url) return false;
   return modelCfg.provider === "custom" && /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(modelCfg.base_url);
 };
@@ -117,7 +117,7 @@ export async function GET() {
     return NextResponse.json({
       installed: true,
       settings: { model },
-      has9Router: has9RouterConfig(model),
+      hasBirouter: hasBirouterConfig(model),
       configPath: getHermesConfigPath(),
     });
   } catch (error) {

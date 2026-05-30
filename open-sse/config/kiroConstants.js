@@ -3,7 +3,7 @@
  *
  * Mirrors the behaviour of `internal/translator/kiro/common/constants.go` and
  * `internal/translator/kiro/claude/kiro_claude_request.go` from the
- * CLIProxyAPIPlus reference implementation, scoped down to what 9router needs:
+ * CLIProxyAPIPlus reference implementation, scoped down to what birouter needs:
  *
  *   - `-agentic` model suffix detection + chunked-write system prompt
  *   - reasoning / thinking trigger detection (Anthropic-Beta header,
@@ -11,7 +11,7 @@
  *   - the `<thinking_mode>enabled</thinking_mode>` system-prompt injection
  *     that turns Kiro reasoning on
  *
- * Kiro upstream does not advertise `-agentic` model IDs; they are a 9router
+ * Kiro upstream does not advertise `-agentic` model IDs; they are a birouter
  * fiction. The suffix is stripped before the request leaves this process.
  */
 
@@ -130,7 +130,7 @@ export function isThinkingEnabled(body, headers, model) {
 }
 
 /**
- * Detect whether a model id refers to a 9router synthetic agentic variant.
+ * Detect whether a model id refers to a birouter synthetic agentic variant.
  * Agentic variants share the same upstream model as the base; the only
  * difference is the chunked-write system prompt this module injects.
  *
@@ -153,7 +153,7 @@ export function stripAgenticSuffix(model) {
 }
 
 /**
- * Detect whether a model id is a 9router synthetic thinking variant
+ * Detect whether a model id is a birouter synthetic thinking variant
  * (e.g. `claude-sonnet-4.5-thinking`). Same upstream model as the base; the
  * only difference is `<thinking_mode>enabled</thinking_mode>` injection.
  *
@@ -180,7 +180,7 @@ export function stripThinkingSuffix(model) {
 }
 
 /**
- * Resolve a 9router model id to the real upstream Kiro model id, plus flags
+ * Resolve a birouter model id to the real upstream Kiro model id, plus flags
  * describing which behaviours the suffixes implied.
  *
  *   resolveKiroModel("claude-sonnet-4.5-thinking-agentic")

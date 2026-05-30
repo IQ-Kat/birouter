@@ -47,7 +47,34 @@ const { ensureSqliteRuntime, buildEnvWithRuntime } = require("./hooks/sqliteRunt
 const { ensureTrayRuntime } = require("./hooks/trayRuntime");
 const args = process.argv.slice(2);
 
-// Self-heal SQLite runtime deps (sql.js + better-sqlite3) into ~/.9router/runtime
+// Load .env file from project root (if running from source) or from data dir
+function loadEnvFile() {
+  const candidates = [
+    path.join(__dirname, "..", ".env"),       // dev: cli/../.env (project root)
+    path.join(__dirname, ".env"),             // bundled: cli/.env
+  ];
+  for (const envPath of candidates) {
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx === -1) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        const val = trimmed.slice(eqIdx + 1).trim();
+        // Don't override existing env vars
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+      break;
+    }
+  }
+}
+loadEnvFile();
+
+// Self-heal SQLite runtime deps (sql.js + better-sqlite3) into ~/.birouter/runtime
 // so the server can resolve them via NODE_PATH. Best-effort — sql.js is required,
 // better-sqlite3 is optional. Logs to stderr only on failure.
 try { ensureSqliteRuntime({ silent: true }); } catch {}
@@ -62,9 +89,9 @@ const INSTALL_CMD_LATEST = `npm i -g ${APP_NAME}@latest --prefer-online`;
 const DEFAULT_PORT = 2004;
 const DEFAULT_HOST = "0.0.0.0";
 const MAX_PORT_ATTEMPTS = 10;
-// Identifiers for killAllAppProcesses - only kill 9router specifically
+// Identifiers for killAllAppProcesses - only kill birouter specifically
 const PROCESS_IDENTIFIERS = [
-  '9router'  // Only package name - avoid killing other apps
+  'birouter'  // Only package name - avoid killing other apps
 ];
 
 // Parse arguments
@@ -134,9 +161,10 @@ function compareVersions(a, b) {
 
 // Get app data dir (matches app/src/lib/dataDir.js convention)
 function getAppDataDir() {
+  if (process.env.DATA_DIR) return process.env.DATA_DIR;
   return process.platform === "win32"
-    ? path.join(process.env.APPDATA || "", "9router")
-    : path.join(os.homedir(), ".9router");
+    ? path.join(process.env.APPDATA || "", "birouter")
+    : path.join(os.homedir(), ".birouter");
 }
 
 // Kill PID from file (best-effort, removes file after)
@@ -193,7 +221,7 @@ function killCloudflaredByAppPort(appPort) {
   return pids;
 }
 
-// Kill all 9router processes
+// Kill all birouter processes
 function killAllAppProcesses(appPort) {
   return new Promise((resolve) => {
     try {
@@ -219,11 +247,11 @@ function killAllAppProcesses(appPort) {
           });
           const lines = output.split("\n").slice(1).filter(l => l.trim());
           lines.forEach(line => {
-            // Whitelist: real node process running 9router/cli.js, or next-server.
-            // Avoids killing editors/grep/strace/cursor that just have "9router" in cmdline.
+            // Whitelist: real node process running birouter/cli.js, or next-server.
+            // Avoids killing editors/grep/strace/cursor that just have "birouter" in cmdline.
             const cmd = line.toLowerCase();
             const isAppProcess =
-              (cmd.includes("node") && cmd.includes("9router") && (cmd.includes("cli.js") || cmd.includes("\\9router") || cmd.includes("/9router")))
+              (cmd.includes("node") && cmd.includes("birouter") && (cmd.includes("cli.js") || cmd.includes("\\birouter") || cmd.includes("/birouter")))
               || cmd.includes("next-server");
             if (isAppProcess) {
               const match = line.match(/^"(\d+)"/);
@@ -245,11 +273,11 @@ function killAllAppProcesses(appPort) {
           const lines = output.split('\n');
 
           lines.forEach(line => {
-            // Whitelist: real node process running 9router/cli.js, or next-server.
-            // Avoids killing grep/strace/editors/cursor that incidentally match "9router".
+            // Whitelist: real node process running birouter/cli.js, or next-server.
+            // Avoids killing grep/strace/editors/cursor that incidentally match "birouter".
             const cmd = line.toLowerCase();
             const isAppProcess =
-              (cmd.includes("node") && cmd.includes("9router") && (cmd.includes("cli.js") || cmd.includes("/9router")))
+              (cmd.includes("node") && cmd.includes("birouter") && (cmd.includes("cli.js") || cmd.includes("/birouter")))
               || cmd.includes("next-server");
             if (isAppProcess) {
               const parts = line.trim().split(/\s+/);
@@ -406,7 +434,6 @@ function checkForUpdate() {
   if (skipUpdate) return Promise.resolve(null);
   
   return new Promise((resolve) => {
-<<<<<<< D:\Projek\Birouter\router-app\temp_ours_file
     const timeout = setTimeout(() => resolve(null), 3000); // 3s timeout for check
     
     https.get(`https://registry.npmjs.org/${APP_NAME}/latest`, (res) => {
@@ -434,51 +461,6 @@ function checkForUpdate() {
       clearTimeout(timeout);
       resolve(null);
     });
-=======
-    if (skipUpdate) {
-      resolve(null);
-      return;
-    }
-
-    const spinner = createSpinner("Checking for updates...").start();
-    let resolved = false;
-
-    const safetyTimeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        spinner.stop();
-        resolve(null);
-      }
-    }, 8000);
-
-    const done = (version) => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(safetyTimeout);
-      spinner.stop();
-      resolve(version);
-    };
-
-    const req = https.get(`https://registry.npmjs.org/${pkg.name}/latest`, { timeout: 3000 }, (res) => {
-      let data = "";
-      res.on("data", chunk => data += chunk);
-      res.on("end", () => {
-        try {
-          const latest = JSON.parse(data);
-          if (latest.version && compareVersions(latest.version, pkg.version) > 0) {
-            done(latest.version);
-          } else {
-            done(null);
-          }
-        } catch (e) {
-          done(null);
-        }
-      });
-    });
-
-    req.on("error", () => done(null));
-    req.on("timeout", () => { req.destroy(); done(null); });
->>>>>>> D:\Projek\Birouter\router-app\temp_theirs_file
   });
 }
 
@@ -760,7 +742,7 @@ function startServer(latestVersion) {
             process.on("SIGHUP", () => {});
 
             console.log(`\n⏳ Switching to tray mode... (icon already visible in menu bar)`);
-            console.log(`🔔 9Router is running in tray (PID: ${process.pid})`);
+            console.log(`🔔 Birouter is running in tray (PID: ${process.pid})`);
             console.log(`   Server: http://${displayHost}:${port}`);
             console.log(`\n💡 You can close this terminal. Right-click tray icon to quit.\n`);
 
@@ -779,7 +761,7 @@ function startServer(latestVersion) {
           });
           bgProcess.unref();
 
-          console.log(`🔔 9Router is now running in background (PID: ${bgProcess.pid})`);
+          console.log(`🔔 Birouter is now running in background (PID: ${bgProcess.pid})`);
           console.log(`   Server: http://${displayHost}:${port}`);
           console.log(`\n💡 You can close this terminal. Right-click tray icon to quit.\n`);
 
@@ -826,7 +808,7 @@ function startServer(latestVersion) {
     if (restartCount >= MAX_RESTARTS) {
       console.error(`\n⚠️  Server crashed ${MAX_RESTARTS} times. Disabling MIT and restarting...`);
       try {
-        const dbPath = path.join(os.homedir(), process.platform === "win32" ? path.join("AppData", "Roaming", "9router", "db.json") : path.join(".9router", "db.json"));
+        const dbPath = path.join(os.homedir(), process.platform === "win32" ? path.join("AppData", "Roaming", "birouter", "db.json") : path.join(".birouter", "db.json"));
         if (fs.existsSync(dbPath)) {
           const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
           if (db.settings) db.settings.mitmEnabled = false;

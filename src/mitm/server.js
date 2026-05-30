@@ -401,3 +401,10 @@ const shutdown = () => {
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 if (process.platform === "win32") process.on("SIGBREAK", shutdown);
+
+process.stderr.on("error", (err) => {
+  if (err.code === "EPIPE") return;
+});
+process.stdout.on("error", (err) => {
+  if (err.code === "EPIPE") return;
+});

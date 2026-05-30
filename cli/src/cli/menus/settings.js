@@ -21,8 +21,8 @@ const DEFAULT_PASSWORD = "123456";
 // Resolve db.json path (matches app/src/lib/dataDir.js convention)
 function getDbPath() {
   return process.platform === "win32"
-    ? path.join(process.env.APPDATA || "", "9router", "db.json")
-    : path.join(os.homedir(), ".9router", "db.json");
+    ? path.join(process.env.APPDATA || "", "birouter", "db.json")
+    : path.join(os.homedir(), ".birouter", "db.json");
 }
 
 /**

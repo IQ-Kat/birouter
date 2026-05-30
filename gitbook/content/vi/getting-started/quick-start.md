@@ -1,6 +1,6 @@
 # Bắt đầu
 
-Khởi chạy 9Router trong 5 phút và bắt đầu định tuyến các request AI một cách thông minh.
+Khởi chạy Birouter trong 5 phút và bắt đầu định tuyến các request AI một cách thông minh.
 
 ---
 
@@ -9,7 +9,7 @@ Khởi chạy 9Router trong 5 phút và bắt đầu định tuyến các reques
 ### 1. Cài đặt
 
 ```bash
-npm install -g 9router
+npm install -g birouter
 ```
 
 **Yêu cầu:** Node.js 20+ ([Chi tiết cài đặt](getting-started/installation.md))
@@ -17,7 +17,7 @@ npm install -g 9router
 ### 2. Khởi chạy
 
 ```bash
-9router
+birouter
 ```
 
 🎉 **Dashboard tự động mở** tại `http://localhost:2004`
@@ -43,7 +43,7 @@ Dashboard → Providers → Connect [Provider]
 **Ví dụ: Claude Code**
 1. Click "Connect Claude Code"
 2. Đăng nhập tài khoản Claude
-3. Cho phép 9Router
+3. Cho phép Birouter
 4. ✅ Xong! Dùng model: `cc/claude-opus-4-5-20251101`
 
 #### Cách B: API Key (Cheap Provider)
@@ -83,14 +83,14 @@ Dashboard → Providers → Connect [Free Provider]
 
 ## 4. Dùng trong CLI Tools
 
-Trỏ công cụ code của bạn tới 9Router:
+Trỏ công cụ code của bạn tới Birouter:
 
 ### Cursor IDE
 
 ```
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:2004/v1
-  OpenAI API Key: [from 9router dashboard]
+  OpenAI API Key: [from birouter dashboard]
   Model: cc/claude-opus-4-5-20251101
 ```
 
@@ -101,7 +101,7 @@ Sửa `~/.claude/config.json`:
 ```json
 {
   "anthropic_api_base": "http://localhost:2004/v1",
-  "anthropic_api_key": "your-9router-api-key"
+  "anthropic_api_key": "your-birouter-api-key"
 }
 ```
 
@@ -118,7 +118,7 @@ Model: cc/claude-opus-4-5-20251101
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:2004"
-export OPENAI_API_KEY="your-9router-api-key"
+export OPENAI_API_KEY="your-birouter-api-key"
 
 codex "your prompt"
 ```
@@ -242,6 +242,6 @@ Daily routine:
 
 ## Cần trợ giúp?
 
-- **Website**: [9router.com](https://9router.com)
-- **GitHub**: [github.com/decolua/9router](https://github.com/decolua/9router)
-- **Issues**: [github.com/decolua/9router/issues](https://github.com/decolua/9router/issues)
+- **Website**: [birouter.com](https://birouter.com)
+- **GitHub**: [github.com/IQ-Kat/birouter](https://github.com/IQ-Kat/birouter)
+- **Issues**: [github.com/IQ-Kat/birouter/issues](https://github.com/IQ-Kat/birouter/issues)

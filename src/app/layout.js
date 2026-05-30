@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "9Router - AI Infrastructure Management",
+  title: "Birouter - AI Infrastructure Management",
   description: "One endpoint for all your AI providers. Manage keys, monitor usage, and scale effortlessly.",
   icons: {
     icon: "/favicon.png",

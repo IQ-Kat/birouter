@@ -1,6 +1,6 @@
 # Solución de problemas
 
-Problemas comunes y soluciones al usar 9Router.
+Problemas comunes y soluciones al usar Birouter.
 
 ---
 
@@ -78,7 +78,7 @@ Problemas comunes y soluciones al usar 9Router.
 **Soluciones:**
 
 1. **Refresh automático (por defecto):**
-   9Router refresca automáticamente los tokens. Espera 30 segundos y reintenta.
+   Birouter refresca automáticamente los tokens. Espera 30 segundos y reintenta.
 
 2. **Reconexión manual:**
    ```
@@ -135,15 +135,15 @@ Problemas comunes y soluciones al usar 9Router.
 **Problema:** "ECONNREFUSED" o "Cannot connect to localhost:2004".
 
 **Causas:**
-- 9Router no está ejecutándose
+- Birouter no está ejecutándose
 - Puerto 2004 bloqueado
 - Firewall bloqueando la conexión
 
 **Soluciones:**
 
-1. **Inicia 9Router:**
+1. **Inicia Birouter:**
    ```bash
-   9router
+   birouter
    ```
    El dashboard debe abrir en http://localhost:3000
 
@@ -164,7 +164,7 @@ Problemas comunes y soluciones al usar 9Router.
 4. **Usa el endpoint en la nube:**
    Si localhost no funciona (ej. Cursor IDE):
    ```
-   Endpoint: https://9router.com/v1
+   Endpoint: https://birouter.com/v1
    ```
 
 ---
@@ -175,15 +175,15 @@ Problemas comunes y soluciones al usar 9Router.
 
 **Causas:**
 - Puerto 3000 ya en uso
-- 9Router crasheó
+- Birouter crasheó
 - Problemas de caché del navegador
 
 **Soluciones:**
 
-1. **Verifica si 9Router está ejecutándose:**
+1. **Verifica si Birouter está ejecutándose:**
    ```bash
    # Verifica el proceso
-   ps aux | grep 9router
+   ps aux | grep birouter
    
    # Verifica el puerto 3000
    lsof -i :3000
@@ -199,13 +199,13 @@ Problemas comunes y soluciones al usar 9Router.
    taskkill /PID <PID> /F
    ```
 
-3. **Reinicia 9Router:**
+3. **Reinicia Birouter:**
    ```bash
    # Detener
-   pkill -f 9router
+   pkill -f birouter
    
    # Iniciar
-   9router
+   birouter
    ```
 
 4. **Limpia la caché del navegador:**
@@ -346,6 +346,6 @@ Problemas comunes y soluciones al usar 9Router.
 
 ## ¿Necesitas más ayuda?
 
-- **GitHub Issues:** [github.com/decolua/9router/issues](https://github.com/decolua/9router/issues)
-- **Documentación:** [9router.com/docs](https://9router.com/docs)
+- **GitHub Issues:** [github.com/IQ-Kat/birouter/issues](https://github.com/IQ-Kat/birouter/issues)
+- **Documentación:** [birouter.com/docs](https://birouter.com/docs)
 - **FAQ:** [faq.md](faq.md)

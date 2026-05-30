@@ -94,7 +94,7 @@ function ensureRuntimeServer(bundledPath) {
 
 const SERVER_PATH = ensureRuntimeServer(resolveBundledServerPath());
 const ENCRYPT_ALGO = "aes-256-gcm";
-const ENCRYPT_SALT = "9router-mitm-pwd";
+const ENCRYPT_SALT = "birouter-mitm-pwd";
 
 function getProcessUsingPort443() {
   try {
