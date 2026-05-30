@@ -19,7 +19,16 @@ import {
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
 function requestPeerAddress(ctx: PolicyContext): string | null {
-  return ctx.request.ip || ctx.request.socket?.remoteAddress || null;
+  // In the Next middleware runtime (proxy.ts → runAuthzPipeline), ctx.request is
+  // a NextRequest with no socket/.ip, so the only locality signal is the Host
+  // header — which is exactly what isLoopbackHost/isPrivateLanHost parse (they
+  // strip :port). This both fixes the loopback gate (previously the null socket
+  // made every LOCAL_ONLY request 403, even from localhost) and enables the
+  // owner-authorized private-LAN carve-out. Fall back to .ip/.socket for any
+  // non-middleware caller that provides them. Spawn-capable endpoints still
+  // require manage-scope auth after this gate.
+  const hostHeader = ctx.request.headers?.get?.("host") ?? null;
+  return hostHeader || ctx.request.ip || ctx.request.socket?.remoteAddress || null;
 }
 
 function isLoopbackRequest(ctx: PolicyContext): boolean {

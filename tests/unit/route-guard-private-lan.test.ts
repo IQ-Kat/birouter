@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { isPrivateLanHost, isLoopbackHost, isLocalOnlyPath } from "../../src/server/authz/routeGuard.ts";
 
 test("isPrivateLanHost: accepts RFC1918 IPv4 (incl. :port and ::ffff: mapped)", () => {
@@ -44,4 +46,12 @@ test("isLoopbackHost stays loopback-only (unchanged)", () => {
 test("services + traffic-inspector remain LOCAL_ONLY paths", () => {
   assert.equal(isLocalOnlyPath("/api/services/9router/status"), true);
   assert.equal(isLocalOnlyPath("/api/tools/traffic-inspector/sessions"), true);
+});
+
+test("management policy derives locality from the Host header (middleware socket is null)", () => {
+  const src = readFileSync(
+    join(import.meta.dirname, "../../src/server/authz/policies/management.ts"),
+    "utf8"
+  );
+  assert.ok(src.includes('headers?.get?.("host")'), "requestPeerAddress must read the Host header");
 });
