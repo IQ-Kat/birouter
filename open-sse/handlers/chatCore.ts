@@ -293,8 +293,9 @@ function estimateSizeFast(value: unknown): number {
       if (Array.isArray(v)) {
         for (let i = 0; i < v.length; i++) stack.push(v[i]);
       } else {
-        const vals = Object.values(v);
-        for (let i = 0; i < vals.length; i++) stack.push(vals[i]);
+        for (const key in v) {
+          if (Object.prototype.hasOwnProperty.call(v, key)) stack.push((v as Record<string, unknown>)[key]);
+        }
       }
     }
   }
@@ -3997,7 +3998,7 @@ export async function handleChatCore({
     (translatedBody.conversationState?.history?.length ?? 0) +
       (translatedBody.conversationState?.currentMessage ? 1 : 0) ||
     0;
-  log?.debug?.("REQUEST", `${provider.toUpperCase()} | ${model} | ${msgCount} msgs`);
+  log?.debug?.("REQUEST", `${provider?.toUpperCase()} | ${model} | ${msgCount} msgs`);
 
   // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
   if (apiKeyInfo?.id) {
@@ -4233,7 +4234,7 @@ export async function handleChatCore({
     };
 
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
-      log?.info?.("TOKEN", `${provider.toUpperCase()} | refreshed`);
+      log?.info?.("TOKEN", `${provider?.toUpperCase()} | refreshed`);
 
       // Fall back to post-mutex mutation only for executors that don't route
       // through getAccessToken (and therefore never fire onPersist). For
@@ -4287,11 +4288,11 @@ export async function handleChatCore({
         // than the original 401 alone. Surface at error level with sanitization.
         log?.error?.(
           "TOKEN",
-          `${provider.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
+          `${provider?.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
         );
       }
     } else {
-      log?.warn?.("TOKEN", `${provider.toUpperCase()} | refresh failed`);
+      log?.warn?.("TOKEN", `${provider?.toUpperCase()} | refresh failed`);
       if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
         await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
       }
@@ -4942,7 +4943,7 @@ export async function handleChatCore({
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
       if (traceEnabled) {
-        const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+        const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider?.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
         console.log(`${COLORS.green}${msg}${COLORS.reset}`);
       }
 

@@ -31,7 +31,7 @@ const MAX_CONNECTION_EXTRA_KEYS = 500;
  */
 export function trackConnectionExtraKeys(connectionId: string, extraKeys: string[]): void {
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
-  if (_connectionExtraKeys.size >= MAX_CONNECTION_EXTRA_KEYS) {
+  if (!_connectionExtraKeys.has(connectionId) && _connectionExtraKeys.size >= MAX_CONNECTION_EXTRA_KEYS) {
     const oldest = _connectionExtraKeys.keys().next().value;
     if (oldest !== undefined) _connectionExtraKeys.delete(oldest);
   }
@@ -276,11 +276,12 @@ export function syncHealthFromDB(connectionId: string, health?: Record<string, K
   if (!health) return;
 
   for (const [keyId, keyHealth] of Object.entries(health)) {
-    if (_keyHealth.size >= MAX_KEY_HEALTH_ENTRIES) {
+    const scopedKey = `${connectionId}:${keyId}`;
+    if (!_keyHealth.has(scopedKey) && _keyHealth.size >= MAX_KEY_HEALTH_ENTRIES) {
       const oldest = _keyHealth.keys().next().value;
       if (oldest !== undefined) _keyHealth.delete(oldest);
     }
-    _keyHealth.set(`${connectionId}:${keyId}`, keyHealth);
+    _keyHealth.set(scopedKey, keyHealth);
   }
 }
 

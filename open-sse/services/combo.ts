@@ -1550,7 +1550,7 @@ async function getQuotaAwareConnectionsForTarget(
             const activeConnections = Array.isArray(connections)
               ? (connections as Array<Record<string, unknown>>)
               : [];
-            if (resetAwareConnectionCache.size >= MAX_RESET_AWARE_CACHE) {
+            if (!resetAwareConnectionCache.has(provider) && resetAwareConnectionCache.size >= MAX_RESET_AWARE_CACHE) {
               const oldest = resetAwareConnectionCache.keys().next().value;
               if (oldest !== undefined) resetAwareConnectionCache.delete(oldest);
             }
@@ -1685,7 +1685,7 @@ async function fetchResetAwareQuotaWithCache({
     const refreshPromise = fetcher(connectionId, connection)
       .then((quota) => {
         if (quota) {
-          if (resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+          if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
             const oldest = resetAwareQuotaCache.keys().next().value;
             if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
           }
@@ -1702,7 +1702,7 @@ async function fetchResetAwareQuotaWithCache({
       .catch((error) => {
         const previous = resetAwareQuotaCache.get(cacheKey);
         if (previous) {
-          if (resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+          if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
             const oldest = resetAwareQuotaCache.keys().next().value;
             if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
           }
@@ -1718,7 +1718,7 @@ async function fetchResetAwareQuotaWithCache({
         return null;
       });
 
-    if (resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+    if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
       const oldest = resetAwareQuotaCache.keys().next().value;
       if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
     }
@@ -1845,7 +1845,7 @@ async function orderTargetsByResetAwareQuota(
   if (tiedTargets.length > 1) {
     const key = `reset-aware:${comboName}`;
     const counter = rrCounters.get(key) || 0;
-    if (rrCounters.size >= MAX_RR_COUNTERS) {
+    if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
       const oldest = rrCounters.keys().next().value;
       if (oldest !== undefined) rrCounters.delete(oldest);
     }
@@ -2008,7 +2008,7 @@ async function orderTargetsByResetWindow(
 
   const key = `reset-window:${comboName}`;
   const counter = rrCounters.get(key) || 0;
-  if (rrCounters.size >= MAX_RR_COUNTERS) {
+  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
     const oldest = rrCounters.keys().next().value;
     if (oldest !== undefined) rrCounters.delete(oldest);
   }
@@ -3921,7 +3921,7 @@ async function handleRoundRobinCombo({
 
   // Get and increment atomic counter
   const counter = rrCounters.get(combo.name) || 0;
-  if (rrCounters.size >= MAX_RR_COUNTERS) {
+  if (!rrCounters.has(combo.name) && rrCounters.size >= MAX_RR_COUNTERS) {
     const oldest = rrCounters.keys().next().value;
     if (oldest !== undefined) rrCounters.delete(oldest);
   }

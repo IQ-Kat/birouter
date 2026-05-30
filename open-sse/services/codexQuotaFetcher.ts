@@ -86,7 +86,7 @@ const MAX_QUOTA_CACHE_ENTRIES = 200;
  * @param meta - Access token and optional workspace ID
  */
 export function registerCodexConnection(connectionId: string, meta: CodexConnectionMeta): void {
-  if (connectionRegistry.size >= MAX_CONNECTIONS) {
+  if (!connectionRegistry.has(connectionId) && connectionRegistry.size >= MAX_CONNECTIONS) {
     const oldestKey = connectionRegistry.keys().next().value;
     if (oldestKey !== undefined) {
       quotaCache.delete(oldestKey);
@@ -124,7 +124,7 @@ function getCodexConnectionMeta(
 
     if (accessToken) {
       const meta = { accessToken, ...(workspaceId ? { workspaceId } : {}) };
-      if (connectionRegistry.size >= MAX_CONNECTIONS) {
+      if (!connectionRegistry.has(connectionId) && connectionRegistry.size >= MAX_CONNECTIONS) {
         const oldestKey = connectionRegistry.keys().next().value;
         if (oldestKey !== undefined) {
           quotaCache.delete(oldestKey);
@@ -212,7 +212,7 @@ export async function fetchCodexQuota(
     if (!quota) return null;
 
     // Store in cache
-    if (quotaCache.size >= MAX_QUOTA_CACHE_ENTRIES) {
+    if (!quotaCache.has(connectionId) && quotaCache.size >= MAX_QUOTA_CACHE_ENTRIES) {
       const oldestCacheKey = quotaCache.keys().next().value;
       if (oldestCacheKey !== undefined) quotaCache.delete(oldestCacheKey);
     }
