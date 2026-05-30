@@ -10,7 +10,7 @@ import EngineTab from "./components/tabs/EngineTab";
 
 type TabId = "memories" | "playground" | "engine";
 
-const TABS: TabId[] = ["memories", "playground", "engine"];
+const TABS: TabId[] = ["memories", "engine", "playground"];
 
 function MemoryPageContent() {
   const t = useTranslations("memory");

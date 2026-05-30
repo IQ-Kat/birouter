@@ -86,12 +86,8 @@ export default function SearchToolsTopBar({
         </div>
       </div>
 
-      {exportState && (
-        <ExportCodeModal
-          isOpen={exportOpen}
-          onClose={() => setExportOpen(false)}
-          state={exportState}
-        />
+      {exportOpen && exportState != null && (
+        <ExportCodeModal onClose={() => setExportOpen(false)} state={exportState} />
       )}
     </>
   );
