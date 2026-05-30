@@ -1,0 +1,46 @@
+import { z } from "zod";
+import { PoolAllocationSchema, QuotaDimensionSchema } from "@/lib/quota/dimensions";
+
+export const PoolCreateSchema = z.object({
+  connectionId: z.string().min(1),
+  name: z.string().min(1).max(120),
+  allocations: z.array(PoolAllocationSchema).default([]),
+});
+export type PoolCreate = z.infer<typeof PoolCreateSchema>;
+
+export const PoolUpdateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  allocations: z.array(PoolAllocationSchema).optional(),
+});
+export type PoolUpdate = z.infer<typeof PoolUpdateSchema>;
+
+export const PlanUpsertSchema = z.object({
+  dimensions: z.array(QuotaDimensionSchema).min(1),
+});
+export type PlanUpsert = z.infer<typeof PlanUpsertSchema>;
+
+export const QuotaStoreSettingsSchema = z.object({
+  driver: z.enum(["sqlite", "redis"]),
+  redisUrl: z.string().url().nullable().optional(),
+});
+export type QuotaStoreSettings = z.infer<typeof QuotaStoreSettingsSchema>;
+
+export const QuotaPreviewQuerySchema = z.object({
+  apiKeyId: z.string().min(1),
+  poolId: z.string().min(1),
+  estimatedTokens: z.coerce.number().nonnegative().optional(),
+  estimatedUsd: z.coerce.number().nonnegative().optional(),
+  estimatedRequests: z.coerce.number().int().nonnegative().optional(),
+});
+export type QuotaPreviewQuery = z.infer<typeof QuotaPreviewQuerySchema>;
+
+export const AuditLogQuerySchema = z.object({
+  action: z.string().optional(),
+  actor: z.string().optional(),
+  level: z.enum(["high", "all"]).default("all"),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  limit: z.coerce.number().int().min(1).max(500).default(50),
+  offset: z.coerce.number().int().min(0).max(10_000).default(0),
+});
+export type AuditLogQuery = z.infer<typeof AuditLogQuerySchema>;

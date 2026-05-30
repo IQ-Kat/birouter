@@ -930,7 +930,15 @@
     "settingsAuthzSubtitle": "Route inventory and bypass policy",
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
-    "changelogSubtitle": "Release notes"
+    "changelogSubtitle": "Release notes",
+    "costsQuotaPlans": "Plans & Quotas",
+    "costsQuotaPlansSubtitle": "Configure plans by provider",
+    "activity": "Activity",
+    "activitySubtitle": "Friendly feed of recent events",
+    "logsGroup": "Logs",
+    "systemGroup": "System",
+    "costsOverview": "Overview",
+    "costsOverviewSubtitle": "Consolidated cost analysis"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -1131,7 +1139,9 @@
     "a2aEvents": "Events",
     "a2aArtifacts": "Artifacts",
     "a2aNoTasks": "No A2A tasks recorded.",
-    "a2aLoadingTasks": "Loading A2A tasks..."
+    "a2aLoadingTasks": "Loading A2A tasks...",
+    "actor": "Actor",
+    "actorPlaceholder": "Filter by actor"
   },
   "themesPage": {
     "title": "Themes",
@@ -3357,7 +3367,10 @@
       "fetchFailed": "Failed to fetch logs",
       "copyFailed": "Failed to copy log entry",
       "copyLogEntry": "Copy log entry"
-    }
+    },
+    "compressionLogTitle": "Compression Log",
+    "compressionLogEmpty": "No compressed requests yet. Compression stats will appear here when requests are processed with compression enabled.",
+    "tokens": "tokens"
   },
   "onboarding": {
     "welcome": "Welcome",
@@ -7154,7 +7167,8 @@
     "loadingProxyLogs": "Loading proxy logs...",
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
-    "tlsFingerprint": "Chrome 124 TLS Fingerprint"
+    "tlsFingerprint": "Chrome 124 TLS Fingerprint",
+    "colPublicIp": "Public IP"
   },
   "endpointOptions": {
     "speech": "Speech",
@@ -7294,7 +7308,27 @@
     "betaConfigSavedSuffix": "(not yet persisted on the server). Per-request cap enforcement is not yet wired into the proxy pipeline. This screen lets you design and visualize the quota split; real enforcement will land in a future iteration with DB persistence and upstream call interception.",
     "policyLabel": "Policy:",
     "resetIn": "reset in",
-    "quotaTotal": "total"
+    "quotaTotal": "total",
+    "kpiAvgUtilization": "Avg utilization",
+    "kpiBorrowingNow": "Borrowing now",
+    "conceptTitle": "How Quota Share works",
+    "conceptIntro": "Quota Share divides a provider's quota among multiple API keys using work-conserving fair-share: each key receives a proportional slice but can borrow from the free balance without exceeding the global cap.",
+    "conceptFairShare": "Fair-share: each key receives quota proportional to its configured weight",
+    "conceptBorrowing": "Borrowing: keys can consume free balance from others without breaching the cap",
+    "conceptGlobalCap": "Hard global cap: the provider's absolute limit is never exceeded",
+    "conceptWindows": "Windows: 5h, hourly, daily, weekly, monthly — each tracked independently",
+    "burnRateTitle": "Burn rate",
+    "burnRateExhaustsIn": "Exhausts in",
+    "dimensionResetIn": "Resets in",
+    "realConsumedColumn": "Consumed",
+    "deficitColumn": "Deficit",
+    "borrowingIndicator": "borrowing",
+    "migratedFromLocalStorageNotice": "Pools successfully migrated from localStorage.",
+    "policyCapAbsoluteLabel": "Absolute cap",
+    "policyCapAbsolutePlaceholder": "Numeric limit (optional)",
+    "multiDimensionLabel": "Multi-dimension",
+    "stackedBarTitle": "Slices by API key",
+    "usedSuffix": "used {percent}%"
   },
   "plugins": {
     "title": "Plugins",
@@ -7331,5 +7365,109 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "hooks": "Hooks"
+  },
+  "quotaPlans": {
+    "title": "Plans & Quotas",
+    "description": "Configure quota plans per provider — dimensions (%, requests, tokens, $) and time windows",
+    "providerLabel": "Provider / Connection",
+    "detectedPlanLabel": "Detected plan",
+    "manualPlanLabel": "Manual override",
+    "unconfiguredLabel": "Not configured — manual required",
+    "dimensionLabel": "Dimensions",
+    "addDimension": "Add dimension",
+    "removeDimension": "Remove",
+    "limitLabel": "Limit",
+    "unitOptions": {
+      "percent": "%",
+      "requests": "requests",
+      "tokens": "tokens",
+      "usd": "USD ($)"
+    },
+    "windowOptions": {
+      "5h": "5 hours",
+      "hourly": "Hourly",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "useCatalogButton": "Use catalog",
+    "saveOverrideButton": "Save override",
+    "revertToCatalogButton": "Revert to catalog",
+    "unknownProviderNotice": "Select a provider on the left to configure its quota plan.",
+    "catalogTitle": "Known catalog",
+    "catalogDescription": "Automatically detected plans for the following providers:"
+  },
+  "activity": {
+    "title": "Activity",
+    "description": "Recent events feed",
+    "emptyTitle": "No activity yet",
+    "emptyDescription": "When you add providers, create combos, or rotate keys, events will appear here.",
+    "todayHeader": "Today",
+    "yesterdayHeader": "Yesterday",
+    "filterAll": "All",
+    "filterProviders": "Providers",
+    "filterCombos": "Combos",
+    "filterApiKeys": "API Keys",
+    "filterSettings": "Settings",
+    "filterQuota": "Quota",
+    "filterAuth": "Auth",
+    "filterSystem": "System",
+    "relative": {
+      "justNow": "just now",
+      "minutesAgo": "{n} min ago",
+      "hoursAgo": "{n} h ago",
+      "yesterday": "yesterday",
+      "daysAgo": "{n} days ago"
+    },
+    "eventVerb": {
+      "providerAdded": "{actor} added provider {target}",
+      "providerRemoved": "{actor} removed provider {target}",
+      "providerTested": "{actor} tested provider {target}",
+      "comboCreated": "{actor} created combo {target}",
+      "comboUpdated": "{actor} updated combo {target}",
+      "comboDeleted": "{actor} removed combo {target}",
+      "apiKeyCreated": "{actor} created API key {target}",
+      "apiKeyRevoked": "{actor} revoked API key {target}",
+      "apiKeyRotated": "{actor} rotated API key {target}",
+      "budgetThreshold": "Budget threshold reached for {target}",
+      "settingUpdated": "{actor} updated setting {target}",
+      "authLogin": "{actor} signed in",
+      "authLogout": "{actor} signed out",
+      "cloudAgentSession": "Cloud agent session started for {target}",
+      "mcpToolRegistered": "MCP tool {target} registered",
+      "webhookCreated": "{actor} created webhook {target}",
+      "webhookDeleted": "{actor} removed webhook {target}",
+      "quotaPoolCreated": "{actor} created quota pool {target}",
+      "quotaPoolUpdated": "{actor} updated quota pool {target}",
+      "quotaPoolDeleted": "{actor} removed quota pool {target}",
+      "quotaPlanUpdated": "{actor} updated quota plan {target}",
+      "quotaStoreDriverChanged": "QuotaStore driver changed",
+      "updateApplied": "Update {target} applied",
+      "deployCompleted": "Deploy completed",
+      "skillInstalled": "{actor} installed skill {target}",
+      "skillRemoved": "{actor} removed skill {target}",
+      "providerCredentialsCreated": "{actor} created credentials for {target}",
+      "providerCredentialsApplied": "Credentials for {target} applied",
+      "providerCredentialsUpdated": "{actor} updated credentials for {target}",
+      "providerCredentialsRevoked": "{actor} revoked credentials for {target}",
+      "providerCredentialsBatchRevoked": "{actor} batch-revoked credentials",
+      "providerCredentialsBulkCreated": "{actor} bulk-created credentials",
+      "providerCredentialsBulkImported": "{actor} bulk-imported credentials",
+      "providerCredentialsImported": "{actor} imported credentials",
+      "providerSsrfBlocked": "SSRF attempt blocked for {target}",
+      "authLoginSuccess": "{actor} signed in",
+      "authLoginError": "Login error for {actor}",
+      "authLoginFailed": "Login failed for {actor}",
+      "authLoginLocked": "{actor} locked out after too many attempts",
+      "authLoginMisconfigured": "Auth configuration invalid",
+      "authLoginSetupRequired": "Auth setup required",
+      "authLogoutSuccess": "{actor} signed out",
+      "syncTokenCreated": "{actor} created sync token",
+      "syncTokenRevoked": "{actor} revoked sync token",
+      "settingsUpdate": "{actor} updated settings",
+      "settingsUpdateFailed": "Settings update failed",
+      "serviceRevealApiKey": "{actor} revealed API key for {target}",
+      "genericEvent": "{actor} {target}"
+    }
   }
 }
