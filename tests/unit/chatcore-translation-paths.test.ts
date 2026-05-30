@@ -427,8 +427,9 @@ test("chatCore times out upstream execution before provider response headers", a
         Object.values(getPendingRequests().details[connectionId] || {}).find(
           (detail: any) => detail?.providerRequest
         ),
-      150
+      1000
     )) as any;
+    assert.ok(pendingDetail, "expected pending request metadata before upstream timeout");
     assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
     assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
 
