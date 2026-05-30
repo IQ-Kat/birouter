@@ -122,6 +122,9 @@ const IGNORE_FROM_CODE = new Set([
   // Node.js module resolution path — OS/Node internal, not an OmniRoute config var.
   // Referenced in resolveSpawnArgs (ninerouter) to pass bundled native modules to subprocess.
   "NODE_PATH",
+  // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
+  "NVIDIA_BASE_URL",
+  "NVIDIA_MODEL",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
