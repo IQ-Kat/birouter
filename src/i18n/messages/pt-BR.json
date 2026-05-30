@@ -3879,7 +3879,8 @@
       "qdrantOk": "Saudável ({latencyMs}ms)",
       "qdrantError": "Erro de conexão",
       "needsReindex": "{count} memória(s) precisam de reindexação",
-      "configureCta": "Configurar"
+      "configureCta": "Configurar",
+      "vectorStoreInstallHint": "Para ativar a busca vetorial: npm install sqlite-vec (requer Node.js nativo, não WASM) e reinicie."
     },
     "episodic": "Episódica",
     "export": "Exportar",
@@ -3990,7 +3991,8 @@
       "semantic": "Conceitos, preferências e conhecimento de domínio"
     },
     "totalEntries": "Total de Entradas",
-    "type": "Tipo"
+    "type": "Tipo",
+    "memoryEnabled": "Memória ativada"
   },
   "miniPlayground": {
     "endpoint": "Endpoint",
