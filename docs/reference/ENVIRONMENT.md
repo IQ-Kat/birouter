@@ -887,6 +887,8 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `INSPECTOR_MASK_SECRETS` | `true` | `src/mitm/inspector/buffer.ts` | Mask secrets (auth headers / API keys) in captured traffic. |
 | `INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES` | `30` | `src/app/api/tools/traffic-inspector/capture-modes/system-proxy/route.ts` | Minutes before the system-proxy guard auto-reverts OS proxy settings. |
 | `INSPECTOR_INTERNAL_INGEST_TOKEN` | _(auto)_ | `src/app/api/tools/traffic-inspector/internal/ingest/route.ts` | Token authenticating internal capture ingest into the inspector. |
+| `PLAYGROUND_COMPARE_MAX_COLUMNS` | `4` | `src/app/(dashboard)/dashboard/playground/` | Max number of side-by-side columns in the Playground compare mode. |
+| `PLAYGROUND_IMPROVE_PROMPT_DEFAULT_MODEL` | _(unset)_ | `src/app/(dashboard)/dashboard/playground/` | Default model for the Playground 'improve prompt' action (falls back to the active model when unset). |
 
 ---
 
