@@ -10,7 +10,7 @@ const { DATA_DIR } = require("@/lib/dataDir");
 
 const CUSTOM_FILE = path.join(DATA_DIR, "mcp", "customPlugins.json");
 
-const G_KEY = "__birouterMcpBridges";
+const G_KEY = "__9routerMcpBridges";
 const MAX_TEXT_CHARS = 50000;
 const COLLAPSE_THRESHOLD = 30;
 const COLLAPSE_KEEP_HEAD = 10;
@@ -25,7 +25,7 @@ function smartFilterText(text) {
   out = collapseRepeated(out);
   if (out.length > MAX_TEXT_CHARS) {
     const head = out.slice(0, MAX_TEXT_CHARS - 300);
-    out = `${head}\n\n... [truncated ${text.length - head.length} chars by birouter bridge. Page is large; ask user to scroll/navigate to a specific section, or click an element with the refs shown above]`;
+    out = `${head}\n\n... [truncated ${text.length - head.length} chars by 9router bridge. Page is large; ask user to scroll/navigate to a specific section, or click an element with the refs shown above]`;
   }
   return out;
 }
@@ -107,8 +107,8 @@ const getStore = () => {
 };
 
 const getCustomStore = () => {
-  if (!globalThis.__birouterCustomPlugins) globalThis.__birouterCustomPlugins = new Map();
-  return globalThis.__birouterCustomPlugins;
+  if (!globalThis.__9routerCustomPlugins) globalThis.__9routerCustomPlugins = new Map();
+  return globalThis.__9routerCustomPlugins;
 };
 
 function isAllowedCommand(cmd) {

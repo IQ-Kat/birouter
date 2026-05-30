@@ -15,6 +15,7 @@ export default function DonateModal({ isOpen, onClose }) {
           </div>
         </div>
 
+<<<<<<< D:\Projek\Birouter\router-app\temp_ours_file
         <p className="text-sm text-text-muted leading-relaxed">
           One endpoint for all your AI providers. Smart routing, auto-fallback, token compression, and usage tracking.
         </p>
@@ -26,6 +27,24 @@ export default function DonateModal({ isOpen, onClose }) {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 transition-colors text-sm font-medium w-full justify-center"
+=======
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div
+        ref={modalRef}
+        className="relative w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-w-3xl flex flex-col max-h-[85vh]"
+      >
+        <div className="flex items-center justify-between p-3 border-b border-black/5 dark:border-white/5">
+          <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
+            <span className="material-symbols-outlined text-pink-500">volunteer_activism</span>
+            {data?.title || "Support 9Router"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            aria-label="Close"
+>>>>>>> D:\Projek\Birouter\router-app\temp_theirs_file
           >
             <span className="material-symbols-outlined text-[18px]">volunteer_activism</span>
             Donate via Saweria

@@ -1,7 +1,13 @@
 {
+<<<<<<< D:\Projek\Birouter\router-app\temp_ours_file
   "name": "birouter-app",
   "version": "0.2.4",
   "description": "Birouter — AI Router & Token Saver",
+=======
+  "name": "9router-app",
+  "version": "0.4.66",
+  "description": "9Router web dashboard",
+>>>>>>> D:\Projek\Birouter\router-app\temp_theirs_file
   "private": true,
   "scripts": {
     "dev": "next dev --webpack --port 2004",
