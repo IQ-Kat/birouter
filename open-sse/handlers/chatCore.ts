@@ -1518,7 +1518,10 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
+  const traceEnabled =
+    process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
+    if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
     const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
@@ -2351,7 +2354,7 @@ export async function handleChatCore({
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
-    let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let estimatedTokens = estimateTokens(allMessages);
     let promptCompressionEnabled = false;
     let compressionSettings: CompressionConfig | null = null;
 
@@ -2582,7 +2585,7 @@ export async function handleChatCore({
             body = outputMode.body as typeof body;
             cavemanOutputModeApplied = true;
             cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
-            estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+            estimatedTokens = estimateTokens(body?.messages ?? body?.input ?? []);
             log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
           } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
             log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
@@ -2792,7 +2795,7 @@ export async function handleChatCore({
     const COMPRESSION_THRESHOLD = 0.7;
     let reservedTokens = 0;
     if (Array.isArray(body.tools)) {
-      reservedTokens = estimateTokens(JSON.stringify(body.tools));
+      reservedTokens = estimateTokens(body.tools);
     }
     const threshold = Math.max(
       1,
@@ -4913,8 +4916,10 @@ export async function handleChatCore({
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
-      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
-      console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      if (traceEnabled) {
+        const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+        console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      }
 
       saveRequestUsage({
         provider: provider || "unknown",
