@@ -4594,7 +4594,7 @@ export default function ProviderDetailPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/dashboard/cli-tools"
+                href="/dashboard/cli-code"
                 className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
               >
                 <span className="material-symbols-outlined text-base">terminal</span>

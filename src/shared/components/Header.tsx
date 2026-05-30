@@ -48,7 +48,9 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   quota: "limitsDescription",
   runtime: "runtimeDescription",
   media: "mediaDescription",
-  agents: "agentsDescription",
+  "cli-code": "cliToolsDescription",
+  "cli-agents": "agentsDescription",
+  "acp-agents": "agentsDescription",
   "cloud-agents": "cloudAgentsDescription",
   memory: "memoryDescription",
   skills: "skillsDescription",
@@ -98,8 +100,6 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   // Proxy sub-pages
   "mitm-proxy": "mitmProxyDescription",
   "1proxy": "oneProxyDescription",
-  // OmniProxy items
-  "cli-tools": "cliToolsDescription",
 };
 
 // Build href → sidebar item lookup (non-external items only)

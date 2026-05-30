@@ -6461,7 +6461,13 @@
     "agentBridge": "Agent Bridge",
     "agentBridgeSubtitle": "Interceptar tráfego de agentes IDE",
     "trafficInspector": "Inspector de Tráfego",
-    "trafficInspectorSubtitle": "Monitorar chamadas LLM + debugar tráfego HTTPS"
+    "trafficInspectorSubtitle": "Monitorar chamadas LLM + debugar tráfego HTTPS",
+    "cliCode": "CLI Code's",
+    "cliCodeSubtitle": "Ferramentas de código que apontam para o OmniRoute",
+    "cliAgents": "CLI Agents",
+    "cliAgentsSubtitle": "Agentes autônomos com CLI",
+    "acpAgents": "ACP Agents",
+    "acpAgentsSubtitle": "CLIs spawnadas pelo OmniRoute"
   },
   "skills": {
     "title": "Skills",
@@ -7732,5 +7738,137 @@
     "timingResponseSize": "Tamanho da resposta",
     "pausedNewBadge": "{count} novos",
     "clearContextFilter": "limpar"
+  },
+  "cliCommon": {
+    "concept": {
+      "code": {
+        "title": "CLI Code's",
+        "phrase": "Ferramentas de código que você aponta para o OmniRoute",
+        "flow": "Você → CLI Code → OmniRoute → Provider",
+        "seeOther": "Ver →"
+      },
+      "agent": {
+        "title": "CLI Agents",
+        "phrase": "Agentes autônomos (CLI) de propósito amplo que você aponta para o OmniRoute",
+        "flow": "Você → CLI Agent → OmniRoute → Provider",
+        "seeOther": "Ver →"
+      },
+      "acp": {
+        "title": "ACP Agents",
+        "phrase": "CLIs que o OmniRoute spawna como backend de execução (fluxo reverso)",
+        "flow": "Cliente → OmniRoute → spawn CLI (stdio/ACP) → resposta",
+        "seeOther": "Ver →"
+      }
+    },
+    "comparison": {
+      "title": "Entenda os 3 tipos de CLI no OmniRoute",
+      "thisPage": "[Esta página ✓]",
+      "code": {
+        "title": "Ferramenta de código",
+        "desc": "Aponta para o Omni",
+        "flow": "você → CLI → Omni → provider",
+        "examples": "ex: claude, codex"
+      },
+      "agent": {
+        "title": "Agente autônomo amplo",
+        "desc": "Aponta para o Omni",
+        "flow": "você → agente → Omni",
+        "examples": "ex: hermes, goose"
+      },
+      "acp": {
+        "title": "CLI usada como backend pelo Omni",
+        "desc": "Execução reversa",
+        "flow": "Omni → spawn CLI → resp",
+        "examples": "ex: claude, codex (ACP)"
+      }
+    },
+    "card": {
+      "detected": "Detectado",
+      "notDetected": "Não detectado",
+      "configured": "Configurado",
+      "notConfigured": "Não configurado",
+      "configure": "Configurar →",
+      "howToInstall": "Como instalar →",
+      "manualConfig": "Manual config",
+      "installGuide": "Install guide",
+      "endpointLabel": "Endpoint",
+      "baseUrlPartial": "Base URL parcial",
+      "refreshDetection": "Atualizar detecção",
+      "alsoAcp": "também ACP"
+    },
+    "detail": {
+      "back": "Voltar",
+      "apply": "Salvar",
+      "reset": "Limpar",
+      "manualConfig": "Configuração manual",
+      "vendor": "Origem",
+      "category": "Tipo",
+      "detectionStatus": "Detecção",
+      "configStatus": "Configuração",
+      "baseUrlLabel": "Base URL",
+      "apiKeyLabel": "API Key",
+      "modelMappingLabel": "Mapeamento de modelos",
+      "noActiveProviders": "Nenhum provider ativo.",
+      "noActiveProvidersDesc": "Vá em Providers para conectar pelo menos 1 provider antes de configurar a CLI.",
+      "openProviders": "Abrir Providers →"
+    }
+  },
+  "cliCode": {
+    "pageTitle": "CLI Code's",
+    "pageSubtitle": "Ferramentas de código que apontam para o OmniRoute",
+    "searchPlaceholder": "Buscar CLI…",
+    "filterDetectionLabel": "Detecção",
+    "filterBaseUrlLabel": "Base URL",
+    "detectionAll": "Todas",
+    "detectionInstalled": "Instaladas",
+    "detectionNotFound": "Não detectadas",
+    "baseUrlAll": "Todas",
+    "baseUrlFull": "Completa",
+    "baseUrlPartial": "Parcial"
+  },
+  "cliAgents": {
+    "pageTitle": "CLI Agents",
+    "pageSubtitle": "Agentes autônomos (CLI) de propósito amplo",
+    "refreshDetection": "Atualizar detecção",
+    "searchPlaceholder": "Buscar agente…",
+    "detectionFilterLabel": "Detecção",
+    "detectionAll": "Todos",
+    "detectionInstalled": "Instalados",
+    "detectionNotInstalled": "Não instalados",
+    "visibleCount": "{count} visíveis",
+    "emptyState": "Nenhum agente CLI encontrado com os filtros atuais."
+  },
+  "acpAgents": {
+    "pageTitle": "ACP Agents",
+    "pageSubtitle": "CLIs que o OmniRoute spawna como backend de execução",
+    "scanning": "Detectando agentes…",
+    "refresh": "Atualizar",
+    "setupGuideTitle": "Guia de setup",
+    "setupGuideDetectCliTitle": "Detectar CLI",
+    "setupGuideDetectCliDesc": "Os agentes são identificados rodando o comando --version no PATH.",
+    "setupGuideCustomAgentTitle": "Adicionar agente customizado",
+    "setupGuideCustomAgentDesc": "Preencha o formulário abaixo para registrar um agente CLI customizado.",
+    "setupGuideCommandMissingTitle": "Comando não encontrado",
+    "setupGuideCommandMissingDesc": "Verifique se o binário está no PATH.",
+    "fingerprintSettingsHint": "Configure roteamento e fingerprints em",
+    "settingsRoutingLink": "Configurações → Roteamento",
+    "installed": "Instalado",
+    "notFound": "Não encontrado",
+    "builtIn": "Built-in",
+    "custom": "Customizado",
+    "agentUseCaseHint": "Disponível para spawn via ACP.",
+    "remove": "Remover",
+    "addCustomAgent": "Adicionar agente customizado",
+    "addCustomAgentDesc": "Registre um agente CLI customizado que será spawnado via ACP.",
+    "addAgent": "Adicionar agente",
+    "agentName": "Nome",
+    "agentNamePlaceholder": "ex: Meu Agente",
+    "binaryName": "Binário",
+    "binaryNamePlaceholder": "ex: meuagente",
+    "versionCommand": "Comando de versão",
+    "versionCommandPlaceholder": "ex: meuagente --version",
+    "spawnArgs": "Argumentos de spawn",
+    "spawnArgsPlaceholder": "ex: --quiet, --json",
+    "cliCodeRedirectCta": "Abrir CLI Code's"
   }
 }
