@@ -40,12 +40,12 @@ export function usePoolsUsageAggregate(pools: QuotaPool[]): PoolsUsageAggregate 
         let utilCount = 0;
         let borrowing = 0;
         for (const { usage } of valid) {
-          for (const dim of usage.dimensions) {
+          for (const dim of usage.dimensions ?? []) {
             if (dim.limit > 0) {
               totalUtil += (dim.consumedTotal / dim.limit) * 100;
               utilCount += 1;
             }
-            for (const key of dim.perKey) {
+            for (const key of dim.perKey ?? []) {
               if (key.borrowing) borrowing += 1;
             }
           }
