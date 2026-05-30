@@ -5683,7 +5683,11 @@
     "vercelRelayProjectNameLabel": "Vercel Project Name",
     "vercelRelayFreeTierNote": "Relays are lightweight proxy endpoints deployed on Vercel's free tier to bypass local network/region limitations.",
     "vercelRelayDeploying": "Deploying...",
-    "vercelRelayDeploy": "Deploy"
+    "vercelRelayDeploy": "Deploy",
+    "proxyGlobalConfigTab": "Global Config",
+    "proxyPoolTab": "Proxy Pool",
+    "freePoolTab": "Free Pool",
+    "proxyDocumentationTab": "Documentation"
   },
   "contextRtk": {
     "title": "RTK Engine",
