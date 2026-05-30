@@ -63,8 +63,8 @@ test("Claude -> OpenAI maps Claude server WebSearch to native Responses web_sear
         {
           type: "web_search_20250305",
           name: "web_search",
-          allowed_domains: ["docs.anthropic.com", ""],
-          blocked_domains: ["spam.example"],
+          allowed_domains: ["docs.anthropic.com", "", 123, { domain: "bad.example" }],
+          blocked_domains: ["spam.example", false],
           max_uses: 8,
           user_location: { type: "approximate", country: "US" },
         },
@@ -85,6 +85,28 @@ test("Claude -> OpenAI maps Claude server WebSearch to native Responses web_sear
     },
   ]);
   assert.deepEqual(result.tool_choice, { type: "web_search" });
+});
+
+test("Claude -> OpenAI skips invalid tool payloads without crashing", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-4o",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      tools: [null, "bad", 42, [], { name: "", input_schema: { type: "object" } }, { name: "ok" }],
+    },
+    false
+  );
+
+  assert.deepEqual(result.tools, [
+    {
+      type: "function",
+      function: {
+        name: "ok",
+        description: "",
+        parameters: { type: "object", properties: {} },
+      },
+    },
+  ]);
 });
 
 test("Claude -> OpenAI leaves ordinary web_search function tools as functions", () => {

@@ -39,7 +39,10 @@ function isClaudeServerWebSearchTool(tool: unknown): tool is JsonRecord {
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.map((entry) => String(entry || "").trim()).filter(Boolean);
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 function convertClaudeServerWebSearchTool(tool: JsonRecord): JsonRecord {
@@ -132,15 +135,17 @@ export function claudeToOpenAIRequest(model, body, stream) {
           return convertClaudeServerWebSearchTool(tool);
         }
 
-        const name = typeof tool.name === "string" ? tool.name.trim() : "";
+        if (!tool || typeof tool !== "object" || Array.isArray(tool)) return null;
+        const record = tool as JsonRecord;
+        const name = typeof record.name === "string" ? record.name.trim() : "";
         if (!name) return null; // skip tools with empty/invalid name
 
         return {
           type: "function",
           function: {
             name,
-            description: typeof tool.description === "string" ? tool.description : "", // fix: never null (#276)
-            parameters: normalizeToolSchema(tool.input_schema),
+            description: typeof record.description === "string" ? record.description : "", // fix: never null (#276)
+            parameters: normalizeToolSchema(record.input_schema),
           },
         };
       })
