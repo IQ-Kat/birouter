@@ -1,6 +1,7 @@
 import { HTTP_STATUS, RETRY_CONFIG, DEFAULT_RETRY_CONFIG, resolveRetryEntry, FETCH_CONNECT_TIMEOUT_MS } from "../config/runtimeConfig.js";
 import { proxyAwareFetch } from "../utils/proxyFetch.js";
 import { dbg } from "../utils/debugLog.js";
+import { sendNotification } from "../../src/lib/notifier.js";
 
 /**
  * BaseExecutor - Base class for provider executors
@@ -151,6 +152,13 @@ export class BaseExecutor {
 
         if (this.shouldRetry(response.status, urlIndex)) {
           log?.debug?.("RETRY", `${response.status} on ${url}, trying fallback ${urlIndex + 1}`);
+          try {
+            sendNotification(
+              "Birouter — Failover",
+              `Request to ${this.provider.toUpperCase()} rate-limited (${response.status}). Trying fallback account #${urlIndex + 2}...`,
+              "warning"
+            );
+          } catch (e) {}
           lastStatus = response.status;
           continue;
         }
@@ -169,6 +177,13 @@ export class BaseExecutor {
 
         if (urlIndex + 1 < fallbackCount) {
           log?.debug?.("RETRY", `Error on ${url}, trying fallback ${urlIndex + 1}`);
+          try {
+            sendNotification(
+              "Birouter — Failover",
+              `Request to ${this.provider.toUpperCase()} failed (${error.message || "Network Error"}). Trying fallback account #${urlIndex + 2}...`,
+              "warning"
+            );
+          } catch (e) {}
           continue;
         }
         throw error;

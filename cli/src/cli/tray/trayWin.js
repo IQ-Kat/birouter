@@ -72,6 +72,9 @@ function initWinTray(options) {
     setTooltip(text) {
       sendCommand({ action: "set-tooltip", text });
     },
+    showNotification(title, text, icon = "info") {
+      sendCommand({ action: "notify", title, text, icon });
+    },
     kill() {
       try {
         sendCommand({ action: "kill" });

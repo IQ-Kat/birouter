@@ -61,6 +61,12 @@ $script:timer.Add_Tick({
         "add-item"    { Add-MenuItem $cmd.index $cmd.title $cmd.enabled }
         "update-item" { Update-MenuItem $cmd.index $cmd.title $cmd.enabled }
         "set-tooltip" { Set-Tooltip $cmd.text }
+        "notify"      {
+          $icon = [System.Windows.Forms.ToolTipIcon]::Info
+          if ($cmd.icon -eq "warning") { $icon = [System.Windows.Forms.ToolTipIcon]::Warning }
+          if ($cmd.icon -eq "error") { $icon = [System.Windows.Forms.ToolTipIcon]::Error }
+          $script:notifyIcon.ShowBalloonTip(3000, $cmd.title, $cmd.text, $icon)
+        }
         "ready"       { Write-Event @{ type = "ready" } }
         "kill"        {
           $script:notifyIcon.Visible = $false

@@ -167,6 +167,39 @@ function getAppDataDir() {
     : path.join(os.homedir(), ".birouter");
 }
 
+// Watch notifications.json for tray messages from the server
+function startNotificationWatcher(showNotification) {
+  const dataDir = getAppDataDir();
+  const file = path.join(dataDir, "notifications.json");
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (fs.existsSync(file)) {
+      try { fs.unlinkSync(file); } catch (e) {}
+    }
+    let lastTime = 0;
+    fs.watch(dataDir, (eventType, filename) => {
+      if (filename === "notifications.json") {
+        const now = Date.now();
+        if (now - lastTime < 100) return;
+        lastTime = now;
+        setTimeout(() => {
+          try {
+            if (fs.existsSync(file)) {
+              const content = fs.readFileSync(file, "utf8");
+              const data = JSON.parse(content);
+              if (data && data.title && data.text) {
+                showNotification(data.title, data.text, data.icon || "info");
+              }
+            }
+          } catch (e) {}
+        }, 50);
+      }
+    });
+  } catch (err) {}
+}
+
 // Kill PID from file (best-effort, removes file after)
 function killByPidFile(pidFile) {
   try {
@@ -658,7 +691,7 @@ function startServer(latestVersion) {
   // Initialize tray icon (runs alongside TUI)
   const initTrayIcon = () => {
     try {
-      const { initTray } = require("./src/cli/tray/tray");
+      const { initTray, showNotification } = require("./src/cli/tray/tray");
       initTray({
         port,
         onQuit: () => {
@@ -670,6 +703,7 @@ function startServer(latestVersion) {
         },
         onOpenDashboard: () => openBrowser(url)
       });
+      startNotificationWatcher(showNotification);
     } catch (err) {
       // Tray not available - continue without it
     }

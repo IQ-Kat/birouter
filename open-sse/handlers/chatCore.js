@@ -19,6 +19,10 @@ import { detectClientTool, isNativePassthrough } from "../utils/clientDetector.j
 import { dedupeTools } from "../utils/toolDeduper.js";
 import { injectCaveman } from "../rtk/caveman.js";
 import { compressMessages, formatRtkLog } from "../rtk/index.js";
+import { sendNotification } from "@/lib/notifier.js";
+
+const activeSessions = global.__activeSessions ??= new Map();
+const SESSION_INACTIVITY_MS = 25000; // 25 seconds of inactivity to declare session complete
 
 /**
  * Core chat handler - shared between SSE and Worker
@@ -118,6 +122,46 @@ export async function handleChatCore({ body, modelInfo, credentials, log, onCred
   const rtkStats = compressMessages(translatedBody, rtkEnabled);
   const rtkLine = formatRtkLog(rtkStats);
   if (rtkLine) console.log(rtkLine);
+
+  // Track RTK savings for system tray notification summary
+  if (rtkStats && rtkStats.bytesBefore > rtkStats.bytesAfter) {
+    const savedBytes = rtkStats.bytesBefore - rtkStats.bytesAfter;
+    const sessionKey = clientTool || "generic";
+    const displayName = sessionKey.charAt(0).toUpperCase() + sessionKey.slice(1);
+    
+    let session = activeSessions.get(sessionKey);
+    if (!session) {
+      session = { totalSavedBytes: 0, timer: null };
+      activeSessions.set(sessionKey, session);
+    }
+    
+    session.totalSavedBytes += savedBytes;
+    
+    if (session.timer) clearTimeout(session.timer);
+    
+    session.timer = setTimeout(() => {
+      const totalSaved = session.totalSavedBytes;
+      activeSessions.delete(sessionKey);
+      
+      if (totalSaved > 1024) { // Only notify if we saved more than 1 KB
+        const savedTokens = Math.round(totalSaved / 4);
+        const formattedBytes = totalSaved >= 1024 * 1024 
+          ? `${(totalSaved / (1024 * 1024)).toFixed(2)} MB`
+          : `${(totalSaved / 1024).toFixed(1)} KB`;
+          
+        const costSaved = (savedTokens * 0.000003).toFixed(4);
+        const costStr = costSaved > "0.0000" ? ` (~$${costSaved})` : "";
+
+        try {
+          sendNotification(
+            `Birouter — Session Complete`,
+            `${displayName} session finished. RTK saved ${formattedBytes} (~${savedTokens.toLocaleString()} tokens)${costStr}!`,
+            "info"
+          );
+        } catch (e) {}
+      }
+    }, SESSION_INACTIVITY_MS);
+  }
 
   // Caveman: inject terse-style system prompt
   if (cavemanEnabled && cavemanLevel) {

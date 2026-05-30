@@ -2,6 +2,16 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.2.6 (2026-05-30)
+
+### 🐛 Bug Fixes
+- **Terminal Input Freeze**: Fixed a bug where pressing Enter on the TUI pause prompt ("Press Enter to go back to menu...") did not work in Windows terminal (PowerShell/CMD) due to raw mode toggling issues.
+- **Server Shutdown Crash**: Prevented the background server from crashing due to `EPIPE` (broken pipe) errors on `stdout`/`stderr` when the parent terminal is closed.
+
+### ⚡ Improvements
+- **NPM Package Links**: Added repository, bugs, and homepage metadata to the NPM package, enabling direct links to the GitHub repository.
+- **Theme Color**: Restored the original brand Sky Blue theme color palette.
+
 ## v0.2.5 (2026-05-30)
 
 ### 🚀 New Features

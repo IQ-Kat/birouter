@@ -2,6 +2,15 @@
   "name": "birouter",
   "version": "0.2.5",
   "description": "Birouter CLI - Start and manage Birouter server",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IQ-Kat/birouter.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/IQ-Kat/birouter/issues"
+  },
+  "homepage": "https://github.com/IQ-Kat/birouter#readme",
   "bin": {
     "birouter": "./cli.js"
   },

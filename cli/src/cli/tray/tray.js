@@ -316,7 +316,14 @@ function openBrowser(url) {
   exec(cmd);
 }
 
+function showNotification(title, text, icon = "info") {
+  if (trayInstance && typeof trayInstance.showNotification === "function") {
+    trayInstance.showNotification(title, text, icon);
+  }
+}
+
 module.exports = {
   initTray,
-  killTray
+  killTray,
+  showNotification
 };
