@@ -217,9 +217,14 @@ function escapeHistoricalContextAttribute(value: string): string {
     .replaceAll(">", "&gt;");
 }
 
+function escapeHistoricalContextContent(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
 function buildHistoricalToolResultContext(name: string, response: unknown): string {
   const source = escapeHistoricalContextAttribute(name || "unknown");
-  const result = typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
+  const rawResult = typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
+  const result = escapeHistoricalContextContent(rawResult);
   return [
     `<previous_tool_result_context source="${source}">`,
     result,
