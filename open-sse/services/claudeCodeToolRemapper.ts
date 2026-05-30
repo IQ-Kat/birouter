@@ -197,7 +197,22 @@ export function needsThirdPartyCloak(name: string): boolean {
   return /[a-z]/.test(name.charAt(0)) || name.includes("_") || name.includes("-");
 }
 
-export function cloakThirdPartyToolNames(body: Record<string, unknown>): Map<string, string> {
+export interface CloakOptions {
+  /**
+   * Names matching this predicate are left untouched, so a caller that owns a
+   * more specific rewrite (e.g. the CliproxyAPI executor's Anthropic `mcp_*`
+   * reserved-namespace rewrite) keeps authority over them and the two reverse
+   * maps stay disjoint / single-hop.
+   */
+  skip?: (name: string) => boolean;
+}
+
+export function cloakThirdPartyToolNames(
+  body: Record<string, unknown>,
+  options?: CloakOptions
+): Map<string, string> {
+  const shouldCloak = (name: string): boolean =>
+    needsThirdPartyCloak(name) && !(options?.skip ? options.skip(name) : false);
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
 
   const used = new Set<string>();
@@ -234,34 +249,46 @@ export function cloakThirdPartyToolNames(body: Record<string, unknown>): Map<str
     return alias;
   };
 
+  // Non-mutating: clone changed entries rather than rewriting the caller's
+  // objects in place (mirrors applyMcpToolNameRewrite — transformRequest must
+  // not corrupt an input body that may be logged or replayed on fallback).
   if (Array.isArray(tools)) {
-    for (const tool of tools) {
-      if (tool && typeof tool.name === "string" && needsThirdPartyCloak(tool.name)) {
-        tool.name = aliasFor(tool.name);
+    body.tools = tools.map((tool) => {
+      if (tool && typeof tool.name === "string" && shouldCloak(tool.name)) {
+        return { ...tool, name: aliasFor(tool.name) };
       }
-    }
+      return tool;
+    });
   }
 
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(messages)) {
-    for (const message of messages) {
+    body.messages = messages.map((message) => {
       const content = message?.content as Array<Record<string, unknown>> | undefined;
-      if (!Array.isArray(content)) continue;
-      for (const block of content) {
+      if (!Array.isArray(content)) return message;
+      let changed = false;
+      const newContent = content.map((block) => {
         if (
           block?.type === "tool_use" &&
           typeof block.name === "string" &&
-          needsThirdPartyCloak(block.name)
+          shouldCloak(block.name)
         ) {
-          block.name = aliasFor(block.name);
+          changed = true;
+          return { ...block, name: aliasFor(block.name) };
         }
-      }
-    }
+        return block;
+      });
+      return changed ? { ...message, content: newContent } : message;
+    });
   }
 
   const toolChoice = body.tool_choice as Record<string, unknown> | undefined;
-  if (toolChoice?.type === "tool" && typeof toolChoice.name === "string" && needsThirdPartyCloak(toolChoice.name)) {
-    toolChoice.name = aliasFor(toolChoice.name);
+  if (
+    toolChoice?.type === "tool" &&
+    typeof toolChoice.name === "string" &&
+    shouldCloak(toolChoice.name)
+  ) {
+    body.tool_choice = { ...toolChoice, name: aliasFor(toolChoice.name) };
   }
 
   return nameMap ?? new Map<string, string>();

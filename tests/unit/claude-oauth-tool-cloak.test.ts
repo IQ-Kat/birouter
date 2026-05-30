@@ -179,3 +179,31 @@ describe("cloakThirdPartyToolNames — defensive null guards", () => {
     assert.equal(block.name, "Read");
   });
 });
+
+describe("cloakThirdPartyToolNames — non-mutating + skip option", () => {
+  it("does not mutate the caller's input tool objects", () => {
+    const original: AnyRecord = { name: "read_file" };
+    const body: AnyRecord = { tools: [original] };
+    cloakThirdPartyToolNames(body);
+    assert.equal(original.name, "read_file"); // input object untouched
+    assert.equal((body.tools as AnyRecord[])[0].name, "Read"); // body.tools reassigned with a clone
+  });
+
+  it("does not mutate the caller's input message blocks", () => {
+    const block: AnyRecord = { type: "tool_use", name: "read_file" };
+    const body: AnyRecord = {
+      tools: [{ name: "read_file" }],
+      messages: [{ role: "assistant", content: [block] }],
+    };
+    cloakThirdPartyToolNames(body);
+    assert.equal(block.name, "read_file"); // input block untouched
+    const out = ((body.messages as AnyRecord[])[0].content as AnyRecord[])[0];
+    assert.equal(out.name, "Read");
+  });
+
+  it("leaves names matched by the skip predicate untouched", () => {
+    const body: AnyRecord = { tools: [{ name: "mcp_call" }, { name: "read_file" }] };
+    cloakThirdPartyToolNames(body, { skip: (n) => n.startsWith("mcp_") });
+    assert.deepEqual((body.tools as AnyRecord[]).map((t) => t.name), ["mcp_call", "Read"]);
+  });
+});
