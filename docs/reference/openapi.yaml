@@ -23,6 +23,8 @@ servers:
     description: Local development
 
 tags:
+  - name: Playground
+    description: Playground Studio — preset management and prompt improvement
   - name: Memory
     description: Conversational memory management — CRUD, engine status, playground preview, summarization, reindex, and Qdrant settings (plan 21 — v3.8.6). All routes require management auth.
   - name: Chat
@@ -96,6 +98,174 @@ tags:
       See docs/frameworks/TRAFFIC_INSPECTOR.md.
 
 paths:
+  # --- Playground + Search Tools (plans 17+18) ---
+  /api/playground/improve-prompt:
+    post:
+      tags:
+        - Playground
+      summary: Improve prompt via LLM
+      description: |
+        Rewrites the supplied system prompt and/or user prompt using a meta-prompt
+        (inspired by Anthropic Console Prompt Improver). Internally calls
+        `/v1/chat/completions` with the model specified in the request body.
+        Quota is consumed from the caller's account.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model
+              properties:
+                system:
+                  type: string
+                  maxLength: 50000
+                  description: System prompt to improve (at least one of system/prompt required)
+                prompt:
+                  type: string
+                  maxLength: 50000
+                  description: User prompt to improve
+                model:
+                  type: string
+                  description: Model to use for the improvement call (e.g. openai/gpt-4o)
+                tone:
+                  type: string
+                  enum:
+                    - concise
+                    - detailed
+                  default: concise
+      responses:
+        '200':
+          description: Improved prompt(s)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  improvedSystem:
+                    type: string
+                  improvedPrompt:
+                    type: string
+                  tokensIn:
+                    type: integer
+                  tokensOut:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/playground/presets:
+    get:
+      tags:
+        - Playground
+      summary: List playground presets
+      description: Returns all saved playground presets ordered by creation date (newest first).
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preset list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  presets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlaygroundPreset'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Playground
+      summary: Create playground preset
+      description: Saves the current playground configuration as a named preset in the database.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaygroundPresetCreate'
+      responses:
+        '201':
+          description: Created preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundPreset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/playground/presets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Playground
+      summary: Get playground preset
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Preset found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundPreset'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Preset not found
+    put:
+      tags:
+        - Playground
+      summary: Update playground preset
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaygroundPresetCreate'
+      responses:
+        '200':
+          description: Updated preset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaygroundPreset'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Preset not found
+    delete:
+      tags:
+        - Playground
+      summary: Delete playground preset
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Preset not found
   # --- Memory Engine (plan 21) ---
   /api/memory:
     get:
@@ -4816,6 +4986,61 @@ components:
             $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+    PlaygroundPreset:
+      type: object
+      required:
+        - id
+        - name
+        - endpoint
+        - model
+        - params
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        endpoint:
+          type: string
+          description: Playground endpoint key (e.g. "chat.completions")
+        model:
+          type: string
+        system:
+          type: string
+          nullable: true
+        params:
+          type: object
+          additionalProperties: true
+          description: Serialized parameter values (temperature, max_tokens, etc.)
+        created_at:
+          type: string
+          format: date-time
+    PlaygroundPresetCreate:
+      type: object
+      required:
+        - name
+        - endpoint
+        - model
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        endpoint:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        system:
+          type: string
+          nullable: true
+        params:
+          type: object
+          additionalProperties: true
+          default: {}
     MemoryEntry:
       type: object
       description: A single persisted memory entry
