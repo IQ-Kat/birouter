@@ -520,3 +520,63 @@ export {
 } from "./db/memoryVec";
 
 export type { MemoryVecMeta } from "./db/memoryVec";
+// T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
+export * from "./db/agentBridgeState";
+export * from "./db/agentBridgeMappings";
+export * from "./db/agentBridgeBypass";
+export * from "./db/inspectorCustomHosts";
+export * from "./db/inspectorSessions";
+// Quota Sharing — Group B (planos 16+22)
+export {
+  listPools,
+  getPool,
+  createPool,
+  updatePool,
+  deletePool,
+  upsertAllocations,
+  listAllocationsForApiKey,
+} from "./db/quotaPools";
+export {
+  getBucket,
+  incrementBucket,
+  getPair,
+  gcOlderThan as gcQuotaConsumption,
+} from "./db/quotaConsumption";
+export {
+  getPlan as getProviderPlan,
+  listPlans as listProviderPlans,
+  upsertPlan as upsertProviderPlan,
+  deletePlan as deleteProviderPlan,
+} from "./db/providerPlans";
+
+export {
+  // Per-API-Key Token Limits (migration 073)
+  upsertTokenLimit,
+  listTokenLimits,
+  getTokenLimitsForRequest,
+  deleteTokenLimit,
+  getWindowUsage,
+  incrementWindowTokens,
+  resetWindowIfElapsed,
+  logTokenLimitReset,
+} from "./db/tokenLimits";
+
+export type {
+  TokenLimit,
+  TokenLimitScopeType,
+  UpsertTokenLimitInput,
+  TokenWindowState,
+} from "./db/tokenLimits";
+
+export {
+  insertPlugin,
+  getPluginById,
+  getPluginByName,
+  listPlugins,
+  updatePluginStatus,
+  updatePluginConfig,
+  deletePlugin,
+  pluginExists,
+} from "./db/plugins";
+
+export type { PluginRow, PluginCreateInput } from "./db/plugins";
