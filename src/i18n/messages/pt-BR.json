@@ -4301,7 +4301,27 @@
     "invalidJson": "JSON inválido",
     "running": "Executando…",
     "runLabel": "Executar",
-    "enterToolResult": "Insira o resultado da ferramenta…"
+    "enterToolResult": "Insira o resultado da ferramenta…",
+    "build": {
+      "step1Label": "O que testar?",
+      "step2Label": "Configurar",
+      "step3Label": "Rodar",
+      "step1Title": "O que você quer testar?",
+      "step1Subtitle": "Escolha a funcionalidade que deseja explorar nesta sessão.",
+      "step2Title": "Configurar",
+      "step2Subtitle": "Configure as ferramentas ou o esquema JSON que serão usados na requisição.",
+      "step3Title": "Rodar",
+      "modeToolsTitle": "Ferramentas",
+      "modeToolsDesc": "Teste function calling — defina ferramentas e veja como o modelo as invoca.",
+      "modeJsonTitle": "JSON",
+      "modeJsonDesc": "Teste saída estruturada — restrinja a resposta a um esquema JSON.",
+      "modeBothTitle": "Ferramentas + JSON",
+      "modeBothDesc": "Combine function calling e saída estruturada em uma única requisição.",
+      "backButton": "Voltar",
+      "nextButton": "Próximo",
+      "runButton": "Executar",
+      "promptPlaceholder": "Digite sua mensagem… (Enter para enviar, Shift+Enter para nova linha)"
+    }
   },
   "pricingModal": {
     "title": "Configuração de preços",

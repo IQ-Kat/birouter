@@ -7540,7 +7540,27 @@
     "invalidJson": "Invalid JSON",
     "running": "Running…",
     "runLabel": "Run",
-    "enterToolResult": "Enter tool result…"
+    "enterToolResult": "Enter tool result…",
+    "build": {
+      "step1Label": "What to test?",
+      "step2Label": "Configure",
+      "step3Label": "Run",
+      "step1Title": "What do you want to test?",
+      "step1Subtitle": "Choose the capability you want to explore in this session.",
+      "step2Title": "Configure",
+      "step2Subtitle": "Set up the tools or JSON schema that will be used in the request.",
+      "step3Title": "Run",
+      "modeToolsTitle": "Tools",
+      "modeToolsDesc": "Test function calling — define tools and see how the model invokes them.",
+      "modeJsonTitle": "JSON",
+      "modeJsonDesc": "Test structured output — constrain the response to a JSON schema.",
+      "modeBothTitle": "Tools + JSON",
+      "modeBothDesc": "Combine function calling and structured output in a single request.",
+      "backButton": "Back",
+      "nextButton": "Next",
+      "runButton": "Run",
+      "promptPlaceholder": "Enter your message… (Enter to send, Shift+Enter for newline)"
+    }
   },
   "miniPlayground": {
     "endpoint": "Endpoint",
