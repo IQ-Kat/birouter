@@ -107,3 +107,75 @@ describe("cloakThirdPartyToolNames", () => {
     assert.equal(needsThirdPartyCloak("mixture_of_agents"), true);
   });
 });
+
+describe("sanitizeClaudeToolSchemas — boolean schema preservation", () => {
+  it("preserves additionalProperties: false (canonical lock-down)", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      properties: { a: { type: "string" } },
+      additionalProperties: false,
+    }) as AnyRecord;
+    assert.equal(s.additionalProperties, false);
+  });
+
+  it("preserves additionalProperties: true", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      additionalProperties: true,
+    }) as AnyRecord;
+    assert.equal(s.additionalProperties, true);
+  });
+
+  it("preserves boolean property schemas under properties", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      properties: { allowed: true, denied: false },
+    }) as AnyRecord;
+    const props = s.properties as AnyRecord;
+    assert.equal(props.allowed, true);
+    assert.equal(props.denied, false);
+  });
+
+  it("preserves boolean unevaluatedProperties", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      unevaluatedProperties: false,
+    }) as AnyRecord;
+    assert.equal(s.unevaluatedProperties, false);
+  });
+
+  it("still replaces a placeholder string in a slot key with permissive {}", () => {
+    const s = sanitizeClaudeToolSchema({
+      type: "object",
+      additionalProperties: "[MaxDepth]",
+    }) as AnyRecord;
+    assert.deepEqual(s.additionalProperties, {});
+  });
+});
+
+describe("cloakThirdPartyToolNames — defensive null guards", () => {
+  it("tolerates null/undefined entries in tools[]", () => {
+    const body: AnyRecord = {
+      tools: [null, { name: "read_file" }, undefined, { name: "Bash" }],
+    };
+    cloakThirdPartyToolNames(body);
+    const names = (body.tools as Array<AnyRecord | null | undefined>).map((t) => t?.name);
+    assert.deepEqual(names, [undefined, "Read", undefined, "Bash"]);
+  });
+
+  it("tolerates null/undefined entries in messages[]", () => {
+    const body: AnyRecord = {
+      tools: [{ name: "read_file" }],
+      messages: [
+        null,
+        { role: "assistant", content: [{ type: "tool_use", name: "read_file" }] },
+        undefined,
+      ],
+    };
+    cloakThirdPartyToolNames(body);
+    const block = (
+      (body.messages as Array<AnyRecord>)[1].content as Array<AnyRecord>
+    )[0];
+    assert.equal(block.name, "Read");
+  });
+});

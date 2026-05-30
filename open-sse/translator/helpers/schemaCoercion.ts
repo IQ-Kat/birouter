@@ -297,8 +297,19 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
       continue;
     }
     if (SCHEMA_SLOT_KEYS.includes(key)) {
-      result[key] =
-        isPlainObject(value) || Array.isArray(value) ? stripInvalidSchemaConstructs(value) : {};
+      // Boolean schemas are valid in JSON Schema (e.g. `additionalProperties: false`
+      // locks down the object); coercing to {} would silently allow extras and
+      // invite the model to hallucinate arguments. Only placeholder strings
+      // (e.g. "[MaxDepth]") get replaced with the permissive {}.
+      if (isPlainObject(value) || Array.isArray(value)) {
+        result[key] = stripInvalidSchemaConstructs(value);
+      } else if (typeof value === "boolean") {
+        result[key] = value;
+      } else if (isSchemaPlaceholder(value)) {
+        result[key] = {};
+      } else {
+        result[key] = value;
+      }
       continue;
     }
     if (key === "const") {
@@ -309,9 +320,18 @@ export function stripInvalidSchemaConstructs(schema: unknown): unknown {
     if (key === "properties" && isPlainObject(value)) {
       const properties: JsonRecord = {};
       for (const [propName, propSchema] of Object.entries(value)) {
-        properties[propName] = isPlainObject(propSchema)
-          ? stripInvalidSchemaConstructs(propSchema)
-          : {};
+        // Same boolean-preservation rule as SCHEMA_SLOT_KEYS above:
+        // `{ properties: { onlyAdminCanSet: false } }` is a valid permission
+        // gate and must not be silently turned into the permissive {}.
+        if (isPlainObject(propSchema) || Array.isArray(propSchema)) {
+          properties[propName] = stripInvalidSchemaConstructs(propSchema);
+        } else if (typeof propSchema === "boolean") {
+          properties[propName] = propSchema;
+        } else if (isSchemaPlaceholder(propSchema)) {
+          properties[propName] = {};
+        } else {
+          properties[propName] = propSchema;
+        }
       }
       result[key] = properties;
       continue;

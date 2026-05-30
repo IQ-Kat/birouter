@@ -203,7 +203,7 @@ export function cloakThirdPartyToolNames(body: Record<string, unknown>): Map<str
   const used = new Set<string>();
   if (Array.isArray(tools)) {
     for (const tool of tools) {
-      if (typeof tool.name === "string") used.add(tool.name);
+      if (tool && typeof tool.name === "string") used.add(tool.name);
     }
   }
   const existingMap =
@@ -236,7 +236,7 @@ export function cloakThirdPartyToolNames(body: Record<string, unknown>): Map<str
 
   if (Array.isArray(tools)) {
     for (const tool of tools) {
-      if (typeof tool.name === "string" && needsThirdPartyCloak(tool.name)) {
+      if (tool && typeof tool.name === "string" && needsThirdPartyCloak(tool.name)) {
         tool.name = aliasFor(tool.name);
       }
     }
@@ -245,10 +245,14 @@ export function cloakThirdPartyToolNames(body: Record<string, unknown>): Map<str
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(messages)) {
     for (const message of messages) {
-      const content = message.content as Array<Record<string, unknown>> | undefined;
+      const content = message?.content as Array<Record<string, unknown>> | undefined;
       if (!Array.isArray(content)) continue;
       for (const block of content) {
-        if (block?.type === "tool_use" && typeof block.name === "string" && needsThirdPartyCloak(block.name)) {
+        if (
+          block?.type === "tool_use" &&
+          typeof block.name === "string" &&
+          needsThirdPartyCloak(block.name)
+        ) {
           block.name = aliasFor(block.name);
         }
       }
