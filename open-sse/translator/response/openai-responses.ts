@@ -9,13 +9,17 @@ function normalizeToolName(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function stripEmptyOptionalToolArgs(value) {
+function stripEmptyOptionalToolArgs(value, toolName) {
   if (value == null) return value;
 
   if (typeof value === "string") {
+    // JSON-string cleanup is intentionally scoped to Claude Code's Read tool.
+    // For arbitrary tools, empty strings/arrays may be valid user payloads.
+    if (toolName !== "Read") return value;
     try {
       const parsed = JSON.parse(value);
-      const cleaned = stripEmptyOptionalToolArgs(parsed);
+      if (Array.isArray(parsed) || typeof parsed !== "object" || parsed === null) return value;
+      const cleaned = stripEmptyOptionalToolArgs(parsed, toolName);
       return JSON.stringify(cleaned ?? {});
     } catch {
       return value;
@@ -655,7 +659,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
       state.toolCallIndex++;
 
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments);
+      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
 
       const argsStr =
         argsToEmit != null
@@ -697,7 +701,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 
     // Only emit if arguments exist in the done event AND they weren't already streamed via deltas
     if (item.arguments != null && !buffered) {
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments);
+      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
 
       const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
       if (argsStr) {
