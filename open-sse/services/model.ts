@@ -38,6 +38,10 @@ ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // OpenCode's Zen provider now uses the "opencode" slug, but OmniRoute registers
 // it as "opencode-zen". This alias ensures `opencode/<model>` resolves correctly.
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
+// xiaomi/ is the user-visible prefix for MiMo models; register it so
+// parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
+// of falling through to the identity fallback ("xiaomi").
+ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.
