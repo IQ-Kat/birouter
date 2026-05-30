@@ -1,3 +1,9 @@
+---
+title: "Search Tools Studio"
+version: 3.8.7
+lastUpdated: 2026-05-30
+---
+
 # Search Tools Studio
 
 > **Feature:** Search Tools Studio — unified web tools workspace for `/dashboard/search-tools`.
