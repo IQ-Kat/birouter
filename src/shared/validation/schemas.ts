@@ -1646,6 +1646,16 @@ export const cursorImportSchema = z.object({
   machineId: z.string().trim().optional(),
 });
 
+export const traeImportSchema = z.object({
+  accessToken: z.string().trim().min(1, "Cloud-IDE-JWT access token is required"),
+  webId: z.string().trim().optional(),
+  bizUserId: z.string().trim().optional(),
+  userUniqueId: z.string().trim().optional(),
+  scope: z.string().trim().optional(),
+  tenant: z.string().trim().optional(),
+  region: z.string().trim().optional(),
+});
+
 export const kiroImportSchema = z.object({
   refreshToken: z.string().trim().min(1, "Refresh token is required"),
   region: z.string().trim().default("us-east-1"),

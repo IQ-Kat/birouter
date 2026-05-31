@@ -1121,6 +1121,27 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  trae: {
+    id: "trae",
+    alias: "tr",
+    format: "openai",
+    executor: "trae",
+    baseUrl: "https://core-normal.trae.ai/api/remote/v1",
+    authType: "oauth",
+    authHeader: "bearer",
+    defaultContextLength: 272000,
+    models: [
+      { id: "auto", name: "Auto (Code · Server Picks)" },
+      { id: "work", name: "Work (Auto · fast)" },
+      { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3-flash-solo", name: "Gemini 3 Flash" },
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "gpt-5.4", name: "GPT 5.4" },
+      { id: "gpt-5.2", name: "GPT 5.2" },
+    ],
+  },
+
   cursor: {
     id: "cursor",
     alias: "cu",
