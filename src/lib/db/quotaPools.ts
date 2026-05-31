@@ -54,6 +54,8 @@ export interface QuotaPool {
   /** All member connections (≥1 after backfill). Primary is always connectionIds[0]. */
   connectionIds: string[];
   name: string;
+  /** Group this pool belongs to. Defaults to 'group-demo' for legacy pools. */
+  groupId: string;
   createdAt: string;
   allocations: PoolAllocation[];
 }
@@ -61,6 +63,8 @@ export interface QuotaPool {
 export interface PoolCreate {
   connectionId: string;
   name: string;
+  /** Group to assign this pool to. Defaults to 'group-demo' when omitted. */
+  groupId?: string;
   allocations?: PoolAllocation[];
   /**
    * Full member list. When provided, connectionId is ignored for the join table
@@ -72,6 +76,8 @@ export interface PoolCreate {
 
 export interface PoolUpdate {
   name?: string;
+  /** When provided, updates the pool's group assignment. */
+  groupId?: string;
   allocations?: PoolAllocation[];
   /**
    * When provided, replaces the entire join-table membership for this pool.
@@ -125,6 +131,7 @@ interface PoolRow {
   id: string;
   connection_id: string;
   name: string;
+  group_id: string | null;
   created_at: string;
 }
 
@@ -171,6 +178,7 @@ function rowToPool(row: PoolRow, allocations: PoolAllocation[]): QuotaPool {
     connectionId: row.connection_id,
     connectionIds: getConnectionIds(row.id, row.connection_id),
     name: row.name,
+    groupId: row.group_id || "group-demo",
     createdAt: row.created_at,
     allocations,
   };
@@ -204,7 +212,7 @@ function makeId(): string {
 export function listPools(): QuotaPool[] {
   const rows = getDb()
     .prepare<PoolRow>(
-      "SELECT id, connection_id, name, created_at FROM quota_pools ORDER BY created_at ASC"
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC"
     )
     .all();
   return rows.map((row) => rowToPool(row, getAllocations(row.id)));
@@ -215,7 +223,7 @@ export function listPools(): QuotaPool[] {
  */
 export function getPool(id: string): QuotaPool | null {
   const row = getDb()
-    .prepare<PoolRow>("SELECT id, connection_id, name, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
     .get(id);
   if (!row) return null;
   return rowToPool(row, getAllocations(row.id));
@@ -242,11 +250,13 @@ export function createPool(input: PoolCreate): QuotaPool {
     assertSingleProvider(input.connectionIds);
   }
 
+  const groupId = input.groupId || "group-demo";
+
   const database = getDb();
   const doCreate = database.transaction(() => {
     database
-      .prepare("INSERT INTO quota_pools (id, connection_id, name, created_at) VALUES (?, ?, ?, ?)")
-      .run(id, primaryConnectionId, input.name, now);
+      .prepare("INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)")
+      .run(id, primaryConnectionId, input.name, groupId, now);
 
     const insertConn = database.prepare(
       "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
@@ -275,7 +285,7 @@ export function createPool(input: PoolCreate): QuotaPool {
   doCreate();
 
   const result = rowToPool(
-    { id, connection_id: primaryConnectionId, name: input.name, created_at: now },
+    { id, connection_id: primaryConnectionId, name: input.name, group_id: groupId, created_at: now },
     getAllocations(id)
   );
 
@@ -294,7 +304,7 @@ export function createPool(input: PoolCreate): QuotaPool {
 export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
   const database = getDb();
   const existing = database
-    .prepare<PoolRow>("SELECT id, connection_id, name, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
     .get(id);
   if (!existing) return null;
 
@@ -307,6 +317,11 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
     if (input.name !== undefined) {
       database.prepare("UPDATE quota_pools SET name = ? WHERE id = ?").run(input.name, id);
       existing.name = input.name;
+    }
+
+    if (input.groupId !== undefined) {
+      database.prepare("UPDATE quota_pools SET group_id = ? WHERE id = ?").run(input.groupId, id);
+      existing.group_id = input.groupId;
     }
 
     if (input.connectionIds !== undefined && input.connectionIds.length > 0) {
