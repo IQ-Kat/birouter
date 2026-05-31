@@ -194,18 +194,25 @@ export async function GET(request: Request) {
     const providerAssignments = await getProxyAssignments({ scope: "provider" });
     if (providerAssignments.length > 0) {
       config.providers = { ...(config.providers || {}) };
-      for (const assignment of providerAssignments) {
-        if (!assignment.scopeId || !assignment.proxyId) {
-          continue;
-        }
-        const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
-        if (!proxyData) continue;
-        config.providers[assignment.scopeId] = {
-          type: proxyData.type,
-          host: proxyData.host,
-          port: proxyData.port,
-          username: proxyData.username,
-          password: proxyData.password,
+      const providerProxyResults = await Promise.all(
+        providerAssignments.map(async (assignment) => {
+          if (!assignment.scopeId || !assignment.proxyId) {
+            return null;
+          }
+          const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
+          if (!proxyData) return null;
+          return { scopeId: assignment.scopeId, proxyData };
+        })
+      );
+
+      for (const result of providerProxyResults) {
+        if (!result) continue;
+        config.providers[result.scopeId] = {
+          type: result.proxyData.type,
+          host: result.proxyData.host,
+          port: result.proxyData.port,
+          username: result.proxyData.username,
+          password: result.proxyData.password,
         };
       }
     }
