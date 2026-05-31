@@ -18,6 +18,9 @@ const WEB_SEARCH_TOOL_TYPES = /^web_search/;
 // tool_search is a Responses API built-in sent by newer Codex clients; it has no Chat Completions
 // equivalent and must be silently dropped (not rejected with 400).
 const TOOL_SEARCH_TOOL_TYPES = /^tool_search/;
+// image_generation is a Responses API hosted tool that Codex Desktop injects into every request
+// (even text-only ones); it has no Chat Completions equivalent and must be silently dropped (#2950).
+const IMAGE_GENERATION_TOOL_TYPES = /^image_generation/;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -85,6 +88,7 @@ export function openaiResponsesToOpenAIRequest(
         toolType !== "namespace" &&
         !WEB_SEARCH_TOOL_TYPES.test(toolType) &&
         !TOOL_SEARCH_TOOL_TYPES.test(toolType) &&
+        !IMAGE_GENERATION_TOOL_TYPES.test(toolType) &&
         !tool.function
       ) {
         throw unsupportedFeature(
@@ -267,8 +271,11 @@ export function openaiResponsesToOpenAIRequest(
       .filter((toolValue) => {
         const tool = toRecord(toolValue);
         const toolType = toString(tool.type);
-        // tool_search has no Chat Completions equivalent; drop it silently (issue #2766).
-        return !TOOL_SEARCH_TOOL_TYPES.test(toolType);
+        // tool_search (#2766) and image_generation (#2950) are Responses API built-ins
+        // with no Chat Completions equivalent; drop them silently.
+        return (
+          !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
+        );
       })
       .map((toolValue) => {
         const tool = toRecord(toolValue);

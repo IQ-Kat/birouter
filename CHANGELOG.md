@@ -78,6 +78,11 @@
   `claude-opus-4.6`) instead of the Responses API, which Copilot does not serve for
   non-OpenAI models (returned `[400]`). Native OpenAI `gpt-*` models keep the
   Responses API. (#2911)
+- **translator/responses:** Codex Desktop injects an `image_generation` hosted
+  tool into every Responses API request (even text-only ones), which OmniRoute
+  rejected with `[400] image_generation tool type is not supported`. It is now
+  treated like `tool_search`: allowed past the tool-type validator and dropped
+  silently from the tools array before forwarding to Chat Completions. (#2950)
 
 ### ✨ New Features
 
