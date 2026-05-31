@@ -59,6 +59,11 @@
 
 ### Fixed
 
+- **docker:** add a `web` compose profile (`omniroute-web`, target `runner-web`,
+  image `omniroute:web`) so web-cookie providers (gemini-web, claude-web,
+  claude-turnstile) work out of the box — the default `base` image ships without
+  Chromium/Playwright, which made those providers fail with
+  "Executable doesn't exist at .../ms-playwright/chromium...". (#2832)
 - **routing/codex:** fix two gpt-5.5 Codex defects (#2877). (A) For a Codex-only
   account, a bare `gpt-5.5` Responses request was rerouted to codex with the
   model hardcoded to `gpt-5.5-medium` (`chatHelpers.ts`); the executor read that
