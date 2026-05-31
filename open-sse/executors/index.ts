@@ -5,6 +5,7 @@ import { QoderExecutor } from "./qoder.ts";
 import { KiroExecutor } from "./kiro.ts";
 import { CodexExecutor } from "./codex.ts";
 import { CursorExecutor } from "./cursor.ts";
+import { TraeExecutor } from "./trae.ts";
 import { DefaultExecutor } from "./default.ts";
 import { BedrockExecutor } from "./bedrock.ts";
 import { GlmExecutor } from "./glm.ts";
@@ -57,6 +58,7 @@ const executors = {
   bedrock: new BedrockExecutor(),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
+  trae: new TraeExecutor(),
   glm: new GlmExecutor("glm"),
   "glm-cn": new GlmExecutor("glm-cn"),
   glmt: new GlmExecutor("glmt"),
@@ -109,7 +111,7 @@ const executors = {
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
   "duckduckgo-web": new DuckDuckGoWebExecutor(),
-  "ddgw": new DuckDuckGoWebExecutor(), // Alias
+  ddgw: new DuckDuckGoWebExecutor(), // Alias
   "t3-web": new T3ChatWebExecutor(),
   t3chat: new T3ChatWebExecutor(), // Alias
   "inner-ai": new InnerAiExecutor(),
@@ -150,6 +152,7 @@ export { QoderExecutor } from "./qoder.ts";
 export { KiroExecutor } from "./kiro.ts";
 export { CodexExecutor } from "./codex.ts";
 export { CursorExecutor } from "./cursor.ts";
+export { TraeExecutor } from "./trae.ts";
 export { DefaultExecutor } from "./default.ts";
 export { BedrockExecutor } from "./bedrock.ts";
 export { GlmExecutor } from "./glm.ts";
