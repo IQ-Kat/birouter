@@ -282,7 +282,7 @@ export default function QuotaSharePageClient() {
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {pools.map((pool) => (
             <PoolCardWithUsage
               key={pool.id}
