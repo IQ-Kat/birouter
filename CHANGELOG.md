@@ -100,6 +100,12 @@
   configured, credential resolution now falls back to anonymous (no-auth) access
   instead of failing with "No credentials for provider: opencode-zen". A
   configured, active key is still used when present. (#2962)
+- **translator/responses:** fixed an upstream `[400] Messages with role 'tool'
+  must be a response to a preceding message with 'tool_calls'` when a Codex
+  client sent a `function_call` with an empty/missing `call_id`. The orphaned
+  `function_call_output` previously slipped past the orphan filter. Now
+  empty-`call_id` function calls are skipped (no dangling assistant tool_call)
+  and any tool result without a matching tool_call id is dropped. (#2893)
 
 ### ✨ New Features
 
