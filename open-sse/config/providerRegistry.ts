@@ -983,9 +983,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         maxOutputTokens: 64000,
       },
       {
+        // #2911: GitHub Copilot's Responses API does not serve Claude/Gemini —
+        // route them via chat/completions (provider default) like claude-opus-4.6.
         id: "claude-opus-4-5-20251101",
         name: "Claude Opus 4.5 (Full ID)",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
@@ -996,14 +997,15 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         maxOutputTokens: 128000,
       },
       {
+        // #2911: Claude on Copilot must use chat/completions, not the Responses API.
         id: "claude-opus-4.7",
         name: "Claude Opus 4.7",
-        targetFormat: "openai-responses",
         contextLength: 1000000,
         maxOutputTokens: 128000,
       },
-      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", targetFormat: "openai-responses" },
-      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", targetFormat: "openai-responses" },
+      // #2911: Gemini on Copilot must use chat/completions, not the Responses API.
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
       { id: "oswe-vscode-prime", name: "Raptor Mini", targetFormat: "openai-responses" },
       //{ id: "?", name: "Goldeneye" },
     ],
