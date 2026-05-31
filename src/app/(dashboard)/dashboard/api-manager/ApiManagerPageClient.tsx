@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, useId, useRef, memo } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
@@ -130,6 +130,8 @@ type ProviderGroup = [provider: string, models: Model[]];
 export default function ApiManagerPageClient() {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
+  const newKeyNameInputId = useId();
+  const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
@@ -159,6 +161,17 @@ export default function ApiManagerPageClient() {
 
   const { copied, copy } = useCopyToClipboard();
 
+  const scrollCreateKeyFormToTop = useCallback(() => {
+    const scrollContainer = createKeyFormRef.current?.parentElement;
+    if (scrollContainer instanceof HTMLElement) {
+      scrollContainer.scrollTop = 0;
+    }
+
+    const input = document.getElementById(newKeyNameInputId);
+    input?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    input?.focus({ preventScroll: true });
+  }, [newKeyNameInputId]);
+
   useEffect(() => {
     fetchData();
     fetchModels();
@@ -173,6 +186,16 @@ export default function ApiManagerPageClient() {
   useEffect(() => {
     writeActiveOnlyPreference(activeOnly);
   }, [activeOnly]);
+
+  useEffect(() => {
+    if (!showAddModal || !nameError) return;
+
+    const timeout = window.setTimeout(() => {
+      scrollCreateKeyFormToTop();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
     try {
@@ -346,6 +369,7 @@ export default function ApiManagerPageClient() {
     // Validate raw input first, then sanitize
     const validation = validateKeyName(newKeyName, t);
     if (!validation.valid) {
+      scrollCreateKeyFormToTop();
       setNameError(validation.error || t("invalidKeyName"));
       return;
     }
@@ -1011,6 +1035,7 @@ export default function ApiManagerPageClient() {
       <Modal
         isOpen={showAddModal}
         title={t("createKey")}
+        bodyClassName="p-6 max-h-[calc(100vh-150px)] overflow-y-auto"
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
@@ -1021,12 +1046,13 @@ export default function ApiManagerPageClient() {
           setCreateError(null);
         }}
       >
-        <div className="flex flex-col gap-4">
+        <div ref={createKeyFormRef} className="flex flex-col gap-4">
           <div>
             <label className="text-sm font-medium text-text-main mb-1.5 block">
               {t("keyName")}
             </label>
             <Input
+              id={newKeyNameInputId}
               value={newKeyName}
               onChange={(e) => {
                 setNewKeyName(e.target.value);
@@ -1909,11 +1935,10 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
-            <p className="text-xs text-text-muted">
-              Allow this API key to manage OmniRoute configuration.
-            </p>
+            <p className="text-xs text-text-muted">{t("managementAccessDesc")}</p>
           </div>
           <button
+            type="button"
             role="switch"
             aria-checked={manageEnabled}
             onClick={() => setManageEnabled((prev) => !prev)}
@@ -1934,6 +1959,7 @@ const PermissionsModal = memo(function PermissionsModal({
             <p className="text-xs text-text-muted">{t("selfServiceVisibilityDesc")}</p>
           </div>
           <button
+            type="button"
             role="switch"
             aria-checked={selfUsageEnabled}
             onClick={() =>
@@ -1953,6 +1979,7 @@ const PermissionsModal = memo(function PermissionsModal({
           </button>
           <p className="text-xs text-text-muted">{t("ownUsageVisibilityDesc")}</p>
           <button
+            type="button"
             role="switch"
             aria-checked={selfAccountQuotaEnabled}
             disabled={!selfUsageEnabled}
