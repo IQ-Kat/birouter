@@ -83,6 +83,11 @@
   rejected with `[400] image_generation tool type is not supported`. It is now
   treated like `tool_search`: allowed past the tool-type validator and dropped
   silently from the tools array before forwarding to Chat Completions. (#2950)
+- **combo/builder:** no-auth OpenCode Free combo entries now use the `oc/` routing
+  alias instead of the `opencode/` prefix. `parseModel("opencode/<model>")`
+  resolves to the `opencode-zen` api-key tier (via a manual `ALIAS_TO_PROVIDER_ID`
+  override), so combos built with the bare provider id misrouted away from the
+  no-auth `opencode` provider; `oc/<model>` resolves correctly. (#2901)
 
 ### ✨ New Features
 
