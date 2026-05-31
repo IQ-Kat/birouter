@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import {
   parseQuotaData,
   calculatePercentage,
@@ -83,6 +85,7 @@ export default function AccountQuotaRow({
   connectionIds,
 }: AccountQuotaRowProps) {
   const t = useTranslations("quotaShare");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
   // Keyed by connectionId
   const [caches, setCaches] = useState<Record<string, unknown> | null>(null);
@@ -162,8 +165,8 @@ export default function AccountQuotaRow({
               <span className="shrink-0">
                 <ProviderIcon providerId={prov} size={14} />
               </span>
-              <span className="text-text-muted truncate max-w-[90px]" title={connId}>
-                {connId.slice(0, 8)}…
+              <span className="text-text-muted truncate max-w-[90px]" title={emailsVisible ? connId : maskEmailLikeValue(connId)}>
+                {emailsVisible ? `${connId.slice(0, 8)}…` : maskEmailLikeValue(connId)}
               </span>
               {summary ? (
                 <>

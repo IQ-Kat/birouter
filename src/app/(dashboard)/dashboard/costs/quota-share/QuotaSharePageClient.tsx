@@ -3,6 +3,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
+import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import type { QuotaPool, PoolAllocation } from "@/lib/quota/dimensions";
 
 import { usePools } from "./hooks/usePools";
@@ -119,6 +122,7 @@ function PoolCardWithUsage({
 export default function QuotaSharePageClient() {
   const t = useTranslations("quotaShare");
   const { pools, loading, mutate } = usePools();
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
   // LS → DB migration hook (B22) — runs once, idempotent
   useLocalStoragePoolMigration({ pools, mutate });
@@ -186,9 +190,10 @@ export default function QuotaSharePageClient() {
     (connectionId: string) => {
       const conn = connections.find((c) => c.id === connectionId);
       if (!conn) return connectionId.slice(0, 12);
-      return conn.name || conn.email || conn.displayName || conn.id.slice(0, 12);
+      const raw = conn.name || conn.email || conn.displayName || conn.id.slice(0, 12);
+      return emailsVisible ? raw : maskEmailLikeValue(raw);
     },
-    [connections]
+    [connections, emailsVisible]
   );
 
   const connProvider = useCallback(
@@ -244,10 +249,13 @@ export default function QuotaSharePageClient() {
           </h1>
           <p className="text-sm text-text-muted mt-0.5">{t("description")}</p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
-          <span className="material-symbols-outlined text-[14px] mr-1">add</span>
-          {t("newPool")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <EmailPrivacyToggle />
+          <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
+            <span className="material-symbols-outlined text-[14px] mr-1">add</span>
+            {t("newPool")}
+          </Button>
+        </div>
       </div>
 
       {/* Concept card */}

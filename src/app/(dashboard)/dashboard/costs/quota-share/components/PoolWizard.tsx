@@ -20,6 +20,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal } from "@/shared/components";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import { getKnownPlan } from "@/lib/quota/planRegistry";
 import { quotaModelName } from "@/lib/quota/quotaModelNaming";
 import type { Policy, PoolAllocation, QuotaDimension, QuotaUnit, QuotaWindow } from "@/lib/quota/dimensions";
@@ -160,6 +162,7 @@ export default function PoolWizard({
 }: PoolWizardProps) {
   const t = useTranslations("quotaShare");
   const tPlans = useTranslations("quotaPlans");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
   // ── Wizard step ───────────────────────────────────────────────────────────
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -188,8 +191,11 @@ export default function PoolWizard({
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  const connLabel = (c: Connection) =>
-    `${c.provider} / ${c.name || c.email || c.displayName || c.id.slice(0, 12)}`;
+  const connLabel = (c: Connection) => {
+    const detail = c.name || c.email || c.displayName || c.id.slice(0, 12);
+    const maskedDetail = emailsVisible ? detail : maskEmailLikeValue(detail);
+    return `${c.provider} / ${maskedDetail}`;
+  };
 
   const selectedConn = useMemo(
     () => connections.find((c) => c.id === primaryConnectionId),

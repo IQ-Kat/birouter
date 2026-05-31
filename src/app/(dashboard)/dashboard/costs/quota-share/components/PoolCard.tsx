@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import type { QuotaPool } from "@/lib/quota/dimensions";
 import type { PoolUsageSnapshot } from "@/lib/quota/types";
 import DimensionBar from "./DimensionBar";
@@ -59,8 +61,12 @@ export default function PoolCard({
   onRemove,
 }: PoolCardProps) {
   const t = useTranslations("quotaShare");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const status = computeStatus(usage);
   const { icon: statusIcon, cls: statusCls } = STATUS_ICONS[status];
+
+  const displayName = emailsVisible ? pool.name : maskEmailLikeValue(pool.name);
+  const displayConnectionLabel = emailsVisible ? connectionLabel : maskEmailLikeValue(connectionLabel);
 
   // Check for plan dimensions from usage
   const hasDimensions = !!usage?.dimensions?.length;
@@ -98,7 +104,7 @@ export default function PoolCard({
                 {statusIcon}
               </span>
               <span className="text-sm font-bold text-text-main truncate">
-                {pool.name} · {connectionLabel}
+                {displayName} · {displayConnectionLabel}
               </span>
             </div>
             <div className="text-[11px] text-text-muted">

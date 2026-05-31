@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal } from "@/shared/components";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import type { QuotaPool, PoolAllocation, Policy } from "@/lib/quota/dimensions";
 
 interface ApiKey {
@@ -39,6 +41,7 @@ export default function EditAllocationsModal({
   onSave,
 }: EditAllocationsModalProps) {
   const t = useTranslations("quotaShare");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const [drafts, setDrafts] = useState<PoolAllocation[]>(pool.allocations);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +103,7 @@ export default function EditAllocationsModal({
     <Modal isOpen onClose={onClose} title={t("editTitle")} size="lg">
       <div className="space-y-3">
         <div className="text-xs text-text-muted">
-          {t("pool")}: <strong className="text-text-main">{pool.name}</strong>
+          {t("pool")}: <strong className="text-text-main">{emailsVisible ? pool.name : maskEmailLikeValue(pool.name)}</strong>
         </div>
 
         {drafts.length === 0 ? (
