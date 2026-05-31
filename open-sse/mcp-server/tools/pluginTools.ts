@@ -12,6 +12,7 @@ export const pluginTools = [
   {
     name: "plugin_list",
     description: "List all installed plugins with their status, hooks, and metadata.",
+    scopes: ["read:plugins"],
     inputSchema: z.object({
       status: z
         .enum(["installed", "active", "inactive", "error"])
@@ -39,6 +40,7 @@ export const pluginTools = [
   {
     name: "plugin_install",
     description: "Install a plugin from a local directory path.",
+    scopes: ["write:plugins"],
     inputSchema: z.object({
       path: z.string().describe("Absolute path to the plugin directory containing plugin.json"),
     }),
@@ -58,6 +60,7 @@ export const pluginTools = [
   {
     name: "plugin_activate",
     description: "Activate an installed plugin (loads hooks into the request pipeline).",
+    scopes: ["write:plugins"],
     inputSchema: z.object({
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
@@ -70,6 +73,7 @@ export const pluginTools = [
   {
     name: "plugin_deactivate",
     description: "Deactivate an active plugin (unloads hooks from the request pipeline).",
+    scopes: ["write:plugins"],
     inputSchema: z.object({
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
@@ -82,6 +86,7 @@ export const pluginTools = [
   {
     name: "plugin_uninstall",
     description: "Uninstall a plugin (deactivates, removes files, removes from DB).",
+    scopes: ["write:plugins"],
     inputSchema: z.object({
       name: z.string().describe("Plugin name (kebab-case)"),
     }),
@@ -94,6 +99,7 @@ export const pluginTools = [
   {
     name: "plugin_configure",
     description: "Get or update a plugin's configuration.",
+    scopes: ["write:plugins"],
     inputSchema: z.object({
       name: z.string().describe("Plugin name"),
       config: z
@@ -122,6 +128,7 @@ export const pluginTools = [
   {
     name: "plugin_executions",
     description: "View plugin execution history (from skill_executions table).",
+    scopes: ["read:plugins"],
     inputSchema: z.object({
       name: z.string().optional().describe("Filter by plugin name"),
       limit: z.number().min(1).max(100).default(20).describe("Max results to return"),
@@ -137,6 +144,7 @@ export const pluginTools = [
   {
     name: "plugin_scan",
     description: "Scan the plugin directory for new plugins and sync with DB.",
+    scopes: ["write:plugins"],
     inputSchema: z.object({}),
     handler: async () => {
       const result = await pluginManager.scan();
