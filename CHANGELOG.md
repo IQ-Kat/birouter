@@ -59,6 +59,11 @@
 
 ### Fixed
 
+- **dashboard:** custom providers (`openai-compatible-*` / `anthropic-compatible-*`)
+  now show their user-given node name instead of the raw UUID id across the
+  active-requests panel, proxy logger, and home-page provider topology. The
+  display-label resolver was extracted into a shared util reused by all surfaces
+  (previously only the request-log viewer resolved it). (#2968)
 - **docker:** the standalone launcher (Docker `CMD`) now honors
   `OMNIROUTE_MEMORY_MB` (default 512, clamped [64, 16384]) and overrides the
   baked `--max-old-space-size=256`, fixing random OOM crashes under load / with
