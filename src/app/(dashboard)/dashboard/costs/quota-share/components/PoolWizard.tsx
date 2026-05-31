@@ -165,7 +165,8 @@ export default function PoolWizard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // ── Step 1 state ──────────────────────────────────────────────────────────
-  const [connectionId, setConnectionId] = useState("");
+  // Multi-select: ordered array of selected connection IDs. First element is primary.
+  const [connectionIds, setConnectionIds] = useState<string[]>([]);
   const [poolName, setPoolName] = useState("");
   const [defaultPolicy, setDefaultPolicy] = useState<Policy>("hard");
 
@@ -181,14 +182,18 @@ export default function PoolWizard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Derived state ─────────────────────────────────────────────────────────
+  // The first selected connection is the "primary" — used for plan fetch/PUT.
+  const primaryConnectionId = connectionIds[0] ?? "";
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   const connLabel = (c: Connection) =>
     `${c.provider} / ${c.name || c.email || c.displayName || c.id.slice(0, 12)}`;
 
   const selectedConn = useMemo(
-    () => connections.find((c) => c.id === connectionId),
-    [connections, connectionId]
+    () => connections.find((c) => c.id === primaryConnectionId),
+    [connections, primaryConnectionId]
   );
 
   const availableConnections = useMemo(
@@ -196,15 +201,15 @@ export default function PoolWizard({
     [connections, existingPoolConnectionIds]
   );
 
-  // ── Load dimensions when connection changes ───────────────────────────────
+  // ── Load dimensions when primary connection changes ───────────────────────
 
   useEffect(() => {
-    if (!connectionId) {
+    if (!primaryConnectionId) {
       setEditDimensions([]);
       setDimensionsEdited(false);
       return;
     }
-    const existingPlan = plans[connectionId];
+    const existingPlan = plans[primaryConnectionId];
     if (existingPlan && existingPlan.dimensions.length > 0) {
       setEditDimensions([...existingPlan.dimensions]);
     } else {
@@ -213,14 +218,14 @@ export default function PoolWizard({
     }
     setDimensionsEdited(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionId]);
+  }, [primaryConnectionId]);
 
   // ── Reset wizard on open/close ────────────────────────────────────────────
 
   useEffect(() => {
     if (!open) {
       setStep(1);
-      setConnectionId("");
+      setConnectionIds([]);
       setPoolName("");
       setDefaultPolicy("hard");
       setEditDimensions([]);
@@ -296,21 +301,35 @@ export default function PoolWizard({
 
   // ── Preview model names ───────────────────────────────────────────────────
 
-  const previewNames = useMemo(() => {
-    if (!selectedConn || !poolName.trim()) return [];
-    const models = getPreviewModels(selectedConn.provider);
-    const MAX = 6;
-    return models.slice(0, MAX).map((m) =>
-      quotaModelName(poolName.trim(), selectedConn.provider, m)
-    );
-  }, [selectedConn, poolName]);
+  // Per-provider preview: { provider, names[], totalModels }
+  const previewByProvider = useMemo(() => {
+    const name = poolName.trim();
+    if (connectionIds.length === 0 || !name) return [];
+
+    const MAX_PER_PROVIDER = 3;
+    return connectionIds.map((cid) => {
+      const conn = connections.find((c) => c.id === cid);
+      if (!conn) return null;
+      const allModels = getPreviewModels(conn.provider);
+      const names = allModels.slice(0, MAX_PER_PROVIDER).map((m) =>
+        quotaModelName(name, conn.provider, m)
+      );
+      return { provider: conn.provider, names, totalModels: allModels.length };
+    }).filter(Boolean) as Array<{ provider: string; names: string[]; totalModels: number }>;
+  }, [connectionIds, connections, poolName]);
+
+  // Flat list (for legacy single-provider path, kept for step-3 rendering simplicity)
+  const previewNames = useMemo(
+    () => previewByProvider.flatMap((p) => p.names),
+    [previewByProvider]
+  );
 
   const effectivePoolName = poolName.trim() || (selectedConn ? connLabel(selectedConn) : "");
 
   // ── Save sequence ─────────────────────────────────────────────────────────
 
   const handleFinish = async () => {
-    if (!selectedConn) return;
+    if (!selectedConn || connectionIds.length === 0) return;
     setSaving(true);
     setError(null);
 
@@ -320,7 +339,8 @@ export default function PoolWizard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          connectionId,
+          connectionId: primaryConnectionId,
+          connectionIds,
           name: effectivePoolName,
           allocations: [],
         }),
@@ -334,9 +354,9 @@ export default function PoolWizard({
       const createData = (await createRes.json()) as { pool: { id: string } };
       const newPoolId = createData.pool.id;
 
-      // 2. PUT /api/quota/plans/[connectionId] — only when user edited dimensions
+      // 2. PUT /api/quota/plans/[primaryConnectionId] — only when user edited dimensions
       if (dimensionsEdited && editDimensions.length > 0) {
-        const planRes = await fetch(`/api/quota/plans/${connectionId}`, {
+        const planRes = await fetch(`/api/quota/plans/${primaryConnectionId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ dimensions: editDimensions }),
@@ -390,40 +410,72 @@ export default function PoolWizard({
               <p className="text-[11px] text-text-muted">{t("wizardStep1Subtitle")}</p>
             </div>
 
-            {/* Connection selector */}
+            {/* Connection multi-select (checkboxes) */}
             <div>
               <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
-                {t("providerConnection")}
+                {t("wizardConnectionsLabel")}
               </label>
-              <select
-                value={connectionId}
-                onChange={(e) => {
-                  setConnectionId(e.target.value);
-                  setPoolName("");
-                }}
-                className="w-full px-3 py-2 rounded border border-border bg-bg-base text-sm"
-              >
-                <option value="">{t("selectConnection")}</option>
-                {availableConnections.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {connLabel(c)}
-                  </option>
-                ))}
+              <div className="space-y-1.5 rounded border border-border bg-bg-base px-3 py-2 max-h-48 overflow-y-auto">
+                {availableConnections.map((c) => {
+                  const checked = connectionIds.includes(c.id);
+                  const isPrimary = connectionIds[0] === c.id;
+                  return (
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 cursor-pointer select-none py-0.5"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          setConnectionIds((prev) => {
+                            if (prev.includes(c.id)) {
+                              const next = prev.filter((id) => id !== c.id);
+                              if (next.length === 0) setPoolName("");
+                              return next;
+                            } else {
+                              return [...prev, c.id];
+                            }
+                          });
+                        }}
+                        className="accent-primary w-3.5 h-3.5 shrink-0"
+                      />
+                      <span className="text-sm truncate">{connLabel(c)}</span>
+                      {isPrimary && (
+                        <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
+                          {t("wizardPrimaryBadge")}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
                 {connections
                   .filter((c) => existingPoolConnectionIds.has(c.id))
                   .map((c) => (
-                    <option key={c.id} value={c.id} disabled>
-                      {connLabel(c)} {t("alreadyUsedSuffix")}
-                    </option>
+                    <label
+                      key={c.id}
+                      className="flex items-center gap-2 cursor-not-allowed select-none py-0.5 opacity-40"
+                    >
+                      <input
+                        type="checkbox"
+                        disabled
+                        checked={false}
+                        readOnly
+                        className="w-3.5 h-3.5 shrink-0"
+                      />
+                      <span className="text-sm truncate">
+                        {connLabel(c)} {t("alreadyUsedSuffix")}
+                      </span>
+                    </label>
                   ))}
-              </select>
+              </div>
               {connections.length === 0 && (
                 <p className="text-[10px] text-amber-400 mt-1">{t("noEligibleConnections")}</p>
               )}
             </div>
 
             {/* Pool name */}
-            {connectionId && (
+            {connectionIds.length > 0 && (
               <div>
                 <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
                   {t("wizardPoolNameLabel")}
@@ -439,7 +491,7 @@ export default function PoolWizard({
             )}
 
             {/* Default policy */}
-            {connectionId && (
+            {connectionIds.length > 0 && (
               <div>
                 <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
                   {t("policyLabel")}
@@ -466,7 +518,7 @@ export default function PoolWizard({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setStep(2)}
-                disabled={!connectionId}
+                disabled={connectionIds.length === 0}
                 className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {t("wizardNext")}
@@ -561,6 +613,13 @@ export default function PoolWizard({
 
             {dimensionsEdited && (
               <p className="text-[10px] text-amber-400">{t("wizardDimensionsEditedNotice")}</p>
+            )}
+
+            {/* Helper note when pool has multiple connections */}
+            {connectionIds.length > 1 && (
+              <p className="text-[10px] text-text-muted bg-bg-subtle/40 px-3 py-2 rounded border border-border/40">
+                {t("wizardAdditionalConnectionsNote")}
+              </p>
             )}
 
             <div className="flex items-center justify-between pt-2">
@@ -715,18 +774,37 @@ export default function PoolWizard({
               </div>
             </label>
 
-            {/* quotaModelName preview */}
-            {previewNames.length > 0 && (
+            {/* quotaModelName preview — grouped by provider */}
+            {previewByProvider.length > 0 && (
               <div className="rounded-md border border-border/40 bg-bg-subtle/30 p-3 text-[11px]">
                 <div className="font-semibold text-text-muted uppercase tracking-wide mb-1.5 text-[10px]">
                   {t("wizardPreviewLabel")}
                 </div>
-                <div className="space-y-0.5">
-                  {previewNames.map((name) => (
-                    <div key={name} className="font-mono text-text-main truncate">
-                      {name}
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  {previewByProvider.map(({ provider, names, totalModels }) => {
+                    const extra = totalModels - names.length;
+                    return (
+                      <div key={provider}>
+                        {previewByProvider.length > 1 && (
+                          <div className="text-[10px] uppercase tracking-wide text-text-muted font-semibold mb-0.5">
+                            {provider}
+                          </div>
+                        )}
+                        <div className="space-y-0.5">
+                          {names.map((name) => (
+                            <div key={name} className="font-mono text-text-main truncate">
+                              {name}
+                            </div>
+                          ))}
+                          {extra > 0 && (
+                            <div className="text-text-muted italic">
+                              {t("wizardPreviewMoreModels", { count: extra })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

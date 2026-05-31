@@ -17,8 +17,10 @@ export interface PoolCardProps {
   keyLabels: Record<string, string>;
   /** Connection display label */
   connectionLabel: string;
-  /** Provider identifier */
+  /** Primary provider identifier */
   provider: string;
+  /** Optional list of all provider identifiers when pool has multiple connections */
+  providers?: string[];
   onEdit: () => void;
   onRemove: () => void;
 }
@@ -47,6 +49,7 @@ export default function PoolCard({
   keyLabels,
   connectionLabel,
   provider,
+  providers,
   onEdit,
   onRemove,
 }: PoolCardProps) {
@@ -62,9 +65,28 @@ export default function PoolCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-md flex items-center justify-center overflow-hidden shrink-0 bg-bg-subtle">
-            <ProviderIcon providerId={provider} size={28} type="color" />
-          </div>
+          {/* Provider icon(s): show one per provider when multi-connection, else single icon */}
+          {providers && providers.length > 1 ? (
+            <div className="flex items-center gap-0.5 shrink-0">
+              {providers.slice(0, 3).map((p) => (
+                <div
+                  key={p}
+                  className="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-bg-subtle"
+                >
+                  <ProviderIcon providerId={p} size={20} type="color" />
+                </div>
+              ))}
+              {providers.length > 3 && (
+                <span className="text-[10px] text-text-muted font-semibold ml-0.5">
+                  +{providers.length - 3}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="w-7 h-7 rounded-md flex items-center justify-center overflow-hidden shrink-0 bg-bg-subtle">
+              <ProviderIcon providerId={provider} size={28} type="color" />
+            </div>
+          )}
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className={`material-symbols-outlined text-[16px] shrink-0 ${statusCls}`}>

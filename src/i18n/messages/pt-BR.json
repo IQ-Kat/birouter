@@ -5395,7 +5395,11 @@
     "wizardDimensionsEditedNotice": "Dimensões editadas — serão salvas como override manual quando o pool for criado.",
     "wizardExclusiveLabel": "Cota exclusiva",
     "wizardExclusiveHint": "Quando ativado, estas API keys só poderão usar os modelos virtuais deste pool (reconciliação de allowedQuotas aplicada ao salvar).",
-    "wizardPreviewLabel": "Prévia dos nomes de modelos virtuais"
+    "wizardPreviewLabel": "Prévia dos nomes de modelos virtuais",
+    "wizardConnectionsLabel": "Conexões de provider",
+    "wizardPrimaryBadge": "principal",
+    "wizardAdditionalConnectionsNote": "Conexões adicionais usam os limites padrão do catálogo (editáveis posteriormente).",
+    "wizardPreviewMoreModels": "+{count} mais"
   },
   "requestLogger": {
     "recording": "Recording",

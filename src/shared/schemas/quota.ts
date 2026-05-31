@@ -1,11 +1,20 @@
 import { z } from "zod";
 import { PoolAllocationSchema, QuotaDimensionSchema } from "@/lib/quota/dimensions";
 
-export const PoolCreateSchema = z.object({
-  connectionId: z.string().min(1),
-  name: z.string().min(1).max(120),
-  allocations: z.array(PoolAllocationSchema).default([]),
-});
+export const PoolCreateSchema = z
+  .object({
+    connectionId: z.string().min(1),
+    connectionIds: z.array(z.string().min(1)).min(1).optional(),
+    name: z.string().min(1).max(120),
+    allocations: z.array(PoolAllocationSchema).default([]),
+  })
+  .refine(
+    (data) => {
+      if (data.connectionIds === undefined) return true;
+      return data.connectionIds.includes(data.connectionId);
+    },
+    { message: "primary connectionId must be one of connectionIds" }
+  );
 export type PoolCreate = z.infer<typeof PoolCreateSchema>;
 
 export const PoolUpdateSchema = z.object({

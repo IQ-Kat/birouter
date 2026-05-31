@@ -7885,7 +7885,11 @@
     "wizardDimensionsEditedNotice": "Dimensions edited — will be saved as a manual override when the pool is created.",
     "wizardExclusiveLabel": "Exclusive quota",
     "wizardExclusiveHint": "When enabled, these API keys will only be allowed to use this pool's virtual models (allowedQuotas reconciliation is applied on save).",
-    "wizardPreviewLabel": "Virtual model names preview"
+    "wizardPreviewLabel": "Virtual model names preview",
+    "wizardConnectionsLabel": "Provider connections",
+    "wizardPrimaryBadge": "primary",
+    "wizardAdditionalConnectionsNote": "Additional connections use their catalog default limits (editable later).",
+    "wizardPreviewMoreModels": "+{count} more"
   },
   "plugins": {
     "title": "Plugins",
