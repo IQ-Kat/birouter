@@ -17,6 +17,7 @@ import {
   AUTHZ_HEADER_REQUEST_ID,
   AUTHZ_HEADER_ROUTE_CLASS,
   AUTHZ_TRUSTED_HEADERS,
+  PEER_IP_HEADER,
 } from "./headers";
 import type { AuthSubject, RouteClass, RouteClassification } from "./types";
 import type { AuthOutcome, RoutePolicy } from "./context";
@@ -228,6 +229,10 @@ export async function runAuthzPipeline(
   for (const trusted of AUTHZ_TRUSTED_HEADERS) {
     requestHeaders.delete(trusted);
   }
+  // The trusted peer-IP stamp is read by the policy from the ORIGINAL request
+  // (above); strip it from the forwarded headers so the per-process token never
+  // reaches route handlers or upstream providers.
+  requestHeaders.delete(PEER_IP_HEADER);
 
   requestHeaders.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
   requestHeaders.set(AUTHZ_HEADER_REQUEST_ID, requestId);

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isPrivateLanHost, isLoopbackHost, isLocalOnlyPath } from "../../src/server/authz/routeGuard.ts";
+import { resolveStampedPeer } from "../../src/server/authz/peerStamp.ts";
 
 test("isPrivateLanHost: accepts RFC1918 IPv4 (incl. :port and ::ffff: mapped)", () => {
   for (const h of [
@@ -48,10 +49,46 @@ test("services + traffic-inspector remain LOCAL_ONLY paths", () => {
   assert.equal(isLocalOnlyPath("/api/tools/traffic-inspector/sessions"), true);
 });
 
-test("management policy derives locality from the Host header (middleware socket is null)", () => {
+test("management policy must NOT derive locality from the spoofable Host header", () => {
   const src = readFileSync(
     join(import.meta.dirname, "../../src/server/authz/policies/management.ts"),
     "utf8"
   );
-  assert.ok(src.includes('headers?.get?.("host")'), "requestPeerAddress must read the Host header");
+  // Regression guard: a prior fix read the client-controlled Host header for the
+  // LOCAL_ONLY decision, letting `Host: 127.0.0.1` bypass the gate. Locality must
+  // come from the token-stamped peer IP instead.
+  assert.ok(
+    !src.includes('get?.("host")') && !src.includes('get("host")'),
+    "requestPeerAddress must NOT read the Host header"
+  );
+  assert.ok(
+    src.includes("resolveStampedPeer") && src.includes("PEER_IP_HEADER"),
+    "requestPeerAddress must resolve the trusted token-stamped peer IP"
+  );
+});
+
+// ── resolveStampedPeer: the auth boundary that replaces Host-header trust ──
+const TOK = "process-secret-token-abc";
+
+test("resolveStampedPeer: returns the IP only for a correctly-tokened stamp", () => {
+  assert.equal(resolveStampedPeer(`${TOK}|127.0.0.1`, TOK), "127.0.0.1");
+  assert.equal(resolveStampedPeer(`${TOK}|192.168.0.15`, TOK), "192.168.0.15");
+  assert.equal(resolveStampedPeer(`${TOK}|::1`, TOK), "::1");
+  assert.equal(resolveStampedPeer(`${TOK}|::ffff:192.168.1.20`, TOK), "::ffff:192.168.1.20");
+});
+
+test("resolveStampedPeer: rejects forged token, missing token, no separator, empty ip", () => {
+  assert.equal(resolveStampedPeer("wrong-token|127.0.0.1", TOK), null, "forged token");
+  assert.equal(resolveStampedPeer(`${TOK}|127.0.0.1`, undefined), null, "no process token");
+  assert.equal(resolveStampedPeer("127.0.0.1", TOK), null, "no separator (raw client value)");
+  assert.equal(resolveStampedPeer(`${TOK}|`, TOK), null, "empty ip");
+  assert.equal(resolveStampedPeer("|127.0.0.1", TOK), null, "empty token segment");
+  assert.equal(resolveStampedPeer(null, TOK), null, "absent header");
+  assert.equal(resolveStampedPeer("", TOK), null, "empty header");
+});
+
+test("resolveStampedPeer: a spoofed Host-style value cannot pass without the token", () => {
+  // Simulates a remote attacker who knows the header name but not the secret.
+  assert.equal(resolveStampedPeer("127.0.0.1|127.0.0.1", TOK), null);
+  assert.equal(resolveStampedPeer("anything|127.0.0.1", TOK), null);
 });
