@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { PoolAllocationSchema, QuotaDimensionSchema } from "@/lib/quota/dimensions";
 
+export const GroupCreateSchema = z.object({
+  name: z.string().min(1).max(120),
+});
+export type GroupCreate = z.infer<typeof GroupCreateSchema>;
+
+export const GroupRenameSchema = z.object({
+  name: z.string().min(1).max(120),
+});
+export type GroupRename = z.infer<typeof GroupRenameSchema>;
+
 export const PoolCreateSchema = z
   .object({
     connectionId: z.string().min(1),
