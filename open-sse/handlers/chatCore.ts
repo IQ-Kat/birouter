@@ -2151,7 +2151,10 @@ export async function handleChatCore({
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
         });
-  const settings = cachedSettings ?? (await getCachedSettings());
+  // `settings` is already consolidated once near the top of handleChatCore
+  // (the "fetch once, reuse" const). A second `const settings` here was a
+  // duplicate same-scope declaration that broke the esbuild/tsx transform
+  // ("settings has already been declared") and the production build. Reuse it.
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
