@@ -6,6 +6,20 @@ export function parsePort(value, fallback) {
 }
 
 /**
+ * Resolve the V8 heap ceiling (MB) for the server process from
+ * `OMNIROUTE_MEMORY_MB`, mirroring `omniroute serve`. Clamped to [64, 16384];
+ * invalid/unset → fallback (512). The Docker image bakes
+ * NODE_OPTIONS=--max-old-space-size=256, which OOMs under load / large DBs
+ * (#2939) — the standalone launcher uses this to override that cap.
+ * @param {string | number | undefined | null} value
+ * @param {number} [fallback]
+ */
+export function resolveMaxOldSpaceMb(value, fallback = 512) {
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed >= 64 && parsed <= 16384 ? parsed : fallback;
+}
+
+/**
  * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [fromEnv]
  *        Defaults to process.env. Pass bootstrap `merged` so project `.env` PORT applies before spawn.
  */
