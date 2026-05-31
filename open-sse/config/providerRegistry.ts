@@ -580,7 +580,7 @@ function mapStainlessArch() {
 
 // ── Registry ──────────────────────────────────────────────────────────────
 
-export const REGISTRY: Record<string, RegistryEntry> = {
+const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
   // ─── OAuth Providers ───────────────────────────────────────────────────
   kie: {
     id: "kie",
@@ -4227,12 +4227,55 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
 };
 
+/**
+ * Lazy registry proxy — entries are only materialized on first access.
+ * Reduces memory pressure when most providers are unused.
+ */
+const _registryCache = new Map<string, RegistryEntry>();
+const _registryKeys: string[] = Object.keys(_REGISTRY_EAGER);
+
+export const REGISTRY: Record<string, RegistryEntry> = new Proxy(
+  {} as Record<string, RegistryEntry>,
+  {
+    get(_target, prop: string) {
+      if (typeof prop === "symbol") return undefined;
+      if (_registryCache.has(prop)) {
+        return _registryCache.get(prop);
+      }
+      if (prop in _REGISTRY_EAGER) {
+        const entry = _REGISTRY_EAGER[prop];
+        _registryCache.set(prop, entry);
+        return entry;
+      }
+      return undefined;
+    },
+    has(_target, prop: string) {
+      if (typeof prop === "symbol") return false;
+      return prop in _REGISTRY_EAGER;
+    },
+    ownKeys() {
+      return _registryKeys;
+    },
+    getOwnPropertyDescriptor(_target, prop: string) {
+      if (typeof prop === "string" && prop in _REGISTRY_EAGER) {
+        return {
+          configurable: true,
+          enumerable: true,
+          value: _REGISTRY_EAGER[prop],
+          writable: false,
+        };
+      }
+      return undefined;
+    },
+  },
+);
+
 // ── Generator Functions ───────────────────────────────────────────────────
 
 /** Generate legacy PROVIDERS object shape for constants.js backward compatibility */
 export function generateLegacyProviders(): Record<string, LegacyProvider> {
   const providers: Record<string, LegacyProvider> = {};
-  for (const [id, entry] of Object.entries(REGISTRY)) {
+  for (const [id, entry] of Object.entries(_REGISTRY_EAGER)) {
     const p: LegacyProvider = { format: entry.format };
 
     // URL(s)
@@ -4286,7 +4329,7 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
 /** Generate PROVIDER_MODELS map (alias → model list) */
 export function generateModels(): Record<string, RegistryModel[]> {
   const models: Record<string, RegistryModel[]> = {};
-  for (const entry of Object.values(REGISTRY)) {
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
     if (entry.models && entry.models.length > 0) {
       const key = entry.alias || entry.id;
       // If alias already exists, don't overwrite (first wins)
@@ -4301,7 +4344,7 @@ export function generateModels(): Record<string, RegistryModel[]> {
 /** Generate PROVIDER_ID_TO_ALIAS map */
 export function generateAliasMap(): Record<string, string> {
   const map: Record<string, string> = {};
-  for (const entry of Object.values(REGISTRY)) {
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
     map[entry.id] = entry.alias || entry.id;
   }
   return map;
@@ -4343,48 +4386,60 @@ export function isLocalProvider(baseUrl?: string | null): boolean {
 }
 
 /** Set of provider IDs with passthroughModels enabled — 404s are model-specific, not account-level. */
-const _passthroughProviderIds: Set<string> | null = (() => {
+let _passthroughProviderIds: Set<string> | null = null;
+function ensurePassthroughProviderIds(): Set<string> {
+  if (_passthroughProviderIds) return _passthroughProviderIds;
   try {
     const ids = new Set<string>();
-    for (const entry of Object.values(REGISTRY)) {
+    for (const entry of Object.values(_REGISTRY_EAGER)) {
       if (entry.passthroughModels) ids.add(entry.id);
     }
-    return ids;
+    _passthroughProviderIds = ids;
   } catch {
-    return null;
+    _passthroughProviderIds = new Set<string>();
   }
-})();
-
+  return _passthroughProviderIds;
+}
 export function getPassthroughProviders(): Set<string> {
-  return _passthroughProviderIds ?? new Set<string>();
+  return ensurePassthroughProviderIds();
 }
 
 // ── Registry Lookup Helpers ───────────────────────────────────────────────
 
 const _byAlias = new Map<string, RegistryEntry>();
-for (const entry of Object.values(REGISTRY)) {
-  if (entry.alias && entry.alias !== entry.id) {
-    _byAlias.set(entry.alias, entry);
+let _byAliasPopulated = false;
+function ensureByAliasPopulated(): void {
+  if (_byAliasPopulated) return;
+  _byAliasPopulated = true;
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
+    if (entry.alias && entry.alias !== entry.id) {
+      _byAlias.set(entry.alias, entry);
+    }
   }
 }
-
 /** Get registry entry by provider ID or alias */
 export function getRegistryEntry(provider: string): RegistryEntry | null {
+  ensureByAliasPopulated();
   return REGISTRY[provider] || _byAlias.get(provider) || null;
 }
 
 /** Get all registered provider IDs */
 export function getRegisteredProviders(): string[] {
-  return Object.keys(REGISTRY);
+  return _registryKeys;
 }
 
 // Precomputed map: modelId → unsupportedParams (O(1) lookup instead of O(N×M) scan).
 // Built once at module load from all registry entries.
 const _unsupportedParamsMap = new Map<string, readonly string[]>();
-for (const entry of Object.values(REGISTRY)) {
-  for (const model of entry.models) {
-    if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
-      _unsupportedParamsMap.set(model.id, model.unsupportedParams);
+let _unsupportedParamsPopulated = false;
+function ensureUnsupportedParamsPopulated(): void {
+  if (_unsupportedParamsPopulated) return;
+  _unsupportedParamsPopulated = true;
+  for (const entry of Object.values(_REGISTRY_EAGER)) {
+    for (const model of entry.models) {
+      if (model.unsupportedParams && !_unsupportedParamsMap.has(model.id)) {
+        _unsupportedParamsMap.set(model.id, model.unsupportedParams);
+      }
     }
   }
 }
@@ -4396,6 +4451,7 @@ for (const entry of Object.values(REGISTRY)) {
  * Returns empty array if no restrictions are defined.
  */
 export function getUnsupportedParams(provider: string, modelId: string): readonly string[] {
+  ensureUnsupportedParamsPopulated();
   // 1. Check current provider's registry (exact match)
   const entry = getRegistryEntry(provider);
   const modelEntry = entry?.models.find((m) => m.id === modelId);
