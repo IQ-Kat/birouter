@@ -48,6 +48,12 @@ interface PlanInfo {
   source: "auto" | "manual";
 }
 
+interface QuotaGroup {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface PoolWizardProps {
   open: boolean;
   onClose: () => void;
@@ -56,6 +62,8 @@ export interface PoolWizardProps {
   apiKeys: ApiKey[];
   plans: Record<string, PlanInfo>;
   existingPoolConnectionIds: Set<string>;
+  groups?: QuotaGroup[];
+  selectedGroupId?: string;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -159,6 +167,8 @@ export default function PoolWizard({
   apiKeys,
   plans,
   existingPoolConnectionIds,
+  groups = [],
+  selectedGroupId: initialGroupId = "group-demo",
 }: PoolWizardProps) {
   const t = useTranslations("quotaShare");
   const tPlans = useTranslations("quotaPlans");
@@ -180,6 +190,9 @@ export default function PoolWizard({
   // ── Step 3 state ──────────────────────────────────────────────────────────
   const [allocations, setAllocations] = useState<PoolAllocation[]>([]);
   const [exclusive, setExclusive] = useState(false);
+
+  // ── Group selection ───────────────────────────────────────────────────────
+  const [groupId, setGroupId] = useState<string>(initialGroupId);
 
   // ── Saving ────────────────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
@@ -252,8 +265,9 @@ export default function PoolWizard({
       setExclusive(false);
       setError(null);
       setSaving(false);
+      setGroupId(initialGroupId);
     }
-  }, [open]);
+  }, [open, initialGroupId]);
 
   // ── Step 2 — dimension editors ────────────────────────────────────────────
 
@@ -349,7 +363,8 @@ export default function PoolWizard({
     [previewByProvider]
   );
 
-  const effectivePoolName = poolName.trim() || (selectedConn ? connLabel(selectedConn) : "");
+  // Default pool name uses provider slug — NOT the raw connection label/email.
+  const effectivePoolName = poolName.trim() || (selectedConn ? selectedConn.provider : "");
 
   // ── Save sequence ─────────────────────────────────────────────────────────
 
@@ -368,6 +383,7 @@ export default function PoolWizard({
           connectionIds,
           name: effectivePoolName,
           allocations: [],
+          groupId,
         }),
       });
       if (!createRes.ok) {
@@ -514,9 +530,29 @@ export default function PoolWizard({
                   type="text"
                   value={poolName}
                   onChange={(e) => setPoolName(e.target.value)}
-                  placeholder={selectedConn ? connLabel(selectedConn) : t("wizardPoolNamePlaceholder")}
+                  placeholder={selectedConn ? selectedConn.provider : t("wizardPoolNamePlaceholder")}
                   className="w-full px-3 py-2 rounded border border-border bg-bg-base text-sm"
                 />
+              </div>
+            )}
+
+            {/* Group picker */}
+            {connectionIds.length > 0 && groups.length > 0 && (
+              <div>
+                <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
+                  {t("wizardGroupLabel")}
+                </label>
+                <select
+                  value={groupId}
+                  onChange={(e) => setGroupId(e.target.value)}
+                  className="w-full px-3 py-2 rounded border border-border bg-bg-base text-sm"
+                >
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 

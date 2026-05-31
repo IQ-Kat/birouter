@@ -5408,7 +5408,14 @@
     "accountQuotaTitle": "Cota da conta",
     "accountQuotaNone": "—",
     "logTitle": "Log de uso",
-    "logEmpty": "Sem uso ainda"
+    "logEmpty": "Sem uso ainda",
+    "groupLabel": "Grupo",
+    "newGroup": "Novo grupo",
+    "renameGroup": "Renomear grupo",
+    "groupSelectHint": "Filtrar pools por grupo",
+    "groupAllocationNote": "As alocações se aplicam a todos os pools deste grupo através da camada de cota compartilhada.",
+    "groupNamePrompt": "Digite o nome do grupo",
+    "wizardGroupLabel": "Grupo"
   },
   "requestLogger": {
     "recording": "Recording",

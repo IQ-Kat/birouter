@@ -113,6 +113,12 @@ export default function EditAllocationsModal({
           {t("pool")}: <strong className="text-text-main">{emailsVisible ? pool.name : maskEmailLikeValue(pool.name)}</strong>
         </div>
 
+        {/* Group allocation note */}
+        <p className="text-[11px] text-text-muted bg-bg-subtle/40 px-3 py-2 rounded border border-border/40">
+          <span className="material-symbols-outlined text-[13px] align-middle mr-1 text-primary/70">info</span>
+          {t("groupAllocationNote")}
+        </p>
+
         {drafts.length === 0 ? (
           <div className="text-[12px] text-text-muted italic py-4 text-center bg-bg-subtle/40 rounded-md">
             {t("noKeysAdded")}
