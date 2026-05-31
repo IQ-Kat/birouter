@@ -80,7 +80,7 @@ test("resolveQuotaKeyScope: unknown pool id returns empty scope (no throw)", asy
   assert.deepEqual(scope, { connectionIds: [], providers: [], poolSlugs: [] });
 });
 
-test("resolveQuotaKeyScope: valid pool returns its connectionId, provider, and poolSlug", async () => {
+test("resolveQuotaKeyScope: valid pool returns its connectionId, provider, and group slug", async () => {
   // Seed a real provider connection
   const conn = await providersDb.createProviderConnection({
     provider: "openai",
@@ -91,15 +91,16 @@ test("resolveQuotaKeyScope: valid pool returns its connectionId, provider, and p
   const connId = (conn as Record<string, unknown>).id as string;
   assert.ok(connId, "connection should have an id");
 
-  // Seed a pool referencing that connection
+  // Seed a pool referencing that connection (defaults to group-demo)
   const pool = poolsDb.createPool({ connectionId: connId, name: "Test Pool A2" });
 
   const scope = await resolveQuotaKeyScope([pool.id]);
 
   assert.deepEqual(scope.connectionIds, [connId]);
   assert.deepEqual(scope.providers, ["openai"]);
-  // "Test Pool A2" slugifies to "testpoola2"
-  assert.deepEqual(scope.poolSlugs, ["testpoola2"]);
+  // Task B5: poolSlugs now contains the GROUP slug, not the pool-name slug.
+  // Pool defaults to 'group-demo' → quotaGroupSlug("GroupDemo") = "groupdemo".
+  assert.deepEqual(scope.poolSlugs, ["groupdemo"]);
 });
 
 test("resolveQuotaKeyScope: multiple pools same provider deduplicates providers", async () => {
@@ -118,6 +119,7 @@ test("resolveQuotaKeyScope: multiple pools same provider deduplicates providers"
   const id1 = (conn1 as Record<string, unknown>).id as string;
   const id2 = (conn2 as Record<string, unknown>).id as string;
 
+  // Both pools default to group-demo
   const pool1 = poolsDb.createPool({ connectionId: id1, name: "Pool Anthro 1" });
   const pool2 = poolsDb.createPool({ connectionId: id2, name: "Pool Anthro 2" });
 
@@ -129,9 +131,12 @@ test("resolveQuotaKeyScope: multiple pools same provider deduplicates providers"
 
   // provider "anthropic" appears only once even though two pools share it
   assert.deepEqual(scope.providers, ["anthropic"]);
+
+  // Task B5: both pools are in group-demo → single group slug "groupdemo"
+  assert.deepEqual(scope.poolSlugs, ["groupdemo"]);
 });
 
-test("resolveQuotaKeyScope: multiple pools different providers", async () => {
+test("resolveQuotaKeyScope: multiple pools different providers (same group-demo)", async () => {
   const connA = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
@@ -147,6 +152,7 @@ test("resolveQuotaKeyScope: multiple pools different providers", async () => {
   const idA = (connA as Record<string, unknown>).id as string;
   const idB = (connB as Record<string, unknown>).id as string;
 
+  // Both pools in group-demo (default)
   const poolA = poolsDb.createPool({ connectionId: idA, name: "Pool OAI" });
   const poolB = poolsDb.createPool({ connectionId: idB, name: "Pool GEM" });
 
@@ -158,6 +164,9 @@ test("resolveQuotaKeyScope: multiple pools different providers", async () => {
 
   const providers = [...scope.providers].sort();
   assert.deepEqual(providers, ["gemini", "openai"]);
+
+  // Task B5: both pools are in group-demo → single group slug
+  assert.deepEqual(scope.poolSlugs, ["groupdemo"]);
 });
 
 test("resolveQuotaKeyScope: pool referencing non-existent connectionId is skipped gracefully", async () => {
@@ -185,6 +194,8 @@ test("resolveQuotaKeyScope: mix of valid and invalid pool ids — only valid con
 
   assert.deepEqual(scope.connectionIds, [connId]);
   assert.deepEqual(scope.providers, ["openai"]);
-  // "Pool Mix" slugifies to "poolmix"
-  assert.deepEqual(scope.poolSlugs, ["poolmix"]);
+  // Task B5: poolSlugs now returns the GROUP slug (group-demo → "groupdemo"),
+  // not the pool-name slug ("poolmix"). Ghost pool IDs are skipped (no group
+  // resolution), so only the one valid pool's group appears.
+  assert.deepEqual(scope.poolSlugs, ["groupdemo"]);
 });

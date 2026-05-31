@@ -207,6 +207,19 @@ function makeId(): string {
 // ---------------------------------------------------------------------------
 
 /**
+ * List all quota pools that belong to a specific group.
+ * Returns an empty array when no pools match the given groupId.
+ */
+export function getPoolsByGroup(groupId: string): QuotaPool[] {
+  const rows = getDb()
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE group_id = ? ORDER BY created_at ASC"
+    )
+    .all(groupId);
+  return rows.map((row) => rowToPool(row, getAllocations(row.id)));
+}
+
+/**
  * List all quota pools with their allocations.
  */
 export function listPools(): QuotaPool[] {

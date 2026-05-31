@@ -539,6 +539,7 @@ export * from "./db/inspectorSessions";
 export {
   listPools,
   getPool,
+  getPoolsByGroup,
   createPool,
   updatePool,
   deletePool,

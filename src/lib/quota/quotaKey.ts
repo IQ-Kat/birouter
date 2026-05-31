@@ -7,10 +7,11 @@
  * `exclusive` flag.
  */
 
-import { getPool } from "@/lib/db/quotaPools";
+import { getPool, getPoolsByGroup } from "@/lib/db/quotaPools";
 import { getProviderConnectionById } from "@/lib/db/providers";
 import { getApiKeyById, updateApiKeyPermissions } from "@/lib/db/apiKeys";
-import { quotaPoolSlug } from "./quotaModelNaming";
+import { quotaGroupSlug } from "./quotaModelNaming";
+import { getGroupName } from "@/lib/db/quotaGroups";
 
 // ---------------------------------------------------------------------------
 // Public interface
@@ -21,7 +22,15 @@ export interface QuotaKeyScope {
   connectionIds: string[];
   /** Provider slugs of those connections (deduplicated). */
   providers: string[];
-  /** Alphanumeric pool slugs the key is scoped to (from quotaPoolSlug(pool.name)), deduplicated. */
+  /**
+   * Alphanumeric GROUP slugs the key is scoped to, deduplicated.
+   * Each entry is quotaGroupSlug(groupName) — one per distinct group the
+   * key's allowed pools belong to.
+   *
+   * NOTE: the field is still called `poolSlugs` to minimise churn across
+   * callers; it now holds group slugs (not individual pool-name slugs).
+   * Updated in Task B5 (real-group access).
+   */
   poolSlugs: string[];
 }
 
@@ -51,11 +60,24 @@ export function constrainConnectionsToQuota(
  * returns the set of connection IDs and provider slugs that the key is
  * permitted to use.
  *
+ * Task B5 — Real-group access:
+ * For each allowed pool, the scope expands to ALL pools in the same group:
+ *   pool → pool.groupId → getPoolsByGroup(groupId) → aggregate their
+ *   connections and providers.
+ *
+ * The returned `poolSlugs` field holds GROUP slugs (one per distinct group),
+ * not individual pool-name slugs. This aligns with the `qtSd/<groupSlug>/...`
+ * naming used by filterModelsToQuotaPools and the combo catalog.
+ *
+ * A group slug is only included when the group has at least one valid
+ * connection across any of its pools (same "anyValidConnection" gate,
+ * evaluated group-wide).
+ *
  * Behaviour:
- * - Empty / falsy input → `{ connectionIds: [], providers: [] }`.
+ * - Empty / falsy input → `{ connectionIds: [], providers: [], poolSlugs: [] }`.
  * - Pool IDs that do not resolve (missing pool, missing connection) are
  *   silently skipped — never throws.
- * - Both arrays are deduplicated; order is not guaranteed.
+ * - All arrays are deduplicated; order is not guaranteed.
  */
 export async function resolveQuotaKeyScope(
   allowedQuotas: string[] | null | undefined
@@ -66,42 +88,56 @@ export async function resolveQuotaKeyScope(
 
   const connectionIdSet = new Set<string>();
   const providerSet = new Set<string>();
-  const poolSlugSet = new Set<string>();
+  const groupSlugSet = new Set<string>();
 
+  // Collect the distinct group IDs reachable from the key's allowed pools.
+  // Deduplicate: a key in 2 pools of the same group expands once.
+  const groupIdSet = new Set<string>();
   for (const poolId of allowedQuotas) {
     const pool = getPool(poolId);
     if (!pool) continue;
+    groupIdSet.add(pool.groupId);
+  }
 
-    // D2: iterate ALL member connections (fall back to [connectionId] for any
-    // un-backfilled row where connectionIds is empty/undefined — defensive).
-    const connIds: string[] =
-      Array.isArray(pool.connectionIds) && pool.connectionIds.length > 0
-        ? pool.connectionIds
-        : [pool.connectionId];
+  // For each distinct group, aggregate ALL pools in that group.
+  for (const groupId of groupIdSet) {
+    const groupPools = getPoolsByGroup(groupId);
+    // Group-level "anyValidConnection" gate: include the group slug only when
+    // at least one pool in the group has a usable connection.
+    let groupHasValidConnection = false;
 
-    let anyValidConnection = false;
-    for (const connId of connIds) {
-      const connection = await getProviderConnectionById(connId);
-      if (!connection) continue; // missing connection contributes nothing; don't abort
+    for (const groupPool of groupPools) {
+      // D2: iterate ALL member connections (defensive fallback for un-backfilled rows).
+      const connIds: string[] =
+        Array.isArray(groupPool.connectionIds) && groupPool.connectionIds.length > 0
+          ? groupPool.connectionIds
+          : [groupPool.connectionId];
 
-      const provider = (connection as Record<string, unknown>).provider;
-      if (typeof provider !== "string" || provider.length === 0) continue;
+      for (const connId of connIds) {
+        const connection = await getProviderConnectionById(connId);
+        if (!connection) continue; // missing connection contributes nothing
 
-      connectionIdSet.add(connId);
-      providerSet.add(provider);
-      anyValidConnection = true;
+        const provider = (connection as Record<string, unknown>).provider;
+        if (typeof provider !== "string" || provider.length === 0) continue;
+
+        connectionIdSet.add(connId);
+        providerSet.add(provider);
+        groupHasValidConnection = true;
+      }
     }
 
-    // Only expose the pool's slug when it has at least one usable connection —
-    // an orphan pool (all connections deleted) has no quotaShared-* models, so
-    // its slug must not leak into the key's scope.
-    if (anyValidConnection) poolSlugSet.add(quotaPoolSlug(pool.name));
+    // Only expose the group slug when the group has at least one usable
+    // connection — a fully-orphaned group has no qtSd/<groupSlug>/... models.
+    if (groupHasValidConnection) {
+      const groupName = getGroupName(groupId) ?? groupId;
+      groupSlugSet.add(quotaGroupSlug(groupName));
+    }
   }
 
   return {
     connectionIds: Array.from(connectionIdSet),
     providers: Array.from(providerSet),
-    poolSlugs: Array.from(poolSlugSet),
+    poolSlugs: Array.from(groupSlugSet),
   };
 }
 
