@@ -21,6 +21,27 @@ export interface QuotaKeyScope {
 }
 
 /**
+ * Constrain an existing connection allow-list to the connections belonging to a
+ * quota key's pool scope.
+ *
+ * Semantics mirror `intersectAllowedConnectionIds` in chat.ts:
+ *  - Empty `quotaConnectionIds` (non-quota key)  → return `existing` unchanged.
+ *  - Empty / null `existing` (no prior constraint) → return `quotaConnectionIds`.
+ *  - Both non-empty                               → intersection.
+ *  - Disjoint sets                               → empty array (no eligible connection).
+ *
+ * This is a pure, synchronous function — easy to unit-test without DB setup.
+ */
+export function constrainConnectionsToQuota(
+  existing: string[],
+  quotaConnectionIds: string[]
+): string[] {
+  if (quotaConnectionIds.length === 0) return existing;
+  if (existing.length === 0) return quotaConnectionIds;
+  return existing.filter((id) => quotaConnectionIds.includes(id));
+}
+
+/**
  * Given the `allowedQuotas` field of an API key (array of quota-pool IDs),
  * returns the set of connection IDs and provider slugs that the key is
  * permitted to use.
