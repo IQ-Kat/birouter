@@ -46,6 +46,10 @@
 - **Documentation** — `docs/frameworks/AGENTBRIDGE.md` and `docs/frameworks/TRAFFIC_INSPECTOR.md`;
   `docs/architecture/REPOSITORY_MAP.md` updated; `docs/reference/openapi.yaml` updated with
   ~28 new routes and 20+ new schemas.
+- **i18n:** translate Ukrainian (uk-UA) menu and UI strings (#2981 — thanks @Lion-killer)
+- **providers:** add SiliconFlow endpoint selector (#2975 — thanks @xz-dev)
+- **oauth:** add Trae SOLO provider (work/code modes) (#2964 — thanks @S0yora)
+- **providers:** add Qwen Web (chat.qwen.ai) web-cookie provider (#2947 — thanks @oyi77)
 
 ### Changed
 
@@ -156,6 +160,20 @@
   `function_call_output` previously slipped past the orphan filter. Now
   empty-`call_id` function calls are skipped (no dangling assistant tool_call)
   and any tool result without a matching tool_call id is dropped. (#2893)
+- **oom:** resolve memory leak in Bottleneck limiter caches and provider registry (#2965 — thanks @soyelmismo)
+- **proxy:** show registry provider proxies in dashboard after Custom proxy flow moved them into the proxy registry (#2963 — thanks @terence71-glitch)
+- **routing:** add agy to executor map so it uses AntigravityExecutor (#2957 — thanks @ReqX)
+- **skills:** avoid Claude assistant tool_result blocks (#2956 — thanks @terence71-glitch)
+- **perf:** CPU leak from Bottleneck limiter accumulation + per-request optimizations (#2951 — thanks @soyelmismo)
+- **combo:** combo credential resolution ignores target.providerId — prefer combo target's providerId over model-inferred provider (#2946 — thanks @oyi77)
+- **dashboard:** v3.8.8 screen fixes — agent-bridge SSR + audit/logs/memory/playground (#2944)
+- **claude:** sanitize tool schemas + cloak third-party tool names on native Claude OAuth (#2943 — thanks @NomenAK)
+- **auth:** prevent Codex multi-account refresh_token family revocation (#2941)
+- **combo:** fix combo vision passthrough and Codex tool history repair (#2940 — thanks @charithharshana)
+- **claude:** map WebSearch to Responses web_search (#2938 — thanks @makcimbx)
+- **claude:** strip empty Read pages tool input (#2937 — thanks @makcimbx)
+- **dashboard:** improve self-service provider quota visibility (#2931 — thanks @guanbear)
+- **antigravity:** avoid visible signatureless tool history (#2927 — thanks @dhaern)
 
 ### ✨ New Features
 
