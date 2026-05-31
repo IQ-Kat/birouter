@@ -48,6 +48,7 @@ import { DoubaoWebExecutor } from "./doubao-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
+  agy: new AntigravityExecutor(),
   "gemini-cli": new GeminiCLIExecutor(),
   github: new GithubExecutor(),
   qoder: new QoderExecutor(),
