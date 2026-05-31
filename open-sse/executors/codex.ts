@@ -379,6 +379,46 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
+function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): void {
+  if (!Array.isArray(body.input)) return;
+
+  const existingOutputIds = new Set<string>();
+  for (const item of body.input) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call_output") continue;
+    if (typeof record.call_id === "string" && record.call_id.trim()) {
+      existingOutputIds.add(record.call_id.trim());
+    }
+  }
+
+  const repaired: unknown[] = [];
+  let insertedCount = 0;
+  for (const item of body.input) {
+    repaired.push(item);
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call") continue;
+    const callId = typeof record.call_id === "string" ? record.call_id.trim() : "";
+    if (!callId || existingOutputIds.has(callId)) continue;
+
+    repaired.push({
+      type: "function_call_output",
+      call_id: callId,
+      output: "",
+    });
+    existingOutputIds.add(callId);
+    insertedCount++;
+  }
+
+  if (insertedCount > 0) {
+    body.input = repaired;
+    console.debug(
+      `[Codex] repairMissingCodexFunctionCallOutputs: inserted ${insertedCount} empty function_call_output item(s)`
+    );
+  }
+}
+
 // Responses-API hosted tool types that OpenAI/Codex executes server-side.
 // These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
 // e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
@@ -1138,6 +1178,7 @@ export class CodexExecutor extends BaseExecutor {
     if (Array.isArray(body.input)) {
       body.input = sanitizeResponsesInputItems(body.input, false);
     }
+    repairMissingCodexFunctionCallOutputs(body);
 
     // ── Cache-aware system prompt handling (both paths) ──
     //
