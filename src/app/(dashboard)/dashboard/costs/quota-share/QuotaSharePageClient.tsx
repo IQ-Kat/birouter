@@ -11,7 +11,7 @@ import { useLocalStoragePoolMigration } from "./hooks/useLocalStoragePoolMigrati
 import { usePoolsUsageAggregate } from "./hooks/usePoolsUsageAggregate";
 import QuotaConceptCard from "./components/QuotaConceptCard";
 import PoolCard from "./components/PoolCard";
-import CreatePoolModal from "./components/CreatePoolModal";
+import PoolWizard from "./components/PoolWizard";
 import EditAllocationsModal from "./components/EditAllocationsModal";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -204,18 +204,6 @@ export default function QuotaSharePageClient() {
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
-  const handleCreate = useCallback(
-    async (poolData: Omit<QuotaPool, "id" | "createdAt">) => {
-      await fetch("/api/quota/pools", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(poolData),
-      });
-      await mutate();
-    },
-    [mutate]
-  );
-
   const handleSaveAllocations = useCallback(
     async (pool: QuotaPool, allocations: PoolAllocation[]) => {
       await fetch(`/api/quota/pools/${pool.id}`, {
@@ -307,15 +295,15 @@ export default function QuotaSharePageClient() {
       )}
 
       {/* Modals */}
-      {createOpen && (
-        <CreatePoolModal
-          connections={connections}
-          plans={plans}
-          existingPools={pools}
-          onClose={() => setCreateOpen(false)}
-          onCreate={handleCreate}
-        />
-      )}
+      <PoolWizard
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSaved={() => void mutate()}
+        connections={connections}
+        apiKeys={apiKeys}
+        plans={plans}
+        existingPoolConnectionIds={new Set(pools.map((p) => p.connectionId))}
+      />
 
       {editing && (
         <EditAllocationsModal
