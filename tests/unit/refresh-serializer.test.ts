@@ -20,6 +20,11 @@ import {
   __resetRefreshSerializerForTest,
 } from "../../open-sse/services/refreshSerializer.ts";
 
+// These tests assert serialization ORDERING (concurrency=1 per group); the
+// inter-refresh settle gap is covered by refresh-serializer-spacing.test.ts.
+// Opt out of the gap here so the ordering checks stay fast and deterministic.
+process.env.CODEX_REFRESH_SPACING_MS = "0";
+
 const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 test("codex and openai share one group and never refresh concurrently", async () => {
