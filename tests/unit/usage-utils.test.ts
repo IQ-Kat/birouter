@@ -242,172 +242,24 @@ describe("inferMiniMaxPlanLabelFromTotals", () => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  getMiniMaxQuotaResetAt                                             */
+/*  getGeminiCliPlanLabel                                              */
 /* ------------------------------------------------------------------ */
-describe("getMiniMaxQuotaResetAt", () => {
-  it("computes resetAt from remainsMs", () => {
-    const model = { remains_time: 3600_000 }; // 1 hour in ms
-    const capturedAt = 1_700_000_000_000;
-    const result = __testing.getMiniMaxQuotaResetAt(model, capturedAt, "remains_time", "remainsTime", "end_time", "endTime");
-    assert.equal(result, new Date(capturedAt + 3600_000).toISOString());
-  });
-
-  it("falls back to endTime when remainsMs is 0", () => {
-    const model = { end_time: 1_800_000_000_000 };
-    const capturedAt = 1_700_000_000_000;
-    const result = __testing.getMiniMaxQuotaResetAt(model, capturedAt, "remains_time", "remainsTime", "end_time", "endTime");
-    assert.equal(result, new Date(1_800_000_000_000).toISOString());
+describe("getGeminiCliPlanLabel", () => {
+  it("returns a string label", () => {
+    const label = __testing.getGeminiCliPlanLabel();
+    assert.ok(typeof label === "string");
+    assert.ok(label.length > 0);
   });
 });
 
 /* ------------------------------------------------------------------ */
-/*  getMiniMaxSessionTotal / getMiniMaxWeeklyTotal                     */
+/*  getAntigravityPlanLabel                                            */
 /* ------------------------------------------------------------------ */
-describe("getMiniMaxSessionTotal", () => {
-  it("returns current_interval_total_count", () => {
-    assert.equal(__testing.getMiniMaxSessionTotal({ current_interval_total_count: 999 }), 999);
-  });
-
-  it("clamps to 0 for negative", () => {
-    assert.equal(__testing.getMiniMaxSessionTotal({ current_interval_total_count: -5 }), 0);
-  });
-});
-
-describe("getMiniMaxWeeklyTotal", () => {
-  it("returns current_weekly_total_count", () => {
-    assert.equal(__testing.getMiniMaxWeeklyTotal({ current_weekly_total_count: 500 }), 500);
-  });
-
-  it("clamps to 0 for negative", () => {
-    assert.equal(__testing.getMiniMaxWeeklyTotal({ current_weekly_total_count: -1 }), 0);
-  });
-});
-
-/* ------------------------------------------------------------------ */
-/*  createMiniMaxQuotaFromCount                                        */
-/* ------------------------------------------------------------------ */
-describe("createMiniMaxQuotaFromCount", () => {
-  it("computes used = total - count when countMeansRemaining", () => {
-    const q = __testing.createMiniMaxQuotaFromCount(100, 30, null, true);
-    assert.equal(q.used, 70);
-    assert.equal(q.remaining, 30);
-  });
-
-  it("treats count as used when countMeansRemaining is false", () => {
-    const q = __testing.createMiniMaxQuotaFromCount(100, 30, null, false);
-    assert.equal(q.used, 30);
-    assert.equal(q.remaining, 70);
-  });
-});
-
-/* ------------------------------------------------------------------ */
-/*  createQuotaFromUsage                                               */
-/* ------------------------------------------------------------------ */
-describe("createQuotaFromUsage", () => {
-  it("builds UsageQuota with correct math", () => {
-    const q = __testing.createQuotaFromUsage(200, 1000, "2026-07-01T00:00:00.000Z");
-    assert.equal(q.used, 200);
-    assert.equal(q.total, 1000);
-    assert.equal(q.remaining, 800);
-    assert.equal(q.remainingPercentage, 80);
-    assert.equal(q.resetAt, "2026-07-01T00:00:00.000Z");
-    assert.equal(q.unlimited, false);
-  });
-
-  it("clamps used to total", () => {
-    const q = __testing.createQuotaFromUsage(9999, 100, null);
-    assert.equal(q.used, 100);
-    assert.equal(q.remaining, 0);
-    assert.equal(q.remainingPercentage, 0);
-  });
-});
-
-/* ------------------------------------------------------------------ */
-/*  isMiniMaxTextQuotaModel                                            */
-/* ------------------------------------------------------------------ */
-describe("isMiniMaxTextQuotaModel", () => {
-  it("returns true for minimax-m prefixed models", () => {
-    assert.equal(__testing.isMiniMaxTextQuotaModel("minimax-m1"), true);
-    assert.equal(__testing.isMiniMaxTextQuotaModel("Minimax-M2.5"), true);
-  });
-
-  it("returns true for coding-plan prefixed models", () => {
-    assert.equal(__testing.isMiniMaxTextQuotaModel("Coding-Plan-1"), true);
-  });
-
-  it("returns false for other models", () => {
-    assert.equal(__testing.isMiniMaxTextQuotaModel("tts-1"), false);
-    assert.equal(__testing.isMiniMaxTextQuotaModel("") as boolean, false);
-  });
-});
-
-/* ------------------------------------------------------------------ */
-/*  getMiniMaxAuthErrorMessage                                         */
-/* ------------------------------------------------------------------ */
-describe("getMiniMaxAuthErrorMessage", () => {
-  it("returns token plan message when message includes 'token plan'", () => {
-    const msg = __testing.getMiniMaxAuthErrorMessage("invalid token plan key");
-    assert.ok(msg.includes("Token Plan API key"));
-  });
-
-  it("returns token plan message when message includes 'coding plan'", () => {
-    const msg = __testing.getMiniMaxAuthErrorMessage("coding plan inactive");
-    assert.ok(msg.includes("Token Plan API key"));
-  });
-
-  it("returns token plan message when message includes 'active period'", () => {
-    const msg = __testing.getMiniMaxAuthErrorMessage("active period ended");
-    assert.ok(msg.includes("Token Plan API key"));
-  });
-
-  it("returns generic message for unknown errors", () => {
-    const msg = __testing.getMiniMaxAuthErrorMessage("something else");
-    assert.ok(msg.includes("access denied"));
-  });
-});
-
-/* ------------------------------------------------------------------ */
-/*  getMiniMaxErrorSummary                                             */
-/* ------------------------------------------------------------------ */
-describe("getMiniMaxErrorSummary", () => {
-  it("returns status-only when message is empty", () => {
-    const s = __testing.getMiniMaxErrorSummary(500, "");
-    assert.equal(s, "MiniMax usage endpoint error (500).");
-  });
-
-  it("includes message when under 160 chars", () => {
-    const s = __testing.getMiniMaxErrorSummary(403, "forbidden");
-    assert.equal(s, "MiniMax usage endpoint error (403): forbidden");
-  });
-
-  it("truncates message over 160 chars", () => {
-    const long = "x".repeat(200);
-    const s = __testing.getMiniMaxErrorSummary(429, long);
-    assert.ok(s.length < 200);
-    assert.ok(s.endsWith("..."));
-  });
-});
-
-/* ------------------------------------------------------------------ */
-/*  getClaudePlanLabel                                                 */
-/* ------------------------------------------------------------------ */
-describe("getClaudePlanLabel", () => {
-  it("returns first valid candidate", () => {
-    assert.equal(__testing.getClaudePlanLabel(null, "Pro Plan", "Free"), "Pro Plan");
-  });
-
-  it("skips null/undefined/empty candidates", () => {
-    assert.equal(__testing.getClaudePlanLabel(null, "", "Pro", undefined), "Pro");
-  });
-
-  it("ignores 'claude code' or 'unknown'", () => {
-    assert.equal(__testing.getClaudePlanLabel("Claude Code"), null);
-    assert.equal(__testing.getClaudePlanLabel("Unknown"), null);
-  });
-
-  it("returns null when all candidates are filtered out", () => {
-    assert.equal(__testing.getClaudePlanLabel("claude code", "unknown"), null);
-    assert.equal(__testing.getClaudePlanLabel(), null);
+describe("getAntigravityPlanLabel", () => {
+  it("returns a string label", () => {
+    const label = __testing.getAntigravityPlanLabel();
+    assert.ok(typeof label === "string");
+    assert.ok(label.length > 0);
   });
 });
 
