@@ -59,6 +59,14 @@
 
 ### Fixed
 
+- **routing/codex:** fix two gpt-5.5 Codex defects (#2877). (A) For a Codex-only
+  account, a bare `gpt-5.5` Responses request was rerouted to codex with the
+  model hardcoded to `gpt-5.5-medium` (`chatHelpers.ts`); the executor read that
+  `-medium` suffix as an explicit `modelEffort` that (per #2331) overrode a
+  client `reasoning.effort=xhigh`, silently demoting it — now it keeps the bare
+  `gpt-5.5` id so the client effort wins. (B) `gpt-5.5-xhigh`/`-high`/`-low`
+  misrouted to `openai` (→ "No credentials" for codex-only users); the suffixed
+  variants are now in `CODEX_PREFERRED_UNPREFIXED_MODELS` so they infer codex.
 - **sse/chatCore:** remove a duplicate `const settings` declaration in
   `handleChatCore` (introduced alongside the per-key stream-default-mode
   feature). The same-scope redeclaration made esbuild/tsx fail with
