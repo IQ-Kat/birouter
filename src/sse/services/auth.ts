@@ -943,6 +943,31 @@ export async function getProviderCredentials(
           };
         }
       }
+      // #2962: opencode-zen exposes the public, signup-free OpenCode Zen endpoint
+      // (https://opencode.ai/zen/v1). With no usable API-key connection, fall back
+      // to anonymous (no-auth) access — the free tier — instead of erroring with
+      // "No credentials". This is what the Playground/combos hit when selecting an
+      // OpenCode free model. A configured, active key is still selected above; a
+      // rate-limited/terminal key returns its own signal before reaching here.
+      if (resolvedId === "opencode-zen") {
+        return {
+          apiKey: null,
+          accessToken: null,
+          refreshToken: null,
+          expiresAt: null,
+          projectId: null,
+          copilotToken: null,
+          providerSpecificData: {},
+          connectionId: "noauth",
+          testStatus: "active",
+          lastError: null,
+          lastErrorType: null,
+          lastErrorSource: null,
+          errorCode: null,
+          rateLimitedUntil: null,
+          maxConcurrent: null,
+        };
+      }
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
     }
