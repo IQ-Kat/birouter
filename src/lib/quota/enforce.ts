@@ -103,7 +103,7 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
       : 1;
 
   // 4. For each active dimension, peek consumption and saturation.
-  const store = getQuotaStore();
+  const store = await getQuotaStore();
   const dimensionsInfo: Array<{
     key: { poolId: string; unit: QuotaUnit; window: import("./dimensions").QuotaWindow };
     limit: number;
@@ -218,7 +218,7 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
   const plan = resolvePlan(input.connectionId, input.provider);
   if (!plan.dimensions.length) return;
 
-  const store = getQuotaStore();
+  const store = await getQuotaStore();
   for (const dim of plan.dimensions) {
     const dimKey = { poolId, unit: dim.unit, window: dim.window };
     const cost = costForUnit(input.cost, dim.unit);
