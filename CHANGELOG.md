@@ -71,6 +71,13 @@
   back to the API` (its DeepSeek-thinking upstream is not detectable from the
   model id, and `requiresReasoningReplay` does not consume `supportsReasoning`).
   `getResolvedModelCapabilities` now surfaces the registry `interleavedField`. (#2900)
+- **providers/github-copilot:** built-in GitHub Copilot Claude Opus and Gemini
+  models (`claude-opus-4.7`, `claude-opus-4-5-20251101`, `gemini-3.1-pro-preview`,
+  `gemini-3-flash-preview`) no longer carry `targetFormat: "openai-responses"`, so
+  they route through `chat/completions` (the provider default, like the working
+  `claude-opus-4.6`) instead of the Responses API, which Copilot does not serve for
+  non-OpenAI models (returned `[400]`). Native OpenAI `gpt-*` models keep the
+  Responses API. (#2911)
 
 ### ✨ New Features
 
