@@ -59,6 +59,11 @@
 
 ### Fixed
 
+- **payload-rules:** saved payload rules now survive a server restart. When no
+  in-memory override is set (fresh process before the boot hook ran, or a
+  separate module instance in the standalone build), `getPayloadRulesConfig`
+  now reads the DB-persisted rules (the source of truth) before the file config,
+  instead of silently returning the empty file default. (#2986)
 - **models/custom:** custom models can now carry a per-model `targetFormat`
   override (e.g. an opencode-go custom model that must use the Anthropic Messages
   shape). Previously custom models always routed as OpenAI-compatible because
