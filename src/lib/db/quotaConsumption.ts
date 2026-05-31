@@ -37,6 +37,30 @@ interface BucketRow {
 }
 
 // ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
+
+/**
+ * A single consumption event row, as returned by listConsumptionForPool.
+ * Derived from the quota_consumption table; the poolId is stripped from
+ * dimension_key (format "<poolId>:<unit>:<window>") and the unit/window
+ * fragments are surfaced separately.
+ */
+export interface ConsumptionEvent {
+  apiKeyId: string;
+  /** The full dimension_key string: "<poolId>:<unit>:<window>" */
+  dimensionKey: string;
+  /** The <unit> segment of dimension_key (e.g. "tokens", "requests", "usd") */
+  unit: string;
+  /** The <window> segment of dimension_key (e.g. "hourly", "daily") */
+  window: string;
+  bucketIndex: number;
+  consumed: number;
+  /** epoch ms */
+  updatedAt: number;
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -122,6 +146,63 @@ export function getPair(
     prev: prevRow?.consumed ?? 0,
   };
 }
+
+// ---------------------------------------------------------------------------
+// List recent consumption for a pool
+// ---------------------------------------------------------------------------
+
+interface ConsumptionRow {
+  api_key_id: string;
+  dimension_key: string;
+  bucket_index: number;
+  consumed: number;
+  updated_at: number;
+}
+
+/**
+ * Return the most-recent consumption rows for a given pool, ordered by
+ * updated_at DESC. The poolId is the first segment of dimension_key
+ * (format "<poolId>:<unit>:<window>"), so we filter with a LIKE prefix.
+ *
+ * @param poolId  The quota pool identifier.
+ * @param limit   Maximum rows to return (caller should clamp; default 50).
+ * @returns       Array of ConsumptionEvent (may be empty if no data yet).
+ */
+export function listConsumptionForPool(poolId: string, limit: number): ConsumptionEvent[] {
+  const safeLimit = Math.max(1, Math.min(limit, 500));
+  // dimension_key format: "<poolId>:<unit>:<window>"
+  // The LIKE pattern uses "%" — escape literal "%" or "_" in poolId defensively.
+  const prefix = poolId.replace(/[%_\\]/g, "\\$&") + ":%";
+  const rows = getDb()
+    .prepare<ConsumptionRow>(
+      `SELECT api_key_id, dimension_key, bucket_index, consumed, updated_at
+       FROM quota_consumption
+       WHERE dimension_key LIKE ? ESCAPE '\\'
+       ORDER BY updated_at DESC
+       LIMIT ?`
+    )
+    .all(prefix, safeLimit);
+
+  return rows.map((r) => {
+    const parts = r.dimension_key.split(":");
+    // parts[0] = poolId, parts[1] = unit, parts[2..] = window (rejoin in case window has colons)
+    const unit = parts[1] ?? "";
+    const window = parts.slice(2).join(":") ?? "";
+    return {
+      apiKeyId: r.api_key_id,
+      dimensionKey: r.dimension_key,
+      unit,
+      window,
+      bucketIndex: r.bucket_index,
+      consumed: r.consumed,
+      updatedAt: r.updated_at,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// GC
+// ---------------------------------------------------------------------------
 
 /**
  * Delete rows whose updated_at is strictly less than maxUpdatedAtMs.

@@ -10,6 +10,7 @@ import AllocationTable from "./AllocationTable";
 import BurnRateChart from "./BurnRateChart";
 import StackedAllocationBar from "./StackedAllocationBar";
 import AccountQuotaRow from "./AccountQuotaRow";
+import UsageLogCard from "./UsageLogCard";
 
 export interface PoolCardProps {
   pool: QuotaPool;
@@ -179,6 +180,9 @@ export default function PoolCard({
           <BurnRateChart usage={usage} />
         </div>
       )}
+
+      {/* Usage log — collapsible, collapsed by default */}
+      <UsageLogCard poolId={pool.id} keyLabels={keyLabels} />
     </Card>
   );
 }

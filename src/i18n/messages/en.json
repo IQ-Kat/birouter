@@ -7896,7 +7896,9 @@
     "wizardSingleProviderNote": "A pool uses a single provider",
     "wizardPreviewMoreModels": "+{count} more",
     "accountQuotaTitle": "Account quota",
-    "accountQuotaNone": "—"
+    "accountQuotaNone": "—",
+    "logTitle": "Usage log",
+    "logEmpty": "No usage yet"
   },
   "plugins": {
     "title": "Plugins",
