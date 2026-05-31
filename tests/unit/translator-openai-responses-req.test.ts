@@ -747,3 +747,53 @@ test("Responses -> Chat: tool_search is stripped from output tools array (issue 
   assert.equal(tools[0].type, "function");
   assert.equal(tools[0].function.name, "foo");
 });
+
+// --- Issue #2950: image_generation built-in should be silently dropped ---
+
+test("Responses -> Chat: image_generation does not throw (issue #2950)", () => {
+  // Codex Desktop injects an image_generation hosted tool into every Responses
+  // request, even text-only ones. It has no Chat Completions equivalent and must
+  // be dropped silently, not rejected with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        tools: [{ type: "image_generation", output_format: "png" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: image_generation is stripped from output tools array (issue #2950)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        { type: "image_generation", output_format: "png" },
+        {
+          type: "function",
+          name: "foo",
+          description: "A function",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(
+    tools.some((t) => t.type === "image_generation"),
+    false,
+    "image_generation must be stripped from output"
+  );
+  assert.equal(tools.length, 1, "only the function tool must remain");
+  assert.equal(tools[0].type, "function");
+  assert.equal(tools[0].function.name, "foo");
+});
