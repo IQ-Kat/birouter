@@ -195,6 +195,10 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return buildMaritalkChatUrl(baseUrl);
       }
+      case "siliconflow": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return normalizeOpenAIChatUrl(baseUrl);
+      }
       case "lm-studio":
       case "modal":
       case "reka":
