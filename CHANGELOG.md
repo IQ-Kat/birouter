@@ -53,6 +53,17 @@
   `INSPECTOR_TLS_INTERCEPT`, `INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES`, `INSPECTOR_MAX_BODY_KB`,
   `INSPECTOR_MASK_SECRETS`, `INSPECTOR_LLM_HOSTS_EXTRA`, `INSPECTOR_INTERNAL_INGEST_TOKEN`).
 
+### Fixed
+
+- **db/migrations:** resolve a `077` migration version collision
+  (`077_api_key_stream_default_mode.sql` vs `077_quota_pools.sql`) that made
+  `getMigrationFiles()` throw and blocked `getDbInstance()` at startup (app would
+  not boot; every DB-touching test was red). Renumbered the dependency-free,
+  idempotent `quota_pools` migration to `085`, kept the non-idempotent
+  `api_key_stream_default_mode` `ALTER` at `077`, added a retroactive
+  `isSchemaAlreadyApplied` guard (case `085`), and a regression test enforcing
+  unique migration prefixes.
+
 ### ✨ New Features
 
 - **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959)
