@@ -94,6 +94,12 @@
   validation falls through to the chat probe for such 403s instead of returning
   "Invalid API key", and `checkFallbackError` short-circuits them to no cooldown.
   Genuine auth failures (401 / generic 403) still fail fast. (#2929)
+- **auth/opencode-zen:** the OpenCode Zen free model now works in the Playground
+  and combos without an API key. `opencode-zen` serves the public, signup-free
+  endpoint (`https://opencode.ai/zen/v1`); when no api-key connection is
+  configured, credential resolution now falls back to anonymous (no-auth) access
+  instead of failing with "No credentials for provider: opencode-zen". A
+  configured, active key is still used when present. (#2962)
 
 ### ✨ New Features
 
