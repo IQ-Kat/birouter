@@ -191,20 +191,31 @@ const shadowMetrics = new Map<string, ComboShadowMetricsEntry>();
 const MAX_METRICS_ENTRIES = 500;
 const METRICS_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-function evictOldestMetric(): void {
+function evictOldestMetric(targetMap: Map<string, { lastUsedAt: string | null }>): void {
   let oldest: string | null = null;
   let oldestTime = Infinity;
-  for (const [name, entry] of metrics) {
-    const t = new Date(entry.lastUsedAt ?? 0).getTime();
+  for (const [name, entry] of targetMap) {
+    const t = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : Date.now();
     if (t < oldestTime) { oldestTime = t; oldest = name; }
   }
-  if (oldest) { metrics.delete(oldest); shadowMetrics.delete(oldest); }
+  if (oldest) {
+    metrics.delete(oldest);
+    shadowMetrics.delete(oldest);
+  }
 }
 
 const _metricsCleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [name, entry] of metrics) {
-    if (now - new Date(entry.lastUsedAt ?? 0).getTime() > METRICS_TTL_MS) {
+    const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
+    if (now - lastUsed > METRICS_TTL_MS) {
+      metrics.delete(name);
+      shadowMetrics.delete(name);
+    }
+  }
+  for (const [name, entry] of shadowMetrics) {
+    const lastUsed = entry.lastUsedAt ? new Date(entry.lastUsedAt).getTime() : now;
+    if (now - lastUsed > METRICS_TTL_MS) {
       metrics.delete(name);
       shadowMetrics.delete(name);
     }
@@ -241,7 +252,7 @@ export function recordComboRequest(
   }
 ): void {
   if (!metrics.has(comboName) && metrics.size >= MAX_METRICS_ENTRIES) {
-    evictOldestMetric();
+    evictOldestMetric(metrics);
   }
   if (!metrics.has(comboName)) {
     metrics.set(comboName, createComboEntry(strategy));
@@ -310,7 +321,7 @@ export function recordComboShadowRequest(
   }
 ): void {
   if (!shadowMetrics.has(comboName) && shadowMetrics.size >= MAX_METRICS_ENTRIES) {
-    evictOldestMetric();
+    evictOldestMetric(shadowMetrics);
   }
   if (!shadowMetrics.has(comboName)) {
     shadowMetrics.set(comboName, createShadowEntry());
@@ -426,7 +437,7 @@ export function getAllComboMetrics(): Record<string, ComboMetricsView | null> {
  */
 export function recordComboIntent(comboName: string, intent: string): void {
   if (!metrics.has(comboName) && metrics.size >= MAX_METRICS_ENTRIES) {
-    evictOldestMetric();
+    evictOldestMetric(metrics);
   }
   if (!metrics.has(comboName)) {
     metrics.set(comboName, createComboEntry("priority"));

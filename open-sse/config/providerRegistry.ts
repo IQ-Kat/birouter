@@ -4227,48 +4227,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
   },
 };
 
-/**
- * Lazy registry proxy — entries are only materialized on first access.
- * Reduces memory pressure when most providers are unused.
- */
-const _registryCache = new Map<string, RegistryEntry>();
-const _registryKeys: string[] = Object.keys(_REGISTRY_EAGER);
-
-export const REGISTRY: Record<string, RegistryEntry> = new Proxy(
-  {} as Record<string, RegistryEntry>,
-  {
-    get(_target, prop: string) {
-      if (typeof prop === "symbol") return undefined;
-      if (_registryCache.has(prop)) {
-        return _registryCache.get(prop);
-      }
-      if (prop in _REGISTRY_EAGER) {
-        const entry = _REGISTRY_EAGER[prop];
-        _registryCache.set(prop, entry);
-        return entry;
-      }
-      return undefined;
-    },
-    has(_target, prop: string) {
-      if (typeof prop === "symbol") return false;
-      return prop in _REGISTRY_EAGER;
-    },
-    ownKeys() {
-      return _registryKeys;
-    },
-    getOwnPropertyDescriptor(_target, prop: string) {
-      if (typeof prop === "string" && prop in _REGISTRY_EAGER) {
-        return {
-          configurable: true,
-          enumerable: true,
-          value: _REGISTRY_EAGER[prop],
-          writable: false,
-        };
-      }
-      return undefined;
-    },
-  },
-);
+export const REGISTRY: Record<string, RegistryEntry> = _REGISTRY_EAGER;
 
 // ── Generator Functions ───────────────────────────────────────────────────
 
@@ -4425,7 +4384,7 @@ export function getRegistryEntry(provider: string): RegistryEntry | null {
 
 /** Get all registered provider IDs */
 export function getRegisteredProviders(): string[] {
-  return _registryKeys;
+  return Object.keys(REGISTRY);
 }
 
 // Precomputed map: modelId → unsupportedParams (O(1) lookup instead of O(N×M) scan).
