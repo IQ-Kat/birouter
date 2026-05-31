@@ -9,6 +9,28 @@
  */
 
 import { getDbInstance } from "./core";
+// Phase B2: auto-mint/prune quotaShared-* combos when pool allocations change.
+// Imported lazily (dynamic import in the hook) to avoid circular-dependency
+// risk between db/ and quota/ modules. The import is fire-and-forget; combo
+// failures never break pool CRUD.
+async function syncQuotaCombosGuarded(poolId: string): Promise<void> {
+  try {
+    const { syncQuotaCombos } = await import("@/lib/quota/quotaCombos");
+    await syncQuotaCombos(poolId);
+  } catch (err) {
+    // Guard: combo-sync failure must never break pool CRUD callers.
+    console.warn("[quota-pools] syncQuotaCombos failed (non-fatal):", (err as Error)?.message);
+  }
+}
+
+async function removeQuotaCombosGuarded(poolId: string): Promise<void> {
+  try {
+    const { removeQuotaCombosForPool } = await import("@/lib/quota/quotaCombos");
+    await removeQuotaCombosForPool(poolId);
+  } catch (err) {
+    console.warn("[quota-pools] removeQuotaCombosForPool failed (non-fatal):", (err as Error)?.message);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Local type shapes (aligned with src/lib/quota/dimensions.ts — merged by F7)
@@ -160,10 +182,15 @@ export function createPool(input: PoolCreate): QuotaPool {
     upsertAllocations(id, input.allocations);
   }
 
-  return rowToPool(
+  const result = rowToPool(
     { id, connection_id: input.connectionId, name: input.name, created_at: now },
     getAllocations(id)
   );
+
+  // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
+  void syncQuotaCombosGuarded(id);
+
+  return result;
 }
 
 /**
@@ -185,7 +212,12 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
     upsertAllocations(id, input.allocations);
   }
 
-  return rowToPool(existing, getAllocations(id));
+  const result = rowToPool(existing, getAllocations(id));
+
+  // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
+  void syncQuotaCombosGuarded(id);
+
+  return result;
 }
 
 /**
@@ -193,6 +225,10 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
  * Returns true if a row was deleted, false if not found.
  */
 export function deletePool(id: string): boolean {
+  // Phase B2: remove quota combos BEFORE deleting the pool row so that
+  // removeQuotaCombosForPool can still resolve the pool name → slug.
+  void removeQuotaCombosGuarded(id);
+
   const result = getDb().prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
   return result.changes > 0;
 }
@@ -221,6 +257,9 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
     }
   });
   doUpsert();
+
+  // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
+  void syncQuotaCombosGuarded(poolId);
 }
 
 /**
