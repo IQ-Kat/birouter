@@ -68,7 +68,7 @@ import {
   connectionHasExtraKeys,
   type KeyHealth,
 } from "../services/apiKeyRotator.ts";
-import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
+
 import {
   getCallLogPipelineCaptureStreamChunks,
   getChatLogTextLimit,
@@ -277,13 +277,7 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
   return result;
 }
 
-function isSmallEnoughForSemanticCache(value: unknown): boolean {
-  try {
-    return JSON.stringify(value).length <= 256 * 1024;
-  } catch {
-    return false;
-  }
-}
+import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1518,9 +1512,19 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
+  const traceEnabled =
+    process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
+    if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
-    const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
+    let suffix = "";
+    if (extra) {
+      try {
+        suffix = ` ${JSON.stringify(extra)}`;
+      } catch {
+        suffix = " [unserializable]";
+      }
+    }
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
   };
   let tokensCompressed: number | null = null;
@@ -1912,7 +1916,13 @@ export async function handleChatCore({
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
-  const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  // Consolidate settings reads — fetch once, reuse throughout the request
+  const settings = cachedSettings ?? (await getCachedSettings());
+  const detailedLoggingEnabled =
+    !noLogEnabled &&
+    (settings.call_log_pipeline_enabled === true ||
+      settings.call_log_pipeline_enabled === "1" ||
+      settings.call_log_pipeline_enabled === "true");
   const capturePipelineStreamChunks =
     detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
@@ -2131,7 +2141,6 @@ export async function handleChatCore({
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
-  const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
@@ -2351,7 +2360,7 @@ export async function handleChatCore({
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
-    let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let estimatedTokens = estimateTokens(allMessages);
     let promptCompressionEnabled = false;
     let compressionSettings: CompressionConfig | null = null;
 
@@ -2582,7 +2591,7 @@ export async function handleChatCore({
             body = outputMode.body as typeof body;
             cavemanOutputModeApplied = true;
             cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
-            estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+            estimatedTokens = estimateTokens(body?.messages ?? body?.input ?? []);
             log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
           } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
             log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
@@ -2792,7 +2801,7 @@ export async function handleChatCore({
     const COMPRESSION_THRESHOLD = 0.7;
     let reservedTokens = 0;
     if (Array.isArray(body.tools)) {
-      reservedTokens = estimateTokens(JSON.stringify(body.tools));
+      reservedTokens = estimateTokens(body.tools);
     }
     const threshold = Math.max(
       1,
@@ -3969,7 +3978,7 @@ export async function handleChatCore({
     (translatedBody.conversationState?.history?.length ?? 0) +
       (translatedBody.conversationState?.currentMessage ? 1 : 0) ||
     0;
-  log?.debug?.("REQUEST", `${provider.toUpperCase()} | ${model} | ${msgCount} msgs`);
+  log?.debug?.("REQUEST", `${provider?.toUpperCase()} | ${model} | ${msgCount} msgs`);
 
   // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
   if (apiKeyInfo?.id) {
@@ -4205,7 +4214,7 @@ export async function handleChatCore({
     };
 
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
-      log?.info?.("TOKEN", `${provider.toUpperCase()} | refreshed`);
+      log?.info?.("TOKEN", `${provider?.toUpperCase()} | refreshed`);
 
       // Fall back to post-mutex mutation only for executors that don't route
       // through getAccessToken (and therefore never fire onPersist). For
@@ -4259,11 +4268,11 @@ export async function handleChatCore({
         // than the original 401 alone. Surface at error level with sanitization.
         log?.error?.(
           "TOKEN",
-          `${provider.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
+          `${provider?.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
         );
       }
     } else {
-      log?.warn?.("TOKEN", `${provider.toUpperCase()} | refresh failed`);
+      log?.warn?.("TOKEN", `${provider?.toUpperCase()} | refresh failed`);
       if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
         await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
       }
@@ -4913,8 +4922,10 @@ export async function handleChatCore({
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
-      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
-      console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      if (traceEnabled) {
+        const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider?.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+        console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      }
 
       saveRequestUsage({
         provider: provider || "unknown",
