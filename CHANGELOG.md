@@ -59,6 +59,12 @@
 
 ### Fixed
 
+- **sse/chatCore:** remove a duplicate `const settings` declaration in
+  `handleChatCore` (introduced alongside the per-key stream-default-mode
+  feature). The same-scope redeclaration made esbuild/tsx fail with
+  "The symbol 'settings' has already been declared", which turned every unit
+  test that imports chatCore red and broke the production build. The earlier
+  consolidated `settings` const is now reused.
 - **db/migrations:** resolve a `077` migration version collision
   (`077_api_key_stream_default_mode.sql` vs `077_quota_pools.sql`) that made
   `getMigrationFiles()` throw and blocked `getDbInstance()` at startup (app would
