@@ -19,7 +19,7 @@ import {
   getComboByName,
   updateCombo,
 } from "@/lib/db/combos";
-import { PROVIDER_MODELS } from "@omniroute/open-sse/config/providerModels";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { quotaModelName, parseQuotaModelName, isQuotaModelName, quotaPoolSlug } from "./quotaModelNaming";
 import { createLogger } from "@/shared/utils/logger";
 
@@ -51,12 +51,16 @@ async function resolvePoolForSync(poolId: string): Promise<{
 }
 
 /**
- * Return the list of model IDs for a provider from the static registry.
+ * Return the list of model IDs for a provider from the provider REGISTRY — the
+ * SAME source `/v1/models` uses. PROVIDER_MODELS only covers plain API providers
+ * and is empty for CLI/OAuth providers (codex, kimi, claude, …), which silently
+ * produced ZERO quotaShared-* combos. REGISTRY has all of them.
  * Empty array when the provider is unknown or has no registered models.
  */
 function getProviderModelIds(provider: string): string[] {
-  const models = PROVIDER_MODELS[provider];
-  if (!Array.isArray(models) || models.length === 0) return [];
+  const entry = REGISTRY[provider as keyof typeof REGISTRY] as { models?: unknown } | undefined;
+  const models = entry && Array.isArray(entry.models) ? entry.models : [];
+  if (models.length === 0) return [];
   return models
     .map((m) => (typeof m === "object" && m !== null && typeof (m as { id?: unknown }).id === "string" ? (m as { id: string }).id : null))
     .filter((id): id is string => id !== null && id.length > 0);
