@@ -56,7 +56,14 @@ export default function EditAllocationsModal({
   const keyLabel = (id: string) => apiKeys.find((k) => k.id === id)?.name || shortId(id);
 
   const addKey = (id: string) => {
-    setDrafts((prev) => [...prev, { apiKeyId: id, weight: 0, policy: "hard" }]);
+    setDrafts((prev) => {
+      const next = [...prev, { apiKeyId: id, weight: 0, policy: "hard" as Policy }];
+      // Equal-split: after adding, recompute weights so no key starts at 0.
+      const n = next.length;
+      const each = Math.floor(100 / n);
+      const remainder = 100 - each * n;
+      return next.map((a, i) => ({ ...a, weight: each + (i < remainder ? 1 : 0) }));
+    });
   };
 
   const updateWeight = (id: string, value: number) => {

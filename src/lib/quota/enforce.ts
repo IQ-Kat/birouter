@@ -141,9 +141,19 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
   }
 
   // 5. Apply the fair-share algorithm across all dimensions.
+  // Equal-split fallback: when ALL allocations in the pool have weight 0 (e.g. newly
+  // added keys whose weight was never set), treat each as an equal share so the pool
+  // is usable without requiring a re-save. Original non-zero weights are kept as-is.
+  const poolTotalWeight = Array.isArray(pool.allocations)
+    ? pool.allocations.reduce((s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0), 0)
+    : 0;
+  const allocCount = Array.isArray(pool.allocations) ? pool.allocations.length : 0;
+  const effectiveWeight =
+    poolTotalWeight > 0 ? poolAllocation.weight : allocCount > 0 ? 100 / allocCount : 0;
+
   const decision = decideFairShare({
     dimensions: dimensionsInfo,
-    allocation: poolAllocation,
+    allocation: { ...poolAllocation, weight: effectiveWeight },
     consumedByThisKey,
     saturationThreshold: SATURATION_THRESHOLD,
   });

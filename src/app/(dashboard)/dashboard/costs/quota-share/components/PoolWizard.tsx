@@ -285,7 +285,14 @@ export default function PoolWizard({
     apiKeys.find((k) => k.id === id)?.name || id.slice(0, 12) + "…";
 
   const addKey = (id: string) => {
-    setAllocations((prev) => [...prev, { apiKeyId: id, weight: 0, policy: defaultPolicy }]);
+    setAllocations((prev) => {
+      const next = [...prev, { apiKeyId: id, weight: 0, policy: defaultPolicy }];
+      // Equal-split: after adding, recompute weights so no key starts at 0.
+      const n = next.length;
+      const each = Math.floor(100 / n);
+      const remainder = 100 - each * n;
+      return next.map((a, i) => ({ ...a, weight: each + (i < remainder ? 1 : 0) }));
+    });
   };
 
   const updateWeight = (id: string, value: number) => {
