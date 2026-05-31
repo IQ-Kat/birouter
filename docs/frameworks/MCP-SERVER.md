@@ -294,12 +294,10 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:skills`         | `skills_list`, `skills_executions`                                                                                |
 | `write:skills`        | `skills_enable`                                                                                                   |
 | `execute:skills`      | `skills_execute`                                                                                                  |
-
 | `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 
-Agent Skill Catalog tools require `read:catalog`.
 ---
 
 ## Environment Variables
