@@ -94,6 +94,14 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
     return { kind: "allow" };
   }
 
+  // 3a. Compute the account multiplier: a pool with N same-type connections has an
+  // effective budget of perAccountLimit × N per dimension. Consumption is already
+  // pool-keyed (shared bucket) — only the limit scales, never the consumption.
+  const accountCount =
+    Array.isArray(pool.connectionIds) && pool.connectionIds.length > 0
+      ? pool.connectionIds.length
+      : 1;
+
   // 4. For each active dimension, peek consumption and saturation.
   const store = getQuotaStore();
   const dimensionsInfo: Array<{
@@ -116,13 +124,17 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
       () => 0
     );
 
-    // v1 pragmatic approximation: consumedTotal = globalUsedPercent * limit.
+    // Effective limit = per-account plan limit × number of accounts in the pool.
+    // This is the summed budget: N accounts contribute N × L capacity to the shared bucket.
+    const effectiveLimit = dim.limit * accountCount;
+
+    // v1 pragmatic approximation: consumedTotal = globalUsedPercent * effectiveLimit.
     // (Exact aggregate by pool is delivered by F8's /api/quota/pools/[id]/usage endpoint.)
-    const consumedTotal = globalUsedPercent * dim.limit;
+    const consumedTotal = globalUsedPercent * effectiveLimit;
 
     dimensionsInfo.push({
       key: dimKey,
-      limit: dim.limit,
+      limit: effectiveLimit,
       consumedTotal,
       globalUsedPercent,
     });
