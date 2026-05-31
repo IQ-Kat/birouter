@@ -56,6 +56,13 @@ export interface RegistryModel {
   unsupportedParams?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
+  /**
+   * Interleaved-reasoning signal, mirroring models.dev's `interleaved_field`.
+   * Set to "reasoning_content" for models whose upstream runs DeepSeek thinking
+   * mode (e.g. OpenCode `big-pickle`) so follow-up/tool-use turns replay
+   * reasoning_content instead of failing with a DeepSeek 400 (#2900).
+   */
+  interleavedField?: string;
 }
 
 // Reasoning models reject temperature, top_p, penalties, logprobs, n.
@@ -1290,7 +1297,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
     defaultContextLength: 200000,
     models: [
-      { id: "big-pickle", name: "Big Pickle" },
+      // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
+      // interleaved reasoning_content contract so follow-up/tool-use turns replay
+      // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
+      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
       {
@@ -1357,7 +1367,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     passthroughModels: true,
     models: [
       // ── Chat / Coding ──────────────────────────────────────────
-      { id: "big-pickle", name: "Big Pickle" },
+      // #2900: big-pickle's upstream runs DeepSeek thinking mode — declare the
+      // interleaved reasoning_content contract so follow-up/tool-use turns replay
+      // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
+      { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
       { id: "gpt-5-nano", name: "GPT 5 Nano", contextLength: 400000 },
       { id: "gpt-5", name: "GPT 5" },
       { id: "gpt-5-codex", name: "GPT 5 Codex" },

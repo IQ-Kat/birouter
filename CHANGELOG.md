@@ -63,6 +63,14 @@
   `api_key_stream_default_mode` `ALTER` at `077`, added a retroactive
   `isSchemaAlreadyApplied` guard (case `085`), and a regression test enforcing
   unique migration prefixes.
+- **routing/reasoning-replay:** OpenCode `big-pickle` (provider `opencode`/`oc`
+  and `opencode-zen`) now declares the interleaved `reasoning_content` contract
+  via a new `RegistryModel.interleavedField` field, so follow-up/tool-use turns
+  replay reasoning_content. Previously `big-pickle` matched no replay pattern and
+  failed with `[400] The reasoning_content in the thinking mode must be passed
+  back to the API` (its DeepSeek-thinking upstream is not detectable from the
+  model id, and `requiresReasoningReplay` does not consume `supportsReasoning`).
+  `getResolvedModelCapabilities` now surfaces the registry `interleavedField`. (#2900)
 
 ### ✨ New Features
 
