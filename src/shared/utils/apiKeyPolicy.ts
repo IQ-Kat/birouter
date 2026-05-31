@@ -19,7 +19,7 @@ import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
 import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
-import { parseModel } from "@omniroute/open-sse/services/model.ts";
+import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Manager, while provider/account quota controls remain
@@ -320,19 +320,35 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  // ── Check 3: Quota-exclusive enforcement (Phase A3) ──
+  // ── Check 3: Quota-exclusive enforcement (Phase B4) ──
   //
-  // When a key has allowedQuotas, its access is governed entirely by its
-  // pools' providers — normal allowedModels/allowedCombos checks are skipped.
+  // When a key has allowedQuotas its access is governed exclusively by the
+  // quotaShared-* virtual models of its pools — raw model names are rejected,
+  // and quotaShared-* names belonging to OTHER pools are also rejected.
+  // Normal allowedModels/allowedCombos checks are skipped for these keys.
   if (modelStr && apiKeyInfo.allowedQuotas && apiKeyInfo.allowedQuotas.length > 0) {
     try {
       const scope = await resolveQuotaKeyScope(apiKeyInfo.allowedQuotas);
-      const { provider } = parseModel(modelStr);
-      if (provider === null || scope.providers.length === 0 || !scope.providers.includes(provider)) {
-        const quotaBody = buildErrorBody(
-          HTTP_STATUS.FORBIDDEN,
-          `Model "${modelStr}" is not allowed for this quota-exclusive API key`
-        );
+      let quotaRejectionMsg: string | null = null;
+
+      if (isQuotaModelName(modelStr)) {
+        // Virtual quota model — must belong to one of this key's pools AND its provider must be in scope.
+        const parsed = parseQuotaModelName(modelStr);
+        const allowed =
+          parsed !== null &&
+          scope.poolSlugs.length > 0 &&
+          scope.poolSlugs.includes(parsed.poolSlug) &&
+          scope.providers.includes(parsed.provider);
+        if (!allowed) {
+          quotaRejectionMsg = `Model "${modelStr}" is not in this key's quota pools`;
+        }
+      } else {
+        // Raw (non-quotaShared) model name — always rejected for quota-exclusive keys.
+        quotaRejectionMsg = `This quota-exclusive API key may only use quotaShared-* models`;
+      }
+
+      if (quotaRejectionMsg !== null) {
+        const quotaBody = buildErrorBody(HTTP_STATUS.FORBIDDEN, quotaRejectionMsg);
         quotaBody.error.code = "QUOTA_ONLY";
         return {
           apiKey,
@@ -343,7 +359,7 @@ export async function enforceApiKeyPolicy(
           }),
         };
       }
-      // Provider is in scope — quota key governed by pools; skip allowedModels/allowedCombos.
+      // Model is an in-scope quotaShared-* name — skip allowedModels/allowedCombos.
       // Continue to budget / rate-limit checks below.
     } catch (error) {
       log.error("API_POLICY", "Quota scope check failed. Request blocked.", { error });

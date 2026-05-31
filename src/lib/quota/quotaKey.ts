@@ -8,6 +8,7 @@
 
 import { getPool } from "@/lib/db/quotaPools";
 import { getProviderConnectionById } from "@/lib/db/providers";
+import { quotaPoolSlug } from "./quotaModelNaming";
 
 // ---------------------------------------------------------------------------
 // Public interface
@@ -18,6 +19,8 @@ export interface QuotaKeyScope {
   connectionIds: string[];
   /** Provider slugs of those connections (deduplicated). */
   providers: string[];
+  /** Alphanumeric pool slugs the key is scoped to (from quotaPoolSlug(pool.name)), deduplicated. */
+  poolSlugs: string[];
 }
 
 /**
@@ -56,11 +59,12 @@ export async function resolveQuotaKeyScope(
   allowedQuotas: string[] | null | undefined
 ): Promise<QuotaKeyScope> {
   if (!allowedQuotas || allowedQuotas.length === 0) {
-    return { connectionIds: [], providers: [] };
+    return { connectionIds: [], providers: [], poolSlugs: [] };
   }
 
   const connectionIdSet = new Set<string>();
   const providerSet = new Set<string>();
+  const poolSlugSet = new Set<string>();
 
   for (const poolId of allowedQuotas) {
     const pool = getPool(poolId);
@@ -74,10 +78,12 @@ export async function resolveQuotaKeyScope(
 
     connectionIdSet.add(pool.connectionId);
     providerSet.add(provider);
+    poolSlugSet.add(quotaPoolSlug(pool.name));
   }
 
   return {
     connectionIds: Array.from(connectionIdSet),
     providers: Array.from(providerSet),
+    poolSlugs: Array.from(poolSlugSet),
   };
 }

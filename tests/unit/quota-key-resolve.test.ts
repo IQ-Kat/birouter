@@ -62,25 +62,25 @@ test.after(async () => {
 
 test("resolveQuotaKeyScope: empty array input returns empty scope", async () => {
   const scope = await resolveQuotaKeyScope([]);
-  assert.deepEqual(scope, { connectionIds: [], providers: [] });
+  assert.deepEqual(scope, { connectionIds: [], providers: [], poolSlugs: [] });
 });
 
 test("resolveQuotaKeyScope: null input returns empty scope", async () => {
   const scope = await resolveQuotaKeyScope(null);
-  assert.deepEqual(scope, { connectionIds: [], providers: [] });
+  assert.deepEqual(scope, { connectionIds: [], providers: [], poolSlugs: [] });
 });
 
 test("resolveQuotaKeyScope: undefined input returns empty scope", async () => {
   const scope = await resolveQuotaKeyScope(undefined);
-  assert.deepEqual(scope, { connectionIds: [], providers: [] });
+  assert.deepEqual(scope, { connectionIds: [], providers: [], poolSlugs: [] });
 });
 
 test("resolveQuotaKeyScope: unknown pool id returns empty scope (no throw)", async () => {
   const scope = await resolveQuotaKeyScope(["pool-does-not-exist"]);
-  assert.deepEqual(scope, { connectionIds: [], providers: [] });
+  assert.deepEqual(scope, { connectionIds: [], providers: [], poolSlugs: [] });
 });
 
-test("resolveQuotaKeyScope: valid pool returns its connectionId and provider", async () => {
+test("resolveQuotaKeyScope: valid pool returns its connectionId, provider, and poolSlug", async () => {
   // Seed a real provider connection
   const conn = await providersDb.createProviderConnection({
     provider: "openai",
@@ -98,6 +98,8 @@ test("resolveQuotaKeyScope: valid pool returns its connectionId and provider", a
 
   assert.deepEqual(scope.connectionIds, [connId]);
   assert.deepEqual(scope.providers, ["openai"]);
+  // "Test Pool A2" slugifies to "testpoola2"
+  assert.deepEqual(scope.poolSlugs, ["testpoola2"]);
 });
 
 test("resolveQuotaKeyScope: multiple pools same provider deduplicates providers", async () => {
@@ -166,7 +168,7 @@ test("resolveQuotaKeyScope: pool referencing non-existent connectionId is skippe
   });
 
   const scope = await resolveQuotaKeyScope([pool.id]);
-  assert.deepEqual(scope, { connectionIds: [], providers: [] });
+  assert.deepEqual(scope, { connectionIds: [], providers: [], poolSlugs: [] });
 });
 
 test("resolveQuotaKeyScope: mix of valid and invalid pool ids — only valid contribute", async () => {
@@ -183,4 +185,6 @@ test("resolveQuotaKeyScope: mix of valid and invalid pool ids — only valid con
 
   assert.deepEqual(scope.connectionIds, [connId]);
   assert.deepEqual(scope.providers, ["openai"]);
+  // "Pool Mix" slugifies to "poolmix"
+  assert.deepEqual(scope.poolSlugs, ["poolmix"]);
 });
