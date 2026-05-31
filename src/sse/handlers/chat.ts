@@ -448,13 +448,18 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         connectionId?: string | null;
         allowedConnectionIds?: string[] | null;
         executionKey?: string | null;
+        providerId?: string | null;
       }
     ) => {
       if (isComboLiveTest) return true;
 
-      // Use getModelInfo to properly resolve custom prefixes
+      // Use getModelInfo to resolve custom prefixes, but prefer the combo
+      // target's providerId when available — the model string's provider
+      // prefix may differ from the credential provider ID (e.g. model
+      // "xiaomi/mimo-v2-flash" resolves to provider "xiaomi" but the combo
+      // target specifies providerId: "opengate" for credential lookup).
       const modelInfo = await getModelInfo(modelString);
-      const provider = modelInfo.provider;
+      const provider = target?.providerId || modelInfo.provider;
       if (!provider) return true; // can't determine provider, let it try
 
       const resolvedModel = modelInfo.model || modelString;
@@ -510,6 +515,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           stepId?: string | null;
           allowedConnectionIds?: string[] | null;
           failoverBeforeRetry?: boolean;
+          providerId?: string | null;
         }
       ) =>
         handleSingleModelChat(
@@ -534,6 +540,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
               getComboCredentialCacheKey(m, target)
             ),
             cachedSettings: settings,
+            providerId: target?.providerId ?? null,
           },
           combo.strategy,
           true
@@ -664,6 +671,7 @@ async function handleSingleModelChat(
     allowRateLimitedConnection?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
+    providerId?: string | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -695,6 +703,8 @@ async function handleSingleModelChat(
           executionKey?: string | null;
           stepId?: string | null;
           failoverBeforeRetry?: boolean;
+          allowRateLimitedConnection?: boolean;
+          providerId?: string | null;
         }
       ) =>
         handleSingleModelChat(
@@ -713,6 +723,8 @@ async function handleSingleModelChat(
             comboStepId: null,
             comboExecutionKey: null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
+            providerId: target?.providerId ?? null,
           },
           redirectCombo.strategy ?? "priority",
           false
@@ -726,7 +738,12 @@ async function handleSingleModelChat(
     });
   }
 
-  const { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat } = resolved;
+  const { provider: resolvedProvider, model, sourceFormat, targetFormat, extendedContext, apiFormat } = resolved;
+  // Prefer the combo target's providerId when available — the model string's
+  // provider prefix may differ from the credential provider ID (e.g. model
+  // "xiaomi/mimo-v2-flash" resolves to provider "xiaomi" but the combo target
+  // may specify providerId: "opengate" for credential lookup).
+  const provider = runtimeOptions.providerId || resolvedProvider;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
