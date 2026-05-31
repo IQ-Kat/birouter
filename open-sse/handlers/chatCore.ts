@@ -1495,6 +1495,15 @@ export async function handleChatCore({
         ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
         : undefined
       : undefined;
+  // #2905: per-model wire-format override for custom models, injected by
+  // getModelInfo. Custom models are not in the static registry, so
+  // getModelTargetFormat() can't see this — use it before the provider default.
+  const customModelTargetFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "targetFormat" in modelInfo
+      ? typeof (modelInfo as { targetFormat?: unknown }).targetFormat === "string"
+        ? ((modelInfo as { targetFormat?: string }).targetFormat as string)
+        : undefined
+      : undefined;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
@@ -1876,7 +1885,9 @@ export async function handleChatCore({
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+      : modelTargetFormat ||
+        customModelTargetFormat ||
+        getTargetFormat(provider, credentials?.providerSpecificData);
 
   const initialProviderRequest =
     body && typeof body === "object" && !Array.isArray(body)

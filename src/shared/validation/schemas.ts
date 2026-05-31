@@ -1048,6 +1048,11 @@ export const providerModelMutationSchema = z.object({
       ])
     )
     .default(["chat"]),
+  // #2905: optional per-model wire format override for custom models (e.g. a
+  // custom opencode-go model that must use the Anthropic Messages shape).
+  targetFormat: z
+    .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
+    .optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),

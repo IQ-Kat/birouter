@@ -59,6 +59,12 @@
 
 ### Fixed
 
+- **models/custom:** custom models can now carry a per-model `targetFormat`
+  override (e.g. an opencode-go custom model that must use the Anthropic Messages
+  shape). Previously custom models always routed as OpenAI-compatible because
+  `targetFormat` was neither persisted nor consulted at routing time. Threaded
+  through `addCustomModel`/`replaceCustomModels`/`updateCustomModel`, the API
+  schema/route, `getModelInfo`, and chatCore's targetFormat resolution. (#2905)
 - **providers/pollinations:** route to `gen.pollinations.ai/v1` instead of the
   retired `text.pollinations.ai` host, which now returns `404 "legacy API"` for
   all models. The gen gateway is the current OpenAI-compatible endpoint. (#2987)
