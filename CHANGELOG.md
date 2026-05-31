@@ -63,6 +63,19 @@
 
 ### Fixed
 
+- **codex/quota:** opening the Quota / Providers dashboard no longer disconnects
+  Codex multi-account setups. The quota-sync path
+  (`refreshAndUpdateCredentials`) proactively refreshed every connection — for
+  rotating-refresh providers (Codex/OpenAI share one Auth0 `client_id`) it
+  refreshed siblings concurrently, so Auth0 revoked the whole token family
+  (`openai/codex#9648`) and every account but the last died with
+  `[403] <!DOCTYPE html>`. The quota path now skips proactive refresh for
+  rotating providers (`rotationGroupFor`) and reuses the current access_token,
+  deferring genuine expiry to the reactive, serialized 401 path. Defense in
+  depth: `serializeRefresh` now leaves a settle gap between two *queued* sibling
+  refreshes (default 2000 ms, tunable via `CODEX_REFRESH_SPACING_MS`, `"0"` to
+  opt out) while releasing a lone refresh immediately, so the reactive path adds
+  no latency.
 - **payload-rules:** saved payload rules now survive a server restart. When no
   in-memory override is set (fresh process before the boot hook ran, or a
   separate module instance in the standalone build), `getPayloadRulesConfig`

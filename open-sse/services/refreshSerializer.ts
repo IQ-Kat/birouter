@@ -30,9 +30,27 @@ const ROTATION_LOCK_GROUP: Record<string, string> = {
   qwen: "qwen",
 };
 
-function readSpacingMs(): number {
-  const raw = Number(process.env.CODEX_REFRESH_SPACING_MS);
-  return Number.isFinite(raw) && raw >= 0 ? raw : 0;
+// Protective settle gap (ms) between two consecutive sibling refreshes when the
+// env var is unset. Conservative by default; bursts are rare and correctness
+// (not revoking the family) outweighs the extra wall-clock on a queued refresh.
+const DEFAULT_REFRESH_SPACING_MS = 2000;
+
+/**
+ * Gap (ms) inserted between two consecutive refreshes in the same rotation group.
+ * It is only paid when a sibling is already queued behind the current refresh —
+ * a lone refresh is released immediately so the reactive request path pays no
+ * extra latency. The gap gives Auth0 time to settle a rotation before the next
+ * sibling presents its (now superseded) refresh_token, closing the
+ * family-revocation race window (openai/codex#9648).
+ *
+ * Tunable via `CODEX_REFRESH_SPACING_MS`; set it to `"0"` to opt out entirely.
+ */
+export function getRefreshSpacingMs(): number {
+  const rawEnv = process.env.CODEX_REFRESH_SPACING_MS;
+  if (rawEnv === undefined || rawEnv === "") return DEFAULT_REFRESH_SPACING_MS;
+  const raw = Number(rawEnv);
+  // Explicit "0" opts out; anything unparseable falls back to the safe default.
+  return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_REFRESH_SPACING_MS;
 }
 
 // Tail promise per group — each new refresh chains after the previous one.
@@ -69,8 +87,14 @@ export async function serializeRefresh<T>(provider: string, fn: () => Promise<T>
   try {
     return await fn();
   } finally {
-    const spacing = readSpacingMs();
-    if (spacing > 0) await delay(spacing);
+    // Only pay the settle gap when a sibling is already queued behind us — a
+    // lone refresh has nobody to collide with, so it must be released
+    // immediately (zero added latency on the reactive request path).
+    const hasSuccessor = groupTail.get(group) !== myTail;
+    if (hasSuccessor) {
+      const spacing = getRefreshSpacingMs();
+      if (spacing > 0) await delay(spacing);
+    }
     releaseMine();
     // Garbage-collect the lane when nobody chained after us.
     if (groupTail.get(group) === myTail) groupTail.delete(group);
