@@ -38,6 +38,15 @@ export const CLI_TOKEN_HEADER = "x-omniroute-cli-token";
 export const PEER_IP_HEADER = "x-omniroute-peer-ip";
 
 /**
+ * Trusted locality verdict ("loopback" | "lan" | "remote") that the pipeline
+ * computes from the stamped real peer IP and forwards to route handlers. Route
+ * code (e.g. cliTokenAuth) reads THIS instead of re-deriving locality from the
+ * spoofable Host header. Like the other trusted headers it is stripped from
+ * client input and re-set by the pipeline, so a remote caller cannot forge it.
+ */
+export const AUTHZ_HEADER_PEER_LOCALITY = "x-omniroute-peer-locality";
+
+/**
  * Headers the pipeline must NEVER trust on incoming requests. They are
  * stripped before route classification to prevent header-spoofing attacks.
  */
@@ -47,4 +56,5 @@ export const AUTHZ_TRUSTED_HEADERS: ReadonlyArray<string> = [
   AUTHZ_HEADER_AUTH_ID,
   AUTHZ_HEADER_AUTH_LABEL,
   AUTHZ_HEADER_AUTH_SCOPES,
+  AUTHZ_HEADER_PEER_LOCALITY,
 ];

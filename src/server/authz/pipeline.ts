@@ -6,6 +6,8 @@ import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySiz
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
 import { classifyRoute } from "./classify";
+import { classifyHostLocality } from "./routeGuard";
+import { resolveStampedPeer } from "./peerStamp";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
 import { publicPolicy } from "./policies/public";
@@ -14,6 +16,7 @@ import {
   AUTHZ_HEADER_AUTH_KIND,
   AUTHZ_HEADER_AUTH_LABEL,
   AUTHZ_HEADER_AUTH_SCOPES,
+  AUTHZ_HEADER_PEER_LOCALITY,
   AUTHZ_HEADER_REQUEST_ID,
   AUTHZ_HEADER_ROUTE_CLASS,
   AUTHZ_TRUSTED_HEADERS,
@@ -236,6 +239,16 @@ export async function runAuthzPipeline(
 
   requestHeaders.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
   requestHeaders.set(AUTHZ_HEADER_REQUEST_ID, requestId);
+  // Stamp a trusted, non-secret locality verdict derived from the real stamped
+  // peer IP. Route handlers (e.g. cliTokenAuth) read this instead of re-deriving
+  // locality from the spoofable Host header. The client-supplied value (if any)
+  // was already removed by the AUTHZ_TRUSTED_HEADERS strip above.
+  requestHeaders.set(
+    AUTHZ_HEADER_PEER_LOCALITY,
+    classifyHostLocality(
+      resolveStampedPeer(request.headers.get(PEER_IP_HEADER), process.env.OMNIROUTE_PEER_STAMP_TOKEN)
+    )
+  );
 
   if (method === "OPTIONS") {
     const preflight = new NextResponse(null, { status: 204 });

@@ -2,7 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { isPrivateLanHost, isLoopbackHost, isLocalOnlyPath } from "../../src/server/authz/routeGuard.ts";
+import {
+  isPrivateLanHost,
+  isLoopbackHost,
+  isLocalOnlyPath,
+  classifyHostLocality,
+} from "../../src/server/authz/routeGuard.ts";
 import { resolveStampedPeer } from "../../src/server/authz/peerStamp.ts";
 
 test("isPrivateLanHost: accepts RFC1918 IPv4 (incl. :port and ::ffff: mapped)", () => {
@@ -38,10 +43,27 @@ test("isPrivateLanHost: rejects public IPs, loopback and junk", () => {
   }
 });
 
-test("isLoopbackHost stays loopback-only (unchanged)", () => {
+test("isLoopbackHost: IPv4, hostname:port, bracketed + bare IPv6, ::ffff: mapped", () => {
   assert.equal(isLoopbackHost("127.0.0.1"), true);
   assert.equal(isLoopbackHost("localhost:20128"), true);
+  // Bare IPv6 loopback forms that socket.remoteAddress produces on dual-stack
+  // (regression: split(":")[0] previously mangled these to "" → false → DoS).
+  assert.equal(isLoopbackHost("::1"), true);
+  assert.equal(isLoopbackHost("::ffff:127.0.0.1"), true);
+  assert.equal(isLoopbackHost("[::1]:20128"), true);
   assert.equal(isLoopbackHost("192.168.0.15"), false);
+  assert.equal(isLoopbackHost("8.8.8.8"), false);
+});
+
+test("classifyHostLocality: loopback / lan / remote, with fail-closed null", () => {
+  assert.equal(classifyHostLocality("127.0.0.1"), "loopback");
+  assert.equal(classifyHostLocality("::1"), "loopback");
+  assert.equal(classifyHostLocality("::ffff:127.0.0.1"), "loopback");
+  assert.equal(classifyHostLocality("192.168.0.15"), "lan");
+  assert.equal(classifyHostLocality("::ffff:192.168.1.20"), "lan");
+  assert.equal(classifyHostLocality("8.8.8.8"), "remote");
+  assert.equal(classifyHostLocality("69.164.221.35"), "remote");
+  assert.equal(classifyHostLocality(null), "remote", "unknown peer must fail closed");
 });
 
 test("services + traffic-inspector remain LOCAL_ONLY paths", () => {
