@@ -8,11 +8,14 @@ import type { PlaygroundEndpoint } from "@/lib/playground/codeExport";
 import { endpointToPath } from "@/lib/playground/codeExport";
 import PresetPicker from "./PresetPicker";
 import ImprovePromptButton from "./ImprovePromptButton";
+import { useProviderOptions } from "@/app/(dashboard)/dashboard/translator/hooks/useProviderOptions";
+import { useAvailableModels } from "@/app/(dashboard)/dashboard/translator/hooks/useAvailableModels";
 
 export interface ConfigState {
   endpoint: PlaygroundEndpoint;
   baseUrl: string;
   model: string;
+  provider?: string;
   systemPrompt: string;
   params: PlaygroundParams;
 }
@@ -46,6 +49,10 @@ const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; label: string }> = [
  */
 export default function StudioConfigPane({ configState, setConfigState }: StudioConfigPaneProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const { provider, setProvider, providerOptions, loading: loadingProviders } = useProviderOptions(
+    configState.provider ?? ""
+  );
+  const { availableModels, loading: loadingModels } = useAvailableModels();
 
   function update<K extends keyof ConfigState>(key: K, value: ConfigState[K]) {
     setConfigState({ ...configState, [key]: value });
@@ -108,18 +115,56 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
           </select>
         </div>
 
+        {/* Provider */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
+            Provider
+          </label>
+          <select
+            value={provider}
+            onChange={(e) => {
+              setProvider(e.target.value);
+              update("provider", e.target.value);
+            }}
+            disabled={loadingProviders}
+            className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
+          >
+            <option value="">Auto</option>
+            {providerOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Model */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
             Model
           </label>
-          <input
-            type="text"
-            value={configState.model}
-            onChange={(e) => update("model", e.target.value)}
-            placeholder="e.g. openai/gpt-4o"
-            className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
-          />
+          {availableModels.length > 0 ? (
+            <select
+              value={configState.model}
+              onChange={(e) => update("model", e.target.value)}
+              disabled={loadingModels}
+              className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
+            >
+              {availableModels.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={configState.model}
+              onChange={(e) => update("model", e.target.value)}
+              placeholder="e.g. openai/gpt-4o"
+              className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
+            />
+          )}
         </div>
 
         {/* System prompt */}

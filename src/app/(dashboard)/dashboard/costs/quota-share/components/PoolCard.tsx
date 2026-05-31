@@ -24,8 +24,9 @@ export interface PoolCardProps {
 }
 
 function computeStatus(usage: PoolUsageSnapshot | null): "green" | "amber" | "red" {
-  if (!usage || usage.dimensions.length === 0) return "green";
-  const utilizations = usage.dimensions.map((d) =>
+  const dims = usage?.dimensions ?? [];
+  if (dims.length === 0) return "green";
+  const utilizations = dims.map((d) =>
     d.limit > 0 ? (d.consumedTotal / d.limit) * 100 : 0
   );
   const avg = utilizations.reduce((s, u) => s + u, 0) / utilizations.length;
@@ -54,7 +55,7 @@ export default function PoolCard({
   const { icon: statusIcon, cls: statusCls } = STATUS_ICONS[status];
 
   // Check for plan dimensions from usage
-  const hasDimensions = usage && usage.dimensions.length > 0;
+  const hasDimensions = !!usage?.dimensions?.length;
 
   return (
     <Card padding="md">
@@ -103,10 +104,10 @@ export default function PoolCard({
         <div
           className="grid gap-3 mb-3"
           style={{
-            gridTemplateColumns: `repeat(${Math.min(usage.dimensions.length, 3)}, 1fr)`,
+            gridTemplateColumns: `repeat(${Math.min(usage?.dimensions?.length ?? 0, 3)}, 1fr)`,
           }}
         >
-          {usage.dimensions.map((dim, i) => (
+          {(usage?.dimensions ?? []).map((dim, i) => (
             <DimensionBar
               key={`${dim.unit}-${dim.window}-${i}`}
               dimension={{ unit: dim.unit, window: dim.window, limit: dim.limit }}

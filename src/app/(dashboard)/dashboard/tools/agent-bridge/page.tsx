@@ -54,7 +54,7 @@ export default async function AgentBridgePage() {
   return (
     <AgentBridgePageClient
       initialData={initialData}
-      targets={ALL_TARGETS}
+      targets={ALL_TARGETS.map(({ handler, ...rest }) => rest)}
       hasProviders={hasProviders}
     />
   );

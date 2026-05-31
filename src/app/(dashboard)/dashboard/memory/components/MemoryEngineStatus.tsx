@@ -85,7 +85,12 @@ export default function MemoryEngineStatus({ status, onConfigure }: Props) {
             : "red",
       reason: status.vectorStore.reason,
       cta:
-        status.vectorStore.needsReindex > 0 ? (
+        status.vectorStore.backend === "none" ? (
+          <span className="text-xs text-amber-400 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[12px]">terminal</span>
+            {t("engine.vectorStoreInstallHint")}
+          </span>
+        ) : status.vectorStore.needsReindex > 0 ? (
           <span className="text-xs text-amber-400 flex items-center gap-1">
             <span className="material-symbols-outlined text-[12px]">warning</span>
             {t("engine.needsReindex", { count: status.vectorStore.needsReindex })}

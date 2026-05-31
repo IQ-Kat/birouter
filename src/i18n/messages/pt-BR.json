@@ -2465,7 +2465,45 @@
     "a2aNoTasks": "Nenhuma tarefa A2A registrada.",
     "a2aLoadingTasks": "Carregando tarefas A2A...",
     "actor": "Autor",
-    "actorPlaceholder": "Filtrar por autor"
+    "actorPlaceholder": "Filtrar por autor",
+    "eventTypes": {
+      "apiKey.activate": "API Key Ativada",
+      "apiKey.ban": "API Key Banida",
+      "apiKey.deactivate": "API Key Desativada",
+      "apiKey.regenerate": "API Key Regenerada",
+      "apiKey.scopes.grant": "Escopos de API Key Concedidos",
+      "apiKey.scopes.revoke": "Escopos de API Key Revogados",
+      "apiKey.scopes.update": "Escopos de API Key Atualizados",
+      "apiKey.unban": "API Key Desbanida",
+      "auth.login.error": "Erro de Login",
+      "auth.login.failed": "Login Falhou",
+      "auth.login.locked": "Login Bloqueado",
+      "auth.login.misconfigured": "Login Mal Configurado",
+      "auth.login.setup_required": "Configuração de Login Necessária",
+      "auth.login.success": "Login com Sucesso",
+      "auth.logout.success": "Logout com Sucesso",
+      "compliance.cleanup": "Limpeza de Conformidade",
+      "provider.credentials.applied": "Credenciais do Provedor Aplicadas",
+      "provider.credentials.batch_revoked": "Credenciais do Provedor Revogadas em Lote",
+      "provider.credentials.bulk_created": "Credenciais do Provedor Criadas em Massa",
+      "provider.credentials.bulk_imported": "Credenciais do Provedor Importadas em Massa",
+      "provider.credentials.created": "Credenciais do Provedor Criadas",
+      "provider.credentials.imported": "Credenciais do Provedor Importadas",
+      "provider.credentials.revoked": "Credenciais do Provedor Revogadas",
+      "provider.credentials.updated": "Credenciais do Provedor Atualizadas",
+      "provider.validation.ssrf_blocked": "SSRF do Provedor Bloqueado",
+      "quota.plan.updated": "Plano de Cota Atualizado",
+      "quota.pool.created": "Pool de Cota Criado",
+      "quota.pool.deleted": "Pool de Cota Excluído",
+      "quota.pool.updated": "Pool de Cota Atualizado",
+      "quota.store.driver_changed": "Driver do Store de Cota Alterado",
+      "server.start": "Servidor Iniciado",
+      "service.reveal_api_key": "API Key do Serviço Revelada",
+      "settings.update": "Configurações Atualizadas",
+      "settings.update_failed": "Falha ao Atualizar Configurações",
+      "sync.token.created": "Token de Sincronização Criado",
+      "sync.token.revoked": "Token de Sincronização Revogado"
+    }
   },
   "contextCaveman": {
     "title": "Motor Caveman",
@@ -3841,7 +3879,8 @@
       "qdrantOk": "Saudável ({latencyMs}ms)",
       "qdrantError": "Erro de conexão",
       "needsReindex": "{count} memória(s) precisam de reindexação",
-      "configureCta": "Configurar"
+      "configureCta": "Configurar",
+      "vectorStoreInstallHint": "Para ativar a busca vetorial: npm install sqlite-vec (requer Node.js nativo, não WASM) e reinicie."
     },
     "episodic": "Episódica",
     "export": "Exportar",
@@ -3952,7 +3991,8 @@
       "semantic": "Conceitos, preferências e conhecimento de domínio"
     },
     "totalEntries": "Total de Entradas",
-    "type": "Tipo"
+    "type": "Tipo",
+    "memoryEnabled": "Memória ativada"
   },
   "miniPlayground": {
     "endpoint": "Endpoint",
@@ -4261,7 +4301,27 @@
     "invalidJson": "JSON inválido",
     "running": "Executando…",
     "runLabel": "Executar",
-    "enterToolResult": "Insira o resultado da ferramenta…"
+    "enterToolResult": "Insira o resultado da ferramenta…",
+    "build": {
+      "step1Label": "O que testar?",
+      "step2Label": "Configurar",
+      "step3Label": "Rodar",
+      "step1Title": "O que você quer testar?",
+      "step1Subtitle": "Escolha a funcionalidade que deseja explorar nesta sessão.",
+      "step2Title": "Configurar",
+      "step2Subtitle": "Configure as ferramentas ou o esquema JSON que serão usados na requisição.",
+      "step3Title": "Rodar",
+      "modeToolsTitle": "Ferramentas",
+      "modeToolsDesc": "Teste function calling — defina ferramentas e veja como o modelo as invoca.",
+      "modeJsonTitle": "JSON",
+      "modeJsonDesc": "Teste saída estruturada — restrinja a resposta a um esquema JSON.",
+      "modeBothTitle": "Ferramentas + JSON",
+      "modeBothDesc": "Combine function calling e saída estruturada em uma única requisição.",
+      "backButton": "Voltar",
+      "nextButton": "Próximo",
+      "runButton": "Executar",
+      "promptPlaceholder": "Digite sua mensagem… (Enter para enviar, Shift+Enter para nova linha)"
+    }
   },
   "pricingModal": {
     "title": "Configuração de preços",
@@ -6628,7 +6688,11 @@
     "homeQuickStart": "Quick Start",
     "homeQuickStartDesc": "Show the Quick Start panel on the Home page.",
     "homeProviderTopology": "Provider Topology",
-    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page."
+    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
+    "proxyGlobalConfigTab": "Configuração Global",
+    "proxyPoolTab": "Pool de Proxy",
+    "freePoolTab": "Pool Gratuito",
+    "proxyDocumentationTab": "Documentação"
   },
   "sidebar": {
     "home": "Início",

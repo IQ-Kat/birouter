@@ -236,6 +236,16 @@ export default function MemoriesTab() {
     }
   };
 
+  // Auto-run health check on mount + poll every 30s, so the indicator reflects
+  // engine health without requiring a manual click.
+  useEffect(() => {
+    void checkHealth();
+    const id = setInterval(() => {
+      void checkHealth();
+    }, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const openEdit = (m: Memory) => {
     setEditTarget(m);
     setEditOpen(true);

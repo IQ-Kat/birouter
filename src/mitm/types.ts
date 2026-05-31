@@ -38,6 +38,13 @@ export interface MitmTarget {
   viability?: "investigating" | "supported" | "deprecated";  // Trae = "investigating"
 }
 
+/**
+ * Serializable view of a MitmTarget for Server→Client Component props.
+ * Omits `handler` (a function): Next.js forbids passing functions across the
+ * Server/Client boundary, and the UI never invokes it. See agent-bridge/page.tsx.
+ */
+export type MitmTargetView = Omit<MitmTarget, "handler">;
+
 export const MitmTargetSchema = z.object({
   id: z.enum([
     "antigravity", "kiro", "copilot", "codex", "cursor", "zed",

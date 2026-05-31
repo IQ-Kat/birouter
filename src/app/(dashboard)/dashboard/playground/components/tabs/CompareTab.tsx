@@ -104,6 +104,13 @@ export default function CompareTab({ configState }: CompareTabProps) {
   // Metrics trackers per column id (plain class instances, no React hooks)
   const metricsTrackersRef = useRef<Map<string, ColumnMetricsTracker>>(new Map());
 
+  // User prompt input
+  const [prompt, setPrompt] = useState("");
+
+  // RAF throttle: pending chunk accumulator and scheduled frame id
+  const pendingRef = useRef<Record<string, string>>({});
+  const rafRef = useRef<number | null>(null);
+
   // Input for model name when adding a column
   const [newModel, setNewModel] = useState("");
   const addInputRef = useRef<HTMLInputElement>(null);
@@ -125,6 +132,30 @@ export default function CompareTab({ configState }: CompareTabProps) {
       metricsTrackersRef.current.set(id, new ColumnMetricsTracker());
     }
     return metricsTrackersRef.current.get(id)!;
+  }
+
+  /**
+   * Throttle per-column chunk updates via requestAnimationFrame.
+   * Accumulates all deltas that arrive within a single frame and flushes
+   * them with a single setColumns call, preventing hundreds of re-renders/s.
+   */
+  function pushChunk(colId: string, delta: string) {
+    pendingRef.current[colId] = (pendingRef.current[colId] ?? "") + delta;
+
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        const snapshot = pendingRef.current;
+        pendingRef.current = {};
+        rafRef.current = null;
+
+        setColumns((prev) =>
+          prev.map((c) => {
+            const extra = snapshot[c.id];
+            return extra != null ? { ...c, response: c.response + extra } : c;
+          })
+        );
+      });
+    }
   }
 
   function addColumn() {
@@ -179,6 +210,7 @@ export default function CompareTab({ configState }: CompareTabProps) {
         ...(configState.systemPrompt
           ? [{ role: "system", content: configState.systemPrompt }]
           : []),
+        { role: "user", content: prompt },
       ],
     };
 
@@ -247,10 +279,8 @@ export default function CompareTab({ configState }: CompareTabProps) {
             accumulated += content;
             tracker.onChunk(1);
 
-            updateColumn(col.id, {
-              response: accumulated,
-              metrics: tracker.getMetrics(),
-            });
+            // Throttled: accumulate delta and flush once per animation frame
+            pushChunk(col.id, content);
           }
 
           const usage = parsed["usage"] as
@@ -269,6 +299,12 @@ export default function CompareTab({ configState }: CompareTabProps) {
       });
     } catch (err) {
       if (controller.signal.aborted) {
+        // Cancel any pending RAF for this column and clean up its pending delta
+        if (rafRef.current != null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+        delete pendingRef.current[col.id];
         updateColumn(col.id, { status: "idle" });
         return;
       }
@@ -303,6 +339,18 @@ export default function CompareTab({ configState }: CompareTabProps) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Prompt input area */}
+      <div className="px-4 pt-3 pb-2 border-b border-border bg-bg-alt shrink-0">
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter your prompt here…"
+          rows={3}
+          className="w-full text-sm bg-surface border border-border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-text-main resize-y"
+          aria-label="User prompt"
+        />
+      </div>
+
       {/* Compare toolbar */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-bg-alt shrink-0">
         {/* Run / Cancel all */}
@@ -318,7 +366,7 @@ export default function CompareTab({ configState }: CompareTabProps) {
         ) : (
           <button
             onClick={() => void runAll()}
-            disabled={columns.length === 0}
+            disabled={columns.length === 0 || !prompt.trim()}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Run all columns"
           >

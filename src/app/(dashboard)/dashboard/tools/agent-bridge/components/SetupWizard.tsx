@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { AgentStateEntry } from "../AgentBridgePageClient";
-import type { MitmTarget } from "@/mitm/types";
+import type { MitmTargetView } from "@/mitm/types";
 
 interface SetupWizardProps {
-  target: MitmTarget;
+  target: MitmTargetView;
   agentState: AgentStateEntry | undefined;
   serverRunning: boolean;
   onClose: () => void;

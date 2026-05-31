@@ -8,7 +8,7 @@ import { AgentBridgeServerCard } from "./components/AgentBridgeServerCard";
 import { AgentList } from "./components/AgentList";
 import { EmptyStateNoProviders } from "./components/EmptyStateNoProviders";
 import { useAgentBridgeState } from "./hooks/useAgentBridgeState";
-import type { MitmTarget } from "@/mitm/types";
+import type { MitmTargetView } from "@/mitm/types";
 import type { MappingRow } from "./components/ModelMappingTable";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ export interface AgentBridgePageData {
 
 interface AgentBridgePageClientProps {
   initialData: AgentBridgePageData;
-  targets: MitmTarget[];
+  targets: MitmTargetView[];
   hasProviders: boolean;
 }
 
