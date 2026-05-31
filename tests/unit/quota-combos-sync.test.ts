@@ -115,7 +115,7 @@ test("syncQuotaCombos: creates one combo per glm model with correct name and tar
   for (const c of quotaCombos) {
     const parsed = parseQuotaModelName(c.name);
     assert.ok(parsed, `Could not parse quota model name: ${c.name}`);
-    assert.equal(parsed?.poolSlug, quotaPoolSlug("TestGlmPool"));
+    assert.equal(parsed?.groupSlug, quotaPoolSlug("TestGlmPool"));
   }
 });
 
@@ -204,7 +204,8 @@ test("syncQuotaCombos: prunes stale combos for same pool slug", async () => {
   assert.ok(initialCount > 0, "should have combos after initial sync");
 
   // Manually insert a stale combo with the same pool slug but a nonexistent model
-  const staleComboName = `quotaShared-${quotaPoolSlug("PrunePool")}-glm/fake-model-stale`;
+  // Use the new qtSd/ prefix so isQuotaModelName() recognises it as a quota combo to prune.
+  const staleComboName = `qtSd/${quotaPoolSlug("PrunePool")}/glm/fake-model-stale`;
   await combosDb.createCombo({
     name: staleComboName,
     models: [{ kind: "model", model: "glm/fake-model-stale", providerId: "glm", weight: 100 }],
@@ -271,8 +272,8 @@ test("syncQuotaCombos: does not affect quota combos for a different pool slug", 
   const slugA = quotaPoolSlug("PoolAlpha");
   const slugB = quotaPoolSlug("PoolBeta");
 
-  const forA = all.filter((c) => parseQuotaModelName(c.name)?.poolSlug === slugA);
-  const forB = all.filter((c) => parseQuotaModelName(c.name)?.poolSlug === slugB);
+  const forA = all.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugA);
+  const forB = all.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugB);
 
   assert.ok(forA.length > 0, "PoolAlpha should have combos");
   assert.ok(forB.length > 0, "PoolBeta should have combos");
@@ -281,8 +282,8 @@ test("syncQuotaCombos: does not affect quota combos for a different pool slug", 
   await removeQuotaCombosForPool(poolA.id);
 
   const remaining = await listQuotaCombos();
-  const remainingForA = remaining.filter((c) => parseQuotaModelName(c.name)?.poolSlug === slugA);
-  const remainingForB = remaining.filter((c) => parseQuotaModelName(c.name)?.poolSlug === slugB);
+  const remainingForA = remaining.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugA);
+  const remainingForB = remaining.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugB);
 
   assert.equal(remainingForA.length, 0, "PoolAlpha combos should all be removed");
   assert.equal(remainingForB.length, forB.length, "PoolBeta combos should be untouched");

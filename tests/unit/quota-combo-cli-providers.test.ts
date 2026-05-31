@@ -1,7 +1,7 @@
 /**
  * tests/unit/quota-combo-cli-providers.test.ts
  *
- * Regression: quotaShared-* combos were generated from PROVIDER_MODELS, which is
+ * Regression: qtSd/ combos were generated from PROVIDER_MODELS, which is
  * EMPTY for CLI/OAuth providers (codex, kimi, claude, …). A pool built from those
  * providers produced ZERO combos → the quota key saw no models. The fix reads the
  * provider REGISTRY (same source /v1/models uses), which has those providers.
@@ -44,7 +44,7 @@ test.after(async () => {
 
 const CLI_PROVIDER = "codex"; // absent from PROVIDER_MODELS, present in REGISTRY
 
-test("syncQuotaCombos generates quotaShared-* combos for a CLI provider (codex) via REGISTRY", async () => {
+test("syncQuotaCombos generates qtSd/ combos for a CLI provider (codex) via REGISTRY", async () => {
   // Sanity: codex must be a REGISTRY provider with models (the fix's premise).
   const regModels = (REGISTRY as Record<string, { models?: Array<{ id?: string }> }>)[CLI_PROVIDER]
     ?.models;
@@ -65,10 +65,11 @@ test("syncQuotaCombos generates quotaShared-* combos for a CLI provider (codex) 
 
   // Before the fix this was 0. Now there must be one combo per codex model.
   const all = await combosDb.getCombos();
+  const { QUOTA_MODEL_PREFIX: PREFIX } = await import("../../src/lib/quota/quotaModelNaming.ts");
   const quotaCombos = all.filter(
-    (c) => typeof c.name === "string" && (c.name as string).startsWith("quotaShared-")
+    (c) => typeof c.name === "string" && (c.name as string).startsWith(PREFIX)
   );
-  assert.ok(quotaCombos.length > 0, "codex pool must produce quotaShared-* combos (was 0 before fix)");
+  assert.ok(quotaCombos.length > 0, "codex pool must produce qtSd/ combos (was 0 before fix)");
 
   const expectedName = quotaModelName(pool.name, CLI_PROVIDER, firstModelId);
   const combo = await combosDb.getComboByName(expectedName);

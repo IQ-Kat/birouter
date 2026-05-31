@@ -337,7 +337,7 @@ export async function enforceApiKeyPolicy(
         const allowed =
           parsed !== null &&
           scope.poolSlugs.length > 0 &&
-          scope.poolSlugs.includes(parsed.poolSlug) &&
+          scope.poolSlugs.includes(parsed.groupSlug) &&
           scope.providers.includes(parsed.provider);
         if (!allowed) {
           quotaRejectionMsg = `Model "${modelStr}" is not in this key's quota pools`;

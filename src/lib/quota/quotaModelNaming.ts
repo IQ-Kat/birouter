@@ -1,70 +1,79 @@
 /**
- * Deterministic naming helpers for quota virtual models (Phase B1).
+ * Deterministic naming helpers for quota virtual models (Phase B3).
  *
- * FORMAT: `quotaShared-<poolSlug>-<provider>/<model>`
+ * FORMAT: `qtSd/<groupSlug>/<provider>/<model>`
  *
- * The poolSlug is pure alphanumeric (no "-", no "/"), which makes the first
- * "-" after the prefix and the first "/" unambiguous delimiters that allow
- * round-trip parsing even when provider contains "-" or model contains "/".
+ * The groupSlug is pure alphanumeric (no "-", no "/"), and the segments are
+ * separated by "/" which makes parsing unambiguous: split on "/", take the
+ * first 3 segments (prefix literal "qtSd", groupSlug, provider) and join the
+ * remainder as the model id (model ids may contain "/" for namespaced models).
  */
 
-export const QUOTA_MODEL_PREFIX = "quotaShared-";
+export const QUOTA_MODEL_PREFIX = "qtSd/";
 
 /**
- * Convert an arbitrary pool name into a safe, alphanumeric slug.
+ * Convert an arbitrary group name into a safe, alphanumeric slug.
  * Lowercases the name then strips every character that is not [a-z0-9].
  * Falls back to "pool" when the result would be empty.
  */
-export function quotaPoolSlug(poolName: string): string {
-  const slug = poolName.toLowerCase().replace(/[^a-z0-9]/g, "");
+export function quotaGroupSlug(name: string): string {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "");
   return slug.length > 0 ? slug : "pool";
 }
 
 /**
- * Build the canonical virtual model name for a quota-shared target.
- * Provider and model are kept verbatim (not slugged).
+ * Backward-compat alias: quotaPoolSlug delegates to quotaGroupSlug.
+ * Callers in quotaKey.ts and quotaCombos.ts that import quotaPoolSlug
+ * continue to work without changes until B4 updates them.
  */
-export function quotaModelName(poolName: string, provider: string, model: string): string {
-  return `${QUOTA_MODEL_PREFIX}${quotaPoolSlug(poolName)}-${provider}/${model}`;
+export function quotaPoolSlug(poolName: string): string {
+  return quotaGroupSlug(poolName);
+}
+
+/**
+ * Build the canonical virtual model name for a quota-shared target.
+ * The first argument is the GROUP name (phase B3+). Provider and model
+ * are kept verbatim (not slugged).
+ *
+ * Example: quotaModelName("Pool Principal", "codex", "gpt-5.5")
+ *          → "qtSd/poolprincipal/codex/gpt-5.5"
+ */
+export function quotaModelName(groupName: string, provider: string, model: string): string {
+  return `${QUOTA_MODEL_PREFIX}${quotaGroupSlug(groupName)}/${provider}/${model}`;
 }
 
 /**
  * Parse a quota virtual model name back into its components.
  * Returns null when the name is not a valid quota model name.
+ *
+ * Segments: ["qtSd", groupSlug, provider, ...modelParts]
+ * Requires at least 4 segments. Model is the remainder joined by "/".
  */
 export function parseQuotaModelName(
   name: string,
-): { poolSlug: string; provider: string; model: string } | null {
+): { groupSlug: string; provider: string; model: string } | null {
   if (!name.startsWith(QUOTA_MODEL_PREFIX)) {
     return null;
   }
 
-  // rest = "<poolSlug>-<provider>/<model>"
+  // rest = "<groupSlug>/<provider>/<model>" (after "qtSd/")
   const rest = name.slice(QUOTA_MODEL_PREFIX.length);
+  const parts = rest.split("/");
 
-  // poolSlug has no "-" by construction → first "-" is the delimiter
-  const dashIdx = rest.indexOf("-");
-  if (dashIdx === -1) {
+  // Need at least: groupSlug, provider, model  → 3 parts in rest
+  if (parts.length < 3) {
     return null;
   }
 
-  const poolSlug = rest.slice(0, dashIdx);
-  const tail = rest.slice(dashIdx + 1); // "<provider>/<model>"
+  const groupSlug = parts[0];
+  const provider = parts[1];
+  const model = parts.slice(2).join("/");
 
-  // first "/" separates provider from model; model may contain additional "/"
-  const slashIdx = tail.indexOf("/");
-  if (slashIdx === -1) {
+  if (groupSlug.length === 0 || provider.length === 0 || model.length === 0) {
     return null;
   }
 
-  const provider = tail.slice(0, slashIdx);
-  const model = tail.slice(slashIdx + 1);
-
-  if (provider.length === 0 || model.length === 0) {
-    return null;
-  }
-
-  return { poolSlug, provider, model };
+  return { groupSlug, provider, model };
 }
 
 /**

@@ -174,7 +174,7 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
 
     const parsed = parseQuotaModelName(name);
     if (!parsed) continue;
-    if (parsed.poolSlug !== poolSlug) continue;
+    if (parsed.groupSlug !== poolSlug) continue;
 
     // Belongs to this pool slug but not produced by any current connection → prune.
     if (!desiredNames.has(name)) {
@@ -210,7 +210,7 @@ export function filterModelsToQuotaPools<T extends { id: string }>(
   return models.filter((m) => {
     if (!isQuotaModelName(m.id)) return false;
     const parsed = parseQuotaModelName(m.id);
-    return parsed !== null && slugSet.has(parsed.poolSlug);
+    return parsed !== null && slugSet.has(parsed.groupSlug);
   });
 }
 
@@ -244,7 +244,7 @@ export async function removeQuotaCombosForPool(poolId: string): Promise<void> {
     if (!parsed) continue;
 
     // Match by slug when we have a pool name; otherwise no match possible
-    if (slug !== null && parsed.poolSlug !== slug) continue;
+    if (slug !== null && parsed.groupSlug !== slug) continue;
 
     try {
       await deleteComboByName(name);

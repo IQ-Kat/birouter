@@ -119,9 +119,9 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
 
   // Build the canonical virtual model name using the same helper the B4 implementation uses.
   // Pool "Times" → slug "times"; provider "codex" (canonical, not alias "cx"); model "gpt-5.5"
-  // → quotaShared-times-codex/gpt-5.5
+  // → qtSd/times/codex/gpt-5.5  (new format after B3)
   const virtualModel = quotaModelName("Times", "codex", "gpt-5.5");
-  assert.equal(virtualModel, "quotaShared-times-codex/gpt-5.5");
+  assert.equal(virtualModel, "qtSd/times/codex/gpt-5.5");
 
   const result = await policy.enforceApiKeyPolicy(makeRequest(created.key), virtualModel);
   assert.equal(
@@ -181,9 +181,9 @@ test("quota-only key requesting a quotaShared-* model from a different pool is r
 
   const policy = await loadPolicy("b4-quota-otherpool-rejected");
 
-  // quotaShared-* for a DIFFERENT pool slug ("otherpool") — must be rejected
+  // qtSd/ for a DIFFERENT pool slug ("otherpool") — must be rejected
   const otherPoolVirtualModel = quotaModelName("OtherPool", "codex", "gpt-5.5");
-  assert.equal(otherPoolVirtualModel, "quotaShared-otherpool-codex/gpt-5.5");
+  assert.equal(otherPoolVirtualModel, "qtSd/otherpool/codex/gpt-5.5");
 
   const result = await policy.enforceApiKeyPolicy(makeRequest(created.key), otherPoolVirtualModel);
 
