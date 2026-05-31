@@ -3441,13 +3441,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "pol",
     format: "openai",
     executor: "pollinations",
-    // Primary endpoint is text.pollinations.ai. gen.pollinations.ai is the current
-    // OpenAI-compatible fallback used when the primary edge is rate-limited or unavailable.
-    baseUrl: "https://text.pollinations.ai/openai/chat/completions",
-    baseUrls: [
-      "https://text.pollinations.ai/openai/chat/completions",
-      "https://gen.pollinations.ai/v1/chat/completions",
-    ],
+    // #2987: Pollinations retired the legacy text.pollinations.ai host (it now
+    // returns 404 "This is our legacy API"). The current OpenAI-compatible gateway
+    // is gen.pollinations.ai/v1, so route there as the primary endpoint.
+    baseUrl: "https://gen.pollinations.ai/v1/chat/completions",
+    baseUrls: ["https://gen.pollinations.ai/v1/chat/completions"],
     authType: "apikey",
     authHeader: "bearer",
     models: [
