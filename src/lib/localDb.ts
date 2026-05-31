@@ -549,6 +549,7 @@ export {
   getBucket,
   incrementBucket,
   getPair,
+  sumPoolDimension,
   gcOlderThan as gcQuotaConsumption,
 } from "./db/quotaConsumption";
 export {

@@ -166,6 +166,51 @@ export class RedisQuotaStore implements QuotaStore {
   }
 
   /**
+   * Return the real pool-wide consumption for a dimension in the current
+   * sliding window, summed across ALL apiKeyIds in the pool's allocations.
+   *
+   * Strategy: pool/allocation metadata lives in SQLite (F2), so we fetch the
+   * allocation list for the pool, then issue a single MGET for all
+   * (apiKeyId, curr-bucket) and (apiKeyId, prev-bucket) keys. The Redis keys
+   * are per-key counters — there is no pool-level aggregate key — so we read
+   * each key's two buckets and sum the raw values before applying the
+   * sliding-window formula once on the totals.
+   *
+   * If the pool does not exist or has no allocations, returns 0.
+   * Keys absent in Redis are treated as 0 (MGET returns null).
+   */
+  async poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number> {
+    const pool = getPool(poolId);
+    if (!pool || pool.allocations.length === 0) return 0;
+
+    const nowMs = Date.now();
+    const dimKey = dimensionKeyToString(dim);
+    const windowMs = WINDOW_MS[dim.window];
+    const currentBucket = Math.floor(nowMs / windowMs);
+    const prevBucket = currentBucket - 1;
+
+    const client = await this.client();
+
+    // Build [currKey0, prevKey0, currKey1, prevKey1, ...] for all allocated keys
+    const redisKeys: string[] = [];
+    for (const alloc of pool.allocations) {
+      redisKeys.push(bucketKey(alloc.apiKeyId, dimKey, currentBucket));
+      redisKeys.push(bucketKey(alloc.apiKeyId, dimKey, prevBucket));
+    }
+
+    const values = await client.mget(...redisKeys);
+
+    let currTotal = 0;
+    let prevTotal = 0;
+    for (let i = 0; i < values.length; i += 2) {
+      currTotal += parseFloat(values[i] ?? "0") || 0;
+      prevTotal += parseFloat(values[i + 1] ?? "0") || 0;
+    }
+
+    return slidingWindowEffective(currTotal, prevTotal, nowMs, windowMs);
+  }
+
+  /**
    * Aggregate pool usage. Pool and allocation metadata come from SQLite (F2);
    * rolling counters come from Redis.
    */

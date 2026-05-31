@@ -201,6 +201,58 @@ export function listConsumptionForPool(poolId: string, limit: number): Consumpti
 }
 
 // ---------------------------------------------------------------------------
+// Pool-wide aggregate
+// ---------------------------------------------------------------------------
+
+interface BucketPairRow {
+  api_key_id: string;
+  curr: number;
+  prev: number;
+}
+
+/**
+ * Sum the consumed values for a given (dimensionKey, currentBucketIndex) and
+ * (dimensionKey, currentBucketIndex - 1) across ALL api_key_id values.
+ *
+ * Returns { currTotal, prevTotal } so the caller can apply the sliding-window
+ * formula once with the pool-wide totals instead of summing per-key.
+ *
+ * @param dimensionKey   "<poolId>:<unit>:<window>" string — same format as consume/peek.
+ * @param currentBucket  floor(nowMs / windowMs) — caller must pass the same value.
+ */
+export function sumPoolDimension(
+  dimensionKey: string,
+  currentBucket: number
+): { currTotal: number; prevTotal: number } {
+  const prevBucket = currentBucket - 1;
+
+  interface SumRow {
+    total: number;
+  }
+
+  const currRow = getDb()
+    .prepare<SumRow>(
+      `SELECT COALESCE(SUM(consumed), 0) AS total
+       FROM quota_consumption
+       WHERE dimension_key = ? AND bucket_index = ?`
+    )
+    .get(dimensionKey, currentBucket);
+
+  const prevRow = getDb()
+    .prepare<SumRow>(
+      `SELECT COALESCE(SUM(consumed), 0) AS total
+       FROM quota_consumption
+       WHERE dimension_key = ? AND bucket_index = ?`
+    )
+    .get(dimensionKey, prevBucket);
+
+  return {
+    currTotal: currRow?.total ?? 0,
+    prevTotal: prevRow?.total ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // GC
 // ---------------------------------------------------------------------------
 
