@@ -181,6 +181,9 @@ test("ProxiflyProvider.sync fetches proxies in API-sized batches", async () => {
       score: 50 + index,
       geolocation: { country: "US" },
     }));
+    if (batchIndex === 0) {
+      body[0] = null as unknown as (typeof body)[number];
+    }
 
     return new Response(JSON.stringify(body), {
       status: 200,
@@ -193,13 +196,13 @@ test("ProxiflyProvider.sync fetches proxies in API-sized batches", async () => {
     const result = await p.sync();
 
     assert.deepEqual(requestedQuantities, ["20", "5"]);
-    assert.equal(result.fetched, 25);
-    assert.equal(result.added, 25);
+    assert.equal(result.fetched, 24);
+    assert.equal(result.added, 24);
     assert.equal(result.updated, 0);
     assert.deepEqual(result.errors, []);
 
     const items = await p.list({ limit: 30 });
-    assert.equal(items.length, 25);
+    assert.equal(items.length, 24);
     assert.ok(items.every((item) => item.source === "proxifly"));
   } finally {
     globalThis.fetch = originalFetch;

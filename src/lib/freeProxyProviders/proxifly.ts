@@ -97,7 +97,7 @@ export class ProxiflyProvider implements FreeProxyProvider {
         requested += proxies.length;
 
         for (const p of proxies) {
-          if (!p.ip || !p.port) continue;
+          if (!p || !p.ip || !p.port) continue;
           if (isPrivateHost(p.ip)) {
             errors.push(`Proxifly: skipped private/loopback host ${p.ip}`);
             continue;
