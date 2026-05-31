@@ -42,9 +42,9 @@ test.after(() => {
 
 // ---- quota-protected combos ----
 
-test("DELETE /api/combos/[id] returns 409 for a quotaShared-* combo and does NOT delete it", async () => {
+test("DELETE /api/combos/[id] returns 409 for a qtSd/* combo and does NOT delete it", async () => {
   const combo = await combosDb.createCombo({
-    name: "quotaShared-mypool-openai/gpt-4o",
+    name: "qtSd/groupdemo/openai/gpt-4o",
     strategy: "priority",
     models: [{ provider: "openai", model: "gpt-4o" }],
     isHidden: true,
@@ -67,16 +67,16 @@ test("DELETE /api/combos/[id] returns 409 for a quotaShared-* combo and does NOT
   assert.ok(still, "Quota combo must still exist after rejected DELETE");
 });
 
-test("PUT /api/combos/[id] returns 409 for a quotaShared-* combo and does NOT mutate it", async () => {
+test("PUT /api/combos/[id] returns 409 for a qtSd/* combo and does NOT mutate it", async () => {
   const combo = await combosDb.createCombo({
-    name: "quotaShared-mypool-openai/gpt-4o",
+    name: "qtSd/groupdemo/openai/gpt-4o",
     strategy: "priority",
     models: [{ provider: "openai", model: "gpt-4o" }],
     isHidden: true,
   });
 
   const response = await comboRoute.PUT(
-    makePutRequest(combo.id, { name: "quotaShared-mypool-openai/gpt-4o", strategy: "random" }),
+    makePutRequest(combo.id, { name: "qtSd/groupdemo/openai/gpt-4o", strategy: "random" }),
     { params: Promise.resolve({ id: combo.id }) }
   );
 
