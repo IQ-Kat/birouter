@@ -59,6 +59,10 @@
 
 ### Fixed
 
+- **executors/codex:** drop the CLI-injected `image_generation` hosted tool for
+  free-plan Codex accounts (`workspacePlanType === "free"`), which can't run it
+  server-side and would otherwise get an upstream 400. Paid plans keep it.
+  (mirrors CLIProxyAPI's free-plan guard; spun off from the #2980 analysis)
 - **dashboard:** custom providers (`openai-compatible-*` / `anthropic-compatible-*`)
   now show their user-given node name instead of the raw UUID id across the
   active-requests panel, proxy logger, and home-page provider topology. The
