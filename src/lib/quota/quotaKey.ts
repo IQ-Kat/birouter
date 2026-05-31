@@ -72,14 +72,24 @@ export async function resolveQuotaKeyScope(
     const pool = getPool(poolId);
     if (!pool) continue;
 
-    const connection = await getProviderConnectionById(pool.connectionId);
-    if (!connection) continue;
+    // D2: iterate ALL member connections (fall back to [connectionId] for any
+    // un-backfilled row where connectionIds is empty/undefined — defensive).
+    const connIds: string[] =
+      Array.isArray(pool.connectionIds) && pool.connectionIds.length > 0
+        ? pool.connectionIds
+        : [pool.connectionId];
 
-    const provider = (connection as Record<string, unknown>).provider;
-    if (typeof provider !== "string" || provider.length === 0) continue;
+    for (const connId of connIds) {
+      const connection = await getProviderConnectionById(connId);
+      if (!connection) continue; // missing connection contributes nothing; don't abort
 
-    connectionIdSet.add(pool.connectionId);
-    providerSet.add(provider);
+      const provider = (connection as Record<string, unknown>).provider;
+      if (typeof provider !== "string" || provider.length === 0) continue;
+
+      connectionIdSet.add(connId);
+      providerSet.add(provider);
+    }
+
     poolSlugSet.add(quotaPoolSlug(pool.name));
   }
 

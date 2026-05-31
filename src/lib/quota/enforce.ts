@@ -67,7 +67,15 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
     } catch {
       continue;
     }
-    if (p && p.connectionId === input.connectionId) {
+    // D2: match if the input connectionId is ANY member of the pool, not only
+    // the legacy primary. Fall back to connectionId equality for rows that
+    // have not yet been backfilled (connectionIds empty/undefined).
+    if (
+      p &&
+      (Array.isArray(p.connectionIds)
+        ? p.connectionIds.includes(input.connectionId)
+        : p.connectionId === input.connectionId)
+    ) {
       pool = p;
       poolAllocation = allocation;
       break;
@@ -171,7 +179,13 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
     } catch {
       continue;
     }
-    if (p && p.connectionId === input.connectionId) {
+    // D2: membership check — same logic as enforceQuotaShare above.
+    if (
+      p &&
+      (Array.isArray(p.connectionIds)
+        ? p.connectionIds.includes(input.connectionId)
+        : p.connectionId === input.connectionId)
+    ) {
       poolId = pid;
       break;
     }

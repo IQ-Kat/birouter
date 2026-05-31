@@ -30,32 +30,24 @@ const log = createLogger("quota/quotaCombos");
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the provider slug for a pool's connection.
- * Returns null when the pool or connection cannot be found, or when the
- * provider field is missing/empty.
+ * Resolve the pool record for combo-sync purposes.
+ * Returns null when the pool cannot be found.
+ * Individual connection lookups are deferred to syncQuotaCombos so that a
+ * single missing connection does not abort the whole sync.
  */
-async function resolvePoolProvider(poolId: string): Promise<{
-  pool: { id: string; connectionId: string; name: string };
-  provider: string;
+async function resolvePoolForSync(poolId: string): Promise<{
+  pool: { id: string; connectionId: string; connectionIds: string[]; name: string };
 } | null> {
   const pool = getPool(poolId);
   if (!pool) return null;
 
-  let connection: Record<string, unknown> | null = null;
-  try {
-    connection = (await getProviderConnectionById(pool.connectionId)) as Record<
-      string,
-      unknown
-    > | null;
-  } catch {
-    return null;
-  }
-  if (!connection) return null;
+  // Defensive: ensure connectionIds is always a non-empty array.
+  const connectionIds: string[] =
+    Array.isArray(pool.connectionIds) && pool.connectionIds.length > 0
+      ? pool.connectionIds
+      : [pool.connectionId];
 
-  const provider = connection.provider;
-  if (typeof provider !== "string" || provider.length === 0) return null;
-
-  return { pool, provider };
+  return { pool: { id: pool.id, connectionId: pool.connectionId, connectionIds, name: pool.name } };
 }
 
 /**
@@ -89,60 +81,86 @@ function getProviderModelIds(provider: string): string[] {
  * empty without throwing.
  */
 export async function syncQuotaCombos(poolId: string): Promise<void> {
-  const resolved = await resolvePoolProvider(poolId);
+  const resolved = await resolvePoolForSync(poolId);
 
   if (!resolved) {
-    // Pool or connection gone — prune any leftover combos if we can find the
-    // pool slug from poolId (best effort: we won't have the name, so skip).
+    // Pool gone — prune any leftover combos (best effort).
     await removeQuotaCombosForPool(poolId);
     return;
   }
 
-  const { pool, provider } = resolved;
+  const { pool } = resolved;
   const poolSlug = quotaPoolSlug(pool.name);
-  const modelIds = getProviderModelIds(provider);
 
-  // Build the set of desired combo names
-  const desiredNames = new Set(
-    modelIds.map((modelId) => quotaModelName(pool.name, provider, modelId))
-  );
+  // D2: build desired names as the UNION across ALL member connections.
+  // A missing connection (no DB row / no provider field) is silently skipped —
+  // it contributes nothing to the desired set but does NOT abort the whole sync.
+  const desiredNames = new Set<string>();
 
-  // Upsert each desired combo
-  for (const modelId of modelIds) {
-    const comboName = quotaModelName(pool.name, provider, modelId);
+  // Track (connId, provider, modelIds) tuples for upsert, in order.
+  const upsertWork: Array<{ connId: string; provider: string; modelIds: string[] }> = [];
+
+  for (const connId of pool.connectionIds) {
+    let connection: Record<string, unknown> | null = null;
     try {
-      const existing = await getComboByName(comboName);
-      const modelString = `${provider}/${modelId}`;
-      const step = {
-        kind: "model" as const,
-        model: modelString,
-        providerId: provider,
-        connectionId: pool.connectionId,
-        weight: 100,
-      };
+      connection = (await getProviderConnectionById(connId)) as Record<string, unknown> | null;
+    } catch {
+      // Connection lookup failure — skip this connection.
+      continue;
+    }
+    if (!connection) continue;
 
-      if (existing && typeof existing.id === "string") {
-        // Update to ensure connectionId / step is current
-        await updateCombo(existing.id, {
-          name: comboName,
-          models: [step],
-          strategy: "priority",
-          isHidden: true,
-        });
-      } else {
-        await createCombo({
-          name: comboName,
-          models: [step],
-          strategy: "priority",
-          isHidden: true,
-        });
+    const provider = connection.provider;
+    if (typeof provider !== "string" || provider.length === 0) continue;
+
+    const modelIds = getProviderModelIds(provider);
+    if (modelIds.length === 0) continue;
+
+    for (const modelId of modelIds) {
+      desiredNames.add(quotaModelName(pool.name, provider, modelId));
+    }
+    upsertWork.push({ connId, provider, modelIds });
+  }
+
+  // Upsert one combo per (connection, model) pair, pinned to THAT connection.
+  for (const { connId, provider, modelIds } of upsertWork) {
+    for (const modelId of modelIds) {
+      const comboName = quotaModelName(pool.name, provider, modelId);
+      try {
+        const existing = await getComboByName(comboName);
+        const modelString = `${provider}/${modelId}`;
+        const step = {
+          kind: "model" as const,
+          model: modelString,
+          providerId: provider,
+          connectionId: connId,
+          weight: 100,
+        };
+
+        if (existing && typeof existing.id === "string") {
+          // Update to ensure the step (and connectionId) is current.
+          await updateCombo(existing.id, {
+            name: comboName,
+            models: [step],
+            strategy: "priority",
+            isHidden: true,
+          });
+        } else {
+          await createCombo({
+            name: comboName,
+            models: [step],
+            strategy: "priority",
+            isHidden: true,
+          });
+        }
+      } catch (err) {
+        log.warn({ err: (err as Error)?.message, comboName, poolId }, "quota-combo upsert failed");
       }
-    } catch (err) {
-      log.warn({ err: (err as Error)?.message, comboName, poolId }, "quota-combo upsert failed");
     }
   }
 
-  // Prune stale combos that belong to this pool slug but are no longer desired
+  // Prune stale combos that belong to this pool slug but are no longer in the
+  // desired set (union across all current connections).
   let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
   try {
     allCombos = await getCombos();
@@ -160,7 +178,7 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
     if (!parsed) continue;
     if (parsed.poolSlug !== poolSlug) continue;
 
-    // Belongs to this pool slug but not in the desired set → prune
+    // Belongs to this pool slug but not produced by any current connection → prune.
     if (!desiredNames.has(name)) {
       try {
         await deleteComboByName(name);
