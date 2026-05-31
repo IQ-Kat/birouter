@@ -545,6 +545,18 @@ export {
   upsertAllocations,
   listAllocationsForApiKey,
 } from "./db/quotaPools";
+
+export {
+  // Quota Groups (B2)
+  createGroup,
+  getGroup,
+  getGroupName,
+  listGroups,
+  renameGroup,
+  deleteGroup,
+} from "./db/quotaGroups";
+
+export type { QuotaGroup } from "./db/quotaGroups";
 export {
   getBucket,
   incrementBucket,
