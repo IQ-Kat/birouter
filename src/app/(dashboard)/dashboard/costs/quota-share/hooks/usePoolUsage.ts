@@ -20,9 +20,13 @@ export function usePoolUsage(poolId: string, pollIntervalMs = 15_000): UsePoolUs
     try {
       const res = await fetch(`/api/quota/pools/${poolId}/usage`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as PoolUsageSnapshot;
+      // The endpoint wraps the snapshot as `{ usage: snapshot }` — unwrap it.
+      // Storing the wrapper directly left `usage.dimensions` undefined, which
+      // crashed StackedAllocationBar (usage.dimensions[i]) for any pool that has
+      // allocations — taking down the whole quota-share page.
+      const data = (await res.json()) as { usage?: PoolUsageSnapshot | null };
       if (!mountedRef.current) return;
-      setUsage(data);
+      setUsage(data?.usage ?? null);
       setError(null);
     } catch (err) {
       if (!mountedRef.current) return;

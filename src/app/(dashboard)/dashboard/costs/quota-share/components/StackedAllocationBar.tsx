@@ -39,9 +39,9 @@ export default function StackedAllocationBar({
   // Build a map of apiKeyId → { consumed, fairShare } from the relevant dimension
   const perKeyMap: Record<string, { consumed: number; fairShare: number }> = {};
   if (usage) {
-    const dim = usage.dimensions[dimensionIndex];
+    const dim = usage.dimensions?.[dimensionIndex];
     if (dim) {
-      for (const entry of dim.perKey) {
+      for (const entry of dim.perKey ?? []) {
         perKeyMap[entry.apiKeyId] = { consumed: entry.consumed, fairShare: entry.fairShare };
       }
     }
