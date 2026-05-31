@@ -9,6 +9,7 @@ import DimensionBar from "./DimensionBar";
 import AllocationTable from "./AllocationTable";
 import BurnRateChart from "./BurnRateChart";
 import StackedAllocationBar from "./StackedAllocationBar";
+import AccountQuotaRow from "./AccountQuotaRow";
 
 export interface PoolCardProps {
   pool: QuotaPool;
@@ -21,6 +22,8 @@ export interface PoolCardProps {
   provider: string;
   /** Optional list of all provider identifiers when pool has multiple connections */
   providers?: string[];
+  /** Optional list of all connection IDs in this pool — passed to AccountQuotaRow */
+  connectionIds?: string[];
   onEdit: () => void;
   onRemove: () => void;
 }
@@ -50,6 +53,7 @@ export default function PoolCard({
   connectionLabel,
   provider,
   providers,
+  connectionIds,
   onEdit,
   onRemove,
 }: PoolCardProps) {
@@ -161,6 +165,13 @@ export default function PoolCard({
           keyLabels={keyLabels}
         />
       </div>
+
+      {/* Account quota row — read-only upstream quota per connection */}
+      <AccountQuotaRow
+        provider={provider}
+        providers={providers}
+        connectionIds={connectionIds}
+      />
 
       {/* Burn rate chart */}
       {usage && (

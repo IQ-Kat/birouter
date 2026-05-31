@@ -83,6 +83,7 @@ function PoolCardWithUsage({
   connectionLabel,
   provider,
   providers,
+  connectionIds,
   onEdit,
   onRemove,
 }: {
@@ -91,6 +92,7 @@ function PoolCardWithUsage({
   connectionLabel: string;
   provider: string;
   providers?: string[];
+  connectionIds?: string[];
   onEdit: () => void;
   onRemove: () => void;
 }) {
@@ -103,6 +105,7 @@ function PoolCardWithUsage({
       connectionLabel={connectionLabel}
       provider={provider}
       providers={providers}
+      connectionIds={connectionIds}
       onEdit={onEdit}
       onRemove={onRemove}
     />
@@ -291,6 +294,7 @@ export default function QuotaSharePageClient() {
               connectionLabel={connLabel(pool.connectionId)}
               provider={connProvider(pool.connectionId)}
               providers={[...new Set((pool.connectionIds ?? [pool.connectionId]).map(connProvider))]}
+              connectionIds={pool.connectionIds ?? [pool.connectionId]}
               onEdit={() => setEditing(pool)}
               onRemove={() => void handleRemovePool(pool.id)}
             />

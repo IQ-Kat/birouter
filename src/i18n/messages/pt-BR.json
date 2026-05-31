@@ -5404,7 +5404,9 @@
     "wizardPrimaryBadge": "principal",
     "wizardAdditionalConnectionsNote": "Conexões adicionais usam os limites padrão do catálogo (editáveis posteriormente).",
     "wizardSingleProviderNote": "Um pool usa um provedor só",
-    "wizardPreviewMoreModels": "+{count} mais"
+    "wizardPreviewMoreModels": "+{count} mais",
+    "accountQuotaTitle": "Cota da conta",
+    "accountQuotaNone": "—"
   },
   "requestLogger": {
     "recording": "Recording",
