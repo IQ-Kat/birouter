@@ -25,7 +25,10 @@ export class SessionFactory {
    * would involve Playwright browser automation.
    */
   createSession(): Session {
-    const fingerprint = this.rotator.random();
+    // Round-robin so each session in a warm pool gets a distinct fingerprint
+    // (a pool of look-alike sessions defeats the purpose). The rotator still
+    // exposes random() for callers that want unpredictability over time.
+    const fingerprint = this.rotator.next();
     return new Session(
       fingerprint,
       this.config.cooldownBase,
