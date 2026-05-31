@@ -1,4 +1,12 @@
--- Migration 073: quota_pools + quota_allocations
+-- Migration 085: quota_pools + quota_allocations
+--
+-- Renumbered from 077 → 085 (#2900 sibling fix): 077 collided with
+-- 077_api_key_stream_default_mode.sql, which made getMigrationFiles() throw a
+-- version-collision error and blocked getDbInstance() at startup. quota_pools
+-- has no dependents (no other migration references these tables) and is fully
+-- idempotent, so it can safely move to the next free number. DBs that already
+-- applied it under the old 077 number are guarded in isSchemaAlreadyApplied
+-- (case "085").
 --
 -- Creates the two tables that persist quota-sharing pools and per-API-key
 -- allocations within each pool. Idempotent: safe to run more than once.
