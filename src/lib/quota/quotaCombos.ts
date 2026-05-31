@@ -122,40 +122,34 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
     upsertWork.push({ connId, provider, modelIds });
   }
 
-  // Upsert one combo per (connection, model) pair, pinned to THAT connection.
+  // Group steps by model across all connections (Task 3 guarantees a single provider).
+  // This produces one combo per model with ALL connections' steps + strategy "fill-first",
+  // fixing the collision where two same-provider connections would overwrite each other.
+  const byModel = new Map<string, Array<{ connId: string; provider: string }>>();
   for (const { connId, provider, modelIds } of upsertWork) {
     for (const modelId of modelIds) {
-      const comboName = quotaModelName(pool.name, provider, modelId);
-      try {
-        const existing = await getComboByName(comboName);
-        const modelString = `${provider}/${modelId}`;
-        const step = {
-          kind: "model" as const,
-          model: modelString,
-          providerId: provider,
-          connectionId: connId,
-          weight: 100,
-        };
-
-        if (existing && typeof existing.id === "string") {
-          // Update to ensure the step (and connectionId) is current.
-          await updateCombo(existing.id, {
-            name: comboName,
-            models: [step],
-            strategy: "priority",
-            isHidden: true,
-          });
-        } else {
-          await createCombo({
-            name: comboName,
-            models: [step],
-            strategy: "priority",
-            isHidden: true,
-          });
-        }
-      } catch (err) {
-        log.warn({ err: (err as Error)?.message, comboName, poolId }, "quota-combo upsert failed");
-      }
+      const arr = byModel.get(modelId) ?? [];
+      arr.push({ connId, provider });
+      byModel.set(modelId, arr);
+    }
+  }
+  for (const [modelId, conns] of byModel) {
+    const provider = conns[0].provider;
+    const comboName = quotaModelName(pool.name, provider, modelId);
+    const steps = conns.map((c) => ({
+      kind: "model" as const,
+      model: `${provider}/${modelId}`,
+      providerId: provider,
+      connectionId: c.connId,
+      weight: 100,
+    }));
+    try {
+      const existing = await getComboByName(comboName);
+      const payload = { name: comboName, models: steps, strategy: "fill-first" as const, isHidden: true };
+      if (existing && typeof existing.id === "string") await updateCombo(existing.id, payload);
+      else await createCombo(payload);
+    } catch (err) {
+      log.warn({ err: (err as Error)?.message, comboName, poolId }, "quota-combo upsert failed");
     }
   }
 
