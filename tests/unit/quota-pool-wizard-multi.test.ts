@@ -194,6 +194,27 @@ for (const key of NEW_KEYS) {
   });
 }
 
+test("QuotaSharePageClient wires the multi-provider icons (providers prop is passed, not dead code)", () => {
+  const pageClientPath = path.join(
+    ROOT,
+    "src",
+    "app",
+    "(dashboard)",
+    "dashboard",
+    "costs",
+    "quota-share",
+    "QuotaSharePageClient.tsx"
+  );
+  const src = fs.readFileSync(pageClientPath, "utf8");
+  // The PoolCard providers prop must actually be populated by the parent from
+  // the pool's connectionIds — otherwise the multi-provider icon row never renders.
+  assert.ok(src.includes("providers={"), "parent must pass a providers prop to the card");
+  assert.ok(
+    /connectionIds\s*\?\?\s*\[pool\.connectionId\]/.test(src),
+    "providers must be derived from pool.connectionIds (falling back to the primary)"
+  );
+});
+
 test("i18n parity: all quotaShare.wizard* keys are in sync between en and pt-BR", () => {
   const enWizardKeys = Object.keys(en.quotaShare)
     .filter((k) => k.startsWith("wizard"))
