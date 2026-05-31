@@ -5403,6 +5403,7 @@
     "wizardConnectionsLabel": "Conexões de provider",
     "wizardPrimaryBadge": "principal",
     "wizardAdditionalConnectionsNote": "Conexões adicionais usam os limites padrão do catálogo (editáveis posteriormente).",
+    "wizardSingleProviderNote": "Um pool usa um provedor só",
     "wizardPreviewMoreModels": "+{count} mais"
   },
   "requestLogger": {

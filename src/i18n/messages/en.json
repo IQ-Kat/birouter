@@ -7893,6 +7893,7 @@
     "wizardConnectionsLabel": "Provider connections",
     "wizardPrimaryBadge": "primary",
     "wizardAdditionalConnectionsNote": "Additional connections use their catalog default limits (editable later).",
+    "wizardSingleProviderNote": "A pool uses a single provider",
     "wizardPreviewMoreModels": "+{count} more"
   },
   "plugins": {

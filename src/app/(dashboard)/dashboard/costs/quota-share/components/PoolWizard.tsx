@@ -196,9 +196,21 @@ export default function PoolWizard({
     [connections, primaryConnectionId]
   );
 
+  // Locked provider: once the first connection is selected, all subsequent
+  // selections must use the same provider (single-provider rule, Task 3).
+  const lockedProvider = useMemo(() => {
+    const first = connections.find((c) => c.id === connectionIds[0]);
+    return first?.provider ?? null;
+  }, [connections, connectionIds]);
+
   const availableConnections = useMemo(
-    () => connections.filter((c) => !existingPoolConnectionIds.has(c.id)),
-    [connections, existingPoolConnectionIds]
+    () =>
+      connections.filter(
+        (c) =>
+          !existingPoolConnectionIds.has(c.id) &&
+          (lockedProvider ? c.provider === lockedProvider : true)
+      ),
+    [connections, existingPoolConnectionIds, lockedProvider]
   );
 
   // ── Load dimensions when primary connection changes ───────────────────────
@@ -415,6 +427,11 @@ export default function PoolWizard({
               <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
                 {t("wizardConnectionsLabel")}
               </label>
+              {lockedProvider && (
+                <p className="text-[10px] text-amber-400 mb-1.5">
+                  {t("wizardSingleProviderNote")} ({lockedProvider})
+                </p>
+              )}
               <div className="space-y-1.5 rounded border border-border bg-bg-base px-3 py-2 max-h-48 overflow-y-auto">
                 {availableConnections.map((c) => {
                   const checked = connectionIds.includes(c.id);

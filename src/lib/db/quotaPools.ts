@@ -99,6 +99,28 @@ function getDb(): DbLike {
   return getDbInstance() as unknown as DbLike;
 }
 
+/**
+ * Asserts that all connections in the list belong to the same provider.
+ * Throws if mixed providers are detected. No-op when list has 0 or 1 entry.
+ * Uses a single DISTINCT query against provider_connections (sync — better-sqlite3).
+ */
+function assertSingleProvider(connectionIds: string[]): void {
+  if (!connectionIds || connectionIds.length <= 1) return;
+  const db = getDb();
+  const placeholders = connectionIds.map(() => "?").join(",");
+  const rows = db
+    .prepare<{ provider: string }>(
+      `SELECT DISTINCT provider FROM provider_connections WHERE id IN (${placeholders})`
+    )
+    .all(...connectionIds);
+  const providers = rows.map((r) => r.provider).filter(Boolean);
+  if (new Set(providers).size > 1) {
+    throw new Error(
+      `A quota pool must use a single provider (got: ${[...new Set(providers)].join(", ")})`
+    );
+  }
+}
+
 interface PoolRow {
   id: string;
   connection_id: string;
@@ -215,6 +237,11 @@ export function createPool(input: PoolCreate): QuotaPool {
       : [input.connectionId];
   const primaryConnectionId = members[0];
 
+  // Guard: a pool must use a single provider.
+  if (input.connectionIds && input.connectionIds.length > 1) {
+    assertSingleProvider(input.connectionIds);
+  }
+
   const database = getDb();
   const doCreate = database.transaction(() => {
     database
@@ -270,6 +297,11 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
     .prepare<PoolRow>("SELECT id, connection_id, name, created_at FROM quota_pools WHERE id = ?")
     .get(id);
   if (!existing) return null;
+
+  // Guard: a pool must use a single provider.
+  if (input.connectionIds && input.connectionIds.length > 1) {
+    assertSingleProvider(input.connectionIds);
+  }
 
   const doUpdate = database.transaction(() => {
     if (input.name !== undefined) {
