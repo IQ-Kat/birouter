@@ -171,6 +171,33 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Catalog filter helper (Phase B3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Given a flat model list and a set of pool slugs, return only the entries
+ * whose `id` is a `quotaShared-*` virtual model name AND whose parsed
+ * `poolSlug` is in `poolSlugs`.
+ *
+ * Fail-closed: an empty `poolSlugs` array returns an empty list — a
+ * quota-exclusive API key with no resolvable pools sees NO models.
+ *
+ * Pure function — no I/O, easily unit-tested.
+ */
+export function filterModelsToQuotaPools<T extends { id: string }>(
+  models: T[],
+  poolSlugs: string[]
+): T[] {
+  if (poolSlugs.length === 0) return [];
+  const slugSet = new Set(poolSlugs);
+  return models.filter((m) => {
+    if (!isQuotaModelName(m.id)) return false;
+    const parsed = parseQuotaModelName(m.id);
+    return parsed !== null && slugSet.has(parsed.poolSlug);
+  });
+}
+
 /**
  * Delete ALL `quotaShared-*` combos that belong to the given pool.
  *
