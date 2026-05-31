@@ -11,7 +11,7 @@ export class PollinationsExecutor extends BaseExecutor {
   buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
     const baseUrls = this.getBaseUrls();
     return (
-      baseUrls[urlIndex] || baseUrls[0] || "https://text.pollinations.ai/openai/chat/completions"
+      baseUrls[urlIndex] || baseUrls[0] || "https://gen.pollinations.ai/v1/chat/completions"
     );
   }
 

@@ -59,6 +59,9 @@
 
 ### Fixed
 
+- **providers/pollinations:** route to `gen.pollinations.ai/v1` instead of the
+  retired `text.pollinations.ai` host, which now returns `404 "legacy API"` for
+  all models. The gen gateway is the current OpenAI-compatible endpoint. (#2987)
 - **executors/codex:** drop the CLI-injected `image_generation` hosted tool for
   free-plan Codex accounts (`workspacePlanType === "free"`), which can't run it
   server-side and would otherwise get an upstream 400. Paid plans keep it.
