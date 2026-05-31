@@ -4,6 +4,10 @@
 
 ### Added
 
+- **SessionPool — modular & provider-agnostic** (`open-sse/services/sessionPool/`) — pooled
+  cookie/session manager with round-robin fingerprint rotation (distinct fingerprint per pooled
+  session), per-session cooldown/backoff, and a provider-agnostic `webExecutorWrapper`. Adds pool
+  support for DuckDuckGo Web and LLM7 providers and an MCP `poolTools` toolset. (#2954 — thanks @oyi77)
 - **AgentBridge** (`/dashboard/tools/agent-bridge`) — MITM proxy consolidating 9 IDE agents
   (Antigravity, Kiro, GitHub Copilot, OpenAI Codex, Cursor IDE, Zed Industries, Claude Code,
   Open Code, Trae stub) with server card, per-agent setup wizard, model mapping table,
