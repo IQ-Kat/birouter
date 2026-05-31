@@ -217,6 +217,8 @@ A special thanks to everyone who contributed to this release. Ranked by commits 
 | [@levonk](https://github.com/levonk) | 1 | #2806 |
 
 _Reviews & additional contributions: @androw, @Ardem2025, @InkshadeWoods._
+A special thanks to everyone who contributed code, reviews, and tests for this release:
+@akarray, @alltomatos, @androw, @apoapostolov, @Ardem2025, @dhaern, @disonjer, @gogones, @hartmark, @herjarsa, @InkshadeWoods, @jeferssonlemes, @leninejunior, @levonk, @marchlhw, @mugnimaestra, @nickwizard, @oyi77, @RajvardhanPatil07, @rdself, @soyelmismo, @Tushar49, @yunaamelia, Dmitry Kuznetsov, Nikolay Alafuzov
 
 ---
 
