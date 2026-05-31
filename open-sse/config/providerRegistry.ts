@@ -1326,6 +1326,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       // interleaved reasoning_content contract so follow-up/tool-use turns replay
       // it (otherwise DeepSeek returns 400 "reasoning_content ... must be passed back").
       { id: "big-pickle", name: "Big Pickle", supportsReasoning: true, interleavedField: "reasoning_content" },
+      { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
       { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
       {
@@ -1334,6 +1335,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
         contextLength: 131000,
       },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
+      { id: "qwen3.6-plus-free", name: "Qwen3.6 Plus Free", targetFormat: "claude", supportsVision: false, contextLength: 200000, },
     ],
   },
 
