@@ -1,3 +1,8 @@
+/**
+ * Phase C2 — Plans screen retired (unified into PoolWizard Step 2).
+ * These tests verify the sidebar entry is gone and the costs section
+ * still has the correct remaining items.
+ */
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -9,36 +14,21 @@ function sectionItems(sectionId: string) {
   return sidebarVisibility.getSectionItems(section);
 }
 
-test("HIDEABLE_SIDEBAR_ITEM_IDS contains costs-quota-plans", () => {
+test("HIDEABLE_SIDEBAR_ITEM_IDS does NOT contain costs-quota-plans (retired)", () => {
   assert.ok(
-    (sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("costs-quota-plans"),
-    "costs-quota-plans must be in HIDEABLE_SIDEBAR_ITEM_IDS"
+    !(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[]).includes("costs-quota-plans"),
+    "costs-quota-plans must have been removed from HIDEABLE_SIDEBAR_ITEM_IDS"
   );
 });
 
-test("HIDEABLE_SIDEBAR_ITEM_IDS: costs-quota-plans appears after costs-quota-share", () => {
-  const ids = sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS as readonly string[];
-  const qsIdx = ids.indexOf("costs-quota-share");
-  const qpIdx = ids.indexOf("costs-quota-plans");
-  assert.ok(qsIdx !== -1, "costs-quota-share must exist");
-  assert.ok(qpIdx !== -1, "costs-quota-plans must exist");
-  assert.ok(qpIdx > qsIdx, "costs-quota-plans must come after costs-quota-share");
-});
-
-test("costs section has 5 items including costs-quota-plans at end", () => {
+test("costs section does not include costs-quota-plans item (retired)", () => {
   const items = sectionItems("costs");
   const ids = items.map((i) => i.id);
-  assert.ok(ids.includes("costs-quota-plans"), "costs section must include costs-quota-plans");
-  assert.strictEqual(ids[ids.length - 1], "costs-quota-plans", "costs-quota-plans must be last");
-  assert.strictEqual(ids.length, 5, "costs section must have exactly 5 items");
+  assert.ok(!ids.includes("costs-quota-plans"), "costs section must NOT include costs-quota-plans");
 });
 
-test("costs-quota-plans has correct href and icon", () => {
+test("costs section still contains costs-quota-share", () => {
   const items = sectionItems("costs");
-  const item = items.find((i) => i.id === "costs-quota-plans");
-  assert.ok(item, "costs-quota-plans item must exist");
-  assert.strictEqual(item.href, "/dashboard/costs/quota-share/plans");
-  assert.strictEqual(item.icon, "fact_check");
-  assert.strictEqual(item.i18nKey, "costsQuotaPlans");
-  assert.strictEqual(item.subtitleKey, "costsQuotaPlansSubtitle");
+  const ids = items.map((i) => i.id);
+  assert.ok(ids.includes("costs-quota-share"), "costs section must still include costs-quota-share");
 });
