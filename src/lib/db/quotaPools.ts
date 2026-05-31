@@ -413,31 +413,86 @@ export function deletePool(id: string): boolean {
 }
 
 /**
- * Replace all allocations for a pool with the provided list (delete + insert).
- * Runs atomically inside a SQLite transaction.
+ * Replace all allocations for a pool with the provided list (delete + insert),
+ * and propagate the same allocation rows to EVERY other pool in the same group.
+ *
+ * Task B6 — Group-level allocation propagation:
+ * A key allocated to any pool of group G should be able to call any other
+ * pool's model in G and have fair-share enforced. The mechanism is propagation:
+ * we write the identical key/weight/cap/policy rows to every pool in the group
+ * so that whichever pool's model the key calls, that pool already has the
+ * allocation row for the key → enforceQuotaShare finds it and applies weight.
+ *
+ * Propagation semantics:
+ * - The target pool (poolId) is the authoritative source; its allocations replace
+ *   the allocations in every sibling pool in the same group.
+ * - Idempotent: delete + insert per pool (same as the original single-pool upsert).
+ * - Single-pool group: trivially correct — the group loop has exactly one pool.
+ * - Cross-group isolation: pools in OTHER groups are never touched.
+ *
+ * Exclusivity reconciliation (reconcilePoolExclusivity, Phase C3):
+ * That function operates at the key's allowedQuotas level and is invoked at the
+ * API route layer (src/app/api/quota/pools/[id]/route.ts PATCH handler) after
+ * updatePool, NOT inside upsertAllocations. We do NOT call reconcilePoolExclusivity
+ * here to avoid double-firing side-effects on sibling pools; reconcile is keyed on
+ * the exclusive flag which is a route-level concern, not a per-pool propagation
+ * concern. The original target pool's reconcile call (from the route handler) is
+ * sufficient — it updates the key's allowedQuotas to reference the target pool, and
+ * the group-level expansion in resolveQuotaKeyScope then makes all sibling pools
+ * accessible automatically.
+ *
+ * Combo sync (Phase B2):
+ * Only the target pool triggers syncQuotaCombosGuarded. Sibling pools are already
+ * synced whenever they themselves are created/updated; propagation only affects
+ * allocation rows, not the pool's combo catalog.
+ *
+ * Runs atomically: all pool writes are inside a single SQLite transaction.
  */
 export function upsertAllocations(poolId: string, allocations: PoolAllocation[]): void {
   const database = getDb();
+
+  // Resolve the target pool's group so we can propagate to siblings.
+  // Defensive: fall back to [poolId] (single-pool semantics) if pool not found.
+  const targetPool = database
+    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .get(poolId);
+
+  // Collect all pools in the group (includes the target pool itself).
+  // If the pool has no group or is not found, default to writing only poolId.
+  let poolIdsInGroup: string[] = [poolId];
+  if (targetPool?.group_id) {
+    const groupRows = database
+      .prepare<{ id: string }>("SELECT id FROM quota_pools WHERE group_id = ?")
+      .all(targetPool.group_id);
+    if (groupRows.length > 0) {
+      poolIdsInGroup = groupRows.map((r) => r.id);
+    }
+  }
+
   const doUpsert = database.transaction(() => {
-    database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(poolId);
     const insert = database.prepare(
       `INSERT INTO quota_allocations (pool_id, api_key_id, weight, cap_value, cap_unit, policy)
        VALUES (?, ?, ?, ?, ?, ?)`
     );
-    for (const alloc of allocations) {
-      insert.run(
-        poolId,
-        alloc.apiKeyId,
-        alloc.weight,
-        alloc.capValue ?? null,
-        alloc.capUnit ?? null,
-        alloc.policy
-      );
+    for (const pid of poolIdsInGroup) {
+      // Replace allocations for this pool.
+      database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(pid);
+      for (const alloc of allocations) {
+        insert.run(
+          pid,
+          alloc.apiKeyId,
+          alloc.weight,
+          alloc.capValue ?? null,
+          alloc.capUnit ?? null,
+          alloc.policy
+        );
+      }
     }
   });
   doUpsert();
 
-  // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
+  // Phase B2: fire-and-forget combo sync for the target pool only; failures are
+  // logged but never thrown. Sibling pools' combos are synced on their own lifecycle.
   void syncQuotaCombosGuarded(poolId);
 }
 
