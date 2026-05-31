@@ -33,6 +33,16 @@ export default function QuotaConceptCard() {
             <ConceptItem icon="trending_up" text={t("conceptBorrowing")} />
             <ConceptItem icon="lock" text={t("conceptGlobalCap")} />
             <ConceptItem icon="schedule" text={t("conceptWindows")} />
+            <ConceptItemWithDesc
+              icon="vpn_key"
+              title={t("conceptKeyHowTitle")}
+              desc={t("conceptKeyHowDesc")}
+            />
+            <ConceptItemWithDesc
+              icon="block"
+              title={t("conceptExclusiveTitle")}
+              desc={t("conceptExclusiveDesc")}
+            />
           </div>
         </div>
       )}
@@ -47,6 +57,20 @@ function ConceptItem({ icon, text }: { icon: string; text: string }) {
         {icon}
       </span>
       <span>{text}</span>
+    </div>
+  );
+}
+
+function ConceptItemWithDesc({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="flex items-start gap-1.5 rounded-md bg-bg-subtle/40 p-2">
+      <span className="material-symbols-outlined text-[16px] text-primary shrink-0 mt-0.5">
+        {icon}
+      </span>
+      <div className="flex flex-col gap-0.5">
+        <span className="font-semibold text-text-main">{title}</span>
+        <span className="text-text-muted">{desc}</span>
+      </div>
     </div>
   );
 }
