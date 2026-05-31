@@ -1856,6 +1856,7 @@ export const updateKeyPermissionsSchema = z
       .optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+    streamDefaultMode: z.enum(["legacy", "json"]).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1873,7 +1874,8 @@ export const updateKeyPermissionsSchema = z
       value.accessSchedule === undefined &&
       value.rateLimits === undefined &&
       value.scopes === undefined &&
-      value.allowedEndpoints === undefined
+      value.allowedEndpoints === undefined &&
+      value.streamDefaultMode === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
