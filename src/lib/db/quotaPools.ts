@@ -49,7 +49,10 @@ export interface PoolAllocation {
 
 export interface QuotaPool {
   id: string;
+  /** Primary / legacy single connection. Kept for back-compat. */
   connectionId: string;
+  /** All member connections (≥1 after backfill). Primary is always connectionIds[0]. */
+  connectionIds: string[];
   name: string;
   createdAt: string;
   allocations: PoolAllocation[];
@@ -59,11 +62,22 @@ export interface PoolCreate {
   connectionId: string;
   name: string;
   allocations?: PoolAllocation[];
+  /**
+   * Full member list. When provided, connectionId is ignored for the join table
+   * and connectionIds[0] is used as the primary. When omitted, defaults to
+   * [connectionId].
+   */
+  connectionIds?: string[];
 }
 
 export interface PoolUpdate {
   name?: string;
   allocations?: PoolAllocation[];
+  /**
+   * When provided, replaces the entire join-table membership for this pool.
+   * connection_id column is synced to connectionIds[0].
+   */
+  connectionIds?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -112,10 +126,28 @@ function rowToAllocation(row: AllocationRow): PoolAllocation {
   return alloc;
 }
 
+interface PoolConnectionRow {
+  connection_id: string;
+}
+
+function getConnectionIds(poolId: string, fallbackConnectionId: string): string[] {
+  const rows = getDb()
+    .prepare<PoolConnectionRow>(
+      "SELECT connection_id FROM quota_pool_connections WHERE pool_id = ? ORDER BY created_at ASC"
+    )
+    .all(poolId);
+  if (rows.length > 0) {
+    return rows.map((r) => r.connection_id);
+  }
+  // Defensive fallback: join table empty (shouldn't happen post-backfill).
+  return fallbackConnectionId ? [fallbackConnectionId] : [];
+}
+
 function rowToPool(row: PoolRow, allocations: PoolAllocation[]): QuotaPool {
   return {
     id: row.id,
     connectionId: row.connection_id,
+    connectionIds: getConnectionIds(row.id, row.connection_id),
     name: row.name,
     createdAt: row.created_at,
     allocations,
@@ -168,22 +200,55 @@ export function getPool(id: string): QuotaPool | null {
 }
 
 /**
- * Create a new quota pool, optionally with initial allocations.
+ * Create a new quota pool, optionally with initial allocations and member connections.
+ * When `connectionIds` is provided, its first element becomes the primary connection_id.
+ * When omitted, defaults to [connectionId].
  */
 export function createPool(input: PoolCreate): QuotaPool {
   const id = makeId();
   const now = new Date().toISOString();
 
-  getDb()
-    .prepare("INSERT INTO quota_pools (id, connection_id, name, created_at) VALUES (?, ?, ?, ?)")
-    .run(id, input.connectionId, input.name, now);
+  // Resolve effective member list and primary connection.
+  const members: string[] =
+    input.connectionIds && input.connectionIds.length > 0
+      ? input.connectionIds
+      : [input.connectionId];
+  const primaryConnectionId = members[0];
 
-  if (input.allocations && input.allocations.length > 0) {
-    upsertAllocations(id, input.allocations);
-  }
+  const database = getDb();
+  const doCreate = database.transaction(() => {
+    database
+      .prepare("INSERT INTO quota_pools (id, connection_id, name, created_at) VALUES (?, ?, ?, ?)")
+      .run(id, primaryConnectionId, input.name, now);
+
+    const insertConn = database.prepare(
+      "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
+    );
+    for (const connId of members) {
+      insertConn.run(id, connId);
+    }
+
+    if (input.allocations && input.allocations.length > 0) {
+      const insertAlloc = database.prepare(
+        `INSERT INTO quota_allocations (pool_id, api_key_id, weight, cap_value, cap_unit, policy)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      );
+      for (const alloc of input.allocations) {
+        insertAlloc.run(
+          id,
+          alloc.apiKeyId,
+          alloc.weight,
+          alloc.capValue ?? null,
+          alloc.capUnit ?? null,
+          alloc.policy
+        );
+      }
+    }
+  });
+  doCreate();
 
   const result = rowToPool(
-    { id, connection_id: input.connectionId, name: input.name, created_at: now },
+    { id, connection_id: primaryConnectionId, name: input.name, created_at: now },
     getAllocations(id)
   );
 
@@ -194,23 +259,63 @@ export function createPool(input: PoolCreate): QuotaPool {
 }
 
 /**
- * Update an existing pool's name and/or allocations.
+ * Update an existing pool's name, allocations, and/or member connections.
  * Returns updated pool, or null if pool not found.
+ * When `connectionIds` is provided, the join table is replaced atomically and
+ * connection_id (primary) is synced to connectionIds[0].
  */
 export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
-  const existing = getDb()
+  const database = getDb();
+  const existing = database
     .prepare<PoolRow>("SELECT id, connection_id, name, created_at FROM quota_pools WHERE id = ?")
     .get(id);
   if (!existing) return null;
 
-  if (input.name !== undefined) {
-    getDb().prepare("UPDATE quota_pools SET name = ? WHERE id = ?").run(input.name, id);
-    existing.name = input.name;
-  }
+  const doUpdate = database.transaction(() => {
+    if (input.name !== undefined) {
+      database.prepare("UPDATE quota_pools SET name = ? WHERE id = ?").run(input.name, id);
+      existing.name = input.name;
+    }
 
-  if (input.allocations !== undefined) {
-    upsertAllocations(id, input.allocations);
-  }
+    if (input.connectionIds !== undefined && input.connectionIds.length > 0) {
+      const newPrimary = input.connectionIds[0];
+      // Replace join rows.
+      database
+        .prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?")
+        .run(id);
+      const insertConn = database.prepare(
+        "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
+      );
+      for (const connId of input.connectionIds) {
+        insertConn.run(id, connId);
+      }
+      // Sync primary column.
+      database
+        .prepare("UPDATE quota_pools SET connection_id = ? WHERE id = ?")
+        .run(newPrimary, id);
+      existing.connection_id = newPrimary;
+    }
+
+    if (input.allocations !== undefined) {
+      // Inline the allocation upsert inside the transaction (avoids nested transaction).
+      database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(id);
+      const insertAlloc = database.prepare(
+        `INSERT INTO quota_allocations (pool_id, api_key_id, weight, cap_value, cap_unit, policy)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      );
+      for (const alloc of input.allocations) {
+        insertAlloc.run(
+          id,
+          alloc.apiKeyId,
+          alloc.weight,
+          alloc.capValue ?? null,
+          alloc.capUnit ?? null,
+          alloc.policy
+        );
+      }
+    }
+  });
+  doUpdate();
 
   const result = rowToPool(existing, getAllocations(id));
 
@@ -222,6 +327,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
 
 /**
  * Delete a pool by id. CASCADE removes associated allocations.
+ * Also removes join rows in quota_pool_connections.
  * Returns true if a row was deleted, false if not found.
  */
 export function deletePool(id: string): boolean {
@@ -229,7 +335,12 @@ export function deletePool(id: string): boolean {
   // removeQuotaCombosForPool can still resolve the pool name → slug.
   void removeQuotaCombosGuarded(id);
 
-  const result = getDb().prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
+  const database = getDb();
+  const doDelete = database.transaction(() => {
+    database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
+    return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
+  });
+  const result = doDelete();
   return result.changes > 0;
 }
 
