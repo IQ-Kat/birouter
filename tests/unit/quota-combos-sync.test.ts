@@ -92,6 +92,7 @@ test("syncQuotaCombos: creates one combo per glm model with correct name and tar
   const connId = (conn as Record<string, unknown>).id as string;
   assert.ok(connId, "connection should have an id");
 
+  // Pool defaults to "group-demo" (GroupDemo → slug "groupdemo").
   const pool = poolsDb.createPool({ connectionId: connId, name: "TestGlmPool" });
 
   await syncQuotaCombos(pool.id);
@@ -102,20 +103,21 @@ test("syncQuotaCombos: creates one combo per glm model with correct name and tar
   const quotaCombos = await listQuotaCombos();
   const quotaComboNames = new Set(quotaCombos.map((c) => c.name));
 
-  // Every glm model should have a combo
+  // B4: combos are named with the GROUP name ("GroupDemo" → slug "groupdemo"), not pool name.
+  const expectedGroupSlug = quotaPoolSlug("GroupDemo");
   for (const model of glmModels) {
-    const expectedName = quotaModelName("TestGlmPool", "glm", model.id);
+    const expectedName = quotaModelName("GroupDemo", "glm", model.id);
     assert.ok(
       quotaComboNames.has(expectedName),
       `Missing combo for model ${model.id}: ${expectedName}`
     );
   }
 
-  // No extra quota combos for other pools
+  // All combos should be under the group slug (not the pool name slug).
   for (const c of quotaCombos) {
     const parsed = parseQuotaModelName(c.name);
     assert.ok(parsed, `Could not parse quota model name: ${c.name}`);
-    assert.equal(parsed?.groupSlug, quotaPoolSlug("TestGlmPool"));
+    assert.equal(parsed?.groupSlug, expectedGroupSlug);
   }
 });
 
@@ -203,9 +205,9 @@ test("syncQuotaCombos: prunes stale combos for same pool slug", async () => {
   const initialCount = afterInitial.length;
   assert.ok(initialCount > 0, "should have combos after initial sync");
 
-  // Manually insert a stale combo with the same pool slug but a nonexistent model
-  // Use the new qtSd/ prefix so isQuotaModelName() recognises it as a quota combo to prune.
-  const staleComboName = `qtSd/${quotaPoolSlug("PrunePool")}/glm/fake-model-stale`;
+  // Manually insert a stale combo with the same group+provider slug but a nonexistent model.
+  // B4: prune is group+provider scoped. Pool defaults to "group-demo" (GroupDemo → "groupdemo").
+  const staleComboName = `qtSd/${quotaPoolSlug("GroupDemo")}/glm/fake-model-stale`;
   await combosDb.createCombo({
     name: staleComboName,
     models: [{ kind: "model", model: "glm/fake-model-stale", providerId: "glm", weight: 100 }],
@@ -253,40 +255,64 @@ test("removeQuotaCombosForPool: removes all quota combos for the pool", async ()
   assert.equal(after.length, 0, "all quota combos should be removed");
 });
 
-test("syncQuotaCombos: does not affect quota combos for a different pool slug", async () => {
-  const conn = await providersDb.createProviderConnection({
+test("syncQuotaCombos: does not affect quota combos for a different provider in the same group", async () => {
+  // B4: isolation is now by group+provider (not pool name slug).
+  // Two pools in the same group (group-demo) but different providers:
+  // PoolAlpha = glm, PoolBeta = openrouter. Removing PoolAlpha (glm) should
+  // NOT touch PoolBeta's (openrouter) combos.
+  const connGlm = await providersDb.createProviderConnection({
     provider: "glm",
     authType: "apikey",
-    name: "quota-combos-isolation",
+    name: "quota-combos-isolation-glm",
     apiKey: "sk-test-glm-isolation",
   });
-  const connId = (conn as Record<string, unknown>).id as string;
+  const connGlmId = (connGlm as Record<string, unknown>).id as string;
 
-  const poolA = poolsDb.createPool({ connectionId: connId, name: "PoolAlpha" });
-  const poolB = poolsDb.createPool({ connectionId: connId, name: "PoolBeta" });
+  const connOr = await providersDb.createProviderConnection({
+    provider: "openrouter",
+    authType: "apikey",
+    name: "quota-combos-isolation-or",
+    apiKey: "sk-test-or-isolation",
+  });
+  const connOrId = (connOr as Record<string, unknown>).id as string;
+
+  // Both pools default to "group-demo" (same group).
+  const poolA = poolsDb.createPool({ connectionId: connGlmId, name: "PoolAlpha" });
+  const poolB = poolsDb.createPool({ connectionId: connOrId, name: "PoolBeta" });
 
   await syncQuotaCombos(poolA.id);
   await syncQuotaCombos(poolB.id);
 
   const all = await listQuotaCombos();
-  const slugA = quotaPoolSlug("PoolAlpha");
-  const slugB = quotaPoolSlug("PoolBeta");
+  const groupSlug = quotaPoolSlug("GroupDemo");
 
-  const forA = all.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugA);
-  const forB = all.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugB);
+  const forA = all.filter((c) => {
+    const p = parseQuotaModelName(c.name);
+    return p?.groupSlug === groupSlug && p?.provider === "glm";
+  });
+  const forB = all.filter((c) => {
+    const p = parseQuotaModelName(c.name);
+    return p?.groupSlug === groupSlug && p?.provider === "openrouter";
+  });
 
-  assert.ok(forA.length > 0, "PoolAlpha should have combos");
-  assert.ok(forB.length > 0, "PoolBeta should have combos");
+  assert.ok(forA.length > 0, "PoolAlpha (glm) should have combos");
+  assert.ok(forB.length > 0, "PoolBeta (openrouter) should have combos");
 
-  // Removing PoolA's combos should not touch PoolB's
+  // Removing PoolAlpha (glm) combos should NOT touch PoolBeta's (openrouter) combos.
   await removeQuotaCombosForPool(poolA.id);
 
   const remaining = await listQuotaCombos();
-  const remainingForA = remaining.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugA);
-  const remainingForB = remaining.filter((c) => parseQuotaModelName(c.name)?.groupSlug === slugB);
+  const remainingForA = remaining.filter((c) => {
+    const p = parseQuotaModelName(c.name);
+    return p?.groupSlug === groupSlug && p?.provider === "glm";
+  });
+  const remainingForB = remaining.filter((c) => {
+    const p = parseQuotaModelName(c.name);
+    return p?.groupSlug === groupSlug && p?.provider === "openrouter";
+  });
 
-  assert.equal(remainingForA.length, 0, "PoolAlpha combos should all be removed");
-  assert.equal(remainingForB.length, forB.length, "PoolBeta combos should be untouched");
+  assert.equal(remainingForA.length, 0, "PoolAlpha (glm) combos should all be removed");
+  assert.equal(remainingForB.length, forB.length, "PoolBeta (openrouter) combos should be untouched");
 });
 
 test("syncQuotaCombos: unknown pool id — no throw, prunes nothing (no combos exist)", async () => {

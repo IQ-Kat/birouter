@@ -122,7 +122,8 @@ test("B1: syncQuotaCombos — 2-connection same-provider pool produces ONE combo
 
   // For each model, assert: one combo, 2 steps, fill-first, both connIds present.
   for (const modelId of modelsForProvider) {
-    const comboName = quotaModelName(pool.name, PROVIDER, modelId);
+    // B4: combos are named with the GROUP name ("GroupDemo"), not pool name.
+    const comboName = quotaModelName("GroupDemo", PROVIDER, modelId);
     const matchingCombos = quotaCombos.filter((c) => c.name === comboName);
 
     // Exactly ONE combo with this name (no duplicate/collision).
@@ -332,7 +333,8 @@ test("B5: after syncQuotaCombos on 2-connection pool, getComboByName returns the
 
   await syncQuotaCombos(pool.id);
 
-  const comboName = quotaModelName(pool.name, PROVIDER, FIRST_MODEL);
+  // B4: combos are named with the GROUP name ("GroupDemo"), not pool name.
+  const comboName = quotaModelName("GroupDemo", PROVIDER, FIRST_MODEL);
   const found = await combosDb.getComboByName(comboName);
 
   assert.ok(found, `getComboByName("${comboName}") should return the combo`);

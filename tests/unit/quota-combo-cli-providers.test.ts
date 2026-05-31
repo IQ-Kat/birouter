@@ -71,7 +71,8 @@ test("syncQuotaCombos generates qtSd/ combos for a CLI provider (codex) via REGI
   );
   assert.ok(quotaCombos.length > 0, "codex pool must produce qtSd/ combos (was 0 before fix)");
 
-  const expectedName = quotaModelName(pool.name, CLI_PROVIDER, firstModelId);
+  // B4: combos are named with the GROUP name ("GroupDemo" for default group), not pool name.
+  const expectedName = quotaModelName("GroupDemo", CLI_PROVIDER, firstModelId);
   const combo = await combosDb.getComboByName(expectedName);
   assert.ok(combo, `combo "${expectedName}" must exist for the codex pool`);
 });
