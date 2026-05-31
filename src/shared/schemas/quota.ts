@@ -11,6 +11,7 @@ export type PoolCreate = z.infer<typeof PoolCreateSchema>;
 export const PoolUpdateSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   allocations: z.array(PoolAllocationSchema).optional(),
+  exclusive: z.boolean().optional(),
 });
 export type PoolUpdate = z.infer<typeof PoolUpdateSchema>;
 

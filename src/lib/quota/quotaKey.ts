@@ -2,12 +2,14 @@
  * quota/quotaKey.ts — Resolve which connections and providers an API key may
  * use, based on its `allowedQuotas` pool-ID list.
  *
- * This is a pure read-side helper; it does NOT mutate any state.  Later tasks
- * (A3/A4) use the returned scope to enforce request-time restrictions.
+ * Also exports `reconcilePoolExclusivity` (Phase C3) which keeps each API
+ * key's `allowedQuotas` in sync when a pool's allocations are saved with the
+ * `exclusive` flag.
  */
 
 import { getPool } from "@/lib/db/quotaPools";
 import { getProviderConnectionById } from "@/lib/db/providers";
+import { getApiKeyById, updateApiKeyPermissions } from "@/lib/db/apiKeys";
 import { quotaPoolSlug } from "./quotaModelNaming";
 
 // ---------------------------------------------------------------------------
@@ -86,4 +88,64 @@ export async function resolveQuotaKeyScope(
     providers: Array.from(providerSet),
     poolSlugs: Array.from(poolSlugSet),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Phase C3 — Exclusivity reconciliation
+// ---------------------------------------------------------------------------
+
+/**
+ * Reconcile each affected API key's `allowedQuotas` when a pool's allocations
+ * are saved with an `exclusive` flag.
+ *
+ * Rules:
+ * - `exclusive === true` → keys in `nextApiKeyIds` get `poolId` ADDED to their
+ *   `allowedQuotas`; keys that were in `prevApiKeyIds` but are no longer in
+ *   `nextApiKeyIds` get `poolId` REMOVED.
+ * - `exclusive === false` → `poolId` is REMOVED from ALL keys in the union of
+ *   `prevApiKeyIds` and `nextApiKeyIds`.
+ *
+ * Only writes when the set actually changed (avoids needless DB round-trips).
+ * Missing keys are silently skipped — this function never throws.
+ */
+export async function reconcilePoolExclusivity(
+  poolId: string,
+  prevApiKeyIds: string[],
+  nextApiKeyIds: string[],
+  exclusive: boolean,
+): Promise<void> {
+  const affectedIds = new Set([...prevApiKeyIds, ...nextApiKeyIds]);
+
+  for (const keyId of affectedIds) {
+    try {
+      const keyRow = await getApiKeyById(keyId);
+      if (!keyRow) continue;
+
+      const currentQuotas: string[] = Array.isArray(
+        (keyRow as Record<string, unknown>).allowedQuotas,
+      )
+        ? ((keyRow as Record<string, unknown>).allowedQuotas as string[])
+        : [];
+
+      let nextQuotas: string[];
+
+      if (exclusive && nextApiKeyIds.includes(keyId)) {
+        // Key is in the new allocation AND pool is exclusive → ensure poolId present.
+        if (currentQuotas.includes(poolId)) {
+          continue; // no change needed
+        }
+        nextQuotas = [...currentQuotas, poolId];
+      } else {
+        // Pool is non-exclusive OR key was removed → ensure poolId absent.
+        if (!currentQuotas.includes(poolId)) {
+          continue; // no change needed
+        }
+        nextQuotas = currentQuotas.filter((q) => q !== poolId);
+      }
+
+      await updateApiKeyPermissions(keyId, { allowedQuotas: nextQuotas });
+    } catch {
+      // Defensive: a single key failure must never abort reconciliation for others.
+    }
+  }
 }
