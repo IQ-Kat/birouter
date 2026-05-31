@@ -30,8 +30,12 @@ import { parseTraeCallbackQuery } from "./parseCallback";
  * the echoed state before trusting the postMessage.
  */
 function htmlClose(message: Record<string, unknown>): NextResponse {
-  // Embedding values: only emit the small/sanitized status payload — never
-  // the raw token. The opener trusts origin === self anyway.
+  // Embedding values: only emit the small/sanitized status payload — never the
+  // raw token. We post to the loopback origin pair (localhost + 127.0.0.1) on
+  // this same port rather than "*": Trae forces the callback onto 127.0.0.1,
+  // but the dashboard opener is usually on localhost, so a single
+  // window.location.origin target would silently drop the message. Restricting
+  // to the two known loopback hosts keeps it secure (CWE-359) and working.
   const safe = JSON.stringify({
     type: "trae-oauth-callback",
     ...message,
@@ -41,7 +45,17 @@ function htmlClose(message: Record<string, unknown>): NextResponse {
       <h2 style="margin:0 0 8px">Trae authorization ${message.success ? "✓" : "failed"}</h2>
       <p>${message.success ? "You can close this window." : "Return to the dashboard."}</p>
       <script>
-        try { if (window.opener) window.opener.postMessage(${safe}, "*"); } catch (e) {}
+        (function () {
+          try {
+            if (!window.opener) return;
+            var msg = ${safe};
+            var loc = window.location;
+            var targets = [loc.origin];
+            var alt = loc.hostname === "127.0.0.1" ? "localhost" : loc.hostname === "localhost" ? "127.0.0.1" : null;
+            if (alt) targets.push(loc.protocol + "//" + alt + (loc.port ? ":" + loc.port : ""));
+            targets.forEach(function (t) { try { window.opener.postMessage(msg, t); } catch (e) {} });
+          } catch (e) {}
+        })();
         setTimeout(function () { window.close(); }, ${message.success ? 800 : 4000});
       </script>
     </body></html>`,

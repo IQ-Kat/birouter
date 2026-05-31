@@ -1,13 +1,13 @@
-// End-to-end smoke test: dergaет TraeExecutor против реального Trae с твоим
-// JWT из ../trae_solo.env, выводит content + usage.
-// Запуск:  node --import tsx/esm scripts/smoke-trae.mjs
+// End-to-end smoke test: drives TraeExecutor against the real Trae API with your
+// JWT from trae_solo.env (kept outside the repo), printing content + usage.
+// Run:  node --import tsx/esm scripts/ad-hoc/smoke-trae.mjs
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const envPath = path.resolve(__dirname, "../../trae_solo.env");
+const envPath = path.resolve(__dirname, "../../../trae_solo.env");
 if (!fs.existsSync(envPath)) {
   console.error(`Не найден ${envPath}. Положи туда TRAE_TOKEN= и TRAE_WEB_ID= и т.д.`);
   process.exit(1);
@@ -23,7 +23,7 @@ const cfg = Object.fromEntries(
     })
 );
 
-const { TraeExecutor } = await import("../open-sse/executors/trae.ts");
+const { TraeExecutor } = await import("../../open-sse/executors/trae.ts");
 const ex = new TraeExecutor();
 
 const credentials = {

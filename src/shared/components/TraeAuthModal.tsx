@@ -111,7 +111,22 @@ export default function TraeAuthModal({
         loginTraceId?: string;
       } | null;
       if (!m || m.type !== "trae-oauth-callback") return;
-      if (traceIdRef.current && m.loginTraceId && m.loginTraceId !== traceIdRef.current) return;
+      // Accept this window's origin OR the sibling loopback host: the dashboard
+      // usually runs on localhost while Trae forces the callback onto 127.0.0.1,
+      // so they are different origins by design. Restrict to that known pair
+      // (never wildcard), then rely on the random loginTraceId for CSRF.
+      const here = window.location;
+      const altHost =
+        here.hostname === "127.0.0.1"
+          ? "localhost"
+          : here.hostname === "localhost"
+            ? "127.0.0.1"
+            : null;
+      const allowedOrigins = new Set([here.origin]);
+      if (altHost)
+        allowedOrigins.add(`${here.protocol}//${altHost}${here.port ? `:${here.port}` : ""}`);
+      if (!allowedOrigins.has(ev.origin)) return;
+      if (!traceIdRef.current || m.loginTraceId !== traceIdRef.current) return;
       setAuthorizing(false);
       if (m.success) {
         onSuccess?.();

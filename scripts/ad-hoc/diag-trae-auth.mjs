@@ -2,8 +2,8 @@
 // Authorization variants, so we can see which one (if any) the server accepts.
 //
 // Usage:
-//   node scripts/diag-trae-auth.mjs <YOUR_CLOUD_IDE_JWT>
-//   TRAE_TOKEN=eyJ... node scripts/diag-trae-auth.mjs
+//   node scripts/ad-hoc/diag-trae-auth.mjs <YOUR_CLOUD_IDE_JWT>
+//   TRAE_TOKEN=eyJ... node scripts/ad-hoc/diag-trae-auth.mjs
 //
 // Paste ONLY the token value (no "Cloud-IDE-JWT " prefix). The token is never
 // printed in full; only its length + last 6 chars are shown for sanity.
@@ -31,7 +31,10 @@ const commonHeaders = {
 
 // Each variant = a set of auth-bearing headers to try.
 const variants = [
-  { name: "Authorization: Cloud-IDE-JWT <t>", headers: { Authorization: `Cloud-IDE-JWT ${token}` } },
+  {
+    name: "Authorization: Cloud-IDE-JWT <t>",
+    headers: { Authorization: `Cloud-IDE-JWT ${token}` },
+  },
   { name: "Authorization: Bearer <t>", headers: { Authorization: `Bearer ${token}` } },
   { name: "Authorization: <t> (raw)", headers: { Authorization: token } },
   { name: "Cloud-IDE-JWT: <t> (header)", headers: { "Cloud-IDE-JWT": token } },
@@ -44,7 +47,10 @@ async function probe(label, url, method, headers) {
     const res = await fetch(url, {
       method,
       headers: { ...commonHeaders, ...headers },
-      body: method === "POST" ? JSON.stringify({ mode: "code", env: "remote", origin: "web" }) : undefined,
+      body:
+        method === "POST"
+          ? JSON.stringify({ mode: "code", env: "remote", origin: "web" })
+          : undefined,
     });
     const text = await res.text();
     const snippet = text.replace(/\s+/g, " ").slice(0, 160);

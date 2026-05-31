@@ -32,7 +32,11 @@ function flattenQuery(messages: ChatMessage[]): string {
     if (typeof m.content === "string") content = m.content;
     else if (Array.isArray(m.content)) {
       content = m.content
-        .map((p) => (p && typeof p === "object" ? String((p as JsonRecord).text ?? "") : ""))
+        .map((p) => {
+          if (typeof p === "string") return p;
+          if (p && typeof p === "object") return String((p as JsonRecord).text ?? "");
+          return "";
+        })
         .join("");
     }
     if (m.role === "system") parts.push(`[System]\n${content}`);
@@ -165,6 +169,9 @@ export class TraeExecutor extends BaseExecutor {
   ): Promise<void> {
     const url = `${this.base()}/chat_sessions/${sessionId}/events?reply_to_message_id=${encodeURIComponent(replyTo)}`;
     const ctrl = new AbortController();
+    // If the caller's signal is already aborted, abort upfront so we don't open
+    // a network request the consumer no longer wants.
+    if (signal?.aborted) ctrl.abort();
     const timer = setTimeout(() => ctrl.abort(new Error("trae stream timeout")), STREAM_TIMEOUT_MS);
     const onAbort = () => ctrl.abort();
     if (signal) signal.addEventListener("abort", onAbort, { once: true });
@@ -193,7 +200,10 @@ export class TraeExecutor extends BaseExecutor {
             } catch {
               data = { _raw: payload };
             }
-            if (onEvent(ev, data)) return; // consumer signalled completion
+            if (onEvent(ev, data)) {
+              await reader.cancel().catch(() => {});
+              return;
+            }
           } else if (line === "") ev = null;
         }
       }
