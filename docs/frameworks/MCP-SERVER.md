@@ -175,6 +175,18 @@ Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/
 | `omniroute_skills_execute`    | Execute a skill with provided input and return the execution record               |
 | `omniroute_skills_executions` | List recent skill execution history                                               |
 
+## Agent Skill Catalog Tools (3)
+
+Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
+
+| Tool                               | Scopes         | Description                                                                                                      |
+| :--------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`      | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
+| `omniroute_agent_skills_get`       | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
+| `omniroute_agent_skills_coverage`  | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+
+See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
+
 ## Related Frameworks (v3.8.0)
 
 The MCP tool inventory above (37 tools = 30 base + 3 memory + 4 skills) is intentionally
@@ -248,9 +260,11 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `write:compression`   | `compression_configure`, `set_compression_engine`                                                                 |
 | `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
 
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
+
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 
-Memory and Skill tools currently do not declare static scope requirements in their definitions; access is gated by the caller's API key and audited through the standard MCP audit pipeline.
+Memory and Skill tools currently do not declare static scope requirements in their definitions; access is gated by the caller's API key and audited through the standard MCP audit pipeline. Agent Skill Catalog tools require `read:catalog`.
 
 ---
 

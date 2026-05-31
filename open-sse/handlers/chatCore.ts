@@ -2299,9 +2299,84 @@ export async function handleChatCore({
     })
   ) {
     try {
+      // Plan 21 FAIL #1 fix: extract the last user message and pass it as
+      // `query`. Without this, `config.query` is undefined in retrieveMemories
+      // and the semantic/hybrid branches (sqlite-vec + RRF, and Qdrant
+      // tier-2) never fire from the chat hot path — they only fire in the
+      // Playground (retrievePreview, which gets `query` as a positional arg).
+      const lastUserQuery = ((): string => {
+        // Responses API item types that are NOT user input — never accept
+        // their text as the retrieval query (e.g. function_call_output is the
+        // tool's reply, reasoning is the model's chain of thought).
+        const NON_USER_TYPES = new Set([
+          "function_call",
+          "function_call_output",
+          "tool_call",
+          "tool_call_output",
+          "reasoning",
+          "computer_call",
+          "computer_call_output",
+          "web_search_call",
+          "file_search_call",
+        ]);
+
+        function pickFrom(arr: unknown[]): string {
+          for (let i = arr.length - 1; i >= 0; i--) {
+            const item = arr[i] as Record<string, unknown> | undefined;
+            if (!item) continue;
+            // Chat API: only role==="user" items. Responses API items often
+            // have type instead of role — skip non-user types like
+            // function_call_output so the tool's reply doesn't leak into the
+            // memory query.
+            if (item.role !== undefined && item.role !== "user") continue;
+            if (item.role === undefined && typeof item.type === "string") {
+              if (NON_USER_TYPES.has(item.type)) continue;
+            }
+            const content = item.content ?? item.text;
+            if (typeof content === "string" && content.trim().length > 0) {
+              return content;
+            }
+            if (Array.isArray(content)) {
+              const parts: string[] = [];
+              for (const p of content) {
+                if (typeof p === "string") {
+                  parts.push(p);
+                } else if (p && typeof p === "object") {
+                  const pp = p as Record<string, unknown>;
+                  // Skip non-text content parts (image_url, tool_use, etc.)
+                  const ptype = typeof pp.type === "string" ? pp.type : "";
+                  if (
+                    ptype &&
+                    ptype !== "text" &&
+                    ptype !== "input_text" &&
+                    ptype !== "output_text"
+                  ) {
+                    continue;
+                  }
+                  const t = pp.text ?? pp.input_text;
+                  if (typeof t === "string") parts.push(t);
+                }
+              }
+              if (parts.length > 0) return parts.join(" ").trim();
+            }
+          }
+          return "";
+        }
+        const b = body as Record<string, unknown>;
+        if (Array.isArray(b.messages)) {
+          const r = pickFrom(b.messages);
+          if (r) return r;
+        }
+        if (Array.isArray(b.input)) {
+          const r = pickFrom(b.input);
+          if (r) return r;
+        }
+        return "";
+      })();
+
       const memories = await retrieveMemories(
         memoryOwnerId,
-        toMemoryRetrievalConfig(memorySettings)
+        toMemoryRetrievalConfig(memorySettings, { query: lastUserQuery })
       );
       if (memories.length > 0) {
         const injected = injectMemory(
@@ -3484,6 +3559,71 @@ export async function handleChatCore({
     };
     return wrapper;
   };
+
+  // === Quota Share enforcement PRE-hook (B/F7) ===
+  // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
+  // before dispatcher. Fail-open per B16: errors → allow.
+  let quotaSoftDeprioritize = false;
+  if (apiKeyInfo?.id && credentials?.connectionId) {
+    try {
+      const { enforceQuotaShare } = await import("@/lib/quota/enforce");
+      const decision = await enforceQuotaShare({
+        apiKeyId: apiKeyInfo.id,
+        connectionId: credentials.connectionId,
+        provider: provider ?? "unknown",
+        estimatedCost: {},
+      }).catch((err: unknown) => {
+        log?.warn?.(
+          "QUOTA_SHARE",
+          `enforceQuotaShare failed; fail-open: ${err instanceof Error ? err.message : String(err)}`
+        );
+        return { kind: "allow" as const };
+      });
+
+      if (decision.kind === "block") {
+        const { buildErrorBody } = await import("../utils/error.ts");
+        log?.warn?.(
+          "QUOTA_SHARE",
+          `[quotaShare] blocked apiKeyId=${apiKeyInfo.id} provider=${provider ?? "unknown"}: ${decision.reason}`
+        );
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (decision.retryAfterSeconds) {
+          headers["Retry-After"] = String(decision.retryAfterSeconds);
+        }
+        return new Response(
+          JSON.stringify(buildErrorBody(429, decision.reason)),
+          { status: 429, headers }
+        );
+      }
+
+      if (decision.kind === "allow" && decision.deprioritize) {
+        quotaSoftDeprioritize = true;
+        log?.info?.(
+          "QUOTA_SHARE",
+          `[quotaShare] soft deprioritize active for apiKeyId=${apiKeyInfo.id} provider=${provider ?? "unknown"}`
+        );
+      }
+    } catch (err) {
+      // Outer fail-open guard — should not be reached (inner .catch covers it)
+      log?.warn?.(
+        "QUOTA_SHARE",
+        `[quotaShare] enforceQuotaShare unexpected error; fail-open: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+  // G2: Propagate soft penalty to the current candidate so combo scoring can deprioritize.
+  if (quotaSoftDeprioritize && isCombo && comboStepId) {
+    try {
+      const { setCandidateQuotaSoftPenalty } = await import("../services/combo");
+      setCandidateQuotaSoftPenalty(comboExecutionKey, comboStepId, true);
+    } catch (err) {
+      log?.warn?.(
+        "QUOTA_SHARE",
+        `[quotaShare] could not set soft penalty on candidate: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+  // === /Quota Share enforcement PRE-hook ===
 
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
@@ -5158,6 +5298,33 @@ export async function handleChatCore({
       recordCost(apiKeyInfo.id, estimatedCost);
     }
 
+    // === Quota Share POST-hook (B/F7) — fire-and-forget, fail-open ===
+    if (apiKeyInfo?.id && credentials?.connectionId) {
+      try {
+        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+        scheduleRecordConsumption(
+          {
+            apiKeyId: apiKeyInfo.id,
+            connectionId: credentials.connectionId,
+            provider: provider ?? "unknown",
+            cost: {
+              tokens:
+                usage && typeof usage === "object"
+                  ? ((usage as Record<string, unknown>).prompt_tokens as number ?? 0) +
+                    ((usage as Record<string, unknown>).completion_tokens as number ?? 0)
+                  : 0,
+              usd: estimatedCost > 0 ? estimatedCost : 0,
+              requests: 1,
+            },
+          },
+          log
+        );
+      } catch (_) {
+        // Outer fail-open — never throws to caller
+      }
+    }
+    // === /Quota Share POST-hook ===
+
     // ── Gamification event (fire-and-forget) ──
     if (apiKeyInfo?.id) {
       try {
@@ -5362,6 +5529,37 @@ export async function handleChatCore({
         })
         .catch(() => {});
     }
+
+    // === Quota Share POST-hook streaming (B/F7) — fire-and-forget, fail-open ===
+    if (apiKeyInfo?.id && credentials?.connectionId && streamStatus === 200) {
+      const su = streamUsage as Record<string, unknown> | null;
+      const quotaApiKeyId = apiKeyInfo.id;
+      const quotaConnectionId = credentials.connectionId;
+      // onStreamComplete is sync — use .then() (fire-and-forget, fail-open) instead of await
+      import("@/lib/quota/spendRecorder")
+        .then(({ scheduleRecordConsumption }) => {
+          scheduleRecordConsumption(
+            {
+              apiKeyId: quotaApiKeyId,
+              connectionId: quotaConnectionId,
+              provider: provider ?? "unknown",
+              cost: {
+                tokens: su
+                  ? (Number(su.prompt_tokens ?? 0) || 0) +
+                    (Number(su.completion_tokens ?? 0) || 0)
+                  : 0,
+                usd: 0, // estimatedCost resolved async above; omit to avoid dependency
+                requests: 1,
+              },
+            },
+            log
+          );
+        })
+        .catch(() => {
+          // Outer fail-open — never throws to caller
+        });
+    }
+    // === /Quota Share POST-hook streaming ===
 
     if (
       memoryOwnerId &&

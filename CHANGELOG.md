@@ -1,6 +1,57 @@
 # Changelog
 
-## [Unreleased]
+## [Unreleased] — Group A: AgentBridge + Traffic Inspector (planos 11+12)
+
+### Added
+
+- **AgentBridge** (`/dashboard/tools/agent-bridge`) — MITM proxy consolidating 9 IDE agents
+  (Antigravity, Kiro, GitHub Copilot, OpenAI Codex, Cursor IDE, Zed Industries, Claude Code,
+  Open Code, Trae stub) with server card, per-agent setup wizard, model mapping table,
+  bypass list, upstream CA cert support, and redirect from legacy `/dashboard/system/mitm-proxy`.
+  See `docs/frameworks/AGENTBRIDGE.md`.
+- **Traffic Inspector** (`/dashboard/tools/traffic-inspector`) — LLM-aware HTTPS debugger with
+  4 capture modes (AgentBridge hook, Custom Hosts DNS, HTTP_PROXY :8080, System-wide proxy),
+  DevTools split UI, 7 detail tabs (Conversation, Headers, Request, Response, Timing, LLM Details,
+  Stats), resizable panels, session recording (.har/.jsonl export), SSE stream merger,
+  conversation normalizer (multi-provider), system-prompt fingerprint colorization, and annotations.
+  See `docs/frameworks/TRAFFIC_INSPECTOR.md`.
+- **MITM handler base + 9 agent handlers** (`src/mitm/handlers/`) — `MitmHandlerBase` abstract
+  class with `hookBufferStart`/`hookBufferUpdate` for Traffic Inspector integration; concrete
+  handlers for all 9 agents.
+- **MITM targets registry** (`src/mitm/targets/`) — declarative `MitmTarget` shape per agent;
+  emits `DATA_DIR/mitm/targets.json` for dynamic `server.cjs` resolution.
+- **Traffic Inspector core** (`src/mitm/inspector/`) — `TrafficBuffer` in-memory ring,
+  `kindDetector`, `sseMerger` (MIT port from chouzz/llm-interceptor), `conversationNormalizer`
+  (MIT port), `contextKey` fingerprinting, `httpProxyServer`, `systemProxyConfig`.
+- **AgentBridge passthrough + bypass** (`src/mitm/passthrough.ts`) — TCP tunnel for
+  non-mapped hosts; bypass list with default sensitive-host patterns + user-defined patterns.
+- **Upstream CA cert** (`src/mitm/upstreamTrust.ts`) — `AGENTBRIDGE_UPSTREAM_CA_CERT` for
+  corporate TLS environments.
+- **Secret masking** (`src/mitm/maskSecrets.ts`) — sk-/Bearer/generic token masking before
+  any log or Traffic Inspector broadcast.
+- **DB migrations 073–075** — `agent_bridge_state`, `agent_bridge_mappings`,
+  `agent_bridge_bypass`, `inspector_custom_hosts`, `inspector_sessions`,
+  `inspector_session_requests`.
+- **~28 API routes** under `/api/tools/agent-bridge/` (12 routes) and
+  `/api/tools/traffic-inspector/` (16+ routes). All LOCAL_ONLY + SPAWN_CAPABLE.
+- **i18n** PT-BR + EN for all new keys in `agentBridge.*` and `trafficInspector.*` namespaces;
+  all other locales fall back to EN automatically.
+- **E2E smoke tests** — `tests/e2e/agent-bridge.spec.ts`,
+  `tests/e2e/traffic-inspector.spec.ts`, `tests/e2e/agent-bridge-traffic-cross.spec.ts`
+  (skip-gated on CI by `RUN_AGENT_BRIDGE_E2E` / `RUN_TRAFFIC_INSPECTOR_E2E` / `RUN_CROSS_E2E`).
+- **Documentation** — `docs/frameworks/AGENTBRIDGE.md` and `docs/frameworks/TRAFFIC_INSPECTOR.md`;
+  `docs/architecture/REPOSITORY_MAP.md` updated; `docs/reference/openapi.yaml` updated with
+  ~28 new routes and 20+ new schemas.
+
+### Changed
+
+- Sidebar Tools group: added `agent-bridge` and `traffic-inspector` items after `cloud-agents`.
+- `/api/tools/agent-bridge/` and `/api/tools/traffic-inspector/` added to `LOCAL_ONLY_API_PREFIXES`
+  and `SPAWN_CAPABLE_PREFIXES` in `src/server/authz/routeGuard.ts`.
+- `.env.example`: documented 9 new env vars (`AGENTBRIDGE_UPSTREAM_CA_CERT`,
+  `INSPECTOR_BUFFER_SIZE`, `INSPECTOR_HTTP_PROXY_PORT`, `INSPECTOR_HTTP_PROXY_AUTOSTART`,
+  `INSPECTOR_TLS_INTERCEPT`, `INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES`, `INSPECTOR_MAX_BODY_KB`,
+  `INSPECTOR_MASK_SECRETS`, `INSPECTOR_LLM_HOSTS_EXTRA`, `INSPECTOR_INTERNAL_INGEST_TOKEN`).
 
 ---
 

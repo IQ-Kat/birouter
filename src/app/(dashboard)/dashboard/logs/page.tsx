@@ -6,7 +6,6 @@ import { ConfirmModal, RequestLoggerV2, ProxyLogger, SegmentedControl } from "@/
 import ConsoleLogViewer from "@/shared/components/ConsoleLogViewer";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
-import AuditLogTab from "./AuditLogTab";
 import { useTranslations } from "next-intl";
 
 const TIME_RANGES = [
@@ -19,7 +18,6 @@ const TIME_RANGES = [
 const TAB_TO_LOG_TYPE: Record<string, string> = {
   "request-logs": "request-logs",
   "proxy-logs": "proxy-logs",
-  "audit-logs": "call-logs",
   console: "call-logs",
 };
 
@@ -114,7 +112,6 @@ export default function LogsPage() {
           options={[
             { value: "request-logs", label: t("requestLogs") },
             { value: "proxy-logs", label: t("proxyLogs") },
-            { value: "audit-logs", label: t("auditLog") },
             { value: "console", label: t("console") },
           ]}
           value={activeTab}
@@ -221,7 +218,6 @@ export default function LogsPage() {
         </div>
       )}
       {activeTab === "proxy-logs" && <ProxyLogger />}
-      {activeTab === "audit-logs" && <AuditLogTab />}
       {activeTab === "console" && <ConsoleLogViewer />}
 
       <ConfirmModal

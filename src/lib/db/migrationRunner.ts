@@ -438,6 +438,12 @@ function isSchemaAlreadyApplied(
         hasColumn(db, "version_manager", "provider_expose") &&
         hasColumn(db, "version_manager", "last_sync_at")
       );
+    case "073":
+      // Plan 21 D27 fix: guard memory_vec migration. Without this case, an
+      // unmarked re-run of 073_memory_vec.sql would have its ALTER TABLE fail
+      // mid-file and skip the CREATE INDEX that follows, leaving the index
+      // missing on DBs that re-execute the script after a partial first run.
+      return hasColumn(db, "memories", "needs_reindex");
     default:
       return false;
   }
