@@ -88,6 +88,12 @@
   resolves to the `opencode-zen` api-key tier (via a manual `ALIAS_TO_PROVIDER_ID`
   override), so combos built with the bare provider id misrouted away from the
   no-auth `opencode` provider; `oc/<model>` resolves correctly. (#2901)
+- **resilience/providers:** a route-restriction `403` (e.g. Fireworks Fire Pass
+  `fpk_*` keys returning "…not authorized for this route." on `/models`, while
+  chat still works) no longer marks the connection unavailable. Provider
+  validation falls through to the chat probe for such 403s instead of returning
+  "Invalid API key", and `checkFallbackError` short-circuits them to no cooldown.
+  Genuine auth failures (401 / generic 403) still fail fast. (#2929)
 
 ### ✨ New Features
 
