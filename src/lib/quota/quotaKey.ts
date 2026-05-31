@@ -79,6 +79,7 @@ export async function resolveQuotaKeyScope(
         ? pool.connectionIds
         : [pool.connectionId];
 
+    let anyValidConnection = false;
     for (const connId of connIds) {
       const connection = await getProviderConnectionById(connId);
       if (!connection) continue; // missing connection contributes nothing; don't abort
@@ -88,9 +89,13 @@ export async function resolveQuotaKeyScope(
 
       connectionIdSet.add(connId);
       providerSet.add(provider);
+      anyValidConnection = true;
     }
 
-    poolSlugSet.add(quotaPoolSlug(pool.name));
+    // Only expose the pool's slug when it has at least one usable connection —
+    // an orphan pool (all connections deleted) has no quotaShared-* models, so
+    // its slug must not leak into the key's scope.
+    if (anyValidConnection) poolSlugSet.add(quotaPoolSlug(pool.name));
   }
 
   return {
