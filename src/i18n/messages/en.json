@@ -7877,6 +7877,8 @@
     "stackedBarTitle": "Slices by API key",
     "usedSuffix": "used {percent}%",
     "wizardTitle": "New quota pool",
+    "editPoolTitle": "Edit pool",
+    "saveChanges": "Save changes",
     "wizardStep1Label": "Account",
     "wizardStep2Label": "Limit",
     "wizardStep3Label": "Keys",

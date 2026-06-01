@@ -5382,6 +5382,8 @@
     "stackedBarTitle": "Fatias por API key",
     "usedSuffix": "usou {percent}%",
     "wizardTitle": "Novo pool de cota",
+    "editPoolTitle": "Editar pool",
+    "saveChanges": "Salvar alterações",
     "wizardStep1Label": "Conta",
     "wizardStep2Label": "Limite",
     "wizardStep3Label": "Chaves",
