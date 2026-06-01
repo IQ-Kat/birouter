@@ -1,4 +1,4 @@
-import { BaseExecutor, setUserAgentHeader } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import {
@@ -551,6 +551,47 @@ export class DefaultExecutor extends BaseExecutor {
       if (!credentials.expiresAt) return false;
     }
     return super.needsRefresh(credentials);
+  }
+
+  async execute(input: ExecuteInput) {
+    const pool = this.getPool();
+    if (!pool) return super.execute(input);
+
+    const session = pool.acquire();
+    if (session) {
+      input.upstreamExtraHeaders = {
+        ...session.buildHeaders(),
+        ...input.upstreamExtraHeaders,
+      };
+    }
+
+    let result;
+    try {
+      result = await super.execute(input);
+    } catch (err) {
+      if (session) {
+        pool.reportCooldown(session);
+        session.release();
+      }
+      throw err;
+    }
+
+    if (session) {
+      try {
+        const status = result?.response?.status;
+        if (status === 429) {
+          pool.reportCooldown(session);
+        } else if (status >= 500) {
+          pool.reportDead(session);
+        } else {
+          pool.reportSuccess(session);
+        }
+      } finally {
+        session.release();
+      }
+    }
+
+    return result;
   }
 }
 
