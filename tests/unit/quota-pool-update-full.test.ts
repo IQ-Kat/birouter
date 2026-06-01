@@ -24,7 +24,9 @@ const poolsDb = await import("../../src/lib/db/quotaPools.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const { createGroup } = await import("../../src/lib/db/quotaGroups.ts");
-const { syncQuotaCombos } = await import("../../src/lib/quota/quotaCombos.ts");
+const { syncQuotaCombos, removeQuotaCombosForPool } = await import(
+  "../../src/lib/quota/quotaCombos.ts"
+);
 const { PoolUpdateSchema } = await import("../../src/shared/schemas/quota.ts");
 const { isQuotaModelName, parseQuotaModelName, quotaGroupSlug } = await import(
   "../../src/lib/quota/quotaModelNaming.ts"
@@ -176,6 +178,52 @@ test("updatePool with new connectionIds triggers combo re-sync (openrouter → b
   const reread = poolsDb.getPool(pool.id)!;
   assert.equal(reread.connectionId, idB, "pool.connectionId must be baidu conn after update");
   assert.deepEqual(reread.connectionIds, [idB], "pool.connectionIds must contain only baidu conn");
+});
+
+test("PATCH route sequence (remove→update→sync) prunes OLD-provider combos on switch", async () => {
+  const group = createGroup("RouteSwitchGroup");
+  const groupSlug = quotaGroupSlug(group.name);
+
+  const connA = await providersDb.createProviderConnection({
+    provider: "openrouter",
+    authType: "apikey",
+    name: "rt-or-conn",
+    apiKey: "sk-rt-or",
+  });
+  const idA = (connA as Record<string, unknown>).id as string;
+  const connB = await providersDb.createProviderConnection({
+    provider: "baidu",
+    authType: "apikey",
+    name: "rt-baidu-conn",
+    apiKey: "sk-rt-baidu",
+  });
+  const idB = (connB as Record<string, unknown>).id as string;
+
+  const pool = poolsDb.createPool({ connectionId: idA, name: "Route Switch", groupId: group.id });
+  await syncQuotaCombos(pool.id);
+  assert.ok(
+    (await listQuotaCombos()).some((c) => parseQuotaModelName(c.name)?.provider === "openrouter"),
+    "precondition: openrouter combos exist"
+  );
+
+  // Mirror the PATCH route's connection/group-change path exactly:
+  await removeQuotaCombosForPool(pool.id); // pool still has OLD (openrouter) provider here
+  poolsDb.updatePool(pool.id, { connectionIds: [idB] });
+  await syncQuotaCombos(pool.id); // pool now has NEW (baidu) provider
+
+  const after = await listQuotaCombos();
+  const orphans = after.filter((c) => {
+    const p = parseQuotaModelName(c.name);
+    return p?.groupSlug === groupSlug && p?.provider === "openrouter";
+  });
+  assert.equal(orphans.length, 0, `OLD openrouter combos must be pruned; found ${orphans.length}`);
+  assert.ok(
+    after.some((c) => {
+      const p = parseQuotaModelName(c.name);
+      return p?.groupSlug === groupSlug && p?.provider === "baidu";
+    }),
+    "NEW baidu combos must exist after the switch"
+  );
 });
 
 test("updatePool with groupId persists the new group assignment", () => {

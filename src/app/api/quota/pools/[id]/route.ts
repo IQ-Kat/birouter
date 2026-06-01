@@ -65,19 +65,35 @@ export async function PATCH(request: Request, { params }: RouteParams): Promise<
       }
     }
 
+    // Combos must be reconciled when the pool's group OR connection set changes,
+    // since the qtSd/ combo name embeds <groupSlug>/<provider>. Each provider in a
+    // group is served by at most one pool, so removing this pool's CURRENT (old)
+    // group+provider combos BEFORE the update — then re-syncing AFTER — cleanly
+    // drops stale combos and mints the new ones, using the existing per-pool
+    // helpers. Without the pre-update removal, a group/provider switch would leave
+    // orphan qtSd/ combos a quota key still sees. Guarded + non-fatal.
+    const combosNeedResync =
+      body !== null &&
+      typeof body === "object" &&
+      ("connectionIds" in body || "groupId" in body);
+    if (combosNeedResync) {
+      try {
+        const { removeQuotaCombosForPool } = await import("@/lib/quota/quotaCombos");
+        await removeQuotaCombosForPool(id); // pool still has its OLD group/provider here
+      } catch {
+        // Guard: combo cleanup failure must never break pool update.
+      }
+    }
+
     const pool = updatePool(id, parsed.data);
     if (!pool) {
       return NextResponse.json(buildErrorBody(404, "Pool not found"), { status: 404 });
     }
 
-    // Re-sync quota combos when connectionIds was explicitly changed.
-    // updatePool already fires a guarded sync internally, but we add an explicit
-    // awaited sync here so the caller's response reflects the updated combo state.
-    // Mirrors the dynamic-import + non-fatal pattern from groups/[id]/route.ts PATCH.
-    if (body !== null && typeof body === "object" && "connectionIds" in body) {
+    if (combosNeedResync) {
       try {
         const { syncQuotaCombos } = await import("@/lib/quota/quotaCombos");
-        await syncQuotaCombos(id);
+        await syncQuotaCombos(id); // pool now has its NEW group/provider
       } catch {
         // Guard: combo-sync failure must never break pool update callers.
       }
