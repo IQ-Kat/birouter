@@ -70,6 +70,19 @@ export async function PATCH(request: Request, { params }: RouteParams): Promise<
       return NextResponse.json(buildErrorBody(404, "Pool not found"), { status: 404 });
     }
 
+    // Re-sync quota combos when connectionIds was explicitly changed.
+    // updatePool already fires a guarded sync internally, but we add an explicit
+    // awaited sync here so the caller's response reflects the updated combo state.
+    // Mirrors the dynamic-import + non-fatal pattern from groups/[id]/route.ts PATCH.
+    if (body !== null && typeof body === "object" && "connectionIds" in body) {
+      try {
+        const { syncQuotaCombos } = await import("@/lib/quota/quotaCombos");
+        await syncQuotaCombos(id);
+      } catch {
+        // Guard: combo-sync failure must never break pool update callers.
+      }
+    }
+
     // Reconcile allowedQuotas on API keys when exclusive flag is explicitly set.
     if (exclusivePresent) {
       const nextApiKeyIds = (parsed.data.allocations ?? []).map((a) => a.apiKeyId);
