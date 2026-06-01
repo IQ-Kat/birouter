@@ -130,10 +130,12 @@ test("QuotaSharePageClient: filters pool list by selectedGroupId (filteredPools)
 });
 
 test("QuotaSharePageClient: renders group heading above pool grid", () => {
-  // The group heading shows the group name and pool count
+  // The group heading shows the group name and pool count.
+  // Task 4 replaced the single-group heading (filteredPools.length) with
+  // per-group headings using groupPools.length — one section per group.
   assert.ok(
-    pageSrc.includes("filteredPools.length"),
-    "QuotaSharePageClient must show filteredPools count in the group heading"
+    pageSrc.includes("groupPools.length") || pageSrc.includes("filteredPools.length"),
+    "QuotaSharePageClient must show pool count in the group heading (groupPools.length or filteredPools.length)"
   );
 });
 
