@@ -21,6 +21,7 @@ import {
   getBucket,
   incrementBucket,
   getPair,
+  sumPoolDimension,
 } from "@/lib/localDb";
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
@@ -110,6 +111,24 @@ export class SqliteQuotaStore implements QuotaStore {
 
     const { curr, prev } = getPair(apiKeyId, dimKey, currentBucket);
     return slidingWindowEffective(curr, prev, nowMs, windowMs);
+  }
+
+  /**
+   * Return the real pool-wide consumption for a dimension in the current
+   * sliding window, summed across ALL apiKeyIds that share the same
+   * dimensionKey (i.e. same poolId + unit + window).
+   *
+   * Uses the same 2-bucket sliding-window formula as peek(), applied once
+   * to the pool totals so the result is consistent with per-key semantics.
+   */
+  async poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number> {
+    const nowMs = Date.now();
+    const dimKey = dimensionKeyToString(dim);
+    const windowMs = WINDOW_MS[dim.window];
+    const currentBucket = Math.floor(nowMs / windowMs);
+
+    const { currTotal, prevTotal } = sumPoolDimension(dimKey, currentBucket);
+    return slidingWindowEffective(currTotal, prevTotal, nowMs, windowMs);
   }
 
   /**

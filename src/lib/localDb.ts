@@ -539,16 +539,30 @@ export * from "./db/inspectorSessions";
 export {
   listPools,
   getPool,
+  getPoolsByGroup,
   createPool,
   updatePool,
   deletePool,
   upsertAllocations,
   listAllocationsForApiKey,
 } from "./db/quotaPools";
+
+export {
+  // Quota Groups (B2)
+  createGroup,
+  getGroup,
+  getGroupName,
+  listGroups,
+  renameGroup,
+  deleteGroup,
+} from "./db/quotaGroups";
+
+export type { QuotaGroup } from "./db/quotaGroups";
 export {
   getBucket,
   incrementBucket,
   getPair,
+  sumPoolDimension,
   gcOlderThan as gcQuotaConsumption,
 } from "./db/quotaConsumption";
 export {

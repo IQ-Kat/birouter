@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal } from "@/shared/components";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import type { QuotaPool, PoolAllocation, Policy } from "@/lib/quota/dimensions";
 
 interface ApiKey {
@@ -39,6 +41,7 @@ export default function EditAllocationsModal({
   onSave,
 }: EditAllocationsModalProps) {
   const t = useTranslations("quotaShare");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const [drafts, setDrafts] = useState<PoolAllocation[]>(pool.allocations);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +56,14 @@ export default function EditAllocationsModal({
   const keyLabel = (id: string) => apiKeys.find((k) => k.id === id)?.name || shortId(id);
 
   const addKey = (id: string) => {
-    setDrafts((prev) => [...prev, { apiKeyId: id, weight: 0, policy: "hard" }]);
+    setDrafts((prev) => {
+      const next = [...prev, { apiKeyId: id, weight: 0, policy: "hard" as Policy }];
+      // Equal-split: after adding, recompute weights so no key starts at 0.
+      const n = next.length;
+      const each = Math.floor(100 / n);
+      const remainder = 100 - each * n;
+      return next.map((a, i) => ({ ...a, weight: each + (i < remainder ? 1 : 0) }));
+    });
   };
 
   const updateWeight = (id: string, value: number) => {
@@ -100,8 +110,14 @@ export default function EditAllocationsModal({
     <Modal isOpen onClose={onClose} title={t("editTitle")} size="lg">
       <div className="space-y-3">
         <div className="text-xs text-text-muted">
-          {t("pool")}: <strong className="text-text-main">{pool.name}</strong>
+          {t("pool")}: <strong className="text-text-main">{emailsVisible ? pool.name : maskEmailLikeValue(pool.name)}</strong>
         </div>
+
+        {/* Group allocation note */}
+        <p className="text-[11px] text-text-muted bg-bg-subtle/40 px-3 py-2 rounded border border-border/40">
+          <span className="material-symbols-outlined text-[13px] align-middle mr-1 text-primary/70">info</span>
+          {t("groupAllocationNote")}
+        </p>
 
         {drafts.length === 0 ? (
           <div className="text-[12px] text-text-muted italic py-4 text-center bg-bg-subtle/40 rounded-md">

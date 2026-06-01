@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { existsSync } from "node:fs";
 import {
   resolveRuntimePorts,
   withRuntimePortEnv,
@@ -20,7 +21,14 @@ const maxOldSpaceMb = resolveMaxOldSpaceMb(childEnv.OMNIROUTE_MEMORY_MB);
 childEnv.NODE_OPTIONS =
   `${childEnv.NODE_OPTIONS || ""} --max-old-space-size=${maxOldSpaceMb}`.trim();
 
-spawnWithForwardedSignals("node", ["server.js"], {
+// Prefer the WS-aware wrapper (server-ws.mjs) over the bare Next standalone
+// server.js: it installs the trusted peer-IP stamp (scripts/dev/peer-stamp.mjs)
+// that the authz middleware needs to allow loopback/LAN access to LOCAL_ONLY
+// routes. Falling back to server.js fails CLOSED (every LOCAL_ONLY request 403s)
+// rather than trusting the spoofable Host header.
+const entry = existsSync("server-ws.mjs") ? "server-ws.mjs" : "server.js";
+
+spawnWithForwardedSignals("node", [entry], {
   stdio: "inherit",
   env: childEnv,
 });

@@ -3,12 +3,16 @@
 import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
+import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import type { QuotaPool } from "@/lib/quota/dimensions";
 import type { PoolUsageSnapshot } from "@/lib/quota/types";
 import DimensionBar from "./DimensionBar";
 import AllocationTable from "./AllocationTable";
 import BurnRateChart from "./BurnRateChart";
 import StackedAllocationBar from "./StackedAllocationBar";
+import AccountQuotaRow from "./AccountQuotaRow";
+import UsageLogCard from "./UsageLogCard";
 
 export interface PoolCardProps {
   pool: QuotaPool;
@@ -17,8 +21,12 @@ export interface PoolCardProps {
   keyLabels: Record<string, string>;
   /** Connection display label */
   connectionLabel: string;
-  /** Provider identifier */
+  /** Primary provider identifier */
   provider: string;
+  /** Optional list of all provider identifiers when pool has multiple connections */
+  providers?: string[];
+  /** Optional list of all connection IDs in this pool — passed to AccountQuotaRow */
+  connectionIds?: string[];
   onEdit: () => void;
   onRemove: () => void;
 }
@@ -47,12 +55,18 @@ export default function PoolCard({
   keyLabels,
   connectionLabel,
   provider,
+  providers,
+  connectionIds,
   onEdit,
   onRemove,
 }: PoolCardProps) {
   const t = useTranslations("quotaShare");
+  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const status = computeStatus(usage);
   const { icon: statusIcon, cls: statusCls } = STATUS_ICONS[status];
+
+  const displayName = emailsVisible ? pool.name : maskEmailLikeValue(pool.name);
+  const displayConnectionLabel = emailsVisible ? connectionLabel : maskEmailLikeValue(connectionLabel);
 
   // Check for plan dimensions from usage
   const hasDimensions = !!usage?.dimensions?.length;
@@ -62,16 +76,35 @@ export default function PoolCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-md flex items-center justify-center overflow-hidden shrink-0 bg-bg-subtle">
-            <ProviderIcon providerId={provider} size={28} type="color" />
-          </div>
+          {/* Provider icon(s): show one per provider when multi-connection, else single icon */}
+          {providers && providers.length > 1 ? (
+            <div className="flex items-center gap-0.5 shrink-0">
+              {providers.slice(0, 3).map((p) => (
+                <div
+                  key={p}
+                  className="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-bg-subtle"
+                >
+                  <ProviderIcon providerId={p} size={20} type="color" />
+                </div>
+              ))}
+              {providers.length > 3 && (
+                <span className="text-[10px] text-text-muted font-semibold ml-0.5">
+                  +{providers.length - 3}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="w-7 h-7 rounded-md flex items-center justify-center overflow-hidden shrink-0 bg-bg-subtle">
+              <ProviderIcon providerId={provider} size={28} type="color" />
+            </div>
+          )}
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className={`material-symbols-outlined text-[16px] shrink-0 ${statusCls}`}>
                 {statusIcon}
               </span>
               <span className="text-sm font-bold text-text-main truncate">
-                {pool.name} · {connectionLabel}
+                {displayName} · {displayConnectionLabel}
               </span>
             </div>
             <div className="text-[11px] text-text-muted">
@@ -140,12 +173,22 @@ export default function PoolCard({
         />
       </div>
 
+      {/* Account quota row — read-only upstream quota per connection */}
+      <AccountQuotaRow
+        provider={provider}
+        providers={providers}
+        connectionIds={connectionIds}
+      />
+
       {/* Burn rate chart */}
       {usage && (
         <div className="pt-2 border-t border-border/30">
           <BurnRateChart usage={usage} />
         </div>
       )}
+
+      {/* Usage log — collapsible, collapsed by default */}
+      <UsageLogCard poolId={pool.id} keyLabels={keyLabels} />
     </Card>
   );
 }

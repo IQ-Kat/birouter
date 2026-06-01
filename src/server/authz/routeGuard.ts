@@ -76,17 +76,32 @@ export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
 
 export function isLoopbackHost(hostHeader: string | null): boolean {
   if (!hostHeader) return false;
-  let host: string;
-  if (hostHeader.startsWith("[")) {
+  let host = hostHeader.trim();
+  if (host.startsWith("[")) {
     // IPv6 literal: [::1] or [::1]:port
-    const bracketEnd = hostHeader.indexOf("]");
-    host = bracketEnd >= 0 ? hostHeader.slice(1, bracketEnd) : hostHeader.slice(1);
-  } else {
-    // IPv4 / hostname: strip optional :port
-    host = hostHeader.split(":")[0];
+    const bracketEnd = host.indexOf("]");
+    host = bracketEnd >= 0 ? host.slice(1, bracketEnd) : host.slice(1);
+  } else if ((host.match(/:/g) || []).length === 1) {
+    // IPv4 / hostname with a single :port — strip it. A bare IPv6 address
+    // ("::1", "::ffff:127.0.0.1") has multiple colons and must stay intact
+    // (splitting on ":" would mangle it to "" and miss the loopback match).
+    host = host.split(":")[0];
   }
   host = host.replace(/^::ffff:/i, "");
   return LOOPBACK_HOSTS.has(host.toLowerCase());
+}
+
+/**
+ * Classify a resolved peer IP into the locality tiers the authz layer cares
+ * about. `null`/unknown → "remote" (fail closed). Used by the pipeline to stamp
+ * a trusted locality marker that route handlers read without re-deriving it
+ * from the spoofable Host header.
+ */
+export function classifyHostLocality(ip: string | null): "loopback" | "lan" | "remote" {
+  if (!ip) return "remote";
+  if (isLoopbackHost(ip)) return "loopback";
+  if (isPrivateLanHost(ip)) return "lan";
+  return "remote";
 }
 
 /**

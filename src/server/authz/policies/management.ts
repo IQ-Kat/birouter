@@ -7,7 +7,8 @@ import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
-import { CLI_TOKEN_HEADER } from "../headers";
+import { CLI_TOKEN_HEADER, PEER_IP_HEADER } from "../headers";
+import { resolveStampedPeer } from "../peerStamp";
 import {
   isAlwaysProtectedPath,
   isLocalOnlyBypassableByManageScope,
@@ -19,16 +20,18 @@ import {
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
 function requestPeerAddress(ctx: PolicyContext): string | null {
-  // In the Next middleware runtime (proxy.ts → runAuthzPipeline), ctx.request is
-  // a NextRequest with no socket/.ip, so the only locality signal is the Host
-  // header — which is exactly what isLoopbackHost/isPrivateLanHost parse (they
-  // strip :port). This both fixes the loopback gate (previously the null socket
-  // made every LOCAL_ONLY request 403, even from localhost) and enables the
-  // owner-authorized private-LAN carve-out. Fall back to .ip/.socket for any
-  // non-middleware caller that provides them. Spawn-capable endpoints still
-  // require manage-scope auth after this gate.
-  const hostHeader = ctx.request.headers?.get?.("host") ?? null;
-  return hostHeader || ctx.request.ip || ctx.request.socket?.remoteAddress || null;
+  // The Next middleware runtime exposes no socket/.ip, so the only trustworthy
+  // locality signal is the token-stamped PEER_IP_HEADER our custom server writes
+  // from the real TCP peer (scripts/dev/peer-stamp.mjs). We NEVER read the Host
+  // header here — it is client-controlled and spoofable. Absent/forged stamp →
+  // null → isLoopbackRequest/isPrivateLanRequest return false → fail closed.
+  const stamped = resolveStampedPeer(
+    ctx.request.headers?.get?.(PEER_IP_HEADER) ?? null,
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+  );
+  if (stamped) return stamped;
+  // Non-middleware callers (tests / direct Node) may carry a real socket peer.
+  return ctx.request.ip ?? ctx.request.socket?.remoteAddress ?? null;
 }
 
 function isLoopbackRequest(ctx: PolicyContext): boolean {

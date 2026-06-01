@@ -28,6 +28,22 @@ import { listAllocationsForApiKey, getPool } from "@/lib/db/quotaPools";
 
 const SATURATION_THRESHOLD = Number(process.env.QUOTA_SATURATION_THRESHOLD ?? "0.5");
 
+/**
+ * Units for which the store tracks a real pool-wide aggregate (sum of per-key
+ * consumption via quota_consumption rows). For these units, globalUsedPercent
+ * (the saturation signal from the upstream provider) is always 0 because no
+ * external API reports a "percent used" for raw request/token/usd counters.
+ *
+ * Using globalUsedPercent × effectiveLimit for countable units would always
+ * yield consumedTotal = 0, meaning the pool never saturates and per-key
+ * overage is never blocked. We use store.poolConsumedTotal() instead, which
+ * sums the actual consumption across all keys in the pool window.
+ *
+ * "percent" dimensions remain driven by the saturation signal because that IS
+ * the authoritative consumption measure (the upstream provider percentage).
+ */
+const COUNTABLE_UNITS = new Set(["requests", "tokens", "usd"]);
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -67,7 +83,15 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
     } catch {
       continue;
     }
-    if (p && p.connectionId === input.connectionId) {
+    // D2: match if the input connectionId is ANY member of the pool, not only
+    // the legacy primary. Fall back to connectionId equality for rows that
+    // have not yet been backfilled (connectionIds empty/undefined).
+    if (
+      p &&
+      (Array.isArray(p.connectionIds)
+        ? p.connectionIds.includes(input.connectionId)
+        : p.connectionId === input.connectionId)
+    ) {
       pool = p;
       poolAllocation = allocation;
       break;
@@ -86,8 +110,16 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
     return { kind: "allow" };
   }
 
+  // 3a. Compute the account multiplier: a pool with N same-type connections has an
+  // effective budget of perAccountLimit × N per dimension. Consumption is already
+  // pool-keyed (shared bucket) — only the limit scales, never the consumption.
+  const accountCount =
+    Array.isArray(pool.connectionIds) && pool.connectionIds.length > 0
+      ? pool.connectionIds.length
+      : 1;
+
   // 4. For each active dimension, peek consumption and saturation.
-  const store = getQuotaStore();
+  const store = await getQuotaStore();
   const dimensionsInfo: Array<{
     key: { poolId: string; unit: QuotaUnit; window: import("./dimensions").QuotaWindow };
     limit: number;
@@ -108,22 +140,48 @@ export async function enforceQuotaShare(input: EnforceInput): Promise<EnforceDec
       () => 0
     );
 
-    // v1 pragmatic approximation: consumedTotal = globalUsedPercent * limit.
-    // (Exact aggregate by pool is delivered by F8's /api/quota/pools/[id]/usage endpoint.)
-    const consumedTotal = globalUsedPercent * dim.limit;
+    // Effective limit = per-account plan limit × number of accounts in the pool.
+    // This is the summed budget: N accounts contribute N × L capacity to the shared bucket.
+    const effectiveLimit = dim.limit * accountCount;
+
+    // Derive consumedTotal based on the unit type:
+    //   - Countable units (requests/tokens/usd): use the real store aggregate so the
+    //     pool can actually saturate and block per-key overage. The saturation signal
+    //     (globalUsedPercent) is always 0 for these units — using it would permanently
+    //     keep consumedTotal at 0 and never trigger the block path.
+    //   - percent dimensions: the saturation signal IS the consumed signal (the upstream
+    //     provider returns a utilisation percentage, not raw counts).
+    let consumedTotal: number;
+    if (COUNTABLE_UNITS.has(dim.unit)) {
+      // Real pool-wide aggregate (sum of per-key consumption across all apiKeyIds).
+      consumedTotal = await store.poolConsumedTotal(pool.id, dimKey).catch(() => 0);
+    } else {
+      // percent (account-quota window): the saturation signal is authoritative.
+      consumedTotal = globalUsedPercent * effectiveLimit;
+    }
 
     dimensionsInfo.push({
       key: dimKey,
-      limit: dim.limit,
+      limit: effectiveLimit,
       consumedTotal,
       globalUsedPercent,
     });
   }
 
   // 5. Apply the fair-share algorithm across all dimensions.
+  // Equal-split fallback: when ALL allocations in the pool have weight 0 (e.g. newly
+  // added keys whose weight was never set), treat each as an equal share so the pool
+  // is usable without requiring a re-save. Original non-zero weights are kept as-is.
+  const poolTotalWeight = Array.isArray(pool.allocations)
+    ? pool.allocations.reduce((s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0), 0)
+    : 0;
+  const allocCount = Array.isArray(pool.allocations) ? pool.allocations.length : 0;
+  const effectiveWeight =
+    poolTotalWeight > 0 ? poolAllocation.weight : allocCount > 0 ? 100 / allocCount : 0;
+
   const decision = decideFairShare({
     dimensions: dimensionsInfo,
-    allocation: poolAllocation,
+    allocation: { ...poolAllocation, weight: effectiveWeight },
     consumedByThisKey,
     saturationThreshold: SATURATION_THRESHOLD,
   });
@@ -171,7 +229,13 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
     } catch {
       continue;
     }
-    if (p && p.connectionId === input.connectionId) {
+    // D2: membership check — same logic as enforceQuotaShare above.
+    if (
+      p &&
+      (Array.isArray(p.connectionIds)
+        ? p.connectionIds.includes(input.connectionId)
+        : p.connectionId === input.connectionId)
+    ) {
       poolId = pid;
       break;
     }
@@ -182,7 +246,7 @@ export async function recordConsumption(input: RecordConsumptionInput): Promise<
   const plan = resolvePlan(input.connectionId, input.provider);
   if (!plan.dimensions.length) return;
 
-  const store = getQuotaStore();
+  const store = await getQuotaStore();
   for (const dim of plan.dimensions) {
     const dimKey = { poolId, unit: dim.unit, window: dim.window };
     const cost = costForUnit(input.cost, dim.unit);

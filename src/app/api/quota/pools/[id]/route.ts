@@ -17,6 +17,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { PoolUpdateSchema } from "@/shared/schemas/quota";
 import { getPool, updatePool, deletePool } from "@/lib/localDb";
 import { logAuditEvent, getAuditRequestContext } from "@/lib/compliance/index";
+import { reconcilePoolExclusivity } from "@/lib/quota/quotaKey";
 
 export const dynamic = "force-dynamic";
 
@@ -51,9 +52,33 @@ export async function PATCH(request: Request, { params }: RouteParams): Promise<
       return NextResponse.json(buildErrorBody(400, parsed.error.message), { status: 400 });
     }
 
+    // Capture prev allocations BEFORE the update so we know which keys are leaving.
+    // Only needed when `exclusive` is explicitly present in the request body.
+    const exclusivePresent = body !== null && typeof body === "object" && "exclusive" in body;
+    const prevApiKeyIds: string[] = [];
+    if (exclusivePresent) {
+      const existingPool = getPool(id);
+      if (existingPool) {
+        for (const alloc of existingPool.allocations) {
+          prevApiKeyIds.push(alloc.apiKeyId);
+        }
+      }
+    }
+
     const pool = updatePool(id, parsed.data);
     if (!pool) {
       return NextResponse.json(buildErrorBody(404, "Pool not found"), { status: 404 });
+    }
+
+    // Reconcile allowedQuotas on API keys when exclusive flag is explicitly set.
+    if (exclusivePresent) {
+      const nextApiKeyIds = (parsed.data.allocations ?? []).map((a) => a.apiKeyId);
+      await reconcilePoolExclusivity(
+        id,
+        prevApiKeyIds,
+        nextApiKeyIds,
+        parsed.data.exclusive ?? false,
+      );
     }
 
     const ctx = getAuditRequestContext(request);

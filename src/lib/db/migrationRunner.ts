@@ -449,6 +449,11 @@ function isSchemaAlreadyApplied(
       // (077 collided with 077_api_key_stream_default_mode). DBs that already
       // applied quota_pools under the old 077 number should not re-run as 085.
       return hasTable(db, "quota_pools") && hasTable(db, "quota_allocations");
+    case "088":
+      // Quota groups migration (renumbered 087 → 088 on merge into v3.8.8).
+      // The table + column are already present when group_id exists on
+      // quota_pools (ensures the backfill UPDATE also ran).
+      return hasTable(db, "quota_groups") && hasColumn(db, "quota_pools", "group_id");
     default:
       return false;
   }
