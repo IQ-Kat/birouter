@@ -18,9 +18,9 @@ test("resolveProviderAlias returns known alias", () => {
   assert.ok(result === "claude" || result === "anthropic" || typeof result === "string");
 });
 
-test("resolveProviderAlias returns null for unknown alias", () => {
+test("resolveProviderAlias returns input string for unknown alias", () => {
   const result = model.resolveProviderAlias("totally-unknown-provider");
-  assert.ok(result === null || typeof result === "string");
+  assert.equal(result, "totally-unknown-provider");
 });
 
 test("parseModel parses provider/model format", () => {
@@ -68,12 +68,13 @@ test("normalizeCrossProxyModelId handles undefined", () => {
 });
 
 test("resolveCanonicalProviderModel returns object for known model", () => {
-  const result = model.resolveCanonicalProviderModel("gpt-4o");
+  const result = model.resolveCanonicalProviderModel("openai", "gpt-4o");
   assert.ok(typeof result === "object");
+  assert.ok(result !== null);
 });
 
-test("resolveCanonicalProviderModel returns object for null", () => {
-  const result = model.resolveCanonicalProviderModel(null);
+test("resolveCanonicalProviderModel handles null modelId", () => {
+  const result = model.resolveCanonicalProviderModel("openai", null);
   assert.ok(typeof result === "object");
 });
 

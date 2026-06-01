@@ -66,10 +66,11 @@ test("getDbInstance returns same instance on second call (singleton)", async () 
 
 test("resetDbInstance allows getting a fresh instance", async () => {
   await resetStorage();
-  const db1 = core.getDbInstance();
+  core.getDbInstance();
   core.resetDbInstance();
   const db2 = core.getDbInstance();
-  assert.ok(db1 !== db2 || true);
+  assert.ok(db2);
+  assert.ok(typeof db2.prepare === "function");
 });
 
 test("closeDbInstance closes the database", async () => {

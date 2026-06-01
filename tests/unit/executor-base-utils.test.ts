@@ -116,17 +116,32 @@ test("mergeAbortSignals aborts when secondary fires", () => {
   assert.ok(merged.aborted);
 });
 
-test("sanitizeReasoningEffortForProvider clamps values", () => {
-  const result = base.sanitizeReasoningEffortForProvider("high", "openai");
-  assert.ok(result === "high" || result === "medium" || result === "low" || typeof result === "string");
+test("sanitizeReasoningEffortForProvider passes through body without reasoning_effort", () => {
+  const body = { model: "gpt-4o", temperature: 0.7 };
+  const result = base.sanitizeReasoningEffortForProvider(body, "openai", "gpt-4o");
+  assert.deepEqual(result, body);
 });
 
-test("sanitizeReasoningEffortForProvider handles null", () => {
-  const result = base.sanitizeReasoningEffortForProvider(null, "openai");
-  assert.ok(result === null || result === undefined || typeof result === "string");
+test("sanitizeReasoningEffortForProvider clamps xhigh to high for unsupported providers", () => {
+  const body = { reasoning_effort: "xhigh" };
+  const result = base.sanitizeReasoningEffortForProvider(body, "openai", "gpt-4o") as any;
+  assert.equal(result.reasoning_effort, "high");
 });
 
-test("sanitizeReasoningEffortForProvider handles undefined", () => {
-  const result = base.sanitizeReasoningEffortForProvider(undefined, "anthropic");
-  assert.ok(result === null || result === undefined || typeof result === "string");
+test("sanitizeReasoningEffortForProvider preserves high effort", () => {
+  const body = { reasoning_effort: "high" };
+  const result = base.sanitizeReasoningEffortForProvider(body, "openai", "gpt-4o") as any;
+  assert.equal(result.reasoning_effort, "high");
+});
+
+test("sanitizeReasoningEffortForProvider preserves medium effort", () => {
+  const body = { reasoning_effort: "medium" };
+  const result = base.sanitizeReasoningEffortForProvider(body, "openai", "gpt-4o") as any;
+  assert.equal(result.reasoning_effort, "medium");
+});
+
+test("sanitizeReasoningEffortForProvider returns non-object body as-is", () => {
+  assert.equal(base.sanitizeReasoningEffortForProvider(null, "openai", "gpt-4o"), null);
+  assert.equal(base.sanitizeReasoningEffortForProvider("string", "openai", "gpt-4o"), "string");
+  assert.equal(base.sanitizeReasoningEffortForProvider(42, "openai", "gpt-4o"), 42);
 });

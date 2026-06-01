@@ -69,7 +69,7 @@ test("getPricing returns an object", async () => {
 test("getPricingForModel returns null for unknown model", async () => {
   await resetStorage();
   const result = await settings.getPricingForModel("unknown-provider", "unknown-model");
-  assert.ok(result === null || result === undefined || typeof result === "object");
+  assert.equal(result, null);
 });
 
 test("updatePricing stores pricing data", async () => {
@@ -120,7 +120,7 @@ test("setProxyConfig stores proxy configuration", async () => {
 test("getProxyForLevel returns null for unset level", async () => {
   await resetStorage();
   const result = await settings.getProxyForLevel("global");
-  assert.ok(result === null || result === undefined || typeof result === "object");
+  assert.equal(result, null);
 });
 
 test("setProxyForLevel stores proxy for level", async () => {
@@ -138,11 +138,8 @@ test("deleteProxyForLevel removes proxy", async () => {
   assert.ok(result === null || result === undefined);
 });
 
-test("bumpProxyConfigGeneration increments generation", () => {
-  const gen1 = (settings as any).proxyConfigGeneration;
-  settings.bumpProxyConfigGeneration();
-  const gen2 = (settings as any).proxyConfigGeneration;
-  assert.ok(gen2 === undefined || gen2 > gen1 || true);
+test("bumpProxyConfigGeneration does not throw", () => {
+  assert.doesNotThrow(() => settings.bumpProxyConfigGeneration());
 });
 
 test("isCloudEnabled returns boolean", async () => {

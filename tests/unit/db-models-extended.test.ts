@@ -124,10 +124,10 @@ test("getModelPreserveOpenAIDeveloperRole returns boolean or undefined", async (
   assert.ok(result === undefined || typeof result === "boolean");
 });
 
-test("getModelUpstreamExtraHeaders returns null or object", async () => {
+test("getModelUpstreamExtraHeaders returns empty object when no overrides", async () => {
   await resetStorage();
   const result = models.getModelUpstreamExtraHeaders("openai", "gpt-4o");
-  assert.ok(result === null || typeof result === "object");
+  assert.deepEqual(result, {});
 });
 
 test("removeModelCompatOverride does not throw for unknown provider/model", async () => {
