@@ -29,17 +29,11 @@ const WIZARD_PATH = join(
   "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolWizard.tsx"
 );
 
-const MODAL_PATH = join(
-  ROOT,
-  "src/app/(dashboard)/dashboard/costs/quota-share/components/EditAllocationsModal.tsx"
-);
-
 const EN_PATH = join(ROOT, "src/i18n/messages/en.json");
 const PT_PATH = join(ROOT, "src/i18n/messages/pt-BR.json");
 
 const pageSrc = readFileSync(PAGE_CLIENT_PATH, "utf8");
 const wizardSrc = readFileSync(WIZARD_PATH, "utf8");
-const modalSrc = readFileSync(MODAL_PATH, "utf8");
 
 // ── QuotaSharePageClient: group fetch ─────────────────────────────────────────
 
@@ -130,10 +124,12 @@ test("QuotaSharePageClient: filters pool list by selectedGroupId (filteredPools)
 });
 
 test("QuotaSharePageClient: renders group heading above pool grid", () => {
-  // The group heading shows the group name and pool count
+  // The group heading shows the group name and pool count.
+  // Task 4 replaced the single-group heading (filteredPools.length) with
+  // per-group headings using groupPools.length — one section per group.
   assert.ok(
-    pageSrc.includes("filteredPools.length"),
-    "QuotaSharePageClient must show filteredPools count in the group heading"
+    pageSrc.includes("groupPools.length") || pageSrc.includes("filteredPools.length"),
+    "QuotaSharePageClient must show pool count in the group heading (groupPools.length or filteredPools.length)"
   );
 });
 
@@ -235,14 +231,9 @@ test("PoolWizard: pool name placeholder uses provider, not connLabel", () => {
   );
 });
 
-// ── EditAllocationsModal: group allocation note ────────────────────────────────
-
-test("EditAllocationsModal: renders groupAllocationNote i18n key", () => {
-  assert.ok(
-    modalSrc.includes("groupAllocationNote"),
-    "EditAllocationsModal must render t('groupAllocationNote') helper text"
-  );
-});
+// ── PoolWizard: group allocation note (EditAllocationsModal retired Task 6) ───
+// EditAllocationsModal was retired in Task 6. The groupAllocationNote key is kept
+// in the i18n bundle for backwards compat but the wizard covers allocation editing.
 
 // ── i18n parity ───────────────────────────────────────────────────────────────
 

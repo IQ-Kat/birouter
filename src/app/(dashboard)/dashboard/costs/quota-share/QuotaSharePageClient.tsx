@@ -6,16 +6,16 @@ import { Button } from "@/shared/components";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
-import type { QuotaPool, PoolAllocation } from "@/lib/quota/dimensions";
+import type { QuotaPool } from "@/lib/quota/dimensions";
 
 import { usePools } from "./hooks/usePools";
 import { usePoolUsage } from "./hooks/usePoolUsage";
 import { useLocalStoragePoolMigration } from "./hooks/useLocalStoragePoolMigration";
 import { usePoolsUsageAggregate } from "./hooks/usePoolsUsageAggregate";
 import QuotaConceptCard from "./components/QuotaConceptCard";
+import QuotaEndpointsCard from "./components/QuotaEndpointsCard";
 import PoolCard from "./components/PoolCard";
 import PoolWizard from "./components/PoolWizard";
-import EditAllocationsModal from "./components/EditAllocationsModal";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Local types (display layer only)
@@ -142,7 +142,7 @@ export default function QuotaSharePageClient() {
 
   // ── Group state ───────────────────────────────────────────────────────────
   const [groups, setGroups] = useState<QuotaGroup[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<string>("group-demo");
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
   const [newGroupInput, setNewGroupInput] = useState("");
   const [showNewGroupInput, setShowNewGroupInput] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -286,25 +286,42 @@ export default function QuotaSharePageClient() {
     [pools, aggregate]
   );
 
-  // Pools filtered by selected group
+  // Pools filtered by selected group (kept for stats/empty-state checks)
   const filteredPools = useMemo(
-    () => pools.filter((p) => (p as unknown as { groupId?: string }).groupId === selectedGroupId || (!( p as unknown as { groupId?: string }).groupId && selectedGroupId === "group-demo")),
+    () =>
+      selectedGroupId === "all"
+        ? pools
+        : pools.filter(
+            (p) =>
+              ((p as unknown as { groupId?: string }).groupId ?? "group-demo") === selectedGroupId
+          ),
     [pools, selectedGroupId]
   );
 
-  // ── Mutations ─────────────────────────────────────────────────────────────
-
-  const handleSaveAllocations = useCallback(
-    async (pool: QuotaPool, allocations: PoolAllocation[]) => {
-      await fetch(`/api/quota/pools/${pool.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ allocations }),
-      });
-      await mutate();
-    },
-    [mutate]
+  // Groups to render as stacked sections
+  const groupsToRender = useMemo(
+    () => (selectedGroupId === "all" ? groups : groups.filter((g) => g.id === selectedGroupId)),
+    [groups, selectedGroupId]
   );
+
+  // ── Computed exclusivity for the pool being edited ───────────────────────
+  //
+  // A pool is exclusive when it has ≥1 allocation AND every allocated key
+  // currently has the pool id in its allowedQuotas array.
+
+  const editingExclusive = useMemo(
+    () =>
+      !!editing &&
+      editing.allocations.length > 0 &&
+      editing.allocations.every((a) => {
+        const k = apiKeys.find((kk) => kk.id === a.apiKeyId);
+        const aq = (k as { allowedQuotas?: string[] } | undefined)?.allowedQuotas;
+        return Array.isArray(aq) && aq.includes(editing.id);
+      }),
+    [editing, apiKeys]
+  );
+
+  // ── Mutations ─────────────────────────────────────────────────────────────
 
   const handleRemovePool = useCallback(
     async (id: string) => {
@@ -348,6 +365,7 @@ export default function QuotaSharePageClient() {
           title={t("groupSelectHint")}
           className="px-2 py-1 rounded border border-border bg-bg-base text-sm text-text-main min-w-[120px]"
         >
+          <option value="all">{t("allGroups")}</option>
           {groups.map((g) => (
             <option key={g.id} value={g.id}>
               {g.name}
@@ -394,7 +412,7 @@ export default function QuotaSharePageClient() {
             {t("newGroup")}
           </button>
         )}
-        {selectedGroupId !== "group-demo" && (
+        {selectedGroupId !== "all" && (
           <button
             type="button"
             onClick={() => void handleRenameGroup()}
@@ -409,6 +427,14 @@ export default function QuotaSharePageClient() {
 
       {/* Concept card */}
       <QuotaConceptCard />
+
+      {/* Endpoints card */}
+      <QuotaEndpointsCard
+        groups={groups}
+        pools={pools}
+        connections={connections}
+        apiKeys={apiKeys}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -443,19 +469,7 @@ export default function QuotaSharePageClient() {
         </div>
       ) : (
         <>
-          {/* Group heading */}
-          {groups.find((g) => g.id === selectedGroupId) && (
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-text-muted">folder</span>
-              <span className="text-sm font-semibold text-text-main">
-                {groups.find((g) => g.id === selectedGroupId)?.name}
-              </span>
-              <span className="text-[11px] text-text-muted">
-                ({filteredPools.length})
-              </span>
-            </div>
-          )}
-          {filteredPools.length === 0 ? (
+          {groupsToRender.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-surface py-10 text-center">
               <p className="text-sm text-text-muted">{t("emptyDescription")}</p>
               <Button variant="primary" size="sm" className="mt-3" onClick={() => setCreateOpen(true)}>
@@ -464,21 +478,58 @@ export default function QuotaSharePageClient() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              {filteredPools.map((pool) => (
-                <PoolCardWithUsage
-                  key={pool.id}
-                  pool={pool}
-                  keyLabels={keyLabels}
-                  connectionLabel={connLabel(pool.connectionId)}
-                  provider={connProvider(pool.connectionId)}
-                  providers={[...new Set((pool.connectionIds ?? [pool.connectionId]).map(connProvider))]}
-                  connectionIds={pool.connectionIds ?? [pool.connectionId]}
-                  onEdit={() => setEditing(pool)}
-                  onRemove={() => void handleRemovePool(pool.id)}
-                />
-              ))}
-            </div>
+            groupsToRender.map((g) => {
+              const groupPools = pools.filter(
+                (p) =>
+                  ((p as unknown as { groupId?: string }).groupId ?? "group-demo") === g.id
+              );
+              return (
+                <div key={g.id} className="flex flex-col gap-3">
+                  {/* Per-group heading */}
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px] text-text-muted">
+                      folder
+                    </span>
+                    <span className="text-sm font-semibold text-text-main">{g.name}</span>
+                    <span className="text-[11px] text-text-muted">({groupPools.length})</span>
+                  </div>
+                  {groupPools.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border bg-surface py-6 text-center">
+                      <p className="text-sm text-text-muted">{t("emptyDescription")}</p>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => setCreateOpen(true)}
+                      >
+                        <span className="material-symbols-outlined text-[14px] mr-1">add</span>
+                        {t("newPool")}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                      {groupPools.map((pool) => (
+                        <PoolCardWithUsage
+                          key={pool.id}
+                          pool={pool}
+                          keyLabels={keyLabels}
+                          connectionLabel={connLabel(pool.connectionId)}
+                          provider={connProvider(pool.connectionId)}
+                          providers={[
+                            ...new Set(
+                              (pool.connectionIds ?? [pool.connectionId]).map(connProvider)
+                            ),
+                          ]}
+                          connectionIds={pool.connectionIds ?? [pool.connectionId]}
+                          onEdit={() => setEditing(pool)}
+                          onRemove={() => void handleRemovePool(pool.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </>
       )}
@@ -496,14 +547,23 @@ export default function QuotaSharePageClient() {
         selectedGroupId={selectedGroupId}
       />
 
-      {editing && (
-        <EditAllocationsModal
-          pool={editing}
-          apiKeys={apiKeys}
-          onClose={() => setEditing(null)}
-          onSave={(allocations) => handleSaveAllocations(editing, allocations)}
-        />
-      )}
+      {/* Edit wizard — separate instance from create to avoid shared state */}
+      <PoolWizard
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => {
+          void mutate();
+          setEditing(null);
+        }}
+        editPool={editing ?? undefined}
+        editPoolExclusive={editingExclusive}
+        connections={connections}
+        apiKeys={apiKeys}
+        plans={plans}
+        existingPoolConnectionIds={new Set(pools.filter((p) => p.id !== editing?.id).map((p) => p.connectionId))}
+        groups={groups}
+        selectedGroupId={selectedGroupId}
+      />
     </div>
   );
 }

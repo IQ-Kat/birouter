@@ -7877,6 +7877,8 @@
     "stackedBarTitle": "Slices by API key",
     "usedSuffix": "used {percent}%",
     "wizardTitle": "New quota pool",
+    "editPoolTitle": "Edit pool",
+    "saveChanges": "Save changes",
     "wizardStep1Label": "Account",
     "wizardStep2Label": "Limit",
     "wizardStep3Label": "Keys",
@@ -7910,7 +7912,13 @@
     "groupSelectHint": "Filter pools by group",
     "groupAllocationNote": "Allocations apply to all pools in this group via the shared quota layer.",
     "groupNamePrompt": "Enter group name",
-    "wizardGroupLabel": "Group"
+    "wizardGroupLabel": "Group",
+    "allGroups": "All groups",
+    "endpointsTitle": "Available endpoints",
+    "endpointsHint": "Call these virtual models with any allocated key — routing + quota are handled per group.",
+    "previewForKey": "Preview for key",
+    "previewKeyNone": "(all endpoints)",
+    "endpointsBaseUrl": "Base URL"
   },
   "plugins": {
     "title": "Plugins",

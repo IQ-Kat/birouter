@@ -25,6 +25,7 @@ import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import { getKnownPlan } from "@/lib/quota/planRegistry";
 import { quotaModelName } from "@/lib/quota/quotaModelNaming";
 import type { Policy, PoolAllocation, QuotaDimension, QuotaUnit, QuotaWindow } from "@/lib/quota/dimensions";
+import type { QuotaPool } from "@/lib/db/quotaPools";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types (mirror what CreatePoolModal/EditAllocationsModal expect)
@@ -64,6 +65,10 @@ export interface PoolWizardProps {
   existingPoolConnectionIds: Set<string>;
   groups?: QuotaGroup[];
   selectedGroupId?: string;
+  /** When provided, the wizard enters edit mode — pre-fills from the pool and PATCHes instead of POSTing. */
+  editPool?: QuotaPool;
+  /** Whether the pool being edited is currently exclusive. Used to pre-fill the exclusive checkbox in edit mode. */
+  editPoolExclusive?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -169,6 +174,8 @@ export default function PoolWizard({
   existingPoolConnectionIds,
   groups = [],
   selectedGroupId: initialGroupId = "group-demo",
+  editPool,
+  editPoolExclusive,
 }: PoolWizardProps) {
   const t = useTranslations("quotaShare");
   const tPlans = useTranslations("quotaPlans");
@@ -255,6 +262,7 @@ export default function PoolWizard({
 
   useEffect(() => {
     if (!open) {
+      // Closing: always reset to defaults.
       setStep(1);
       setConnectionIds([]);
       setPoolName("");
@@ -266,8 +274,36 @@ export default function PoolWizard({
       setError(null);
       setSaving(false);
       setGroupId(initialGroupId);
+    } else if (editPool) {
+      // Opening in edit mode: pre-fill from the existing pool.
+      const ids =
+        Array.isArray(editPool.connectionIds) && editPool.connectionIds.length > 0
+          ? editPool.connectionIds
+          : [editPool.connectionId];
+      setConnectionIds(ids);
+      setPoolName(editPool.name);
+      setGroupId(editPool.groupId ?? initialGroupId);
+      setAllocations(editPool.allocations ?? []);
+      // Preserve the pool's current exclusivity state so editing an exclusive pool
+      // doesn't silently un-exclusive it. Falls back to false only when not provided.
+      setExclusive(editPoolExclusive ?? false);
+      // Pre-load plan dimensions for the primary connection (same as create path).
+      // dimensionsEdited stays false so the PUT is skipped unless the user actively edits.
+      const primaryId = ids[0];
+      const existingPlan = plans[primaryId];
+      if (existingPlan && existingPlan.dimensions.length > 0) {
+        setEditDimensions([...existingPlan.dimensions]);
+      } else {
+        setEditDimensions([]);
+      }
+      setDimensionsEdited(false);
+      setError(null);
+      setSaving(false);
+      setStep(1);
     }
-  }, [open, initialGroupId]);
+    // When open && !editPool (create mode): the existing create-reset on close handles defaults.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editPool, initialGroupId]);
 
   // ── Step 2 — dimension editors ────────────────────────────────────────────
 
@@ -374,53 +410,95 @@ export default function PoolWizard({
     setError(null);
 
     try {
-      // 1. POST /api/quota/pools → get new pool id
-      const createRes = await fetch("/api/quota/pools", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId: primaryConnectionId,
-          connectionIds,
-          name: effectivePoolName,
-          allocations: [],
-          groupId,
-        }),
-      });
-      if (!createRes.ok) {
-        const errBody = await createRes.json().catch(() => null);
-        throw new Error(
-          errBody?.error?.message || `POST /api/quota/pools failed: HTTP ${createRes.status}`
-        );
-      }
-      const createData = (await createRes.json()) as { pool: { id: string } };
-      const newPoolId = createData.pool.id;
+      if (!editPool) {
+        // ── Create mode: POST → optional PUT → PATCH ──────────────────────
 
-      // 2. PUT /api/quota/plans/[primaryConnectionId] — only when user edited dimensions
-      if (dimensionsEdited && editDimensions.length > 0) {
-        const planRes = await fetch(`/api/quota/plans/${primaryConnectionId}`, {
-          method: "PUT",
+        // 1. POST /api/quota/pools → get new pool id
+        const createRes = await fetch("/api/quota/pools", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dimensions: editDimensions }),
+          body: JSON.stringify({
+            connectionId: primaryConnectionId,
+            connectionIds,
+            name: effectivePoolName,
+            allocations: [],
+            groupId,
+          }),
         });
-        if (!planRes.ok) {
-          const errBody = await planRes.json().catch(() => null);
+        if (!createRes.ok) {
+          const errBody = await createRes.json().catch(() => null);
           throw new Error(
-            errBody?.error?.message || `PUT /api/quota/plans failed: HTTP ${planRes.status}`
+            errBody?.error?.message || `POST /api/quota/pools failed: HTTP ${createRes.status}`
           );
         }
-      }
+        const createData = (await createRes.json()) as { pool: { id: string } };
+        const newPoolId = createData.pool.id;
 
-      // 3. PATCH /api/quota/pools/[id] — allocations + exclusive flag
-      const patchRes = await fetch(`/api/quota/pools/${newPoolId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ allocations, exclusive }),
-      });
-      if (!patchRes.ok) {
-        const errBody = await patchRes.json().catch(() => null);
-        throw new Error(
-          errBody?.error?.message || `PATCH /api/quota/pools failed: HTTP ${patchRes.status}`
-        );
+        // 2. PUT /api/quota/plans/[primaryConnectionId] — only when user edited dimensions
+        if (dimensionsEdited && editDimensions.length > 0) {
+          const planRes = await fetch(`/api/quota/plans/${primaryConnectionId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dimensions: editDimensions }),
+          });
+          if (!planRes.ok) {
+            const errBody = await planRes.json().catch(() => null);
+            throw new Error(
+              errBody?.error?.message || `PUT /api/quota/plans failed: HTTP ${planRes.status}`
+            );
+          }
+        }
+
+        // 3. PATCH /api/quota/pools/[id] — allocations + exclusive flag
+        const patchRes = await fetch(`/api/quota/pools/${newPoolId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ allocations, exclusive }),
+        });
+        if (!patchRes.ok) {
+          const errBody = await patchRes.json().catch(() => null);
+          throw new Error(
+            errBody?.error?.message || `PATCH /api/quota/pools failed: HTTP ${patchRes.status}`
+          );
+        }
+      } else {
+        // ── Edit mode: single PATCH (folds name, groupId, connectionIds, allocations, exclusive)
+        // + optional PUT for plan dimensions when user edited them.
+
+        // 1. PATCH /api/quota/pools/[id] — all editable fields in one call
+        const editPatchRes = await fetch(`/api/quota/pools/${editPool.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: effectivePoolName,
+            groupId,
+            connectionIds,
+            allocations,
+            exclusive,
+          }),
+        });
+        if (!editPatchRes.ok) {
+          const errBody = await editPatchRes.json().catch(() => null);
+          throw new Error(
+            errBody?.error?.message ||
+              `PATCH /api/quota/pools failed: HTTP ${editPatchRes.status}`
+          );
+        }
+
+        // 2. PUT /api/quota/plans/[primaryConnectionId] — only when user actually edited dimensions
+        if (dimensionsEdited && editDimensions.length > 0) {
+          const planRes = await fetch(`/api/quota/plans/${primaryConnectionId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dimensions: editDimensions }),
+          });
+          if (!planRes.ok) {
+            const errBody = await planRes.json().catch(() => null);
+            throw new Error(
+              errBody?.error?.message || `PUT /api/quota/plans failed: HTTP ${planRes.status}`
+            );
+          }
+        }
       }
 
       onSaved();
@@ -437,7 +515,7 @@ export default function PoolWizard({
   if (!open) return null;
 
   return (
-    <Modal isOpen onClose={onClose} title={t("wizardTitle")} size="lg">
+    <Modal isOpen onClose={onClose} title={editPool ? t("editPoolTitle") : t("wizardTitle")} size="lg">
       <div className="flex flex-col" style={{ minHeight: 420 }}>
         <Stepper currentStep={step} />
 
@@ -894,7 +972,7 @@ export default function PoolWizard({
                 onClick={() => void handleFinish()}
                 disabled={totalWeight > 100 || saving}
               >
-                {saving ? t("loading") : t("wizardCreatePool")}
+                {saving ? t("loading") : editPool ? t("saveChanges") : t("wizardCreatePool")}
               </Button>
             </div>
           </div>

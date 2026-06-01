@@ -195,6 +195,13 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "providerQuotaSubtitle",
     icon: "tune",
   },
+  {
+    id: "costs-quota-share",
+    href: "/dashboard/costs/quota-share",
+    i18nKey: "costsQuotaShare",
+    subtitleKey: "costsQuotaShareSubtitle",
+    icon: "pie_chart",
+  },
 ];
 
 const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
@@ -453,13 +460,6 @@ const COSTS_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "costsBudget",
     subtitleKey: "costsBudgetSubtitle",
     icon: "savings",
-  },
-  {
-    id: "costs-quota-share",
-    href: "/dashboard/costs/quota-share",
-    i18nKey: "costsQuotaShare",
-    subtitleKey: "costsQuotaShareSubtitle",
-    icon: "pie_chart",
   },
 ];
 

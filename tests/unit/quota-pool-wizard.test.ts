@@ -193,9 +193,15 @@ test("QuotaSharePageClient.tsx: passes open/onClose/onSaved/connections/apiKeys/
   );
 });
 
-test("QuotaSharePageClient.tsx: EditAllocationsModal is still present for editing existing pools", () => {
+test("QuotaSharePageClient.tsx: EditAllocationsModal is NOT present (retired Task 6 — edit uses PoolWizard)", () => {
+  // Task 6 replaced EditAllocationsModal with a second PoolWizard instance for editing.
   assert.ok(
-    pageClientSrc.includes("EditAllocationsModal"),
-    "Expected EditAllocationsModal to remain for editing existing pools"
+    !pageClientSrc.includes("EditAllocationsModal"),
+    "EditAllocationsModal must not appear in QuotaSharePageClient — edit mode uses PoolWizard"
+  );
+  // The editing pool must be wired to a PoolWizard via editPool prop
+  assert.ok(
+    pageClientSrc.includes("editPool={editing"),
+    "Expected editPool={editing...} passed to PoolWizard for edit mode"
   );
 });
