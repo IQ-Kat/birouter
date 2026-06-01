@@ -2315,6 +2315,9 @@ export function createSSEStream(options: StreamOptions = {}) {
           console.log(`[STREAM] Error in flush (${model || "unknown"}):`, error.message || error);
         }
       },
+      cancel(reason) {
+        clearIdleTimer();
+      },
     },
     { highWaterMark: 16384 },
     { highWaterMark: 16384 }

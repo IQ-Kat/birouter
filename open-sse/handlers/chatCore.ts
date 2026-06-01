@@ -174,6 +174,8 @@ import {
 } from "@/lib/semanticCache";
 import { getIdempotencyKey, checkIdempotency, saveIdempotency } from "@/lib/idempotencyLayer";
 import { createProgressTransform, wantsProgress } from "../utils/progressTracker.ts";
+import { createPiiSseTransform } from "@/lib/streamingPiiTransform";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
   isModelUnavailableError,
   getNextFamilyFallback,
@@ -1514,6 +1516,7 @@ export async function handleChatCore({
   disableEmergencyFallback = false,
   cachedSettings = null,
   skipUpstreamRetry = false,
+  createPiiTransform = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -5797,14 +5800,21 @@ export async function handleChatCore({
   // ── Phase 9.3: Progress tracking (opt-in) ──
   const progressEnabled = wantsProgress(clientRawRequest?.headers);
   let finalStream;
+
+  let piiStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
+  if (typeof createPiiTransform === "function") {
+    piiStream = piiStream.pipeThrough((createPiiTransform as () => TransformStream)());
+  } else if (isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION")) {
+    piiStream = piiStream.pipeThrough(createPiiSseTransform());
+  }
+
   if (progressEnabled) {
     const progressTransform = createProgressTransform({ signal: streamController.signal });
     // Chain: provider → transform → progress → client
-    const transformedBody = pipeWithDisconnect(providerResponse, transformStream, streamController);
-    finalStream = transformedBody.pipeThrough(progressTransform);
+    finalStream = piiStream.pipeThrough(progressTransform);
     responseHeaders[OMNIROUTE_RESPONSE_HEADERS.progress] = "enabled";
   } else {
-    finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
+    finalStream = piiStream;
   }
   finalStream = finalStream.pipeThrough(
     createSseHeartbeatTransform({
