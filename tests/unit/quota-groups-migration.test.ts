@@ -4,7 +4,7 @@
  * Task B1 — first-class quota Group entity.
  *
  * Coverage:
- * - Migration file 087_quota_groups.sql exists and contains the expected SQL.
+ * - Migration file 088_quota_groups.sql exists and contains the expected SQL.
  * - After migrations run (fresh DB), quota_groups has a 'group-demo' row.
  * - createPool without groupId → pool.groupId === 'group-demo'.
  * - createPool with groupId: 'g1' (group pre-inserted) → pool.groupId === 'g1'.
@@ -67,13 +67,13 @@ function getDb() {
 // ── B1.1: Migration file content ─────────────────────────────────────────────
 
 test("migration 087 file exists", () => {
-  const migrationPath = path.resolve("src/lib/db/migrations/087_quota_groups.sql");
+  const migrationPath = path.resolve("src/lib/db/migrations/088_quota_groups.sql");
   assert.ok(fs.existsSync(migrationPath), `migration file not found: ${migrationPath}`);
 });
 
 test("migration 087 contains quota_groups CREATE TABLE", () => {
   const sql = fs.readFileSync(
-    path.resolve("src/lib/db/migrations/087_quota_groups.sql"),
+    path.resolve("src/lib/db/migrations/088_quota_groups.sql"),
     "utf8"
   );
   assert.ok(sql.includes("quota_groups"), "migration SQL should reference quota_groups");
@@ -85,7 +85,7 @@ test("migration 087 contains quota_groups CREATE TABLE", () => {
 
 test("migration 087 seeds group-demo", () => {
   const sql = fs.readFileSync(
-    path.resolve("src/lib/db/migrations/087_quota_groups.sql"),
+    path.resolve("src/lib/db/migrations/088_quota_groups.sql"),
     "utf8"
   );
   assert.ok(
@@ -100,7 +100,7 @@ test("migration 087 seeds group-demo", () => {
 
 test("migration 087 adds group_id column to quota_pools", () => {
   const sql = fs.readFileSync(
-    path.resolve("src/lib/db/migrations/087_quota_groups.sql"),
+    path.resolve("src/lib/db/migrations/088_quota_groups.sql"),
     "utf8"
   );
   assert.ok(
@@ -111,7 +111,7 @@ test("migration 087 adds group_id column to quota_pools", () => {
 
 test("migration 087 contains backfill UPDATE for existing pools", () => {
   const sql = fs.readFileSync(
-    path.resolve("src/lib/db/migrations/087_quota_groups.sql"),
+    path.resolve("src/lib/db/migrations/088_quota_groups.sql"),
     "utf8"
   );
   assert.ok(

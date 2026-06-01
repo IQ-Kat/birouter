@@ -61,6 +61,7 @@ interface ApiKeyMetadata {
   isBanned: boolean;
   keyHash: string | null;
   allowedEndpoints: string[];
+  streamDefaultMode: "legacy" | "json";
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -87,6 +88,8 @@ interface ApiKeyRow extends JsonRecord {
   accessSchedule?: unknown;
   rate_limits?: unknown;
   rateLimits?: unknown;
+  stream_default_mode?: unknown;
+  streamDefaultMode?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -125,6 +128,7 @@ interface ApiKeyView extends JsonRecord {
   isBanned?: boolean;
   expiresAt?: string | null;
   allowedEndpoints: string[];
+  streamDefaultMode: "legacy" | "json";
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -161,6 +165,7 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "key_hash", definition: "key_hash TEXT" },
   { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
   { name: "allowed_quotas", definition: "allowed_quotas TEXT NOT NULL DEFAULT '[]'" },
+  { name: "stream_default_mode", definition: "stream_default_mode TEXT NOT NULL DEFAULT 'legacy'" },
 ] as const;
 
 // Cache for model permission checks
@@ -360,7 +365,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -407,6 +412,7 @@ export async function getApiKeys() {
     camelRow.isBanned = parseIsBanned(camelRow.isBanned);
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+    camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -432,6 +438,7 @@ export async function getApiKeyById(id: string) {
   camelRow.isBanned = parseIsBanned(camelRow.isBanned);
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
+  camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -576,6 +583,10 @@ function parseIsBanned(value: unknown): boolean {
   return value === 1 || value === "1" || value === true;
 }
 
+function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
+  return value === "json" ? "json" : "legacy";
+}
+
 async function hashKey(key: string): Promise<string> {
   if (!key || typeof key !== "string") return "";
   // CodeQL: This is intentionally SHA-256, NOT password hashing. API keys are
@@ -686,6 +697,7 @@ export async function updateApiKeyPermissions(
         maxSessions?: number | null;
         scopes?: string[] | null;
         allowedEndpoints?: string[] | null;
+        streamDefaultMode?: "legacy" | "json" | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -713,6 +725,8 @@ export async function updateApiKeyPermissions(
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
           allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
+          streamDefaultMode: (update as { streamDefaultMode?: "legacy" | "json" | null })
+            .streamDefaultMode,
         };
 
   if (
@@ -733,7 +747,8 @@ export async function updateApiKeyPermissions(
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
     (normalized as Record<string, unknown>).scopes === undefined &&
-    (normalized as Record<string, unknown>).allowedEndpoints === undefined
+    (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
+    (normalized as Record<string, unknown>).streamDefaultMode === undefined
   ) {
     return false;
   }
@@ -758,6 +773,7 @@ export async function updateApiKeyPermissions(
     maxSessions?: number;
     expiresAt?: string | null;
     scopes?: string;
+    streamDefaultMode?: "legacy" | "json";
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -855,11 +871,15 @@ export async function updateApiKeyPermissions(
   if (allowedEndpointsUpdate !== undefined) {
     updates.push("allowed_endpoints = @allowedEndpoints");
     const nextEndpoints: string[] = Array.isArray(allowedEndpointsUpdate)
-      ? (allowedEndpointsUpdate as unknown[]).filter(
-          (s): s is string => typeof s === "string"
-        )
+      ? (allowedEndpointsUpdate as unknown[]).filter((s): s is string => typeof s === "string")
       : [];
     (params as Record<string, unknown>).allowedEndpoints = JSON.stringify(nextEndpoints);
+  }
+
+  const streamDefaultModeUpdate = (normalized as Record<string, unknown>).streamDefaultMode;
+  if (streamDefaultModeUpdate !== undefined) {
+    updates.push("stream_default_mode = @streamDefaultMode");
+    params.streamDefaultMode = parseStreamDefaultMode(streamDefaultModeUpdate);
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
@@ -1210,6 +1230,7 @@ export async function getApiKeyMetadata(
       keyHash: null,
       scopes: ["manage"],
       allowedEndpoints: [],
+      streamDefaultMode: "legacy",
     };
   }
 
@@ -1269,6 +1290,9 @@ export async function getApiKeyMetadata(
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
     allowedEndpoints: parseStringList(
       (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
+    ),
+    streamDefaultMode: parseStreamDefaultMode(
+      (record as JsonRecord).stream_default_mode ?? (record as JsonRecord).streamDefaultMode
     ),
   };
 

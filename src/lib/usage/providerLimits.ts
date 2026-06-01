@@ -113,6 +113,7 @@ async function syncToCloudIfEnabled() {
 async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
   const executor = getExecutor(connection.provider);
   const credentials = {
+    connectionId: connection.id,
     accessToken: connection.accessToken,
     refreshToken: connection.refreshToken,
     expiresAt: connection.tokenExpiresAt || connection.expiresAt || null,

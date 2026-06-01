@@ -495,6 +495,10 @@ export async function validateResponseQuality(
 
 // In-memory atomic counter per combo for round-robin distribution
 // Resets on server restart (by design — no stale state)
+// Eviction limits to prevent unbounded memory growth
+const MAX_RR_COUNTERS = 500;
+const MAX_RESET_AWARE_CACHE = 200;
+
 const rrCounters = new Map<string, number>();
 
 const resetAwareConnectionCache = new Map<
@@ -1627,6 +1631,10 @@ async function getQuotaAwareConnectionsForTarget(
             const activeConnections = Array.isArray(connections)
               ? (connections as Array<Record<string, unknown>>)
               : [];
+            if (!resetAwareConnectionCache.has(provider) && resetAwareConnectionCache.size >= MAX_RESET_AWARE_CACHE) {
+              const oldest = resetAwareConnectionCache.keys().next().value;
+              if (oldest !== undefined) resetAwareConnectionCache.delete(oldest);
+            }
             resetAwareConnectionCache.set(provider, {
               connections: activeConnections,
               fetchedAt: Date.now(),
@@ -1758,6 +1766,10 @@ async function fetchResetAwareQuotaWithCache({
     const refreshPromise = fetcher(connectionId, connection)
       .then((quota) => {
         if (quota) {
+          if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+            const oldest = resetAwareQuotaCache.keys().next().value;
+            if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
+          }
           resetAwareQuotaCache.set(cacheKey, {
             quota,
             fetchedAt: Date.now(),
@@ -1771,6 +1783,10 @@ async function fetchResetAwareQuotaWithCache({
       .catch((error) => {
         const previous = resetAwareQuotaCache.get(cacheKey);
         if (previous) {
+          if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+            const oldest = resetAwareQuotaCache.keys().next().value;
+            if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
+          }
           resetAwareQuotaCache.set(cacheKey, { ...previous, refreshPromise: null });
         }
         log.warn?.("COMBO", "Reset-aware quota fetch failed.", {
@@ -1783,6 +1799,10 @@ async function fetchResetAwareQuotaWithCache({
         return null;
       });
 
+    if (!resetAwareQuotaCache.has(cacheKey) && resetAwareQuotaCache.size >= MAX_RESET_AWARE_CACHE) {
+      const oldest = resetAwareQuotaCache.keys().next().value;
+      if (oldest !== undefined) resetAwareQuotaCache.delete(oldest);
+    }
     resetAwareQuotaCache.set(cacheKey, {
       quota: existing?.quota ?? cached?.quota ?? null,
       fetchedAt: existing?.fetchedAt ?? cached?.fetchedAt ?? 0,
@@ -1906,6 +1926,10 @@ async function orderTargetsByResetAwareQuota(
   if (tiedTargets.length > 1) {
     const key = `reset-aware:${comboName}`;
     const counter = rrCounters.get(key) || 0;
+    if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+      const oldest = rrCounters.keys().next().value;
+      if (oldest !== undefined) rrCounters.delete(oldest);
+    }
     rrCounters.set(key, counter + 1);
     const startIndex = counter % tiedTargets.length;
     orderedTiedTargets = [...tiedTargets.slice(startIndex), ...tiedTargets.slice(0, startIndex)];
@@ -2065,6 +2089,10 @@ async function orderTargetsByResetWindow(
 
   const key = `reset-window:${comboName}`;
   const counter = rrCounters.get(key) || 0;
+  if (!rrCounters.has(key) && rrCounters.size >= MAX_RR_COUNTERS) {
+    const oldest = rrCounters.keys().next().value;
+    if (oldest !== undefined) rrCounters.delete(oldest);
+  }
   rrCounters.set(key, counter + 1);
   const startIndex = counter % tiedTargets.length;
   const orderedTiedTargets = [
@@ -3289,7 +3317,7 @@ export async function handleComboChat({
       if (isModelAvailable) {
         const available = await isModelAvailable(modelStr, targetForAttempt);
         if (!available) {
-          log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
+          log.debug?.("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
           if (i > 0) fallbackCount++;
           return null;
         }
@@ -3802,7 +3830,7 @@ export async function handleComboChat({
             ? Math.min(cooldownMs, fallbackDelayMs)
             : 0;
         if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-          log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          log.debug?.("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
           await new Promise((resolve) => {
             const timer = setTimeout(resolve, fallbackWaitMs);
             signal?.addEventListener(
@@ -3990,6 +4018,10 @@ async function handleRoundRobinCombo({
 
   // Get and increment atomic counter
   const counter = rrCounters.get(combo.name) || 0;
+  if (!rrCounters.has(combo.name) && rrCounters.size >= MAX_RR_COUNTERS) {
+    const oldest = rrCounters.keys().next().value;
+    if (oldest !== undefined) rrCounters.delete(oldest);
+  }
   rrCounters.set(combo.name, counter + 1);
   const startIndex = counter % modelCount;
 
@@ -4026,7 +4058,7 @@ async function handleRoundRobinCombo({
     if (isModelAvailable) {
       const available = await isModelAvailable(modelStr, targetForAttempt);
       if (!available) {
-        log.info("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
+        log.debug?.("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
         if (offset > 0) fallbackCount++;
         continue;
       }
@@ -4267,7 +4299,7 @@ async function handleRoundRobinCombo({
             isAllAccountsRateLimited);
         if (providerExhausted) {
           exhaustedProviders.add(provider);
-          log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
+          log.debug?.("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
         } else if (
           result.status === 429 &&
           !isTokenLimitBreach &&
@@ -4324,7 +4356,7 @@ async function handleRoundRobinCombo({
             ? Math.min(cooldownMs, fallbackDelayMs)
             : 0;
         if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-          log.info("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          log.debug?.("COMBO-RR", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
           await new Promise((resolve) => {
             const timer = setTimeout(resolve, fallbackWaitMs);
             signal?.addEventListener(

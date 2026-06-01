@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, useRef, useId } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
@@ -80,6 +80,8 @@ interface AccessSchedule {
   tz: string;
 }
 
+type StreamDefaultMode = "legacy" | "json";
+
 interface ApiKey {
   id: string;
   name: string;
@@ -98,6 +100,7 @@ interface ApiKey {
   rateLimits?: Array<{ limit: number; window: number }> | null;
   scopes?: string[];
   allowedEndpoints?: string[];
+  streamDefaultMode?: StreamDefaultMode;
   createdAt: string;
 }
 
@@ -130,6 +133,8 @@ type ProviderGroup = [provider: string, models: Model[]];
 export default function ApiManagerPageClient() {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
+  const newKeyNameInputId = useId();
+  const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
@@ -151,6 +156,7 @@ export default function ApiManagerPageClient() {
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
   const [allowKeyReveal, setAllowKeyReveal] = useState(false);
+  const createKeyNameFieldRef = useRef<HTMLDivElement | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeOnly, setActiveOnly] = useState(false);
@@ -158,6 +164,17 @@ export default function ApiManagerPageClient() {
   const [typeFilter, setTypeFilter] = useState<KeyType | null>(null);
 
   const { copied, copy } = useCopyToClipboard();
+
+  const scrollCreateKeyFormToTop = useCallback(() => {
+    const scrollContainer = createKeyFormRef.current?.parentElement;
+    if (scrollContainer instanceof HTMLElement) {
+      scrollContainer.scrollTop = 0;
+    }
+
+    const input = document.getElementById(newKeyNameInputId);
+    input?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    input?.focus({ preventScroll: true });
+  }, [newKeyNameInputId]);
 
   useEffect(() => {
     fetchData();
@@ -167,12 +184,29 @@ export default function ApiManagerPageClient() {
   }, []);
 
   useEffect(() => {
+    if (!showAddModal || !nameError) return;
+    requestAnimationFrame(() => {
+      createKeyNameFieldRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+  }, [nameError, showAddModal]);
+
+  useEffect(() => {
     setActiveOnly(readActiveOnlyPreference());
   }, []);
 
   useEffect(() => {
     writeActiveOnlyPreference(activeOnly);
   }, [activeOnly]);
+
+  useEffect(() => {
+    if (!showAddModal || !nameError) return;
+
+    const timeout = window.setTimeout(() => {
+      scrollCreateKeyFormToTop();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
     try {
@@ -346,6 +380,7 @@ export default function ApiManagerPageClient() {
     // Validate raw input first, then sanitize
     const validation = validateKeyName(newKeyName, t);
     if (!validation.valid) {
+      scrollCreateKeyFormToTop();
       setNameError(validation.error || t("invalidKeyName"));
       return;
     }
@@ -480,7 +515,8 @@ export default function ApiManagerPageClient() {
     accessSchedule: AccessSchedule | null,
     rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[],
-    allowedEndpoints: string[]
+    allowedEndpoints: string[],
+    streamDefaultMode: StreamDefaultMode
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -541,6 +577,7 @@ export default function ApiManagerPageClient() {
           rateLimits,
           scopes,
           allowedEndpoints,
+          streamDefaultMode,
         }),
       });
 
@@ -791,6 +828,7 @@ export default function ApiManagerPageClient() {
                   : 0;
               const hasThrottle = throttleDelayMs > 0;
               const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
+              const hasJsonStreamDefault = key.streamDefaultMode === "json";
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
@@ -883,6 +921,12 @@ export default function ApiManagerPageClient() {
                             auto_fix_high
                           </span>
                           Auto-Resolve
+                        </span>
+                      )}
+                      {hasJsonStreamDefault && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">data_object</span>
+                          {t("streamDefaultBadge")}
                         </span>
                       )}
                       {hasSessionLimit && (
@@ -1011,6 +1055,7 @@ export default function ApiManagerPageClient() {
       <Modal
         isOpen={showAddModal}
         title={t("createKey")}
+        bodyClassName="p-6 max-h-[calc(100vh-150px)] overflow-y-auto"
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
@@ -1021,12 +1066,13 @@ export default function ApiManagerPageClient() {
           setCreateError(null);
         }}
       >
-        <div className="flex flex-col gap-4">
-          <div>
+        <div ref={createKeyFormRef} className="flex flex-col gap-4">
+          <div ref={createKeyNameFieldRef}>
             <label className="text-sm font-medium text-text-main mb-1.5 block">
               {t("keyName")}
             </label>
             <Input
+              id={newKeyNameInputId}
               value={newKeyName}
               onChange={(e) => {
                 setNewKeyName(e.target.value);
@@ -1238,7 +1284,8 @@ const PermissionsModal = memo(function PermissionsModal({
     accessSchedule: AccessSchedule | null,
     rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[],
-    allowedEndpoints: string[]
+    allowedEndpoints: string[],
+    streamDefaultMode: StreamDefaultMode
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1288,6 +1335,9 @@ const PermissionsModal = memo(function PermissionsModal({
   );
   const [rateLimits, setRateLimits] = useState<Array<{ limit: number; window: number }>>(
     Array.isArray(apiKey?.rateLimits) ? apiKey.rateLimits : []
+  );
+  const [streamDefaultMode, setStreamDefaultMode] = useState<StreamDefaultMode>(
+    apiKey?.streamDefaultMode === "json" ? "json" : "legacy"
   );
   const [nameError, setNameError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -1453,7 +1503,8 @@ const PermissionsModal = memo(function PermissionsModal({
         selfUsageEnabled,
         selfAccountQuotaEnabled,
       }),
-      allowAllEndpoints ? [] : selectedEndpoints
+      allowAllEndpoints ? [] : selectedEndpoints,
+      streamDefaultMode
     );
   }, [
     onSave,
@@ -1482,6 +1533,7 @@ const PermissionsModal = memo(function PermissionsModal({
     rateLimits,
     allowAllEndpoints,
     selectedEndpoints,
+    streamDefaultMode,
     apiKey?.scopes,
     t,
   ]);
@@ -1863,6 +1915,40 @@ const PermissionsModal = memo(function PermissionsModal({
           </button>
         </div>
 
+        {/* Stream Default Compatibility */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1 min-w-0">
+            <p className="text-sm font-medium text-text-main">{t("streamDefaultMode")}</p>
+            <p className="text-xs text-text-muted">{t("streamDefaultModeDesc")}</p>
+          </div>
+          <div className="flex gap-1 p-0.5 bg-surface rounded-md shrink-0 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setStreamDefaultMode("legacy")}
+              className={`inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-all ${
+                streamDefaultMode === "legacy"
+                  ? "bg-primary text-white"
+                  : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">settings_backup_restore</span>
+              {t("streamDefaultLegacy")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStreamDefaultMode("json")}
+              className={`inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-all ${
+                streamDefaultMode === "json"
+                  ? "bg-primary text-white"
+                  : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">data_object</span>
+              {t("streamDefaultJson")}
+            </button>
+          </div>
+        </div>
+
         {/* Ban Toggle (SECURITY) */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-red-500/20 bg-red-500/5">
           <div className="flex flex-col gap-1">
@@ -1909,11 +1995,10 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
-            <p className="text-xs text-text-muted">
-              Allow this API key to manage OmniRoute configuration.
-            </p>
+            <p className="text-xs text-text-muted">{t("managementAccessDesc")}</p>
           </div>
           <button
+            type="button"
             role="switch"
             aria-checked={manageEnabled}
             onClick={() => setManageEnabled((prev) => !prev)}
@@ -1934,6 +2019,7 @@ const PermissionsModal = memo(function PermissionsModal({
             <p className="text-xs text-text-muted">{t("selfServiceVisibilityDesc")}</p>
           </div>
           <button
+            type="button"
             role="switch"
             aria-checked={selfUsageEnabled}
             onClick={() =>
@@ -1953,6 +2039,7 @@ const PermissionsModal = memo(function PermissionsModal({
           </button>
           <p className="text-xs text-text-muted">{t("ownUsageVisibilityDesc")}</p>
           <button
+            type="button"
             role="switch"
             aria-checked={selfAccountQuotaEnabled}
             disabled={!selfUsageEnabled}

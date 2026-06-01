@@ -1,6 +1,8 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import type { PoolConfig } from "../services/sessionPool/types.ts";
+import type { Session } from "../services/sessionPool/session.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
@@ -21,8 +23,9 @@ import {
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import { cloakThirdPartyToolNames, remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
 import {
@@ -320,6 +323,10 @@ export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
 
+  // Session pool support — subclasses can set poolConfig to opt in
+  protected poolConfig?: PoolConfig;
+  private _pool: import("../services/sessionPool/sessionPool.ts").SessionPool | null = null;
+
   constructor(provider: string, config: ProviderConfig) {
     this.provider = provider;
     this.config = config;
@@ -327,6 +334,24 @@ export class BaseExecutor {
 
   getProvider() {
     return this.provider;
+  }
+
+  protected getPool(): import("../services/sessionPool/sessionPool.ts").SessionPool | null {
+    if (!this.poolConfig) return null;
+    if (!this._pool) {
+      const { SessionPool } = require("../services/sessionPool/sessionPool.ts");
+      const { PoolRegistry } = require("../services/sessionPool/poolRegistry.ts");
+      const pool = new SessionPool(this.provider, this.poolConfig);
+      pool.warmUp(this.poolConfig.minSessions).catch(() => {});
+      PoolRegistry.register(this.provider, pool);
+      this._pool = pool;
+    }
+    return this._pool;
+  }
+
+  protected buildPoolHeaders(session: Session | null): Record<string, string> {
+    if (!session) return {};
+    return session.buildHeaders();
   }
 
   getBaseUrls() {
@@ -775,6 +800,13 @@ export class BaseExecutor {
 
           stripProxyToolPrefix(tb);
           remapToolNamesInRequest(tb);
+          // Cloak third-party tool names + sanitize invalid tool schemas so
+          // Anthropic does not refuse native Claude OAuth traffic with a
+          // misleading "out of extra usage" placeholder. See Spec E.
+          cloakThirdPartyToolNames(tb);
+          if (Array.isArray(tb.tools)) {
+            tb.tools = sanitizeClaudeToolSchemas(tb.tools);
+          }
           obfuscateInBody(tb);
 
           // NOTE (issue #2260): This is the native `claude` provider OAuth path.

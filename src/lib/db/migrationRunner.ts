@@ -444,9 +444,15 @@ function isSchemaAlreadyApplied(
       // mid-file and skip the CREATE INDEX that follows, leaving the index
       // missing on DBs that re-execute the script after a partial first run.
       return hasColumn(db, "memories", "needs_reindex");
-    case "087":
-      // Quota groups migration: the table + column are already present when
-      // group_id exists on quota_pools (ensures the backfill UPDATE also ran).
+    case "085":
+      // Retroactive guard for quota_pools migration renumbered from 077 → 085
+      // (077 collided with 077_api_key_stream_default_mode). DBs that already
+      // applied quota_pools under the old 077 number should not re-run as 085.
+      return hasTable(db, "quota_pools") && hasTable(db, "quota_allocations");
+    case "088":
+      // Quota groups migration (renumbered 087 → 088 on merge into v3.8.8).
+      // The table + column are already present when group_id exists on
+      // quota_pools (ensures the backfill UPDATE also ran).
       return hasTable(db, "quota_groups") && hasColumn(db, "quota_pools", "group_id");
     default:
       return false;

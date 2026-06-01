@@ -58,7 +58,7 @@ test.after(async () => {
 
 test("migration 086 file exists and contains quota_pool_connections DDL", () => {
   const migrationPath = path.resolve(
-    "src/lib/db/migrations/086_quota_pool_connections.sql"
+    "src/lib/db/migrations/087_quota_pool_connections.sql"
   );
   assert.ok(fs.existsSync(migrationPath), `migration file not found: ${migrationPath}`);
 

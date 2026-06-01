@@ -59,7 +59,8 @@ import {
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
+import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
   recordKeyFailure,
   recordKeySuccess,
@@ -68,7 +69,7 @@ import {
   connectionHasExtraKeys,
   type KeyHealth,
 } from "../services/apiKeyRotator.ts";
-import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
+
 import {
   getCallLogPipelineCaptureStreamChunks,
   getChatLogTextLimit,
@@ -277,13 +278,7 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
   return result;
 }
 
-function isSmallEnoughForSemanticCache(value: unknown): boolean {
-  try {
-    return JSON.stringify(value).length <= 256 * 1024;
-  } catch {
-    return false;
-  }
-}
+import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1500,6 +1495,15 @@ export async function handleChatCore({
         ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
         : undefined
       : undefined;
+  // #2905: per-model wire-format override for custom models, injected by
+  // getModelInfo. Custom models are not in the static registry, so
+  // getModelTargetFormat() can't see this — use it before the provider default.
+  const customModelTargetFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "targetFormat" in modelInfo
+      ? typeof (modelInfo as { targetFormat?: unknown }).targetFormat === "string"
+        ? ((modelInfo as { targetFormat?: string }).targetFormat as string)
+        : undefined
+      : undefined;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
@@ -1518,9 +1522,19 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
+  const traceEnabled =
+    process.env.OMNIRROUTE_TRACE === "true" || process.env.DEBUG === "true";
   const trace = (label: string, extra?: Record<string, unknown>) => {
+    if (!traceEnabled) return;
     const elapsed = Date.now() - startTime;
-    const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
+    let suffix = "";
+    if (extra) {
+      try {
+        suffix = ` ${JSON.stringify(extra)}`;
+      } catch {
+        suffix = " [unserializable]";
+      }
+    }
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
   };
   let tokensCompressed: number | null = null;
@@ -1871,7 +1885,9 @@ export async function handleChatCore({
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+      : modelTargetFormat ||
+        customModelTargetFormat ||
+        getTargetFormat(provider, credentials?.providerSpecificData);
 
   const initialProviderRequest =
     body && typeof body === "object" && !Array.isArray(body)
@@ -1912,7 +1928,13 @@ export async function handleChatCore({
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
-  const detailedLoggingEnabled = !noLogEnabled && (await isDetailedLoggingEnabled());
+  // Consolidate settings reads — fetch once, reuse throughout the request
+  const settings = cachedSettings ?? (await getCachedSettings());
+  const detailedLoggingEnabled =
+    !noLogEnabled &&
+    (settings.call_log_pipeline_enabled === true ||
+      settings.call_log_pipeline_enabled === "1" ||
+      settings.call_log_pipeline_enabled === "true");
   const capturePipelineStreamChunks =
     detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
@@ -2105,6 +2127,12 @@ export async function handleChatCore({
     clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
       : clientRawRequest?.headers?.["accept"] || clientRawRequest?.headers?.["Accept"];
+  const streamUserAgent = [
+    typeof userAgent === "string" ? userAgent : "",
+    getHeaderValueCaseInsensitive(clientRawRequest?.headers ?? null, "user-agent") || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
@@ -2130,8 +2158,14 @@ export async function handleChatCore({
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
-  const settings = cachedSettings ?? (await getCachedSettings());
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
+          userAgent: streamUserAgent,
+          streamDefaultMode: apiKeyInfo?.streamDefaultMode,
+        });
+  // `settings` is already consolidated once near the top of handleChatCore
+  // (the "fetch once, reuse" const). A second `const settings` here was a
+  // duplicate same-scope declaration that broke the esbuild/tsx transform
+  // ("settings has already been declared") and the production build. Reuse it.
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
     model: requestedModel,
     body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
@@ -2426,7 +2460,7 @@ export async function handleChatCore({
   let cavemanOutputModeIntensity: string | null = null;
   let preCompressionBody: typeof body | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
-    let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
+    let estimatedTokens = estimateTokens(allMessages);
     let promptCompressionEnabled = false;
     let compressionSettings: CompressionConfig | null = null;
 
@@ -2657,7 +2691,7 @@ export async function handleChatCore({
             body = outputMode.body as typeof body;
             cavemanOutputModeApplied = true;
             cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
-            estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+            estimatedTokens = estimateTokens(body?.messages ?? body?.input ?? []);
             log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
           } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
             log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
@@ -2867,7 +2901,7 @@ export async function handleChatCore({
     const COMPRESSION_THRESHOLD = 0.7;
     let reservedTokens = 0;
     if (Array.isArray(body.tools)) {
-      reservedTokens = estimateTokens(JSON.stringify(body.tools));
+      reservedTokens = estimateTokens(body.tools);
     }
     const threshold = Math.max(
       1,
@@ -4109,7 +4143,7 @@ export async function handleChatCore({
     (translatedBody.conversationState?.history?.length ?? 0) +
       (translatedBody.conversationState?.currentMessage ? 1 : 0) ||
     0;
-  log?.debug?.("REQUEST", `${provider.toUpperCase()} | ${model} | ${msgCount} msgs`);
+  log?.debug?.("REQUEST", `${provider?.toUpperCase()} | ${model} | ${msgCount} msgs`);
 
   // ── Tier 2: Authoritative per-model/provider token-limit check (provider now resolved) ──
   if (apiKeyInfo?.id) {
@@ -4323,6 +4357,11 @@ export async function handleChatCore({
     // inside getAccessToken, we still need to do the credentials mutation + user
     // callback after refreshCredentials returns. The `persistFnRan` flag tracks
     // which path executed so we don't double-fire (race-prone) or skip (regression).
+    // Front 3: remember the refresh_token we are about to present so that, if the
+    // refresh fails as unrecoverable, we can tell a genuine death apart from a
+    // stale-token reuse that a concurrent/sibling refresh already rotated past.
+    const attemptedRefreshToken =
+      typeof credentials?.refreshToken === "string" ? credentials.refreshToken : null;
     let persistFnRan = false;
     const persistFn = onCredentialsRefreshed
       ? async (refreshResult: Record<string, unknown>) => {
@@ -4345,7 +4384,7 @@ export async function handleChatCore({
     };
 
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
-      log?.info?.("TOKEN", `${provider.toUpperCase()} | refreshed`);
+      log?.info?.("TOKEN", `${provider?.toUpperCase()} | refreshed`);
 
       // Fall back to post-mutex mutation only for executors that don't route
       // through getAccessToken (and therefore never fire onPersist). For
@@ -4399,13 +4438,35 @@ export async function handleChatCore({
         // than the original 401 alone. Surface at error level with sanitization.
         log?.error?.(
           "TOKEN",
-          `${provider.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
+          `${provider?.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
         );
       }
     } else {
-      log?.warn?.("TOKEN", `${provider.toUpperCase()} | refresh failed`);
+      log?.warn?.("TOKEN", `${provider?.toUpperCase()} | refresh failed`);
       if (isUnrecoverableRefreshError(newCredentials) && onCredentialsRefreshed) {
-        await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+        // Front 3 (reuse-race tolerance): before deactivating, re-read the DB.
+        // If a sibling/concurrent refresh already rotated this connection's
+        // refresh_token (common for Codex/OpenAI under one shared Auth0 client),
+        // the failure we saw was a stale-token reuse — the account is healthy
+        // with the newer token, so keep it active instead of killing it.
+        let alreadyRotated = false;
+        if (typeof connectionId === "string" && connectionId && attemptedRefreshToken) {
+          try {
+            const latest = await getProviderConnectionById(connectionId);
+            if (wasRefreshTokenRotated(attemptedRefreshToken, latest?.refreshToken)) {
+              alreadyRotated = true;
+              log?.warn?.(
+                "TOKEN",
+                `${provider.toUpperCase()} | refresh_token already rotated by a concurrent refresh — keeping connection active`
+              );
+            }
+          } catch {
+            // DB read failed — fall through to the safe default (deactivate).
+          }
+        }
+        if (!alreadyRotated) {
+          await onCredentialsRefreshed({ testStatus: "expired", isActive: false });
+        }
       }
     }
   }
@@ -5053,8 +5114,10 @@ export async function handleChatCore({
     // Save structured call log with full payloads
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
-      const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
-      console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      if (traceEnabled) {
+        const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider?.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
+        console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      }
 
       saveRequestUsage({
         provider: provider || "unknown",
