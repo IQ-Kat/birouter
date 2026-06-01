@@ -173,6 +173,13 @@
   `function_call_output` previously slipped past the orphan filter. Now
   empty-`call_id` function calls are skipped (no dangling assistant tool_call)
   and any tool result without a matching tool_call id is dropped. (#2893)
+- **deps:** remove the `proxifly` npm dependency (#3000 — thanks @terence71-glitch)
+- **proxy:** use connection proxy for OAuth refresh (#3012 — thanks @terence71-glitch)
+- **usage:** export pure helper functions for unit testing (#3015 — thanks @oyi77)
+- **docs/docker:** align memory default docs to 1024MB (#3006 — thanks @terence71-glitch)
+- **providers:** fix DuckDuckGo missing API key & update OpenCode free model list (#3008 — thanks @NekoMonci12)
+- **claude:** bump Claude Code identity to 2.1.158 and sync beta flags (#3010 — thanks @Tentoxa)
+- **test:** increase DB and usage utils coverage to >60% (#3018 — thanks @oyi77)
 - **oom:** resolve memory leak in Bottleneck limiter caches and provider registry (#2965 — thanks @soyelmismo)
 - **proxy:** show registry provider proxies in dashboard after Custom proxy flow moved them into the proxy registry (#2963 — thanks @terence71-glitch)
 - **routing:** add agy to executor map so it uses AntigravityExecutor (#2957 — thanks @ReqX)
