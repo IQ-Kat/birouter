@@ -6,7 +6,7 @@ import { Button } from "@/shared/components";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
-import type { QuotaPool, PoolAllocation } from "@/lib/quota/dimensions";
+import type { QuotaPool } from "@/lib/quota/dimensions";
 
 import { usePools } from "./hooks/usePools";
 import { usePoolUsage } from "./hooks/usePoolUsage";
@@ -15,7 +15,6 @@ import { usePoolsUsageAggregate } from "./hooks/usePoolsUsageAggregate";
 import QuotaConceptCard from "./components/QuotaConceptCard";
 import PoolCard from "./components/PoolCard";
 import PoolWizard from "./components/PoolWizard";
-import EditAllocationsModal from "./components/EditAllocationsModal";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Local types (display layer only)
@@ -304,19 +303,24 @@ export default function QuotaSharePageClient() {
     [groups, selectedGroupId]
   );
 
-  // ── Mutations ─────────────────────────────────────────────────────────────
+  // ── Computed exclusivity for the pool being edited ───────────────────────
+  //
+  // A pool is exclusive when it has ≥1 allocation AND every allocated key
+  // currently has the pool id in its allowedQuotas array.
 
-  const handleSaveAllocations = useCallback(
-    async (pool: QuotaPool, allocations: PoolAllocation[]) => {
-      await fetch(`/api/quota/pools/${pool.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ allocations }),
-      });
-      await mutate();
-    },
-    [mutate]
+  const editingExclusive = useMemo(
+    () =>
+      !!editing &&
+      editing.allocations.length > 0 &&
+      editing.allocations.every((a) => {
+        const k = apiKeys.find((kk) => kk.id === a.apiKeyId);
+        const aq = (k as { allowedQuotas?: string[] } | undefined)?.allowedQuotas;
+        return Array.isArray(aq) && aq.includes(editing.id);
+      }),
+    [editing, apiKeys]
   );
+
+  // ── Mutations ─────────────────────────────────────────────────────────────
 
   const handleRemovePool = useCallback(
     async (id: string) => {
@@ -534,14 +538,23 @@ export default function QuotaSharePageClient() {
         selectedGroupId={selectedGroupId}
       />
 
-      {editing && (
-        <EditAllocationsModal
-          pool={editing}
-          apiKeys={apiKeys}
-          onClose={() => setEditing(null)}
-          onSave={(allocations) => handleSaveAllocations(editing, allocations)}
-        />
-      )}
+      {/* Edit wizard — separate instance from create to avoid shared state */}
+      <PoolWizard
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => {
+          void mutate();
+          setEditing(null);
+        }}
+        editPool={editing ?? undefined}
+        editPoolExclusive={editingExclusive}
+        connections={connections}
+        apiKeys={apiKeys}
+        plans={plans}
+        existingPoolConnectionIds={new Set(pools.filter((p) => p.id !== editing?.id).map((p) => p.connectionId))}
+        groups={groups}
+        selectedGroupId={selectedGroupId}
+      />
     </div>
   );
 }

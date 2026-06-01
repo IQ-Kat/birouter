@@ -67,6 +67,8 @@ export interface PoolWizardProps {
   selectedGroupId?: string;
   /** When provided, the wizard enters edit mode — pre-fills from the pool and PATCHes instead of POSTing. */
   editPool?: QuotaPool;
+  /** Whether the pool being edited is currently exclusive. Used to pre-fill the exclusive checkbox in edit mode. */
+  editPoolExclusive?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -173,6 +175,7 @@ export default function PoolWizard({
   groups = [],
   selectedGroupId: initialGroupId = "group-demo",
   editPool,
+  editPoolExclusive,
 }: PoolWizardProps) {
   const t = useTranslations("quotaShare");
   const tPlans = useTranslations("quotaPlans");
@@ -281,9 +284,9 @@ export default function PoolWizard({
       setPoolName(editPool.name);
       setGroupId(editPool.groupId ?? initialGroupId);
       setAllocations(editPool.allocations ?? []);
-      // `exclusive` is not stored on the QuotaPool type; default to false in edit mode.
-      // The server-side reconcilePoolExclusivity will apply the chosen value on PATCH.
-      setExclusive(false);
+      // Preserve the pool's current exclusivity state so editing an exclusive pool
+      // doesn't silently un-exclusive it. Falls back to false only when not provided.
+      setExclusive(editPoolExclusive ?? false);
       // Pre-load plan dimensions for the primary connection (same as create path).
       // dimensionsEdited stays false so the PUT is skipped unless the user actively edits.
       const primaryId = ids[0];

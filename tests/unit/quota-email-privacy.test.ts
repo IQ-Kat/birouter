@@ -33,7 +33,6 @@ const pageClientSrc = readSrc(`${quotaShareDir}/QuotaSharePageClient.tsx`);
 const poolCardSrc = readSrc(`${quotaShareDir}/components/PoolCard.tsx`);
 const accountQuotaRowSrc = readSrc(`${quotaShareDir}/components/AccountQuotaRow.tsx`);
 const poolWizardSrc = readSrc(`${quotaShareDir}/components/PoolWizard.tsx`);
-const editAllocationsModalSrc = readSrc(`${quotaShareDir}/components/EditAllocationsModal.tsx`);
 
 // ── QuotaSharePageClient ──────────────────────────────────────────────────────
 
@@ -177,36 +176,9 @@ test("PoolWizard connLabel masks detail with emailsVisible gate", () => {
   );
 });
 
-// ── EditAllocationsModal ──────────────────────────────────────────────────────
-
-test("EditAllocationsModal imports useEmailPrivacyStore", () => {
-  assert.ok(
-    editAllocationsModalSrc.includes('import useEmailPrivacyStore from "@/store/emailPrivacyStore"'),
-    "Expected useEmailPrivacyStore import in EditAllocationsModal"
-  );
-});
-
-test("EditAllocationsModal imports maskEmailLikeValue", () => {
-  assert.ok(
-    editAllocationsModalSrc.includes("maskEmailLikeValue"),
-    "Expected maskEmailLikeValue import/usage in EditAllocationsModal"
-  );
-});
-
-test("EditAllocationsModal consumes emailsVisible from store", () => {
-  assert.ok(
-    editAllocationsModalSrc.includes("emailsVisible"),
-    "Expected emailsVisible usage in EditAllocationsModal"
-  );
-});
-
-test("EditAllocationsModal masks pool.name display", () => {
-  // pool.name can contain an email (e.g. "codex / gael.martins@domain.com")
-  assert.ok(
-    editAllocationsModalSrc.includes("maskEmailLikeValue(pool.name)"),
-    "Expected maskEmailLikeValue(pool.name) in EditAllocationsModal"
-  );
-});
+// ── EditAllocationsModal retired (Task 6) ────────────────────────────────────
+// EditAllocationsModal was retired in Task 6 — edit mode now opens the full
+// PoolWizard (which already has comprehensive email-privacy coverage above).
 
 // ── maskEmailLikeValue helper behaviour (regression) ─────────────────────────
 
