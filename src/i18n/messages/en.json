@@ -7910,7 +7910,6 @@
     "newGroup": "New group",
     "renameGroup": "Rename group",
     "groupSelectHint": "Filter pools by group",
-    "groupAllocationNote": "Allocations apply to all pools in this group via the shared quota layer.",
     "groupNamePrompt": "Enter group name",
     "wizardGroupLabel": "Group",
     "allGroups": "All groups",

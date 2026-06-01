@@ -5415,7 +5415,6 @@
     "newGroup": "Novo grupo",
     "renameGroup": "Renomear grupo",
     "groupSelectHint": "Filtrar pools por grupo",
-    "groupAllocationNote": "As alocações se aplicam a todos os pools deste grupo através da camada de cota compartilhada.",
     "groupNamePrompt": "Digite o nome do grupo",
     "wizardGroupLabel": "Grupo",
     "allGroups": "Todos os grupos",
