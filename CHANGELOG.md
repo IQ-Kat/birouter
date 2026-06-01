@@ -63,6 +63,15 @@
 
 ### Fixed
 
+- **codex/providers:** `POST /api/providers/[id]/refresh` (the manual/auto "refresh
+  token" endpoint) no longer rotates rotating-refresh providers (Codex/OpenAI share
+  one Auth0 `client_id`). This was the last unguarded proactive-refresh entry point:
+  when the dashboard auto-refreshed every expiring connection on a page load (or an
+  old cached frontend bulk-called it), each Codex account's single-use refresh_token
+  was rotated, and Auth0 revoked the whole token family (`openai/codex#9648`) — every
+  account but the last died with `[403] <!DOCTYPE`. The endpoint now skips proactive
+  rotation for rotating providers and defers to the reactive, serialized 401 path
+  (same guard as `refreshAndUpdateCredentials` and the connection-test route).
 - **codex/quota:** opening the Quota / Providers dashboard no longer disconnects
   Codex multi-account setups. The quota-sync path
   (`refreshAndUpdateCredentials`) proactively refreshed every connection — for
