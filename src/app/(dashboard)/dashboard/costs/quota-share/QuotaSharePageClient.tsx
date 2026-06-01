@@ -13,6 +13,7 @@ import { usePoolUsage } from "./hooks/usePoolUsage";
 import { useLocalStoragePoolMigration } from "./hooks/useLocalStoragePoolMigration";
 import { usePoolsUsageAggregate } from "./hooks/usePoolsUsageAggregate";
 import QuotaConceptCard from "./components/QuotaConceptCard";
+import QuotaEndpointsCard from "./components/QuotaEndpointsCard";
 import PoolCard from "./components/PoolCard";
 import PoolWizard from "./components/PoolWizard";
 
@@ -426,6 +427,14 @@ export default function QuotaSharePageClient() {
 
       {/* Concept card */}
       <QuotaConceptCard />
+
+      {/* Endpoints card */}
+      <QuotaEndpointsCard
+        groups={groups}
+        pools={pools}
+        connections={connections}
+        apiKeys={apiKeys}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

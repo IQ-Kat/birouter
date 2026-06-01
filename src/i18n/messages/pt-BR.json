@@ -5418,7 +5418,12 @@
     "groupAllocationNote": "As alocações se aplicam a todos os pools deste grupo através da camada de cota compartilhada.",
     "groupNamePrompt": "Digite o nome do grupo",
     "wizardGroupLabel": "Grupo",
-    "allGroups": "Todos os grupos"
+    "allGroups": "Todos os grupos",
+    "endpointsTitle": "Endpoints disponíveis",
+    "endpointsHint": "Chame estes modelos virtuais com qualquer chave alocada — roteamento + cota são tratados por grupo.",
+    "previewForKey": "Pré-visualizar p/ chave",
+    "previewKeyNone": "(todos os endpoints)",
+    "endpointsBaseUrl": "URL base"
   },
   "requestLogger": {
     "recording": "Recording",

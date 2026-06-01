@@ -7913,7 +7913,12 @@
     "groupAllocationNote": "Allocations apply to all pools in this group via the shared quota layer.",
     "groupNamePrompt": "Enter group name",
     "wizardGroupLabel": "Group",
-    "allGroups": "All groups"
+    "allGroups": "All groups",
+    "endpointsTitle": "Available endpoints",
+    "endpointsHint": "Call these virtual models with any allocated key — routing + quota are handled per group.",
+    "previewForKey": "Preview for key",
+    "previewKeyNone": "(all endpoints)",
+    "endpointsBaseUrl": "Base URL"
   },
   "plugins": {
     "title": "Plugins",
