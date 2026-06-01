@@ -168,6 +168,13 @@ class PluginManager {
     const destDir = join(this.pluginDir, name);
     const stagingDir = `${destDir}.staging-${randomUUID()}`;
     await mkdir(dirname(destDir), { recursive: true });
+    // Reaching here means the plugin is not DB-registered (the pluginExists()
+    // guard above returns/throws otherwise). A destDir still present on disk is
+    // therefore orphaned (e.g. a crash mid-uninstall left files behind) and would
+    // make the atomic rename below fail with ENOTEMPTY — remove it first, guarded
+    // by path containment so we never rm outside the plugin directory.
+    assertWithinPluginDir(this.pluginDir, destDir);
+    await rm(destDir, { recursive: true, force: true }).catch(() => {});
     await cp(srcDir, stagingDir, { recursive: true });
 
     try {
