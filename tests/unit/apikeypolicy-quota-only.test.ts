@@ -31,6 +31,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "quota-only-test-secr
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const poolsDb = await import("../../src/lib/db/quotaPools.ts");
+const groupsDb = await import("../../src/lib/db/quotaGroups.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 const { quotaModelName } = await import("../../src/lib/quota/quotaModelNaming.ts");
@@ -108,7 +109,9 @@ test("quota-only key requesting its quotaShared-* virtual model is allowed", asy
   const connId = (conn as Record<string, unknown>).id as string;
   assert.ok(connId);
 
-  const pool = poolsDb.createPool({ connectionId: connId, name: "Times" });
+  // Create group "Times" so resolveQuotaKeyScope returns group slug "times"
+  const group = groupsDb.createGroup("Times");
+  const pool = poolsDb.createPool({ connectionId: connId, name: "Times", groupId: group.id });
 
   const created = await apiKeysDb.createApiKey("Quota-B4 Key Allowed", "machine-b4-allowed");
   await apiKeysDb.updateApiKeyPermissions(created.id, {
