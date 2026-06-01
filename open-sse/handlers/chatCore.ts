@@ -229,6 +229,11 @@ import {
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 
+// ── Global memory pressure guard ────────────────────────────────────────
+// Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
+// Self-healing: no counters to leak, no cleanup needed.
+const HEAP_PRESSURE_THRESHOLD_MB = parseInt(process.env.HEAP_PRESSURE_THRESHOLD_MB || "200", 10);
+
 function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
   return value.slice(-MEMORY_EXTRACTION_TEXT_LIMIT);
@@ -279,6 +284,32 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 }
 
 import { estimateSizeFast, isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
+
+const MAX_LOG_BODY_CHARS = 8 * 1024; // 8KB cap for logged request/response bodies
+/**
+ * Truncate a large object for logging. If its JSON representation exceeds
+ * MAX_LOG_BODY_CHARS, return a lightweight summary instead of the full clone.
+ * This prevents persistAttemptLogs from holding multi-MB references to
+ * translatedBody across 17 call sites per request.
+ */
+function truncateForLog(value: unknown): Record<string, unknown> | null | undefined {
+  if (value === null || value === undefined) return value as null | undefined;
+  if (typeof value !== "object") return value as unknown as Record<string, unknown>;
+  const estimatedSize = estimateSizeFast(value);
+  if (estimatedSize <= MAX_LOG_BODY_CHARS) return value as Record<string, unknown>;
+  // Object is too large — return a summary instead of a deep clone
+  const obj = value as Record<string, unknown>;
+  const summary: Record<string, unknown> = {
+    _truncated: true,
+    _originalBytes: estimatedSize,
+  };
+  if (typeof obj.model === "string") summary.model = obj.model;
+  if (typeof obj.provider === "string") summary.provider = obj.provider;
+  if (Array.isArray(obj.messages)) summary.messageCount = obj.messages.length;
+  if (Array.isArray(obj.contents)) summary.contentCount = obj.contents.length;
+  if (typeof obj.stream === "boolean") summary.stream = obj.stream;
+  return summary;
+}
 
 function extractMemoryTextFromResponse(
   response: Record<string, unknown> | null | undefined
@@ -1485,6 +1516,34 @@ export async function handleChatCore({
   skipUpstreamRetry = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
+  // ── Memory pressure guard ────────────────────────────────────────────
+  // Reject early if V8 heap is already near the 256MB limit. Prevents
+  // cascading OOM when many large-context requests arrive concurrently.
+  try {
+    const heapUsedMB = process.memoryUsage().heapUsed / (1024 * 1024);
+    if (heapUsedMB > HEAP_PRESSURE_THRESHOLD_MB) {
+      // Internal telemetry only — never expose the heap figure to clients (Hard Rule #12).
+      console.warn(
+        `[chatCore] heap pressure guard tripped: ${Math.round(heapUsedMB)}MB > ${HEAP_PRESSURE_THRESHOLD_MB}MB; returning 503`
+      );
+      return {
+        success: false,
+        status: 503,
+        error: "Service temporarily unavailable due to resource pressure. Retry shortly.",
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: "Service temporarily unavailable due to resource pressure. Retry shortly.",
+              type: "server_error",
+              code: "heap_pressure",
+            },
+          }),
+          { status: 503, headers: { "Content-Type": "application/json", "Retry-After": "5" } }
+        ),
+      };
+    }
+  } catch { /* memoryUsage() never throws */ }
+
   // apiFormat is an optional custom-model marker injected by getModelInfo for
   // providers whose models can route to /chat/completions or /responses
   // (Azure AI Foundry, OCI generic OpenAI). It's not on the base ModelInfo
@@ -2040,12 +2099,12 @@ export async function handleChatCore({
       duration: Date.now() - startTime,
       tokens: tokens || {},
       requestBody: cloneBoundedChatLogPayload(
-        attachLogMeta((body as Record<string, unknown>) ?? undefined, {
+        attachLogMeta(truncateForLog(body as Record<string, unknown>), {
           claudePromptCache: claudeCacheMeta,
         })
       ),
       responseBody: cloneBoundedChatLogPayload(
-        attachLogMeta((responseBody as Record<string, unknown>) ?? undefined, {
+        attachLogMeta(truncateForLog(responseBody as Record<string, unknown>), {
           claudePromptCache: claudeCacheMeta
             ? {
                 applied: claudeCacheMeta.applied,
