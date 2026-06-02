@@ -177,11 +177,23 @@ test("planRegistry seeds xiaomi-mimo (4.1B lite cap) and kimi-coding for manual 
   const xiaomi = getKnownPlan("xiaomi-mimo");
   assert.ok(xiaomi, "xiaomi-mimo must have a known plan so the wizard pre-fills");
   assert.ok(
-    xiaomi!.dimensions.some((d) => d.unit === "tokens" && d.window === "weekly" && d.limit === 4_100_000_000),
-    "xiaomi-mimo must seed the 4.1B-token weekly lite cap"
+    xiaomi!.dimensions.some((d) => d.unit === "tokens" && d.window === "monthly" && d.limit === 4_100_000_000),
+    "xiaomi-mimo must seed the 4.1B-token monthly lite cap"
   );
   const kimiCoding = getKnownPlan("kimi-coding");
   assert.ok(kimiCoding, "kimi-coding (the coding-plan slug) must have a known plan entry");
+  // claude (Claude Code) is percent-based like codex.
+  const claude = getKnownPlan("claude");
+  assert.ok(
+    claude && claude.dimensions.some((d) => d.unit === "percent"),
+    "claude must seed a percent plan preset"
+  );
+  // deepseek is prepaid USD → set the fair-share limit by USD value.
+  const deepseek = getKnownPlan("deepseek");
+  assert.ok(
+    deepseek && deepseek.dimensions.some((d) => d.unit === "usd"),
+    "deepseek must seed a usd (dollar-value) plan preset"
+  );
 });
 
 // ── i18n parity for every new key ────────────────────────────────────────────
