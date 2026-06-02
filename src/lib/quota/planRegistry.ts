@@ -13,6 +13,17 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
       { unit: "percent", window: "weekly", limit: 100 },
     ],
   },
+  // Claude Code (Pro / Max 5x / Max 20x) is a percentage-of-plan quota over a 5h
+  // rolling window + a weekly cap, shared across Claude and Claude Code. The exact
+  // token caps are not published and vary by task, so % is the practical unit; the
+  // provider reports % used and fair-share attributes it across keys by local count.
+  claude: {
+    provider: "claude",
+    dimensions: [
+      { unit: "percent", window: "5h", limit: 100 },
+      { unit: "percent", window: "weekly", limit: 100 },
+    ],
+  },
   glm: {
     provider: "glm",
     dimensions: [
