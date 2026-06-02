@@ -159,6 +159,31 @@ test("B5: endpoints default view uses real minted qtSd combos (not placeholders)
   );
 });
 
+// ── Responses API endpoint in the card ──────────────────────────────────────
+
+test("endpoints card surfaces POST /v1/responses for codex/github providers", () => {
+  assert.ok(endpointsSrc.includes("const hasResponses"), "must detect Responses providers in scope");
+  assert.ok(endpointsSrc.includes("POST /v1/responses"), "must show the Responses endpoint");
+  assert.ok(
+    /isResponsesProvider[\s\S]*?"codex"[\s\S]*?"github"/.test(endpointsSrc),
+    "Responses detection must cover canonical codex + github slugs"
+  );
+});
+
+// ── planRegistry defaults for no-balance-API providers ───────────────────────
+
+test("planRegistry seeds xiaomi-mimo (4.1B lite cap) and kimi-coding for manual fair-share", async () => {
+  const { getKnownPlan } = await import("../../src/lib/quota/planRegistry.ts");
+  const xiaomi = getKnownPlan("xiaomi-mimo");
+  assert.ok(xiaomi, "xiaomi-mimo must have a known plan so the wizard pre-fills");
+  assert.ok(
+    xiaomi!.dimensions.some((d) => d.unit === "tokens" && d.window === "weekly" && d.limit === 4_100_000_000),
+    "xiaomi-mimo must seed the 4.1B-token weekly lite cap"
+  );
+  const kimiCoding = getKnownPlan("kimi-coding");
+  assert.ok(kimiCoding, "kimi-coding (the coding-plan slug) must have a known plan entry");
+});
+
 // ── i18n parity for every new key ────────────────────────────────────────────
 
 test("i18n: new quotaShare keys exist in both en and pt-BR", () => {
@@ -171,6 +196,7 @@ test("i18n: new quotaShare keys exist in both en and pt-BR", () => {
     "endpointsCollapse",
     "endpointsExpand",
     "endpointsAnthropicNote",
+    "endpointsResponsesNote",
   ];
   for (const k of keys) {
     assert.ok(en.quotaShare[k], `en.json quotaShare.${k} must exist`);

@@ -396,6 +396,23 @@ export default function QuotaSharePageClient() {
         </div>
       </div>
 
+      {/* Beta banner — scoped to this page only */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-200">
+        <span className="material-symbols-outlined text-[16px] text-amber-500 shrink-0">science</span>
+        <span className="flex-1">
+          <span className="font-semibold">{t("betaTitle")}</span> — {t("betaText")}
+        </span>
+        <a
+          href="https://github.com/diegosouzapw/OmniRoute/issues/new?labels=quota-share,beta&title=%5Bquota-share%5D%20"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-300 hover:underline"
+        >
+          <span className="material-symbols-outlined text-[14px]">bug_report</span>
+          {t("betaReportLink")}
+        </a>
+      </div>
+
       {/* Group bar */}
       <div className="flex items-center gap-2 flex-wrap rounded-lg border border-border/40 bg-bg-subtle/20 px-3 py-2">
         <span className="text-[11px] uppercase tracking-wide text-text-muted font-semibold shrink-0">

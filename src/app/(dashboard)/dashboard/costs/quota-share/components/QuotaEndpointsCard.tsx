@@ -135,6 +135,36 @@ export default function QuotaEndpointsCard({
     return [...provs].some(isAnthropicProvider);
   }, [pools, connections]);
 
+  // Responses-API providers (codex / github gpt-5.x / openai-compatible *responses*)
+  // are callable on POST /v1/responses (codex is also reachable over the WS proxy
+  // at the same path). conn.provider holds canonical slugs ("codex"/"github").
+  const isResponsesProvider = (provider: string) =>
+    provider === "codex" || provider === "github" || provider.includes("responses");
+
+  const hasResponses = useMemo(() => {
+    const provs = new Set<string>();
+    for (const pool of pools) {
+      for (const cid of pool.connectionIds ?? [pool.connectionId]) {
+        const conn = connections.find((c) => c.id === cid);
+        if (conn) provs.add(conn.provider);
+      }
+    }
+    return [...provs].some(isResponsesProvider);
+  }, [pools, connections]);
+
+  // The Responses-over-WebSocket proxy is wired EXCLUSIVELY to codex, so the WS
+  // endpoint line only shows when a codex connection is in scope.
+  const hasCodex = useMemo(() => {
+    const provs = new Set<string>();
+    for (const pool of pools) {
+      for (const cid of pool.connectionIds ?? [pool.connectionId]) {
+        const conn = connections.find((c) => c.id === cid);
+        if (conn) provs.add(conn.provider);
+      }
+    }
+    return provs.has("codex");
+  }, [pools, connections]);
+
   // ── Derive default model list from groups + pools + connections ──────────────
   // For each group, collect all pools that belong to it, then for each pool's
   // providers (from connectionIds), generate qtSd/<groupSlug>/<provider>/<model>
@@ -321,6 +351,32 @@ export default function QuotaEndpointsCard({
               model: &quot;qtSd/&lt;group&gt;/&lt;provider&gt;/&lt;model&gt;&quot;
             </code>
             <span className="text-[10px] text-text-muted">({t("endpointsAnthropicNote")})</span>
+          </div>
+        )}
+        {hasResponses && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-wide text-text-muted font-semibold shrink-0">
+              {t("endpointsBaseUrl")}
+            </span>
+            <code className="text-xs text-primary font-mono">POST /v1/responses</code>
+            <span className="text-xs text-text-muted mx-1">·</span>
+            <code className="text-xs text-text-muted font-mono">
+              model: &quot;qtSd/&lt;group&gt;/&lt;provider&gt;/&lt;model&gt;&quot;
+            </code>
+            <span className="text-[10px] text-text-muted">({t("endpointsResponsesNote")})</span>
+          </div>
+        )}
+        {hasCodex && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-wide text-text-muted font-semibold shrink-0">
+              {t("endpointsBaseUrl")}
+            </span>
+            <code className="text-xs text-primary font-mono">WS /v1/responses</code>
+            <span className="text-xs text-text-muted mx-1">·</span>
+            <code className="text-xs text-text-muted font-mono">
+              model: &quot;qtSd/&lt;group&gt;/codex/&lt;model&gt;&quot;
+            </code>
+            <span className="text-[10px] text-text-muted">({t("endpointsWsNote")})</span>
           </div>
         )}
       </div>
