@@ -213,15 +213,43 @@ function shouldFailClosedForProviderLimitsProxy(
   return connection.authType === "oauth" && isAccountScopedProxyResolution(proxyInfo);
 }
 
-async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
-  const errorMessage = typeof usage.message === "string" ? usage.message.toLowerCase() : "";
-  const isAuthError =
-    errorMessage.includes("token expired") ||
-    errorMessage.includes("access denied") ||
-    errorMessage.includes("re-authenticate") ||
-    errorMessage.includes("unauthorized");
+/**
+ * Decide whether the quota-sync path should flag a connection `expired` from an
+ * auth-style usage error. Exported for unit testing.
+ *
+ * Rotating-refresh providers (Codex/OpenAI/Claude/etc. — see refreshSerializer's
+ * ROTATION_LOCK_GROUP) have their access_token deliberately NOT proactively
+ * refreshed in this quota path (#3019, to avoid the Auth0 family-revocation
+ * cascade). So a "token expired" from the quota fetch is a recoverable
+ * false-negative: the credential is still valid (its `expires_at` is in the
+ * future) and the reactive, serialized 401 path refreshes the access_token on
+ * next use. Flagging it `expired` hides a healthy account from the quota page
+ * (observed: freshly-added Codex accounts flagged expired while a providers-page
+ * refresh turns them green). So never mark a rotating provider expired from the
+ * quota sync — leave its status to the reactive path / connection test.
+ */
+export function quotaPathShouldMarkExpired(
+  provider: string,
+  usageMessage: unknown,
+  currentTestStatus: string | null | undefined
+): boolean {
+  if (currentTestStatus === "expired") return false;
 
-  if (!isAuthError || connection.testStatus === "expired") {
+  const message = typeof usageMessage === "string" ? usageMessage.toLowerCase() : "";
+  const isAuthError =
+    message.includes("token expired") ||
+    message.includes("access denied") ||
+    message.includes("re-authenticate") ||
+    message.includes("unauthorized");
+  if (!isAuthError) return false;
+
+  if (rotationGroupFor(provider) !== null) return false;
+
+  return true;
+}
+
+async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
+  if (!quotaPathShouldMarkExpired(connection.provider, usage.message, connection.testStatus)) {
     return;
   }
 
