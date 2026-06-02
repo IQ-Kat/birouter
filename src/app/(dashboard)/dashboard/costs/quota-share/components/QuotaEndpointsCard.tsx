@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import Card from "@/shared/components/Card";
-import { quotaModelName, quotaGroupSlug } from "@/lib/quota/quotaModelNaming";
+import {
+  quotaModelName,
+  quotaGroupSlug,
+  parseQuotaModelName,
+  isQuotaModelName,
+} from "@/lib/quota/quotaModelNaming";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Local types (mirrors QuotaSharePageClient)
@@ -88,6 +93,31 @@ export default function QuotaEndpointsCard({
   const [previewModels, setPreviewModels] = useState<string[] | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [realCombos, setRealCombos] = useState<string[] | null>(null);
+
+  // Fetch the REAL minted qtSd/* combo names so the default (no-key) view shows
+  // actual models instead of the representative PREVIEW_MODELS_BY_PROVIDER
+  // placeholders (model-a/b/c for providers not in the hardcoded map).
+  useEffect(() => {
+    let alive = true;
+    void fetch("/api/combos")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        if (!alive) return;
+        const names = Array.isArray(body?.combos)
+          ? (body.combos as Array<{ name?: unknown }>)
+              .map((c) => (typeof c.name === "string" ? c.name : ""))
+              .filter((n) => n.length > 0 && isQuotaModelName(n))
+          : [];
+        setRealCombos(names);
+      })
+      .catch(() => {
+        if (alive) setRealCombos(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Anthropic-format providers (claude*/anthropic) can be called on the native
   // Messages endpoint too, so we surface POST /v1/messages when one is in scope.
@@ -145,6 +175,37 @@ export default function QuotaEndpointsCard({
     });
   }, [groups, pools, connections]);
 
+  // Real qtSd combos grouped by group → provider (preferred over placeholders).
+  const realByGroup = useMemo<
+    Array<{ group: QuotaGroup; entries: Array<{ provider: string; models: string[] }> }> | null
+  >(() => {
+    if (!realCombos || realCombos.length === 0) return null;
+    const byGroupSlug = new Map<string, Map<string, string[]>>();
+    for (const name of realCombos) {
+      const parsed = parseQuotaModelName(name);
+      if (!parsed) continue;
+      if (!byGroupSlug.has(parsed.groupSlug)) byGroupSlug.set(parsed.groupSlug, new Map());
+      const provMap = byGroupSlug.get(parsed.groupSlug)!;
+      if (!provMap.has(parsed.provider)) provMap.set(parsed.provider, []);
+      provMap.get(parsed.provider)!.push(name);
+    }
+    return groups
+      .map((group) => {
+        const provMap = byGroupSlug.get(quotaGroupSlug(group.name));
+        if (!provMap) return null;
+        const entries = [...provMap.entries()].map(([provider, models]) => ({ provider, models }));
+        return { group, entries };
+      })
+      .filter(
+        (g): g is { group: QuotaGroup; entries: Array<{ provider: string; models: string[] }> } =>
+          g !== null
+      );
+  }, [realCombos, groups]);
+
+  // Default (no-key) view prefers the real combos; falls back to placeholders
+  // only when the combos fetch failed or returned nothing.
+  const viewByGroup = realByGroup ?? defaultByGroup;
+
   // ── Key name with optional email masking ─────────────────────────────────────
 
   const keyLabel = (key: ApiKey) => {
@@ -178,7 +239,7 @@ export default function QuotaEndpointsCard({
 
   // ── Compute the combined default model count across all groups ────────────────
 
-  const hasAnyDefaultModels = defaultByGroup.some((g) =>
+  const hasAnyDefaultModels = viewByGroup.some((g) =>
     g.entries.some((e) => e.models.length > 0)
   );
 
@@ -286,9 +347,9 @@ export default function QuotaEndpointsCard({
             )}
           </div>
         ) : hasData && hasAnyDefaultModels ? (
-          // Default view: grouped by group → provider → model ids
+          // Default view: grouped by group → provider → real qtSd model ids
           <div className="space-y-3">
-            {defaultByGroup.map(({ group, entries }) => {
+            {viewByGroup.map(({ group, entries }) => {
               if (entries.length === 0) return null;
               return (
                 <div key={group.id}>

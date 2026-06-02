@@ -140,6 +140,25 @@ test("B5b: endpoints card has a collapse/expand toggle", () => {
   );
 });
 
+// ── B5 default view shows REAL combos, not model-a/b/c placeholders ──────────
+
+test("B5: endpoints default view uses real minted qtSd combos (not placeholders)", () => {
+  assert.ok(
+    endpointsSrc.includes('fetch("/api/combos")'),
+    "card must fetch real combos for the default view"
+  );
+  assert.ok(
+    endpointsSrc.includes("isQuotaModelName") && endpointsSrc.includes("parseQuotaModelName"),
+    "must filter+parse real qtSd combo names"
+  );
+  assert.ok(
+    endpointsSrc.includes("const realByGroup") &&
+      endpointsSrc.includes("realByGroup ?? defaultByGroup") &&
+      endpointsSrc.includes("viewByGroup.map"),
+    "default view must prefer real combos (realByGroup) over the placeholder map"
+  );
+});
+
 // ── i18n parity for every new key ────────────────────────────────────────────
 
 test("i18n: new quotaShare keys exist in both en and pt-BR", () => {
