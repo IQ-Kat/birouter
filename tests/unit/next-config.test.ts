@@ -109,10 +109,13 @@ test("next config declares Turbopack aliases, runtime assets and server external
 
 test("manager.stub.ts exports every name statically imported from @/mitm/manager", async () => {
   const fs = await import("node:fs");
-  const appDir = path.join(process.cwd(), "src", "app");
+  const srcDir = path.join(process.cwd(), "src");
 
-  // Collect named imports from `... from "@/mitm/manager"` (NOT manager.runtime, which
-  // is loaded via dynamic import() and resolves to the real module at runtime).
+  // Collect value names imported via `... from "@/mitm/manager"` across ALL of src/ —
+  // not just src/app: src/lib/tailscaleTunnel.ts imports from it and is pulled into
+  // routes transitively, so a src/app-only scan would miss that surface. NOT
+  // manager.runtime (loaded via dynamic import(), resolves to the real module at
+  // runtime). Inline `type` imports are erased at build time and need no stub export.
   const collectImports = (dir: string, acc: Set<string>): void => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name);
@@ -126,7 +129,9 @@ test("manager.stub.ts exports every name statically imported from @/mitm/manager
       let m: RegExpExecArray | null;
       while ((m = re.exec(src)) !== null) {
         for (const raw of m[1].split(",")) {
-          const name = raw.trim().split(/\s+as\s+/)[0].trim();
+          const token = raw.trim();
+          if (!token || /^type\s/.test(token)) continue; // type-only import: no runtime export needed
+          const name = token.split(/\s+as\s+/)[0].trim();
           if (name) acc.add(name);
         }
       }
@@ -134,22 +139,31 @@ test("manager.stub.ts exports every name statically imported from @/mitm/manager
   };
 
   const imported = new Set<string>();
-  collectImports(appDir, imported);
+  collectImports(srcDir, imported);
 
   // Sanity: the guard is meaningless if the scan finds nothing to check. Kept generic
   // (>= 1 import) rather than asserting a specific symbol, so the test stays valid if any
   // single agent-bridge/traffic-inspector route is later renamed or removed.
-  assert.ok(imported.size > 0, "expected at least one static @/mitm/manager import in src/app");
+  assert.ok(imported.size > 0, "expected at least one static @/mitm/manager import in src/");
 
   const stubSrc = fs.readFileSync(
     path.join(process.cwd(), "src", "mitm", "manager.stub.ts"),
     "utf-8"
   );
-  const stubExports = new Set(
-    [...stubSrc.matchAll(/export\s+(?:const|function|async\s+function)\s+([A-Za-z0-9_]+)/g)].map(
-      (m) => m[1]
-    )
-  );
+  // Collect stub exports from both declaration forms and named re-export blocks so the
+  // guard doesn't false-positive if the stub later uses `export class` / `export { … }`.
+  const stubExports = new Set<string>();
+  for (const m of stubSrc.matchAll(
+    /export\s+(?:const|let|var|class|function|async\s+function)\s+([A-Za-z0-9_]+)/g
+  )) {
+    stubExports.add(m[1]);
+  }
+  for (const m of stubSrc.matchAll(/export\s*\{([^}]*)\}/g)) {
+    for (const part of m[1].split(",")) {
+      const exported = part.trim().split(/\s+as\s+/).pop()?.trim(); // `x as y` exports y
+      if (exported) stubExports.add(exported);
+    }
+  }
 
   const missing = [...imported].filter((name) => !stubExports.has(name));
   assert.deepEqual(

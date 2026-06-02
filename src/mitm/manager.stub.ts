@@ -1,7 +1,12 @@
-// Build-time stub for @/mitm/manager
-// Used by Turbopack during next build to avoid native module resolution errors.
-// Dynamic import() in route handlers should load the REAL manager at runtime.
-// If this stub is reached at runtime, the build alias is incorrectly applied.
+// Build-time stub for @/mitm/manager, aliased in by Turbopack during `next build`
+// (the Docker image build) so native MITM modules aren't bundled. Routes that
+// *statically* import @/mitm/manager get this stub baked in and may reach it at
+// runtime in the bundled/container build. Exports that have a safe degraded value
+// return it (getCachedPassword/setCachedPassword/clearCachedPassword → null/no-op,
+// getAllAgentsStatus → empty list) because MITM needs host access the container
+// lacks; getMitmStatus/startMitm/stopMitm throw STUB_ERROR since they can't return
+// anything meaningful without the real MITM process. Routes that need real MITM at
+// runtime dynamic-import @/mitm/manager.runtime (the real module) instead.
 
 const STUB_ERROR =
   "MITM manager stub reached at runtime — build alias applied incorrectly. " +
@@ -13,13 +18,9 @@ export const clearCachedPassword = () => {};
 export const getMitmStatus = async () => {
   throw new Error(STUB_ERROR);
 };
-// Statically imported by /api/tools/agent-bridge/state, so the stub MUST export it or
-// the Turbopack build fails ("Export getAllAgentsStatus doesn't exist"). Unlike the
-// heavy ops above (dynamic-import paths that should never hit the stub at runtime), a
-// static import IS baked into the bundled build, so this is legitimately reached at
-// runtime there — it returns the truthful "no agents" state (an empty list) instead of
-// throwing. MITM/agent bridge needs host-level access and is otherwise non-functional
-// in a bundled/container build. See issue #3066.
+// Must be exported or the Turbopack build fails ("Export getAllAgentsStatus doesn't
+// exist") — /api/tools/agent-bridge/state imports it statically. Returns the truthful
+// empty agent list in the bundled build rather than throwing (see file header). See #3066.
 export const getAllAgentsStatus = (): never[] => [];
 export const startMitm = async (
   _apiKey: string,
