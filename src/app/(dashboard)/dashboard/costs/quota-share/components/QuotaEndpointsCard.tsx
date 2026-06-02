@@ -87,6 +87,23 @@ export default function QuotaEndpointsCard({
   const [selectedKeyId, setSelectedKeyId] = useState<string>("");
   const [previewModels, setPreviewModels] = useState<string[] | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Anthropic-format providers (claude*/anthropic) can be called on the native
+  // Messages endpoint too, so we surface POST /v1/messages when one is in scope.
+  const isAnthropicProvider = (provider: string) =>
+    provider === "anthropic" || provider.startsWith("claude");
+
+  const hasAnthropic = useMemo(() => {
+    const provs = new Set<string>();
+    for (const pool of pools) {
+      for (const cid of pool.connectionIds ?? [pool.connectionId]) {
+        const conn = connections.find((c) => c.id === cid);
+        if (conn) provs.add(conn.provider);
+      }
+    }
+    return [...provs].some(isAnthropicProvider);
+  }, [pools, connections]);
 
   // ── Derive default model list from groups + pools + connections ──────────────
   // For each group, collect all pools that belong to it, then for each pool's
@@ -183,38 +200,68 @@ export default function QuotaEndpointsCard({
           </div>
         </div>
 
-        {/* Key preview selector */}
-        {apiKeys.length > 0 && (
-          <div className="flex items-center gap-2 shrink-0">
-            <label className="text-xs text-text-muted whitespace-nowrap">
-              {t("previewForKey")}
-            </label>
-            <select
-              value={selectedKeyId}
-              onChange={(e) => void handleKeyChange(e.target.value)}
-              className="px-2 py-1 rounded border border-border bg-bg-base text-xs text-text-main min-w-[140px]"
-            >
-              <option value="">{t("previewKeyNone")}</option>
-              {apiKeys.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {keyLabel(k)}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* Key preview selector + collapse toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          {apiKeys.length > 0 && (
+            <>
+              <label className="text-xs text-text-muted whitespace-nowrap">
+                {t("previewForKey")}
+              </label>
+              <select
+                value={selectedKeyId}
+                onChange={(e) => void handleKeyChange(e.target.value)}
+                className="px-2 py-1 rounded border border-border bg-bg-base text-xs text-text-main min-w-[140px]"
+              >
+                <option value="">{t("previewKeyNone")}</option>
+                {apiKeys.map((k) => (
+                  <option key={k.id} value={k.id}>
+                    {keyLabel(k)}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => setCollapsed((c) => !c)}
+            title={collapsed ? t("endpointsExpand") : t("endpointsCollapse")}
+            aria-label={collapsed ? t("endpointsExpand") : t("endpointsCollapse")}
+            className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {collapsed ? "expand_more" : "expand_less"}
+            </span>
+          </button>
+        </div>
       </div>
 
-      {/* Base URL line */}
-      <div className="mt-3 flex items-center gap-2 rounded-md bg-bg-subtle/50 border border-border/40 px-3 py-2">
-        <span className="text-[10px] uppercase tracking-wide text-text-muted font-semibold shrink-0">
-          {t("endpointsBaseUrl")}
-        </span>
-        <code className="text-xs text-primary font-mono">POST /v1/chat/completions</code>
-        <span className="text-xs text-text-muted mx-1">·</span>
-        <code className="text-xs text-text-muted font-mono">
-          model: &quot;qtSd/&lt;group&gt;/&lt;provider&gt;/&lt;model&gt;&quot;
-        </code>
+      {!collapsed && (
+        <>
+      {/* Base URL line(s) */}
+      <div className="mt-3 rounded-md bg-bg-subtle/50 border border-border/40 px-3 py-2 space-y-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-wide text-text-muted font-semibold shrink-0">
+            {t("endpointsBaseUrl")}
+          </span>
+          <code className="text-xs text-primary font-mono">POST /v1/chat/completions</code>
+          <span className="text-xs text-text-muted mx-1">·</span>
+          <code className="text-xs text-text-muted font-mono">
+            model: &quot;qtSd/&lt;group&gt;/&lt;provider&gt;/&lt;model&gt;&quot;
+          </code>
+        </div>
+        {hasAnthropic && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-wide text-text-muted font-semibold shrink-0">
+              {t("endpointsBaseUrl")}
+            </span>
+            <code className="text-xs text-primary font-mono">POST /v1/messages</code>
+            <span className="text-xs text-text-muted mx-1">·</span>
+            <code className="text-xs text-text-muted font-mono">
+              model: &quot;qtSd/&lt;group&gt;/&lt;provider&gt;/&lt;model&gt;&quot;
+            </code>
+            <span className="text-[10px] text-text-muted">({t("endpointsAnthropicNote")})</span>
+          </div>
+        )}
       </div>
 
       {/* Model listing */}
@@ -284,6 +331,8 @@ export default function QuotaEndpointsCard({
           </div>
         )}
       </div>
+        </>
+      )}
     </Card>
   );
 }
