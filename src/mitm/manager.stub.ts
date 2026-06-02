@@ -13,6 +13,13 @@ export const clearCachedPassword = () => {};
 export const getMitmStatus = async () => {
   throw new Error(STUB_ERROR);
 };
+// Statically imported by /api/tools/agent-bridge/state — the stub must export it or
+// the Turbopack build fails ("Export getAllAgentsStatus doesn't exist"). MITM/agent
+// bridge needs host-level access and is non-functional in the bundled build anyway,
+// so this throws like the other heavy ops. See issue #3066.
+export const getAllAgentsStatus = (): never => {
+  throw new Error(STUB_ERROR);
+};
 export const startMitm = async (
   _apiKey: string,
   _sudoPassword: string,

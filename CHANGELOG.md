@@ -74,6 +74,13 @@
 
 ### Fixed
 
+- **build:** Docker image build (`docker compose --profile cli build`, which runs
+  `next build` with Turbopack) no longer errors. Two Turbopack-only failures were
+  fixed: `sqlite-vec` is now externalized so Turbopack stops trying to bundle its
+  native `vec0.so` ("Unknown module type"), and `manager.stub.ts` now exports
+  `getAllAgentsStatus` (statically imported by `/api/tools/agent-bridge/state` — the
+  missing export aborted the build). The webpack-based VM build was unaffected, which
+  is why the deploy validated while the Docker build errored. (#3066 — thanks @freefrank)
 - **codex/providers:** `POST /api/providers/[id]/refresh` (the manual/auto "refresh
   token" endpoint) no longer rotates rotating-refresh providers (Codex/OpenAI share
   one Auth0 `client_id`). This was the last unguarded proactive-refresh entry point:
