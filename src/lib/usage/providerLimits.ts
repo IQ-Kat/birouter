@@ -18,7 +18,7 @@ import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
-import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import { rotationGroupFor, serializeRefresh } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -111,15 +111,32 @@ async function syncToCloudIfEnabled() {
   }
 }
 
-export async function refreshAndUpdateCredentials(connection: ProviderConnectionLike) {
-  // Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.)
-  // mint a single-use refresh_token on every refresh. The quota-sync path runs
-  // many connections concurrently; refreshing sibling accounts in parallel makes
-  // Auth0 revoke the whole token family (openai/codex#9648) and kills every
-  // account but the last. Never proactively refresh them here — reuse the current
-  // access_token for the quota fetch and let the reactive, serialized 401 path
-  // handle genuine expiry during real requests.
-  if (rotationGroupFor(connection.provider) !== null) {
+/**
+ * Whether the quota path may refresh this provider's token. Exported for testing.
+ *
+ * Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.) mint a
+ * single-use refresh_token on every refresh. The BULK quota-sync path runs many
+ * connections concurrently; refreshing sibling accounts in parallel makes Auth0
+ * revoke the whole token family (openai/codex#9648) and kills every account but
+ * the last (#3019). So the bulk path never refreshes rotating providers
+ * (`allowRotatingRefresh` falsy). The on-demand, per-connection path opts in and
+ * is made safe by `serializeRefresh` (one token mint at a time per rotation group,
+ * so even N concurrent per-account requests can never refresh siblings in
+ * parallel). Non-rotating providers are always eligible.
+ */
+export function shouldAttemptRotatingRefresh(
+  provider: string,
+  allowRotatingRefresh: boolean | undefined
+): boolean {
+  if (rotationGroupFor(provider) === null) return true;
+  return allowRotatingRefresh === true;
+}
+
+export async function refreshAndUpdateCredentials(
+  connection: ProviderConnectionLike,
+  opts: { allowRotatingRefresh?: boolean } = {}
+) {
+  if (!shouldAttemptRotatingRefresh(connection.provider, opts.allowRotatingRefresh)) {
     return { connection, refreshed: false };
   }
   const executor = getExecutor(connection.provider);
@@ -137,7 +154,11 @@ export async function refreshAndUpdateCredentials(connection: ProviderConnection
     return { connection, refreshed: false };
   }
 
-  const refreshResult = await executor.refreshCredentials(credentials, console);
+  // Serialize the actual token mint per rotation group so two sibling accounts
+  // never hit Auth0 concurrently (passthrough for non-rotating providers).
+  const refreshResult = await serializeRefresh(connection.provider, () =>
+    executor.refreshCredentials(credentials, console)
+  );
 
   if (!refreshResult) {
     if (connection.provider === "github" && connection.accessToken) {
@@ -389,7 +410,7 @@ export async function fetchLiveProviderLimits(connectionId: string): Promise<{
 
 async function fetchLiveProviderLimitsWithOptions(
   connectionId: string,
-  options: { forceRefresh?: boolean } = {}
+  options: { forceRefresh?: boolean; allowRotatingRefresh?: boolean } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -424,7 +445,9 @@ async function fetchLiveProviderLimitsWithOptions(
       let conn = connection as ProviderConnectionLike;
       let wasRefreshed = false;
 
-      const result = await refreshAndUpdateCredentials(conn);
+      const result = await refreshAndUpdateCredentials(conn, {
+        allowRotatingRefresh: options.allowRotatingRefresh,
+      });
       conn = result.connection;
       wasRefreshed = result.refreshed;
 
@@ -505,7 +528,8 @@ async function fetchLiveProviderLimitsWithOptions(
 
 export async function fetchAndPersistProviderLimits(
   connectionId: string,
-  source: SyncSource = "manual"
+  source: SyncSource = "manual",
+  opts: { allowRotatingRefresh?: boolean } = {}
 ): Promise<{
   connection: ProviderConnectionLike;
   usage: JsonRecord;
@@ -513,6 +537,7 @@ export async function fetchAndPersistProviderLimits(
 }> {
   const { connection, usage } = await fetchLiveProviderLimitsWithOptions(connectionId, {
     forceRefresh: source === "manual",
+    allowRotatingRefresh: opts.allowRotatingRefresh,
   });
   const newCache = toProviderLimitsCacheEntry(usage, source);
 

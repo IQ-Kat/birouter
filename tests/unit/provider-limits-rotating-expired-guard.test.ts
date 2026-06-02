@@ -9,7 +9,9 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rotating-
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "rotating-expired-guard-secret";
 
-const { quotaPathShouldMarkExpired } = await import("../../src/lib/usage/providerLimits.ts");
+const { quotaPathShouldMarkExpired, shouldAttemptRotatingRefresh } = await import(
+  "../../src/lib/usage/providerLimits.ts"
+);
 
 test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -46,4 +48,27 @@ test("non-auth usage messages never trigger an expired flag", () => {
 test("an already-expired connection is left untouched (no redundant write)", () => {
   assert.equal(quotaPathShouldMarkExpired("github", "token expired", "expired"), false);
   assert.equal(quotaPathShouldMarkExpired("codex", "token expired", "expired"), false);
+});
+
+// Option 1: the on-demand per-connection path may refresh a rotating provider's
+// expired token (cascade-safe via serializeRefresh), so its live quota shows;
+// the bulk scheduler (allowRotatingRefresh falsy) must keep #3019 and never do it.
+test("bulk path never refreshes rotating providers (preserves #3019)", () => {
+  for (const provider of ["codex", "openai", "claude", "kiro", "qwen", "gitlab-duo"]) {
+    assert.equal(shouldAttemptRotatingRefresh(provider, undefined), false, `${provider} bulk`);
+    assert.equal(shouldAttemptRotatingRefresh(provider, false), false, `${provider} explicit false`);
+  }
+});
+
+test("on-demand path (allowRotatingRefresh=true) may refresh rotating providers", () => {
+  for (const provider of ["codex", "openai", "claude"]) {
+    assert.equal(shouldAttemptRotatingRefresh(provider, true), true, `${provider} on-demand`);
+  }
+});
+
+test("non-rotating providers are always eligible to refresh regardless of the flag", () => {
+  for (const flag of [undefined, false, true] as const) {
+    assert.equal(shouldAttemptRotatingRefresh("github", flag), true);
+    assert.equal(shouldAttemptRotatingRefresh("cursor", flag), true);
+  }
 });
