@@ -74,6 +74,16 @@
 
 ### Fixed
 
+- **memory:** the `recent` retrieval strategy no longer drops recent memories whose
+  text doesn't overlap the current prompt. It was internally mapped to the `exact`
+  path, which relevance-filtered by the forwarded prompt (`score > 0`), so
+  recency-based injection silently returned nothing for unrelated prompts. The
+  prompt is no longer forwarded for `recent` (semantic/hybrid still use it for
+  vector search).
+- **combo:** custom-provider credential lookup now expands `provider_nodes` prefixes
+  (e.g. `78code/gpt-5.4`) to the generated internal connection ids during account
+  selection, so combos targeting compatible/custom providers resolve their live
+  credentials instead of failing to find a connection. (#3058)
 - **build:** Docker image build (`docker compose --profile cli build`, which runs
   `next build` with Turbopack) no longer errors. Two Turbopack-only failures were
   fixed: `sqlite-vec` is now externalized so Turbopack stops trying to bundle its
