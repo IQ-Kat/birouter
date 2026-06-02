@@ -2766,7 +2766,6 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
 export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
   return (
     providerId === "searxng-search" ||
-    providerId === "petals" ||
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
     providerId === "duckduckgo-web" ||
