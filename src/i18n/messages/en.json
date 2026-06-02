@@ -1764,7 +1764,11 @@
     "emptyFilterTitle": "No keys match your filters",
     "emptyFilterClear": "Clear filters",
     "disableNonPublicModels": "Disable Non-Public Models",
-    "disableNonPublicModelsDesc": "Reject requests for models that are not discovered or not marked as public in the provider catalog"
+    "disableNonPublicModelsDesc": "Reject requests for models that are not discovered or not marked as public in the provider catalog",
+    "normalKeysSection": "Normal keys",
+    "quotaKeysSection": "Quota keys",
+    "quotaPill": "QUOTA",
+    "quotaModeOnly": "qtSd-only"
   },
   "auditLog": {
     "title": "Audit Log",

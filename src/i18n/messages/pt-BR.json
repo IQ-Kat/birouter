@@ -437,7 +437,11 @@
     "filterTypeRestricted": "Restrita",
     "shownOf": "{shown} de {total} exibidas",
     "emptyFilterTitle": "Nenhuma chave corresponde aos filtros",
-    "emptyFilterClear": "Limpar filtros"
+    "emptyFilterClear": "Limpar filtros",
+    "normalKeysSection": "Chaves normais",
+    "quotaKeysSection": "Chaves de cota",
+    "quotaPill": "QUOTA",
+    "quotaModeOnly": "só-qtSd"
   },
   "auditLog": {
     "title": "Log de Auditoria",
