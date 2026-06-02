@@ -136,9 +136,10 @@ test("manager.stub.ts exports every name statically imported from @/mitm/manager
   const imported = new Set<string>();
   collectImports(appDir, imported);
 
-  // Sanity: the suite is meaningless if it finds nothing to check.
+  // Sanity: the guard is meaningless if the scan finds nothing to check. Kept generic
+  // (>= 1 import) rather than asserting a specific symbol, so the test stays valid if any
+  // single agent-bridge/traffic-inspector route is later renamed or removed.
   assert.ok(imported.size > 0, "expected at least one static @/mitm/manager import in src/app");
-  assert.ok(imported.has("getAllAgentsStatus"), "fixture: agent-bridge/state imports getAllAgentsStatus");
 
   const stubSrc = fs.readFileSync(
     path.join(process.cwd(), "src", "mitm", "manager.stub.ts"),

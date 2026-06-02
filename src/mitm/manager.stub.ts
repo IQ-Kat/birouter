@@ -13,13 +13,14 @@ export const clearCachedPassword = () => {};
 export const getMitmStatus = async () => {
   throw new Error(STUB_ERROR);
 };
-// Statically imported by /api/tools/agent-bridge/state — the stub must export it or
-// the Turbopack build fails ("Export getAllAgentsStatus doesn't exist"). MITM/agent
-// bridge needs host-level access and is non-functional in the bundled build anyway,
-// so this throws like the other heavy ops. See issue #3066.
-export const getAllAgentsStatus = (): never => {
-  throw new Error(STUB_ERROR);
-};
+// Statically imported by /api/tools/agent-bridge/state, so the stub MUST export it or
+// the Turbopack build fails ("Export getAllAgentsStatus doesn't exist"). Unlike the
+// heavy ops above (dynamic-import paths that should never hit the stub at runtime), a
+// static import IS baked into the bundled build, so this is legitimately reached at
+// runtime there — it returns the truthful "no agents" state (an empty list) instead of
+// throwing. MITM/agent bridge needs host-level access and is otherwise non-functional
+// in a bundled/container build. See issue #3066.
+export const getAllAgentsStatus = (): never[] => [];
 export const startMitm = async (
   _apiKey: string,
   _sudoPassword: string,
