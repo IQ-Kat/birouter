@@ -142,9 +142,13 @@ test.describe("Group B — Quota Plans Config", () => {
       await selector.selectOption({ label: /codex/i });
     }
 
-    // After selection, the page should not be in a broken state
+    // After selection, the page should not be in a broken state.
+    // Note: page.content() includes the full HTML source, which contains Next.js
+    // chunk filenames — those hashes can legitimately contain the string "500".
+    // Checking for "500" in raw HTML is unreliable; instead check for the actual
+    // error boundary text that OmniRoute renders on unrecoverable errors
+    // (src/app/error.tsx heading: "Internal Server Error").
     const pageContent = await page.content();
-    expect(pageContent).not.toContain("500");
     expect(pageContent).not.toContain("Internal Server Error");
   });
 });
