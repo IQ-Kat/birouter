@@ -126,7 +126,14 @@ function isLocalOpenAIStyleProvider(provider: string): boolean {
   return isSelfHostedChatProvider(provider);
 }
 
-const NAMED_OPENAI_STYLE_PROVIDERS = new Set(["modal", "reka", "empower", "nous-research", "poe"]);
+const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
+  "modal",
+  "reka",
+  "empower",
+  "nous-research",
+  "poe",
+  "siliconflow",
+]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
   return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
@@ -1965,8 +1972,6 @@ export async function GET(
         source: "local_catalog",
       });
     }
-
-
 
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
