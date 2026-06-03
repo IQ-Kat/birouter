@@ -33,7 +33,11 @@ async function seedConnection(provider: string, overrides: any = {}) {
     authType: overrides.authType || "apikey",
     name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
     email: overrides.email,
-    apiKey: overrides.apiKey || "sk-test",
+    // Unique per connection by default — real accounts have distinct keys, and
+    // createProviderConnection dedups by decrypted key value (#3023), so a shared
+    // default would collapse multiple seeded connections into one and break
+    // round-robin / least-used / fallback selection tests.
+    apiKey: overrides.apiKey || `sk-test-${Math.random().toString(16).slice(2, 10)}`,
     accessToken: overrides.accessToken,
     refreshToken: overrides.refreshToken,
     isActive: overrides.isActive ?? true,
