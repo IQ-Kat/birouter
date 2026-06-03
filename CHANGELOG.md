@@ -4,6 +4,12 @@
 
 ---
 
+## [3.8.9] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.9` and finalized by the release flow._
+
+---
+
 ## [3.8.8] — 2026-06-03
 
 ### Added
