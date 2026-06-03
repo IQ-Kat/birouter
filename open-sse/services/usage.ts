@@ -1367,7 +1367,6 @@ export const USAGE_FETCHER_PROVIDERS = [
   "bailian-coding-plan",
   "nanogpt",
   "deepseek",
-  "opencode-go",
   "opencode",
   "opencode-zen",
 ] as const;
@@ -1428,7 +1427,6 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
-    case "opencode-go":
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");

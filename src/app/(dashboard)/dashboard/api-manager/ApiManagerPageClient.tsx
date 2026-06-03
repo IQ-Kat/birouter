@@ -330,11 +330,12 @@ export default function ApiManagerPageClient() {
         );
 
         // Match call logs by unique ID as well for the lastUsed timestamp
+        // Prefer an exact apiKeyId match; fall back to name match for legacy
+        // logs that predate per-key IDs (apiKeyId absent).
         const lastUsed =
-          (logs || []).find((log: any) => log.apiKeyId === key.id)?.timestamp || null;
-        (logs || []).find(
-          (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
-        )?.timestamp || null;
+          (logs || []).find(
+            (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
+          )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests,

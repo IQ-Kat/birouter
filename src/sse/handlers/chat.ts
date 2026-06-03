@@ -133,7 +133,9 @@ const COMBOS_CACHE_TTL_MS = 10_000;
 
 async function getCombosCachedForChat(): Promise<unknown[]> {
   const now = Date.now();
-  if (combosCachePromise && now - combosCacheTs < COMBOS_CACHE_TTL_MS) {
+  // Explicit non-null check: we intentionally cache and return the Promise
+  // itself (to dedupe concurrent callers), so this is not a forgotten await.
+  if (combosCachePromise !== null && now - combosCacheTs < COMBOS_CACHE_TTL_MS) {
     return combosCachePromise;
   }
 

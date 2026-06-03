@@ -770,7 +770,7 @@ function getSelectionMutexKey(provider: string, options: CredentialSelectionOpti
 }
 
 function createSelectionLock(key: string) {
-  const currentMutex = selectionMutexes.get(key) || Promise.resolve();
+  const currentMutex = selectionMutexes.get(key) ?? Promise.resolve();
   let resolveMutex: (() => void) | undefined;
   const nextMutex = new Promise<void>((resolve) => {
     resolveMutex = resolve;
