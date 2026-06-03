@@ -7,6 +7,7 @@ import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws
 import { getModelInfo } from "@/sse/services/model";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
+import { resolveCodexWsModelInfo } from "./modelResolution";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -124,7 +125,9 @@ async function prepare(body: JsonRecord) {
     typeof responseBody.model === "string" && responseBody.model.trim()
       ? responseBody.model.trim()
       : "gpt-5.5";
-  const modelInfo = await getModelInfo(requestedModel);
+  // codex-only bridge: re-resolve bare ChatGPT model ids (the Codex CLI rejects
+  // provider-prefixed ids client-side over WebSocket) as codex models.
+  const modelInfo = await resolveCodexWsModelInfo(requestedModel, getModelInfo);
   const provider = modelInfo.provider;
   const model = modelInfo.model || requestedModel;
 
