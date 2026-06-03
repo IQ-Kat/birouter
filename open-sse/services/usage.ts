@@ -1090,6 +1090,43 @@ async function getDeepseekUsage(connectionId: string, apiKey: string) {
   }
 }
 
+// Xiaomi MiMo Token Plan monthly limit (tokens). Keep in sync with the
+// "xiaomi-mimo" preset in src/lib/quota/planRegistry.ts.
+const XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT = 4_100_000_000;
+
+/**
+ * Xiaomi MiMo — SELF-TRACKED monthly quota.
+ *
+ * Xiaomi exposes plan usage only behind the console session cookie (the API key
+ * cannot reach the `tokenPlan/usage` endpoint), so there is no upstream usage
+ * API to call. Instead we count the tokens OmniRoute itself routed to this
+ * connection in the current UTC month (from `usage_history`) and compare them
+ * to the known Token Plan monthly limit. This reflects only traffic that went
+ * through OmniRoute, not the provider's own dashboard figure.
+ */
+async function getXiaomiMimoUsage(connectionId: string) {
+  if (!connectionId) {
+    return { message: "Xiaomi MiMo: connection id unavailable for self-tracked quota." };
+  }
+  try {
+    const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
+    const used = getMonthlyProviderTokensForConnection("xiaomi-mimo", connectionId);
+    const total = XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT;
+    const now = new Date();
+    const resetAt = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+    ).toISOString();
+    return {
+      plan: "Xiaomi MiMo Token Plan (OmniRoute-tracked)",
+      quotas: {
+        monthly: createQuotaFromUsage(used, total, resetAt),
+      },
+    };
+  } catch (error) {
+    return { message: `Xiaomi MiMo self-tracked usage error: ${(error as Error).message}` };
+  }
+}
+
 /**
  * OpenCode Go / OpenCode / OpenCode Zen Usage
  * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
@@ -1408,6 +1445,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "deepseek",
   "opencode",
   "opencode-zen",
+  "xiaomi-mimo",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -1469,6 +1507,8 @@ export async function getUsageForProvider(
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
+    case "xiaomi-mimo":
+      return await getXiaomiMimoUsage(id || "");
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -2989,6 +3029,7 @@ export const __testing = {
   createMiniMaxQuotaFromPercent,
   getMiniMaxRemainingPercent,
   getMiniMaxUsage,
+  getXiaomiMimoUsage,
   getMiniMaxAuthErrorMessage,
   getMiniMaxErrorSummary,
   mapCodeAssistSubscriptionToPlanLabel,

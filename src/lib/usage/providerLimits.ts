@@ -60,6 +60,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "crof",
   "nanogpt",
   "deepseek",
+  "xiaomi-mimo",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -476,14 +477,17 @@ async function fetchLiveProviderLimitsWithOptions(
     if (proxyConfig && isThrownNetworkError) {
       if (failClosedOnProxyFailure) {
         console.warn(
-          `[ProviderLimits] Account-scoped ${connection.provider} proxy fetch failed for ${connectionId}; failing closed without direct retry:`,
+          "[ProviderLimits] Account-scoped %s proxy fetch failed for %s; failing closed without direct retry:",
+          connection.provider,
+          connectionId,
           error?.message
         );
         throw error;
       }
 
       console.warn(
-        `[ProviderLimits] Proxy fetch threw for ${connectionId}, retrying without proxy:`,
+        "[ProviderLimits] Proxy fetch threw for %s, retrying without proxy:",
+        connectionId,
         error?.message
       );
       result = await fetchUsageWithContext(null);
@@ -499,14 +503,17 @@ async function fetchLiveProviderLimitsWithOptions(
           ? result.usage.message
           : "Provider-limits proxy request failed";
       console.warn(
-        `[ProviderLimits] Account-scoped ${connection.provider} proxy usage failed for ${connectionId}; failing closed without direct retry:`,
+        "[ProviderLimits] Account-scoped %s proxy usage failed for %s; failing closed without direct retry:",
+        connection.provider,
+        connectionId,
         message
       );
       throw withStatus(new Error(message), 503);
     }
 
     console.warn(
-      `[ProviderLimits] Proxy usage returned network error for ${connectionId}, retrying without proxy:`,
+      "[ProviderLimits] Proxy usage returned network error for %s, retrying without proxy:",
+      connectionId,
       result.usage.message
     );
     result = await fetchUsageWithContext(null);

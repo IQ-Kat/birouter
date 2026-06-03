@@ -3026,6 +3026,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "crof",
   "nanogpt",
   "deepseek",
+  "xiaomi-mimo",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──
