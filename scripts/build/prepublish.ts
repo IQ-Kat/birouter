@@ -296,7 +296,7 @@ if (existsSync(docsMarkdownSrc)) {
     cpSync(join(docsMarkdownSrc, mdFile), join(docsDest, mdFile));
   }
   if (mdFiles.length > 0) {
-    console.log(`[prepublish] Copied ${mdFiles.length} docs markdown files to app/docs/`);
+    console.log(`[prepublish] Copied ${mdFiles.length} docs markdown files to dist/docs/`);
   }
 }
 
