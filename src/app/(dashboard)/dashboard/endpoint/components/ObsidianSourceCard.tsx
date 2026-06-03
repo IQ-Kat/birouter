@@ -398,7 +398,7 @@ export default function ObsidianSourceCard() {
               </div>
               <p className="text-[10px] text-text-muted">
                 Sync your vault to Obsidian mobile using WebDAV over Tailscale.
-                Install the "WebDAV Sync" plugin on Obsidian mobile.
+                Install the &quot;WebDAV Sync&quot; plugin on Obsidian mobile.
               </p>
 
               {!webdavEnabled ? (
@@ -447,7 +447,7 @@ export default function ObsidianSourceCard() {
                   <div className="flex flex-col gap-2 rounded-lg border border-border/50 bg-black/10 p-3">
                     <p className="text-[11px] text-text-muted font-medium">Configure Obsidian Mobile</p>
                     <p className="text-[10px] text-text-muted">
-                      Install the "WebDAV Sync" plugin, then enter the following:
+                      Install the &quot;WebDAV Sync&quot; plugin, then enter the following:
                     </p>
 
                     <div className="flex flex-col gap-1.5">
