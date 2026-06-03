@@ -16,9 +16,23 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.9` and finalized by the release flow._
 
+### ✨ New Features
+
+- **Obsidian context source — 24 MCP tools** (`read:obsidian` / `write:obsidian`) — search, read, write, and bidirectional sync against a local Obsidian vault via the [Local REST API community plugin](https://github.com/obsidianmd/obsidian-local-rest-api). Dashboard "Context Sources" tab, settings API, DB config. (#3077 — thanks @branben)
+
 ### 🔧 Bug Fixes
 
+- **providers:** fix claude-web persistent 403 — `execute()` was calling the synchronous `normalizeClaudeSessionCookie()` which never injects `cf_clearance`; changed to async `normalizeClaudeSessionCookieWithAutoRefresh()` with `allowAutoSolve:true`. Also removes dead executor `claude-web-auto-refresh.ts` and correctly reclassifies `duckduckgo-web` and `veoaifree-web` as `NOAUTH_PROVIDERS`. (#3090 — thanks @oyi77)
+- **autoCombo:** rotate across all provider connections, never waste capacity — `buildAutoCandidates` now expands each provider into one candidate per active connection (e.g. 43 Cerebras keys → 43 candidates). Adds `ScoreTierRotator` with per-combo round-robin state, combo-name-aware tier preferences (smart/fast/cheap/coding), `connectionDensity` factor (weight 0.05), and budget-cap degradation using the rotator. (#3078 — thanks @oyi77)
 - **cache:** preserve client-side `cache_control` breakpoints for Xiaomi MiMo — added `xiaomi-mimo` to the prompt-caching provider allowlist so Claude Code (via cc-switch) cache hints are no longer stripped by the OpenAI-format translator, restoring cache hits. ([#3088](https://github.com/diegosouzapw/OmniRoute/issues/3088))
+
+### 📦 Dependencies
+
+- **electron:** bump to 42.3.2 (crash fix desktopCapturer, Chromium 148.0.7778.218, ThinLTO perf) (#3083)
+- **electron-updater:** bump to 6.8.8 (security: harden auto-update flow against path traversal and env var intercepts) (#3084)
+- **electron-builder:** bump to 26.14.0 (security hardening, pure-JS blockmap/icon migration) (#3082)
+- **dev deps:** bump eslint-config-next 16.2.7, lint-staged 17.0.7, typescript-eslint 8.60.1, vitest 4.1.8 (#3086)
+- **prod deps:** bump next 16.2.7, react/react-dom 19.2.7, tsx 4.22.4, ws 8.21.0, parse5 8.0.1, commander 15.0.0, and 15 other packages (#3085)
 
 ---
 
