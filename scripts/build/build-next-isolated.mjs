@@ -12,10 +12,9 @@ import {
 } from "./assembleStandalone.mjs";
 
 /**
- * This repository contains a legacy `app/` snapshot (packaging/runtime artifacts)
- * alongside the active Next.js source in `src/app/`. Next.js route discovery scans
- * both and fails the build on legacy files. We temporarily move the legacy folder
- * out of the project root during `next build`, then restore it in all outcomes.
+ * Layer 1: `app/` has been renamed to `dist/` and the App-Router collision is gone.
+ * The only transient paths remaining are `.tmp/wine32` (Wine prefix used by some
+ * older build tools) and `_tasks` (planning workspace).
  */
 
 const projectRoot = process.cwd();
@@ -24,11 +23,6 @@ const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pi
 
 export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
   const paths = [
-    {
-      label: "legacy app snapshot",
-      sourcePath: path.join(rootDir, "app"),
-      backupPath: path.join(backupRoot, "app"),
-    },
     {
       label: "local Wine prefix",
       sourcePath: path.join(rootDir, ".tmp", "wine32"),

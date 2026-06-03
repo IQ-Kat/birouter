@@ -9,7 +9,7 @@
   },
   "files": [
     "bin/",
-    "app/",
+    "dist/",
     "src/lib/cli-helper/",
     "@omniroute/",
     "open-sse/mcp-server/index.ts",

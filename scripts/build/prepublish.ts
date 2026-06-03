@@ -4,7 +4,7 @@
  * OmniRoute — Prepublish Build Script
  *
  * Consumes the .build/next/standalone artifact produced by `npm run build`
- * (build-next-isolated.mjs) and assembles the npm staging `app/` directory.
+ * (build-next-isolated.mjs) and assembles the npm staging `dist/` directory.
  * Does NOT run a second `next build` — the caller must run `npm run build` first,
  * or this script will invoke it exactly once if the artifact is absent.
  *
@@ -39,7 +39,7 @@ const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
-const APP_DIR = join(ROOT, "app");
+const DIST_DIR = join(ROOT, "dist");
 
 function walkFiles(dir: string, rootDir: string = dir, files: string[] = []): string[] {
   let entries: string[] = [];
@@ -110,11 +110,10 @@ function removeEmptyDirectories(dir: string): boolean {
 
 console.log("🔨 OmniRoute — Building for npm publish...\n");
 
-// ── Step 1: Clean previous app/ directory ──────────────────
-// KEEP for now (deleted in Layer 1 rename hack removal).
-if (existsSync(APP_DIR)) {
-  console.log("  🧹 Cleaning previous app/ directory...");
-  rmSync(APP_DIR, { recursive: true, force: true });
+// ── Step 1: Clean previous dist/ directory ─────────────────
+if (existsSync(DIST_DIR)) {
+  console.log("  🧹 Cleaning previous dist/ directory...");
+  rmSync(DIST_DIR, { recursive: true, force: true });
 }
 
 // ── Step 2: Assert / trigger the Next.js standalone build ──
@@ -137,33 +136,23 @@ if (!existsSync(standaloneServerJs)) {
 }
 console.log("  ✅ Standalone artifact present:", standaloneServerJs);
 
-// ── Step 2.5: Remove app/ before assembly ──────────────────
-// CRITICAL: The postinstall script may create app/node_modules/@swc/helpers/,
-// which causes Next.js 16 to interpret app/ as an App Router directory
-// (competing with src/app/). We keep this guard in case postinstall re-runs
-// between the clean above and here.  (Removed in Layer 1.)
-if (existsSync(APP_DIR)) {
-  console.log("  🧹 Removing app/ created by postinstall (App Router conflict fix)...");
-  rmSync(APP_DIR, { recursive: true, force: true });
-}
-
-// ── Step 3–7: Assemble standalone into app/ ────────────────
+// ── Step 3–7: Assemble standalone into dist/ ───────────────
 // All shared copy/sync/sanitize/chunk-patch operations are delegated to
 // assembleStandalone.  npm-UNIQUE steps (MITM, MCP, CLI, sidecars) follow.
-console.log("  📋 Assembling standalone bundle into app/...");
+console.log("  📋 Assembling standalone bundle into dist/...");
 assembleStandalone({
   distDir: join(ROOT, NEXT_DIST),
-  outDir: APP_DIR,
+  outDir: DIST_DIR,
   projectRoot: ROOT,
   sanitizePaths: true,
   patchTurbopackChunks: true,
   copyNatives: true,
 });
-console.log("  ✅ Standalone bundle assembled to app/");
+console.log("  ✅ Standalone bundle assembled to dist/");
 
 // ── Step 8: Compile + copy MITM cert utilities ─────────────
 const mitmSrc = join(ROOT, "src", "mitm");
-const mitmDest = join(APP_DIR, "src", "mitm");
+const mitmDest = join(DIST_DIR, "src", "mitm");
 if (existsSync(mitmSrc)) {
   console.log("  🔨 Compiling MITM utilities (TypeScript → JavaScript)...");
   mkdirSync(mitmDest, { recursive: true });
@@ -206,7 +195,7 @@ if (existsSync(mitmSrc)) {
     if (existsSync(mitmServerSrc)) {
       cpSync(mitmServerSrc, join(mitmDest, "server.cjs"));
     }
-    console.log("  ✅ MITM utilities compiled to app/src/mitm/");
+    console.log("  ✅ MITM utilities compiled to dist/src/mitm/");
   } catch (err: any) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);
     // Fallback: copy source files so at least they are present
@@ -221,7 +210,7 @@ if (existsSync(mitmSrc)) {
 
 // ── Step 8.5: Bundle MCP server ────────────────────────────
 const mcpSrcFile = join(ROOT, "open-sse", "mcp-server", "server.ts");
-const mcpDestDir = join(APP_DIR, "open-sse", "mcp-server");
+const mcpDestDir = join(DIST_DIR, "open-sse", "mcp-server");
 const mcpDestFile = join(mcpDestDir, "server.js");
 
 if (existsSync(mcpSrcFile)) {
@@ -237,11 +226,11 @@ if (existsSync(mcpSrcFile)) {
         "--platform=node",
         "--packages=external",
         "--format=esm",
-        "--outfile=app/open-sse/mcp-server/server.js",
+        "--outfile=dist/open-sse/mcp-server/server.js",
       ],
       { cwd: ROOT, stdio: "inherit" }
     );
-    console.log("  ✅ MCP Server bundled to app/open-sse/mcp-server/server.js");
+    console.log("  ✅ MCP Server bundled to dist/open-sse/mcp-server/server.js");
   } catch (err: any) {
     console.warn("  ⚠️  MCP Server bundle error:", err.message);
   }
@@ -276,7 +265,7 @@ if (existsSync(cliSrcFile)) {
 
 // ── Step 9: Copy shared utilities needed at runtime ────────
 const sharedApiKey = join(ROOT, "src", "shared", "utils", "apiKey.js");
-const sharedApiKeyDest = join(APP_DIR, "src", "shared", "utils");
+const sharedApiKeyDest = join(DIST_DIR, "src", "shared", "utils");
 if (existsSync(sharedApiKey)) {
   console.log("  📋 Copying shared utilities...");
   mkdirSync(sharedApiKeyDest, { recursive: true });
@@ -286,19 +275,19 @@ if (existsSync(sharedApiKey)) {
 // ── Step 9.5: Copy minimal runtime sidecars required outside .next ─────────
 const envExampleSrc = join(ROOT, ".env.example");
 if (existsSync(envExampleSrc)) {
-  cpSync(envExampleSrc, join(APP_DIR, ".env.example"));
+  cpSync(envExampleSrc, join(DIST_DIR, ".env.example"));
 }
 
 const openapiSpecSrc = join(ROOT, "docs", "openapi.yaml");
 if (existsSync(openapiSpecSrc)) {
-  const docsDest = join(APP_DIR, "docs");
+  const docsDest = join(DIST_DIR, "docs");
   mkdirSync(docsDest, { recursive: true });
   cpSync(openapiSpecSrc, join(docsDest, "openapi.yaml"));
 }
 
 const docsMarkdownSrc = join(ROOT, "docs");
 if (existsSync(docsMarkdownSrc)) {
-  const docsDest = join(APP_DIR, "docs");
+  const docsDest = join(DIST_DIR, "docs");
   mkdirSync(docsDest, { recursive: true });
   const mdFiles = readdirSync(docsMarkdownSrc).filter(
     (f) => f.endsWith(".md") || f.endsWith(".mdx")
@@ -313,26 +302,26 @@ if (existsSync(docsMarkdownSrc)) {
 
 const syncEnvSrc = join(ROOT, "scripts", "sync-env.mjs");
 if (existsSync(syncEnvSrc)) {
-  const scriptsDest = join(APP_DIR, "scripts");
+  const scriptsDest = join(DIST_DIR, "scripts");
   mkdirSync(scriptsDest, { recursive: true });
   cpSync(syncEnvSrc, join(scriptsDest, "sync-env.mjs"));
 }
 
 const migrationsSrc = join(ROOT, "src", "lib", "db", "migrations");
 if (existsSync(migrationsSrc)) {
-  const migrationsDest = join(APP_DIR, "src", "lib", "db", "migrations");
-  mkdirSync(join(APP_DIR, "src", "lib", "db"), { recursive: true });
+  const migrationsDest = join(DIST_DIR, "src", "lib", "db", "migrations");
+  mkdirSync(join(DIST_DIR, "src", "lib", "db"), { recursive: true });
   cpSync(migrationsSrc, migrationsDest, { recursive: true, force: true });
 }
 
 const runtimeAssetDirs = [
   {
     source: join(ROOT, "open-sse", "services", "compression", "engines", "rtk", "filters"),
-    destination: join(APP_DIR, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+    destination: join(DIST_DIR, "open-sse", "services", "compression", "engines", "rtk", "filters"),
   },
   {
     source: join(ROOT, "open-sse", "services", "compression", "rules"),
-    destination: join(APP_DIR, "open-sse", "services", "compression", "rules"),
+    destination: join(DIST_DIR, "open-sse", "services", "compression", "rules"),
   },
 ];
 for (const assetDir of runtimeAssetDirs) {
@@ -343,66 +332,66 @@ for (const assetDir of runtimeAssetDirs) {
 }
 
 // ── Step 10: Ensure data/ directory exists ──────────────────
-mkdirSync(join(APP_DIR, "data"), { recursive: true });
+mkdirSync(join(DIST_DIR, "data"), { recursive: true });
 
 // ── Step 10.5: Copy @swc/helpers into standalone ───────────
-// Next.js standalone tracer sometimes omits @swc/helpers from app/node_modules/,
+// Next.js standalone tracer sometimes omits @swc/helpers from dist/node_modules/,
 // causing MODULE_NOT_FOUND at runtime. Always copy it explicitly.
 const swcHelpersSrc = join(ROOT, "node_modules", "@swc", "helpers");
-const swcHelpersDst = join(APP_DIR, "node_modules", "@swc", "helpers");
+const swcHelpersDst = join(DIST_DIR, "node_modules", "@swc", "helpers");
 if (existsSync(swcHelpersSrc) && !existsSync(swcHelpersDst)) {
-  console.log("  📋 Copying @swc/helpers to standalone app/node_modules...");
-  mkdirSync(join(APP_DIR, "node_modules", "@swc"), { recursive: true });
+  console.log("  📋 Copying @swc/helpers to standalone dist/node_modules...");
+  mkdirSync(join(DIST_DIR, "node_modules", "@swc"), { recursive: true });
   cpSync(swcHelpersSrc, swcHelpersDst, { recursive: true });
   console.log("  ✅ @swc/helpers included in standalone build.");
 }
 
-// ── Step 10.6: Remove development-only residue from staged app/ ─────────────
+// ── Step 10.6: Remove development-only residue from staged dist/ ────────────
 for (const relativePath of APP_STAGING_REMOVAL_PATHS) {
-  const targetPath = join(APP_DIR, relativePath);
+  const targetPath = join(DIST_DIR, relativePath);
   if (existsSync(targetPath)) {
-    console.log(`  🧹 Removing app/${relativePath} (not needed in npm package)...`);
+    console.log(`  🧹 Removing dist/${relativePath} (not needed in npm package)...`);
     rmSync(targetPath, { recursive: true, force: true });
-    console.log(`  ✅ app/${relativePath} removed.`);
+    console.log(`  ✅ dist/${relativePath} removed.`);
   }
 }
 
-// ── Step 10.7: Prune any staged app/ file outside the allowed runtime set ───
-const stagedFiles = walkFiles(APP_DIR);
+// ── Step 10.7: Prune any staged dist/ file outside the allowed runtime set ──
+const stagedFiles = walkFiles(DIST_DIR);
 const unexpectedStagedFiles = findUnexpectedArtifactPaths(stagedFiles, {
   exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
   prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
 });
 
 if (unexpectedStagedFiles.length > 0) {
-  console.log("  🧹 Pruning unexpected files from staged app/...");
+  console.log("  🧹 Pruning unexpected files from staged dist/...");
   unexpectedStagedFiles.forEach((unexpectedPath: string) => {
-    rmSync(join(APP_DIR, unexpectedPath), { force: true });
-    console.log(`  ✅ Removed app/${unexpectedPath}`);
+    rmSync(join(DIST_DIR, unexpectedPath), { force: true });
+    console.log(`  ✅ Removed dist/${unexpectedPath}`);
   });
-  removeEmptyDirectories(APP_DIR);
+  removeEmptyDirectories(DIST_DIR);
 }
 
-const remainingUnexpectedFiles = findUnexpectedArtifactPaths(walkFiles(APP_DIR), {
+const remainingUnexpectedFiles = findUnexpectedArtifactPaths(walkFiles(DIST_DIR), {
   exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
   prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
 });
 
 if (remainingUnexpectedFiles.length > 0) {
-  console.error("\n  ❌ Staged app/ still contains unexpected publish artifacts:");
-  remainingUnexpectedFiles.forEach((violation: string) => console.error(`     - app/${violation}`));
+  console.error("\n  ❌ Staged dist/ still contains unexpected publish artifacts:");
+  remainingUnexpectedFiles.forEach((violation: string) => console.error(`     - dist/${violation}`));
   process.exit(1);
 }
 
 // ── Done ───────────────────────────────────────────────────
-const appPkg = join(APP_DIR, "package.json");
-if (existsSync(appPkg)) {
-  const pkg = JSON.parse(readFileSync(appPkg, "utf8"));
+const distPkg = join(DIST_DIR, "package.json");
+if (existsSync(distPkg)) {
+  JSON.parse(readFileSync(distPkg, "utf8"));
   console.log(`\n  ✅ Build complete!`);
-  console.log(`     App directory: app/`);
-  console.log(`     Server entry:  app/server.js`);
+  console.log(`     Dist directory: dist/`);
+  console.log(`     Server entry:  dist/server.js`);
 } else {
-  console.log(`\n  ✅ Build complete! (app/ ready for publish)`);
+  console.log(`\n  ✅ Build complete! (dist/ ready for publish)`);
 }
 
 console.log("");

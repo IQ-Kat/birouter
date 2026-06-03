@@ -406,6 +406,25 @@ export function assembleStandalone({
     fsSync.cpSync(standaloneDir, resolvedOutDir, { recursive: true });
   }
 
+  // 1.5. Fix package.json in outDir: Next.js standalone's server.js is CommonJS (uses require()),
+  // but the root package.json (which Next copies into the standalone) has "type":"module".
+  // Remove "type" from the outDir's package.json so Node.js treats .js files as CJS in this dir.
+  // Without this, `node server.js` (or `import("./server.js")`) fails with
+  //   ReferenceError: require is not defined in ES module scope
+  const outDirPkgJson = path.join(resolvedOutDir, "package.json");
+  if (fsSync.existsSync(outDirPkgJson)) {
+    try {
+      const pkg = JSON.parse(fsSync.readFileSync(outDirPkgJson, "utf8"));
+      if (pkg.type === "module") {
+        delete pkg.type;
+        fsSync.writeFileSync(outDirPkgJson, JSON.stringify(pkg, null, 2) + "\n");
+        console.log("[assembleStandalone] Removed 'type':'module' from standalone package.json (server.js is CJS)");
+      }
+    } catch (err) {
+      console.warn(`[assembleStandalone] Could not patch standalone package.json: ${err.message}`);
+    }
+  }
+
   // 2. Copy <distDir>/static -> resolvedOutDir/.next/static
   const staticSrc = path.join(distDir, "static");
   const staticDest = path.join(resolvedOutDir, ".next", "static");

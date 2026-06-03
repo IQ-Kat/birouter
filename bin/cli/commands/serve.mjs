@@ -10,7 +10,7 @@ import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..", "..");
-const APP_DIR = join(ROOT, "app");
+const APP_DIR = join(ROOT, "dist");
 
 function parsePort(value, fallback) {
   const parsed = parseInt(String(value), 10);
