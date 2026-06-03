@@ -19,7 +19,7 @@ import {
  */
 
 const projectRoot = process.cwd();
-const distDir = path.resolve(process.env.NEXT_DIST_DIR || ".next");
+const distDir = path.resolve(process.env.NEXT_DIST_DIR || ".build/next");
 const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
 
 export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
@@ -121,7 +121,8 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
 
 async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
   // Use the module-level distDir so NEXT_DIST_DIR is respected
-  const resolvedDistDir = rootDir === projectRoot ? distDir : path.join(rootDir, ".next");
+  const resolvedDistDir =
+    rootDir === projectRoot ? distDir : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
   const standaloneRoot = path.join(resolvedDistDir, "standalone");
   if (!(await exists(standaloneRoot))) return;
 
@@ -132,7 +133,9 @@ async function resetStandaloneOutput(rootDir = projectRoot, fsImpl = fs) {
 }
 
 export async function pruneStandaloneArtifacts(rootDir = projectRoot, fsImpl = fs) {
-  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const resolvedDistDirForPrune =
+    rootDir === projectRoot ? distDir : path.join(rootDir, process.env.NEXT_DIST_DIR || ".build/next");
+  const standaloneRoot = path.join(resolvedDistDirForPrune, "standalone");
   const pruneTargets = [path.join(standaloneRoot, "_tasks")];
 
   for (const targetPath of pruneTargets) {

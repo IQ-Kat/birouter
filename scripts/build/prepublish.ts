@@ -3,7 +3,7 @@
 /**
  * OmniRoute — Prepublish Build Script
  *
- * Consumes the .next/standalone artifact produced by `npm run build`
+ * Consumes the .build/next/standalone artifact produced by `npm run build`
  * (build-next-isolated.mjs) and assembles the npm staging `app/` directory.
  * Does NOT run a second `next build` — the caller must run `npm run build` first,
  * or this script will invoke it exactly once if the artifact is absent.
@@ -119,12 +119,12 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 2: Assert / trigger the Next.js standalone build ──
 // prepublish no longer runs its own `next build`.  It consumes the
-// .next/standalone artifact produced by `npm run build` (build-next-isolated.mjs).
+// .build/next/standalone artifact produced by `npm run build` (build-next-isolated.mjs).
 // If the artifact is absent we invoke it exactly once.
-const NEXT_DIST = process.env.NEXT_DIST_DIR || ".next";
+const NEXT_DIST = process.env.NEXT_DIST_DIR || ".build/next";
 const standaloneServerJs = join(ROOT, NEXT_DIST, "standalone", "server.js");
 if (!existsSync(standaloneServerJs)) {
-  console.log("  🏗️  .next/standalone not found — running `npm run build` once...");
+  console.log("  🏗️  .build/next/standalone not found — running `npm run build` once...");
   execFileSync(process.execPath, ["scripts/build/build-next-isolated.mjs"], {
     cwd: ROOT,
     stdio: "inherit",

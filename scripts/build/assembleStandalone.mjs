@@ -64,24 +64,25 @@ async function exists(targetPath) {
 /**
  * Copy native standalone assets (wreq-js rust/, better-sqlite3 build/).
  *
- * The destination is derived as <rootDir>/.next/standalone/node_modules/...
+ * The destination is derived as <rootDir>/<distDir>/standalone/node_modules/...
  * for backward compatibility with existing callers and tests.
  *
- * @param {string} rootDir      - project root (node_modules are read from here; destination is .next/standalone inside rootDir)
+ * @param {string} rootDir      - project root (node_modules are read from here)
  * @param {typeof fs} [fsImpl]  - fs/promises implementation (injectable for tests)
  * @param {Console|{log:Function}} [log] - logger
  * @returns {Promise<boolean>} true if any asset was copied
  */
 export async function syncStandaloneNativeAssets(rootDir, fsImpl = fs, log = console) {
-  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const nextDistDir = process.env.NEXT_DIST_DIR || ".build/next";
+  const standaloneRoot = path.join(rootDir, nextDistDir, "standalone");
   return syncNativeAssetsToDir(rootDir, standaloneRoot, fsImpl, log);
 }
 
 /**
- * Copy extra modules and sidecars into .next/standalone.
+ * Copy extra modules and sidecars into the Next.js standalone output.
  *
- * The destination is derived as <rootDir>/.next/standalone/...
- * for backward compatibility with existing callers and tests.
+ * The destination is derived as <rootDir>/<distDir>/standalone/...
+ * where distDir defaults to ".build/next" (overridable via NEXT_DIST_DIR).
  *
  * @param {string} rootDir      - project root
  * @param {typeof fs} [fsImpl]  - fs/promises implementation (injectable for tests)
@@ -89,7 +90,8 @@ export async function syncStandaloneNativeAssets(rootDir, fsImpl = fs, log = con
  * @returns {Promise<boolean>} true if any module was copied
  */
 export async function syncStandaloneExtraModules(rootDir, fsImpl = fs, log = console) {
-  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+  const nextDistDir = process.env.NEXT_DIST_DIR || ".build/next";
+  const standaloneRoot = path.join(rootDir, nextDistDir, "standalone");
   return syncExtraModulesToDir(rootDir, standaloneRoot, fsImpl, log);
 }
 

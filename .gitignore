@@ -31,7 +31,6 @@ docs/new-features/
 
 # dependencies
 node_modules/
-dist/
 *.map
 .DS_Store
 
@@ -106,6 +105,13 @@ backup/
 # Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
 # npm publish still includes it via package.json "files" field
 /app/
+
+# Build intermediates (.build/) and shippable standalone (dist/).
+# These are fully reproducible from source; never committed.
+# Layer 1: Next.js now writes to .build/next (was .next); assembled bundle → dist/
+/.build/
+/dist/
+/.next/
 
 # Electron
 electron/dist-electron/
