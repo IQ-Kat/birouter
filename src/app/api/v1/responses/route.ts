@@ -1,6 +1,6 @@
 import { handleChat } from "@/sse/handlers/chat";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
-import { resolveResponsesApiModel } from "../internal/codex-responses-ws/modelResolution";
+import { resolveResponsesApiModel } from "@/app/api/internal/codex-responses-ws/modelResolution";
 import { getModelInfo } from "@/sse/services/model";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
