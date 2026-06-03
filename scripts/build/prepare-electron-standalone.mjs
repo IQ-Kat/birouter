@@ -9,10 +9,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
 
-const NEXT_DIST_DIR = process.env.NEXT_DIST_DIR || ".next";
+const NEXT_DIST_DIR = process.env.NEXT_DIST_DIR || ".build/next";
 const DIST_DIR = join(ROOT, NEXT_DIST_DIR);
 const STANDALONE_DIR = join(DIST_DIR, "standalone");
-const ELECTRON_STANDALONE_DIR = join(ROOT, NEXT_DIST_DIR, "electron-standalone");
+const ELECTRON_STANDALONE_DIR = join(ROOT, ".build", "electron-standalone");
 
 // --- Electron-UNIQUE: resolve the nested server.js location ----------------
 
