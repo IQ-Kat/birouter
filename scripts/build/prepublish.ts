@@ -3,8 +3,10 @@
 /**
  * OmniRoute — Prepublish Build Script
  *
- * Builds the Next.js app in standalone mode and copies output
- * into the `app/` directory that gets published to npm.
+ * Consumes the .next/standalone artifact produced by `npm run build`
+ * (build-next-isolated.mjs) and assembles the npm staging `app/` directory.
+ * Does NOT run a second `next build` — the caller must run `npm run build` first,
+ * or this script will invoke it exactly once if the artifact is absent.
  *
  * Run with: node scripts/build/prepublish.ts
  */
@@ -24,6 +26,7 @@ import {
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { assembleStandalone } from "./assembleStandalone.mjs";
 import {
   APP_STAGING_ALLOWED_EXACT_PATHS,
   APP_STAGING_ALLOWED_PATH_PREFIXES,
@@ -34,7 +37,6 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
-const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const APP_DIR = join(ROOT, "app");
@@ -109,228 +111,55 @@ function removeEmptyDirectories(dir: string): boolean {
 console.log("🔨 OmniRoute — Building for npm publish...\n");
 
 // ── Step 1: Clean previous app/ directory ──────────────────
+// KEEP for now (deleted in Layer 1 rename hack removal).
 if (existsSync(APP_DIR)) {
   console.log("  🧹 Cleaning previous app/ directory...");
   rmSync(APP_DIR, { recursive: true, force: true });
 }
 
-// ── Step 2: Install dependencies ───────────────────────────
-console.log("  📦 Installing dependencies...");
-execFileSync(NPM_BIN, ["install"], { cwd: ROOT, stdio: "inherit" });
+// ── Step 2: Assert / trigger the Next.js standalone build ──
+// prepublish no longer runs its own `next build`.  It consumes the
+// .next/standalone artifact produced by `npm run build` (build-next-isolated.mjs).
+// If the artifact is absent we invoke it exactly once.
+const NEXT_DIST = process.env.NEXT_DIST_DIR || ".next";
+const standaloneServerJs = join(ROOT, NEXT_DIST, "standalone", "server.js");
+if (!existsSync(standaloneServerJs)) {
+  console.log("  🏗️  .next/standalone not found — running `npm run build` once...");
+  execFileSync(process.execPath, ["scripts/build/build-next-isolated.mjs"], {
+    cwd: ROOT,
+    stdio: "inherit",
+  });
+  if (!existsSync(standaloneServerJs)) {
+    console.error("\n  ❌ Standalone build not found after `npm run build` at:", standaloneServerJs);
+    console.error("     Make sure next.config.mjs has: output: 'standalone'");
+    process.exit(1);
+  }
+}
+console.log("  ✅ Standalone artifact present:", standaloneServerJs);
 
-// ── Step 2.5: Remove app/ directory before build ───────────
+// ── Step 2.5: Remove app/ before assembly ──────────────────
 // CRITICAL: The postinstall script may create app/node_modules/@swc/helpers/,
 // which causes Next.js 16 to interpret app/ as an App Router directory
-// (competing with src/app/). This makes the build silently skip all real
-// routes, producing a standalone with only _global-error and _not-found.
-// We MUST remove app/ before running `next build`.
+// (competing with src/app/). We keep this guard in case postinstall re-runs
+// between the clean above and here.  (Removed in Layer 1.)
 if (existsSync(APP_DIR)) {
   console.log("  🧹 Removing app/ created by postinstall (App Router conflict fix)...");
   rmSync(APP_DIR, { recursive: true, force: true });
 }
 
-// ── Step 3: Build Next.js ──────────────────────────────────
-console.log("  🏗️  Building Next.js (standalone)...");
-const nextBuildBundlerFlag =
-  process.env.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
-execFileSync(NPX_BIN, ["next", "build", nextBuildBundlerFlag], {
-  cwd: ROOT,
-  stdio: "inherit",
-  env: {
-    ...process.env,
-    NEXT_PRIVATE_BUILD_WORKER: "0",
-  },
+// ── Step 3–7: Assemble standalone into app/ ────────────────
+// All shared copy/sync/sanitize/chunk-patch operations are delegated to
+// assembleStandalone.  npm-UNIQUE steps (MITM, MCP, CLI, sidecars) follow.
+console.log("  📋 Assembling standalone bundle into app/...");
+assembleStandalone({
+  distDir: join(ROOT, NEXT_DIST),
+  outDir: APP_DIR,
+  projectRoot: ROOT,
+  sanitizePaths: true,
+  patchTurbopackChunks: true,
+  copyNatives: true,
 });
-
-// ── Step 4: Verify standalone output ───────────────────────
-const standaloneDir = join(ROOT, ".next", "standalone");
-const serverJs = join(standaloneDir, "server.js");
-
-if (!existsSync(serverJs)) {
-  console.error("\n  ❌ Standalone build not found at:", standaloneDir);
-  console.error("     Make sure next.config.mjs has: output: 'standalone'");
-  process.exit(1);
-}
-
-// ── Step 5: Copy standalone output to app/ ─────────────────
-// ── Step 4.5: Check build for hashed external references ──────────────────────
-// Warn if Turbopack-style hash suffixes are found — they will be resolved at
-// runtime by the externals patch in next.config.mjs, but log for visibility.
-{
-  const HASH_RE = /require\(["']([\w@./-]+-[0-9a-f]{16})["']\)/;
-  const scanDir = (
-    dir: string,
-    hits: { file: string; mod: string }[] = []
-  ): { file: string; mod: string }[] => {
-    let entries: string[] = [];
-    try {
-      entries = readdirSync(dir);
-    } catch {
-      return hits;
-    }
-    for (const e of entries) {
-      const f = join(dir, e);
-      try {
-        if (statSync(f).isDirectory()) {
-          scanDir(f, hits);
-          continue;
-        }
-        if (!f.endsWith(".js")) continue;
-        const m = readFileSync(f, "utf8").match(HASH_RE);
-        if (m) hits.push({ file: f.replace(standaloneDir, "app"), mod: m[1] });
-      } catch {
-        continue;
-      }
-    }
-    return hits;
-  };
-  const hits = scanDir(join(standaloneDir, ".next", "server"));
-  if (hits.length > 0) {
-    console.warn(
-      "  ⚠️  Hashed externals in build (will be auto-fixed at runtime by externals patch):"
-    );
-    hits.slice(0, 5).forEach((h) => console.warn());
-    if (hits.length > 5) console.warn();
-  } else {
-    console.log("  ✅ Build clean — no hashed externals found.");
-  }
-}
-
-console.log("  📋 Copying standalone build to app/...");
-mkdirSync(APP_DIR, { recursive: true });
-cpSync(standaloneDir, APP_DIR, { recursive: true });
-
-const standaloneWsSrc = join(ROOT, "scripts", "dev", "standalone-server-ws.mjs");
-const responsesWsProxySrc = join(ROOT, "scripts", "dev", "responses-ws-proxy.mjs");
-const peerStampSrc = join(ROOT, "scripts", "dev", "peer-stamp.mjs");
-if (existsSync(standaloneWsSrc) && existsSync(responsesWsProxySrc) && existsSync(peerStampSrc)) {
-  console.log("  📋 Adding Responses WebSocket standalone wrapper...");
-  cpSync(standaloneWsSrc, join(APP_DIR, "server-ws.mjs"));
-  writeFileSync(
-    join(APP_DIR, "responses-ws-proxy.mjs"),
-    'export * from "../scripts/dev/responses-ws-proxy.mjs";\n'
-  );
-  // server-ws.mjs imports ./peer-stamp.mjs (the trusted peer-IP stamp helper
-  // the authz middleware relies on). It is self-contained (node builtins only),
-  // so copy it directly alongside server-ws.mjs. Without this the wrapper throws
-  // ERR_MODULE_NOT_FOUND on boot and the server falls back to no peer stamp.
-  cpSync(peerStampSrc, join(APP_DIR, "peer-stamp.mjs"));
-}
-
-// ── Next.js Turbopack Standalone Tracer Fix ───────────────
-// Workaround for Next.js 15+ standalone mode missing Turbopack chunks
-const staticChunksSrc = join(ROOT, ".next", "server", "chunks");
-const staticChunksDest = join(APP_DIR, ".next", "server", "chunks");
-if (existsSync(staticChunksSrc)) {
-  console.log("  📋 Patching standalone build with missing Turbopack chunks...");
-  cpSync(staticChunksSrc, staticChunksDest, { recursive: true, force: false });
-}
-
-// ── Step 5.5: Sanitize hardcoded build-machine paths ───────
-// Next.js standalone bakes absolute build-time paths into server.js and
-// required-server-files.json (outputFileTracingRoot, appDir, turbopack root).
-// Replace the build machine's absolute path with "." (current directory)
-// so paths resolve relative to wherever the standalone app/ is installed.
-console.log("  🧹 Sanitizing build-machine paths...");
-const buildRoot = ROOT.replace(/\\/g, "/"); // normalise for regex safety
-const sanitizeTargets = [
-  join(APP_DIR, "server.js"),
-  join(APP_DIR, ".next", "required-server-files.json"),
-];
-let sanitisedCount = 0;
-for (const filePath of sanitizeTargets) {
-  if (!existsSync(filePath)) continue;
-  let content = readFileSync(filePath, "utf8");
-  // Escape special regex characters in the path
-  const escaped = buildRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(escaped, "g");
-  const matches = content.match(re);
-  if (matches) {
-    // Replace with "." so Next.js resolves paths relative to the standalone dir
-    content = content.replace(re, ".");
-    writeFileSync(filePath, content);
-    sanitisedCount += matches.length;
-  }
-}
-if (sanitisedCount > 0) {
-  console.log(`  ✅ Sanitised ${sanitisedCount} hardcoded path references`);
-} else {
-  console.log("  ℹ️  No hardcoded paths found to sanitise");
-}
-
-// ── Step 5.6: Strip Turbopack hashed externals from compiled chunks ─────────
-// Even when Turbopack is disabled at build time, some instrumentation chunks
-// may still emit require('package-<16hexchars>') instead of require('package').
-// These hashed names don't exist in node_modules and cause MODULE_NOT_FOUND at
-// runtime. We strip the hex suffix from all .js files in app/.next/server/
-// to ensure all require() calls use the real package names.
-{
-  const serverOutput = join(APP_DIR, ".next", "server");
-  const HASH_RE = /(['"\\])([a-z@][a-z0-9@./_-]+?-[0-9a-f]{16}(?:\/[^'"\\]+)?)\1/g;
-  let patchedFiles = 0;
-  let patchedMatches = 0;
-  const walkDir = (dir: string) => {
-    let entries: string[] = [];
-    try {
-      entries = readdirSync(dir);
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      const full = join(dir, entry);
-      try {
-        const st = statSync(full);
-        if (st.isDirectory()) {
-          walkDir(full);
-          continue;
-        }
-        if (!entry.endsWith(".js")) continue;
-        const src = readFileSync(full, "utf8");
-        let count = 0;
-        const patched = src.replace(HASH_RE, (_, q, name) => {
-          const base = name.replace(/-[0-9a-f]{16}(?=\/|$)/, "");
-          count++;
-          return `${q}${base}${q}`;
-        });
-        if (count > 0) {
-          writeFileSync(full, patched);
-          patchedFiles++;
-          patchedMatches += count;
-        }
-      } catch {
-        /* skip unreadable files */
-      }
-    }
-  };
-  if (existsSync(serverOutput)) {
-    walkDir(serverOutput);
-    if (patchedMatches > 0) {
-      console.log(
-        `  🔧 Hash-strip: patched ${patchedMatches} hashed require() in ${patchedFiles} server chunk file(s)`
-      );
-    } else {
-      console.log("  ✅ Hash-strip: no hashed externals found in compiled chunks.");
-    }
-  }
-}
-
-// ── Step 6: Copy static assets ─────────────────────────────
-const staticSrc = join(ROOT, ".next", "static");
-const staticDest = join(APP_DIR, ".next", "static");
-if (existsSync(staticSrc)) {
-  console.log("  📋 Copying static assets...");
-  mkdirSync(staticDest, { recursive: true });
-  cpSync(staticSrc, staticDest, { recursive: true });
-}
-
-// ── Step 7: Copy public/ assets ────────────────────────────
-const publicSrc = join(ROOT, "public");
-const publicDest = join(APP_DIR, "public");
-if (existsSync(publicSrc)) {
-  console.log("  📋 Copying public/ assets...");
-  mkdirSync(publicDest, { recursive: true });
-  cpSync(publicSrc, publicDest, { recursive: true });
-}
+console.log("  ✅ Standalone bundle assembled to app/");
 
 // ── Step 8: Compile + copy MITM cert utilities ─────────────
 const mitmSrc = join(ROOT, "src", "mitm");
