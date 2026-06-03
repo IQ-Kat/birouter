@@ -29,6 +29,7 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = [
 
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
+  "BUILD_SHA",
   "docs/reference/openapi.yaml",
   "open-sse/mcp-server/server.js",
   "package.json",
