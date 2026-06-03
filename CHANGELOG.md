@@ -4,7 +4,7 @@
 
 ---
 
-## [3.8.8] — 2026-06-01
+## [3.8.8] — 2026-06-03
 
 ### Added
 
@@ -61,6 +61,9 @@
 - **Dashboard page redesigns (Nav Restructure)** — agent-skills + omni-skills with a dynamic 42-skill catalog and MCP/A2A discovery (#2827); CLI Code's + CLI Agents + ACP Agents pages (#2839); translator friendly redesign, 5 tabs → 2 (#2847); functional `/batch` + `/batch/files` redesign (#2849); Playground Studio + Search Tools Studio (#2869); memory engine redesign — sqlite-vec + hybrid RRF + Studio UI (#2873). (thanks @diegosouzapw)
 - **notion:** add Notion as an MCP context source — 6 tools (`notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`, `notion_append_blocks`) scoped under `read:notion` / `write:notion`, with dashboard "Context Sources" tab, settings API, and token persistence in `key_value` table (#2959 — thanks @branben)
 - **Per-API-key stream default mode** — a per-key setting that forces JSON or SSE as the default response shape (migration `077_api_key_stream_default_mode`), so integrations that expect non-streaming JSON work without client changes. (thanks @JxnLexn)
+- **Codex Responses-over-WebSocket** — opt-out flag `OMNIROUTE_CODEX_WS_ENABLED` (default ON) upgrading Codex Responses traffic to a WebSocket bridge with a clean handshake and bridge-secret auth; the Quota Share endpoints card now surfaces the Responses + codex-WS endpoints. (thanks @diegosouzapw)
+- **Xiaomi MiMo usage tracking** — self-reported usage accounting for Xiaomi MiMo plus a monthly cap preset; DeepSeek USD preset and a Claude plan preset (percent 5h + weekly) seeded into the plan registry. (thanks @diegosouzapw)
+- **API Manager: Normal vs Quota key sections** — the API keys screen now splits keys into Normal and Quota sections in a compact 2-table layout, and the Quota Share screen gains a beta banner, live per-account upstream quota, and a real-time Codex quota view backed by the cascade-safe serialized refresh. (thanks @diegosouzapw)
 
 ### Changed
 
@@ -257,10 +260,13 @@
 - **proxy:** resolve registry proxy assignments for combo and key levels (#3048 — thanks @terence71-glitch)
 - **providers/web:** wire the session pool for fingerprint rotation on Pollinations / DuckDuckGo (#3049 — thanks @oyi77)
 - **providers/claude-web:** add `cf_clearance` cookie support and session-pool fingerprint rotation for Pollinations / DuckDuckGo (#3046 — thanks @oyi77)
+- **usage:** handle MiniMax coding-plan percent quotas (`general`/percent dimension) so MiniMax coding plans report remaining quota correctly. (thanks @diegosouzapw)
+- **home:** pass `providerId` to the quota widget icons so provider brand icons resolve on the home dashboard (#3064 — thanks @xz-dev)
+- **quota:** block `qtSd/*` models for keys with no quota-pool allocation (enforcement Check 2.9), and never flag rotating-refresh providers (Codex/OpenAI) as expired during the quota sync (#3030). (thanks @diegosouzapw)
 
 ### 🏆 Contributors
 
-A special thanks to everyone who contributed to this release — 687 commits since `v3.8.7`:
+A special thanks to everyone who contributed to this release — 746 commits since `v3.8.7`:
 
 | Contributor | PRs / Contribution |
 | --- | --- |
@@ -274,7 +280,7 @@ A special thanks to everyone who contributed to this release — 687 commits sin
 | [@Lion-killer](https://github.com/Lion-killer) | #2981, #2988 |
 | [@JxnLexn](https://github.com/JxnLexn) | per-API-key stream default mode |
 | [@androw](https://github.com/androw) | #3017 |
-| [@xz-dev](https://github.com/xz-dev) | #2975 |
+| [@xz-dev](https://github.com/xz-dev) | #2975, #3064 |
 | [@S0yora](https://github.com/S0yora) | #2964 |
 | [@NekoMonci12](https://github.com/NekoMonci12) | #3008 |
 | [@Tentoxa](https://github.com/Tentoxa) | #3010 |
@@ -284,13 +290,14 @@ A special thanks to everyone who contributed to this release — 687 commits sin
 | [@dhaern](https://github.com/dhaern) | #2927 |
 | [@dangeReis](https://github.com/dangeReis) | #3021 |
 | [@bobbyunknown](https://github.com/bobbyunknown) | #3029 |
-| [@CitrusIce](https://github.com/CitrusIce) | #3035 |
+| [@CitrusIce](https://github.com/CitrusIce) | #3035, #3058 |
 | [@wussh](https://github.com/wussh) | #3036 |
 | [@Chewji9875](https://github.com/Chewji9875) | #3037 |
 | [@herjarsa](https://github.com/herjarsa) | #3043 |
+| [@freefrank](https://github.com/freefrank) | #3066 (reported the Docker build failure) |
 
 A special thanks to everyone who contributed code, reviews, and tests for this release:
-@androw, @bobbyunknown, @branben, @charithharshana, @Chewji9875, @CitrusIce, @dangeReis, @dhaern, @diegosouzapw, @guanbear, @herjarsa, @JxnLexn, @Lion-killer, @makcimbx, @NekoMonci12, @NomenAK, @oyi77, @ReqX, @S0yora, @soyelmismo, @Tentoxa, @terence71-glitch, @wussh, @xz-dev
+@androw, @bobbyunknown, @branben, @charithharshana, @Chewji9875, @CitrusIce, @dangeReis, @dhaern, @diegosouzapw, @freefrank, @guanbear, @herjarsa, @JxnLexn, @Lion-killer, @makcimbx, @NekoMonci12, @NomenAK, @oyi77, @ReqX, @S0yora, @soyelmismo, @Tentoxa, @terence71-glitch, @wussh, @xz-dev
 
 ---
 
