@@ -284,7 +284,7 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
  * @returns {number} number of path replacements made
  */
 export function assemblePathSanitize(projectRoot, outDir, distDir = ".next") {
-  const buildRoot = projectRoot.replace(/\\/g, "/"); // normalise for regex safety
+  const buildRoot = projectRoot.replaceAll("\\", "/"); // normalise for regex safety
   const sanitizeTargets = [
     path.join(outDir, "server.js"),
     // required-server-files.json lives under the distDir (e.g. .build/next), not
@@ -297,7 +297,7 @@ export function assemblePathSanitize(projectRoot, outDir, distDir = ".next") {
     if (!fsSync.existsSync(filePath)) continue;
     let content = fsSync.readFileSync(filePath, "utf8");
     // Escape special regex characters in the path
-    const escaped = buildRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escaped = buildRoot.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     const re = new RegExp(escaped, "g");
     const matches = content.match(re);
     if (matches) {
@@ -366,6 +366,182 @@ export function patchTurbopackChunks(outDir, distDir = ".next") {
 }
 
 /**
+ * Next.js standalone's server.js is CommonJS (uses require()), but the root package.json
+ * (which Next copies into the standalone) has "type":"module". Strip "type" so Node treats
+ * .js files as CJS in the bundle dir — otherwise `node server.js` fails with
+ * "require is not defined in ES module scope".
+ *
+ * @param {string} resolvedOutDir - assembled standalone output directory
+ */
+function patchStandalonePackageJson(resolvedOutDir) {
+  const outDirPkgJson = path.join(resolvedOutDir, "package.json");
+  if (!fsSync.existsSync(outDirPkgJson)) return;
+  try {
+    const pkg = JSON.parse(fsSync.readFileSync(outDirPkgJson, "utf8"));
+    if (pkg.type !== "module") return;
+    delete pkg.type;
+    fsSync.writeFileSync(outDirPkgJson, JSON.stringify(pkg, null, 2) + "\n");
+    console.log(
+      "[assembleStandalone] Removed 'type':'module' from standalone package.json (server.js is CJS)"
+    );
+  } catch (err) {
+    console.warn(`[assembleStandalone] Could not patch standalone package.json: ${err.message}`);
+  }
+}
+
+/**
+ * Copy <distDir>/static -> outDir/<relDistDir>/static and projectRoot/public -> outDir/public.
+ * The static dest mirrors the configured distDir (e.g. .build/next), which is where the
+ * standalone server serves /_next/static from. See step 2 in assembleStandalone for why.
+ *
+ * @param {{ distDir: string, relDistDir: string, projectRoot: string, resolvedOutDir: string }} opts
+ */
+function copyStaticAndPublic({ distDir, relDistDir, projectRoot, resolvedOutDir }) {
+  const staticSrc = path.join(distDir, "static");
+  const staticDest = path.join(resolvedOutDir, relDistDir, "static");
+  if (fsSync.existsSync(staticSrc)) {
+    fsSync.mkdirSync(path.dirname(staticDest), { recursive: true });
+    fsSync.cpSync(staticSrc, staticDest, { recursive: true, force: true });
+  }
+
+  const publicSrc = path.join(projectRoot, "public");
+  if (fsSync.existsSync(publicSrc)) {
+    fsSync.cpSync(publicSrc, path.join(resolvedOutDir, "public"), { recursive: true, force: true });
+  }
+}
+
+/**
+ * Copy native assets (wreq-js, better-sqlite3) and extra runtime modules/sidecars
+ * (pino, migrations, MITM server, helper scripts, sqlite-vec platform packages, …)
+ * into the assembled bundle. Missing sources are skipped silently.
+ *
+ * @param {string} projectRoot
+ * @param {string} resolvedOutDir
+ */
+function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
+  const nativeAssets = [
+    {
+      label: "wreq-js native runtime",
+      src: path.join(projectRoot, "node_modules", "wreq-js", "rust"),
+      dest: path.join(resolvedOutDir, "node_modules", "wreq-js", "rust"),
+    },
+    {
+      label: "better-sqlite3 native binary",
+      src: path.join(projectRoot, "node_modules", "better-sqlite3", "build"),
+      dest: path.join(resolvedOutDir, "node_modules", "better-sqlite3", "build"),
+    },
+  ];
+
+  for (const asset of nativeAssets) {
+    if (!fsSync.existsSync(asset.src)) continue;
+    fsSync.mkdirSync(path.dirname(asset.dest), { recursive: true });
+    fsSync.cpSync(asset.src, asset.dest, { recursive: true, force: true });
+    console.log(`[assembleStandalone] Copied native asset: ${asset.label}`);
+  }
+
+  const extraModules = [
+    {
+      label: "@swc/helpers",
+      src: path.join(projectRoot, "node_modules", "@swc", "helpers"),
+      dest: path.join(resolvedOutDir, "node_modules", "@swc", "helpers"),
+    },
+    {
+      label: "pino-abstract-transport",
+      src: path.join(projectRoot, "node_modules", "pino-abstract-transport"),
+      dest: path.join(resolvedOutDir, "node_modules", "pino-abstract-transport"),
+    },
+    {
+      label: "pino-pretty",
+      src: path.join(projectRoot, "node_modules", "pino-pretty"),
+      dest: path.join(resolvedOutDir, "node_modules", "pino-pretty"),
+    },
+    {
+      label: "split2",
+      src: path.join(projectRoot, "node_modules", "split2"),
+      dest: path.join(resolvedOutDir, "node_modules", "split2"),
+    },
+    {
+      label: "migrations",
+      src: path.join(projectRoot, "src", "lib", "db", "migrations"),
+      dest: path.join(resolvedOutDir, "migrations"),
+    },
+    {
+      label: "MITM server",
+      src: path.join(projectRoot, "src", "mitm", "server.cjs"),
+      dest: path.join(resolvedOutDir, "src", "mitm", "server.cjs"),
+    },
+    {
+      label: "run-standalone script",
+      src: path.join(projectRoot, "scripts", "dev", "run-standalone.mjs"),
+      dest: path.join(resolvedOutDir, "dev", "run-standalone.mjs"),
+    },
+    {
+      label: "WS/peer-stamp standalone server wrapper",
+      src: path.join(projectRoot, "scripts", "dev", "standalone-server-ws.mjs"),
+      dest: path.join(resolvedOutDir, "server-ws.mjs"),
+    },
+    {
+      label: "peer-stamp helper",
+      src: path.join(projectRoot, "scripts", "dev", "peer-stamp.mjs"),
+      dest: path.join(resolvedOutDir, "peer-stamp.mjs"),
+    },
+    {
+      label: "responses-ws-proxy",
+      src: path.join(projectRoot, "scripts", "dev", "responses-ws-proxy.mjs"),
+      dest: path.join(resolvedOutDir, "responses-ws-proxy.mjs"),
+    },
+    {
+      label: "runtime-env script",
+      src: path.join(projectRoot, "scripts", "build", "runtime-env.mjs"),
+      dest: path.join(resolvedOutDir, "build", "runtime-env.mjs"),
+    },
+    {
+      label: "bootstrap-env script",
+      src: path.join(projectRoot, "scripts", "build", "bootstrap-env.mjs"),
+      dest: path.join(resolvedOutDir, "build", "bootstrap-env.mjs"),
+    },
+    {
+      label: "healthcheck script",
+      src: path.join(projectRoot, "scripts", "dev", "healthcheck.mjs"),
+      dest: path.join(resolvedOutDir, "healthcheck.mjs"),
+    },
+    {
+      label: "public directory",
+      src: path.join(projectRoot, "public"),
+      dest: path.join(resolvedOutDir, "public"),
+    },
+    {
+      label: "playwright-core",
+      src: path.join(projectRoot, "node_modules", "playwright-core"),
+      dest: path.join(resolvedOutDir, "node_modules", "playwright-core"),
+    },
+    {
+      label: "sqlite-vec wrapper",
+      src: path.join(projectRoot, "node_modules", "sqlite-vec"),
+      dest: path.join(resolvedOutDir, "node_modules", "sqlite-vec"),
+    },
+    ...[
+      "sqlite-vec-linux-x64",
+      "sqlite-vec-linux-arm64",
+      "sqlite-vec-darwin-x64",
+      "sqlite-vec-darwin-arm64",
+      "sqlite-vec-windows-x64",
+    ].map((pkg) => ({
+      label: pkg,
+      src: path.join(projectRoot, "node_modules", pkg),
+      dest: path.join(resolvedOutDir, "node_modules", pkg),
+    })),
+  ];
+
+  for (const mod of extraModules) {
+    if (!fsSync.existsSync(mod.src)) continue;
+    fsSync.mkdirSync(path.dirname(mod.dest), { recursive: true });
+    fsSync.cpSync(mod.src, mod.dest, { recursive: true, force: true });
+    console.log(`[assembleStandalone] Synced module: ${mod.label}`);
+  }
+}
+
+/**
  * Assemble the Next.js standalone bundle into outDir.
  *
  * Copies <distDir>/standalone -> outDir, then <distDir>/static -> outDir/.next/static,
@@ -414,43 +590,15 @@ export function assembleStandalone({
     fsSync.cpSync(standaloneDir, resolvedOutDir, { recursive: true });
   }
 
-  // 1.5. Fix package.json in outDir: Next.js standalone's server.js is CommonJS (uses require()),
-  // but the root package.json (which Next copies into the standalone) has "type":"module".
-  // Remove "type" from the outDir's package.json so Node.js treats .js files as CJS in this dir.
-  // Without this, `node server.js` (or `import("./server.js")`) fails with
-  //   ReferenceError: require is not defined in ES module scope
-  const outDirPkgJson = path.join(resolvedOutDir, "package.json");
-  if (fsSync.existsSync(outDirPkgJson)) {
-    try {
-      const pkg = JSON.parse(fsSync.readFileSync(outDirPkgJson, "utf8"));
-      if (pkg.type === "module") {
-        delete pkg.type;
-        fsSync.writeFileSync(outDirPkgJson, JSON.stringify(pkg, null, 2) + "\n");
-        console.log("[assembleStandalone] Removed 'type':'module' from standalone package.json (server.js is CJS)");
-      }
-    } catch (err) {
-      console.warn(`[assembleStandalone] Could not patch standalone package.json: ${err.message}`);
-    }
-  }
+  // 1.5. Standalone server.js is CJS — strip "type":"module" from the copied package.json.
+  patchStandalonePackageJson(resolvedOutDir);
 
-  // 2. Copy <distDir>/static -> resolvedOutDir/<distDir>/static
+  // 2/3. Copy <distDir>/static -> outDir/<relDistDir>/static and projectRoot/public -> outDir/public.
   // CRITICAL: the standalone server.js is built with distDir baked into its config
-  // (e.g. "./.build/next"), so it serves /_next/static from <outDir>/<distDir>/static,
+  // (e.g. "./.build/next"), so it serves /_next/static from <outDir>/<relDistDir>/static,
   // NOT a literal <outDir>/.next/static. Copying to .next/static leaves the server's
   // static dir empty → every JS/CSS chunk 404s → blank page. Mirror the distDir path.
-  const staticSrc = path.join(distDir, "static");
-  const staticDest = path.join(resolvedOutDir, relDistDir, "static");
-  if (fsSync.existsSync(staticSrc)) {
-    fsSync.mkdirSync(path.dirname(staticDest), { recursive: true });
-    fsSync.cpSync(staticSrc, staticDest, { recursive: true, force: true });
-  }
-
-  // 3. Copy projectRoot/public -> resolvedOutDir/public
-  const publicSrc = path.join(projectRoot, "public");
-  const publicDest = path.join(resolvedOutDir, "public");
-  if (fsSync.existsSync(publicSrc)) {
-    fsSync.cpSync(publicSrc, publicDest, { recursive: true, force: true });
-  }
+  copyStaticAndPublic({ distDir, relDistDir, projectRoot, resolvedOutDir });
 
   // 4. Optionally sanitize abs paths
   if (sanitizePaths) {
@@ -472,125 +620,6 @@ export function assembleStandalone({
 
   // 6. Optionally copy native assets + extra modules (synchronous)
   if (copyNatives) {
-    const nativeAssets = [
-      {
-        label: "wreq-js native runtime",
-        src: path.join(projectRoot, "node_modules", "wreq-js", "rust"),
-        dest: path.join(resolvedOutDir, "node_modules", "wreq-js", "rust"),
-      },
-      {
-        label: "better-sqlite3 native binary",
-        src: path.join(projectRoot, "node_modules", "better-sqlite3", "build"),
-        dest: path.join(resolvedOutDir, "node_modules", "better-sqlite3", "build"),
-      },
-    ];
-
-    for (const asset of nativeAssets) {
-      if (!fsSync.existsSync(asset.src)) continue;
-      fsSync.mkdirSync(path.dirname(asset.dest), { recursive: true });
-      fsSync.cpSync(asset.src, asset.dest, { recursive: true, force: true });
-      console.log(`[assembleStandalone] Copied native asset: ${asset.label}`);
-    }
-
-    const extraModules = [
-      {
-        label: "@swc/helpers",
-        src: path.join(projectRoot, "node_modules", "@swc", "helpers"),
-        dest: path.join(resolvedOutDir, "node_modules", "@swc", "helpers"),
-      },
-      {
-        label: "pino-abstract-transport",
-        src: path.join(projectRoot, "node_modules", "pino-abstract-transport"),
-        dest: path.join(resolvedOutDir, "node_modules", "pino-abstract-transport"),
-      },
-      {
-        label: "pino-pretty",
-        src: path.join(projectRoot, "node_modules", "pino-pretty"),
-        dest: path.join(resolvedOutDir, "node_modules", "pino-pretty"),
-      },
-      {
-        label: "split2",
-        src: path.join(projectRoot, "node_modules", "split2"),
-        dest: path.join(resolvedOutDir, "node_modules", "split2"),
-      },
-      {
-        label: "migrations",
-        src: path.join(projectRoot, "src", "lib", "db", "migrations"),
-        dest: path.join(resolvedOutDir, "migrations"),
-      },
-      {
-        label: "MITM server",
-        src: path.join(projectRoot, "src", "mitm", "server.cjs"),
-        dest: path.join(resolvedOutDir, "src", "mitm", "server.cjs"),
-      },
-      {
-        label: "run-standalone script",
-        src: path.join(projectRoot, "scripts", "dev", "run-standalone.mjs"),
-        dest: path.join(resolvedOutDir, "dev", "run-standalone.mjs"),
-      },
-      {
-        label: "WS/peer-stamp standalone server wrapper",
-        src: path.join(projectRoot, "scripts", "dev", "standalone-server-ws.mjs"),
-        dest: path.join(resolvedOutDir, "server-ws.mjs"),
-      },
-      {
-        label: "peer-stamp helper",
-        src: path.join(projectRoot, "scripts", "dev", "peer-stamp.mjs"),
-        dest: path.join(resolvedOutDir, "peer-stamp.mjs"),
-      },
-      {
-        label: "responses-ws-proxy",
-        src: path.join(projectRoot, "scripts", "dev", "responses-ws-proxy.mjs"),
-        dest: path.join(resolvedOutDir, "responses-ws-proxy.mjs"),
-      },
-      {
-        label: "runtime-env script",
-        src: path.join(projectRoot, "scripts", "build", "runtime-env.mjs"),
-        dest: path.join(resolvedOutDir, "build", "runtime-env.mjs"),
-      },
-      {
-        label: "bootstrap-env script",
-        src: path.join(projectRoot, "scripts", "build", "bootstrap-env.mjs"),
-        dest: path.join(resolvedOutDir, "build", "bootstrap-env.mjs"),
-      },
-      {
-        label: "healthcheck script",
-        src: path.join(projectRoot, "scripts", "dev", "healthcheck.mjs"),
-        dest: path.join(resolvedOutDir, "healthcheck.mjs"),
-      },
-      {
-        label: "public directory",
-        src: path.join(projectRoot, "public"),
-        dest: path.join(resolvedOutDir, "public"),
-      },
-      {
-        label: "playwright-core",
-        src: path.join(projectRoot, "node_modules", "playwright-core"),
-        dest: path.join(resolvedOutDir, "node_modules", "playwright-core"),
-      },
-      {
-        label: "sqlite-vec wrapper",
-        src: path.join(projectRoot, "node_modules", "sqlite-vec"),
-        dest: path.join(resolvedOutDir, "node_modules", "sqlite-vec"),
-      },
-      ...[
-        "sqlite-vec-linux-x64",
-        "sqlite-vec-linux-arm64",
-        "sqlite-vec-darwin-x64",
-        "sqlite-vec-darwin-arm64",
-        "sqlite-vec-windows-x64",
-      ].map((pkg) => ({
-        label: pkg,
-        src: path.join(projectRoot, "node_modules", pkg),
-        dest: path.join(resolvedOutDir, "node_modules", pkg),
-      })),
-    ];
-
-    for (const mod of extraModules) {
-      if (!fsSync.existsSync(mod.src)) continue;
-      fsSync.mkdirSync(path.dirname(mod.dest), { recursive: true });
-      fsSync.cpSync(mod.src, mod.dest, { recursive: true, force: true });
-      console.log(`[assembleStandalone] Synced module: ${mod.label}`);
-    }
+    copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir);
   }
 }
