@@ -1761,7 +1761,7 @@ async function fetchResetAwareQuotaWithCache({
 
   const refresh = () => {
     const existing = resetAwareQuotaCache.get(cacheKey);
-    if (existing?.refreshPromise) return existing.refreshPromise;
+    if (existing?.refreshPromise != null) return existing.refreshPromise;
 
     const refreshPromise = fetcher(connectionId, connection)
       .then((quota) => {
