@@ -29,6 +29,7 @@ import {
   handleCreditsFailure,
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
+import { getMitmAlias } from "@/lib/db/models";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
@@ -401,12 +402,38 @@ function flushAntigravitySSEText(
  * Strip provider prefixes (e.g. "antigravity/model" → "model").
  * Ensures the model name sent to the upstream API never contains a routing prefix.
  */
-function cleanModelName(model: string): string {
+async function cleanModelName(model: string): Promise<string> {
   if (!model) return model;
-  let clean = model.includes("/") ? model.split("/").pop()! : model;
-  clean = resolveAntigravityModelId(clean);
-  // Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
-  // The upstream API requires an explicit tier suffix; bare IDs cause errors.
+  const stripped = model.includes("/") ? model.split("/").pop()! : model;
+  let clean = stripped;
+
+  // 1. Check dynamic MITM aliases first (authoritative after first sync).
+  //    Built during model sync — contains ONLY currently-available models.
+  //    Obsolete/removed models are automatically excluded.
+  try {
+    const mitmAliases = await getMitmAlias("antigravity");
+    if (mitmAliases && typeof mitmAliases === "object") {
+      const aliases = mitmAliases as Record<string, unknown>;
+      const raw = aliases[stripped];
+      // Only honor string aliases; corrupted/non-string DB values fall through
+      // to the static alias resolution below (never return undefined here).
+      if (typeof raw === "string" && raw) {
+        // Strip the "antigravity/" prefix if present; use the raw model ID otherwise.
+        const PREFIX = "antigravity/";
+        clean = raw.startsWith(PREFIX) ? raw.slice(PREFIX.length) : raw;
+      }
+    }
+  } catch {
+    // DB not available (build phase, transient error) — fall through to static aliases
+  }
+
+  // 2. Fall back to static aliases if MITM didn't resolve
+  if (clean === stripped) {
+    clean = resolveAntigravityModelId(clean);
+  }
+
+  // 3. Normalize bare Pro IDs to the Low tier (matching OpenClaw convention).
+  //    The upstream API requires an explicit tier suffix; bare IDs cause errors.
   if (BARE_PRO_IDS.has(clean)) {
     clean = `${clean}-low`;
   }
@@ -610,7 +637,7 @@ export class AntigravityExecutor extends BaseExecutor {
       return resp as unknown as never;
     }
 
-    const upstreamModel = cleanModelName(model);
+    const upstreamModel = await cleanModelName(model);
     const isClaude = upstreamModel.toLowerCase().includes("claude");
     const baseBody = bodyRecord;
     const normalizedBody = shouldStripCloudCodeThinking(this.provider, upstreamModel)
