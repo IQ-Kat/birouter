@@ -283,11 +283,13 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
  * @param {string} outDir       - assembled standalone output directory
  * @returns {number} number of path replacements made
  */
-export function assemblePathSanitize(projectRoot, outDir) {
+export function assemblePathSanitize(projectRoot, outDir, distDir = ".next") {
   const buildRoot = projectRoot.replace(/\\/g, "/"); // normalise for regex safety
   const sanitizeTargets = [
     path.join(outDir, "server.js"),
-    path.join(outDir, ".next", "required-server-files.json"),
+    // required-server-files.json lives under the distDir (e.g. .build/next), not
+    // a literal .next — the standalone preserves the configured distDir path.
+    path.join(outDir, distDir, "required-server-files.json"),
   ];
 
   let sanitisedCount = 0;
@@ -316,8 +318,8 @@ export function assemblePathSanitize(projectRoot, outDir) {
  * @param {string} outDir - assembled standalone output directory
  * @returns {{ patchedFiles: number, patchedMatches: number }}
  */
-export function patchTurbopackChunks(outDir) {
-  const serverOutput = path.join(outDir, ".next", "server");
+export function patchTurbopackChunks(outDir, distDir = ".next") {
+  const serverOutput = path.join(outDir, distDir, "server");
   const HASH_RE = /(['"\\])([a-z@][a-z0-9@./_-]+?-[0-9a-f]{16}(?:\/[^'"\\]+)?)\1/g;
   let patchedFiles = 0;
   let patchedMatches = 0;
@@ -392,6 +394,12 @@ export function assembleStandalone({
   if (!distDir) throw new Error("[assembleStandalone] distDir is required");
   if (!outDir) throw new Error("[assembleStandalone] outDir is required");
 
+  // The standalone bundle preserves the distDir path RELATIVE to projectRoot
+  // (the server's baked config uses e.g. "./.build/next"), so output dest paths
+  // for static / required-server-files / server chunks must use the relative
+  // distDir appended to outDir — never the absolute build-machine distDir.
+  const relDistDir = path.isAbsolute(distDir) ? path.relative(projectRoot, distDir) : distDir;
+
   const standaloneDir = path.resolve(path.join(distDir, "standalone"));
   const resolvedOutDir = path.resolve(outDir);
   if (!fsSync.existsSync(standaloneDir)) {
@@ -425,9 +433,13 @@ export function assembleStandalone({
     }
   }
 
-  // 2. Copy <distDir>/static -> resolvedOutDir/.next/static
+  // 2. Copy <distDir>/static -> resolvedOutDir/<distDir>/static
+  // CRITICAL: the standalone server.js is built with distDir baked into its config
+  // (e.g. "./.build/next"), so it serves /_next/static from <outDir>/<distDir>/static,
+  // NOT a literal <outDir>/.next/static. Copying to .next/static leaves the server's
+  // static dir empty → every JS/CSS chunk 404s → blank page. Mirror the distDir path.
   const staticSrc = path.join(distDir, "static");
-  const staticDest = path.join(resolvedOutDir, ".next", "static");
+  const staticDest = path.join(resolvedOutDir, relDistDir, "static");
   if (fsSync.existsSync(staticSrc)) {
     fsSync.mkdirSync(path.dirname(staticDest), { recursive: true });
     fsSync.cpSync(staticSrc, staticDest, { recursive: true, force: true });
@@ -442,7 +454,7 @@ export function assembleStandalone({
 
   // 4. Optionally sanitize abs paths
   if (sanitizePaths) {
-    const count = assemblePathSanitize(projectRoot, resolvedOutDir);
+    const count = assemblePathSanitize(projectRoot, resolvedOutDir, relDistDir);
     if (count > 0) {
       console.log(`[assembleStandalone] Sanitised ${count} hardcoded path references`);
     }
@@ -450,7 +462,7 @@ export function assembleStandalone({
 
   // 5. Optionally patch Turbopack hashed chunks
   if (doPatchChunks) {
-    const { patchedFiles, patchedMatches } = patchTurbopackChunks(resolvedOutDir);
+    const { patchedFiles, patchedMatches } = patchTurbopackChunks(resolvedOutDir, relDistDir);
     if (patchedMatches > 0) {
       console.log(
         `[assembleStandalone] Hash-strip: patched ${patchedMatches} hashed require() in ${patchedFiles} server chunk file(s)`

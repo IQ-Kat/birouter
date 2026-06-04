@@ -20,7 +20,16 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
   assembleStandalone({ distDir, outDir, projectRoot: tmp, sanitizePaths: false, copyNatives: false });
 
   assert.ok(fs.existsSync(path.join(outDir, "server.js")), "server.js copied");
-  assert.ok(fs.existsSync(path.join(outDir, ".next/static/x.js")), "static copied");
+  // Static lands under the distDir path (.build/next/static), where the standalone
+  // server.js — built with distDir baked into its config — serves /_next/static from.
+  assert.ok(
+    fs.existsSync(path.join(outDir, ".build/next/static/x.js")),
+    "static copied under distDir"
+  );
+  assert.ok(
+    !fs.existsSync(path.join(outDir, ".next/static/x.js")),
+    "static is NOT placed under a literal .next (would 404 against distDir server)"
+  );
   assert.ok(fs.existsSync(path.join(outDir, "public/logo.svg")), "public copied");
   fs.rmSync(tmp, { recursive: true, force: true });
 });
