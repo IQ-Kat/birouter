@@ -28,6 +28,10 @@
 
 _Development cycle in progress — entries are added as work merges into `release/v3.8.11` and finalized by the release flow._
 
+### 🔧 Bug Fixes
+
+- **docker:** copy `scripts/dev/healthcheck.mjs` into the runner-base image — the Next.js standalone output doesn't trace it, so the `HEALTHCHECK CMD ["node", "healthcheck.mjs"]` probe silently exited 1. (#3201 — thanks @wilsonicdev)
+
 ---
 
 ## [3.8.10] — 2026-06-04
