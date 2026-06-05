@@ -12,6 +12,12 @@
 
 ---
 
+## [3.8.11] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.11` and finalized by the release flow._
+
+---
+
 ## [3.8.10] — 2026-06-04
 
 OAuth resilience & observability release: spaced/sequential quota sync for OAuth accounts, a per-provider proactive-refresh skip list to keep short-TTL providers (Kimi) alive without re-exposing the Codex Auth0 cascade, token-expiry visibility on the provider cards, a new provider-stats dashboard, plus a wide batch of provider fixes (DeepSeek-web tool calls, Antigravity, Qoder, MiniMax, GitHub Copilot, Fireworks, llama.cpp, t3.chat-web, Kiro, Kilocode) and Podman deployment support.
