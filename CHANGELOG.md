@@ -62,6 +62,12 @@ OAuth resilience & observability release: spaced/sequential quota sync for OAuth
 
 ---
 
+## [3.8.10] — Unreleased
+
+_Development cycle in progress — entries are added as work merges into `release/v3.8.10` and finalized by the release flow._
+
+---
+
 ## [3.8.9] — 2026-06-03
 
 ### ✨ New Features
