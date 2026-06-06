@@ -168,6 +168,7 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "deprecated",
     hasFree: true,
+    freeNote: "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
   },
   "amazon-q": {
     id: "amazon-q",
@@ -1005,7 +1006,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "CB",
     website: "https://inference.cerebras.ai",
     hasFree: true,
-    freeNote: "Free: 1M tokens/day, 60K TPM — world's fastest inference",
+    freeNote: "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
   },
   cohere: {
     id: "cohere",
@@ -1188,8 +1189,7 @@ export const APIKEY_PROVIDERS = {
     textIcon: "LC",
     website: "https://longcat.chat/platform/docs",
     hasFree: true,
-    freeNote:
-      "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
+    freeNote: "Free: 5M tokens/day on LongCat-2.0-Preview (Flash models retired 2026-05-29); up to 120M/day via feedback.",
   },
   pollinations: {
     id: "pollinations",
