@@ -14,6 +14,7 @@ _Development cycle in progress — entries are added as work merges into `releas
 - **web-cookie:** add tool-call translation to 8 web-cookie executors via shared `webTools` helpers, so cookie-backed providers can participate in tool/function calling through a single serialize/parse path ([#3259](https://github.com/diegosouzapw/OmniRoute/pull/3259) — thanks @oyi77)
 - **free-tiers:** per-model free-token budget catalog + a Monthly Budget dashboard card surfacing each provider's monthly free allowance (joins the honest free-token catalog/API/headline work from #3257) ([#3263](https://github.com/diegosouzapw/OmniRoute/pull/3263), [#3257](https://github.com/diegosouzapw/OmniRoute/pull/3257) — thanks @diegosouzapw)
 - **dashboard:** bulk activate / deactivate / retest for selected provider connections — multi-select with batch lifecycle actions on the providers page ([#3271](https://github.com/diegosouzapw/OmniRoute/pull/3271) — thanks @leninejunior)
+- **models:** register MiniMax-M3 (frontier coding/agentic model, 1M context, Anthropic-compatible) across 8 provider tiers — `minimax`, `minimax-cn`, `opencode` (free), `opencode-go`, `opencode-zen`, `trae`, `ollama-cloud`, `nvidia` ([#3287](https://github.com/diegosouzapw/OmniRoute/pull/3287), #3110 — thanks @wilsonicdev)
 
 ### 🔧 Bug Fixes
 
@@ -26,10 +27,13 @@ _Development cycle in progress — entries are added as work merges into `releas
 - **sse/groq:** non-reasoning Groq models (`llama-3.3-70b-versatile`, `llama-4-scout`) are now flagged `supportsReasoning: false`, so `reasoning_effort` / `output_config.effort` / `thinking` are stripped before dispatch instead of being forwarded and rejected with HTTP 400 — fixes the Claude Code → Groq regression of #764 ([#3277](https://github.com/diegosouzapw/OmniRoute/pull/3277), fixes #3258 — thanks @diegosouzapw)
 - **api/images:** `POST /v1/images/edits` to a custom OpenAI-compatible provider no longer forwards an empty `model`. The multipart body is now built as a `Buffer` with an explicit boundary instead of a global `FormData` — the patched undici `fetch` serialized a native `FormData` as the literal string `[object FormData]` (text/plain), dropping every field including `model` ([#3278](https://github.com/diegosouzapw/OmniRoute/pull/3278), fixes #3273 — thanks @diegosouzapw)
 - **db:** detect SQLite driver-unavailable errors to avoid a destructive DB rename + an optional FTS5 migration guard, so a transient driver-load failure no longer triggers the backup-and-recreate path on a healthy database (split from #3073) ([#3274](https://github.com/diegosouzapw/OmniRoute/pull/3274) — thanks @zhiru)
+- **quota:** repair the Quota Sharing Engine — `poolUsageWithDimensions()` promoted onto the `QuotaStore` interface (kills the dynamic type-narrowing hack), single-snapshot burn rate via `computeBurnRateFromWindow()` (the dashboard previously always showed 0), zero-weight allocations normalized to equal distribution, Anthropic `anthropic-ratelimit-*` saturation signals, a `quota.exceeded` webhook fired on block, and quota enforcement extended to the embeddings handler ([#3280](https://github.com/diegosouzapw/OmniRoute/pull/3280) — thanks @oyi77)
+- **plugins:** `emitHookBlocking` now chains the payload between handlers — each blocking handler receives the body/metadata as mutated by previous handlers, so a later plugin can observe an earlier plugin's changes (previously every handler got the original static payload) ([#3286](https://github.com/diegosouzapw/OmniRoute/pull/3286) — thanks @oyi77)
 
 ### 📝 Maintenance
 
 - **ci:** `deploy-vps` recreates the PM2 process via the `omniroute` bin (instead of a bare `pm2 restart` pinned to the removed `app/server-ws.mjs` path) and gates the deploy on `/api/monitoring/health` reporting `"status":"healthy"`, failing the job (with recent PM2 logs) when the box never becomes healthy — supersedes #3262 ([#3270](https://github.com/diegosouzapw/OmniRoute/pull/3270) — thanks @diegosouzapw)
+- **security:** harden the Chipotle executor against CodeQL findings — `Math.random()` → `crypto.randomInt()`/`crypto.randomUUID()` (imported from `node:crypto`) for session/server IDs, and a strict `new URL().hostname` check (replacing a substring match) in its test ([#3285](https://github.com/diegosouzapw/OmniRoute/pull/3285) — thanks @oyi77)
 
 ### 🙌 Contributors
 
@@ -37,8 +41,8 @@ Thanks to everyone whose work landed in v3.8.12:
 
 | Contributor | PRs / Issues |
 | --- | --- |
-| [@oyi77](https://github.com/oyi77) | #3250, #3259 |
-| [@wilsonicdev](https://github.com/wilsonicdev) | #3249, #3268, #3282 (co-author, #3247 diagnosis) |
+| [@oyi77](https://github.com/oyi77) | #3250, #3259, #3280, #3285, #3286 |
+| [@wilsonicdev](https://github.com/wilsonicdev) | #3249, #3268, #3282 (co-author, #3247 diagnosis), #3287 |
 | [@strangersp](https://github.com/strangersp) | #3261 |
 | [@MikeTuev](https://github.com/MikeTuev) | #3248 |
 | [@leninejunior](https://github.com/leninejunior) | #3271 |
