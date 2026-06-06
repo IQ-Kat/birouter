@@ -62,7 +62,7 @@ class AmeliaClient {
 
   async connect(): Promise<void> {
     if (!this.session) throw new Error("Call init() first");
-    if (this.connectPromise) return this.connectPromise;
+    if (this.connectPromise !== null) return this.connectPromise;
 
     this.connectPromise = this._connect();
     try {

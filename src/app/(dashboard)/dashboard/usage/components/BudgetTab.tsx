@@ -722,8 +722,12 @@ function BudgetRow({
           borderLeft: `3px solid ${status === "all" ? "transparent" : meta.dot}`,
         }}
       >
-        {/* Checkbox */}
-        <div onClick={(e) => e.stopPropagation()}>
+        {/* Checkbox — wrapper only stops the row-expand trigger from firing */}
+        <div
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <input type="checkbox" checked={isSelected} onChange={onToggleSelect} />
         </div>
 

@@ -41,7 +41,7 @@ function installExitHook(): void {
   if (exitHookInstalled) return;
   exitHookInstalled = true;
   const stop = async () => {
-    if (!clientPromise) return;
+    if (clientPromise === null) return;
     try {
       const c = (await clientPromise) as { stop?: () => Promise<unknown> };
       await c.stop?.();
