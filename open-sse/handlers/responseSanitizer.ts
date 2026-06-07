@@ -110,7 +110,8 @@ function findBalancedJsonEnd(text: string, startIndex: number): number {
 
 function stripInternalToolEnvelopeText(content: string): string {
   let sanitized = stripZeroWidthText(content);
-  const markerRegex = /to=(?:functions\.[A-Za-z0-9_.-]+|multi_tool_use\.[A-Za-z0-9_.-]+|[A-Za-z_][A-Za-z0-9_]*)/g;
+  const markerRegex =
+    /to=(?:functions\.[A-Za-z0-9_.-]+|multi_tool_use\.[A-Za-z0-9_.-]+|[A-Za-z_][A-Za-z0-9_]*)/g;
 
   while (true) {
     const match = markerRegex.exec(sanitized);
@@ -170,7 +171,9 @@ function parseTextualToolCallContent(content: unknown): { name: string; args: un
 }
 
 function containsTextualToolCallContent(content: unknown): boolean {
-  return typeof content === "string" && stripInternalToolEnvelopeText(content).includes("[Tool call:");
+  return (
+    typeof content === "string" && stripInternalToolEnvelopeText(content).includes("[Tool call:")
+  );
 }
 
 function hasVisibleMessageContent(content: unknown): boolean {
@@ -642,7 +645,7 @@ function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null 
               text: collapseExcessiveNewlines(toString(partRecord.text) || ""),
             };
           })
-          .filter((part): part is NonNullable<typeof part> => part !== null)
+          .filter((part) => part !== null)
       : [];
 
     return {

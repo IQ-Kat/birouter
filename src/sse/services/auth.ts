@@ -724,6 +724,46 @@ async function selectSessionAffinityConnection(
  */
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
+function buildSyntheticNoAuthCredentials(): {
+  apiKey: null;
+  accessToken: null;
+  refreshToken: null;
+  expiresAt: null;
+  projectId: null;
+  copilotToken: null;
+  providerSpecificData: Record<string, never>;
+  connectionId: typeof SYNTHETIC_NOAUTH_CONNECTION_ID;
+  testStatus: "active";
+  lastError: null;
+  lastErrorType: null;
+  lastErrorSource: null;
+  errorCode: null;
+  rateLimitedUntil: null;
+  maxConcurrent: null;
+  allRateLimited?: never;
+  allExpired?: never;
+  retryAfter?: never;
+  retryAfterHuman?: never;
+} {
+  return {
+    apiKey: null,
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null,
+    projectId: null,
+    copilotToken: null,
+    providerSpecificData: {},
+    connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
+    testStatus: "active",
+    lastError: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
+    rateLimitedUntil: null,
+    maxConcurrent: null,
+  };
+}
+
 function normalizeExcludedConnectionIds(
   excludeConnectionId: string | null,
   extraExcludedConnectionIds: string[] | null | undefined
@@ -903,23 +943,7 @@ export async function getProviderCredentials(
       if (excludedForNoAuth.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
         return null;
       }
-      return {
-        apiKey: null,
-        accessToken: null,
-        refreshToken: null,
-        expiresAt: null,
-        projectId: null,
-        copilotToken: null,
-        providerSpecificData: {},
-        connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
-        testStatus: "active",
-        lastError: null,
-        lastErrorType: null,
-        lastErrorSource: null,
-        errorCode: null,
-        rateLimitedUntil: null,
-        maxConcurrent: null,
-      };
+      return buildSyntheticNoAuthCredentials();
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
@@ -1031,23 +1055,7 @@ export async function getProviderCredentials(
         if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
           return null;
         }
-        return {
-          apiKey: null,
-          accessToken: null,
-          refreshToken: null,
-          expiresAt: null,
-          projectId: null,
-          copilotToken: null,
-          providerSpecificData: {},
-          connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
-          testStatus: "active",
-          lastError: null,
-          lastErrorType: null,
-          lastErrorSource: null,
-          errorCode: null,
-          rateLimitedUntil: null,
-          maxConcurrent: null,
-        };
+        return buildSyntheticNoAuthCredentials();
       }
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
@@ -1218,6 +1226,13 @@ export async function getProviderCredentials(
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
         };
       }
+      if (resolvedId === "opencode-zen") {
+        if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) {
+          return null;
+        }
+        return buildSyntheticNoAuthCredentials();
+      }
+
       log.warn("AUTH", `${provider} | all ${connections.length} accounts unavailable`);
       return null;
     }

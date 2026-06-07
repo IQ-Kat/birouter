@@ -1434,7 +1434,12 @@ test("v1 models catalog includes noAuth provider models when no DB connections e
   // opencode (noAuth) models must surface even with zero connection rows.
   // The registry defines models under alias "oc" (e.g. "oc/big-pickle").
   assert.ok(
-    ids.some((id) => id.startsWith("oc/") || id.startsWith("opencode/")),
-    `Expected at least one oc/* or opencode/* model in /v1/models but got none. IDs sample: ${ids.slice(0, 10).join(", ")}`
+    ids.some((id) => id.startsWith("oc/")),
+    `Expected at least one oc/* model in /v1/models but got none. IDs sample: ${ids.slice(0, 10).join(", ")}`
+  );
+  assert.equal(
+    ids.some((id) => id.startsWith("opencode/")),
+    false,
+    "catalog must not return opencode/* noAuth aliases because opencode/ routes to opencode-zen"
   );
 });
