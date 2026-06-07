@@ -25,7 +25,11 @@ export default defineConfig({
     "**/skills-marketplace.spec.ts",
   ],
   fullyParallel: false,
-  timeout: 600_000,
+  // Per-test cap. 600s was high enough that one hung test (× retries) could
+  // exhaust the e2e job's wall-clock budget, so the GitHub job hit its
+  // timeout-minutes and was CANCELLED mid-run instead of the test failing fast.
+  // 180s is generous for a UI flow yet bounds a hang to a clear per-test failure.
+  timeout: 180_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
