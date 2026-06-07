@@ -33,7 +33,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: process.env.CI ? "github" : "html",
+  // `line` (not `github`) in CI so per-test progress + timing stream live to the
+  // job log. The `github` reporter buffers all output until the run ends, so when
+  // a slow shard was cancelled at its timeout the log showed only "Running N
+  // tests" then silence — impossible to tell which test was slow/hung.
+  reporter: process.env.CI ? "line" : "html",
   expect: {
     timeout: process.env.CI ? 30_000 : 10_000,
   },

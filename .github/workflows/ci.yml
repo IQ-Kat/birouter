@@ -500,11 +500,12 @@ jobs:
   test-e2e:
     name: E2E Tests (${{ matrix.shard }}/6)
     runs-on: ubuntu-latest
-    # 20m was too tight for the heaviest shard: each shard re-runs `npm run build`
-    # (~5m) before Playwright, so a slow shard's tests + build overran 20m and the
-    # job was cancelled mid-run. 35m gives headroom; the per-test cap in
-    # playwright.config.ts bounds any genuine hang to a fast, visible failure.
-    timeout-minutes: 35
+    # The heaviest shard (responsive viewport matrix + studio/smoke) re-runs
+    # `npm run build` (~5m) then ~24 serial tests; at 35m it was still cancelled
+    # mid-run, so it genuinely needs more wall-clock. 50m gives ample headroom
+    # while the per-test cap (playwright.config.ts) bounds any real hang to a fast
+    # visible failure and the `line` reporter streams which test is slow.
+    timeout-minutes: 50
     needs: build
     strategy:
       fail-fast: false
