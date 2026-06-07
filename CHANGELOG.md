@@ -33,6 +33,7 @@
 - **fix(startup):** correct the #3292 auto-refresh daemon import (`@/open-sse/...` → `@omniroute/open-sse/services/autoRefreshDaemon`); the `@/` alias maps to `src/`, so the daemon silently never ran in the built standalone (non-fatal "Cannot find module", caught at runtime). Adds a regression test banning `@/open-sse/*` imports in `src/`. ([#3335](https://github.com/diegosouzapw/OmniRoute/pull/3335) — thanks @diegosouzapw)
 - **fix(electron):** wrap `autoUpdater.checkForUpdates()` so a 404/offline/rate-limited update check can no longer surface as an unhandled rejection (the `error` event still notifies the user); fixes the macOS-intel packaged-app smoke failure. ([#3339](https://github.com/diegosouzapw/OmniRoute/pull/3339) — thanks @diegosouzapw)
 - **fix(dashboard):** stop the infinite render loop on `/dashboard/cli-agents/hermes-agent` — `HermesAgentToolCard` listed `currentRoles` in the config-load effect's deps while `loadCurrentConfig()` set `currentRoles` to a fresh object on every fetch, so the effect re-fired → refetched → re-set forever (the page spun and spammed `GET /api/cli-tools/hermes-agent-settings` in the console; it manifested only on the always-expanded detail page). `loadCurrentConfig` is now memoized and the batch-seed reads `currentRoles` via a functional update, so the effect runs once. Adds a jsdom regression test asserting the settings endpoint is fetched a bounded number of times. ([#3353](https://github.com/diegosouzapw/OmniRoute/pull/3353) — thanks @diegosouzapw)
+- **fix(dashboard):** the Usage Analytics card now surfaces the **real** backend error (status + message) instead of a generic placeholder when `/api/usage/analytics` fails — a new shared `fetchError.ts` helper extracts a useful message. ([#3356](https://github.com/diegosouzapw/OmniRoute/pull/3356) — thanks @diegosouzapw)
 
 ### 📝 Maintenance
 
@@ -61,7 +62,9 @@ Thanks to everyone whose work landed in v3.8.14:
 | [@Flexible78](https://github.com/Flexible78) | #3347 |
 | [@Lang-Qiu](https://github.com/Lang-Qiu) | #3337 |
 | [@KrisnaSantosa15](https://github.com/KrisnaSantosa15) | #3348 |
-| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3334, #3335, #3336, #3339, #3350, #3352, #3353; review/hardening across the cycle |
+| [@nullbytef0x](https://github.com/nullbytef0x) | #3357 |
+| [@Ardem2025](https://github.com/Ardem2025) | #3358 |
+| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer — #3334, #3335, #3336, #3339, #3350, #3352, #3353, #3356; review/hardening across the cycle |
 
 ---
 
