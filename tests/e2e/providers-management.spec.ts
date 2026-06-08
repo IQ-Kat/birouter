@@ -261,6 +261,7 @@ test.describe("Providers management", () => {
       .toBeGreaterThan(0);
     await expect(page.getByText("Primary OpenAI")).toBeVisible();
     await expect.poll(async () => (await readProviderMockState(page)).connections.length).toBe(1);
+    await expect(addDialog).not.toBeVisible();
 
     await page.getByTitle(/^edit$/i).click();
     const editDialog = page.getByRole("dialog");
