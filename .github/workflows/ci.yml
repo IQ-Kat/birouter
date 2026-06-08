@@ -144,6 +144,12 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
+      - name: Upload Next.js build for E2E shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-next-build
+          path: .build/next/
+          retention-days: 1
 
   package-artifact:
     name: Package Artifact
@@ -498,19 +504,18 @@ jobs:
             }
 
   test-e2e:
-    name: E2E Tests (${{ matrix.shard }}/6)
+    name: E2E Tests (${{ matrix.shard }}/9)
     runs-on: ubuntu-latest
-    # The heaviest shard (responsive viewport matrix + studio/smoke) re-runs
-    # `npm run build` (~5m) then ~24 serial tests; at 35m it was still cancelled
-    # mid-run, so it genuinely needs more wall-clock. 50m gives ample headroom
-    # while the per-test cap (playwright.config.ts) bounds any real hang to a fast
-    # visible failure and the `line` reporter streams which test is slow.
-    timeout-minutes: 50
+    # Build artifact from the `build` job is downloaded instead of rebuilding
+    # (~5min saved per shard). 9 shards (up from 6) reduces tests per shard by
+    # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
+    # Heavy shard target: ≤20min (was ~40min).
+    timeout-minutes: 30
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -524,9 +529,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/6
+      - name: Download Next.js build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-next-build
+          path: .build/next/
+      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)

@@ -38,6 +38,11 @@ export const API_SKILL_IDS: readonly string[] = [
   "omni-inference",
 ] as const;
 
+/** Config skill IDs. */
+export const CONFIG_SKILL_IDS: readonly string[] = [
+  "config-codex-cli",
+] as const;
+
 /** 20 canonical CLI skill IDs, in spec order. */
 export const CLI_SKILL_IDS: readonly string[] = [
   "cli-serve",
@@ -138,11 +143,14 @@ export function computeCoverage(): SkillCoverage {
 
   const apiHave = catalog.filter((s) => s.category === "api" && presentIds.has(s.id)).length;
   const cliHave = catalog.filter((s) => s.category === "cli" && presentIds.has(s.id)).length;
+  const configTotal = CONFIG_SKILL_IDS.length;
+  const configHave = catalog.filter((s) => s.category === "config" && presentIds.has(s.id)).length;
 
   return {
     api: { have: apiHave, total: 22 },
     cli: { have: cliHave, total: 20 },
-    totalSkills: apiHave + cliHave,
+    config: { have: configHave, total: configTotal },
+    totalSkills: apiHave + cliHave + configHave,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -190,7 +198,6 @@ export async function fetchSkillMarkdown(id: string): Promise<SkillMarkdown> {
   }
 
   const response = await fetch(skill.rawUrl, {
-    // @ts-expect-error — Next.js extended fetch options
     next: { revalidate: 3600 },
   });
 
