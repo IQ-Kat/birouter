@@ -3,7 +3,7 @@ name: config-codex-cli
 description: Step-by-step agent workflow to configure the OpenAI Codex CLI on any machine (Linux, macOS, Windows) to use OmniRoute as backend. Detects OS and shell, writes config.toml and 7 named profiles, sets environment variables, and verifies the setup.
 ---
 
-# /setup-codex-cli — Codex CLI Configuration Workflow
+# /config-codex-cli — Codex CLI Configuration Workflow
 
 Configure the Codex CLI on this machine to use an OmniRoute instance as backend.
 
@@ -179,16 +179,18 @@ wire_api             = "responses"
 
 ## Step 5 — Write profile files
 
-Create each file below in the Codex config directory. If a file already exists, overwrite it.
+> **Naming rule (Codex CLI v0.137+):** files must be `~/.codex/<name>.config.toml` — **no `profile-` prefix**. The CLI resolves `-p chat` to `~/.codex/chat.config.toml`. If the file is not found, the default applies silently with no error.
 
-### `profile-chat.config.toml` — no reasoning (server default = medium)
+Create each file below in the Codex config directory (`~/.codex/`). If a file already exists, overwrite it.
+
+### `chat.config.toml` — no reasoning (server default = medium)
 
 ```toml
 model          = "cx/gpt-5.5"
 model_provider = "omniroute"
 ```
 
-### `profile-low.config.toml`
+### `low.config.toml`
 
 ```toml
 model                  = "cx/gpt-5.5"
@@ -196,7 +198,7 @@ model_reasoning_effort = "low"
 model_provider         = "omniroute"
 ```
 
-### `profile-medium.config.toml`
+### `medium.config.toml`
 
 ```toml
 model                  = "cx/gpt-5.5"
@@ -204,7 +206,7 @@ model_reasoning_effort = "medium"
 model_provider         = "omniroute"
 ```
 
-### `profile-high.config.toml`
+### `high.config.toml`
 
 ```toml
 model                  = "cx/gpt-5.5"
@@ -212,7 +214,7 @@ model_reasoning_effort = "high"
 model_provider         = "omniroute"
 ```
 
-### `profile-xhigh.config.toml`
+### `xhigh.config.toml`
 
 ```toml
 model                  = "cx/gpt-5.5"
@@ -220,7 +222,7 @@ model_reasoning_effort = "xhigh"
 model_provider         = "omniroute"
 ```
 
-### `profile-deepseek.config.toml` — DeepSeek V4 Pro, 1M context
+### `deepseek.config.toml` — DeepSeek V4 Pro, 1M context
 
 ```toml
 model          = "ds/deepseek-v4-pro"
@@ -232,7 +234,7 @@ model_max_output_tokens        = 65536
 tool_output_token_limit        = 65536
 ```
 
-### `profile-mistral.config.toml` — Mistral Large Latest, 256k context
+### `mistral.config.toml` — Mistral Large Latest, 256k context
 
 ```toml
 model          = "mistral/mistral-large-latest"
