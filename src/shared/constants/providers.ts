@@ -470,6 +470,20 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
   },
+  lmarena: {
+    id: "lmarena",
+    alias: "lma",
+    name: "LMArena (Free)",
+    icon: "auto_awesome",
+    color: "#FF6B6B",
+    textIcon: "LMA",
+    website: "https://lmarena.ai",
+    hasFree: true,
+    freeNote: "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
+    authHint:
+      "Paste your session cookie from lmarena.ai (DevTools → Application → Cookies). Optional — works with free tier for basic comparisons.",
+    riskNoticeVariant: "webCookie",
+  },
   huggingchat: {
     id: "huggingchat",
     // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.

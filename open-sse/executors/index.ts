@@ -49,6 +49,7 @@ import { QwenWebExecutor } from "./qwen-web.ts";
 import { KimiExecutor } from "./kimi.ts"
 import { TheOldLlmExecutor } from "./theoldllm.ts";
 import { ChipotleExecutor } from "./chipotle.ts";
+import { LMArenaExecutor } from "./lmarena.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -140,6 +141,8 @@ const executors = {
   tllm: new TheOldLlmExecutor(), // Alias
   chipotle: new ChipotleExecutor(),
   pepper: new ChipotleExecutor(), // Alias
+  lmarena: new LMArenaExecutor(),
+  lma: new LMArenaExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -198,3 +201,4 @@ export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";
 export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
+export { LMArenaExecutor } from "./lmarena.ts";
