@@ -144,15 +144,20 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
+      - name: Archive Next.js build for E2E shards
+        # Use tar so the archive preserves paths relative to CWD (.build/next/...).
+        # upload-artifact path-stripping is ambiguous when exclude patterns are used;
+        # an explicit tar avoids the double-nesting issue (.build/next/next/...).
+        run: |
+          tar -czf /tmp/e2e-build.tar.gz \
+            --exclude='.build/next/standalone/node_modules' \
+            --exclude='.build/next/cache' \
+            .build/next
       - name: Upload Next.js build for E2E shards
         uses: actions/upload-artifact@v4
         with:
           name: e2e-next-build
-          # Exclude standalone/node_modules (558MB) — each shard already runs
-          # npm ci, so we cp node_modules into standalone after the download.
-          path: |
-            .build/next/
-            !.build/next/standalone/node_modules/
+          path: /tmp/e2e-build.tar.gz
           retention-days: 1
 
   package-artifact:
@@ -544,9 +549,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: e2e-next-build
-          path: .build/next/
-      - name: Restore standalone node_modules from npm ci
-        run: cp -r node_modules .build/next/standalone/node_modules
+          path: /tmp/
+      - name: Extract Next.js build and restore standalone node_modules
+        run: |
+          tar -xzf /tmp/e2e-build.tar.gz
+          cp -r node_modules .build/next/standalone/node_modules
       - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
 
   test-integration:

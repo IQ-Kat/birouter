@@ -1,5 +1,5 @@
 /**
- * catalog.ts — single source of truth for the 42-entry Agent Skills catalog.
+ * catalog.ts — single source of truth for the 43-entry Agent Skills catalog.
  *
  * Consumers: REST routes (/api/agent-skills/*), MCP tools, A2A skill, Generator.
  * Do NOT import this from UI components directly — use the REST API instead.
@@ -92,7 +92,7 @@ function deriveCatalog(): AgentSkill[] {
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full catalog (42 entries). Cached in module scope after first call.
+ * Returns the full catalog (43 entries). Cached in module scope after first call.
  * Safe to call multiple times — re-derives only after `refreshCatalog()`.
  */
 export function getCatalog(): AgentSkill[] {
