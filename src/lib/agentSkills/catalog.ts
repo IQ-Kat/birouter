@@ -197,9 +197,10 @@ export async function fetchSkillMarkdown(id: string): Promise<SkillMarkdown> {
     throw new Error(`Skill not found in catalog: ${id}`);
   }
 
-  const response = await fetch(skill.rawUrl, {
-    next: { revalidate: 3600 },
-  });
+  const response = await fetch(
+    skill.rawUrl,
+    { next: { revalidate: 3600 } } as unknown as RequestInit
+  );
 
   if (!response.ok) {
     throw new Error(`GitHub raw fetch failed: HTTP ${response.status} for ${skill.rawUrl}`);
