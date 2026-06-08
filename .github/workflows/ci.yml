@@ -518,8 +518,8 @@ jobs:
     # Build artifact from the `build` job is downloaded instead of rebuilding
     # (~5min saved per shard). 9 shards (up from 6) reduces tests per shard by
     # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
-    # Heavy shard target: ≤20min (was ~40min).
-    timeout-minutes: 30
+    # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
+    timeout-minutes: 45
     needs: build
     strategy:
       fail-fast: false
