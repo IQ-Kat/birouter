@@ -421,8 +421,7 @@ type ClaudeEmptyResponseLifecycle = {
   warningLogged: boolean;
 };
 
-const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT =
-  "[Proxy Error] The upstream API returned an empty response. Please retry the request.";
+const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT = "";
 
 function createClaudeEmptyResponseLifecycle(): ClaudeEmptyResponseLifecycle {
   return {
