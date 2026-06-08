@@ -799,6 +799,12 @@ export function createSSEStream(options: StreamOptions = {}) {
   const clientPayloadCollector = createStructuredSSECollector({
     stage: "client_response",
   });
+  const requestRecord = asRecord(body);
+  const requestStreamOptions = asRecord(
+    requestRecord.stream_options ?? requestRecord.streamOptions
+  );
+  const expectsOpenAIUsageOnlyChunk =
+    requestStreamOptions.include_usage === true || requestStreamOptions.includeUsage === true;
 
   // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
@@ -1589,12 +1595,49 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // GOOD LUCK
                   // ----------------------------------------------------
                   // Chat Completions: full sanitization pipeline
-                  // Hardening: detect upstream returning empty choices array
-                  // which breaks OpenAI-compatible clients (e.g. Copilot Chat).
-                  // We drop these chunks entirely rather than injecting an error,
-                  // as injecting a chunk with finish_reason: "stop" will prematurely
-                  // terminate the stream for the client.
+
+                  // OpenAI-compatible streaming with `stream_options.include_usage=true`
+                  // ends with a usage-only chunk where `choices` is deliberately `[]`.
+                  // Forward that standards-compliant chunk instead of turning it into an
+                  // empty-response error. Keep the existing hardening for malformed empty
+                  // choices chunks without valid usage.
                   if (Array.isArray(parsed.choices) && parsed.choices.length === 0) {
+                    const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
+                    if (hasValidUsage(emptyChoicesUsage)) {
+                      usage = emptyChoicesUsage;
+                      output = `data: ${JSON.stringify(parsed)}\n`;
+                      injectedUsage = true;
+                      clientPayload = parsed;
+                      clientPayloadCollector.push(clientPayload);
+                      reqLogger?.appendConvertedChunk?.(output);
+                      controller.enqueue(encoder.encode(output));
+                      continue;
+                    }
+
+                    console.warn(
+                      `[STREAM] Upstream returned empty choices array (${provider || "provider"}:${model || "unknown"}) — emitting error chunk`
+                    );
+                    const errorChunk = {
+                      id: parsed.id || `omniroute-empty-choices-${Date.now()}`,
+                      object: "chat.completion.chunk",
+                      created: parsed.created || Math.floor(Date.now() / 1000),
+                      model: parsed.model || model || "unknown",
+                      choices: [
+                        {
+                          index: 0,
+                          delta: {
+                            role: "assistant",
+                            content: "[OmniRoute] Upstream returned an empty response. Please retry.",
+                          },
+                          finish_reason: "stop",
+                        },
+                      ],
+                    };
+                    output = `data: ${JSON.stringify(errorChunk)}\n`;
+                    injectedUsage = true;
+                    clientPayload = errorChunk;
+                    reqLogger?.appendConvertedChunk?.(output);
+                    controller.enqueue(encoder.encode(output));
                     continue;
                   }
 
@@ -1774,7 +1817,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                       injectedUsage = true;
                     }
                   }
-                  if (isFinishChunk && !hasValidUsage(parsed.usage)) {
+                  if (
+                    isFinishChunk &&
+                    !hasValidUsage(parsed.usage) &&
+                    !expectsOpenAIUsageOnlyChunk
+                  ) {
                     const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
                     parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
                     output = `data: ${JSON.stringify(parsed)}\n`;
