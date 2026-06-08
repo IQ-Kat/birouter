@@ -125,17 +125,26 @@ export default function CodexCliGuideModal({ isOpen, onClose }: CodexCliGuideMod
   useEffect(() => {
     if (!isOpen || content) return;
 
-    setLoading(true);
-    setError(false);
-
-    fetch("/api/docs/codex-cli")
-      .then((res) => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const res = await fetch("/api/docs/codex-cli");
         if (!res.ok) throw new Error(`${res.status}`);
-        return res.json() as Promise<{ content: string }>;
-      })
-      .then((data) => setContent(data.content))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+        const data = (await res.json()) as { content: string };
+        if (!cancelled) setContent(data.content);
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, content]);
 
   return (

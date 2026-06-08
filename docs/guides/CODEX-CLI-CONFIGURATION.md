@@ -1,3 +1,9 @@
+---
+title: "Codex CLI — Configuration with OmniRoute"
+version: 3.8.16
+lastUpdated: 2026-06-08
+---
+
 # Codex CLI — Configuration with OmniRoute
 
 Complete guide for using the Codex CLI pointed at OmniRoute as an OpenAI-compatible backend.
