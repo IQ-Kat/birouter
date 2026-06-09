@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack --port 2004",
-    "build": "next build --webpack",
+    "build": "node --max-old-space-size=6144 --require ./prebuild.cjs ./node_modules/next/dist/bin/next build --webpack",
     "start": "next start",
     "dev:bun": "bun --bun next dev --webpack --port 2004",
     "build:bun": "bun --bun next build --webpack",

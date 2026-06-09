@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 // CLI bundling needs workspace root so tracing includes hoisted node_modules (slim ~50MB).
@@ -38,6 +38,18 @@ const nextConfig = {
         path: false,
       };
     }
+    // Windows fix: Node.js built-in legacy paths (C:\Users\ikbal\.node_modules,
+    // C:\Users\ikbal\.node_libraries) are included in module resolution by default.
+    // Webpack scans these → readdir('C:\Users\ikbal') → hits junction points → EPERM crash.
+    // Fix 1: restrict resolve.modules to standard relative node_modules only.
+    config.resolve.modules = ['node_modules'];
+    // Fix 2: restrict snapshot managed paths to local node_modules only,
+    // so webpack doesn't validate cache against C:\Users\ikbal paths.
+    const localNodeModules = resolve(projectRoot, 'node_modules');
+    config.snapshot = {
+      ...config.snapshot,
+      managedPaths: [new RegExp(`^(${localNodeModules.replace(/\\/g, '\\\\')})(/|$)`)],
+    };
     // Exclude logs, .next, gitbook subapp from watcher
     config.watchOptions = { ...config.watchOptions, ignored: /[\\/](logs|\.next|gitbook|cli)[\\/]/ };
     return config;
