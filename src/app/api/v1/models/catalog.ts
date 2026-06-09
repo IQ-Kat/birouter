@@ -31,6 +31,7 @@ import {
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { isModelCatalogNamesEnabled } from "@/shared/utils/featureFlags";
 import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
@@ -88,6 +89,17 @@ function parseJsonStringArray(value: unknown): string[] {
   } catch {
     return [];
   }
+}
+
+function maybeOmitCatalogModelName<T extends Record<string, unknown>>(
+  model: T,
+  includeNames: boolean
+): T | Omit<T, "name"> {
+  if (includeNames || !Object.prototype.hasOwnProperty.call(model, "name")) return model;
+
+  const { name: omittedName, ...nextModel } = model;
+  void omittedName;
+  return nextModel;
 }
 
 function intersectStringArrays(arrays: string[][]): string[] {
@@ -185,9 +197,7 @@ function getOpenRouterDisplayName(model: {
   pricing?: { prompt?: string; completion?: string };
 }) {
   const name = model.name || model.id || "OpenRouter model";
-  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name)
-    ? `${name} (Grátis)`
-    : name;
+  return isOpenRouterFreeModel(model) && !/\bgr[aá]tis\b/i.test(name) ? `${name} (Grátis)` : name;
 }
 
 async function validateCatalogApiKey(apiKey: string): Promise<boolean> {
@@ -496,7 +506,10 @@ export async function getUnifiedModelsResponse(
       const specContext = isPositiveFiniteNumber(spec?.contextWindow)
         ? spec.contextWindow
         : undefined;
-      const contextLength = syncedContext ?? registryContext ?? specContext ??
+      const contextLength =
+        syncedContext ??
+        registryContext ??
+        specContext ??
         (getTokenLimit(providerId, modelId) || undefined);
       const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
         ? synced.limit_input
@@ -1150,7 +1163,18 @@ export async function getUnifiedModelsResponse(
           if (!modelId) continue;
           if (model.isHidden === true) continue;
           if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+          // noAuth providers (e.g. theoldllm) never create DB connection rows, so the
+          // eligibility gate would drop every imported/custom model for them (#3200).
+          // Mirror providerSupportsModel's noAuth bypass (#2798) — keep the gate for
+          // auth providers (preserving parentProviderType for compatible UUID nodes).
+          const isNoAuthProvider = Object.values(NOAUTH_PROVIDERS).some(
+            (p) =>
+              p.id === canonicalProviderId ||
+              p.id === providerId ||
+              ("alias" in p && p.alias === alias)
+          );
           if (
+            !isNoAuthProvider &&
             !hasEligibleConnectionForModel(
               getConnectionsForProvider(alias, canonicalProviderId, providerId, parentProviderType),
               modelId
@@ -1331,13 +1355,17 @@ export async function getUnifiedModelsResponse(
       return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
     };
 
+    const includeModelNames = isModelCatalogNamesEnabled();
     const enrichedModels = finalModels.map((model) => {
-      if (model.owned_by === "combo") return model;
+      if (model.owned_by === "combo") {
+        return maybeOmitCatalogModelName(model, includeModelNames);
+      }
       const enriched = enrichCatalogModelEntry(model);
       const fallbackContextLength = getDefaultContextFallback(enriched);
-      return fallbackContextLength
+      const listedModel = fallbackContextLength
         ? { ...enriched, context_length: fallbackContextLength }
         : enriched;
+      return maybeOmitCatalogModelName(listedModel, includeModelNames);
     });
 
     return Response.json(
