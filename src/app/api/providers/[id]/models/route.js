@@ -356,7 +356,14 @@ const PROVIDER_MODELS_CONFIG = {
         return { error: `Failed to fetch models: ${response.status}`, status: response.status };
       }
       const data = await response.json();
-      return { models: parseOpenAIStyleModels(data) };
+      const rawModels = parseOpenAIStyleModels(data);
+      return { 
+        models: rawModels.map(m => ({
+          ...m,
+          id: m.id || m.name,
+          name: m.name || m.id
+        }))
+      };
     }
   }
 };
