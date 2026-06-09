@@ -2,6 +2,28 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.2.7 (2026-06-09)
+*Synchronized with 9Router v0.4.71*
+
+### 🚀 New Features (from 9Router v0.4.71)
+- **Caveman Mode Update**: Added Wenyan classical Chinese levels and synchronized upstream prompts.
+- **New Providers & Models**:
+  - Added **xiaomi-tokenplan**: Claude-native MiMo V2.5 Pro alias.
+  - Added **MiniMax-M3** support and updated Quota Tracker.
+  - Added `gemini-3.5-flash-extra-low` (Low) model for Antigravity.
+- **Qoder Improvements**: Support for fetching latest models and dashboard import-model button.
+- **i18n**: Added Russian README and endpoint exposure notices across multiple languages.
+
+### 🛡️ Fixes & Stability (from 9Router v0.4.71)
+- **Codex Streaming**: Hardened streaming timeouts (60s), improved `response.done` handling, and terminal event emission to prevent client hangs.
+- **OAuth Lifecycle**: Durable OAuth refresh lifecycle for Codex.
+- **Network**: Skipped virtual interfaces in tunnel netchange watchdog to prevent false restarts.
+- **Proxy**: Raised Next.js client body limit to 128MB.
+- **Provider Fixes**:
+  - Kiro: Handled 400 errors on tool history, added "auto" model slot, and fixed binary EventStream crashes.
+  - Antigravity: Passthrough for tab-autocomplete.
+  - Claude: Fixed forced `tool_choice` 400 errors.
+
 ## v0.2.6 (2026-05-30)
 
 ### 🐛 Bug Fixes

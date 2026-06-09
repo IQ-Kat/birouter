@@ -12,6 +12,7 @@
 
 [🚀 Quick Start](#-quick-start) • [💡 Features](#-features) • [📖 Setup](#-setup) • [🤝 Contributing](docs/CONTRIBUTING.md) • [💝 Support](#-support)
 
+[🇻🇳 Tiếng Việt](./i18n/README.vi.md) • [🇨🇳 中文](./i18n/README.zh-CN.md) • [🇯🇵 日本語](./i18n/README.ja-JP.md) • [🇷🇺 Русский](./i18n/README.ru.md)
 </div>
 
 ---
