@@ -18,10 +18,19 @@ if (!fs.existsSync(standaloneDir)) {
   process.exit(1);
 }
 
+// Same exclusions as build-cli.js — keep sensitive/unnecessary files out of CLI package
+const EXCLUDE = ['@img','sharp','detect-libc','logs','.env','.env.local','.DS_Store','tmp'];
+function shouldExclude(name) {
+  return EXCLUDE.some(p => p.includes('*')
+    ? new RegExp('^' + p.replace(/[.+?^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*') + '$').test(name)
+    : name === p || name.startsWith('.env.'));
+}
+
 function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (shouldExclude(entry.name)) continue;
     const s = path.join(src, entry.name);
     const d = path.join(dest, entry.name);
     try { fs.accessSync(s); } catch { continue; }
