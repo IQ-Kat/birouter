@@ -1,6 +1,6 @@
 {
   "name": "birouter",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Birouter CLI - Start and manage Birouter server",
   "repository": {
     "type": "git",
