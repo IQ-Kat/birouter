@@ -661,6 +661,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     },
     models: [
       {
+        id: "claude-fable-5",
+        name: "Claude Fable 5",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
+      {
         id: "claude-opus-4-8",
         name: "Claude Opus 4.8",
         contextLength: 1000000,
@@ -1142,6 +1148,12 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     },
     models: [
       { id: "auto-kiro", name: "Auto (Kiro picks best model)" },
+      {
+        id: "claude-fable-5",
+        name: "Claude Fable 5",
+        contextLength: 1000000,
+        maxOutputTokens: 128000,
+      },
       {
         id: "claude-opus-4.8",
         name: "Claude Opus 4.8",
@@ -2472,17 +2484,6 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [{ id: "auto", name: "Auto" }],
-  },
-
-  krutrim: {
-    id: "krutrim",
-    alias: "krutrim",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://api.krutrim.com/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [{ id: "krutrim-2-7b-instruct", name: "Krutrim 2 7B" }],
   },
 
   liquid: {
