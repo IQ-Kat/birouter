@@ -656,7 +656,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     },
     oauth: {
       clientIdEnv: "CLAUDE_OAUTH_CLIENT_ID",
-      clientIdDefault: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
+      clientIdDefault: resolvePublicCred("claude_id"),
       tokenUrl: "https://api.anthropic.com/v1/oauth/token",
     },
     models: [
@@ -834,7 +834,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     headers: getCodexDefaultHeaders(),
     oauth: {
       clientIdEnv: "CODEX_OAUTH_CLIENT_ID",
-      clientIdDefault: "app_EMoamEEZ73f0CkXaXp7hrann",
+      clientIdDefault: resolvePublicCred("codex_id"),
       clientSecretEnv: "CODEX_OAUTH_CLIENT_SECRET",
       clientSecretDefault: "",
       tokenUrl: "https://auth.openai.com/oauth/token",
@@ -928,7 +928,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     headers: getQwenOauthHeaders(),
     oauth: {
       clientIdEnv: "QWEN_OAUTH_CLIENT_ID",
-      clientIdDefault: "f0304373b74a44d2b584a3fb70ca9e56",
+      clientIdDefault: resolvePublicCred("qwen_id"),
       tokenUrl: "https://chat.qwen.ai/api/v1/oauth2/token",
       authUrl: "https://chat.qwen.ai/api/v1/oauth2/device/code",
     },
@@ -1970,7 +1970,7 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
     authType: "oauth",
     oauth: {
       clientIdEnv: "KIMI_CODING_OAUTH_CLIENT_ID",
-      clientIdDefault: "17e5f671-d194-4dfb-9706-5516cb48c098",
+      clientIdDefault: resolvePublicCred("kimi_id"),
       tokenUrl: "https://auth.kimi.com/api/oauth/token",
       refreshUrl: "https://auth.kimi.com/api/oauth/token",
       authUrl: "https://auth.kimi.com/api/oauth/device_authorization",
