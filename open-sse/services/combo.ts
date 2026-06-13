@@ -83,6 +83,7 @@ import { getSessionConnection } from "./sessionManager.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
+import { buildComplexityRoutingHint } from "./autoCombo/complexityRouter";
 import type { CompressionMode } from "./compression/types.ts";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { getProviderConnections } from "../../src/lib/db/providers";
@@ -143,8 +144,45 @@ function isProviderCircuitOpenResult(
 }
 
 const MAX_COMBO_DEPTH = 3;
+// Absolute safety ceiling for operator-configured nesting depth. config.maxComboDepth
+// can raise the default (3) up to this cap, or lower it, but never above — runaway
+// nested-combo expansion is a real DoS/perf risk.
+const MAX_COMBO_DEPTH_HARD_CAP = 10;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
+
+/**
+ * Clamp an operator-configured combo nesting depth (config.maxComboDepth) to a
+ * safe integer in [1, MAX_COMBO_DEPTH_HARD_CAP]. Anything non-numeric, < 1, or
+ * NaN falls back to the default MAX_COMBO_DEPTH so a bad config never disables
+ * nesting or blows past the safety ceiling.
+ */
+export function clampComboDepth(value: unknown): number {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n) || n < 1) return MAX_COMBO_DEPTH;
+  return Math.min(n, MAX_COMBO_DEPTH_HARD_CAP);
+}
+
+/** Minimum recorded requests before the predictive-TTFT breaker trusts the average. */
+const PREDICTIVE_TTFT_MIN_SAMPLES = 5;
+
+/**
+ * Predictive-TTFT circuit-breaker decision: skip a target whose recent average
+ * latency — measured over a statistically meaningful sample — exceeds the
+ * configured ceiling, so the combo fails over before paying a slow first byte.
+ * Returns false when disabled (ceiling <= 0), when there is no metric, or when
+ * the sample is too small to trust.
+ */
+export function shouldSkipForPredictedTtft(
+  metric: { requests?: number; avgLatencyMs?: number } | null | undefined,
+  predictiveTtftMs: number
+): boolean {
+  if (!metric || !(predictiveTtftMs > 0)) return false;
+  return (
+    (metric.requests ?? 0) >= PREDICTIVE_TTFT_MIN_SAMPLES &&
+    (metric.avgLatencyMs ?? 0) > predictiveTtftMs
+  );
+}
 
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
@@ -1128,19 +1166,24 @@ function expandRuntimeStep(
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
   depth = 0,
-  path: string[] = []
+  path: string[] = [],
+  maxDepth: number = MAX_COMBO_DEPTH
 ): ResolvedComboTarget[] {
   if (step.kind === "model") return [step];
-  if (depth > MAX_COMBO_DEPTH) return [];
+  if (depth > maxDepth) return [];
 
   const combos = getCombosArray(allCombos);
   const nestedCombo = combos.find((combo) => combo.name === step.comboName);
   if (!nestedCombo || visited.has(step.comboName)) return [];
 
-  return resolveNestedComboTargets(nestedCombo, combos, new Set(visited), depth + 1, [
-    ...path,
-    step.stepId,
-  ]);
+  return resolveNestedComboTargets(
+    nestedCombo,
+    combos,
+    new Set(visited),
+    depth + 1,
+    [...path, step.stepId],
+    maxDepth
+  );
 }
 
 export function resolveNestedComboTargets(
@@ -1148,13 +1191,14 @@ export function resolveNestedComboTargets(
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
   depth = 0,
-  path: string[] = []
+  path: string[] = [],
+  maxDepth: number = MAX_COMBO_DEPTH
 ): ResolvedComboTarget[] {
   const directTargets = (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null, path))
     .filter((entry): entry is ResolvedComboTarget => entry?.kind === "model");
 
-  if (depth > MAX_COMBO_DEPTH) return directTargets;
+  if (depth > maxDepth) return directTargets;
   if (visited.has(combo.name)) return [];
   visited.add(combo.name);
 
@@ -1163,7 +1207,9 @@ export function resolveNestedComboTargets(
 
   for (const step of runtimeSteps) {
     if (step.kind === "combo-ref") {
-      resolved.push(...expandRuntimeStep(step, allCombos, new Set(visited), depth, path));
+      resolved.push(
+        ...expandRuntimeStep(step, allCombos, new Set(visited), depth, path, maxDepth)
+      );
       continue;
     }
     resolved.push(step);
@@ -1214,10 +1260,11 @@ export function validateComboDAG(
   comboName: string,
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
-  depth = 0
+  depth = 0,
+  maxDepth: number = MAX_COMBO_DEPTH
 ): void {
-  if (depth > MAX_COMBO_DEPTH) {
-    throw new Error(`Max combo nesting depth (${MAX_COMBO_DEPTH}) exceeded at "${comboName}"`);
+  if (depth > maxDepth) {
+    throw new Error(`Max combo nesting depth (${maxDepth}) exceeded at "${comboName}"`);
   }
   if (visited.has(comboName)) {
     throw new Error(`Circular combo reference detected: ${comboName}`);
@@ -1233,7 +1280,7 @@ export function validateComboDAG(
     // Check if this model name is itself a combo (not a provider/model pattern)
     const nestedCombo = combos.find((c) => c.name === modelName);
     if (nestedCombo) {
-      validateComboDAG(modelName, combos, new Set(visited), depth + 1);
+      validateComboDAG(modelName, combos, new Set(visited), depth + 1, maxDepth);
     }
   }
 }
@@ -1251,9 +1298,10 @@ export function resolveNestedComboModels(
   combo: ComboLike,
   allCombos: ComboCollectionLike,
   visited = new Set<string>(),
-  depth = 0
+  depth = 0,
+  maxDepth: number = MAX_COMBO_DEPTH
 ): string[] {
-  if (depth > MAX_COMBO_DEPTH) return combo.models.map((m) => normalizeModelEntry(m).model);
+  if (depth > maxDepth) return combo.models.map((m) => normalizeModelEntry(m).model);
   if (visited.has(combo.name)) return []; // cycle safety
   visited.add(combo.name);
 
@@ -1266,7 +1314,13 @@ export function resolveNestedComboModels(
 
     if (nestedCombo) {
       // Recursively expand the nested combo
-      const nested = resolveNestedComboModels(nestedCombo, combos, new Set(visited), depth + 1);
+      const nested = resolveNestedComboModels(
+        nestedCombo,
+        combos,
+        new Set(visited),
+        depth + 1,
+        maxDepth
+      );
       resolved.push(...nested);
     } else {
       resolved.push(modelName);
@@ -2809,9 +2863,12 @@ async function applyRequestTagRouting(
 
 export function resolveComboTargets(
   combo: ComboLike,
-  allCombos: ComboCollectionLike
+  allCombos: ComboCollectionLike,
+  maxDepth: number = MAX_COMBO_DEPTH
 ): ResolvedComboTarget[] {
-  return allCombos ? resolveNestedComboTargets(combo, allCombos) : getDirectComboTargets(combo);
+  return allCombos
+    ? resolveNestedComboTargets(combo, allCombos, new Set<string>(), 0, [], maxDepth)
+    : getDirectComboTargets(combo);
 }
 
 function resolveWeightedTargets(
@@ -2850,11 +2907,12 @@ function resolveWeightedTargets(
   };
 }
 
-function scoreAutoTargets(
+export function scoreAutoTargets(
   targets: ResolvedComboTarget[],
   candidates: AutoProviderCandidate[],
   taskType: string | null,
-  weights: ScoringWeights
+  weights: ScoringWeights,
+  manifestHint?: RoutingHint | null
 ) {
   const candidateByExecutionKey = new Map(
     candidates.map((candidate: ProviderCandidate & { executionKey: string }) => [
@@ -2870,7 +2928,8 @@ function scoreAutoTargets(
         candidate as ProviderCandidate,
         candidates,
         taskType ?? "general",
-        getTaskFitness
+        getTaskFitness,
+        manifestHint ?? undefined
       );
       let score = calculateScore(factors, weights);
       // B17: Quota Share soft-policy deprioritization
@@ -3129,7 +3188,7 @@ export async function handleComboChat({
   let orderedTargets =
     strategy === "weighted"
       ? resolveWeightedTargets(combo, allCombos)?.orderedTargets || []
-      : resolveComboTargets(combo, allCombos);
+      : resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -3345,7 +3404,25 @@ export async function handleComboChat({
         selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
       }
 
-      const scoredTargets = scoreAutoTargets(eligibleTargets, candidates, taskType, weights);
+      // Complexity-aware routing (2026, opt-in): classify the request's
+      // difficulty and feed a tier hint into scoring so tierAffinity /
+      // specificityMatch favor candidates whose tier matches the request.
+      const autoManifestHint: RoutingHint | null =
+        config.complexityAwareRouting === true
+          ? buildComplexityRoutingHint(
+              eligibleTargets.filter((t) => t.kind === "model"),
+              body,
+              log
+            )
+          : null;
+
+      const scoredTargets = scoreAutoTargets(
+        eligibleTargets,
+        candidates,
+        taskType,
+        weights,
+        autoManifestHint
+      );
       const rankedTargets = scoredTargets.map((entry) => entry.target);
       const selectedTarget =
         scoredTargets.find((entry) => {
@@ -3724,7 +3801,7 @@ export async function handleComboChat({
             if (cMetrics) {
               const targetKey = orderedTargets[i].executionKey || modelStr;
               const m = cMetrics.byTarget[targetKey] || cMetrics.byModel[modelStr];
-              if (m && m.requests >= 5 && m.avgLatencyMs > config.predictiveTtftMs) {
+              if (shouldSkipForPredictedTtft(m, config.predictiveTtftMs)) {
                 log.warn(
                   "COMBO",
                   `Predictive TTFT Circuit Breaker: skipping ${modelStr} (avg ${m.avgLatencyMs}ms > max ${config.predictiveTtftMs}ms)`
@@ -4531,7 +4608,7 @@ async function handleRoundRobinCombo({
     ? resolveResilienceSettings(settings)
     : resolveResilienceSettings(null);
 
-  const orderedTargets = resolveComboTargets(combo, allCombos);
+  const orderedTargets = resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth));
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
   const filteredTargets = filterTargetsByRequestCompatibility(
