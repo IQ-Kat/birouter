@@ -685,6 +685,15 @@ Automatic model pricing data synchronization from external sources.
 
 ---
 
+## Arena ELO Sync
+
+| Variable                    | Default       | Source File                | Description                                                   |
+| --------------------------- | ------------- | -------------------------- | ------------------------------------------------------------- |
+| `ARENA_ELO_SYNC_ENABLED`    | `false`       | `src/lib/arenaEloSync.ts`  | Opt-in periodic Arena AI leaderboard ELO sync.                |
+| `ARENA_ELO_SYNC_INTERVAL`   | `86400` (24h) | `src/lib/arenaEloSync.ts`  | Sync interval in seconds.                                     |
+
+---
+
 ## 19. Model Sync (Dev)
 
 | Variable                   | Default       | Source File                | Description                                              |
@@ -865,6 +874,7 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `ALIBABA_CODING_PLAN_QUOTA_URL`            | derived from host                                                           | `open-sse/services/bailianQuotaFetcher.ts`                                | Full quota URL override for Alibaba Bailian.                                                                                                                                  |
 | `CONTEXT_RESERVE_TOKENS`                   | `1024`                                                                      | `open-sse/services/contextManager.ts`                                     | Tokens reserved for completion output when computing prompt budgets.                                                                                                          |
 | `MODEL_ALIAS_COMPAT_ENABLED`               | enabled                                                                     | `open-sse/services/model.ts`                                              | Toggle the legacy model-alias compatibility layer used by older clients.                                                                                                      |
+| `OMNIROUTE_EMERGENCY_FALLBACK`             | enabled                                                                     | `open-sse/services/emergencyFallback.ts`                                  | Set `false` (or `0`) to disable the emergency budget-exhaustion fallback that reroutes failed requests to the free `nvidia`/`openai/gpt-oss-120b` model.                      |
 | `COMMAND_CODE_CALLBACK_PORT`               | _(unset)_                                                                   | `src/app/api/providers/command-code/auth/shared.ts`                       | Local port used for OAuth-style callbacks from the Command Code CLI helper.                                                                                                   |
 | `COMMAND_CODE_VERSION`                     | `0.33.2`                                                                    | `open-sse/executors/commandCode.ts`                                       | Value sent as the `x-command-code-version` header to the Command Code upstream. Override to bump the CLI version.                                                             |
 | `MITM_LOCAL_PORT`                          | `443`                                                                       | `src/mitm/server.cjs`                                                     | Local bind port for the MITM debug proxy.                                                                                                                                     |
