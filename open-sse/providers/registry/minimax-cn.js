@@ -6,6 +6,7 @@ export default {
   transport: {
     baseUrl: "https://api.minimaxi.com/anthropic/v1/messages",
     format: "claude",
+    urlSuffix: "?beta=true",
     headers: { ...CLAUDE_API_HEADERS }
   },
   models: [

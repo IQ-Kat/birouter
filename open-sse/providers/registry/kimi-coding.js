@@ -6,6 +6,7 @@ export default {
   transport: {
     baseUrl: KIMI_CODING_BASE_URL,
     format: "claude",
+    urlSuffix: "?beta=true",
     headers: { ...CLAUDE_API_HEADERS },
     clientId: "17e5f671-d194-4dfb-9706-5516cb48c098",
     tokenUrl: "https://auth.kimi.com/api/oauth/token",

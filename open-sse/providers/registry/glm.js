@@ -6,6 +6,7 @@ export default {
   transport: {
     baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
     format: "claude",
+    urlSuffix: "?beta=true",
     headers: { ...CLAUDE_API_HEADERS }
   },
   models: [

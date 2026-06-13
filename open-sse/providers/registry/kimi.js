@@ -6,6 +6,7 @@ export default {
   transport: {
     baseUrl: KIMI_CODING_BASE_URL,
     format: "claude",
+    urlSuffix: "?beta=true",
     headers: { ...CLAUDE_API_HEADERS }
   },
   models: [

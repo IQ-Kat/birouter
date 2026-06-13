@@ -55,26 +55,21 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       return `${normalized}/messages`;
     }
-    switch (this.provider) {
-      case "claude":
-      case "glm":
-      case "kimi":
-      case "minimax":
-      case "minimax-cn":
-      case "kimi-coding":
-        return `${this.config.baseUrl}?beta=true`;
-      case "gemini":
-        return `${this.config.baseUrl}/${model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
-      default: {
-        const url = this.config.baseUrl;
-        if (url?.includes("{accountId}")) {
-          const accountId = credentials?.providerSpecificData?.accountId;
-          if (!accountId) throw new Error(`${this.provider} requires accountId in providerSpecificData`);
-          return url.replace("{accountId}", accountId);
-        }
-        return url;
-      }
+    // gemini-format: build :streamGenerateContent / :generateContent path
+    if (this.config.format === "gemini") {
+      return `${this.config.baseUrl}/${model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
     }
+    // urlSuffix (e.g. ?beta=true) declared per-provider in registry
+    if (this.config.urlSuffix) {
+      return `${this.config.baseUrl}${this.config.urlSuffix}`;
+    }
+    const url = this.config.baseUrl;
+    if (url?.includes("{accountId}")) {
+      const accountId = credentials?.providerSpecificData?.accountId;
+      if (!accountId) throw new Error(`${this.provider} requires accountId in providerSpecificData`);
+      return url.replace("{accountId}", accountId);
+    }
+    return url;
   }
 
   buildHeaders(credentials, stream = true) {
@@ -280,24 +275,16 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   async refreshCline(refreshToken, proxyOptions = null) {
-    console.log('[DEBUG] Refreshing Cline token, refreshToken length:', refreshToken?.length);
     const response = await proxyAwareFetch(PROVIDERS.cline.refreshUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ refreshToken, grantType: "refresh_token", clientType: "extension" })
     }, proxyOptions);
-    console.log('[DEBUG] Cline refresh response status:', response.status);
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.log('[DEBUG] Cline refresh error:', errorText);
-      return null;
-    }
+    if (!response.ok) return null;
     const payload = await response.json();
-    console.log('[DEBUG] Cline refresh payload:', JSON.stringify(payload).substring(0, 200));
     const data = payload?.data || payload;
     const expiresAtIso = data?.expiresAt;
     const expiresIn = expiresAtIso ? Math.max(1, Math.floor((new Date(expiresAtIso).getTime() - Date.now()) / 1000)) : undefined;
-    console.log('[DEBUG] Cline refresh success, expiresIn:', expiresIn);
     return { accessToken: data?.accessToken, refreshToken: data?.refreshToken || refreshToken, expiresIn };
   }
 
