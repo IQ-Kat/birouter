@@ -309,6 +309,15 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
   } else {
     console.log("  ✅ @omniroute/opencode-plugin dist/ already present (skipping rebuild)");
   }
+  // Remove plugin node_modules after build — hard links created by npm install on Linux
+  // (CI runner) end up in the tarball as LINK entries, which npm registry rejects with
+  // E415 "Hard link is not allowed". The node_modules are only needed for the tsup build;
+  // they must not ship in the published package.
+  const pluginNodeModules = join(opencodePluginSrc, "node_modules");
+  if (existsSync(pluginNodeModules)) {
+    rmSync(pluginNodeModules, { recursive: true, force: true });
+    console.log("  🧹 Removed @omniroute/opencode-plugin/node_modules (hard link guard)");
+  }
 } else {
   console.log("  ⏭️  @omniroute/opencode-plugin not found in workspace (skipping build)");
 }
