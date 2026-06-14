@@ -4923,7 +4923,12 @@ async function handleRoundRobinCombo({
               }
             })();
           }
-          return result;
+          // validateResponseQuality peeks streaming bodies via getReader(),
+          // which locks `result.body`. It returns a clonedResponse that replays
+          // the buffered prefix and forwards the rest. Returning the original
+          // (now-locked) `result` makes Next.js throw "ReadableStream is locked"
+          // → 500. Mirror the priority strategy and return the replay response.
+          return quality.clonedResponse ?? result;
         }
 
         // Extract error info
