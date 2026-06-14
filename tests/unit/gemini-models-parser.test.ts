@@ -79,14 +79,12 @@ test("parseGeminiModelsList maps Imagen predict models to the images endpoint", 
 
 test("parseGeminiModelsList maps embedContent and bidiGenerateContent", () => {
   const models = parseGeminiModelsList(SAMPLE);
-  assert.deepEqual(
-    models.find((m) => m.id === "text-embedding-004")!.supportedEndpoints,
-    ["embeddings"]
-  );
-  assert.deepEqual(
-    models.find((m) => m.id === "gemini-live-2.5-flash")!.supportedEndpoints,
-    ["audio"]
-  );
+  assert.deepEqual(models.find((m) => m.id === "text-embedding-004")!.supportedEndpoints, [
+    "embeddings",
+  ]);
+  assert.deepEqual(models.find((m) => m.id === "gemini-live-2.5-flash")!.supportedEndpoints, [
+    "audio",
+  ]);
 });
 
 test("parseGeminiModelsList maps Veo predictLongRunning models to the video endpoint", () => {

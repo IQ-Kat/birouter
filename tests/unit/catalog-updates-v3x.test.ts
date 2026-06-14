@@ -89,9 +89,10 @@ test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)
   assert.ok(models.length > 0, "kiro must expose models");
 
   for (const model of models) {
-    const pricing = getPricingForModel("kiro", model.id) as
-      | { input?: number; output?: number }
-      | null;
+    const pricing = getPricingForModel("kiro", model.id) as {
+      input?: number;
+      output?: number;
+    } | null;
     assert.ok(pricing, `kiro pricing must include "${model.id}"`);
     assert.equal(
       typeof pricing?.input === "number" && typeof pricing?.output === "number",

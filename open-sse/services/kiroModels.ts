@@ -68,8 +68,7 @@ export function parseKiroModels(data: unknown): KiroModel[] {
     const id = toNonEmptyString(item.modelId) || toNonEmptyString(item.id);
     if (!id || seen.has(id)) continue;
     seen.add(id);
-    const name =
-      toNonEmptyString(item.modelName) || toNonEmptyString(item.name) || id;
+    const name = toNonEmptyString(item.modelName) || toNonEmptyString(item.name) || id;
     models.push({ id, name, owned_by: "kiro" });
   }
 

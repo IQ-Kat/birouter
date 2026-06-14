@@ -52,7 +52,7 @@
     "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": 784,
     "src/app/(dashboard)/dashboard/providers/[id]/components/ConnectionRow.tsx": 941,
     "src/app/(dashboard)/dashboard/providers/[id]/components/modals/AddApiKeyModal.tsx": 843,
-    "src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal.tsx": 1171,
+    "src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal.tsx": 1174,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts": 954,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderModels.ts": 155,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderSettings.ts": 264,
@@ -103,7 +103,7 @@
     "src/shared/services/cliRuntime.ts": 1090,
     "src/shared/validation/schemas.ts": 2523,
     "src/sse/handlers/chat.ts": 1425,
-    "src/sse/services/auth.ts": 2207
+    "src/sse/services/auth.ts": 2216
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",
@@ -128,5 +128,6 @@
   "_rebaseline_2026_06_14_r3_3849_transient_hide": "PR #3849 own growth: providerPageHelpers.ts 939→955 (+16 = expanded JSDoc on the auto-hide policy + transient-failure guard in evaluateTestAllEntry). Cohesive helper logic; not extractable.",
   "_rebaseline_2026_06_14_r3_3838_opencode_quota": "PR #3838 own growth: usage.ts 3394→3408 (+14 = clearer OpenCode Go missing-quota-API messages with OMNIROUTE_OPENCODE_GO_QUOTA_URL override hint + upstream issue links). Message text only; no logic extractable.",
   "_rebaseline_2026_06_14_r3_3839_veo_video": "PR #3839 own growth: schemas.ts 2522→2523 (+1 = Veo video model (predictLongRunning) validation for Gemini/Vertex dynamic discovery).",
-  "_rebaseline_2026_06_14_r3_3836_kiro_discovery": "PR #3836 own growth: models/route.ts 2426→2487 (+61 = kiro live per-account discovery branch wiring fetchKiroAvailableModels into the existing cache/auto-fetch/fallback discovery flow). Structural shrink of this route tracked in #3789."
+  "_rebaseline_2026_06_14_r3_3836_kiro_discovery": "PR #3836 own growth: models/route.ts 2426→2487 (+61 = kiro live per-account discovery branch wiring fetchKiroAvailableModels into the existing cache/auto-fetch/fallback discovery flow). Structural shrink of this route tracked in #3789.",
+  "_rebaseline_2026_06_14_2997_disable_cooling": "Re-baseline #2997 (per-connection disable-cooling): EditConnectionModal.tsx 1171→1174 (+toggle UI) + auth.ts 2207→2216 (honor de disableCooling no markAccountUnavailable, pós-prettier). Lógica coesa; não-extraível. (combo.ts/RequestLoggerV2 drift já documentado em _r3_3835.)"
 }

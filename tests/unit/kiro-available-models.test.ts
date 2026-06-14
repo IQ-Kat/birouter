@@ -92,8 +92,14 @@ test("fetchKiroAvailableModels: IAM Identity Center account, region-matched endp
   });
 
   assert.equal(result.source, "api");
-  assert.deepEqual(result.models.map((m) => m.id), ["claude-opus-4.8"]);
-  assert.equal(calls[0], "https://q.eu-central-1.amazonaws.com/ListAvailableModels?origin=AI_EDITOR");
+  assert.deepEqual(
+    result.models.map((m) => m.id),
+    ["claude-opus-4.8"]
+  );
+  assert.equal(
+    calls[0],
+    "https://q.eu-central-1.amazonaws.com/ListAvailableModels?origin=AI_EDITOR"
+  );
 });
 
 test("fetchKiroAvailableModels: retries with profileArn when origin-only fails", async () => {
@@ -117,7 +123,10 @@ test("fetchKiroAvailableModels: retries with profileArn when origin-only fails",
   });
 
   assert.equal(result.source, "api");
-  assert.deepEqual(result.models.map((m) => m.id), ["claude-sonnet-4.6"]);
+  assert.deepEqual(
+    result.models.map((m) => m.id),
+    ["claude-sonnet-4.6"]
+  );
   // origin-only attempted first, then profileArn retry.
   assert.equal(calls.length, 2);
   assert.ok(calls[0].endsWith("?origin=AI_EDITOR"));
@@ -131,11 +140,15 @@ test("fetchKiroAvailableModels: falls back to static catalog when no token", asy
     fallbackModels: FALLBACK,
   });
   assert.equal(result.source, "fallback");
-  assert.deepEqual(result.models.map((m) => m.id), ["auto-kiro", "claude-sonnet-4.6"]);
+  assert.deepEqual(
+    result.models.map((m) => m.id),
+    ["auto-kiro", "claude-sonnet-4.6"]
+  );
 });
 
 test("fetchKiroAvailableModels: falls back when every upstream attempt fails", async () => {
-  const fetchImpl = (async () => jsonResponse({ message: "expired" }, 403)) as unknown as typeof fetch;
+  const fetchImpl = (async () =>
+    jsonResponse({ message: "expired" }, 403)) as unknown as typeof fetch;
   const result = await fetchKiroAvailableModels({
     accessToken: "stale",
     providerSpecificData: { region: "us-east-1" },
@@ -143,5 +156,8 @@ test("fetchKiroAvailableModels: falls back when every upstream attempt fails", a
     fallbackModels: FALLBACK,
   });
   assert.equal(result.source, "fallback");
-  assert.deepEqual(result.models.map((m) => m.id), ["auto-kiro", "claude-sonnet-4.6"]);
+  assert.deepEqual(
+    result.models.map((m) => m.id),
+    ["auto-kiro", "claude-sonnet-4.6"]
+  );
 });
