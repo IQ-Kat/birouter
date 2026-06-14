@@ -4,6 +4,12 @@
 
 ---
 
+## [3.8.25] — TBD
+
+_Development cycle in progress — entries are added here as PRs merge._
+
+---
+
 ## [3.8.24] — 2026-06-13
 
 ### ✨ New Features
