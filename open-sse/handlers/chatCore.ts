@@ -83,6 +83,7 @@ import {
 
 import {
   getCallLogPipelineCaptureStreamChunks,
+  getCallLogPipelineMaxSizeBytes,
   getChatLogTextLimit,
   getChatLogArrayTailItems,
   getChatLogMaxDepth,
@@ -2302,6 +2303,7 @@ export async function handleChatCore({
   const reqLogger = await createRequestLogger(sourceFormat, targetFormat, model, {
     enabled: detailedLoggingEnabled,
     captureStreamChunks: capturePipelineStreamChunks,
+    maxStreamChunkBytes: getCallLogPipelineMaxSizeBytes(),
     // Provide model/provider/connectionId so streamChunks can be attached to the
     // in-memory pending request record before final call-log persistence.
     model,
