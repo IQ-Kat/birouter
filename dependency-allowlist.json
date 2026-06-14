@@ -45,6 +45,7 @@
     "eslint-config-next",
     "eslint-plugin-sonarjs",
     "express",
+    "fast-check",
     "fetch-socks",
     "fflate",
     "fumadocs-core",
