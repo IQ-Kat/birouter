@@ -1,5 +1,6 @@
 {
   "_comment": "Catraca de tamanho (check-file-size.mjs). frozen so pode encolher; arquivos novos <= cap. --update ratcheta.",
+  "_rebaseline_v3.8.25": "Drift consciente do ciclo v3.8.24->v3.8.25 (features #3799-#3806: free-provider-rankings, plugins menu, proxy IP-family selector). 3 arquivos cresceram por feature legitima, nao por regressao de qualidade: ProxyRegistryManager.tsx 1072->1089, sidebarVisibility.ts 990->1006, schemas.ts 2519->2522. Encolher fica como debt para um refactor dedicado.",
   "cap": 800,
   "frozen": {
     "open-sse/config/providerRegistry.ts": 4703,
