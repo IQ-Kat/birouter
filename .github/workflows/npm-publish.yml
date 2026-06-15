@@ -50,7 +50,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write # gh release upload (attach SBOM to the GitHub Release)
       id-token: write # npm provenance
       packages: write # publish to npm.pkg.github.com
     steps:
