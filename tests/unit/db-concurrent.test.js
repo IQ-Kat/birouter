@@ -17,7 +17,14 @@ beforeAll(async () => {
   await db.initDb();
 });
 
-afterAll(() => {
+afterAll(async () => {
+  if (global._dbAdapter?.instance) {
+    if (typeof global._dbAdapter.instance.close === "function") {
+      global._dbAdapter.instance.close();
+    }
+    global._dbAdapter.instance = null;
+    global._dbAdapter.initPromise = null;
+  }
   if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;

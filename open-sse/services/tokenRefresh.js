@@ -53,9 +53,9 @@ export function parseVertexSaJson(apiKey) {
       return parsed;
     }
     return null;
+  } catch {
     return null;
   }
-}
 }
 
 // Cache Vertex tokens keyed by service account email { token, expiresAt }

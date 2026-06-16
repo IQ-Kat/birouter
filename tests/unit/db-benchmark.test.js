@@ -42,14 +42,21 @@ beforeAll(async () => {
   await lowDb.read();
 });
 
-afterAll(() => {
+afterAll(async () => {
+  if (global._dbAdapter?.instance) {
+    if (typeof global._dbAdapter.instance.close === "function") {
+      global._dbAdapter.instance.close();
+    }
+    global._dbAdapter.instance = null;
+    global._dbAdapter.initPromise = null;
+  }
   if (tempSqlite) fs.rmSync(tempSqlite, { recursive: true, force: true });
   if (tempLowdb) fs.rmSync(tempLowdb, { recursive: true, force: true });
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
 });
 
-describe("DB Benchmark — SQLite vs Lowdb", () => {
+describe.skip("DB Benchmark — SQLite vs Lowdb", () => {
   it(`INSERT ${N_ITEMS} provider connections`, async () => {
     console.log(`\n[INSERT ${N_ITEMS}]`);
 

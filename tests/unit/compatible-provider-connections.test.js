@@ -33,6 +33,13 @@ async function setupTestContext(nodeData) {
     POST,
     getProviderConnections,
     cleanup() {
+      if (global._dbAdapter?.instance) {
+        if (typeof global._dbAdapter.instance.close === "function") {
+          global._dbAdapter.instance.close();
+        }
+        global._dbAdapter.instance = null;
+        global._dbAdapter.initPromise = null;
+      }
       fs.rmSync(tempDir, { recursive: true, force: true });
     },
   };

@@ -27,10 +27,13 @@ export function reorderByCapabilities(models, required) {
   };
 
   // Stable sort by tier (Array.prototype.sort is stable in modern engines).
-  return models
+  const sorted = models
     .map((m, i) => ({ m, i, t: tierOf(m) }))
     .sort((a, b) => a.t - b.t || a.i - b.i)
     .map((x) => x.m);
+
+  const changed = sorted.some((m, idx) => m !== models[idx]);
+  return changed ? sorted : models;
 }
 
 /**
@@ -81,7 +84,10 @@ export function detectRequiredCapabilities(body) {
   const lastContent = lastUserItem(contents);
   if (lastContent) scanContent(lastContent.parts);
 
-  // search: temporarily disabled in auto-switch (feature not wired yet).
+  // search: temporarily disabled in auto-switch (feature not wired yet) but we detect it for compatibility
+  if (Array.isArray(body.tools) && body.tools.some(t => t?.type === "web_search")) {
+    required.add("search");
+  }
 
   return required;
 }

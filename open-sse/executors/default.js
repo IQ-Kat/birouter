@@ -122,6 +122,7 @@ export class DefaultExecutor extends BaseExecutor {
     });
 
     return { ...body, messages: sanitizedMessages };
+  }
 
   // Fallback json_schema → json_object for openai-compatible providers without native Structured Output.
   applyJsonSchemaFallback(body) {
