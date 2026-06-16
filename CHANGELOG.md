@@ -2,6 +2,27 @@
 
 All notable changes to Birouter will be documented in this file.
 
+## v0.3.1 (2026-06-17)
+
+### 🚀 New Features & Enhancements
+- **New Provider MiMo Free**: Added the `mimo-free` no-authentication provider option.
+- **Vercel AI Gateway**: Added support for embeddings, images, and credit usage.
+- **Vertex Integration**: Supported ADC `authorized_user` credentials.
+- **Unified Model Registry**: Refactored the provider and model catalog to use a unified schema with a `kind` field (LiteLLM-style), simplifying model selection.
+- **GitHub Copilot MITM**: Added auto-refresh for expired tokens and dedicated slots for `gpt-5-mini` and `gpt-5.4-nano`.
+- **Kiro MITM Enhancements**: Added multi-endpoint failover for `GenerateAssistantResponse`, direct profile ARN resolution, and support for the `auto` slot.
+
+### 🛡️ Fixes & Stability
+- **SSRF Guard**: Implemented security validation on web fetches and database export/import paths.
+- **Cursor Auto-Import**: Refactored SQLite loading using dynamic ESM `import()` instead of CJS `require()` to prevent native bindings issues and ensure robust mocking.
+- **Windows Path Compatibility**: Standardized backslash matching in Cursor candidate path checking to prevent path mismatch errors on Windows.
+- **SQLite Locking Fixes**: Fixed connection locks (EPERM) in database stress/benchmark tests by ensuring connections are closed during cleanup.
+- **Claude & Gemini Message Alignment**:
+  - Claude: Normalizes passthrough payloads, strips Anthropic billing headers from system prompts, and flattens text-only arrays to simple strings.
+  - Gemini: Routes thought parts correctly to `reasoning_content` to prevent downstream errors.
+- **Cerebras & Mistral**: Stripped unsupported `client_metadata` from downstream requests.
+- **SiliconFlow**: Updated base URL to `.com` and cleaned up the verified model catalog.
+
 ## v0.2.7 (2026-06-09)
 *Synchronized with 9Router v0.4.71*
 
