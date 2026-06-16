@@ -34,6 +34,7 @@ import {
   QODER_MODEL_MAP,
 } from "../shared/qoder/constants.js";
 import { getQoderModelConfig, resolveQoderModels } from "../services/qoderModels.js";
+import { proxyAwareFetch } from "../utils/proxyFetch.js";
 
 /**
  * Hoist role:"system" messages out of the messages array (Qoder rejects
