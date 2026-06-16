@@ -517,9 +517,13 @@ function openBrowser(url) {
   });
 }
 
-// Find standalone server (bundled in bin/app for published package)
+// Find standalone server (bundled in bin/app for published package).
+// Prefer custom-server.js (injects real socket IP) when present.
 const standaloneDir = path.join(__dirname, "app");
-const serverPath = path.join(standaloneDir, "server.js");
+const customServerPath = path.join(standaloneDir, "custom-server.js");
+const serverPath = fs.existsSync(customServerPath)
+  ? customServerPath
+  : path.join(standaloneDir, "server.js");
 
 if (!fs.existsSync(serverPath)) {
   console.error("Error: Standalone build not found.");
@@ -599,7 +603,7 @@ function startServer(latestVersion) {
     crashLog = [];
     const child = spawn(RUNTIME, ["--max-old-space-size=6144", serverPath], {
       cwd: standaloneDir,
-      stdio: showLog ? "inherit" : ["ignore", "ignore", "pipe"],
+      stdio: showLog ? "inherit" : (trayMode ? "ignore" : ["ignore", "ignore", "pipe"]),
       detached: true,
       windowsHide: true,
       env: {
@@ -658,6 +662,7 @@ function startServer(latestVersion) {
   const isExplicitExit = { value: false };
 
   process.on("SIGINT", () => {
+    if (trayMode) return;
     if (isShuttingDown) return;
     isShuttingDown = true;
     if (isExplicitExit.value) {
@@ -667,7 +672,17 @@ function startServer(latestVersion) {
     // If not explicit exit (terminal closed), just let parent die — server stays alive (detached)
     setTimeout(() => process.exit(0), 100);
   });
+  process.on("SIGBREAK", () => {
+    if (trayMode) return;
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    if (isExplicitExit.value) {
+      cleanup();
+    }
+    setTimeout(() => process.exit(0), 100);
+  });
   process.on("SIGTERM", () => {
+    if (trayMode) return;
     if (isShuttingDown) return;
     isShuttingDown = true;
     if (isExplicitExit.value) {
@@ -676,6 +691,7 @@ function startServer(latestVersion) {
     setTimeout(() => process.exit(0), 100);
   });
   process.on("SIGHUP", () => {
+    if (trayMode) return;
     if (isShuttingDown) return;
     // Terminal closed — keep server running in background
     if (process.platform === "win32") {

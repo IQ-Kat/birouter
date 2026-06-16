@@ -28,11 +28,15 @@ import { createHash } from "crypto";
 import { BaseExecutor } from "./base.js";
 import { PROVIDERS } from "../config/providers.js";
 import { proxyAwareFetch } from "../utils/proxyFetch.js";
+import { FETCH_CONNECT_TIMEOUT_MS } from "../config/runtimeConfig.js";
 import {
   QODER_CHAT_URL_ENCODED,
   QODER_MODEL_MAP,
 } from "@/lib/qoder/constants.js";
-import { getQoderModelConfig, resolveQoderModels } from "../services/qoderModels.js";
+import {
+  getQoderModelConfig,
+  resolveQoderModels,
+} from "../services/qoderModels.js";
 
 /**
  * Hoist role:"system" messages out of the messages array (Qoder rejects
@@ -103,14 +107,20 @@ function stableChatRecordId(model, messages, tools, maxTokens) {
   h.update(String(model));
   for (const m of messages) {
     if (!m || typeof m !== "object") continue;
-    if (m.role) { h.update("\0"); h.update(m.role); }
+    if (m.role) {
+      h.update("\0");
+      h.update(m.role);
+    }
     if (typeof m.content === "string" && m.content) {
-      h.update("\0"); h.update(m.content);
+      h.update("\0");
+      h.update(m.content);
     }
   }
   if (tools) {
     h.update("\0");
-    try { h.update(JSON.stringify(tools)); } catch {}
+    try {
+      h.update(JSON.stringify(tools));
+    } catch {}
   }
   h.update(`\0mt=${maxTokens}`);
   return h.digest("hex").slice(0, 16);
@@ -123,16 +133,32 @@ function truncate(s, n) {
 /**
  * Map the OpenAI-style request body into the exact shape Qoder expects.
  */
-async function buildQoderRequestBody({ model, body, credentials, log, proxyOptions, signal }) {
+async function buildQoderRequestBody({
+  model,
+  body,
+  credentials,
+  log,
+  proxyOptions,
+  signal,
+}) {
   const qoderKey = String(model || "").replace(/^qoder\//, "");
-  
+
   // Fetch model config from dynamic API instead of relying on static QODER_MODEL_MAP.
   // This allows support for new Qoder models (e.g., qmodel_latest) without code changes.
-  let modelConfig = await getQoderModelConfig(credentials, qoderKey, { log, proxyOptions, signal });
+  let modelConfig = await getQoderModelConfig(credentials, qoderKey, {
+    log,
+    proxyOptions,
+    signal,
+  });
   if (!modelConfig) {
     // Try a forced refresh once before giving up — the cache may simply
     // not be populated yet on first ever call for this credential.
-    const refreshed = await resolveQoderModels(credentials, { forceRefresh: true, log, proxyOptions, signal });
+    const refreshed = await resolveQoderModels(credentials, {
+      forceRefresh: true,
+      log,
+      proxyOptions,
+      signal,
+    });
     const retried = refreshed?.rawConfigs.get(qoderKey);
     if (!retried) {
       throw new Error(
@@ -149,10 +175,18 @@ async function buildQoderRequestBody({ model, body, credentials, log, proxyOptio
 
   let maxTokens = 32_768;
   if (maxOutputTokens > 0) maxTokens = maxOutputTokens;
-  if (typeof body.max_tokens === "number" && body.max_tokens > 0 && body.max_tokens < maxTokens) {
+  if (
+    typeof body.max_tokens === "number" &&
+    body.max_tokens > 0 &&
+    body.max_tokens < maxTokens
+  ) {
     maxTokens = body.max_tokens;
   }
-  if (typeof body.max_completion_tokens === "number" && body.max_completion_tokens > 0 && body.max_completion_tokens < maxTokens) {
+  if (
+    typeof body.max_completion_tokens === "number" &&
+    body.max_completion_tokens > 0 &&
+    body.max_completion_tokens < maxTokens
+  ) {
     maxTokens = body.max_completion_tokens;
   }
 
@@ -246,8 +280,15 @@ function wrapQoderSSE(response, model) {
     }
 
     let envelope;
-    try { envelope = JSON.parse(data); } catch { return; }
-    const statusVal = typeof envelope.statusCodeValue === "number" ? envelope.statusCodeValue : 200;
+    try {
+      envelope = JSON.parse(data);
+    } catch {
+      return;
+    }
+    const statusVal =
+      typeof envelope.statusCodeValue === "number"
+        ? envelope.statusCodeValue
+        : 200;
     const inner = typeof envelope.body === "string" ? envelope.body : "";
     if (statusVal !== 200) {
       const msg = inner || `upstream status ${statusVal}`;
@@ -256,7 +297,15 @@ function wrapQoderSSE(response, model) {
         object: "chat.completion.chunk",
         created: Math.floor(Date.now() / 1000),
         model,
-        choices: [{ index: 0, delta: { content: `\n[qoder error ${statusVal}: ${truncate(msg, 200)}]` }, finish_reason: "stop" }],
+        choices: [
+          {
+            index: 0,
+            delta: {
+              content: `\n[qoder error ${statusVal}: ${truncate(msg, 200)}]`,
+            },
+            finish_reason: "stop",
+          },
+        ],
       });
       controller.enqueue(encoder.encode(`data: ${errChunk}\n\n`));
       controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -333,7 +382,15 @@ export class QoderExecutor extends BaseExecutor {
   //   - body encoded with QoderEncodeBody before signing
   //   - COSY headers built from the *encoded* body bytes
   //   - response stream re-wrapped from {statusCodeValue, body} to OpenAI SSE
-  async execute({ model, body, stream, credentials, signal, log, proxyOptions = null }) {
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    proxyOptions = null,
+  }) {
     const url = this.buildUrl();
 
     const psd = credentials?.providerSpecificData || {};
@@ -341,7 +398,12 @@ export class QoderExecutor extends BaseExecutor {
       // No user id → no way to sign. Surface a 401 so the dashboard nudges
       // the user back to OAuth.
       const fakeResp = new Response(
-        JSON.stringify({ error: { message: "qoder credential is missing userId; reconnect the account" } }),
+        JSON.stringify({
+          error: {
+            message:
+              "qoder credential is missing userId; reconnect the account",
+          },
+        }),
         { status: 401, headers: { "Content-Type": "application/json" } },
       );
       return { response: fakeResp, url, headers: {}, transformedBody: body };
@@ -350,7 +412,12 @@ export class QoderExecutor extends BaseExecutor {
       // Same shape as the userId guard — clean 401 so chatCore reports
       // "reconnect" rather than bubbling cosy.js's synchronous throw as 500.
       const fakeResp = new Response(
-        JSON.stringify({ error: { message: "qoder credential is missing accessToken; reconnect the account" } }),
+        JSON.stringify({
+          error: {
+            message:
+              "qoder credential is missing accessToken; reconnect the account",
+          },
+        }),
         { status: 401, headers: { "Content-Type": "application/json" } },
       );
       return { response: fakeResp, url, headers: {}, transformedBody: body };
@@ -359,7 +426,14 @@ export class QoderExecutor extends BaseExecutor {
     let qoderKey;
     let payload;
     try {
-      ({ qoderKey, payload } = await buildQoderRequestBody({ model, body, credentials, log, proxyOptions, signal }));
+      ({ qoderKey, payload } = await buildQoderRequestBody({
+        model,
+        body,
+        credentials,
+        log,
+        proxyOptions,
+        signal,
+      }));
     } catch (err) {
       const fakeResp = new Response(
         JSON.stringify({ error: { message: err.message } }),
@@ -374,28 +448,27 @@ export class QoderExecutor extends BaseExecutor {
 
     let cosyHeaders;
     try {
-      cosyHeaders = buildCosyHeaders(
-        encodedBodyBuf,
-        url,
-        {
-          userId: psd.userId,
-          authToken: credentials.accessToken,
-          name: credentials.displayName || "",
-          email: credentials.email || "",
-          machineId: psd.machineId || "",
-        },
-      );
+      cosyHeaders = buildCosyHeaders(encodedBodyBuf, url, {
+        userId: psd.userId,
+        authToken: credentials.accessToken,
+        name: credentials.displayName || "",
+        email: credentials.email || "",
+        machineId: psd.machineId || "",
+      });
     } catch (err) {
       // cosy.js throws synchronously on missing userId/authToken — surface
       // as 401 so chatCore prompts re-auth instead of returning a 500.
       const fakeResp = new Response(
-        JSON.stringify({ error: { message: `qoder cosy signing failed: ${err.message}` } }),
+        JSON.stringify({
+          error: { message: `qoder cosy signing failed: ${err.message}` },
+        }),
         { status: 401, headers: { "Content-Type": "application/json" } },
       );
       return { response: fakeResp, url, headers: {}, transformedBody: body };
     }
 
-    const modelSource = (payload.model_config && payload.model_config.source) || "system";
+    const modelSource =
+      (payload.model_config && payload.model_config.source) || "system";
     const headers = {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
@@ -407,15 +480,20 @@ export class QoderExecutor extends BaseExecutor {
       ...cosyHeaders,
     };
 
+    const timeoutMs = this.config?.timeoutMs || FETCH_CONNECT_TIMEOUT_MS;
+    const connectCtrl = new AbortController();
+    const connectTimer = setTimeout(() => connectCtrl.abort(new Error("fetch connect timeout")), timeoutMs);
+    const mergedSignal = signal ? AbortSignal.any([signal, connectCtrl.signal]) : connectCtrl.signal;
+
     let response;
     try {
       response = await proxyAwareFetch(
         url,
-        { method: "POST", headers, body: encodedBodyBuf, signal },
+        { method: "POST", headers, body: encodedBodyBuf, signal: mergedSignal },
         proxyOptions,
       );
-    } catch (err) {
-      throw err;
+    } finally {
+      clearTimeout(connectTimer);
     }
 
     if (!response.ok) {

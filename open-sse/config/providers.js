@@ -101,6 +101,8 @@ export const PROVIDERS = {
     baseUrl: "https://api3.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation",
     format: "openai",
     headers: {},
+    timeoutMs:120000, // Qoder can be very slow, especially for code generation — set a longer timeout to reduce spurious failures
+    stallTimeoutMs: 120000, // If no response is received within 30s, consider the request stalled and retry (if retries are configured)
   },
   antigravity: {
     baseUrls: [
@@ -192,7 +194,19 @@ export const PROVIDERS = {
     clientId: "Iv1.b507a08c87ecfe98"
   },
   kiro: {
-    baseUrl: "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse",
+    // All three hosts resolve to the same regional CodeWhisperer streaming service
+    // (GenerateAssistantResponse). They are alternate DNS surfaces, NOT separate quota
+    // buckets — AWS throttles per authenticated identity (token + profileArn), not per
+    // hostname. Listing them enables edge-level failover (5xx / connect timeout / a
+    // degraded surface); it does NOT multiply 429 headroom. To actually spread 429 load,
+    // add multiple Kiro accounts — account rotation in sse/handlers/chat.js handles that.
+    // Order: newest Kiro IDE endpoint first, legacy AWS domains as fallback.
+    baseUrl: "https://runtime.us-east-1.kiro.dev/generateAssistantResponse",
+    baseUrls: [
+      "https://runtime.us-east-1.kiro.dev/generateAssistantResponse",
+      "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse",
+      "https://q.us-east-1.amazonaws.com/generateAssistantResponse",
+    ],
     format: "kiro",
     retry: { 429: 2 },
     headers: {
@@ -299,7 +313,7 @@ export const PROVIDERS = {
     format: "openai"
   },
   cohere: {
-    baseUrl: "https://api.cohere.ai/v1/chat/completions",
+    baseUrl: "https://api.cohere.ai/compatibility/v1/chat/completions",
     format: "openai"
   },
   nebius: {

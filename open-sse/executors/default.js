@@ -12,8 +12,39 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   transformRequest(model, body) {
-    const transformed = this.applyJsonSchemaFallback(body);
-    return injectReasoningContent({ provider: this.provider, model, body: transformed });
+    const fallbackTransformed = this.applyJsonSchemaFallback(body);
+    const sanitized = this.sanitizeMessages(fallbackTransformed);
+    return injectReasoningContent({ provider: this.provider, model, body: sanitized });
+  }
+
+  sanitizeMessages(body) {
+    if (!body?.messages || !Array.isArray(body.messages)) return body;
+
+    const allowedKeys = new Set([
+      "role",
+      "content",
+      "name",
+      "tool_calls",
+      "tool_call_id",
+      "function_call",
+      "audio",
+      "refusal",
+      "reasoning_content",
+      "reasoning"
+    ]);
+
+    const sanitizedMessages = body.messages.map((msg) => {
+      if (typeof msg !== "object" || msg === null) return msg;
+      const cleanMsg = {};
+      for (const [key, val] of Object.entries(msg)) {
+        if (allowedKeys.has(key)) {
+          cleanMsg[key] = val;
+        }
+      }
+      return cleanMsg;
+    });
+
+    return { ...body, messages: sanitizedMessages };
   }
 
   // Fallback json_schema → json_object for openai-compatible providers without native Structured Output.

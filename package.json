@@ -10,6 +10,8 @@
     "dev:bun": "bun --bun next dev --webpack --port 2004",
     "build:bun": "bun --bun next build --webpack",
     "start:bun": "bun ./.next/standalone/server.js",
+    "cli:pack": "npm --prefix cli run pack:cli",
+    "cli:publish": "npm --prefix cli run publish:cli",
     "release": "node scripts/release.js",
     "release:minor": "node scripts/release.js minor",
     "release:major": "node scripts/release.js major"

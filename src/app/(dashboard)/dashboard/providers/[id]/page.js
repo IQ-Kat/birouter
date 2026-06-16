@@ -17,6 +17,7 @@ import ConnectionRow from "./ConnectionRow";
 import AddApiKeyModal from "./AddApiKeyModal";
 import EditCompatibleNodeModal from "./EditCompatibleNodeModal";
 import AddCustomModelModal from "./AddCustomModelModal";
+import BulkImportCodexModal from "./BulkImportCodexModal";
 
 const ONE_BY_ONE_DELAY_MS = 1000;
 
@@ -36,6 +37,7 @@ export default function ProviderDetailPage() {
   const [showIFlowCookieModal, setShowIFlowCookieModal] = useState(false);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
   const [addConnectionError, setAddConnectionError] = useState("");
+  const [showBulkImportCodex, setShowBulkImportCodex] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
   const [showBulkProxyModal, setShowBulkProxyModal] = useState(false);
@@ -58,6 +60,8 @@ export default function ProviderDetailPage() {
   const [fetchedModels, setFetchedModels] = useState([]);
   const [fetchedModelsAt, setFetchedModelsAt] = useState(null);
   const [fetchingModels, setFetchingModels] = useState(false);
+  const [fetchedSearch, setFetchedSearch] = useState("");
+  const [fetchedTypeFilter, setFetchedTypeFilter] = useState("all"); // "all" | "llm" | "non-llm"
   const [confirmState, setConfirmState] = useState(null);
   const [showAgRiskModal, setShowAgRiskModal] = useState(false);
   const [oneByOneRunning, setOneByOneRunning] = useState(false);
@@ -939,6 +943,32 @@ export default function ProviderDetailPage() {
   };
 
   const renderModelsSection = () => {
+    const getModelType = (modelId) => {
+      const idLower = modelId.toLowerCase();
+      // Check if it matches a hardcoded model's type
+      const hardcodedMatch = models.find((m) => m.id === modelId);
+      if (hardcodedMatch && hardcodedMatch.type && hardcodedMatch.type !== "llm") {
+        return hardcodedMatch.type;
+      }
+      // Keyword heuristics
+      if (idLower.includes("embed") || idLower.includes("bge-") || idLower.includes("similarity")) {
+        return "embedding";
+      }
+      if (idLower.includes("tts-") || idLower.includes("speech") || idLower.includes("tts") || idLower.includes("voice")) {
+        return "tts";
+      }
+      if (idLower.includes("whisper") || idLower.includes("transcribe") || idLower.includes("stt") || idLower.includes("asr")) {
+        return "stt";
+      }
+      if (idLower.includes("dall-e") || idLower.includes("flux") || idLower.includes("stable-diffusion") || idLower.includes("sdxl") || idLower.includes("imagen") || idLower.includes("recraft")) {
+        return "image";
+      }
+      if (idLower.includes("rerank")) {
+        return "rerank";
+      }
+      return null;
+    };
+
     if (isCompatible) {
       return (
         <CompatibleModelsSection
@@ -972,7 +1002,7 @@ export default function ProviderDetailPage() {
         // Only show if not already in hardcoded list
         // For passthroughModels, include all aliases (model IDs may contain slashes like "anthropic/claude-3")
         if (providerInfo.passthroughModels) return !models.some((m) => m.id === modelId);
-        return !models.some((m) => m.id === modelId) && alias === modelId;
+        return !models.some((m) => m.id === modelId) && (alias === modelId || alias === modelId.split("/").pop());
       })
       .map(([alias, fullModel]) => ({
         id: fullModel.slice(`${providerStorageAlias}/`.length),
@@ -1118,27 +1148,107 @@ export default function ProviderDetailPage() {
             if (notAdded.length === 0) {
               return <p className="text-[11px] text-text-muted/60">All fetched models are already added.</p>;
             }
+
+            const filteredNotAdded = notAdded.filter((m) => {
+              const matchesSearch = m.id.toLowerCase().includes(fetchedSearch.toLowerCase()) || 
+                                    (m.name && m.name.toLowerCase().includes(fetchedSearch.toLowerCase()));
+              const modelType = getModelType(m.id);
+              const isLlm = !modelType;
+              let matchesType = true;
+              if (fetchedTypeFilter === "llm") {
+                matchesType = isLlm;
+              } else if (fetchedTypeFilter === "non-llm") {
+                matchesType = !isLlm;
+              }
+              return matchesSearch && matchesType;
+            });
+
             return (
-              <div className="flex flex-wrap gap-2">
-                {notAdded.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={async () => {
-                      const alias = m.id.split("/").pop();
-                      await handleSetAlias(m.id, alias, providerStorageAlias);
-                    }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
-                    title={`${m.name || m.id}${m.contextLength ? ` · ${m.contextLength >= 1000000 ? (m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1) + "M" : Math.round(m.contextLength / 1000) + "K"} ctx` : ""}`}
-                  >
-                    <span className="material-symbols-outlined text-[13px]">add</span>
-                    {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
-                    {m.contextLength && (
-                      <span className="text-[9px] opacity-60 font-normal">
-                        {m.contextLength >= 1000000 ? `${(m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1)}M` : `${Math.round(m.contextLength / 1000)}K`}
-                      </span>
-                    )}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-3">
+                {/* Search & Filter bar */}
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <input
+                    type="text"
+                    value={fetchedSearch}
+                    onChange={(e) => setFetchedSearch(e.target.value)}
+                    placeholder="Search fetched models..."
+                    className="flex-1 min-w-[200px] max-w-xs px-2.5 py-1 text-xs border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                  />
+                  <div className="flex items-center gap-1 border border-border rounded-lg p-0.5 bg-sidebar/55">
+                    <button
+                      type="button"
+                      onClick={() => setFetchedTypeFilter("all")}
+                      className={`px-2 py-0.5 text-[10px] font-medium rounded ${
+                        fetchedTypeFilter === "all"
+                          ? "bg-primary text-white"
+                          : "text-text-muted hover:text-primary"
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFetchedTypeFilter("llm")}
+                      className={`px-2 py-0.5 text-[10px] font-medium rounded ${
+                        fetchedTypeFilter === "llm"
+                          ? "bg-primary text-white"
+                          : "text-text-muted hover:text-primary"
+                      }`}
+                    >
+                      LLM Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFetchedTypeFilter("non-llm")}
+                      className={`px-2 py-0.5 text-[10px] font-medium rounded ${
+                        fetchedTypeFilter === "non-llm"
+                          ? "bg-primary text-white"
+                          : "text-text-muted hover:text-primary"
+                      }`}
+                    >
+                      Non-LLM
+                    </button>
+                  </div>
+                </div>
+
+                {filteredNotAdded.length === 0 ? (
+                  <p className="text-[11px] text-text-muted/60">No models match your search or filter.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {filteredNotAdded.map((m) => {
+                      const type = getModelType(m.id);
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={async () => {
+                            const alias = providerInfo?.passthroughModels
+                              ? m.id.split("/").pop()
+                              : m.id;
+                            await handleSetAlias(m.id, alias, providerStorageAlias);
+                          }}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
+                          title={`${m.name || m.id}${m.contextLength ? ` · ${m.contextLength >= 1000000 ? (m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1) + "M" : Math.round(m.contextLength / 1000)} ctx` : ""}`}
+                        >
+                          <span className="material-symbols-outlined text-[13px]">add</span>
+                          {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
+                          
+                          {/* Badge for Non-LLM types */}
+                          {type && (
+                            <span className="px-1 py-0.2 text-[8px] font-semibold tracking-wider uppercase bg-red-500/10 text-red-500 rounded border border-red-500/20">
+                              {type}
+                            </span>
+                          )}
+
+                          {m.contextLength && (
+                            <span className="text-[9px] opacity-60 font-normal">
+                              {m.contextLength >= 1000000 ? `${(m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1)}M` : `${Math.round(m.contextLength / 1000)}K`}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -1455,6 +1565,11 @@ export default function ProviderDetailPage() {
                         Cookie
                       </Button>
                     )}
+                    {providerId === "codex" && (
+                      <Button size="sm" icon="playlist_add" variant="secondary" onClick={() => setShowBulkImportCodex(true)}>
+                        {translate("Bulk Add")}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       icon="add"
@@ -1497,6 +1612,18 @@ export default function ProviderDetailPage() {
                       className="w-full sm:w-auto"
                     >
                       Cookie
+                    </Button>
+                  )}
+                  {providerId === "codex" && (
+                    <Button
+                      size="sm"
+                      icon="playlist_add"
+                      variant="secondary"
+                      onClick={() => setShowBulkImportCodex(true)}
+                      title={translate("Bulk import codex accounts from JSON")}
+                      className="w-full sm:w-auto"
+                    >
+                      {translate("Bulk Add")}
                     </Button>
                   )}
                   {hasDualAuthModes ? (
@@ -1657,6 +1784,14 @@ export default function ProviderDetailPage() {
             setShowAddCustomModel(false);
           }}
           onClose={() => setShowAddCustomModel(false)}
+        />
+      )}
+
+      {providerId === "codex" && (
+        <BulkImportCodexModal
+          isOpen={showBulkImportCodex}
+          onClose={() => setShowBulkImportCodex(false)}
+          onSuccess={fetchConnections}
         />
       )}
 
