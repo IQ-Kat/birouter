@@ -35,3 +35,4 @@ export function buildClineHeaders(token, extraHeaders = {}) {
 
   return headers;
 }
+

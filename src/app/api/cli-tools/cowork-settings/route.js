@@ -315,6 +315,7 @@ export async function POST(request) {
     // Respect empty array (user toggled all off); fallback to defaults only when undefined.
     const pluginsArray = Array.isArray(plugins) ? plugins : DEFAULT_PLUGINS;
     const localPluginNames = Array.isArray(localPlugins) ? localPlugins : [];
+    // Only URL-based custom plugins allowed (no stdio command spawning).
     const customPluginsArray = (Array.isArray(customPlugins) ? customPlugins : []).filter((p) => p?.url);
 
     const bridgeEntries = await injectAuthHeaders(buildLocalBridgeEntries(localPluginNames));

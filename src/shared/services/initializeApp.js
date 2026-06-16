@@ -8,7 +8,7 @@ import {
   isTunnelManuallyDisabled, isTunnelReconnecting, isTailscaleReconnecting,
   getTunnelService, getTailscaleService, setTunnelUnexpectedExitCallback,
   killCloudflared, isCloudflaredRunning, ensureCloudflared,
-  isTailscaleRunning, isTailscaleRunningStrict, isDaemonAlive, startFunnel, isDaemonAlive, startFunnel,
+  isTailscaleRunning, isTailscaleRunningStrict, isDaemonAlive, startFunnel,
   checkInternet,
   RESTART_COOLDOWN_MS, NETWORK_SETTLE_MS,
   WATCHDOG_INTERVAL_MS, NETWORK_CHECK_INTERVAL_MS, VIRTUAL_IFACE_REGEX,
@@ -64,13 +64,6 @@ export async function initializeApp() {
     }
 
     if (!g.signalHandlersRegistered) {
-      process.setMaxListeners(100);
-      process.stderr.on("error", (err) => {
-        if (err.code === "EPIPE") return;
-      });
-      process.stdout.on("error", (err) => {
-        if (err.code === "EPIPE") return;
-      });
       const cleanup = () => {
         try { removeAllDNSEntriesSync(); } catch { /* best effort */ }
         killCloudflared();
@@ -119,7 +112,7 @@ async function autoStartMitm() {
     const activeKey = keys.find(k => k.isActive !== false);
 
     console.log("[InitApp] MITM was enabled, auto-starting...");
-    await startMitm(activeKey?.key || "sk_birouter", password);
+    await startMitm(activeKey?.key || "sk_9router", password);
     console.log("[InitApp] MITM auto-started");
     try {
       await restoreToolDNS(password);
@@ -194,7 +187,7 @@ async function safeRestartTailscale(reason) {
     }
     return;
   }
-  
+
   const force = FORCE_RESTART_REASONS.test(reason);
   if (!force && Date.now() - svc.lastRestartAt < RESTART_COOLDOWN_MS) {
     console.log(`[Tailscale] degraded but cooldown active, skip (${reason})`);

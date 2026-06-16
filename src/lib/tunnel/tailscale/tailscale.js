@@ -33,7 +33,7 @@ const UNIX_TAILSCALE_CANDIDATES = [
   "/opt/homebrew/bin/tailscale",
   "/usr/sbin/tailscale",   // apt package on Debian/Ubuntu
   "/usr/bin/tailscale",
-  "/snap/bin/tailscale"
+  "/snap/bin/tailscale",   // Snap package
 ];
 
 // ─── Cache + background refresh (avoid blocking event loop on dead daemon) ──
@@ -92,11 +92,12 @@ function tsArgs(...args) {
   return [...SOCKET_FLAG, ...args];
 }
 
+// Async strict probe: authoritative, awaitable (never blocks event loop). Updates cache.
 export async function isTailscaleLoggedInStrict() {
   const bin = getTailscaleBin();
   if (!bin) return false;
   try {
-        const { stdout } = await execAsync(`"${bin}" ${SOCKET_FLAG.join(" ")} status --json`, {
+    const { stdout } = await execAsync(`"${bin}" ${SOCKET_FLAG.join(" ")} status --json`, {
       windowsHide: true,
       env: { ...process.env, PATH: EXTENDED_PATH },
       timeout: 5000
@@ -527,7 +528,7 @@ export function isDaemonAlive() {
  * Start tailscaled.
  * - With sudoPassword: TUN mode (root) → Funnel TLS works
  * - Without: userspace-networking fallback (no sudo, but Funnel TLS unstable)
- * State always lives in ~/.birouter/tailscale/ via --statedir.
+ * State always lives in ~/.9router/tailscale/ via --statedir.
  */
 export async function startDaemonWithPassword(sudoPassword) {
   if (IS_WINDOWS) {
