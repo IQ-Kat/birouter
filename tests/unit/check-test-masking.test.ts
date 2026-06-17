@@ -7,6 +7,7 @@ import {
   countExtendedTautologies,
   evaluateMasking,
   evaluateDeletedFiles,
+  partitionDeletedRenamed,
 } from "../../scripts/check/check-test-masking.mjs";
 
 // ─── Existing tests (must stay green) ────────────────────────────────────────
@@ -265,6 +266,76 @@ test("evaluateMasking: net reduction is NOT flagged for an allowlisted file", ()
   assert.equal(flagged.length, 1, "without allowlist the reduction is flagged");
   const allowed = evaluateMasking(perFile, new Set(["legit.test.ts"]));
   assert.deepEqual(allowed, [], "with allowlist the reduction is exempt");
+});
+
+// ─── Rename-aware deletion detection (subcheck-1 contract) ───────────────────
+
+test("partitionDeletedRenamed: a true test-file deletion is captured as deleted", () => {
+  const out = "D\ttests/unit/foo.test.ts";
+  const { deletedTests, renames } = partitionDeletedRenamed(out);
+  assert.deepEqual(deletedTests, ["tests/unit/foo.test.ts"]);
+  assert.deepEqual(renames, []);
+});
+
+test("partitionDeletedRenamed: a test→test rename is a relocation, NOT a deletion", () => {
+  const out =
+    "R085\ttests/unit/cli/live-ws-startup.test.ts\ttests/integration/live-ws-startup.test.ts";
+  const { deletedTests, renames } = partitionDeletedRenamed(out);
+  assert.deepEqual(deletedTests, [], "relocation must not be flagged as a deletion");
+  assert.equal(renames.length, 1);
+  assert.equal(renames[0].from, "tests/unit/cli/live-ws-startup.test.ts");
+  assert.equal(renames[0].to, "tests/integration/live-ws-startup.test.ts");
+});
+
+test("partitionDeletedRenamed: a test→non-test rename is recorded (caller treats as removed)", () => {
+  const out = "R070\ttests/unit/foo.test.ts\tsrc/foo.ts";
+  const { deletedTests, renames } = partitionDeletedRenamed(out);
+  assert.deepEqual(deletedTests, []);
+  assert.equal(renames.length, 1);
+  assert.equal(renames[0].to, "src/foo.ts");
+});
+
+test("partitionDeletedRenamed: non-test deletions/renames are ignored", () => {
+  const out = ["D\tsrc/lib/foo.ts", "R090\tsrc/a.ts\tsrc/b.ts", ""].join("\n");
+  const { deletedTests, renames } = partitionDeletedRenamed(out);
+  assert.deepEqual(deletedTests, []);
+  assert.deepEqual(renames, []);
+});
+
+test("relocated test with preserved asserts is NOT masking (evaluateMasking on the rename)", () => {
+  // Simulates the rename pipeline: base(old) vs head(new) for a clean relocation.
+  const r = evaluateMasking([
+    {
+      file: "tests/integration/live-ws-startup.test.ts",
+      baseAsserts: 2,
+      headAsserts: 2, // preserved across the move
+      baseTaut: 0,
+      headTaut: 0,
+      baseSkips: 0,
+      headSkips: 0,
+      baseExtTaut: 0,
+      headExtTaut: 0,
+    },
+  ]);
+  assert.deepEqual(r, []);
+});
+
+test("a rename that DROPS asserts still fires (gutting-via-rename)", () => {
+  const r = evaluateMasking([
+    {
+      file: "tests/integration/gutted.test.ts",
+      baseAsserts: 8,
+      headAsserts: 2, // asserts removed during the move
+      baseTaut: 0,
+      headTaut: 0,
+      baseSkips: 0,
+      headSkips: 0,
+      baseExtTaut: 0,
+      headExtTaut: 0,
+    },
+  ]);
+  assert.equal(r.length, 1);
+  assert.match(r[0], /REMO/);
 });
 
 test("evaluateMasking: allowlist exempts ONLY reduction — tautology/skip still flagged", () => {

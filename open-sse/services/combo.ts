@@ -1623,7 +1623,13 @@ function getTargetCompatibilityFailures(
     failures.push("tools");
   }
 
-  if (requirements.requiresVision && capabilities.supportsVision === false) {
+  // For a request that carries an image, only route to a target whose vision
+  // support is *confirmed* (`=== true`). Treat `false` AND `null` (unknown) as
+  // incompatible: an unknown-capability model receiving the image is exactly how
+  // a text-only model (e.g. ministral) ended up answering "image not provided".
+  // The caller keeps all targets when none qualify, so combos with no
+  // confirmed-vision member still behave as before.
+  if (requirements.requiresVision && capabilities.supportsVision !== true) {
     failures.push("vision");
   }
 
@@ -1652,7 +1658,7 @@ function getTargetCompatibilityFailures(
   return failures;
 }
 
-function filterTargetsByRequestCompatibility(
+export function filterTargetsByRequestCompatibility(
   targets: ResolvedComboTarget[],
   body: Record<string, unknown>,
   log: ComboLogger,
@@ -3234,13 +3240,16 @@ export async function handleComboChat({
       ...(target ?? {}),
       modelAbortSignal: timeoutController.signal,
     };
-    if (target?.modelAbortSignal) {
-      if (target.modelAbortSignal.aborted) {
+    const parentHedgeSignal = target?.modelAbortSignal ?? null;
+    let onParentHedgeAbort: (() => void) | null = null;
+    if (parentHedgeSignal) {
+      if (parentHedgeSignal.aborted) {
         timeoutController.abort(new Error("hedge-cancelled"));
       } else {
-        target.modelAbortSignal.addEventListener("abort", () => {
+        onParentHedgeAbort = () => {
           timeoutController.abort(new Error("hedge-cancelled"));
-        });
+        };
+        parentHedgeSignal.addEventListener("abort", onParentHedgeAbort, { once: true });
       }
     }
     try {
@@ -3258,6 +3267,12 @@ export async function handleComboChat({
       ]);
     } finally {
       clearTimeout(timeoutId);
+      // Detach our listener from the SHARED parent hedge signal. Without this, every target
+      // attempt left a listener on the long-lived parent signal for the whole request, so a
+      // request that tries many combo targets accumulated listeners on one signal.
+      if (parentHedgeSignal && onParentHedgeAbort) {
+        parentHedgeSignal.removeEventListener("abort", onParentHedgeAbort);
+      }
     }
   };
 

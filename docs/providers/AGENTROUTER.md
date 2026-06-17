@@ -168,8 +168,8 @@ and the feature flag is enabled.
 
 ## See also
 
-- [`docs/PROVIDERS.md`](./PROVIDERS.md) — Other provider integration notes
-- [`docs/reference/FREE_TIERS.md`](./reference/FREE_TIERS.md) — Free-tier provider
+- [`docs/PROVIDERS.md`](../PROVIDERS.md) — Other provider integration notes
+- [`docs/reference/FREE_TIERS.md`](../reference/FREE_TIERS.md) — Free-tier provider
   catalog
-- [`open-sse/services/claudeCodeCompatible.ts`](../open-sse/services/claudeCodeCompatible.ts)
+- [`open-sse/services/claudeCodeCompatible.ts`](../../open-sse/services/claudeCodeCompatible.ts)
   — Wire image implementation

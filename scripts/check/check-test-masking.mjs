@@ -75,6 +75,35 @@ export function evaluateDeletedFiles(deletedPaths) {
 }
 
 /**
+ * Parse `git diff --name-status -M --diff-filter=DR` output, separating TRUE
+ * test-file deletions ("D\tpath") from RENAMES ("R<score>\told\tnew").
+ *
+ * A rename whose destination is still a test file is a *relocation* (the test
+ * was substituted at a new path, not removed) — per this file's subcheck-1
+ * contract it must NOT be treated as a deletion; the assert-reduction check
+ * still runs across the rename to catch gutting-via-rename. A rename that lands
+ * OUTSIDE test scope (test → non-test) removes the test and is treated as a
+ * deletion. Returns test-file paths only.
+ */
+export function partitionDeletedRenamed(nameStatusOutput) {
+  const deletedTests = [];
+  const renames = [];
+  for (const line of (nameStatusOutput || "").split("\n")) {
+    if (!line.trim()) continue;
+    const parts = line.split("\t").map((s) => s.trim());
+    const status = parts[0] || "";
+    if (status.startsWith("D")) {
+      if (TEST_RE.test(parts[1] || "")) deletedTests.push(parts[1]);
+    } else if (status.startsWith("R")) {
+      const from = parts[1] || "";
+      const to = parts[2] || "";
+      if (TEST_RE.test(from)) renames.push({ from, to });
+    }
+  }
+  return { deletedTests, renames };
+}
+
+/**
  * Avalia por-arquivo: flag em remoção líquida de asserts, nova tautologia,
  * aumento líquido de skips, ou nova tautologia extendida.
  *
@@ -135,13 +164,40 @@ function main() {
     return;
   }
 
-  // (6A.10 subcheck 1) Arquivos de teste deletados/renomeados via MDR filter
-  const deletedAndRenamed = git(["diff", "--name-only", "--diff-filter=DR", "-M", `${base}...HEAD`])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // (6A.10 subcheck 1) Arquivos de teste deletados/renomeados via MDR filter.
+  // Renames test→test são RELOCAÇÕES (substituição) e passam pela verificação de
+  // redução de asserts abaixo (gutting-via-rename ainda flaga); só deleções reais
+  // e renames test→não-teste contam como remoção de teste.
+  const { deletedTests, renames } = partitionDeletedRenamed(
+    git(["diff", "--name-status", "-M", "--diff-filter=DR", `${base}...HEAD`])
+  );
 
-  const deletedFlags = evaluateDeletedFiles(deletedAndRenamed);
+  const relocatedOutOfTest = [];
+  const renamePerFile = [];
+  for (const { from, to } of renames) {
+    if (!TEST_RE.test(to)) {
+      // test → non-test: the test was removed from coverage.
+      relocatedOutOfTest.push(from);
+      continue;
+    }
+    // test → test: compare the original (base) against the relocated (head) file so
+    // a clean relocation passes but a rename that drops asserts/adds tautologies fires.
+    const baseSrc = git(["show", `${base}:${from}`]);
+    const headSrc = fs.existsSync(to) ? fs.readFileSync(to, "utf8") : "";
+    renamePerFile.push({
+      file: to,
+      baseAsserts: countAssertions(baseSrc),
+      headAsserts: countAssertions(headSrc),
+      baseTaut: countTautologies(baseSrc),
+      headTaut: countTautologies(headSrc),
+      baseSkips: countSkips(baseSrc),
+      headSkips: countSkips(headSrc),
+      baseExtTaut: countExtendedTautologies(baseSrc),
+      headExtTaut: countExtendedTautologies(headSrc),
+    });
+  }
+
+  const deletedFlags = evaluateDeletedFiles([...deletedTests, ...relocatedOutOfTest]);
 
   // Arquivos de teste modificados (subcheck original + skips + extTaut)
   const changed = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
@@ -149,7 +205,7 @@ function main() {
     .map((s) => s.trim())
     .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
 
-  const perFile = [];
+  const perFile = [...renamePerFile];
   for (const file of changed) {
     const baseSrc = git(["show", `${base}:${file}`]);
     const headSrc = fs.readFileSync(file, "utf8");
@@ -188,8 +244,8 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `[test-masking] OK — ${changed.length} arquivo(s) de teste modificado(s), ` +
-      `${deletedAndRenamed.length > 0 ? deletedAndRenamed.length + " deletado(s)/renomeado(s) OK" : "nenhum deletado"} — sem enfraquecimento`
+    `[test-masking] OK — ${changed.length} modificado(s), ${renames.length} renomeado(s) (relocação), ` +
+      `${deletedTests.length} deletado(s) — sem enfraquecimento`
   );
 }
 
