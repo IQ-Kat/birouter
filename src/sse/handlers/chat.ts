@@ -68,6 +68,7 @@ import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
 import { cloneLogPayload } from "@/lib/logPayloads";
+import { handleInternalUsageCommand } from "@/lib/usage/internalUsageCommand";
 import {
   applyTaskAwareRouting,
   getTaskRoutingConfig,
@@ -239,6 +240,12 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     log.debug("AUTH", `API Key: ${log.maskKey(apiKey)}`);
   } else {
     log.debug("AUTH", "No API key provided (local mode)");
+  }
+
+  const internalUsageCommandResponse = await handleInternalUsageCommand(request, body);
+  if (internalUsageCommandResponse) {
+    recordTelemetry(telemetry);
+    return internalUsageCommandResponse;
   }
 
   const isComboLiveTest = request.headers?.get?.("x-internal-test") === "combo-health-check";

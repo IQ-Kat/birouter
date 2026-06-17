@@ -82,6 +82,7 @@ export async function PATCH(request, { params }) {
       allowedEndpoints,
       streamDefaultMode,
       disableNonPublicModels,
+      allowUsageCommand,
     } = validation.data;
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
@@ -104,6 +105,7 @@ export async function PATCH(request, { params }) {
     if (streamDefaultMode !== undefined) payload.streamDefaultMode = streamDefaultMode;
     if (disableNonPublicModels !== undefined)
       payload.disableNonPublicModels = disableNonPublicModels;
+    if (allowUsageCommand !== undefined) payload.allowUsageCommand = allowUsageCommand;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
@@ -133,6 +135,7 @@ export async function PATCH(request, { params }) {
       ...(allowedEndpoints !== undefined && { allowedEndpoints }),
       ...(streamDefaultMode !== undefined && { streamDefaultMode }),
       ...(disableNonPublicModels !== undefined && { disableNonPublicModels }),
+      ...(allowUsageCommand !== undefined && { allowUsageCommand }),
     });
   } catch (error) {
     log.error("keys", "Error updating key permissions", error);

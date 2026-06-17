@@ -66,7 +66,9 @@ export function evaluateDeletedFiles(deletedPaths) {
   const flags = [];
   for (const f of deletedPaths) {
     if (TEST_RE.test(f)) {
-      flags.push(`${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`);
+      flags.push(
+        `${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`
+      );
     }
   }
   return flags;
@@ -83,7 +85,7 @@ export function evaluateDeletedFiles(deletedPaths) {
  * Os campos de skip e extTaut são opcionais (default 0) para compatibilidade
  * com chamadas legadas que só passam baseAsserts/headAsserts/baseTaut/headTaut.
  */
-export function evaluateMasking(perFile) {
+export function evaluateMasking(perFile, assertReductionAllowlist = new Set()) {
   const flags = [];
   for (const f of perFile) {
     const baseSkips = f.baseSkips ?? 0;
@@ -91,14 +93,23 @@ export function evaluateMasking(perFile) {
     const baseExtTaut = f.baseExtTaut ?? 0;
     const headExtTaut = f.headExtTaut ?? 0;
 
-    if (f.headAsserts < f.baseAsserts)
-      flags.push(`${f.file}: asserts ${f.baseAsserts} → ${f.headAsserts} (REMOÇÃO de ${f.baseAsserts - f.headAsserts} — enfraquecimento?)`);
+    // The net-assert-REDUCTION signal can be allowlisted per file when the reduction is a
+    // verified-legitimate refactor/field-removal (config/quality/test-masking-allowlist.json).
+    // The tautology / skip / deletion signals below are NEVER allowlisted.
+    if (f.headAsserts < f.baseAsserts && !assertReductionAllowlist.has(f.file))
+      flags.push(
+        `${f.file}: asserts ${f.baseAsserts} → ${f.headAsserts} (REMOÇÃO de ${f.baseAsserts - f.headAsserts} — enfraquecimento?)`
+      );
     if (f.headTaut > f.baseTaut)
       flags.push(`${f.file}: nova(s) ${f.headTaut - f.baseTaut} tautologia(s) assert.ok(true)`);
     if (headSkips > baseSkips)
-      flags.push(`${f.file}: ${headSkips - baseSkips} novo(s) .skip/.todo/.only (asserts silenciados sem remoção)`);
+      flags.push(
+        `${f.file}: ${headSkips - baseSkips} novo(s) .skip/.todo/.only (asserts silenciados sem remoção)`
+      );
     if (headExtTaut > baseExtTaut)
-      flags.push(`${f.file}: nova(s) ${headExtTaut - baseExtTaut} tautologia(s) estendida(s) (expect(true).toBe(true) / assert.equal(1,1))`);
+      flags.push(
+        `${f.file}: nova(s) ${headExtTaut - baseExtTaut} tautologia(s) estendida(s) (expect(true).toBe(true) / assert.equal(1,1))`
+      );
   }
   return flags;
 }
@@ -125,10 +136,7 @@ function main() {
   }
 
   // (6A.10 subcheck 1) Arquivos de teste deletados/renomeados via MDR filter
-  const deletedAndRenamed = git([
-    "diff", "--name-only", "--diff-filter=DR", "-M",
-    `${base}...HEAD`,
-  ])
+  const deletedAndRenamed = git(["diff", "--name-only", "--diff-filter=DR", "-M", `${base}...HEAD`])
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
@@ -158,7 +166,17 @@ function main() {
     });
   }
 
-  const maskingFlags = evaluateMasking(perFile);
+  // Per-file allowlist for verified-legitimate net-assert reductions (refactor/field-removal).
+  // Only exempts the reduction signal; tautology/skip/deletion signals still fire.
+  let assertReductionAllowlist = new Set();
+  try {
+    const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
+    assertReductionAllowlist = new Set(Object.keys(raw).filter((k) => !k.startsWith("_")));
+  } catch {
+    // no allowlist file — treat as empty
+  }
+
+  const maskingFlags = evaluateMasking(perFile, assertReductionAllowlist);
   const allFlags = [...deletedFlags, ...maskingFlags];
 
   if (allFlags.length) {
@@ -171,7 +189,7 @@ function main() {
   }
   console.log(
     `[test-masking] OK — ${changed.length} arquivo(s) de teste modificado(s), ` +
-    `${deletedAndRenamed.length > 0 ? deletedAndRenamed.length + " deletado(s)/renomeado(s) OK" : "nenhum deletado"} — sem enfraquecimento`
+      `${deletedAndRenamed.length > 0 ? deletedAndRenamed.length + " deletado(s)/renomeado(s) OK" : "nenhum deletado"} — sem enfraquecimento`
   );
 }
 

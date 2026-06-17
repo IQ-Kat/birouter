@@ -128,6 +128,7 @@ interface ApiKey {
   allowedEndpoints?: string[];
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
   allowedQuotas?: string[] | null;
   createdAt: string;
 }
@@ -221,6 +222,7 @@ export default function ApiManagerPageClient() {
   const [newKeyManageEnabled, setNewKeyManageEnabled] = useState(false);
   const [newKeySelfUsageEnabled, setNewKeySelfUsageEnabled] = useState(true);
   const [newKeyAccountQuotaEnabled, setNewKeyAccountQuotaEnabled] = useState(false);
+  const [newKeyAllowUsageCommand, setNewKeyAllowUsageCommand] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -542,6 +544,7 @@ export default function ApiManagerPageClient() {
             selfUsageEnabled: newKeySelfUsageEnabled,
             selfAccountQuotaEnabled: newKeyAccountQuotaEnabled,
           }),
+          allowUsageCommand: newKeyAllowUsageCommand,
         }),
       });
       const data = await res.json();
@@ -553,6 +556,7 @@ export default function ApiManagerPageClient() {
         setNewKeyManageEnabled(false);
         setNewKeySelfUsageEnabled(true);
         setNewKeyAccountQuotaEnabled(false);
+        setNewKeyAllowUsageCommand(false);
         setShowAddModal(false);
       } else {
         setCreateError(data.error || t("failedCreateKey"));
@@ -659,6 +663,7 @@ export default function ApiManagerPageClient() {
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
     disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
     blockedModels: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
@@ -726,6 +731,7 @@ export default function ApiManagerPageClient() {
           allowedEndpoints,
           streamDefaultMode,
           disableNonPublicModels,
+          allowUsageCommand,
         }),
       });
 
@@ -806,65 +812,6 @@ export default function ApiManagerPageClient() {
         </div>
       )}
 
-      {/* Stats Summary Cards */}
-      {keys.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
-                <span className="material-symbols-outlined text-primary text-lg">vpn_key</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{keys.length}</p>
-                <p className="text-xs text-text-muted">{t("totalKeys")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-amber-500/10">
-                <span className="material-symbols-outlined text-amber-500 text-lg">lock</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {
-                    keys.filter((k) => Array.isArray(k.allowedModels) && k.allowedModels.length > 0)
-                      .length
-                  }
-                </p>
-                <p className="text-xs text-text-muted">{t("restricted")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-blue-500/10">
-                <span className="material-symbols-outlined text-blue-500 text-lg">bar_chart</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {Object.values(usageStats).reduce((sum, s) => sum + s.totalRequests, 0)}
-                </p>
-                <p className="text-xs text-text-muted">{t("totalRequests")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-emerald-500/10">
-                <span className="material-symbols-outlined text-emerald-500 text-lg">
-                  model_training
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{allModels.length}</p>
-                <p className="text-xs text-text-muted">{t("modelsAvailable")}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
       {/* Filter Bar — shown when there are keys */}
       {keys.length > 0 && (
         <ApiKeyFilterBar
@@ -902,7 +849,6 @@ export default function ApiManagerPageClient() {
                 )}
               </h3>
               <p className="text-xs text-text-muted">
-                {keys.length}{" "}
                 {keys.length === 1
                   ? t("keyRegistered", { count: keys.length })
                   : t("keysRegistered", { count: keys.length })}
@@ -968,6 +914,7 @@ export default function ApiManagerPageClient() {
               const hasThrottle = throttleDelayMs > 0;
               const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
               const hasJsonStreamDefault = key.streamDefaultMode === "json";
+              const hasLocalUsageCommand = key.allowUsageCommand === true;
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
@@ -1091,6 +1038,12 @@ export default function ApiManagerPageClient() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">data_object</span>
                           {t("streamDefaultBadge")}
+                        </span>
+                      )}
+                      {hasLocalUsageCommand && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">terminal</span>
+                          {t("localUsageCommandBadge")}
                         </span>
                       )}
                       {hasSessionLimit && (
@@ -1257,36 +1210,6 @@ export default function ApiManagerPageClient() {
         )}
       </Card>
 
-      {/* Usage Tips Card */}
-      <Card>
-        <div className="flex items-start gap-3">
-          <div className="flex items-center justify-center size-10 rounded-lg bg-blue-500/10 shrink-0">
-            <span className="material-symbols-outlined text-xl text-blue-500">lightbulb</span>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">{t("usageTips")}</h3>
-            <ul className="text-sm text-text-muted space-y-1.5">
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipAuth")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSecure")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSeparate")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipRestrict")}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </Card>
-
       {/* Add Key Modal */}
       <Modal
         isOpen={showAddModal}
@@ -1298,6 +1221,7 @@ export default function ApiManagerPageClient() {
           setNewKeyManageEnabled(false);
           setNewKeySelfUsageEnabled(true);
           setNewKeyAccountQuotaEnabled(false);
+          setNewKeyAllowUsageCommand(false);
           setNameError(null);
           setCreateError(null);
         }}
@@ -1392,6 +1316,26 @@ export default function ApiManagerPageClient() {
                 {newKeyAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
               </button>
             </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("localUsageCommand")}</p>
+                <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeyAllowUsageCommand}
+                onClick={() => setNewKeyAllowUsageCommand((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeyAllowUsageCommand
+                    ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">terminal</span>
+                {newKeyAllowUsageCommand ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
           </div>
           {createError && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
@@ -1407,6 +1351,7 @@ export default function ApiManagerPageClient() {
                 setNewKeyManageEnabled(false);
                 setNewKeySelfUsageEnabled(true);
                 setNewKeyAccountQuotaEnabled(false);
+                setNewKeyAllowUsageCommand(false);
                 setNameError(null);
                 setCreateError(null);
               }}
@@ -1523,6 +1468,7 @@ const PermissionsModal = memo(function PermissionsModal({
     allowedEndpoints: string[],
     streamDefaultMode: StreamDefaultMode,
     disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
     blockedModels: string[]
   ) => void;
 }) {
@@ -1602,6 +1548,9 @@ const PermissionsModal = memo(function PermissionsModal({
   const [allowAllEndpoints, setAllowAllEndpoints] = useState(initialEndpoints.length === 0);
   const [disableNonPublicModels, setDisableNonPublicModels] = useState(
     apiKey?.disableNonPublicModels === true
+  );
+  const [usageCommandEnabled, setUsageCommandEnabled] = useState(
+    apiKey?.allowUsageCommand === true
   );
   const getModelDisplayName = useCallback(
     (modelId: string) =>
@@ -1786,6 +1735,7 @@ const PermissionsModal = memo(function PermissionsModal({
       allowAllEndpoints ? [] : selectedEndpoints,
       streamDefaultMode,
       disableNonPublicModels,
+      usageCommandEnabled,
       blockedModels
     );
   }, [
@@ -1817,6 +1767,7 @@ const PermissionsModal = memo(function PermissionsModal({
     selectedEndpoints,
     streamDefaultMode,
     disableNonPublicModels,
+    usageCommandEnabled,
     blockedClaudeCodeFamilies,
     initialBlockedModels,
     apiKey?.scopes,
@@ -2375,6 +2326,21 @@ const PermissionsModal = memo(function PermissionsModal({
             {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
           </button>
           <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={usageCommandEnabled}
+            onClick={() => setUsageCommandEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              usageCommandEnabled
+                ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">terminal</span>
+            {t("localUsageCommand")} - {usageCommandEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
         </div>
 
         {/* Disable Non-Public Models Toggle */}

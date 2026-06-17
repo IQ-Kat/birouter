@@ -67,6 +67,7 @@ interface ApiKeyMetadata {
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels: boolean;
+  allowUsageCommand: boolean;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -98,6 +99,8 @@ interface ApiKeyRow extends JsonRecord {
   proxy_id?: unknown;
   stream_default_mode?: unknown;
   streamDefaultMode?: unknown;
+  allow_usage_command?: unknown;
+  allowUsageCommand?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -140,6 +143,7 @@ interface ApiKeyView extends JsonRecord {
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
   disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -184,6 +188,10 @@ const API_KEY_COLUMN_FALLBACKS = [
   {
     name: "disable_non_public_models",
     definition: "disable_non_public_models INTEGER NOT NULL DEFAULT 0",
+  },
+  {
+    name: "allow_usage_command",
+    definition: "allow_usage_command INTEGER NOT NULL DEFAULT 0",
   },
 ] as const;
 
@@ -502,7 +510,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -554,6 +562,7 @@ export async function getApiKeys() {
     camelRow.disableNonPublicModels = parseDisableNonPublicModels(
       (camelRow as JsonRecord).disableNonPublicModels
     );
+    camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -584,6 +593,7 @@ export async function getApiKeyById(id: string) {
   camelRow.disableNonPublicModels = parseDisableNonPublicModels(
     (camelRow as JsonRecord).disableNonPublicModels
   );
+  camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -620,6 +630,10 @@ function parseAutoResolve(value: unknown): boolean {
 }
 
 function parseDisableNonPublicModels(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
+function parseAllowUsageCommand(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
@@ -766,6 +780,7 @@ export async function createApiKey(name: string, machineId: string, scopes: stri
     allowedCombos: [], // Empty array means no explicit combo restriction
     allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
+    allowUsageCommand: false,
     createdAt: now,
     scopes,
   };
@@ -850,6 +865,7 @@ export async function updateApiKeyPermissions(
         allowedEndpoints?: string[] | null;
         streamDefaultMode?: "legacy" | "json" | null;
         disableNonPublicModels?: boolean;
+        allowUsageCommand?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -883,6 +899,7 @@ export async function updateApiKeyPermissions(
             .streamDefaultMode,
           disableNonPublicModels: (update as { disableNonPublicModels?: boolean })
             .disableNonPublicModels,
+          allowUsageCommand: (update as { allowUsageCommand?: boolean }).allowUsageCommand,
         };
 
   if (
@@ -907,7 +924,8 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).proxyId === undefined &&
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
-    normalized.disableNonPublicModels === undefined
+    normalized.disableNonPublicModels === undefined &&
+    normalized.allowUsageCommand === undefined
   ) {
     return false;
   }
@@ -936,6 +954,7 @@ export async function updateApiKeyPermissions(
     proxyId?: string | null;
     streamDefaultMode?: "legacy" | "json";
     disableNonPublicModels?: number;
+    allowUsageCommand?: number;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -1032,6 +1051,11 @@ export async function updateApiKeyPermissions(
   if (normalized.disableNonPublicModels !== undefined) {
     updates.push("disable_non_public_models = @disableNonPublicModels");
     params.disableNonPublicModels = normalized.disableNonPublicModels ? 1 : 0;
+  }
+
+  if (normalized.allowUsageCommand !== undefined) {
+    updates.push("allow_usage_command = @allowUsageCommand");
+    params.allowUsageCommand = normalized.allowUsageCommand ? 1 : 0;
   }
 
   const maxSessionsUpdate = (normalized as Record<string, unknown>).maxSessions;
@@ -1414,6 +1438,7 @@ export async function getApiKeyMetadata(
       allowedEndpoints: [],
       streamDefaultMode: "legacy",
       disableNonPublicModels: false,
+      allowUsageCommand: false,
     };
   }
 
@@ -1483,6 +1508,9 @@ export async function getApiKeyMetadata(
     disableNonPublicModels: parseDisableNonPublicModels(
       (record as JsonRecord).disable_non_public_models ??
         (record as JsonRecord).disableNonPublicModels
+    ),
+    allowUsageCommand: parseAllowUsageCommand(
+      (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
     ),
   };
 
