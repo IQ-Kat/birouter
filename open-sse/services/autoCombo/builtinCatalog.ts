@@ -1,5 +1,6 @@
 import type { AutoVariant } from "./autoPrefix";
 import { VALID_VARIANTS } from "./autoPrefix";
+import { parseAutoSuffix } from "./suffixComposition";
 
 /**
  * Built-in `auto/*` catalog → AutoVariant resolution.
@@ -28,9 +29,33 @@ export const AUTO_TEMPLATE_VARIANTS: Record<string, AutoVariant | undefined> = {
   "auto/coding": "coding",
   "auto/fast": "fast",
   "auto/chat": undefined,
+  // #4235 Phase A: these are valid variants (parseAutoPrefix accepts them) and
+  // the README advertises them, but they were missing from this catalog so
+  // `/v1/models` + the dashboard never listed them. Surface them explicitly.
+  "auto/cheap": "cheap",
+  "auto/offline": "offline",
+  "auto/smart": "smart",
   "auto/claude-opus": "smart",
   "auto/claude-sonnet": "coding",
 };
+
+/**
+ * #4235 Phase B — curated `auto/<category>[:<tier>]` combos advertised in `/v1/models`
+ * and the dashboard. ANY valid `auto/<category>:<tier>` resolves on demand (so clients
+ * can ask for combinations not listed here); this curated set keeps the advertised
+ * catalog from exploding into the full category × tier matrix.
+ */
+export const AUTO_SUFFIX_VARIANTS: string[] = [
+  "auto/coding:fast",
+  "auto/coding:cheap",
+  "auto/coding:free",
+  "auto/coding:pro",
+  "auto/coding:reliable",
+  "auto/reasoning",
+  "auto/reasoning:pro",
+  "auto/vision",
+  "auto/multimodal",
+];
 
 type ResolvedAutoVariant =
   | { recognized: true; variant: AutoVariant | undefined }
@@ -46,15 +71,37 @@ export function resolveAutoVariant(modelStr: string, suffix: string): ResolvedAu
   return { recognized: false };
 }
 
+/**
+ * Recognize any built-in `auto/*` id: a flat-variant template (legacy) OR a
+ * `auto/<category>[:<tier>]` suffix (#4235 Phase B). Used by the chat handler to
+ * decide whether an `auto/` model is a valid built-in before materializing it.
+ */
+export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boolean {
+  return resolveAutoVariant(modelStr, suffix).recognized || parseAutoSuffix(suffix).valid;
+}
+
 export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
+  const { createVirtualAutoCombo } = await import("./virtualFactory.ts");
+
   const resolved = resolveAutoVariant(modelStr, suffix);
-  if (!resolved.recognized) {
-    throw new Error(`Unknown built-in auto combo: ${modelStr}`);
+  if (resolved.recognized) {
+    const virtualCombo = await createVirtualAutoCombo(resolved.variant);
+    virtualCombo.name = modelStr;
+    virtualCombo.id = modelStr;
+    return virtualCombo;
   }
 
-  const { createVirtualAutoCombo } = await import("./virtualFactory.ts");
-  const virtualCombo = await createVirtualAutoCombo(resolved.variant);
-  virtualCombo.name = modelStr;
-  virtualCombo.id = modelStr;
-  return virtualCombo;
+  // #4235 Phase B: `auto/<category>[:<tier>]` (e.g. auto/coding:fast, auto/vision).
+  const parsed = parseAutoSuffix(suffix);
+  if (parsed.valid) {
+    const virtualCombo = await createVirtualAutoCombo(undefined, {
+      category: parsed.category,
+      tier: parsed.tier,
+    });
+    virtualCombo.name = modelStr;
+    virtualCombo.id = modelStr;
+    return virtualCombo;
+  }
+
+  throw new Error(`Unknown built-in auto combo: ${modelStr}`);
 }

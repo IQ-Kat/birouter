@@ -79,6 +79,10 @@ export interface RtkConfig {
   enableGrouping?: boolean;
   /** R5: minimum consecutive similar-line run to trigger grouping. Default: 3. */
   groupingThreshold?: number;
+  /** R1/N3: remove comments from fenced code blocks when stripping code. Default: false. */
+  stripCodeComments?: boolean;
+  /** R1/N3: keep JSDoc/docstring block comments when removing comments. Default: true. */
+  preserveDocstrings?: boolean;
 }
 
 export interface CompressionLanguageConfig {
@@ -230,6 +234,10 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   trustProjectFilters: false,
   rawOutputRetention: "never",
   rawOutputMaxBytes: 1_048_576,
+  enableGrouping: false,
+  groupingThreshold: 3,
+  stripCodeComments: false,
+  preserveDocstrings: true,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
@@ -338,4 +346,7 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
 };
 
 export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
-export { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "./engines/mcpAccessibility/constants.ts";
+export {
+  DEFAULT_MCP_ACCESSIBILITY_CONFIG,
+  clampMcpAccessibilityConfig,
+} from "./engines/mcpAccessibility/constants.ts";

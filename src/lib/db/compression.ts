@@ -11,6 +11,7 @@ import {
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
+  clampMcpAccessibilityConfig,
   type AggressiveConfig,
   type CavemanConfig,
   type CavemanOutputModeConfig,
@@ -171,6 +172,24 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       1024,
       10_000_000
     ),
+    enableGrouping:
+      typeof record.enableGrouping === "boolean"
+        ? record.enableGrouping
+        : (DEFAULT_RTK_CONFIG.enableGrouping ?? false),
+    groupingThreshold: boundedInt(
+      record.groupingThreshold,
+      DEFAULT_RTK_CONFIG.groupingThreshold ?? 3,
+      2,
+      100
+    ),
+    stripCodeComments:
+      typeof record.stripCodeComments === "boolean"
+        ? record.stripCodeComments
+        : (DEFAULT_RTK_CONFIG.stripCodeComments ?? false),
+    preserveDocstrings:
+      typeof record.preserveDocstrings === "boolean"
+        ? record.preserveDocstrings
+        : (DEFAULT_RTK_CONFIG.preserveDocstrings ?? true),
   };
 }
 
@@ -205,9 +224,7 @@ function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
   return {
     ...DEFAULT_CONTEXT_EDITING_CONFIG,
     enabled:
-      typeof record.enabled === "boolean"
-        ? record.enabled
-        : DEFAULT_CONTEXT_EDITING_CONFIG.enabled,
+      typeof record.enabled === "boolean" ? record.enabled : DEFAULT_CONTEXT_EDITING_CONFIG.enabled,
   };
 }
 
@@ -492,49 +509,11 @@ export async function updateCompressionSettings(
   return getCompressionSettings();
 }
 
-export function getDefaultAggressiveConfig(): AggressiveConfig {
-  return {
-    ...DEFAULT_AGGRESSIVE_CONFIG,
-    thresholds: { ...DEFAULT_AGGRESSIVE_CONFIG.thresholds },
-    toolStrategies: { ...DEFAULT_AGGRESSIVE_CONFIG.toolStrategies },
-  };
-}
-
-export function getDefaultUltraConfig(): UltraConfig {
-  return { ...DEFAULT_ULTRA_CONFIG };
-}
-
-export function getDefaultRtkConfig(): RtkConfig {
-  return { ...DEFAULT_RTK_CONFIG };
-}
-
 function normalizeMcpAccessibilityConfig(value: unknown): McpAccessibilityConfig {
-  const record = toRecord(value);
-  return {
-    ...DEFAULT_MCP_ACCESSIBILITY_CONFIG,
-    ...record,
-    enabled: record.enabled !== false,
-    maxTextChars:
-      typeof record.maxTextChars === "number" && record.maxTextChars > 0
-        ? Math.floor(record.maxTextChars)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.maxTextChars,
-    collapseThreshold:
-      typeof record.collapseThreshold === "number" && record.collapseThreshold > 0
-        ? Math.floor(record.collapseThreshold)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseThreshold,
-    collapseKeepHead:
-      typeof record.collapseKeepHead === "number" && record.collapseKeepHead >= 0
-        ? Math.floor(record.collapseKeepHead)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepHead,
-    collapseKeepTail:
-      typeof record.collapseKeepTail === "number" && record.collapseKeepTail >= 0
-        ? Math.floor(record.collapseKeepTail)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepTail,
-    minLengthToProcess:
-      typeof record.minLengthToProcess === "number" && record.minLengthToProcess > 0
-        ? Math.floor(record.minLengthToProcess)
-        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.minLengthToProcess,
-  };
+  // clampMcpAccessibilityConfig (engine layer) owns the numeric floors so the DB normalizer and
+  // the live MCP-server read path agree — in particular it floors maxTextChars to a sane minimum
+  // (a value below the tail reservation would make smartFilterText truncate the whole text away).
+  return clampMcpAccessibilityConfig(value);
 }
 
 export async function getMcpAccessibilityConfig(): Promise<McpAccessibilityConfig> {

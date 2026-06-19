@@ -148,6 +148,13 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // `<baseUrl>/models` list. Live fetch falls back to the local catalog on error.
   "llm7",
   "byteplus",
+  // #4202: zenmux is the same case — its free models (e.g. z-ai/glm-5.2-free,
+  // moonshotai/kimi-k2.7-code-free) live only on the upstream /models list.
+  "zenmux",
+  // #4249: vercel-ai-gateway carries a real baseUrl (.../v1/chat/completions) but
+  // was unclassified, so import served the 5-entry hardcoded catalog instead of the
+  // live `https://ai-gateway.vercel.sh/v1/models` list. Falls back to local on error.
+  "vercel-ai-gateway",
 ]);
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
@@ -429,6 +436,25 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
+  },
+  // #3931: qwen-web (cookie provider) was missing here, so its discovery page
+  // showed nothing (the OAuth fallback above only fires for provider==="qwen").
+  // `chat.qwen.ai/api/v2/models` is public (no auth header configured/sent);
+  // shape `{ data: { data: [{ id, name, owned_by }] } }`, flatter `{ data: [] }` fallback.
+  "qwen-web": {
+    url: "https://chat.qwen.ai/api/v2/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    parseResponse: (data) => {
+      const innerData = data?.data?.data || data?.data || [];
+      return (Array.isArray(innerData) ? innerData : [])
+        .map((item: any) => ({
+          id: item.id || item.name,
+          name: item.name || item.id,
+          owned_by: item.owned_by || "qwen",
+        }))
+        .filter((m: any) => m.id);
+    },
   },
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],

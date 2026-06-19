@@ -12,7 +12,7 @@ import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
-import { getCompressionEngine } from "./engines/registry.ts";
+import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
@@ -97,6 +97,12 @@ export function applyCompression(
     supportsVision?: boolean | null;
     config?: CompressionConfig;
     principalId?: string;
+    /**
+     * Opt into the TV1 stacked bail-out (skip-on-throw + min-gain). Default off keeps the
+     * legacy behavior. The combo proactive-fallback path enables it so a throwing engine is
+     * skipped instead of silently dropping the target. Flows through to applyStackedCompression.
+     */
+    bailout?: BailoutConfig;
   }
 ): CompressionResult {
   if (mode === "off") {
@@ -222,6 +228,7 @@ export async function applyCompressionAsync(
     supportsVision?: boolean | null;
     config?: CompressionConfig;
     principalId?: string;
+    onEngineStep?: (step: StackedCompressionStep) => void;
   }
 ): Promise<CompressionResult> {
   if (mode === "stacked") {
@@ -233,7 +240,80 @@ export async function applyCompressionAsync(
     );
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
+  // Ultra's optional SLM (model) tier is async — route it here when a model is configured.
+  if (mode === "ultra") {
+    return applyUltraAsync(body, options);
+  }
   return applyCompression(body, mode, options);
+}
+
+/**
+ * Ultra mode with the optional local SLM (model) tier.
+ *
+ * When `config.ultra.modelPath` is set, the prose is routed through the llmlingua engine
+ * (the real local-model compressor). The llmlingua backend fail-opens when the model is
+ * absent (e.g. the ONNX model is not provisioned), so this degrades gracefully:
+ *  - model present and it compresses  → return the SLM result (tagged "ultra-slm");
+ *  - model absent / no gain / failure → fall back to `aggressive` when
+ *    `slmFallbackToAggressive` is set, otherwise the heuristic ultra (`pruneByScore`).
+ *
+ * Without `modelPath` the behavior is byte-identical to the synchronous heuristic ultra.
+ */
+async function applyUltraAsync(
+  body: Record<string, unknown>,
+  options?: {
+    model?: string;
+    supportsVision?: boolean | null;
+    config?: CompressionConfig;
+    principalId?: string;
+    onEngineStep?: (step: StackedCompressionStep) => void;
+  }
+): Promise<CompressionResult> {
+  const ultraConfig = options?.config?.ultra;
+  const modelPath = typeof ultraConfig?.modelPath === "string" ? ultraConfig.modelPath.trim() : "";
+
+  // No model configured → heuristic ultra (unchanged default).
+  if (!modelPath) {
+    return applyCompression(body, "ultra", options);
+  }
+
+  registerBuiltinCompressionEngines();
+  const slmEngine = getCompressionEngine("llmlingua");
+  if (slmEngine?.applyAsync) {
+    const engineOptions: CompressionEngineApplyOptions = {
+      model: options?.model,
+      supportsVision: options?.supportsVision,
+      config: options?.config,
+      principalId: options?.principalId,
+      stepConfig: {
+        modelPath,
+        ...(typeof ultraConfig?.compressionRate === "number"
+          ? { compressionRate: ultraConfig.compressionRate }
+          : {}),
+      },
+    };
+    try {
+      const slm = await slmEngine.applyAsync(body, engineOptions);
+      if (slm.compressed && slm.stats) {
+        // Attribute the result to ultra (the selected mode) while marking the SLM tier.
+        return {
+          ...slm,
+          stats: {
+            ...slm.stats,
+            mode: "ultra",
+            techniquesUsed: Array.from(
+              new Set([...(slm.stats.techniquesUsed ?? []), "ultra-slm"])
+            ),
+          },
+        };
+      }
+    } catch {
+      // llmlingua fail-opens internally, but guard anyway and use the configured fallback.
+    }
+  }
+
+  // SLM tier unavailable or produced no gain → fall back per slmFallbackToAggressive.
+  return applyCompression(body, ultraConfig?.slmFallbackToAggressive ? "aggressive" : "ultra", options);
 }
 
 function normalizePipelineStep(step: CompressionPipelineStep | string): CompressionPipelineStep {
@@ -256,6 +336,18 @@ interface BailoutConfig {
   minGainPercent?: number;
 }
 
+/** Per-engine progress emitted mid-pipeline by the stacked loops (F3.3 live streaming). */
+export interface StackedCompressionStep {
+  stepIndex: number;
+  totalSteps: number;
+  engine: string;
+  state: "done" | "skipped";
+  originalTokens: number;
+  compressedTokens: number;
+  savingsPercent: number;
+  durationMs?: number;
+}
+
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
@@ -265,6 +357,30 @@ interface StackOptions {
   bailout?: BailoutConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
+  /** F3.3: called once per engine as it completes (live per-engine streaming). */
+  onEngineStep?: (step: StackedCompressionStep) => void;
+}
+
+/** Emit a per-engine step to the live streaming callback (best-effort, no-op when unset). */
+function reportEngineStep(
+  onStep: ((step: StackedCompressionStep) => void) | undefined,
+  stepIndex: number,
+  totalSteps: number,
+  engine: string,
+  result: CompressionResult
+): void {
+  if (!onStep) return;
+  const s = result.stats;
+  onStep({
+    stepIndex,
+    totalSteps,
+    engine,
+    state: result.compressed ? "done" : "skipped",
+    originalTokens: s?.originalTokens ?? 0,
+    compressedTokens: s?.compressedTokens ?? s?.originalTokens ?? 0,
+    savingsPercent: s?.savingsPercent ?? 0,
+    ...(s?.durationMs !== undefined ? { durationMs: s.durationMs } : {}),
+  });
 }
 
 /** Accumulates per-step telemetry across a stacked run (shared sync/async). */
@@ -406,10 +522,16 @@ export function applyStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const onStep = options?.onEngineStep;
+  const totalSteps = steps.length;
+  let stepIdx = 0;
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
+    // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
+    // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
+    if (getEngineEntry(step.engine)?.enabled === false) continue;
 
     // TV1: when bail-out is ENABLED, wrap apply() and apply skip rules.
     // When DISABLED (default), the code path below is identical to pre-TV1.
@@ -438,6 +560,7 @@ export function applyStackedCompression(
         currentBody = result.body;
         compressed = true;
       }
+      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
   }
 
@@ -471,10 +594,15 @@ export async function applyStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const onStep = options?.onEngineStep;
+  const totalSteps = steps.length;
+  let stepIdx = 0;
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
     if (!engine) continue;
+    // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
+    if (getEngineEntry(step.engine)?.enabled === false) continue;
     const stepOptions = buildStepOptions(step, options);
 
     // TV1: same bail-out discipline as the sync loop (opt-in, default off).
@@ -507,6 +635,7 @@ export async function applyStackedCompressionAsync(
         currentBody = result.body;
         compressed = true;
       }
+      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
   }
 
