@@ -826,26 +826,36 @@ export class BaseExecutor {
       }
 
       try {
-        // Only enforce the timeout while waiting for the initial fetch() response.
-        // Once headers arrive, active streams must not be cut off by total elapsed time;
-        // post-start stalls are handled separately by STREAM_IDLE_TIMEOUT_MS / bodyTimeout.
+        // Timeout only covers response start; stream stalls are handled downstream.
         const fetchStartTimeoutMs = this.getTimeoutMs();
-        const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-        if (timeoutController) {
-          timeoutId = setTimeout(() => {
-            const timeoutError = new Error(
-              `Fetch timeout after ${fetchStartTimeoutMs}ms on ${url}`
-            );
-            timeoutError.name = "TimeoutError";
-            timeoutController.abort(timeoutError);
-          }, fetchStartTimeoutMs);
-        }
-        const timeoutSignal = timeoutController?.signal ?? null;
-        const combinedSignal =
-          signal && timeoutSignal
-            ? mergeAbortSignals(signal, timeoutSignal)
-            : signal || timeoutSignal;
+        const fetchWithStartTimeout = async (requestUrl: string, requestOptions: RequestInit) => {
+          const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
+          let timeoutId: ReturnType<typeof setTimeout> | null = null;
+          if (timeoutController) {
+            timeoutId = setTimeout(() => {
+              const timeoutError = new Error(
+                `Fetch timeout after ${fetchStartTimeoutMs}ms on ${requestUrl}`
+              );
+              timeoutError.name = "TimeoutError";
+              timeoutController.abort(timeoutError);
+            }, fetchStartTimeoutMs);
+          }
+
+          const timeoutSignal = timeoutController?.signal ?? null;
+          const combinedSignal =
+            signal && timeoutSignal
+              ? mergeAbortSignals(signal, timeoutSignal)
+              : signal || timeoutSignal;
+          const optionsWithSignal = combinedSignal
+            ? { ...requestOptions, signal: combinedSignal }
+            : requestOptions;
+
+          try {
+            return await fetch(requestUrl, optionsWithSignal);
+          } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+          }
+        };
 
         const isClaudeCodeClient =
           clientHeaders?.["x-app"] === "cli" ||
@@ -938,7 +948,19 @@ export class BaseExecutor {
             }
           }
 
-          if (headerThinking === "adaptive") {
+          // Anthropic rejects `thinking` (enabled/adaptive) when tool_choice forces a
+          // specific tool ({type:"any"|"tool"}): "Thinking may not be enabled when
+          // tool_choice forces tool use". Treat forced tool_choice as an implicit
+          // `thinking: off` so neither the explicit-adaptive branch nor the default CC
+          // injection below produces the invalid combination (incl. client-sent thinking).
+          const toolChoiceForced =
+            tb.tool_choice === "any" ||
+            (typeof tb.tool_choice === "object" &&
+              tb.tool_choice !== null &&
+              ((tb.tool_choice as Record<string, unknown>).type === "any" ||
+                (tb.tool_choice as Record<string, unknown>).type === "tool"));
+          const effThinking = toolChoiceForced ? "off" : headerThinking;
+          if (effThinking === "adaptive") {
             if (tb.thinking === undefined) {
               tb.thinking = { type: "adaptive" };
               appliedThinking = "adaptive";
@@ -948,11 +970,11 @@ export class BaseExecutor {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
             }
-          } else if (headerThinking === "off") {
+          } else if (effThinking === "off") {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!headerThinking && !headerEffort) {
+          } else if (!effThinking && !headerEffort) {
             // Default CC logic when no override headers are present
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             if (isHaiku) {
@@ -1258,24 +1280,10 @@ export class BaseExecutor {
           headers: finalHeaders,
           body: bodyString,
         };
-        if (combinedSignal) fetchOptions.signal = combinedSignal;
 
-        let response;
-        try {
-          response = await fetch(url, fetchOptions);
-        } finally {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
-        }
+        let response = await fetchWithStartTimeout(url, fetchOptions);
 
-        // Context Editing 400-fallback: a Claude-compatible relay may advertise the
-        // context-management beta but reject the `context_management` param with a 400.
-        // Strip it from this body and retry the same URL once so the request degrades
-        // gracefully instead of failing. Genuine Claude carries the beta in
-        // ANTHROPIC_BETA_BASE and will not hit this. The 400 response is read via a
-        // clone so the original stays intact for the non-matching path.
+        // Context Editing 400-fallback for Claude-compatible relays.
         if (
           response.status === HTTP_STATUS.BAD_REQUEST &&
           contextEditing?.enabled &&
@@ -1299,13 +1307,11 @@ export class BaseExecutor {
               "CONTEXT_EDITING",
               `Upstream 400 rejected context_management on ${url} — retrying without it`
             );
-            response = await fetch(url, { ...fetchOptions, body: retryBody });
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
           }
         }
 
-        // Generic reactive 400 field-downgrade (FCC NIM-style): if an upstream 400s
-        // naming a known-unsupported field, strip just that field and retry once.
-        // Each known field is stripped at most once across fallback URLs (bounded loop).
+        // Generic reactive 400 field-downgrade; each field is stripped at most once.
         if (
           response.status === HTTP_STATUS.BAD_REQUEST &&
           transformedBody &&
@@ -1331,7 +1337,7 @@ export class BaseExecutor {
               "FIELD_400",
               `Upstream 400 rejected ${offending} on ${url} — retrying without it`
             );
-            response = await fetch(url, { ...fetchOptions, body: retryBody });
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
           }
         }
 

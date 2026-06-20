@@ -25,6 +25,10 @@ import {
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
+// Bound the OAuth probe so a hung upstream can't block the connection-test queue
+// forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
+const OAUTH_TEST_TIMEOUT_MS = 30_000;
+
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
   claude: {
@@ -131,7 +135,19 @@ function makeDiagnosis(
   };
 }
 
-function classifyFailure({
+/**
+ * A provider/account that the upstream has deactivated (vs. a revoked/expired token).
+ * #1444: a Codex account can have a perfectly healthy OAuth refresh while its ChatGPT
+ * account is deactivated, in which case the API returns 401 — mislabeling that as
+ * "Token invalid or revoked" hides the real cause. Mirrors the deactivation phrases the
+ * account-fallback classifier already trusts.
+ */
+function isAccountDeactivatedMessage(text: string): boolean {
+  const n = (text || "").toLowerCase();
+  return n.includes("account_deactivated") || (n.includes("deactivat") && n.includes("account"));
+}
+
+export function classifyFailure({
   error,
   statusCode = null,
   refreshFailed = false,
@@ -152,6 +168,13 @@ function classifyFailure({
 
   if (refreshFailed || normalized.includes("refresh failed")) {
     return makeDiagnosis("token_refresh_failed", "oauth", message, "refresh_failed");
+  }
+
+  // #1444: a deactivated account is distinct from a revoked/expired token — surface it
+  // as account_deactivated (which the dashboard renders as "Account Deactivated") before
+  // the generic 401/403 branch below would mark it "upstream_auth_error".
+  if (isAccountDeactivatedMessage(normalized)) {
+    return makeDiagnosis("account_deactivated", "account", message, "account_deactivated");
   }
 
   if (numericStatus === 401 || numericStatus === 403) {
@@ -382,7 +405,10 @@ async function syncToCloudIfEnabled() {
  * Auto-refreshes token if expired
  * @returns {{ valid: boolean, error: string|null, refreshed: boolean, newTokens: object|null }}
  */
-async function testOAuthConnection(connection: any) {
+export async function testOAuthConnection(
+  connection: any,
+  timeoutMs: number = OAUTH_TEST_TIMEOUT_MS
+) {
   const config = OAUTH_TEST_CONFIG[connection.provider];
 
   if (!config) {
@@ -501,6 +527,7 @@ async function testOAuthConnection(connection: any) {
     const res = await fetch(url, {
       method: config.method,
       headers,
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (res.ok) {
@@ -545,6 +572,7 @@ async function testOAuthConnection(connection: any) {
             [config.authHeader]: `${config.authPrefix}${tokens.accessToken}`,
             ...config.extraHeaders,
           },
+          signal: AbortSignal.timeout(timeoutMs),
         });
 
         if (retryRes.ok) {
@@ -557,7 +585,12 @@ async function testOAuthConnection(connection: any) {
           };
         }
 
-        const error = `API returned ${retryRes.status} after token refresh`;
+        // #1444: a fresh token that still gets a 401 because the account itself was
+        // deactivated must be labeled account_deactivated, not a generic auth error.
+        const retryBody = await retryRes.text().catch(() => "");
+        const error = isAccountDeactivatedMessage(retryBody)
+          ? "Account deactivated by the provider"
+          : `API returned ${retryRes.status} after token refresh`;
         return {
           valid: false,
           error,
@@ -576,8 +609,14 @@ async function testOAuthConnection(connection: any) {
       };
     }
 
-    const error =
-      res.status === 401
+    // #1444: read a 401/403 body so a deactivated account is labeled distinctly from a
+    // revoked token. (The body is unread here for non-gitlab providers; the guard keeps
+    // it safe if it was already consumed.)
+    const bodyText =
+      res.status === 401 || res.status === 403 ? await res.text().catch(() => "") : "";
+    const error = isAccountDeactivatedMessage(bodyText)
+      ? "Account deactivated by the provider"
+      : res.status === 401
         ? "Token invalid or revoked"
         : res.status === 403
           ? "Access denied"
@@ -591,7 +630,13 @@ async function testOAuthConnection(connection: any) {
       diagnosis: classifyFailure({ error, statusCode: res.status }),
     };
   } catch (err) {
-    const error = toSafeMessage(err?.message, "Connection test failed");
+    // AbortSignal.timeout(...) surfaces as an AbortError/TimeoutError once the probe
+    // exceeds its deadline (#1449). Report it with a clear, actionable message instead
+    // of leaking the raw "The operation was aborted" text.
+    const isTimeout = err?.name === "TimeoutError" || err?.name === "AbortError";
+    const error = isTimeout
+      ? `Test timed out after ${Math.round(timeoutMs / 1000)}s`
+      : toSafeMessage(err?.message, "Connection test failed");
     return {
       valid: false,
       error,

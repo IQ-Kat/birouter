@@ -7,7 +7,6 @@
 
 import {
   checkFallbackError,
-  classifyErrorText,
   classifyLockoutReason,
   decayModelFailureCount,
   formatRetryAfter,
@@ -15,8 +14,6 @@ import {
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
-  isProviderExhaustedReason,
-  hasPerModelQuota,
 } from "./accountFallback.ts";
 import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
@@ -110,7 +107,6 @@ import {
   MAX_FALLBACK_WAIT_MS,
   MAX_GLOBAL_ATTEMPTS,
   isAllAccountsRateLimitedResponse,
-  isProviderCircuitOpenResult,
   clampComboDepth,
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
@@ -119,7 +115,9 @@ import {
   isStreamReadinessFailureErrorBody,
   isTokenLimitBreachErrorBody,
   toRecordedTarget,
+  getExhaustedTargetSkipReason,
 } from "./combo/comboPredicates.ts";
+import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./combo/comboData.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import {
@@ -1084,24 +1082,14 @@ export async function handleComboChat({
             }
           : { ...target, modelAbortSignal: abortControllers.get(i)!.signal };
 
-        // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
-        if (provider && target.connectionId) {
-          const connKey = `${provider}:${target.connectionId}`;
-          if (exhaustedConnections.has(connKey)) {
-            log.info(
-              "COMBO",
-              `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
-            );
-            if (i > 0) fallbackCount++;
-            return null;
-          }
-        }
-        // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
-        if (provider && exhaustedProviders.has(provider)) {
-          log.info(
-            "COMBO",
-            `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
-          );
+        // #1731 / #1731v2: skip targets already known-exhausted this request (shared predicate).
+        const exhaustedSkip = getExhaustedTargetSkipReason(
+          target,
+          exhaustedProviders,
+          exhaustedConnections
+        );
+        if (exhaustedSkip) {
+          log.info("COMBO", exhaustedSkip);
           if (i > 0) fallbackCount++;
           return null;
         }
@@ -1635,57 +1623,20 @@ export async function handleComboChat({
           );
           const { cooldownMs } = fallbackResult;
 
-          // #1731: If the entire provider quota is exhausted, mark it so subsequent
-          // same-provider targets are skipped immediately. API-key 429s still use
-          // the short resilience cooldown, but explicit quota text should stop the
-          // combo from trying another target for the same provider in this request.
-          // Passthrough/per-model-quota providers multiplex independent upstream
-          // models behind one provider connection; a quota 429 for one model must
-          // not skip fallback targets for another model on the same provider.
-          const providerExhausted =
-            Boolean(provider && provider !== "unknown") &&
-            !hasPerModelQuota(provider, rawModel) &&
-            (isProviderExhaustedReason(fallbackResult) ||
-              classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED);
-          if (providerExhausted) {
-            exhaustedProviders.add(provider);
-            log.info(
-              "COMBO",
-              `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
-            );
-          } else if (
-            result.status === 429 &&
-            !isTokenLimitBreach &&
-            provider &&
-            provider !== "unknown"
-          ) {
-            transientRateLimitedProviders.add(provider);
-          }
-          // #1731: Connection-level errors (502/503/504) suggest the provider itself is having
-          // issues (e.g. upstream unreachable, proxy error). Skip remaining same-provider
-          // targets in this request to avoid hammering a known-bad connection.
-          if (
-            !providerExhausted &&
-            provider &&
-            provider !== "unknown" &&
-            [408, 500, 502, 503, 504, 524].includes(result.status) &&
-            !isProviderCircuitOpenResult(result, errorText)
-          ) {
-            const connId = target.connectionId as string | undefined;
-            if (connId) {
-              exhaustedConnections.add(`${provider}:${connId}`);
-              log.info(
-                "COMBO",
-                `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip on remaining targets (#1731v2)`
-              );
-            } else {
-              exhaustedProviders.add(provider);
-              log.info(
-                "COMBO",
-                `Provider ${provider} connection error (${result.status}) — marking for skip on remaining targets (#1731)`
-              );
-            }
-          }
+          // #1731 / #1731v2: classify the upstream error and update the exhaustion sets
+          // (shared with handleRoundRobinCombo). Returns whether the provider is fully exhausted.
+          const providerExhausted = applyComboTargetExhaustion(target, {
+            result,
+            fallbackResult,
+            errorText,
+            rawModel,
+            isTokenLimitBreach,
+            allAccountsRateLimited: false,
+            sets: { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders },
+            log,
+            tag: "COMBO",
+            exhaustedLogLevel: "info",
+          });
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that indicate
           // request-body-specific issues (context overflow, malformed request, model access denied).
@@ -2115,25 +2066,14 @@ async function handleRoundRobinCombo({
       continue;
     }
 
-    // #1731: Skip targets from a provider that already signaled full quota exhaustion
-    // this request.
-    // #1731v2: Skip targets whose provider:connection pair had a connection-level error.
-    if (provider && target.connectionId) {
-      const connKey = `${provider}:${target.connectionId}`;
-      if (exhaustedConnections.has(connKey)) {
-        log.info(
-          "COMBO-RR",
-          `Skipping ${modelStr} — connection ${target.connectionId} for provider ${provider} had connection error (#1731v2)`
-        );
-        if (offset > 0) fallbackCount++;
-        continue;
-      }
-    }
-    if (provider && exhaustedProviders.has(provider)) {
-      log.info(
-        "COMBO-RR",
-        `Skipping ${modelStr} — provider ${provider} marked exhausted this request (#1731)`
-      );
+    // #1731 / #1731v2: skip targets already known-exhausted this request (shared predicate).
+    const exhaustedSkip = getExhaustedTargetSkipReason(
+      target,
+      exhaustedProviders,
+      exhaustedConnections
+    );
+    if (exhaustedSkip) {
+      log.info("COMBO-RR", exhaustedSkip);
       if (offset > 0) fallbackCount++;
       continue;
     }
@@ -2397,53 +2337,20 @@ async function handleRoundRobinCombo({
         // same-provider targets are skipped immediately. API-key 429s still use
         // the short resilience cooldown, but explicit quota text should stop the
         // combo from trying another target for the same provider in this request.
-        // Passthrough/per-model-quota providers multiplex independent upstream
-        // models behind one provider connection; a quota 429 for one model must
-        // not skip fallback targets for another model on the same provider.
-        const providerExhausted =
-          Boolean(provider && provider !== "unknown") &&
-          !hasPerModelQuota(provider, parseModel(modelStr).model || modelStr) &&
-          (isProviderExhaustedReason(fallbackResult) ||
-            classifyErrorText(errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
-            isAllAccountsRateLimited);
-        if (providerExhausted) {
-          exhaustedProviders.add(provider);
-          log.debug?.(
-            "COMBO-RR",
-            `Provider ${provider} quota exhausted — marking for skip (#1731)`
-          );
-        } else if (
-          result.status === 429 &&
-          !isTokenLimitBreach &&
-          provider &&
-          provider !== "unknown"
-        ) {
-          transientRateLimitedProviders.add(provider);
-        }
-
-        // #1731v2: Connection-level errors (502/503/504) — skip remaining same-connection targets
-        if (
-          !providerExhausted &&
-          provider &&
-          provider !== "unknown" &&
-          [408, 500, 502, 503, 504, 524].includes(result.status) &&
-          !isProviderCircuitOpenResult(result, errorText)
-        ) {
-          const connId = target.connectionId as string | undefined;
-          if (connId) {
-            exhaustedConnections.add(`${provider}:${connId}`);
-            log.info(
-              "COMBO-RR",
-              `Provider ${provider} connection ${connId} error (${result.status}) — marking for skip (#1731v2)`
-            );
-          } else {
-            exhaustedProviders.add(provider);
-            log.info(
-              "COMBO-RR",
-              `Provider ${provider} connection error (${result.status}) — marking for skip (#1731)`
-            );
-          }
-        }
+        // #1731 / #1731v2: classify the upstream error and update the exhaustion sets
+        // (shared with handleComboChat). Returns whether the provider is fully exhausted.
+        const providerExhausted = applyComboTargetExhaustion(target, {
+          result,
+          fallbackResult,
+          errorText,
+          rawModel: parseModel(modelStr).model || modelStr,
+          isTokenLimitBreach,
+          allAccountsRateLimited: isAllAccountsRateLimited,
+          sets: { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders },
+          log,
+          tag: "COMBO-RR",
+          exhaustedLogLevel: "debug",
+        });
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
         if (
