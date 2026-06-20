@@ -35,6 +35,14 @@ function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
+// The Responses API rejects call_id values longer than 64 characters (9router#396).
+// Clamp deterministically so a function_call and its matching function_call_output keep
+// the same id and stay paired through the orphaned-output filter below.
+const MAX_CALL_ID_LEN = 64;
+function clampCallId(id: string): string {
+  return id.length > MAX_CALL_ID_LEN ? id.slice(0, MAX_CALL_ID_LEN) : id;
+}
+
 function toArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
@@ -307,10 +315,33 @@ export function openaiResponsesToOpenAIRequest(
           !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
         );
       })
-      .map((toolValue) => {
+      .flatMap((toolValue) => {
         const tool = toRecord(toolValue);
         if (tool.function) return toolValue;
         const toolType = toString(tool.type);
+        // MCP tool groups: Codex/OpenAI Responses clients declare each MCP server as a
+        // `namespace` tool — { type:"namespace", name, tools:[{name, description, parameters}] }.
+        // Non-Codex backends (Kiro/Claude) have no `namespace` type, so flatten each sub-tool
+        // into a standalone Chat function (#1534). Without this the whole group collapsed into
+        // one empty-schema function named `mcp__<server>__` and every MCP call failed with
+        // `unsupported call: mcp__<server>__`.
+        if (toolType === "namespace") {
+          const subTools = Array.isArray(tool.tools) ? tool.tools : [];
+          return subTools
+            .map((subValue) => toRecord(subValue))
+            .filter((sub) => toString(sub.name))
+            .map((sub) => ({
+              type: "function",
+              function: {
+                name: toString(sub.name),
+                description: toString(sub.description),
+                parameters: sub.parameters ?? sub.input_schema ?? {
+                  type: "object",
+                  properties: {},
+                },
+              },
+            }));
+        }
         // Pass web_search server tools through with their original type (versioned or plain).
         // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
         // Anthropic-style web_search_YYYYMMDD naming receive the exact name they expect.
@@ -579,7 +610,7 @@ export function openaiToOpenAIResponsesRequest(
           }
           input.push({
             type: "function_call",
-            call_id: toString(toolCall.id).trim() || generateToolCallId(),
+            call_id: clampCallId(toString(toolCall.id).trim() || generateToolCallId()),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
           });
@@ -593,7 +624,7 @@ export function openaiToOpenAIResponsesRequest(
         if (fnName) {
           input.push({
             type: "function_call",
-            call_id: `call_${fnName}`,
+            call_id: clampCallId(`call_${fnName}`),
             name: fnName,
             arguments: toString(fc.arguments, "{}"),
           });
@@ -605,7 +636,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "tool") {
       input.push({
         type: "function_call_output",
-        call_id: toString(msg.tool_call_id),
+        call_id: clampCallId(toString(msg.tool_call_id)),
         output:
           typeof msg.content === "string"
             ? msg.content
@@ -624,7 +655,7 @@ export function openaiToOpenAIResponsesRequest(
     if (role === "function") {
       input.push({
         type: "function_call_output",
-        call_id: `call_${toString(msg.name)}`,
+        call_id: clampCallId(`call_${toString(msg.name)}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
       });
     }

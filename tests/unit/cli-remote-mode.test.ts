@@ -144,6 +144,71 @@ test("buildHeaders: explicit opts.apiKey wins over the context credential", asyn
   assert.equal(headers.get("authorization"), "Bearer sk-explicit");
 });
 
+test("buildHeaders: active-context token wins over an opts.apiKey echoing the ambient env", async () => {
+  // Regression: users keep OMNIROUTE_API_KEY (their inference key) in the shell.
+  // The global --api-key option is bound to that env var, so commands that spread
+  // optsWithGlobals() into apiFetch carry opts.apiKey === the env value. After
+  // `omniroute connect <remote>` the active context holds the scoped token; an
+  // opts.apiKey that merely mirrors the ambient env must NOT outrank it, or every
+  // remote management command sends the local inference key ("Invalid management
+  // token"). This reproduces the exact failing shape: opts.apiKey === env value.
+  writeConfig({
+    version: 1,
+    currentContext: "vps",
+    contexts: { vps: { baseUrl: "https://vps.example.com", accessToken: "oma_live_scoped" } },
+  });
+  const prev = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "sk-ambient-inference-key";
+  try {
+    const { buildHeaders } = await import("../../bin/cli/api.mjs");
+    // opts.apiKey mirrors the ambient env (commander's .env binding + spread).
+    const headers = await buildHeaders({ cliToken: "", apiKey: "sk-ambient-inference-key" });
+    assert.equal(headers.get("authorization"), "Bearer oma_live_scoped");
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_API_KEY;
+    else process.env.OMNIROUTE_API_KEY = prev;
+  }
+});
+
+test("buildHeaders: a DISTINCT explicit key still wins over the context even when env is set", async () => {
+  // A real `--api-key <x>` flag or a command-supplied token (e.g. connect --key)
+  // differs from the ambient env value, so it counts as explicit and overrides.
+  writeConfig({
+    version: 1,
+    currentContext: "vps",
+    contexts: { vps: { baseUrl: "https://vps.example.com", accessToken: "oma_live_scoped" } },
+  });
+  const prev = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "sk-ambient-inference-key";
+  try {
+    const { buildHeaders } = await import("../../bin/cli/api.mjs");
+    const headers = await buildHeaders({ cliToken: "", apiKey: "oma_explicit_token" });
+    assert.equal(headers.get("authorization"), "Bearer oma_explicit_token");
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_API_KEY;
+    else process.env.OMNIROUTE_API_KEY = prev;
+  }
+});
+
+test("buildHeaders: ambient OMNIROUTE_API_KEY is the fallback when no context credential", async () => {
+  // Local/default usage with no stored context credential still works off the env.
+  writeConfig({
+    version: 1,
+    currentContext: "default",
+    contexts: { default: { baseUrl: "http://localhost:20128", apiKey: null } },
+  });
+  const prev = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "sk-ambient-inference-key";
+  try {
+    const { buildHeaders } = await import("../../bin/cli/api.mjs");
+    const headers = await buildHeaders({ cliToken: "", apiKey: "sk-ambient-inference-key" });
+    assert.equal(headers.get("authorization"), "Bearer sk-ambient-inference-key");
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_API_KEY;
+    else process.env.OMNIROUTE_API_KEY = prev;
+  }
+});
+
 // ── context current command ─────────────────────────────────────────────────────
 
 test("commands/contexts.mjs registers a `current` subcommand", async () => {
@@ -175,4 +240,22 @@ test("commands/contexts.mjs registers a `current` subcommand", async () => {
   };
   registerContexts(fakeProgram);
   assert.ok(sub.includes("current"), `expected a 'current' subcommand, got: ${sub.join(", ")}`);
+});
+
+test("createProgram wires the remote-mode commands into the real CLI program", async () => {
+  // Regression: contexts.mjs existed and was unit-tested in isolation, but its
+  // registerContexts() was never called by registry.mjs — so `omniroute contexts`
+  // fell through to `serve`, and `connect`'s own advice ("omniroute contexts use
+  // default") was a dead command. Build the REAL program and assert the wiring.
+  const { createProgram } = await import("../../bin/cli/program.mjs");
+  const program = createProgram();
+  const names = program.commands.map((c: any) => c.name());
+  for (const cmd of ["contexts", "connect", "tokens", "configure"]) {
+    assert.ok(names.includes(cmd), `expected top-level '${cmd}' command, got: ${names.join(", ")}`);
+  }
+  const contexts = program.commands.find((c: any) => c.name() === "contexts");
+  const subs = contexts.commands.map((c: any) => c.name());
+  for (const sub of ["list", "use", "current"]) {
+    assert.ok(subs.includes(sub), `expected 'contexts ${sub}' subcommand, got: ${subs.join(", ")}`);
+  }
 });
