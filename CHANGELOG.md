@@ -1,54 +1,25 @@
 # Changelog
 
-# v0.5.6 (2026-06-20)
+# v0.3.5 (2026-06-21)
+*Synchronized with 9Router v0.5.6*
 
-## Features
-- **Ponytail**: minimalist code generation feature
-- **Headroom**: proxy lifecycle management + dashboard UI (one-click start/stop, install detection, status probing, token saver, claude↔openai shape conversion)
-- **CodeBuddy CN**: new OAuth provider (copilot.tencent.com) — 15-model catalog, /v2 inference, forced streaming, OpenAI-style reasoning
-- **OpenCode-Go**: align models with official endpoints; route Qwen 3.7 MiniMax via /v1/messages, GLM/Kimi/DeepSeek/MiMo via /chat/completions
+## 🚀 Features / Fitur Baru
+- **Headroom Integration**: Fitur manajemen proxy kustom yang langsung terintegrasi di Dashboard (instalasi satu klik, start/stop, status check, kompresi prompt).
+- **Ponytail (Lazy Senior Dev Mode)**: Strategi prompt baru (Lite, Full, Ultra) yang memaksa LLM menulis kode minimal, efisien, dan YAGNI (You Aren't Gonna Need It) untuk menghemat token output.
+- **Combo Fusion Strategy**: Strategi combo baru yang mengirimkan prompt ke semua model anggota secara paralel, lalu disintesis menjadi satu jawaban terbaik oleh judge model pilihan Anda.
+- **Per-Combo Strategy Selector**: Sekarang Anda bisa memilih strategi routing kustom (`fallback`, `round-robin`, `fusion`, atau `capacity`) untuk masing-masing combo secara independen.
+- **Kiro Headless API Key**: Mendukung autentikasi langsung menggunakan Kiro API key (`ksk_`) dan rute langsung `claude ↔ kiro` tanpa harus melalui konversi OpenAI yang lossy.
+- **Claude Auto-Ping**: Penghangat kuota 5 jam otomatis setelah reset agar jendela kuota baru segera dimulai (opsi per koneksi).
+- **CodeBuddy CN**: Provider OAuth baru (copilot.tencent.com) dengan katalog 15 model, /v2 inference, dan reasoning ala OpenAI.
 
-## Fixes
-- **Anthropic-compatible validation**: use POST /v1/messages (GET /models not spec, false "invalid" for valid keys)
-- **CLI tools**: tolerate JSONC configs in all 8 settings routes (opencode, openclaw, kilo, droid, cowork, copilot, claude, cline)
-- **Gemini/Antigravity**: preserve 'pattern' in tool schema translation (glob/grep)
-- **Combo/Fusion**: flatten Anthropic-style tool messages in panel calls (prevent 503)
-- **Models**: store provider custom models by provider scope
-- **Perplexity**: use /v1/models endpoint for key validation
-
-# v0.5.4 (2026-06-18)
-
-## Fixes
-- **Kiro**: honor thinking effort budgets
-- **AG/Kiro/Xiaomi**: provider fixes
-- **Combo/Fusion**: flatten tool history in panel calls to prevent 503
-- **LLM selector**: show custom vision models in selector and model list
-- **Image**: prevent compatible nodes from shadowing provider aliases
-
-# v0.5.2 (2026-06-17)
-
-## Features
-- **Combo Fusion strategy** — fans the prompt out to all member models in parallel, then a configurable judge model synthesizes one final answer (quorum-grace, anonymized sources, graceful degradation)
-- **Per-combo strategy selector** — pick `fallback` / `round-robin` / `fusion` / `capacity` per combo (replaces the old round-robin toggle), with a judge picker for fusion
-- **Capacity auto-switch** — reorders models per request so images/PDFs route to capable models first
-- **Kiro headless API-key auth** (`ksk_`) + direct `claude↔kiro` route that avoids the lossy OpenAI two-hop pivot
-- **Claude auto-ping** — warms the 5h quota window right after reset so a fresh window starts immediately (per-connection toggle)
-
-## Fixes
-- **Claude 429**: stop hammering the OAuth usage endpoint — cache resetAt, throttle quota refresh to 3 min, cool down after a 429 (chat unaffected)
-- **Usage logs always empty**: missing `await` on `getAdapter()` in `getRecentLogs` made `/api/usage/logs` & `/api/usage/request-logs` return nothing
-- **Executors**: strip params unsupported by the provider/model (drops deprecated `temperature` for claude-opus-4 → Anthropic 400)
-- **Translator**: derive deterministic tool_call ids for gemini/antigravity → OpenAI so function call/response pair correctly (fixes tool-pairing 400s)
-- **Antigravity**: strip `optional` from tool schemas before sending to Gemini
-- **Claude-to-OpenAI**: handle OpenAI-format responses in the non-streaming path (e.g. xiaomi-tokenplan)
-- **Usage views**: show edited connection names consistently across Providers & Quota Tracker
-- **Security**: hardened reverse-proxy local-access trust
-- **Security**: SSRF hardening on web fetch
-
-## Internal
-- Large **open-sse / translator refactor** (~40 commits): unified provider/model registry (LiteLLM-style `models[]` + `kind` field, 100 co-located registry files), single-sourced media/OAuth/refresh/token URLs, registry-based dispatch for usage & token-refresh, DRY translator concerns (buildUsage, encodeDataUri, finishReasonMap, chunkBuilder, reasoningDelta…), ESM-safe registry init, large-file splits, dead-code removal, and golden/no-regression test gates
-
-# v0.4.80 (2026-06-13)
+## 🛡️ Fixes & Improvements / Perbaikan & Peningkatan
+- **Anthropic Key Validation**: Menggunakan endpoint POST `/v1/messages` (lebih andal untuk validasi kunci dibanding GET `/models`).
+- **CLI Tools Settings**: Mendukung file konfigurasi berformat JSONC pada 8 rute setelan CLI (opencode, openclaw, cline, dll).
+- **Gemini / Antigravity**: Mempertahankan parameter `'pattern'` saat menerjemahkan skema tool (berguna untuk filter glob/grep).
+- **Claude 429 Cool-down**: Mengurangi spam ke endpoint OAuth usage dan menerapkan cool-down setelah terkena limit 429.
+- **Combo/Fusion Flat History**: Meratakan riwayat pesan tool untuk mencegah error HTTP 503 saat panggilan panel.
+- **Usage Logs Fix**: Memperbaiki error `missing await` yang membuat log riwayat request di dashboard selalu terlihat kosong.
+- **Parameter Stripper**: Penanganan dinamis untuk memotong parameter yang tidak didukung provider (seperti menghapus parameter `temperature` usang di Claude Opus).
 
 All notable changes to Birouter will be documented in this file.
 
