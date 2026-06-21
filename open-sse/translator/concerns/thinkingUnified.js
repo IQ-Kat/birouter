@@ -179,7 +179,8 @@ function applyFormat(fmt, body, cfg, caps) {
       break;
     }
     case "gemini-level": {
-      const level = none ? "minimal" : (toLevel(eff) || "high");
+      let level = none ? "minimal" : (toLevel(eff) || "high");
+      if (level === "auto") level = "high";
       setGeminiThinking(body, { thinkingLevel: level, includeThoughts: level !== "minimal" });
       break;
     }

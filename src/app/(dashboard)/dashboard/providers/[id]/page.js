@@ -1011,6 +1011,7 @@ export default function ProviderDetailPage() {
 
   const renderModelsSection = () => {
     const getModelType = (modelId) => {
+      if (typeof modelId !== "string") return null;
       const idLower = modelId.toLowerCase();
       // Check if it matches a hardcoded model's type
       const hardcodedMatch = models.find((m) => m.id === modelId);
@@ -1221,8 +1222,8 @@ export default function ProviderDetailPage() {
             }
 
             const filteredNotAdded = notAdded.filter((m) => {
-              const matchesSearch = m.id.toLowerCase().includes(fetchedSearch.toLowerCase()) || 
-                                    (m.name && m.name.toLowerCase().includes(fetchedSearch.toLowerCase()));
+              const matchesSearch = (typeof m.id === "string" && m.id.toLowerCase().includes(fetchedSearch.toLowerCase())) || 
+                                    (m.name && typeof m.name === "string" && m.name.toLowerCase().includes(fetchedSearch.toLowerCase()));
               const modelType = getModelType(m.id);
               const isLlm = !modelType;
               let matchesType = true;
