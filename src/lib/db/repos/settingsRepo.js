@@ -34,6 +34,9 @@ const DEFAULT_SETTINGS = {
   mitmRouterBaseUrl: DEFAULT_MITM_ROUTER_BASE,
   dnsToolEnabled: {},
   rtkEnabled: true,
+  headroomEnabled: false,
+  headroomUrl: "http://localhost:8787",
+  headroomCompressUserMessages: false,
   cavemanEnabled: false,
   cavemanLevel: "full",
   rateLimitEnabled: false,
@@ -43,6 +46,8 @@ const DEFAULT_SETTINGS = {
   smartPacingProviderProfiles: {},
   fingerprintEnabled: true,
   stickyProxyEnabled: true,
+  ponytailEnabled: false,
+  ponytailLevel: "full",
 };
 
 async function readRaw() {

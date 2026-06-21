@@ -40,6 +40,15 @@ export function parseSuffix(model) {
 export function extractThinking(body) {
   if (!body || typeof body !== "object") return null;
 
+  // Claude output_config.effort (explicit) — priority over adaptive thinking
+  const oc = body.output_config?.effort;
+  if (typeof oc === "string" && oc) {
+    const e = oc.toLowerCase();
+    if (e === "none" || e === "off") return { mode: "none" };
+    if (e === "auto") return { mode: "auto" };
+    return { mode: "level", level: e };
+  }
+
   // Claude shape
   const t = body.thinking;
   if (t && typeof t === "object") {
@@ -154,7 +163,7 @@ function applyFormat(fmt, body, cfg, caps) {
     case "openai": {
       if (none && canDisable) { body.reasoning_effort = "none"; break; }
       const level = toLevel(eff);
-      if (level) body.reasoning_effort = level;
+      if (level) body.reasoning_effort = level === "xhigh" || level === "max" ? "high" : level;
       break;
     }
     case "claude-adaptive": {
@@ -170,7 +179,8 @@ function applyFormat(fmt, body, cfg, caps) {
       break;
     }
     case "gemini-level": {
-      const level = none ? "minimal" : (toLevel(eff) || "high");
+      let level = none ? "minimal" : (toLevel(eff) || "high");
+      if (level === "auto") level = "high";
       setGeminiThinking(body, { thinkingLevel: level, includeThoughts: level !== "minimal" });
       break;
     }

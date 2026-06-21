@@ -6,6 +6,7 @@ import { buildClineHeaders } from "../shared/clineAuth.js";
 import { getCachedClaudeHeaders } from "../utils/claudeHeaderCache.js";
 import { proxyAwareFetch } from "../utils/proxyFetch.js";
 import { injectReasoningContent } from "../utils/reasoningContentInjector.js";
+import { stripUnsupportedParams } from "../translator/concerns/paramSupport.js";
 
 // Auth header descriptors — derived from registry transport.auth, fallback to hardcoded defaults.
 const BEARER = { combined: true, header: "Authorization", scheme: "bearer" };
@@ -89,6 +90,7 @@ export class DefaultExecutor extends BaseExecutor {
       if (this.config.quirks?.dropClientMetadata) {
         delete sanitized.client_metadata;
       }
+      stripUnsupportedParams(this.provider, model, transformed);
     }
 
     return injectReasoningContent({ provider: this.provider, model, body: sanitized });
@@ -145,6 +147,11 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   buildUrl(model, stream, urlIndex = 0, credentials = null) {
+    // Runtime transport (multi-endpoint providers): use the sourceFormat-matched endpoint
+    const rt = credentials?.runtimeTransport;
+    if (rt?.baseUrl) {
+      return rt.urlSuffix ? `${rt.baseUrl}${rt.urlSuffix}` : rt.baseUrl;
+    }
     if (this.provider?.startsWith?.("openai-compatible-")) {
       const baseUrl = credentials?.providerSpecificData?.baseUrl || OPENAI_COMPAT_BASE;
       const normalized = baseUrl.replace(/\/$/, "");
@@ -185,8 +192,9 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials, stream = true) {
-    const headers = { "Content-Type": "application/json", ...this.config.headers };
-    const desc = AUTH_DESCRIPTORS[this.provider] || this.resolveAuthDescriptor();
+    const rt = credentials?.runtimeTransport;
+    const headers = { "Content-Type": "application/json", ...(rt ? rt.headers : this.config.headers) };
+    const desc = rt?.auth || AUTH_DESCRIPTORS[this.provider] || this.resolveAuthDescriptor();
     // Hooks run BEFORE auth so dynamic overlays (claude cached headers) can't clobber the token.
     for (const hook of desc.hooks || []) HEADER_HOOKS[hook]?.(headers, credentials);
     applyAuth(headers, desc, credentials);

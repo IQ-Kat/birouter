@@ -117,7 +117,9 @@ export function getProviderByAlias(alias) {
     }
   }
   for (const provider of Object.values(AI_PROVIDERS)) {
-    if (provider.alias.toLowerCase() === lower || provider.id.toLowerCase() === lower) {
+    const pAlias = provider.alias || "";
+    const pId = provider.id || "";
+    if (pAlias.toLowerCase() === lower || pId.toLowerCase() === lower) {
       return provider;
     }
   }
@@ -138,13 +140,13 @@ export function getProviderAlias(providerId) {
 
 // Alias to ID mapping (for quick lookup)
 export const ALIAS_TO_ID = Object.values(AI_PROVIDERS).reduce((acc, p) => {
-  acc[p.alias] = p.id;
+  if (p.alias && p.id) acc[p.alias] = p.id;
   return acc;
 }, {});
 
 // ID to Alias mapping
 export const ID_TO_ALIAS = Object.values(AI_PROVIDERS).reduce((acc, p) => {
-  acc[p.id] = p.alias;
+  if (p.id) acc[p.id] = p.alias || p.id;
   return acc;
 }, {});
 

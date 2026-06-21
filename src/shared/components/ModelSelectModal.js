@@ -145,7 +145,10 @@ export default function ModelSelectModal({
 
     // Filter a models[] array by kindFilter (keep only matching kind)
     const filterByKind = (models) => {
-      if (!kindFilter) return models.filter((m) => m.isPlaceholder || !getModelKind(m) || getModelKind(m) === "llm");
+      // No kindFilter means the LLM selector. Keep custom models visible because
+      // user-added models may have typed capabilities (for example imageToText)
+      // while still being valid chat/combo targets.
+      if (!kindFilter) return models.filter((m) => m.isPlaceholder || m.isCustom || !getModelKind(m) || getModelKind(m) === "llm");
       if (!TYPED_KINDS.has(kindFilter)) return models;
       return models.filter((m) => m.isPlaceholder || getModelKind(m) === kindFilter);
     };
@@ -196,26 +199,41 @@ export default function ModelSelectModal({
             name: aliasName,
             value: fullModel,
           }));
+        const customRegisteredModels = customModels
+          .filter((m) => m.providerAlias === alias)
+          .map((m) => ({
+            id: m.id,
+            name: m.name || m.id,
+            value: `${alias}/${m.id}`,
+            kind: getModelKind(m),
+            isCustom: true,
+          }));
 
         // For typed kinds, only include hardcoded typed models (aliases are typically LLM-only and lack type info)
         let combined = aliasModels;
         if (kindFilter && TYPED_KINDS.has(kindFilter)) {
-          combined = getModelsByProviderId(providerId)
+          const registeredTyped = customRegisteredModels.filter((m) => getModelKind(m) === kindFilter);
+          combined = [
+            ...registeredTyped,
+            ...getModelsByProviderId(providerId)
             .filter((m) => getModelKind(m) === kindFilter)
-            .map((m) => ({ id: m.id, name: m.name, value: `${alias}/${m.id}`, kind: getModelKind(m) }));
+            .map((m) => ({ id: m.id, name: m.name, value: `${alias}/${m.id}`, kind: getModelKind(m) }))
+            .filter((m) => !registeredTyped.some((registered) => registered.value === m.value)),
+          ];
           // Fallback: provider-as-model when no hardcoded models match (tts/image/webFetch only)
           if (combined.length === 0 && ALLOW_PROVIDER_FALLBACK_KINDS.has(kindFilter)) {
             const supports = (providerInfo.serviceKinds || ["llm"]).includes(kindFilter);
             if (supports) combined = [{ id: providerId, name: providerInfo.name, value: alias }];
           }
         } else {
-          // LLM/null kind: merge hardcoded models (e.g. mimo-free → mimo-auto) with aliases
-          const seen = new Set(aliasModels.map((m) => m.value));
+          // LLM/null kind: merge hardcoded models (e.g. mimo-free → mimo-auto) with user-added models
+          const registeredLlms = customRegisteredModels.filter((m) => !getModelKind(m) || getModelKind(m) === "llm");
+          const seen = new Set([...aliasModels, ...registeredLlms].map((m) => m.value));
           const hardcoded = getModelsByProviderId(providerId)
             .filter((m) => !getModelKind(m) || getModelKind(m) === "llm")
             .map((m) => ({ id: m.id, name: m.name, value: `${alias}/${m.id}`, kind: getModelKind(m) }))
             .filter((m) => !seen.has(m.value));
-          combined = [...aliasModels, ...hardcoded];
+          combined = [...registeredLlms, ...aliasModels.filter((m) => !registeredLlms.some((registered) => registered.value === m.value)), ...hardcoded];
         }
 
         if (combined.length > 0) {
@@ -343,13 +361,13 @@ export default function ModelSelectModal({
     if (kindFilter) return [];
     if (!searchQuery.trim()) return combos;
     const query = searchQuery.toLowerCase();
-    return combos.filter(c => c.name.toLowerCase().includes(query));
+    return combos.filter(c => c && typeof c.name === "string" && c.name.toLowerCase().includes(query));
   }, [combos, searchQuery, kindFilter]);
 
   // Sort models alphabetically, with added models floated to top
   const sortModels = (models) => {
-    const added = models.filter(m => addedModelValues.includes(m.value)).sort((a, b) => a.name.localeCompare(b.name));
-    const rest = models.filter(m => !addedModelValues.includes(m.value)).sort((a, b) => a.name.localeCompare(b.name));
+    const added = models.filter(m => addedModelValues.includes(m.value)).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const rest = models.filter(m => !addedModelValues.includes(m.value)).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     return [...added, ...rest];
   };
 
@@ -361,11 +379,11 @@ export default function ModelSelectModal({
     Object.entries(groupedModels).forEach(([providerId, group]) => {
       let models = group.models;
       if (query) {
-        const providerNameMatches = group.name.toLowerCase().includes(query);
+        const providerNameMatches = typeof group.name === "string" && group.name.toLowerCase().includes(query);
         models = models.filter(
           (m) =>
-            m.name.toLowerCase().includes(query) ||
-            m.id.toLowerCase().includes(query)
+            (typeof m.name === "string" && m.name.toLowerCase().includes(query)) ||
+            (typeof m.id === "string" && m.id.toLowerCase().includes(query))
         );
         if (models.length === 0 && !providerNameMatches) return;
       }
@@ -582,4 +600,3 @@ ModelSelectModal.propTypes = {
   addedModelValues: PropTypes.arrayOf(PropTypes.string),
   closeOnSelect: PropTypes.bool,
 };
-

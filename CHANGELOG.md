@@ -1,5 +1,26 @@
 # Changelog
 
+# v0.3.5 (2026-06-21)
+*Synchronized with 9Router v0.5.6*
+
+## 🚀 Features / Fitur Baru
+- **Headroom Integration**: Fitur manajemen proxy kustom yang langsung terintegrasi di Dashboard (instalasi satu klik, start/stop, status check, kompresi prompt).
+- **Ponytail (Lazy Senior Dev Mode)**: Strategi prompt baru (Lite, Full, Ultra) yang memaksa LLM menulis kode minimal, efisien, dan YAGNI (You Aren't Gonna Need It) untuk menghemat token output.
+- **Combo Fusion Strategy**: Strategi combo baru yang mengirimkan prompt ke semua model anggota secara paralel, lalu disintesis menjadi satu jawaban terbaik oleh judge model pilihan Anda.
+- **Per-Combo Strategy Selector**: Sekarang Anda bisa memilih strategi routing kustom (`fallback`, `round-robin`, `fusion`, atau `capacity`) untuk masing-masing combo secara independen.
+- **Kiro Headless API Key**: Mendukung autentikasi langsung menggunakan Kiro API key (`ksk_`) dan rute langsung `claude ↔ kiro` tanpa harus melalui konversi OpenAI yang lossy.
+- **Claude Auto-Ping**: Penghangat kuota 5 jam otomatis setelah reset agar jendela kuota baru segera dimulai (opsi per koneksi).
+- **CodeBuddy CN**: Provider OAuth baru (copilot.tencent.com) dengan katalog 15 model, /v2 inference, dan reasoning ala OpenAI.
+
+## 🛡️ Fixes & Improvements / Perbaikan & Peningkatan
+- **Anthropic Key Validation**: Menggunakan endpoint POST `/v1/messages` (lebih andal untuk validasi kunci dibanding GET `/models`).
+- **CLI Tools Settings**: Mendukung file konfigurasi berformat JSONC pada 8 rute setelan CLI (opencode, openclaw, cline, dll).
+- **Gemini / Antigravity**: Mempertahankan parameter `'pattern'` saat menerjemahkan skema tool (berguna untuk filter glob/grep).
+- **Claude 429 Cool-down**: Mengurangi spam ke endpoint OAuth usage dan menerapkan cool-down setelah terkena limit 429.
+- **Combo/Fusion Flat History**: Meratakan riwayat pesan tool untuk mencegah error HTTP 503 saat panggilan panel.
+- **Usage Logs Fix**: Memperbaiki error `missing await` yang membuat log riwayat request di dashboard selalu terlihat kosong.
+- **Parameter Stripper**: Penanganan dinamis untuk memotong parameter yang tidak didukung provider (seperti menghapus parameter `temperature` usang di Claude Opus).
+
 All notable changes to Birouter will be documented in this file.
 
 ## v0.3.1 (2026-06-17)
