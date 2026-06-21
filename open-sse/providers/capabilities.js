@@ -51,6 +51,21 @@ export const DEFAULT_CAPABILITIES = {
   maxOutput: 64000,
 };
 
+// User-added model metadata can carry dashboard service kinds instead of the
+// runtime capability names used here. Map those typed model kinds into input /
+// output capabilities so custom vision models are not treated as text-only.
+const SERVICE_KIND_CAPABILITIES = {
+  imageToText: { vision: true },
+  image: { imageOutput: true },
+  stt: { audioInput: true },
+  tts: { audioOutput: true },
+  embedding: { tools: false },
+};
+
+export function capabilitiesFromServiceKind(kind) {
+  return SERVICE_KIND_CAPABILITIES[kind] || null;
+}
+
 /**
  * Canonical exact-id overrides — used for exceptions that patterns would
  * otherwise mis-match. Only declare deltas vs DEFAULT.
@@ -77,7 +92,30 @@ export const MODEL_CAPABILITIES = {
 /**
  * Provider-specific capability overrides. Keyed by provider alias/id.
  */
-export const PROVIDER_CAPABILITIES = {};
+export const PROVIDER_CAPABILITIES = {
+  // CodeBuddy.cn — authoritative per-model metadata from the gateway's model
+  // config (contextWindow=maxInputTokens, maxOutput=maxOutputTokens, vision=
+  // supportsImages). Every model reasons via OpenAI-style reasoning_effort
+  // (see registry thinkingFormat). `onlyReasoning` models can't turn thinking
+  // off → thinkingCanDisable:false (clamped to minimal instead of disabled).
+  "codebuddy-cn": {
+    "glm-5.2":            { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 48000 },
+    "glm-5.1":            { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 200000, maxOutput: 48000 },
+    "glm-5.0":            { reasoning: true, thinkingFormat: "openai", contextWindow: 200000, maxOutput: 48000 },
+    "glm-5.0-turbo":      { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 200000, maxOutput: 48000 },
+    "glm-5v-turbo":       { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 200000, maxOutput: 38000 },
+    "glm-4.7":            { reasoning: true, thinkingFormat: "openai", contextWindow: 200000, maxOutput: 48000 },
+    "minimax-m3":         { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 512000, maxOutput: 48000 },
+    "minimax-m2.7":       { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 200000, maxOutput: 48000 },
+    "kimi-k2.7":          { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 256000, maxOutput: 32000 },
+    "kimi-k2.6":          { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 256000, maxOutput: 32000 },
+    "kimi-k2.5":          { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 164000, maxOutput: 32000 },
+    "hy3-preview":        { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 192000, maxOutput: 64000 },
+    "deepseek-v4-pro":    { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 50000 },
+    "deepseek-v4-flash":  { vision: true, reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 1000000, maxOutput: 50000 },
+    "deepseek-v3-2-volc": { reasoning: true, thinkingFormat: "openai", thinkingCanDisable: false, contextWindow: 96000, maxOutput: 32000 },
+  },
+};
 
 /**
  * Pattern fallback — glob (* = wildcard), matched case-insensitively and
@@ -158,7 +196,8 @@ export const PATTERN_CAPABILITIES = [
   { pattern: "*deepseek-v4*",   caps: { reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 } },
   { pattern: "*reasoner*",      caps: { reasoning: true, thinkingFormat: "deepseek", thinkingCanDisable: false, contextWindow: 128000 } },
   { pattern: "*deepseek-r*",    caps: { reasoning: true, thinkingFormat: "deepseek", thinkingCanDisable: false, contextWindow: 128000 } },
-  { pattern: "*deepseek*",      caps: { contextWindow: 128000 } },
+  { pattern: "*deepseek-chat*", caps: { contextWindow: 128000 } },
+  { pattern: "*deepseek*",      caps: { reasoning: true, thinkingFormat: "deepseek", contextWindow: 128000 } },
 
   // ── MiniMax (M3 = adaptive; M2.x cannot disable) ─────────────────
   { pattern: "*minimax*image*", caps: { imageOutput: true } },
