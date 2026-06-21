@@ -763,6 +763,12 @@ export class AntigravityExecutor extends BaseExecutor {
       requestType: _requestType,
       requestId: _requestId,
       request: _request,
+      // #1944: output_config (and the legacy output_format) are Anthropic/Claude-Code-only
+      // fields. Google's Cloud Code envelope rejects unknown top-level fields with a 400
+      // ("Invalid JSON payload received. Unknown name \"output_config\""), which broke every
+      // Claude model served via Antigravity. Drop them so they never reach the envelope.
+      output_config: _outputConfig,
+      output_format: _outputFormat,
       ...passthroughFields
     } = normalizedBody;
 
@@ -882,11 +888,12 @@ export class AntigravityExecutor extends BaseExecutor {
   }
 
   // Parse retry time from Antigravity error message body
-  // Format: "Your quota will reset after 2h7m23s" or "1h30m" or "45m" or "30s"
+  // Format: "Your quota will reset after 2h7m23s" or "Resets in 160h27m24s" or
+  // "1h30m" or "45m" or "30s". The optional plural ("resets in") must match too (#1308).
   parseRetryFromErrorMessage(errorMessage: unknown): number | null {
     if (!errorMessage || typeof errorMessage !== "string") return null;
 
-    const match = errorMessage.match(/reset (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
+    const match = errorMessage.match(/resets? (?:after|in) (\d+h)?(\d+m)?(\d+s)?/i);
     if (!match) return null;
 
     let totalMs = 0;

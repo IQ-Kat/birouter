@@ -1,4 +1,5 @@
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
+import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
@@ -82,6 +83,7 @@ import {
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
+import { echoModelInObject, createModelEchoTransform } from "../services/responseModelEcho.ts";
 import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
@@ -191,10 +193,10 @@ import {
   shouldRequestClaudeFastMode,
 } from "@/lib/providers/claudeFastMode";
 import {
-  getCodexRequestDefaults,
-  normalizeCodexServiceTier,
-  type CodexServiceTier,
-} from "@/lib/providers/requestDefaults";
+  resolveEffectiveServiceTier as resolveEffectiveServiceTierFor,
+  resolveReportedServiceTier as resolveReportedServiceTierFor,
+  type EffectiveServiceTier,
+} from "./chatCore/serviceTier.ts";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 import {
@@ -649,27 +651,12 @@ export async function handleChatCore({
     /* memoryUsage() never throws */
   }
 
-  // apiFormat is an optional custom-model marker injected by getModelInfo for
-  // providers whose models can route to /chat/completions or /responses
-  // (Azure AI Foundry, OCI generic OpenAI). It's not on the base ModelInfo
-  // shape, so we read it via a structural narrowing without `as any`.
-  const apiFormat: string | undefined =
-    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
-      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
-        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
-        : undefined
-      : undefined;
-  // #2905: per-model wire-format override for custom models, injected by
-  // getModelInfo. Custom models are not in the static registry, so
-  // getModelTargetFormat() can't see this — use it before the provider default.
-  const customModelTargetFormat: string | undefined =
-    modelInfo && typeof modelInfo === "object" && "targetFormat" in modelInfo
-      ? typeof (modelInfo as { targetFormat?: unknown }).targetFormat === "string"
-        ? ((modelInfo as { targetFormat?: string }).targetFormat as string)
-        : undefined
-      : undefined;
-  const requestedModel =
-    typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
+  // Per-request model-routing metadata (first extracted slice of the request-setup phase).
+  const { apiFormat, customModelTargetFormat, requestedModel } = resolveChatCoreRequestSetup(
+    modelInfo,
+    body,
+    model
+  );
   const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
   const startTime = Date.now();
   // Per-request trace id + checkpoint helper. Lets us see exactly which await
@@ -750,42 +737,15 @@ export async function handleChatCore({
     );
   }
 
-  type EffectiveServiceTier = "standard" | CodexServiceTier;
   let effectiveServiceTier: EffectiveServiceTier = "standard";
-  const resolveEffectiveServiceTier = (requestBody?: unknown): EffectiveServiceTier => {
-    if (provider !== "codex") return "standard";
-    const requestRecord =
-      requestBody && typeof requestBody === "object" && !Array.isArray(requestBody)
-        ? (requestBody as Record<string, unknown>)
-        : {};
-    const rawServiceTier = requestRecord.service_tier;
-    if (typeof rawServiceTier === "string" && rawServiceTier.trim().length > 0) {
-      const normalizedServiceTier = normalizeCodexServiceTier(rawServiceTier);
-      if (normalizedServiceTier) return normalizedServiceTier;
-    }
-    return getCodexRequestDefaults(credentials?.providerSpecificData).serviceTier ?? "standard";
-  };
+  // Codex service-tier resolvers extracted to chatCore/serviceTier.ts (#3501); bind the per-request
+  // provider/credentials once and delegate so the existing call sites stay byte-identical.
+  const resolveEffectiveServiceTier = (requestBody?: unknown): EffectiveServiceTier =>
+    resolveEffectiveServiceTierFor(provider, credentials?.providerSpecificData, requestBody);
   const resolveReportedServiceTier = (
     payload?: unknown,
     maxDepth = 3
-  ): EffectiveServiceTier | null => {
-    if (
-      maxDepth <= 0 ||
-      provider !== "codex" ||
-      !payload ||
-      typeof payload !== "object" ||
-      Array.isArray(payload)
-    ) {
-      return null;
-    }
-    const record = payload as Record<string, unknown>;
-    const rawServiceTier = record.service_tier;
-    if (typeof rawServiceTier === "string" && rawServiceTier.trim().length > 0) {
-      const normalizedServiceTier = normalizeCodexServiceTier(rawServiceTier);
-      if (normalizedServiceTier) return normalizedServiceTier;
-    }
-    return resolveReportedServiceTier(record.response, maxDepth - 1);
-  };
+  ): EffectiveServiceTier | null => resolveReportedServiceTierFor(provider, payload, maxDepth);
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
       provider: provider || "unknown",
@@ -1111,6 +1071,15 @@ export async function handleChatCore({
   const noLogEnabled = apiKeyInfo?.noLog === true;
   // Consolidate settings reads — fetch once, reuse throughout the request
   const settings = cachedSettings ?? (await getCachedSettings());
+  // #1311 (opt-in): echo the client-requested alias/combo name in the response `model`
+  // field instead of the upstream model, so strict clients (Claude Desktop) that validate
+  // response.model === request.model stop rejecting alias/combo requests with a 401.
+  const echoModel =
+    settings.echoRequestedModelName === true &&
+    typeof requestedModel === "string" &&
+    requestedModel
+      ? requestedModel
+      : null;
   const detailedLoggingEnabled =
     !noLogEnabled &&
     (settings.call_log_pipeline_enabled === true ||
@@ -1457,8 +1426,13 @@ export async function handleChatCore({
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
-      const { selectCompressionStrategy, applyCompressionAsync, resolveCacheAwareConfig } =
-        await import("../services/compression/strategySelector.ts");
+      const {
+        selectCompressionStrategy,
+        selectCompressionPlan,
+        enginesMapDerivesStackedPipeline,
+        applyCompressionAsync,
+        resolveCacheAwareConfig,
+      } = await import("../services/compression/strategySelector.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? {
         enabled: false,
@@ -1636,7 +1610,12 @@ export async function handleChatCore({
         modeBeforeOutputTransform === "stacked" &&
         !compressionComboApplied &&
         !config.compressionComboId &&
-        isBuiltinStackedPipeline(config.stackedPipeline)
+        isBuiltinStackedPipeline(config.stackedPipeline) &&
+        // Don't let the legacy default combo override a panel-configured engines map: when the
+        // operator's explicit engines derive their own stacked pipeline, that pipeline (applied
+        // below from compressionPlan.stackedPipeline) is authoritative. Legacy/backfilled
+        // installs (enginesExplicit false) still fall through to the seeded default combo.
+        !enginesMapDerivesStackedPipeline(config)
       ) {
         try {
           const { getDefaultCompressionCombo } =
@@ -1686,13 +1665,29 @@ export async function handleChatCore({
         }
       }
       const compressionInputBody = body as Record<string, unknown>;
-      const mode = selectCompressionStrategy(
+      const compressionPlan = selectCompressionPlan(
         config,
         compressionComboKey,
         estimatedTokens,
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel }
       );
+      const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
+      // When the per-engine toggle map derives a stacked pipeline (and no named/routing
+      // combo already set config.stackedPipeline), feed that derived pipeline through so
+      // applyCompressionAsync (which reads config.stackedPipeline for stacked mode) runs the
+      // engines the operator actually toggled on instead of the built-in rtk+caveman default.
+      if (
+        mode === "stacked" &&
+        compressionPlan.stackedPipeline.length > 0 &&
+        !compressionComboApplied &&
+        !config.compressionComboId
+      ) {
+        config = {
+          ...config,
+          stackedPipeline: compressionPlan.stackedPipeline as CompressionConfig["stackedPipeline"],
+        };
+      }
       let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
         // #3890: in a caching context, never compress the system prompt (cacheable prefix)
@@ -4651,6 +4646,8 @@ export async function handleChatCore({
       costUsd: estimatedCost,
       requestId: skillRequestId,
     });
+    // #1311: echo the requested alias/combo name in the non-streaming response model.
+    if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -5067,6 +5064,10 @@ export async function handleChatCore({
       shape: shapeForClientFormat(clientResponseFormat),
     })
   );
+  // #1311: echo the requested alias/combo name in each streamed SSE chunk's model field.
+  if (echoModel) {
+    finalStream = finalStream.pipeThrough(createModelEchoTransform(echoModel));
+  }
 
   // ── Gamification event (fire-and-forget) ──
   if (apiKeyInfo?.id) {

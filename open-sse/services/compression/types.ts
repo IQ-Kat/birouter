@@ -9,6 +9,15 @@
  * Phase 5: 'rtk' and 'stacked' modes (tool-output filters + multi-engine pipeline).
  */
 
+import { ENGINE_IDS } from "./engineCatalog.ts";
+
+// Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
+// can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
+// That bare alias resolves under tsc/tsx but NOT under vitest (Vite externalizes a brand-new
+// open-sse module to Node, which then can't load the `.ts` subpath), whereas this module is
+// already in Vite's graph and its relative `./engineCatalog.ts` import resolves in-pipeline.
+export { ENGINE_IDS };
+
 export type CompressionMode =
   | "off"
   | "lite"
@@ -108,6 +117,11 @@ export interface CompressionPipelineStep {
   config?: Record<string, unknown>;
 }
 
+export interface EngineToggle {
+  enabled: boolean;
+  level?: string;
+}
+
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
@@ -127,6 +141,17 @@ export interface CompressionConfig {
   ultra?: UltraConfig;
   /** Provider-delegated context editing (Claude/Anthropic only). */
   contextEditing?: ContextEditingConfig;
+  /** Per-engine opt-in toggles for the config panel. */
+  engines: Record<string, EngineToggle>;
+  /** Active combo preset id, or null if none selected. */
+  activeComboId: string | null;
+  /**
+   * Runtime-only (NOT persisted): true when a stored `engines` row exists, i.e. the operator
+   * configured engines via the panel. When false, the `engines` map is a display-only backfill
+   * and dispatch falls back to the legacy `defaultMode`/default-combo path (zero behaviour
+   * change for installs that predate the panel). Set by `getCompressionSettings`.
+   */
+  enginesExplicit?: boolean;
 }
 
 export interface CompressionStats {
@@ -193,6 +218,8 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
     { engine: "rtk", intensity: "standard" },
     { engine: "caveman", intensity: "full" },
   ],
+  engines: Object.fromEntries(ENGINE_IDS.map((id) => [id, { enabled: false }])),
+  activeComboId: null,
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {

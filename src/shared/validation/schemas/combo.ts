@@ -14,7 +14,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-
 // ──── Combo Schemas ────
 
 export const comboStepMetaSchema = {
@@ -133,6 +132,12 @@ export const comboRuntimeConfigSchema = z
     targetTimeoutMs: z.coerce.number().int().min(0).max(MAX_TIMER_TIMEOUT_MS).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
+    // #3872: pre-cascade semaphore queue depth (round-robin). 0 = fail over immediately.
+    queueDepth: z.coerce.number().int().min(0).max(100).optional(),
+    // Per-combo sticky round-robin batch size. When unset, handleRoundRobinCombo
+    // falls back to the global `settings.stickyRoundRobinLimit` so the existing
+    // knob still controls the default. 0 clamps to 1 (no batching) upstream.
+    stickyRoundRobinLimit: z.coerce.number().int().min(0).max(1000).optional(),
     healthCheckEnabled: z.boolean().optional(),
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),
     handoffThreshold: z.coerce.number().min(0.5).max(0.94).optional(),

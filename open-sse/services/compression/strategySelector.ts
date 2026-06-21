@@ -20,6 +20,8 @@ import {
   getCacheAwareStrategy,
   type CachingDetectionContext,
 } from "./cachingAware.ts";
+import { resolveCompressionPlan } from "./resolveCompressionPlan.ts";
+import { deriveDefaultPlan, type DerivedPlan } from "./deriveDefaultPlan.ts";
 
 export function checkComboOverride(
   config: CompressionConfig,
@@ -33,19 +35,122 @@ export function shouldAutoTrigger(config: CompressionConfig, estimatedTokens: nu
   return config.autoTriggerTokens > 0 && estimatedTokens >= config.autoTriggerTokens;
 }
 
+/**
+ * Resolves the effective compression plan (mode + derived stacked pipeline) WITHOUT
+ * the caching-aware mode adjustment (that is layered on by {@link selectCompressionPlan}).
+ *
+ * Precedence — preserved from the historical {@link getEffectiveMode} ordering:
+ *   1. master off                     → off
+ *   2. routing-combo override (comboId)→ that mode (resolver honors it via ctx.comboId)
+ *   3. auto-trigger (large prompt)     → autoTriggerMode, BEFORE the plain derived default
+ *   4. derived default                 → resolveCompressionPlan (engines map → mode/pipeline)
+ *
+ * Step 3 mirrors today's behaviour: auto-trigger takes precedence over the plain
+ * derived default but never over an explicit routing-combo override.
+ *
+ * `combos` is `{}` in Phase 1 — the active named-combo selection UI is Phase 2, and the
+ * resolver falls through to the derived default when no combo is supplied. chatCore still
+ * resolves named/default combos via its own DB path (mutating config.stackedPipeline).
+ */
+function resolveBasePlan(
+  config: CompressionConfig,
+  comboId: string | null,
+  estimatedTokens: number
+): DerivedPlan {
+  if (!config.enabled) return { mode: "off", stackedPipeline: [] };
+
+  const comboMode = checkComboOverride(config, comboId);
+  if (comboMode) {
+    // A routing-combo "stacked" override still wants the configured stacked pipeline,
+    // so route it through the resolver (which reads config.stackedPipeline for stacked).
+    return resolveCompressionPlan(config, { comboId, combos: {} });
+  }
+
+  if (shouldAutoTrigger(config, estimatedTokens)) {
+    const mode = config.autoTriggerMode ?? "lite";
+    return mode === "stacked"
+      ? { mode, stackedPipeline: config.stackedPipeline ?? [] }
+      : { mode, stackedPipeline: [] };
+  }
+
+  return deriveDefaultPlanFromConfig(config, comboId);
+}
+
+/**
+ * Derived-default step. The per-engine toggle map drives the default ONLY when it was
+ * EXPLICITLY configured via the panel (a stored `engines` row — `config.enginesExplicit`).
+ * For legacy installs the map is backfilled for DISPLAY only (so the panel shows current
+ * state); dispatch falls back to the historical `config.defaultMode` so behaviour is
+ * byte-for-byte preserved until the operator opts into the panel by saving. This avoids a
+ * silent behaviour change for installs whose backfilled engine flags don't exactly match
+ * their old defaultMode.
+ */
+function deriveDefaultPlanFromConfig(
+  config: CompressionConfig,
+  comboId: string | null
+): DerivedPlan {
+  if (config.enginesExplicit) {
+    // Panel-configured: the engines map (via the resolver, which stays header/active-combo
+    // aware for Phases 2-3) is authoritative — including an explicit "everything off".
+    return resolveCompressionPlan(config, { comboId, combos: {} });
+  }
+
+  // Legacy path: defaultMode carries the effective mode (the engines map is display-only here).
+  const legacyMode = config.defaultMode;
+  if (legacyMode && legacyMode !== "off") {
+    return legacyMode === "stacked"
+      ? { mode: legacyMode, stackedPipeline: config.stackedPipeline ?? [] }
+      : { mode: legacyMode, stackedPipeline: [] };
+  }
+
+  return { mode: "off", stackedPipeline: [] };
+}
+
+/**
+ * True when the EXPLICITLY-configured engines map (panel-saved) derives a multi-engine
+ * stacked pipeline. chatCore uses this to know the panel's derived pipeline is authoritative
+ * and the legacy default-combo fallback must NOT override it. Returns false for legacy
+ * (non-explicit) installs so their historical default-combo path is preserved untouched.
+ */
+export function enginesMapDerivesStackedPipeline(config: CompressionConfig): boolean {
+  if (!config.enginesExplicit) return false;
+  const plan = deriveDefaultPlan(config.engines ?? {}, config.enabled !== false);
+  return plan.mode === "stacked" && plan.stackedPipeline.length > 0;
+}
+
 export function getEffectiveMode(
   config: CompressionConfig,
   comboId: string | null,
   estimatedTokens: number
 ): CompressionMode {
-  if (!config.enabled) return "off";
+  return resolveBasePlan(config, comboId, estimatedTokens).mode as CompressionMode;
+}
 
-  const comboMode = checkComboOverride(config, comboId);
-  if (comboMode) return comboMode;
+/**
+ * Like {@link selectCompressionStrategy} but returns the full derived plan
+ * (effective `mode` + `stackedPipeline`). When the resolver derives a `stacked`
+ * plan from the per-engine toggle map, the pipeline is exposed here so the caller
+ * can feed it to {@link applyCompressionAsync} (which reads config.stackedPipeline).
+ * The caching-aware mode adjustment is applied to `mode` exactly as in
+ * {@link selectCompressionStrategy}.
+ */
+export function selectCompressionPlan(
+  config: CompressionConfig,
+  comboId: string | null,
+  estimatedTokens: number,
+  body?: Record<string, unknown>,
+  context?: CachingDetectionContext
+): DerivedPlan {
+  const plan = resolveBasePlan(config, comboId, estimatedTokens);
 
-  if (shouldAutoTrigger(config, estimatedTokens)) return config.autoTriggerMode ?? "lite";
+  // Apply caching-aware adjustments to the mode if body is provided
+  if (body) {
+    const ctx = detectCachingContext(body, context);
+    const cacheAware = getCacheAwareStrategy(plan.mode as CompressionMode, ctx);
+    return { ...plan, mode: cacheAware.strategy as CompressionMode };
+  }
 
-  return config.defaultMode;
+  return plan;
 }
 
 export function selectCompressionStrategy(
@@ -55,16 +160,7 @@ export function selectCompressionStrategy(
   body?: Record<string, unknown>,
   context?: CachingDetectionContext
 ): CompressionMode {
-  const selectedMode = getEffectiveMode(config, comboId, estimatedTokens);
-
-  // Apply caching-aware adjustments if body is provided
-  if (body) {
-    const ctx = detectCachingContext(body, context);
-    const cacheAware = getCacheAwareStrategy(selectedMode, ctx);
-    return cacheAware.strategy as CompressionMode;
-  }
-
-  return selectedMode;
+  return selectCompressionPlan(config, comboId, estimatedTokens, body, context).mode as CompressionMode;
 }
 
 /**
@@ -82,6 +178,10 @@ export function resolveCacheAwareConfig(
 ): CompressionConfig {
   if (!body) return config;
   const ctx = detectCachingContext(body, context);
+  // Only `skipSystemPrompt` is consumed here, and it depends solely on `ctx.isCachingProvider`
+  // (NOT on the strategy arg — see getCacheAwareStrategy), so the stored `defaultMode` is a safe
+  // input even though it may be "off" for a panel-configured install. If getCacheAwareStrategy is
+  // ever extended to key `skipSystemPrompt` on the mode, pass the resolved effective mode instead.
   const cacheAware = getCacheAwareStrategy(config.defaultMode, ctx);
   if (cacheAware.skipSystemPrompt && config.preserveSystemPrompt === false) {
     return { ...config, preserveSystemPrompt: true };

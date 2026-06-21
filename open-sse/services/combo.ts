@@ -14,6 +14,7 @@ import {
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
+  selectLockoutCooldownMs,
 } from "./accountFallback.ts";
 import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
@@ -26,6 +27,7 @@ import {
 import {
   resolveComboConfig,
   getDefaultComboConfig,
+  resolveComboQueueDepth,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
@@ -1722,9 +1724,9 @@ export async function handleComboChat({
                   mlSettings.baseCooldownMs,
                   profile,
                   {
-                    exactCooldownMs: mlSettings.useExponentialBackoff
-                      ? 0
-                      : mlSettings.baseCooldownMs,
+                    // #1308: honor a long upstream reset (e.g. "Resets in 160h") over
+                    // the short base cooldown / exponential backoff when present.
+                    exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
                   }
                 );
                 lockoutRecorded = true;
@@ -1764,7 +1766,8 @@ export async function handleComboChat({
                 mlSettings.baseCooldownMs,
                 profile,
                 {
-                  exactCooldownMs: mlSettings.useExponentialBackoff ? 0 : mlSettings.baseCooldownMs,
+                  // #1308: honor a long upstream reset over base/exponential cooldown.
+                  exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
                 }
               );
             }
@@ -1942,6 +1945,9 @@ async function handleRoundRobinCombo({
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const concurrency = config.concurrencyPerModel ?? 3;
   const queueTimeout = config.queueTimeoutMs ?? 30000;
+  // #3872: pre-cascade queue depth — lower values fail over to the next combo member
+  // sooner under concurrency saturation (0 = never queue). Default 20 (backward-compat).
+  const queueDepth = resolveComboQueueDepth(config);
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
@@ -1980,11 +1986,17 @@ async function handleRoundRobinCombo({
     log
   );
 
-  // Sticky batch size at the combo level. Reuses the global `stickyRoundRobinLimit`
-  // setting so a single knob controls sticky batching for both account fallback and
-  // combo targets. Values <= 1 preserve the historical one-request-per-target rotation.
+  // Sticky batch size at the combo level. A per-combo `stickyRoundRobinLimit` (in
+  // combo.config, resolved through the cascade) overrides the global setting so one
+  // combo can batch differently from the default. When the per-combo value is unset,
+  // fall back to the global `stickyRoundRobinLimit` so the existing knob still controls
+  // sticky batching for both account fallback and combo targets. Values <= 1 preserve
+  // the historical one-request-per-target rotation.
+  const perComboStickyLimit = (config as Record<string, unknown>).stickyRoundRobinLimit;
   const stickyLimit = clampStickyRoundRobinTargetLimit(
-    (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
+    perComboStickyLimit !== undefined && perComboStickyLimit !== null
+      ? perComboStickyLimit
+      : (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
   );
   const stickyRoundRobinEnabled = stickyLimit > 1;
   if (
@@ -2084,6 +2096,7 @@ async function handleRoundRobinCombo({
       release = await semaphore.acquire(semaphoreKey, {
         maxConcurrency: concurrency,
         timeoutMs: queueTimeout,
+        maxQueueSize: queueDepth,
       });
     } catch (err) {
       const errCode = isRecord(err) && typeof err.code === "string" ? err.code : null;
