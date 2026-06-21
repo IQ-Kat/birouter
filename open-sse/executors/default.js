@@ -90,7 +90,7 @@ export class DefaultExecutor extends BaseExecutor {
       if (this.config.quirks?.dropClientMetadata) {
         delete sanitized.client_metadata;
       }
-      stripUnsupportedParams(this.provider, model, transformed);
+      stripUnsupportedParams(this.provider, model, sanitized);
     }
 
     return injectReasoningContent({ provider: this.provider, model, body: sanitized });
