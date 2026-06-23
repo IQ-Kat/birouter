@@ -33,6 +33,13 @@ export const cavemanOutputModeSchema = z
   })
   .strict();
 
+export const outputStyleSelectionSchema = z
+  .object({
+    id: z.string().trim().min(1),
+    level: cavemanIntensitySchema,
+  })
+  .strict();
+
 export const rtkConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -189,6 +196,7 @@ export const compressionSettingsUpdateSchema = z
     stackedPipeline: z.array(stackedPipelineStepSchema).optional(),
     cavemanConfig: cavemanConfigSchema.optional(),
     cavemanOutputMode: cavemanOutputModeSchema.optional(),
+    outputStyles: z.array(outputStyleSelectionSchema).optional(),
     rtkConfig: rtkConfigSchema.optional(),
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
@@ -197,6 +205,8 @@ export const compressionSettingsUpdateSchema = z
     engines: z.record(z.string(), engineToggleSchema).optional(),
     enginesExplicit: z.boolean().optional(),
     activeComboId: z.string().nullable().optional(),
+    ultraEngine: z.enum(["heuristic", "slm"]).optional(),
+    ultraSlmPrewarm: z.boolean().optional(),
   })
   .strict();
 

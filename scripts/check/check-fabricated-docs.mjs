@@ -358,7 +358,7 @@ const ENDPOINT_ALLOWLIST = new Set([
 /** Doc files to skip (auto-generated, vendored, or third-party). */
 const SKIP_DOC_FILES = new Set([
   "docs/reference/PROVIDER_REFERENCE.md", // auto-generated from providers.ts
-  "docs/reference/openapi.yaml",
+  "docs/openapi.yaml",
   "docs/i18n", // translations — separate workflow
   // Point-in-time documentation audit (v3.8.24): intentionally references drift,
   // counts, and not-yet-existing files as part of documenting them — not living docs.
@@ -370,6 +370,7 @@ const SKIP_DOC_FILES = new Set([
   // expected, not fabrications.
   "docs/research", // DISCOVERY_TOOL_DESIGN.md, UNLIMITED_LLM_ACCESS.md, …
   "docs/superpowers/plans", // dated implementation plans (files described before they exist)
+  "docs/superpowers/specs", // dated research/spec reports (point-in-time findings, may cite proposed/not-yet-built endpoints, env vars, and files) — same rationale as the plans/research dirs above
   // Release notes are historical, point-in-time records: they intentionally describe
   // modules/paths as they were at that release (e.g. a module later moved or renamed).
   // Rewriting them to today's layout would falsify history — out of scope for a

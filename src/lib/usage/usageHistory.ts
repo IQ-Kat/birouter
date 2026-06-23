@@ -341,7 +341,10 @@ export function trackPendingRequest(
       }
       const now = Date.now();
       const newDetail = {
-        id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+        // crypto RNG (not Math.random) to satisfy CodeQL js/insecure-randomness —
+        // this pending-request id flows into attempt logging; it's a correlation
+        // id, not a security secret.
+        id: `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
         model,
         provider,
         connectionId,

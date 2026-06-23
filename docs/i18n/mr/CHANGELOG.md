@@ -6,6 +6,36 @@
 
 ## [3.8.31] — 2026-06-20
 
+## [3.8.35] — 2026-06-23
+
+### ✨ New Features
+
+- **Adaptive context compression (Phase 4)**: a four-layer compression upgrade landed across stacked PRs — an **Output Styles** registry (`terse-prose` / `less-code` / `terse-cjk`) ([#4694](https://github.com/diegosouzapw/OmniRoute/pull/4694) — thanks @diegosouzapw), an opt-in **SLM `ultra` tier** (two-tier LLMLingua with heuristic fallback) ([#4707](https://github.com/diegosouzapw/OmniRoute/pull/4707) — thanks @diegosouzapw), a **context-budget adaptive dial** (reserve-output ladder + floor) ([#4716](https://github.com/diegosouzapw/OmniRoute/pull/4716) — thanks @diegosouzapw), and an **offline evaluation harness** (PII-gated corpus, self-test judge, gold-grader, real-pipeline runner behind a `ModelClient` seam) ([#4720](https://github.com/diegosouzapw/OmniRoute/pull/4720) — thanks @diegosouzapw). All four layers share a single `CompressionRunTelemetry` contract.
+- **Redoc-rendered API docs**: a consolidated OpenAPI spec now lives at `docs/openapi.yaml` and is served as interactive Redoc documentation at `/api/docs`. ([#4781](https://github.com/diegosouzapw/OmniRoute/pull/4781) — thanks @KooshaPari / @diegosouzapw)
+
+### 🔧 Bug Fixes
+
+- **db-backups**: make the database-import size cap configurable via `OMNIROUTE_DB_IMPORT_MAX_MB` (default 100 MB, 4 GB ceiling) so backups larger than 100 MB can be restored; error message now points to the env var and to VACUUM ([#4757](https://github.com/diegosouzapw/OmniRoute/pull/4757) — closes #4719, thanks @diegosouzapw).
+- **Onboarding**: add the missing `onboarding.tiers` step-title translation so the setup wizard no longer crashes with `MISSING_MESSAGE: onboarding.tiers` ([#4755](https://github.com/diegosouzapw/OmniRoute/pull/4755) — closes #4698, thanks @diegosouzapw).
+- **deepseek-web**: fold `role:"tool"` results into the single-prompt transcript (`messagesToPrompt`) so tool outputs reach the model instead of being silently dropped when a follow-up turn omits the `tools[]` array ([#4756](https://github.com/diegosouzapw/OmniRoute/pull/4756) — closes #4712, thanks @diegosouzapw).
+- **Dashboard**: remove the dead, unconditional `useLiveRequests()` call from `HomePageClient.tsx` — it crashed the `/home` page in production builds with `ReferenceError: useLiveRequests is not defined` (#4759, #4745) and opened the live-dashboard WebSocket even when Provider Topology was hidden (#4596). The live feed remains owned by the settings-gated `HomeProviderTopologySection` ([#4761](https://github.com/diegosouzapw/OmniRoute/pull/4761) — thanks @diegosouzapw).
+- **Providers dashboard**: dedupe provider nodes by id when adding a compatible provider (`upsertProviderNodeById`) so the same provider can no longer appear twice and no-op adds don't invalidate the compatible-provider memo ([#4768](https://github.com/diegosouzapw/OmniRoute/pull/4768) — closes #4746, thanks @diegosouzapw).
+- **Storage VACUUM**: the scheduled VACUUM job now follows the Storage page settings (`scheduledVacuum` / `vacuumHour`) as the single source of truth; the legacy env-flag control path was removed ([#4726](https://github.com/diegosouzapw/OmniRoute/pull/4726) — thanks @rdself).
+- **Tiers**: no-auth providers are now counted as free, and the free-tier filter returns an empty set instead of falling through to every provider ([#4753](https://github.com/diegosouzapw/OmniRoute/pull/4753) — thanks @megamen32 / @diegosouzapw).
+- **Combos**: auto-promote `zeroLatencyOptimizationsEnabled` so legacy configs (pre-3.8.33 `fallbackCompressionMode="lite"`) round-trip cleanly on the first GUI edit ([#4774](https://github.com/diegosouzapw/OmniRoute/pull/4774) — thanks @KooshaPari / @diegosouzapw).
+
+### 📝 Maintenance
+
+- **chatCore (#3501)**: continued the incremental decomposition of `executeProviderRequest` and the streaming/non-streaming hooks into pure leaf modules — top-level helpers + 6 pure leaves ([#4571](https://github.com/diegosouzapw/OmniRoute/pull/4571)), `resolveExecutorWithProxy` + `getExecutionCredentials` ([#4646](https://github.com/diegosouzapw/OmniRoute/pull/4646)), Claude message transforms ([#4708](https://github.com/diegosouzapw/OmniRoute/pull/4708)), `persistAttemptLogs` ([#4717](https://github.com/diegosouzapw/OmniRoute/pull/4717)), `stageTrace` + `compressionUsageReceipt` ([#4721](https://github.com/diegosouzapw/OmniRoute/pull/4721)), `prepareUpstreamBody` ([#4730](https://github.com/diegosouzapw/OmniRoute/pull/4730)), parse + non-streaming usage-stats ([#4762](https://github.com/diegosouzapw/OmniRoute/pull/4762)), `recordContextEditingTelemetryHook` ([#4779](https://github.com/diegosouzapw/OmniRoute/pull/4779)), `scheduleQuotaShareConsumption` ([#4780](https://github.com/diegosouzapw/OmniRoute/pull/4780)), `emitRequestGamificationEvent` ([#4776](https://github.com/diegosouzapw/OmniRoute/pull/4776)), `runPluginOnResponseHook` ([#4782](https://github.com/diegosouzapw/OmniRoute/pull/4782)), `scheduleStreamingQuotaShareConsumption` ([#4784](https://github.com/diegosouzapw/OmniRoute/pull/4784)), `recordCompressionCacheStats` ([#4792](https://github.com/diegosouzapw/OmniRoute/pull/4792)), `writeCavemanOutputAnalytics` ([#4794](https://github.com/diegosouzapw/OmniRoute/pull/4794)), `recordStreamingUsageStats` ([#4791](https://github.com/diegosouzapw/OmniRoute/pull/4791)), and `recordStreamingCost` ([#4790](https://github.com/diegosouzapw/OmniRoute/pull/4790)). (thanks @diegosouzapw)
+- **Quality**: expand `check:release-green` to reproduce the full release-PR gate set locally ([#4758](https://github.com/diegosouzapw/OmniRoute/pull/4758) — thanks @diegosouzapw).
+- **db**: re-export `compressionRunTelemetry` from `localDb` to satisfy the db-rules gate ([#4775](https://github.com/diegosouzapw/OmniRoute/pull/4775) — thanks @diegosouzapw).
+- **Security docs**: add a canonical STRIDE-based threat model ([#4783](https://github.com/diegosouzapw/OmniRoute/pull/4783) — thanks @KooshaPari).
+- **Tests**: add a smoke test for the home-client dashboard ([#4793](https://github.com/diegosouzapw/OmniRoute/pull/4793) — thanks @JxnLexn).
+- **Docs**: credit **ponytail** and **OmniCompress** in the README inspiring-projects list and restore the `check:env-doc-sync` release-green by exempting the harness-only `OMNIROUTE_EVAL_CREDENTIALS` var ([#4799](https://github.com/diegosouzapw/OmniRoute/pull/4799) — thanks @diegosouzapw); declare the Phase 4 compression layers in the README + GUIDE ([#4801](https://github.com/diegosouzapw/OmniRoute/pull/4801) — thanks @diegosouzapw).
+- **Quality**: trim `combo-config.test.ts` comments back under the file-size cap (follow-up to #4774) ([#4800](https://github.com/diegosouzapw/OmniRoute/pull/4800) — thanks @diegosouzapw).
+
+---
+
 ## [3.8.34] — 2026-06-23
 
 ### ✨ New Features

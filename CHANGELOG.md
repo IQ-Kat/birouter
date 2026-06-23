@@ -4,6 +4,36 @@
 
 ---
 
+## [3.8.35] — 2026-06-23
+
+### ✨ New Features
+
+- **Adaptive context compression (Phase 4)**: a four-layer compression upgrade landed across stacked PRs — an **Output Styles** registry (`terse-prose` / `less-code` / `terse-cjk`) ([#4694](https://github.com/diegosouzapw/OmniRoute/pull/4694) — thanks @diegosouzapw), an opt-in **SLM `ultra` tier** (two-tier LLMLingua with heuristic fallback) ([#4707](https://github.com/diegosouzapw/OmniRoute/pull/4707) — thanks @diegosouzapw), a **context-budget adaptive dial** (reserve-output ladder + floor) ([#4716](https://github.com/diegosouzapw/OmniRoute/pull/4716) — thanks @diegosouzapw), and an **offline evaluation harness** (PII-gated corpus, self-test judge, gold-grader, real-pipeline runner behind a `ModelClient` seam) ([#4720](https://github.com/diegosouzapw/OmniRoute/pull/4720) — thanks @diegosouzapw). All four layers share a single `CompressionRunTelemetry` contract.
+- **Redoc-rendered API docs**: a consolidated OpenAPI spec now lives at `docs/openapi.yaml` and is served as interactive Redoc documentation at `/api/docs`. ([#4781](https://github.com/diegosouzapw/OmniRoute/pull/4781) — thanks @KooshaPari / @diegosouzapw)
+
+### 🔧 Bug Fixes
+
+- **db-backups**: make the database-import size cap configurable via `OMNIROUTE_DB_IMPORT_MAX_MB` (default 100 MB, 4 GB ceiling) so backups larger than 100 MB can be restored; error message now points to the env var and to VACUUM ([#4757](https://github.com/diegosouzapw/OmniRoute/pull/4757) — closes #4719, thanks @diegosouzapw).
+- **Onboarding**: add the missing `onboarding.tiers` step-title translation so the setup wizard no longer crashes with `MISSING_MESSAGE: onboarding.tiers` ([#4755](https://github.com/diegosouzapw/OmniRoute/pull/4755) — closes #4698, thanks @diegosouzapw).
+- **deepseek-web**: fold `role:"tool"` results into the single-prompt transcript (`messagesToPrompt`) so tool outputs reach the model instead of being silently dropped when a follow-up turn omits the `tools[]` array ([#4756](https://github.com/diegosouzapw/OmniRoute/pull/4756) — closes #4712, thanks @diegosouzapw).
+- **Dashboard**: remove the dead, unconditional `useLiveRequests()` call from `HomePageClient.tsx` — it crashed the `/home` page in production builds with `ReferenceError: useLiveRequests is not defined` (#4759, #4745) and opened the live-dashboard WebSocket even when Provider Topology was hidden (#4596). The live feed remains owned by the settings-gated `HomeProviderTopologySection` ([#4761](https://github.com/diegosouzapw/OmniRoute/pull/4761) — thanks @diegosouzapw).
+- **Providers dashboard**: dedupe provider nodes by id when adding a compatible provider (`upsertProviderNodeById`) so the same provider can no longer appear twice and no-op adds don't invalidate the compatible-provider memo ([#4768](https://github.com/diegosouzapw/OmniRoute/pull/4768) — closes #4746, thanks @diegosouzapw).
+- **Storage VACUUM**: the scheduled VACUUM job now follows the Storage page settings (`scheduledVacuum` / `vacuumHour`) as the single source of truth; the legacy env-flag control path was removed ([#4726](https://github.com/diegosouzapw/OmniRoute/pull/4726) — thanks @rdself).
+- **Tiers**: no-auth providers are now counted as free, and the free-tier filter returns an empty set instead of falling through to every provider ([#4753](https://github.com/diegosouzapw/OmniRoute/pull/4753) — thanks @megamen32 / @diegosouzapw).
+- **Combos**: auto-promote `zeroLatencyOptimizationsEnabled` so legacy configs (pre-3.8.33 `fallbackCompressionMode="lite"`) round-trip cleanly on the first GUI edit ([#4774](https://github.com/diegosouzapw/OmniRoute/pull/4774) — thanks @KooshaPari / @diegosouzapw).
+
+### 📝 Maintenance
+
+- **chatCore (#3501)**: continued the incremental decomposition of `executeProviderRequest` and the streaming/non-streaming hooks into pure leaf modules — top-level helpers + 6 pure leaves ([#4571](https://github.com/diegosouzapw/OmniRoute/pull/4571)), `resolveExecutorWithProxy` + `getExecutionCredentials` ([#4646](https://github.com/diegosouzapw/OmniRoute/pull/4646)), Claude message transforms ([#4708](https://github.com/diegosouzapw/OmniRoute/pull/4708)), `persistAttemptLogs` ([#4717](https://github.com/diegosouzapw/OmniRoute/pull/4717)), `stageTrace` + `compressionUsageReceipt` ([#4721](https://github.com/diegosouzapw/OmniRoute/pull/4721)), `prepareUpstreamBody` ([#4730](https://github.com/diegosouzapw/OmniRoute/pull/4730)), parse + non-streaming usage-stats ([#4762](https://github.com/diegosouzapw/OmniRoute/pull/4762)), `recordContextEditingTelemetryHook` ([#4779](https://github.com/diegosouzapw/OmniRoute/pull/4779)), `scheduleQuotaShareConsumption` ([#4780](https://github.com/diegosouzapw/OmniRoute/pull/4780)), `emitRequestGamificationEvent` ([#4776](https://github.com/diegosouzapw/OmniRoute/pull/4776)), `runPluginOnResponseHook` ([#4782](https://github.com/diegosouzapw/OmniRoute/pull/4782)), `scheduleStreamingQuotaShareConsumption` ([#4784](https://github.com/diegosouzapw/OmniRoute/pull/4784)), `recordCompressionCacheStats` ([#4792](https://github.com/diegosouzapw/OmniRoute/pull/4792)), `writeCavemanOutputAnalytics` ([#4794](https://github.com/diegosouzapw/OmniRoute/pull/4794)), `recordStreamingUsageStats` ([#4791](https://github.com/diegosouzapw/OmniRoute/pull/4791)), and `recordStreamingCost` ([#4790](https://github.com/diegosouzapw/OmniRoute/pull/4790)). (thanks @diegosouzapw)
+- **Quality**: expand `check:release-green` to reproduce the full release-PR gate set locally ([#4758](https://github.com/diegosouzapw/OmniRoute/pull/4758) — thanks @diegosouzapw).
+- **db**: re-export `compressionRunTelemetry` from `localDb` to satisfy the db-rules gate ([#4775](https://github.com/diegosouzapw/OmniRoute/pull/4775) — thanks @diegosouzapw).
+- **Security docs**: add a canonical STRIDE-based threat model ([#4783](https://github.com/diegosouzapw/OmniRoute/pull/4783) — thanks @KooshaPari).
+- **Tests**: add a smoke test for the home-client dashboard ([#4793](https://github.com/diegosouzapw/OmniRoute/pull/4793) — thanks @JxnLexn).
+- **Docs**: credit **ponytail** and **OmniCompress** in the README inspiring-projects list and restore the `check:env-doc-sync` release-green by exempting the harness-only `OMNIROUTE_EVAL_CREDENTIALS` var ([#4799](https://github.com/diegosouzapw/OmniRoute/pull/4799) — thanks @diegosouzapw); declare the Phase 4 compression layers in the README + GUIDE ([#4801](https://github.com/diegosouzapw/OmniRoute/pull/4801) — thanks @diegosouzapw).
+- **Quality**: trim `combo-config.test.ts` comments back under the file-size cap (follow-up to #4774) ([#4800](https://github.com/diegosouzapw/OmniRoute/pull/4800) — thanks @diegosouzapw).
+
+---
+
 ## [3.8.34] — 2026-06-23
 
 ### ✨ New Features
@@ -18,6 +48,8 @@
 
 ### 🐛 Fixed
 
+- **fix(tier): noAuth providers count as free; `auto/<cat>:free` returns an empty pool when no free candidate matches** — `freeProviders` is now the union of the legacy explicit list and every chat-tier `noAuth` provider derived from `NOAUTH_PROVIDERS` (so opencode / mimocode / duckduckgo-web are correctly classified free), the task-fitness lookup inherits a base model's `arena_elo` for its `-free` variant, and the `auto/<category>:<tier>` filter no longer silently falls back to the full pool — a `:free` request that matches no connected free model returns empty instead of billing a paid model (opt back into the legacy fallback with `OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true`). Corrupted/invalid `tier_config` rows now log a structured warning and fall back to defaults instead of throwing. ([#4753](https://github.com/diegosouzapw/OmniRoute/pull/4753), [#4517](https://github.com/diegosouzapw/OmniRoute/issues/4517) — thanks @megamen32)
+- **fix(db): scheduled VACUUM follows Storage settings** — the SQLite VACUUM scheduler now uses the existing Storage page `scheduledVacuum` / `vacuumHour` configuration as its single source of truth, refreshes immediately when those settings are saved, and no longer exposes a separate environment-variable control path.
 - **fix(db): scheduled cleanup actually runs + queries target the real tables (DB-bloat / OOM)** — `runAutoCleanup` was never scheduled, so retention cleanup never executed and tables (`compression_analytics`, `usage_history`, …) grew unbounded into multi-GB SQLite files driving high RSS. Worse, several cleanup queries referenced wrong table/column names (`call_logs.created_at`→`timestamp`, `compression_analytics.created_at`→`timestamp`, `mcp_audit_log`→`mcp_tool_audit`, `a2a_events`→`a2a_task_events`, `memory_entries`→`memories`), so even a manual run silently no-op'd or errored. Fixed the five queries to match the real schema, added `cleanupProxyLogs`, and wired a `startCleanupScheduler` (startup + every 6h, VACUUM after deletes) into `server-init` alongside the existing budget-reset and reasoning-cache jobs. ([#4691](https://github.com/diegosouzapw/OmniRoute/pull/4691), extracted from [#4428](https://github.com/diegosouzapw/OmniRoute/pull/4428) — thanks @oyi77 / @diegosouzapw)
 - **fix(routing): include all noAuth models in auto-combos + add reka-flash + best-free template** — noAuth provider models are no longer skipped when building auto-combos, `reka-flash` is registered, and a `best-free` combo template is added. ([#4621](https://github.com/diegosouzapw/OmniRoute/pull/4621) — thanks @oyi77)
 - **fix: noAuth provider validation + Kimi executor routing** — corrects noAuth provider membership checks and removes a mis-routed Kimi alias. (closes #4620) ([#4699](https://github.com/diegosouzapw/OmniRoute/pull/4699) — thanks @oyi77)
@@ -115,7 +147,7 @@
 - **fix(dashboard): migrate ManualConfigModal copy to the shared `useCopyToClipboard` hook** ([#4502](https://github.com/diegosouzapw/OmniRoute/pull/4502) — thanks @diegosouzapw)
 - **fix(sse): skip disabled providers in combo fallback** ([#4500](https://github.com/diegosouzapw/OmniRoute/pull/4500) — thanks @diegosouzapw)
 - **fix(usage): parse numeric-string quota reset timestamps as Unix sec/ms** ([#4493](https://github.com/diegosouzapw/OmniRoute/pull/4493) — thanks @diegosouzapw)
-- **fix(db): scheduled VACUUM + persist `lastVacuumAt`** — a new `vacuumScheduler.ts` persists the last run timestamp and last error to the `key_value` table (migration 102) and feeds the database settings panel; wired into the Next.js lifecycle (default 24h, window 02:00–04:00 local). New env flags: `OMNIROUTE_VACUUM_ENABLED`, `OMNIROUTE_VACUUM_INTERVAL_HOURS`, `OMNIROUTE_VACUUM_WINDOW`. ([#4480](https://github.com/diegosouzapw/OmniRoute/pull/4480) — thanks @KooshaPari / @oyi77)
+- **fix(db): scheduled VACUUM + persist `lastVacuumAt`** — a new `vacuumScheduler.ts` persists the last run timestamp and last error to the `key_value` table (migration 102) and feeds the database settings panel; wired into the Next.js lifecycle (default 24h, window 02:00–04:00 local). The initial env-flag control path from this entry is superseded in v3.8.34 by the Storage page settings. ([#4480](https://github.com/diegosouzapw/OmniRoute/pull/4480) — thanks @KooshaPari / @oyi77)
 - **perf(quota): stop writing redundant `quota_snapshots` rows from idle connections** — the 60s background refresh persisted a snapshot for every window of every connection regardless of change, generating 400K+ rows/day from idle accounts. `setQuotaCache` now skips the write when a window's `remaining_percentage`/`is_exhausted` is unchanged from the last cached observation; the first observation and every real change still persist. ([#4565](https://github.com/diegosouzapw/OmniRoute/pull/4565), [#4438](https://github.com/diegosouzapw/OmniRoute/issues/4438) — thanks @oyi77)
 
 ### 🔒 Security
@@ -1609,7 +1641,7 @@ And thank you to the OmniRoute community for the bug reports, reproductions, and
   `tests/e2e/traffic-inspector.spec.ts`, `tests/e2e/agent-bridge-traffic-cross.spec.ts`
   (skip-gated on CI by `RUN_AGENT_BRIDGE_E2E` / `RUN_TRAFFIC_INSPECTOR_E2E` / `RUN_CROSS_E2E`).
 - **Documentation** — `docs/frameworks/AGENTBRIDGE.md` and `docs/frameworks/TRAFFIC_INSPECTOR.md`;
-  `docs/architecture/REPOSITORY_MAP.md` updated; `docs/reference/openapi.yaml` updated with
+  `docs/architecture/REPOSITORY_MAP.md` updated; `docs/openapi.yaml` updated with
   ~28 new routes and 20+ new schemas.
 - **i18n:** translate Ukrainian (uk-UA) menu and UI strings, plus complete uk-UA UI coverage (#2981 / #2988 — thanks @Lion-killer)
 - **providers:** add SiliconFlow endpoint selector (#2975 — thanks @xz-dev)
