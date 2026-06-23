@@ -1,7 +1,23 @@
 # Changelog
 
+# v0.3.7 (2026-06-23)
+*Synchronized with upstream v0.5.8*
+
+## 🚀 Features / Fitur Baru
+- **Antigravity Image Support**: Dukungan penuh untuk pembuatan gambar (image generation) secara native. Model gambar akan ditandai dengan `kind:image` dan ditampilkan di UI media-providers.
+- **CodeBuddy CN Improvements**: Menambahkan autentikasi API key, pelacak kuota kredit (credit quota tracker), dan alias prefix model singkat `cbcn`.
+
+## 🛡️ Fixes & Improvements / Perbaikan & Peningkatan
+- **MiniMax-M3**: Mengaktifkan kemampuan vision (pengenalan gambar).
+- **Headroom**: Mendukung Docker sidecar proxy untuk kestabilan koneksi.
+- **mimo-free**: Rotasi Chrome User-Agent otomatis untuk melewati gerbang anti-abuse.
+- **cloudflare-ai**: Perataan (flattening) array content-part menjadi string guna menghindari error oneOf 400.
+- **Translator**: Normalisasi tools ke bentuk Anthropic-native untuk penyedia non-Anthropic.
+- **CLI**: Penanganan otomatis Next.js 16 nested standalone output path.
+- **Codex**: Mempertahankan kustom tools selama normalisasi request.
+
 # v0.3.5 (2026-06-21)
-*Synchronized with 9Router v0.5.6*
+*Synchronized with upstream v0.5.6*
 
 ## 🚀 Features / Fitur Baru
 - **Headroom Integration**: Fitur manajemen proxy kustom yang langsung terintegrasi di Dashboard (instalasi satu klik, start/stop, status check, kompresi prompt).
@@ -45,9 +61,9 @@ All notable changes to Birouter will be documented in this file.
 - **SiliconFlow**: Updated base URL to `.com` and cleaned up the verified model catalog.
 
 ## v0.2.7 (2026-06-09)
-*Synchronized with 9Router v0.4.71*
+*Synchronized with upstream v0.4.71*
 
-### 🚀 New Features (from 9Router v0.4.71)
+### 🚀 New Features (from upstream v0.4.71)
 - **Caveman Mode Update**: Added Wenyan classical Chinese levels and synchronized upstream prompts.
 - **New Providers & Models**:
   - Added **xiaomi-tokenplan**: Claude-native MiMo V2.5 Pro alias.
@@ -56,7 +72,7 @@ All notable changes to Birouter will be documented in this file.
 - **Qoder Improvements**: Support for fetching latest models and dashboard import-model button.
 - **i18n**: Added Russian README and endpoint exposure notices across multiple languages.
 
-### 🛡️ Fixes & Stability (from 9Router v0.4.71)
+### 🛡️ Fixes & Stability (from upstream v0.4.71)
 - **Codex Streaming**: Hardened streaming timeouts (60s), improved `response.done` handling, and terminal event emission to prevent client hangs.
 - **OAuth Lifecycle**: Durable OAuth refresh lifecycle for Codex.
 - **Network**: Skipped virtual interfaces in tunnel netchange watchdog to prevent false restarts.
@@ -80,7 +96,7 @@ All notable changes to Birouter will be documented in this file.
 
 ### 🚀 New Features
 - **Qoder Provider Support**: Added device-flow OAuth, COSY signing, WAF-bypass body encoding, live model catalog, dashboard quota tracker, and 11 models.
-- **New Models**: Added Claude Opus 4.8 (Claude Code) and GPT 5.4 Mini (Codex).
+- **New Models**: Added Claude Opus 4.8 (Claude Code), GPT 5.4 Mini (Codex).
 
 ### 🐛 Bug Fixes
 - **DeepSeek Thinking Mode**: Echoes `reasoning_content` back on follow-up/tool-call turns so OpenCode-free and custom providers no longer 400 with "reasoning_content must be passed back".
@@ -165,7 +181,7 @@ All notable changes to Birouter will be documented in this file.
 
 ### 🎉 Initial Fork Release
 
-Birouter is a fork of [9Router](https://github.com/decolua/9router) by decolua, customized and extended with new features.
+Birouter is a fork of the parent upstream repository by decolua, customized and extended with new features.
 
 ### ✨ New Features
 
@@ -193,4 +209,4 @@ Birouter is a fork of [9Router](https://github.com/decolua/9router) by decolua, 
 
 ---
 
-*Based on 9Router by [decolua](https://github.com/decolua/9router) · MIT License*
+*Based on the parent project by decolua · MIT License*
