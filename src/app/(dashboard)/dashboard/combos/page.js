@@ -21,6 +21,7 @@ export default function CombosPage() {
   const [comboStrategies, setComboStrategies] = useState({});
   const [modelCaps, setModelCaps] = useState({});
   const [confirmState, setConfirmState] = useState(null);
+  const [testingCombo, setTestingCombo] = useState(null);
   const { copied, copy } = useCopyToClipboard();
 
   useEffect(() => {
@@ -195,6 +196,7 @@ export default function CombosPage() {
               onCopy={copy}
               onEdit={() => setEditingCombo(combo)}
               onDelete={() => handleDelete(combo.id)}
+              onTest={() => setTestingCombo(combo)}
               strategy={comboStrategies[combo.name] || {}}
               onSetStrategy={(patch) => handleSetComboStrategy(combo.name, patch)}
             />
@@ -230,6 +232,13 @@ export default function CombosPage() {
         message={confirmState?.message}
         variant="danger"
       />
+
+      {/* Test Modal */}
+      <ComboTestModal
+        isOpen={!!testingCombo}
+        combo={testingCombo}
+        onClose={() => setTestingCombo(null)}
+      />
     </div>
   );
 }
@@ -240,7 +249,7 @@ const STRATEGY_OPTIONS = [
   { value: "fusion", label: "Fusion — panel + judge" },
 ];
 
-function ComboCard({ combo, modelCaps = {}, activeProviders = [], copied, onCopy, onEdit, onDelete, strategy = {}, onSetStrategy }) {
+function ComboCard({ combo, modelCaps = {}, activeProviders = [], copied, onCopy, onEdit, onDelete, onTest, strategy = {}, onSetStrategy }) {
   const [showJudgeSelect, setShowJudgeSelect] = useState(false);
   const current = strategy.fallbackStrategy || "fallback";
   const judge = strategy.judgeModel || "";
@@ -308,7 +317,7 @@ function ComboCard({ combo, modelCaps = {}, activeProviders = [], copied, onCopy
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-1 sm:flex">
+          <div className="grid grid-cols-4 gap-1 sm:flex">
             <button
               onClick={(e) => { e.stopPropagation(); onCopy(combo.name, `combo-${combo.id}`); }}
               className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
@@ -326,6 +335,14 @@ function ComboCard({ combo, modelCaps = {}, activeProviders = [], copied, onCopy
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
               <span className="text-[10px] leading-tight">Edit</span>
+            </button>
+            <button
+              onClick={onTest}
+              className="flex flex-col items-center rounded px-2 py-1 text-text-muted transition-colors hover:bg-black/5 hover:text-primary dark:hover:bg-white/5"
+              title="Test Models"
+            >
+              <span className="material-symbols-outlined text-[18px]">science</span>
+              <span className="text-[10px] leading-tight">Test</span>
             </button>
             <button
               onClick={onDelete}
@@ -650,5 +667,163 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, kindF
         closeOnSelect={false}
       />
     </>
+  );
+}
+
+function ComboTestModal({ isOpen, combo, onClose }) {
+  const [testResults, setTestResults] = useState({});
+  const [testingAll, setTestingAll] = useState(false);
+  const [errorModalContent, setErrorModalContent] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTestResults({});
+      setTestingAll(false);
+      setErrorModalContent(null);
+    }
+  }, [isOpen]);
+
+  if (!combo) return null;
+
+  const handleTestSingle = async (model) => {
+    setTestResults((prev) => ({ ...prev, [model]: { loading: true, ok: null, latencyMs: 0, error: null } }));
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      const res = await fetch("/api/models/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model, kind: combo.kind || "llm" }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const data = await res.json();
+      setTestResults((prev) => ({
+        ...prev,
+        [model]: { loading: false, ok: data.ok, latencyMs: data.latencyMs, error: data.error },
+      }));
+    } catch (err) {
+      setTestResults((prev) => ({
+        ...prev,
+        [model]: {
+          loading: false,
+          ok: false,
+          latencyMs: 0,
+          error: err.name === "AbortError" ? "Request timeout (60s)" : err.message,
+        },
+      }));
+    }
+  };
+
+  const handleTestAll = async () => {
+    setTestingAll(true);
+    await Promise.allSettled(combo.models.map((model) => handleTestSingle(model)));
+    setTestingAll(false);
+  };
+
+  return (
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} title={`Test Models - ${combo.name}`}>
+      <div className="flex flex-col gap-4">
+        {combo.models.length === 0 ? (
+          <div className="text-center py-4 border border-dashed border-black/10 dark:border-white/10 rounded-lg bg-black/[0.01] dark:bg-white/[0.01]">
+            <span className="material-symbols-outlined text-text-muted text-xl mb-1">layers</span>
+            <p className="text-xs text-text-muted">No models in this combo to test.</p>
+          </div>
+        ) : (
+          <div className="flex max-h-[50vh] min-w-0 flex-col gap-2 overflow-y-auto pr-1">
+            {combo.models.map((model, idx) => {
+              const res = testResults[model];
+              return (
+                <div key={idx} className="flex items-center justify-between gap-2 rounded-md border border-black/5 dark:border-white/5 p-2 bg-black/[0.02] dark:bg-white/[0.02]">
+                  <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                    <code className="truncate font-mono text-xs font-medium text-text-main" title={model}>{model}</code>
+                    <div className="flex items-center min-h-[16px]">
+                    {res ? (
+                      res.loading ? (
+                        <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
+                          <span className="material-symbols-outlined text-[12px] animate-spin">refresh</span>
+                          Testing...
+                        </div>
+                      ) : res.ok ? (
+                        <div className="flex items-center gap-1.5 text-[10px] text-green-600 dark:text-green-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>
+                          <span className="truncate">{res.latencyMs}ms</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-[10px] text-red-600 dark:text-red-400">
+                          <span className="material-symbols-outlined text-[12px] shrink-0">error</span>
+                          <span>Error</span>
+                        </div>
+                      )
+                    ) : (
+                       <span className="text-[10px] text-text-muted/50">Pending test</span>
+                    )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {res && res.ok === false && (
+                      <button
+                        onClick={() => setErrorModalContent({ model, error: res.error })}
+                        className="flex items-center justify-center w-6 h-6 rounded text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                        title="View Error Details"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">more_horiz</span>
+                      </button>
+                    )}
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      onClick={() => handleTestSingle(model)} 
+                      disabled={res?.loading || testingAll}
+                      className="text-xs px-3 py-1.5 h-auto rounded-md"
+                    >
+                      Test
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div className="flex justify-end gap-2 pt-3 border-t border-black/5 dark:border-white/5 mt-1">
+          <Button variant="ghost" onClick={onClose} size="sm">
+            Close
+          </Button>
+          <Button onClick={handleTestAll} disabled={testingAll || combo.models.length === 0} size="sm" icon={testingAll ? undefined : "science"}>
+            {testingAll ? "Testing..." : "Test All"}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    <Modal 
+      isOpen={!!errorModalContent} 
+      onClose={() => setErrorModalContent(null)} 
+      title="Error Details"
+    >
+      {errorModalContent && (
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="text-xs text-text-muted mb-2">
+              Error encountered while testing model: <code className="font-mono bg-black/5 dark:bg-white/5 px-1 rounded text-text-main">{errorModalContent.model}</code>
+            </p>
+            <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 max-h-[40vh] overflow-y-auto">
+              <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap font-mono m-0">
+                {errorModalContent.error}
+              </pre>
+            </div>
+          </div>
+          <div className="flex justify-end pt-1">
+            <Button variant="ghost" onClick={() => setErrorModalContent(null)} size="sm">
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
+    </Modal>
+  </>
   );
 }
