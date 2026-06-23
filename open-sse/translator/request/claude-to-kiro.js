@@ -18,7 +18,7 @@
  *      tool_result whose tool_use_id has no matching tool_use back into the
  *      user text instead of leaving a dangling structured reference.
  *
- * It also handles the 9router-synthetic `-agentic` / `-thinking` suffixes and
+ * It also handles the birouter-synthetic `-agentic` / `-thinking` suffixes and
  * the `<thinking_mode>enabled</thinking_mode>` reasoning trigger, matching
  * buildKiroPayload.
  */
