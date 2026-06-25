@@ -144,11 +144,25 @@ interface AllocationRow {
   policy: string;
 }
 
+const VALID_POLICIES: ReadonlySet<string> = new Set<Policy>(["hard", "soft", "burst"]);
+
+/**
+ * Fail-safe policy normalization at the DB read boundary. A column value outside
+ * `hard | soft | burst` (corrupted/legacy row, or a value inserted while the
+ * table CHECK constraint was bypassed) is coerced to the most restrictive
+ * policy, `hard`, instead of being trusted via a raw `as Policy` cast. This
+ * prevents an unknown policy from reaching the fair-share engine, where it would
+ * otherwise be a silent fail-OPEN (issue #10).
+ */
+function normalizePolicy(value: string): Policy {
+  return VALID_POLICIES.has(value) ? (value as Policy) : "hard";
+}
+
 function rowToAllocation(row: AllocationRow): PoolAllocation {
   const alloc: PoolAllocation = {
     apiKeyId: row.api_key_id,
     weight: row.weight,
-    policy: row.policy as Policy,
+    policy: normalizePolicy(row.policy),
   };
   if (row.cap_value != null) alloc.capValue = row.cap_value;
   if (row.cap_unit != null) alloc.capUnit = row.cap_unit as QuotaUnit;

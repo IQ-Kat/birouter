@@ -35,6 +35,11 @@ export function filterToOpenAIFormat(body) {
   if (!body.messages || !Array.isArray(body.messages)) return body;
 
   body.messages = body.messages.map((msg) => {
+    // Normalize OpenAI Responses-style `developer` role to `system` — many
+    // OpenAI-compatible providers reject `developer` (ported from
+    // decolua/9router#1011).
+    if (msg.role === "developer") msg = { ...msg, role: "system" };
+
     // Keep tool messages as-is (OpenAI format)
     if (msg.role === "tool") return msg;
 
@@ -148,6 +153,9 @@ export function filterToOpenAIFormat(body) {
   // Strip Claude-specific fields that OpenAI-compatible providers reject
   delete body.metadata;
   delete body.anthropic_version;
+  // Codex clients send a top-level `client_metadata` object; OpenAI rejects it
+  // with 400 "Unknown parameter: 'client_metadata'" (9router#1157).
+  delete body.client_metadata;
 
   // Map max_output_tokens (from Vercel AI SDK) to max_tokens logic
   if (body.max_output_tokens !== undefined) {

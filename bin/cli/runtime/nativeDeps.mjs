@@ -12,7 +12,7 @@ import { spawnSync } from "node:child_process";
 import { platform } from "node:os";
 import { resolveDataDir } from "../data-dir.mjs";
 
-const BETTER_SQLITE3_VERSION = "12.9.0";
+const BETTER_SQLITE3_VERSION = "12.10.1";
 
 function runtimeDir() {
   return join(resolveDataDir(), "runtime");
