@@ -43,8 +43,15 @@ export function filterToOpenAIFormat(body) {
     // Keep tool messages as-is (OpenAI format)
     if (msg.role === "tool") return msg;
 
-    // Keep assistant messages with tool_calls as-is
-    if (msg.role === "assistant" && msg.tool_calls) return msg;
+    // Keep assistant messages with tool_calls, but strip reasoning_content —
+    // reasoning blobs inflate context on every subsequent agentic turn (O(n^2)).
+    if (msg.role === "assistant" && msg.tool_calls) {
+      if (msg.reasoning_content !== undefined) {
+        const { reasoning_content, ...cleanMsg } = msg;
+        return cleanMsg;
+      }
+      return msg;
+    }
 
     // Handle string content
     if (typeof msg.content === "string") return msg;
@@ -178,7 +185,9 @@ export function filterToOpenAIFormat(body) {
             type: "function",
             function: {
               name: tool.name,
-              description: tool.description || "",
+              // Coerce: strict upstream validators (NVIDIA NIM, Codex) reject
+              // non-string descriptions. Ports decolua/9router#397.
+              description: String(tool.description ?? ""),
               parameters: tool.input_schema || { type: "object", properties: {} },
             },
           };
@@ -190,7 +199,7 @@ export function filterToOpenAIFormat(body) {
             type: "function",
             function: {
               name: fn.name,
-              description: fn.description || "",
+              description: String(fn.description ?? ""),
               parameters: fn.parameters || { type: "object", properties: {} },
             },
           }));
