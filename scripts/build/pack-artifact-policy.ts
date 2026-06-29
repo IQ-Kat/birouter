@@ -44,6 +44,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "peer-stamp.mjs",
   "responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
+  "scripts/dev/tls-options.mjs",
   "server.js",
   "server-ws.mjs",
   "webdav-handler.mjs",
@@ -111,6 +112,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/sync-env.mjs",
   "scripts/dev/responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
+  // #5361: imported at runtime by bin/cli/commands/serve.mjs + the standalone
+  // server wrapper for opt-in native HTTPS/TLS serving (kept dependency-light).
+  "scripts/dev/tls-options.mjs",
   "scripts/postinstall.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];

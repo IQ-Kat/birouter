@@ -174,7 +174,9 @@ function invalidOriginResponse(requestId: string): NextResponse {
     {
       error: {
         code: "INVALID_ORIGIN",
-        message: "Invalid request origin",
+        message:
+          "Invalid request origin. If you reach the dashboard over a custom host or an HTTPS proxy, " +
+          "set OMNIROUTE_PUBLIC_BASE_URL to that exact URL and restart. Direct loopback/LAN-IP access works without it.",
         correlation_id: requestId,
       },
     },
@@ -228,10 +230,24 @@ export async function runAuthzPipeline(
   const guardedPathname = classification.normalizedPath;
   const managementDashboardRoute = isManagementDashboardRoute(classification, pathname);
 
+  // Relax the CORS origin fallback ONLY for the token-authenticated API
+  // surface (CLIENT_API: /v1/*, /v1beta/*, codex/responses aliases) and
+  // read-only PUBLIC endpoints. These authenticate via Authorization /
+  // x-api-key headers that browsers never auto-attach, so echoing the caller's
+  // Origin (or `*`) there carries no credentialed-session / CSRF risk — it just
+  // lets browser/Electron clients (issue #5242) read responses they are already
+  // entitled to. MANAGEMENT (cookie-authed dashboard) and non-read-only PUBLIC
+  // routes (e.g. /api/cloud/, which sets Allow-Credentials in its own handler)
+  // stay exactly fail-closed.
+  const corsRelaxOrigin =
+    classification.routeClass === "CLIENT_API" ||
+    (classification.routeClass === "PUBLIC" &&
+      classification.reason === "public_readonly_prefix");
+
   if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
     stampRouteResponse(response, requestId, classification.routeClass);
-    applyCorsHeaders(response, request);
+    applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
   }
 
@@ -243,7 +259,7 @@ export async function runAuthzPipeline(
     );
     if (bodySizeRejection) {
       stampRouteResponse(bodySizeRejection, requestId, classification.routeClass);
-      applyCorsHeaders(bodySizeRejection, request);
+      applyCorsHeaders(bodySizeRejection, request, corsRelaxOrigin);
       return bodySizeRejection;
     }
   }
@@ -282,7 +298,7 @@ export async function runAuthzPipeline(
     const preflight = new NextResponse(null, { status: 204 });
     preflight.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     preflight.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-    applyCorsHeaders(preflight, request);
+    applyCorsHeaders(preflight, request, corsRelaxOrigin);
     return preflight;
   }
 
@@ -290,7 +306,7 @@ export async function runAuthzPipeline(
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-    applyCorsHeaders(response, request);
+    applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
   }
 
@@ -303,7 +319,7 @@ export async function runAuthzPipeline(
     }
 
     const rejection = rejectionResponse(outcome, classification, requestId);
-    applyCorsHeaders(rejection, request);
+    applyCorsHeaders(rejection, request, corsRelaxOrigin);
     return rejection;
   }
 
@@ -326,7 +342,7 @@ export async function runAuthzPipeline(
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
   response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-  applyCorsHeaders(response, request);
+  applyCorsHeaders(response, request, corsRelaxOrigin);
   if (managementDashboardRoute) {
     await refreshDashboardSessionIfNeeded(response, request);
   }

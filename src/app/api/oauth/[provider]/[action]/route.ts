@@ -9,7 +9,10 @@ import {
   pollForToken,
   resolveBrowserOAuthRedirectUri,
 } from "@/lib/oauth/providers";
-import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
+import {
+  persistOAuthConnection,
+  buildOAuthConnectionCreatePayload,
+} from "@/lib/oauth/connectionPersistence";
 import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
 import {
   createProviderConnection,
@@ -497,13 +500,9 @@ export async function POST(
         }
       }
       if (!connection) {
-        connection = await createProviderConnection({
-          provider,
-          authType: "oauth",
-          ...tokenData,
-          expiresAt,
-          testStatus: "active",
-        });
+        connection = await createProviderConnection(
+          buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+        );
       }
 
       // Auto sync to Cloud if enabled
@@ -589,13 +588,9 @@ export async function POST(
           }
         }
         if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...result.tokens,
-            expiresAt,
-            testStatus: "active",
-          });
+          connection = await createProviderConnection(
+            buildOAuthConnectionCreatePayload(provider, result.tokens, expiresAt)
+          );
         }
 
         // Auto sync to Cloud if enabled
@@ -722,13 +717,9 @@ export async function POST(
           }
         }
         if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...tokenData,
-            expiresAt,
-            testStatus: "active",
-          });
+          connection = await createProviderConnection(
+            buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+          );
         }
 
         await syncToCloudIfEnabled();
@@ -796,13 +787,9 @@ export async function POST(
           }
         }
         if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...tokenData,
-            expiresAt,
-            testStatus: "active",
-          });
+          connection = await createProviderConnection(
+            buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+          );
         }
 
         await syncToCloudIfEnabled();
