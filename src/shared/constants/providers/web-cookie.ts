@@ -76,7 +76,7 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     hasFree: true,
     freeNote: "Free with login — Meta AI platform with Llama models.",
-    authHint: "Paste your abra_sess value or full cookie header from meta.ai",
+    authHint: "Paste your ecto_1_sess value or full cookie header from meta.ai",
   },
   "claude-web": {
     id: "claude-web",
@@ -199,24 +199,6 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
     riskNoticeVariant: "webCookie",
-  },
-  phind: {
-    id: "phind",
-    alias: "ph",
-    name: "Phind (Free)",
-    icon: "auto_awesome",
-    color: "#000000",
-    textIcon: "PH",
-    website: "https://www.phind.com",
-    hasFree: false,
-    freeNote: "Discontinued 2026 — phind.com shut down (2026-01); no free tier.",
-    authHint:
-      "Paste your session cookie from phind.com (DevTools → Application → Cookies). Optional — works with free tier.",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "Phind shut down its API (2026-01); the /api/chat endpoint no longer serves (sweep 2026-06-19).",
   },
   "poe-web": {
     id: "poe-web",

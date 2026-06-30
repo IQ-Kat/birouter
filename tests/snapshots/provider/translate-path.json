@@ -538,8 +538,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.bytez.com/models/v2",
-      "stream": "https://api.bytez.com/models/v2"
+      "nonStream": "https://api.bytez.com/models/v2/openai/v1/chat/completions",
+      "stream": "https://api.bytez.com/models/v2/openai/v1/chat/completions"
     }
   },
   "cerebras": {
@@ -1451,8 +1451,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.friendli.ai/dedicated/v1/chat/completions",
-      "stream": "https://api.friendli.ai/dedicated/v1/chat/completions"
+      "nonStream": "https://api.friendli.ai/serverless/v1/chat/completions",
+      "stream": "https://api.friendli.ai/serverless/v1/chat/completions"
     }
   },
   "galadriel": {
@@ -2860,8 +2860,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.novita.ai/v3/chat/completions",
-      "stream": "https://api.novita.ai/v3/chat/completions"
+      "nonStream": "https://api.novita.ai/openai/v1/chat/completions",
+      "stream": "https://api.novita.ai/openai/v1/chat/completions"
     }
   },
   "nscale": {
@@ -3173,29 +3173,6 @@
     "url": {
       "nonStream": "https://www.perplexity.ai/rest/sse/perplexity_ask",
       "stream": "https://www.perplexity.ai/rest/sse/perplexity_ask"
-    }
-  },
-  "phind": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://www.phind.com/api/chat",
-      "stream": "https://www.phind.com/api/chat"
     }
   },
   "pioneer": {

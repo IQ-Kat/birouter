@@ -40,7 +40,6 @@ import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { InnerAiExecutor } from "./inner-ai.ts";
 import { HuggingChatExecutor } from "./huggingchat.ts";
-import { PhindExecutor } from "./phind.ts";
 import { PoeWebExecutor } from "./poe-web.ts";
 import { VeniceWebExecutor } from "./venice-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
@@ -128,8 +127,6 @@ const executors = {
   "in-ai": new InnerAiExecutor(), // Alias
   huggingchat: new HuggingChatExecutor(),
   hc: new HuggingChatExecutor(), // Alias
-  phind: new PhindExecutor(),
-  ph: new PhindExecutor(), // Alias
   "poe-web": new PoeWebExecutor(),
   poe: new PoeWebExecutor(), // Alias
   "venice-web": new VeniceWebExecutor(),

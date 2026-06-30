@@ -4804,8 +4804,6 @@
     "checkWebToken": "トークンをチェックする",
     "huggingchatLabel": "__MISSING__:HuggingChat (Free)",
     "huggingchatDesc": "__MISSING__:Free LLM chat via huggingface.co/chat",
-    "phindLabel": "__MISSING__:Phind (Free)",
-    "phindDesc": "__MISSING__:Free dev-focused AI chat",
     "poeWebLabel": "__MISSING__:Poe Web",
     "poeWebDesc": "__MISSING__:Multi-model chat via poe.com",
     "veniceWebLabel": "__MISSING__:Venice Web",

@@ -4660,8 +4660,6 @@
     "checkWebToken": "检查令牌",
     "huggingchatLabel": "HuggingChat（免费）",
     "huggingchatDesc": "通过 huggingface.co/chat 免费使用 LLM 聊天",
-    "phindLabel": "Phind（免费）",
-    "phindDesc": "免费的开发者专用 AI 聊天",
     "poeWebLabel": "Poe 网页",
     "poeWebDesc": "通过 poe.com 进行多模型聊天",
     "veniceWebLabel": "威尼斯网络",

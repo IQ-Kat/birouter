@@ -4804,8 +4804,6 @@
     "checkWebToken": "Проверить токен",
     "huggingchatLabel": "HuggingChat (Бесплатно)",
     "huggingchatDesc": "Бесплатный LLM чат через huggingface.co/chat",
-    "phindLabel": "Phind (Бесплатно)",
-    "phindDesc": "Бесплатный AI-чат для разработчиков",
     "poeWebLabel": "Poe Web",
     "poeWebDesc": "Многофункциональный чат через poe.com",
     "veniceWebLabel": "Венеция Веб",

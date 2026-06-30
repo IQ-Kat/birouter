@@ -118,7 +118,6 @@ import OpenCodeMonoIcon from "@lobehub/icons/es/OpenCode/components/Mono";
 import OpenRouterMonoIcon from "@lobehub/icons/es/OpenRouter/components/Mono";
 import PerplexityColorIcon from "@lobehub/icons/es/Perplexity/components/Color";
 import PerplexityMonoIcon from "@lobehub/icons/es/Perplexity/components/Mono";
-import PhindMonoIcon from "@lobehub/icons/es/Phind/components/Mono";
 import PoeColorIcon from "@lobehub/icons/es/Poe/components/Color";
 import PoeMonoIcon from "@lobehub/icons/es/Poe/components/Mono";
 import PollinationsMonoIcon from "@lobehub/icons/es/Pollinations/components/Mono";
@@ -268,7 +267,6 @@ const LOBE_ICON_COMPONENTS = {
   OpenCode: { mono: OpenCodeMonoIcon },
   OpenRouter: { mono: OpenRouterMonoIcon },
   Perplexity: { mono: PerplexityMonoIcon, color: PerplexityColorIcon },
-  Phind: { mono: PhindMonoIcon },
   Poe: { mono: PoeMonoIcon, color: PoeColorIcon },
   Pollinations: { mono: PollinationsMonoIcon },
   Qoder: { mono: QoderMonoIcon, color: QoderColorIcon },
@@ -426,7 +424,6 @@ const LOBE_PROVIDER_ALIASES = {
   "perplexity-search": "Perplexity",
   "perplexity-web": "Perplexity",
   poe: "Poe",
-  phind: "Phind",
   pollinations: "Pollinations",
   qoder: "Qoder",
   qwen: "Qwen",

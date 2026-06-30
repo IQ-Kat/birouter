@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { HuggingChatExecutor } = await import("../../open-sse/executors/huggingchat.ts");
-const { PhindExecutor } = await import("../../open-sse/executors/phind.ts");
 const { PoeWebExecutor } = await import("../../open-sse/executors/poe-web.ts");
 const { VeniceWebExecutor } = await import("../../open-sse/executors/venice-web.ts");
 const { V0VercelWebExecutor } = await import("../../open-sse/executors/v0-vercel-web.ts");
@@ -97,13 +96,6 @@ test("HuggingChat executor is registered", () => {
   assert.ok(executor instanceof HuggingChatExecutor);
 });
 
-test("Phind executor is registered", () => {
-  assert.ok(hasSpecializedExecutor("phind"));
-  assert.ok(hasSpecializedExecutor("ph"));
-  const executor = getExecutor("phind");
-  assert.ok(executor instanceof PhindExecutor);
-});
-
 test("Poe Web executor is registered", () => {
   assert.ok(hasSpecializedExecutor("poe-web"));
   assert.ok(hasSpecializedExecutor("poe"));
@@ -147,11 +139,6 @@ test("Doubao Web executor is registered", () => {
 test("HuggingChat sets correct provider", () => {
   const executor = new HuggingChatExecutor();
   assert.equal(executor.getProvider(), "huggingchat");
-});
-
-test("Phind sets correct provider", () => {
-  const executor = new PhindExecutor();
-  assert.equal(executor.getProvider(), "phind");
 });
 
 test("Poe Web sets correct provider", () => {
@@ -311,41 +298,6 @@ test("HuggingChat: fetch failure returns 502", async () => {
     assert.equal(result.response.status, 502);
   } finally {
     globalThis.fetch = original;
-  }
-});
-
-// ── Phind Execution Tests ────────────────────────────────────────────────────
-
-test("Phind: streaming returns SSE chunks", async () => {
-  const sseData = [
-    'data: {"choices":[{"delta":{"content":"Hello "}}]}',
-    'data: {"choices":[{"delta":{"content":"world"}}]}',
-  ];
-  const restore = mockFetchCapture(200, mockSSEStream(sseData));
-  try {
-    const executor = new PhindExecutor();
-    const result = await executor.execute({
-      ...noopExecuteInput,
-      model: "phind-model",
-    });
-    assert.ok(result.response instanceof Response);
-    assert.ok(result.url.includes("phind.com"));
-    const text = await result.response.text();
-    assert.ok(text.includes("data:"));
-  } finally {
-    restore.restore();
-  }
-});
-
-test("Phind: error response returns error result", async () => {
-  const restore = mockFetchCapture(403, "Forbidden");
-  try {
-    const executor = new PhindExecutor();
-    const result = await executor.execute(noopExecuteInput);
-    assert.ok(result.response instanceof Response);
-    assert.equal(result.response.status, 403);
-  } finally {
-    restore.restore();
   }
 });
 
@@ -515,7 +467,6 @@ test("Doubao Web: error response returns error result", async () => {
 test("All executors handle Cookie: prefix", async () => {
   const executors = [
     new HuggingChatExecutor(),
-    new PhindExecutor(),
     new PoeWebExecutor(),
     new VeniceWebExecutor(),
     new V0VercelWebExecutor(),
@@ -553,7 +504,6 @@ test("All executors handle Cookie: prefix", async () => {
 test("All executors handle bare cookie value", async () => {
   const executors = [
     new HuggingChatExecutor(),
-    new PhindExecutor(),
     new PoeWebExecutor(),
     new VeniceWebExecutor(),
     new V0VercelWebExecutor(),

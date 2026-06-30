@@ -129,13 +129,6 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hf-chat"],
   },
-  phind: {
-    kind: "cookie",
-    credentialName: "phind_session",
-    placeholder: "phind_session=... or full Cookie header from phind.com",
-    acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "phind_session"],
-  },
   "poe-web": {
     kind: "cookie",
     credentialName: "p-b",

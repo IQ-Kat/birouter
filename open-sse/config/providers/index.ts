@@ -81,7 +81,6 @@ import { monsterapiProvider } from "./registry/monsterapi/index.ts";
 import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
-import { phindProvider } from "./registry/phind/index.ts";
 import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
@@ -253,7 +252,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   sensenova: sensenovaProvider,
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
-  phind: phindProvider,
   "t3-web": t3_webProvider,
   kluster: klusterProvider,
   iflytek: iflytekProvider,
