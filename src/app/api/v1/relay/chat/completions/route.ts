@@ -22,11 +22,9 @@ import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
-  shouldTryBifrostForRequest,
+  shouldTryBifrost,
   type BifrostRoutingConfig,
 } from "./routingBackend";
-import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
-import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
 import {
   clearBifrostFailure,
@@ -75,7 +73,6 @@ async function forwardToBifrost(
     "Content-Type": "application/json",
     "x-relay-token-id": token.id,
     "x-relay-client-ip": clientIp,
-    ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
@@ -293,16 +290,7 @@ export async function POST(request: Request) {
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
     let bifrostFallbackReason: string | null = null;
-    const bifrostDecision = shouldTryBifrostForRequest(
-      backend,
-      bifrostConfig,
-      parsedBody,
-      (model) => getProviderPluginManifestEntryForModel(model)?.sidecar ?? null
-    );
-    if (bifrostDecision.fallbackReason) {
-      bifrostFallbackReason = bifrostDecision.fallbackReason;
-    }
-    if (bifrostDecision.tryBifrost) {
+    if (shouldTryBifrost(backend, bifrostConfig)) {
       const cooldown =
         backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {

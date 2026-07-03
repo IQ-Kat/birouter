@@ -164,7 +164,8 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
+  const isAntigravity = provider === "antigravity";
+  const supportsGoogleProjectId = isAntigravity;
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -430,7 +431,7 @@ export default function EditConnectionModal({
         overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
       updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
 
-      if (isAntigravityFamily) {
+      if (supportsGoogleProjectId) {
         updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
@@ -504,7 +505,7 @@ export default function EditConnectionModal({
           defaultRegion,
           isGlm,
           isCloudflare,
-          isAntigravityFamily,
+          supportsGoogleProjectId,
           trimmedCloudCodeProjectId,
           isGooglePse,
           isCcCompatible,
@@ -529,11 +530,11 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (isAntigravityFamily) {
+        if (supportsGoogleProjectId) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
-      if (isAntigravityFamily) {
+      if (isAntigravity) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(updates.providerSpecificData || {}),
@@ -684,20 +685,22 @@ export default function EditConnectionModal({
           t={t}
           editMode
         />
-        {isAntigravityFamily && (
+        {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Select
-              label={t("antigravityClientProfileLabel")}
-              value={formData.antigravityClientProfile}
-              options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
-                value: option.value,
-                label: t(option.labelKey),
-              }))}
-              onChange={(e) =>
-                setFormData({ ...formData, antigravityClientProfile: e.target.value })
-              }
-              hint={t("antigravityClientProfileHint")}
-            />
+            {isAntigravity && (
+              <Select
+                label={t("antigravityClientProfileLabel")}
+                value={formData.antigravityClientProfile}
+                options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: t(option.labelKey),
+                }))}
+                onChange={(e) =>
+                  setFormData({ ...formData, antigravityClientProfile: e.target.value })
+                }
+                hint={t("antigravityClientProfileHint")}
+              />
+            )}
             <Input
               label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}

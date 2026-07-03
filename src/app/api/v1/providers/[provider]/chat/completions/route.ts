@@ -3,6 +3,8 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { providerChatCompletionSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 let initialized = false;
 
@@ -28,7 +30,6 @@ export async function OPTIONS() {
 /**
  * POST /v1/providers/{provider}/chat/completions
  * Routes to the specified provider, validating model/provider match.
- * Full body format validation is delegated to handleChat.
  */
 export async function POST(request, { params }) {
   const { provider: rawProvider } = await params;
@@ -44,25 +45,18 @@ export async function POST(request, { params }) {
 
   await ensureInitialized();
 
-  // Parse body once so this provider-scoped route can normalize the model prefix
-  // before delegating full chat-format validation to handleChat.
-  let rawBody: unknown;
+  // Clone request with provider-prefixed model
+  let rawBody;
   try {
     rawBody = await request.json();
   } catch {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
-
-  if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Request body must be a JSON object");
+  const validation = validateBody(providerChatCompletionSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
-
-  const body = rawBody as { model?: string; [key: string]: unknown };
-
-  // Keep the route-level checks minimal: only guard fields needed for provider prefix handling.
-  if (body.model !== undefined && typeof body.model !== "string") {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "model must be a string");
-  }
+  const body = validation.data;
 
   // Validate model belongs to this provider
   if (body.model) {
