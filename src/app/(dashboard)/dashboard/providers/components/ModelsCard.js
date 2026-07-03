@@ -356,19 +356,68 @@ export default function ModelsCard({ providerId, kindFilter, providerAliasOverri
                     {fetchingModels ? "Fetching..." : "Fetch"}
                   </button>
                 </div>
-                {relevantFetched.length > 0 ? (
+                 {relevantFetched.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {relevantFetched.map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => handleAddCustomModel(m.id)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
-                        title={m.name || m.id}
-                      >
-                        <span className="material-symbols-outlined text-[13px]">add</span>
-                        {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
-                      </button>
-                    ))}
+                    {relevantFetched.map((m) => {
+                      const isTesting = testingModelId === m.id;
+                      const testStatus = modelTestResults[m.id];
+                      const statusColor = testStatus === "ok" ? "border-green-500/40" : testStatus === "error" ? "border-red-500/40" : "border-blue-500/20 dark:border-blue-400/20";
+                      const iconColor = testStatus === "ok" ? "#22c55e" : testStatus === "error" ? "#ef4444" : undefined;
+                      return (
+                        <div
+                          key={m.id}
+                          className={`group/item flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${statusColor} text-xs text-text-muted hover:bg-blue-500/5 transition-colors`}
+                          title={m.name || m.id}
+                        >
+                          {testStatus && (
+                            <span
+                              className="material-symbols-outlined text-[13px] shrink-0"
+                              style={iconColor ? { color: iconColor } : undefined}
+                            >
+                              {testStatus === "ok" ? "check_circle" : "cancel"}
+                            </span>
+                          )}
+                          <span className="font-mono">{m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}</span>
+
+                          {/* Action buttons inside the pill */}
+                          <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-black/5 dark:border-white/5">
+                            {/* Test Button */}
+                            {connections.length > 0 && (
+                              <div className="relative group/btn">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTestModel(m.id);
+                                  }}
+                                  disabled={isTesting}
+                                  className={`rounded p-0.5 text-text-muted transition-opacity hover:bg-sidebar hover:text-primary ${isTesting ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100"}`}
+                                >
+                                  <span className="material-symbols-outlined text-[13px] block" style={isTesting ? { animation: "spin 1s linear infinite" } : undefined}>
+                                    {isTesting ? "progress_activity" : "science"}
+                                  </span>
+                                </button>
+                                <span className="pointer-events-none absolute mt-1 top-5 left-1/2 -translate-x-1/2 text-[9px] text-text-muted whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity z-10 bg-background border border-border px-1 rounded shadow-sm">
+                                  {isTesting ? "Testing..." : "Test"}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Add Button */}
+                            <div className="relative group/btn">
+                              <button
+                                onClick={() => handleAddCustomModel(m.id)}
+                                className="rounded p-0.5 text-text-muted transition-opacity hover:bg-sidebar hover:text-primary opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100"
+                              >
+                                <span className="material-symbols-outlined text-[13px] block">add</span>
+                              </button>
+                              <span className="pointer-events-none absolute mt-1 top-5 left-1/2 -translate-x-1/2 text-[9px] text-text-muted whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity z-10 bg-background border border-border px-1 rounded shadow-sm">
+                                Add
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : fetchedModels.length > 0 ? (
                   <p className="text-[11px] text-text-muted/60">No matching {kindFilter} models found in fetched list.</p>

@@ -50,6 +50,7 @@ export function TtsExampleCard({ providerId }) {
   const [running, setRunning]           = useState(false);
   const [error, setError]               = useState("");
   const [latency, setLatency]           = useState(null);
+  const [useStreaming, setUseStreaming]     = useState(false);
   const { copied: copiedCurl, copy: copyCurl } = useCopyToClipboard();
 
   // Country picker modal state
@@ -186,7 +187,8 @@ export function TtsExampleCard({ providerId }) {
     if (config.hasLanguageHint && languageHint) b.language = languageHint;
     return b;
   })();
-  const curlSnippet = `curl -X POST ${endpoint}/v1/audio/speech${responseFormat === "json" ? "?response_format=json" : ""} \\
+  const path = useStreaming ? "/v1/audio/speech/stream" : "/v1/audio/speech";
+  const curlSnippet = `curl -X POST ${endpoint}${path}${responseFormat === "json" ? "?response_format=json" : ""} \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey || "YOUR_KEY"}" \\
   -d '${JSON.stringify(ttsBody)}' \\
@@ -202,7 +204,8 @@ export function TtsExampleCard({ providerId }) {
     try {
       const headers = { "Content-Type": "application/json" };
       if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-      const url = `/api/v1/audio/speech${responseFormat === "json" ? "?response_format=json" : ""}`;
+      const apiPath = useStreaming ? "/api/v1/audio/speech/stream" : "/api/v1/audio/speech";
+      const url = `${apiPath}${responseFormat === "json" ? "?response_format=json" : ""}`;
       const res = await fetch(url, {
         method: "POST",
         headers,
@@ -417,6 +420,24 @@ export function TtsExampleCard({ providerId }) {
               )}
             </div>
           </Row>
+
+          {/* Streaming Mode (ElevenLabs only) */}
+          {providerId === "elevenlabs" && (
+            <Row label="Streaming">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="useStreaming"
+                  checked={useStreaming}
+                  onChange={(e) => setUseStreaming(e.target.checked)}
+                  className="rounded border-border text-primary focus:ring-primary h-4 w-4 mr-2 cursor-pointer"
+                />
+                <label htmlFor="useStreaming" className="text-sm text-text-main select-none cursor-pointer">
+                  Enable Real-time Streaming (via /v1/audio/speech/stream)
+                </label>
+              </div>
+            </Row>
+          )}
 
           {/* Output Format */}
           <Row label="Output Format">

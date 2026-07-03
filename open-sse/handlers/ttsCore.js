@@ -41,6 +41,47 @@ function createTtsResponse(base64Audio, format, responseFormat) {
   };
 }
 
+async function createTtsStreamResponse(stream, format, responseFormat) {
+  if (responseFormat === "json") {
+    // For JSON, we must buffer the stream and convert to base64
+    const reader = stream.getReader();
+    const chunks = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    const audioBuffer = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      audioBuffer.set(chunk, offset);
+      offset += chunk.length;
+    }
+    const base64 = Buffer.from(audioBuffer).toString("base64");
+    return {
+      success: true,
+      response: new Response(JSON.stringify({ audio: base64, format }), {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }),
+    };
+  }
+
+  // Binary stream: pass stream directly
+  return {
+    success: true,
+    response: new Response(stream, {
+      headers: {
+        "Content-Type": `audio/${format}`,
+        "Access-Control-Allow-Origin": "*",
+      },
+    }),
+  };
+}
+
 // ── Core handler ───────────────────────────────────────────────
 /**
  * Synthesize text to audio. Provider logic lives in `./ttsProviders/{id}.js`
@@ -48,7 +89,7 @@ function createTtsResponse(base64Audio, format, responseFormat) {
  *
  * @returns {Promise<{success, response, status?, error?}>}
  */
-export async function handleTtsCore({ provider, model, input, credentials, responseFormat = "mp3", language }) {
+export async function handleTtsCore({ provider, model, input, credentials, responseFormat = "mp3", language, wantStream = false }) {
   if (!input?.trim()) {
     return createErrorResult(HTTP_STATUS.BAD_REQUEST, "Missing required field: input");
   }
@@ -57,9 +98,12 @@ export async function handleTtsCore({ provider, model, input, credentials, respo
     // Special-case adapters (google-tts, edge-tts, local-device, elevenlabs, openai, openrouter, gemini)
     const adapter = getTtsAdapter(provider);
     if (adapter) {
-      const result = await adapter.synthesize(input.trim(), model, credentials, responseFormat, { language });
-      // Adapter may return a full {success, response} (legacy) or {base64, format}
+      const result = await adapter.synthesize(input.trim(), model, credentials, responseFormat, { language, wantStream });
+      // Adapter may return a full {success, response} (legacy) or {base64, format} or {stream, format}
       if (result.success !== undefined) return result;
+      if (result.stream) {
+        return await createTtsStreamResponse(result.stream, result.format, responseFormat);
+      }
       return createTtsResponse(result.base64, result.format, responseFormat);
     }
 

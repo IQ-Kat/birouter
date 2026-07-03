@@ -1289,20 +1289,25 @@ export default function ProviderDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     {filteredNotAdded.map((m) => {
                       const type = getModelType(m.id);
+                      const isTesting = testingModelIds.has(m.id);
+                      const testStatus = modelTestResults[m.id];
+                      const statusColor = testStatus === "ok" ? "border-green-500/40" : testStatus === "error" ? "border-red-500/40" : "border-blue-500/20 dark:border-blue-400/20";
+                      const iconColor = testStatus === "ok" ? "#22c55e" : testStatus === "error" ? "#ef4444" : undefined;
                       return (
-                        <button
+                        <div
                           key={m.id}
-                          onClick={async () => {
-                            const alias = providerInfo?.passthroughModels
-                              ? m.id.split("/").pop()
-                              : m.id;
-                            await handleSetAlias(m.id, alias, providerStorageAlias);
-                          }}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-500/20 dark:border-blue-400/20 text-xs text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/5 transition-colors"
+                          className={`group/item flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${statusColor} text-xs text-text-muted hover:bg-blue-500/5 transition-colors`}
                           title={`${m.name || m.id}${m.contextLength ? ` · ${m.contextLength >= 1000000 ? (m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1) + "M" : Math.round(m.contextLength / 1000)} ctx` : ""}`}
                         >
-                          <span className="material-symbols-outlined text-[13px]">add</span>
-                          {m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}
+                          {testStatus && (
+                            <span
+                              className="material-symbols-outlined text-[13px] shrink-0"
+                              style={iconColor ? { color: iconColor } : undefined}
+                            >
+                              {testStatus === "ok" ? "check_circle" : "cancel"}
+                            </span>
+                          )}
+                          <span className="font-mono">{m.id.length > 40 ? m.id.slice(0, 37) + "..." : m.id}</span>
                           
                           {/* Badge for Non-LLM types */}
                           {type && (
@@ -1316,7 +1321,49 @@ export default function ProviderDetailPage() {
                               {m.contextLength >= 1000000 ? `${(m.contextLength / 1000000).toFixed(m.contextLength % 1000000 === 0 ? 0 : 1)}M` : `${Math.round(m.contextLength / 1000)}K`}
                             </span>
                           )}
-                        </button>
+
+                          {/* Action buttons inside the pill */}
+                          <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-black/5 dark:border-white/5">
+                            {/* Test Button */}
+                            {(connections.length > 0 || isFreeNoAuth) && (
+                              <div className="relative group/btn">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleTestModel(m.id);
+                                  }}
+                                  disabled={isTesting}
+                                  className={`rounded p-0.5 text-text-muted transition-opacity hover:bg-sidebar hover:text-primary ${isTesting ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100"}`}
+                                >
+                                  <span className="material-symbols-outlined text-[13px] block" style={isTesting ? { animation: "spin 1s linear infinite" } : undefined}>
+                                    {isTesting ? "progress_activity" : "science"}
+                                  </span>
+                                </button>
+                                <span className="pointer-events-none absolute mt-1 top-5 left-1/2 -translate-x-1/2 text-[9px] text-text-muted whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity z-10 bg-background border border-border px-1 rounded shadow-sm">
+                                  {isTesting ? "Testing..." : "Test"}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Add Button */}
+                            <div className="relative group/btn">
+                              <button
+                                onClick={async () => {
+                                  const alias = providerInfo?.passthroughModels
+                                    ? m.id.split("/").pop()
+                                    : m.id;
+                                  await handleSetAlias(m.id, alias, providerStorageAlias);
+                                }}
+                                className="rounded p-0.5 text-text-muted transition-opacity hover:bg-sidebar hover:text-primary opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100"
+                              >
+                                <span className="material-symbols-outlined text-[13px] block">add</span>
+                              </button>
+                              <span className="pointer-events-none absolute mt-1 top-5 left-1/2 -translate-x-1/2 text-[9px] text-text-muted whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity z-10 bg-background border border-border px-1 rounded shadow-sm">
+                                Add
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -1336,17 +1383,65 @@ export default function ProviderDetailPage() {
           <div className="w-full mt-2">
             <p className="text-xs text-text-muted mb-2">Disabled models ({disabledDisplayModels.length}):</p>
             <div className="flex flex-wrap gap-2">
-              {disabledDisplayModels.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => handleEnableModel(m.id)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-dashed border-black/10 dark:border-white/10 text-xs text-text-muted hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                  title="Restore model"
-                >
-                  <span className="material-symbols-outlined text-[13px]">add</span>
-                  {m.id}
-                </button>
-              ))}
+              {disabledDisplayModels.map((m) => {
+                const isTesting = testingModelIds.has(m.id);
+                const testStatus = modelTestResults[m.id];
+                const statusColor = testStatus === "ok" ? "border-green-500/40" : testStatus === "error" ? "border-red-500/40" : "border-dashed border-black/15 dark:border-white/15";
+                const iconColor = testStatus === "ok" ? "#22c55e" : testStatus === "error" ? "#ef4444" : undefined;
+                return (
+                  <div
+                    key={m.id}
+                    className={`group/item flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${statusColor} text-xs text-text-muted hover:bg-sidebar/30 transition-colors`}
+                    title="Restore / Test model"
+                  >
+                    {testStatus && (
+                      <span
+                        className="material-symbols-outlined text-[13px] shrink-0"
+                        style={iconColor ? { color: iconColor } : undefined}
+                      >
+                        {testStatus === "ok" ? "check_circle" : "cancel"}
+                      </span>
+                    )}
+                    <span className="font-mono">{m.id}</span>
+
+                    <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-black/5 dark:border-white/5">
+                      {/* Test Button */}
+                      {(connections.length > 0 || isFreeNoAuth) && (
+                        <div className="relative group/btn">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTestModel(m.id);
+                            }}
+                            disabled={isTesting}
+                            className={`rounded p-0.5 text-text-muted transition-opacity hover:bg-sidebar hover:text-primary ${isTesting ? "opacity-100" : "opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100"}`}
+                          >
+                            <span className="material-symbols-outlined text-[13px] block" style={isTesting ? { animation: "spin 1s linear infinite" } : undefined}>
+                              {isTesting ? "progress_activity" : "science"}
+                            </span>
+                          </button>
+                          <span className="pointer-events-none absolute mt-1 top-5 left-1/2 -translate-x-1/2 text-[9px] text-text-muted whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity z-10 bg-background border border-border px-1 rounded shadow-sm">
+                            {isTesting ? "Testing..." : "Test"}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Enable Button */}
+                      <div className="relative group/btn">
+                        <button
+                          onClick={() => handleEnableModel(m.id)}
+                          className="rounded p-0.5 text-text-muted transition-opacity hover:bg-sidebar hover:text-primary opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100"
+                        >
+                          <span className="material-symbols-outlined text-[13px] block">add</span>
+                        </button>
+                        <span className="pointer-events-none absolute mt-1 top-5 left-1/2 -translate-x-1/2 text-[9px] text-text-muted whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity z-10 bg-background border border-border px-1 rounded shadow-sm">
+                          Enable
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

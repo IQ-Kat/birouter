@@ -41,7 +41,12 @@ export async function GET(request) {
           gender: voice.labels?.gender || "",
           lang: code,
           // premade voices are free; professional library voices added to account may require paid plan
-          free_users_allowed: voice.category === "premade" || voice.is_owner === true
+          free_users_allowed: voice.category === "premade" || voice.is_owner === true,
+          preview_url: voice.preview_url || "",
+          accent: voice.labels?.accent || voice.labels?.accentuation || "",
+          category: voice.category || "",
+          description: voice.description || "",
+          is_cloned: voice.category === "cloned" || voice.is_owner === true
         });
       }
     };

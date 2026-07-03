@@ -33,16 +33,20 @@ export default function ModelSelectModal({
   addedModelValues = [],
   closeOnSelect = true,
 }) {
+  const enabledProviders = useMemo(() => {
+    return activeProviders.filter((p) => p.isActive !== false);
+  }, [activeProviders]);
+
   // Filter activeProviders by serviceKinds when kindFilter set (e.g. "webSearch", "webFetch")
   const filteredActiveProviders = useMemo(() => {
-    if (!kindFilter) return activeProviders;
-    return activeProviders.filter((p) => {
+    if (!kindFilter) return enabledProviders;
+    return enabledProviders.filter((p) => {
       const normalizedId = resolveProviderId(p.provider);
       const info = AI_PROVIDERS[normalizedId];
       const kinds = info?.serviceKinds || ["llm"];
       return kinds.includes(kindFilter);
     });
-  }, [activeProviders, kindFilter]);
+  }, [enabledProviders, kindFilter]);
   const { getCaps } = useModelCaps();
   const [searchQuery, setSearchQuery] = useState("");
   const [combos, setCombos] = useState([]);
@@ -252,7 +256,7 @@ export default function ModelSelectModal({
         // Custom (openai/anthropic-compatible) providers are LLM-only — skip for typed media kinds
         if (kindFilter && TYPED_KINDS.has(kindFilter)) return;
         // Find connection object to get prefix synchronously without waiting for providerNodes fetch
-        const connection = activeProviders.find(p => p.provider === providerId);
+        const connection = enabledProviders.find(p => p.provider === providerId);
         const matchedNode = providerNodes.find(node => node.id === providerId);
         const displayName = matchedNode?.name || connection?.name || providerInfo.name;
         const nodePrefix = connection?.providerSpecificData?.prefix || matchedNode?.prefix || providerId;
@@ -354,7 +358,7 @@ export default function ModelSelectModal({
     });
 
     return groups;
-  }, [filteredActiveProviders, modelAliases, allProviders, providerNodes, customModels, disabledModels, kindFilter, activeProviders]);
+  }, [filteredActiveProviders, modelAliases, allProviders, providerNodes, customModels, disabledModels, kindFilter, enabledProviders]);
 
   // Filter combos by search query (and hide combos when kindFilter is set — combos are LLM-only by design)
   const filteredCombos = useMemo(() => {

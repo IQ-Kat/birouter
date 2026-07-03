@@ -1,7 +1,7 @@
 import { BaseExecutor } from "./base.js";
 import { PROVIDERS } from "../config/providers.js";
 import { proxyAwareFetch } from "../utils/proxyFetch.js";
-import { createHash } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import os from "os";
 
 const BOOTSTRAP_URL = "https://api.xiaomimimo.com/api/free-ai/bootstrap";
@@ -27,6 +27,15 @@ export const MIMO_SYSTEM_MARKER =
 // In-memory JWT cache (per-process, survives across requests but not restarts)
 let cachedJwt = null;
 let jwtExpiresAt = 0;
+let activeUserAgent = null;
+let activeFingerprint = null;
+
+function getActiveUserAgent() {
+  if (!activeUserAgent) {
+    activeUserAgent = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+  }
+  return activeUserAgent;
+}
 
 // Device fingerprint reused as the bootstrap "client" — stable per machine
 function generateFingerprint() {
@@ -39,6 +48,20 @@ function generateFingerprint() {
   const cpu = (os.cpus()[0]?.model || "unknown-cpu").trim();
   const seed = `${os.hostname()}|${os.platform()}|${os.arch()}|${cpu}|${username}`;
   return createHash("sha256").update(seed).digest("hex");
+}
+
+function getActiveFingerprint() {
+  if (!activeFingerprint) {
+    const machineHash = generateFingerprint();
+    let salt = "";
+    try {
+      salt = randomBytes(8).toString("hex");
+    } catch {
+      salt = Math.random().toString(36).substring(2);
+    }
+    activeFingerprint = createHash("sha256").update(`${machineHash}|${salt}`).digest("hex");
+  }
+  return activeFingerprint;
 }
 
 function generateSessionId() {
@@ -74,6 +97,8 @@ function injectSystemMarker(body) {
 function resetJwtCache() {
   cachedJwt = null;
   jwtExpiresAt = 0;
+  activeUserAgent = null;
+  activeFingerprint = null;
 }
 
 async function bootstrapJwt(proxyOptions = null) {
@@ -85,9 +110,9 @@ async function bootstrapJwt(proxyOptions = null) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "User-Agent": USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
+      "User-Agent": getActiveUserAgent(),
     },
-    body: JSON.stringify({ client: generateFingerprint() }),
+    body: JSON.stringify({ client: getActiveFingerprint() }),
   }, proxyOptions);
 
   if (!response.ok) {
@@ -118,7 +143,7 @@ export class MimoFreeExecutor extends BaseExecutor {
     return {
       "Content-Type": "application/json",
       "X-Mimo-Source": "mimocode-cli-free",
-      "User-Agent": USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
+      "User-Agent": getActiveUserAgent(),
       "x-session-affinity": this.sessionId,
       "Accept": stream ? "text/event-stream" : "application/json",
     };
@@ -162,6 +187,7 @@ export class MimoFreeExecutor extends BaseExecutor {
 export const __test__ = {
   generateFingerprint, generateSessionId, bootstrapJwt, resetJwtCache, parseJwtExp,
   injectSystemMarker, MIMO_SYSTEM_MARKER, BOOTSTRAP_URL, CHAT_URL, SESSION_AFFINITY_PREFIX,
+  getActiveUserAgent, getActiveFingerprint,
 };
 
 export default MimoFreeExecutor;

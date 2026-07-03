@@ -125,9 +125,19 @@ try {
 // Step 2: Clean old app/cli/app if exists
 console.log("2️⃣  Cleaning old app/cli/app...");
 if (fs.existsSync(cliAppDir)) {
-  fs.rmSync(cliAppDir, { recursive: true, force: true });
+  try {
+    fs.rmSync(cliAppDir, { recursive: true, force: true });
+    console.log("✅ Cleaned\n");
+  } catch (err) {
+    if (err.code === "EPERM" || err.code === "EBUSY" || err.code === "EACCES") {
+      console.warn(`⚠️  Warning: Could not clean cli/app directory (${err.code}). A process might be running. Will attempt to overwrite files directly...\n`);
+    } else {
+      throw err;
+    }
+  }
+} else {
+  console.log("✅ Cleaned (directory did not exist)\n");
 }
-console.log("✅ Cleaned\n");
 
 // Step 3: Copy Next.js standalone build to app/cli/app.
 // Newer Next.js standalone output writes server.js/package.json plus .next/, src/, and

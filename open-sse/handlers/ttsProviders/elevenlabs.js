@@ -22,27 +22,46 @@ export async function fetchElevenLabsVoices(apiKey) {
 }
 
 export default {
-  async synthesize(text, model, credentials) {
+  async synthesize(text, model, credentials, responseFormat, options = {}) {
     if (!credentials?.apiKey) throw new Error("ElevenLabs API key required");
     let modelId = "eleven_flash_v2_5";
     let voiceId = model;
     if (model && model.includes("/")) [modelId, voiceId] = model.split("/");
 
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: "POST",
-      headers: { "xi-api-key": credentials.apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text,
-        model_id: modelId,
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-      }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.detail?.message || `ElevenLabs TTS failed: ${res.status}`);
+    const { wantStream = false } = options;
+
+    if (wantStream) {
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
+        method: "POST",
+        headers: { "xi-api-key": credentials.apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          model_id: modelId,
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.detail?.message || `ElevenLabs TTS failed: ${res.status}`);
+      }
+      return { stream: res.body, format: "mp3" };
+    } else {
+      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: "POST",
+        headers: { "xi-api-key": credentials.apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          model_id: modelId,
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.detail?.message || `ElevenLabs TTS failed: ${res.status}`);
+      }
+      const buf = await res.arrayBuffer();
+      if (buf.byteLength < 1024) throw new Error("ElevenLabs TTS returned empty audio");
+      return { base64: Buffer.from(buf).toString("base64"), format: "mp3" };
     }
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength < 1024) throw new Error("ElevenLabs TTS returned empty audio");
-    return { base64: Buffer.from(buf).toString("base64"), format: "mp3" };
   },
 };

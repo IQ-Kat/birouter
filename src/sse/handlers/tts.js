@@ -20,7 +20,7 @@ const CREDENTIALED_PROVIDERS = new Set(
     .map(([id]) => id)
 );
 
-export async function handleTts(request) {
+export async function handleTts(request, wantStream = false) {
   let body;
   try {
     body = await request.json();
@@ -68,7 +68,7 @@ export async function handleTts(request) {
     return handleComboChat({
       body,
       models: comboModels,
-      handleSingleModel: (b, m) => handleSingleModelTts(b, m, responseFormat, language),
+      handleSingleModel: (b, m) => handleSingleModelTts(b, m, responseFormat, language, request, settings, wantStream),
       log,
       comboName: modelStr,
       comboStrategy,
@@ -76,10 +76,10 @@ export async function handleTts(request) {
     });
   }
 
-  return handleSingleModelTts(body, modelStr, responseFormat, language);
+  return handleSingleModelTts(body, modelStr, responseFormat, language, request, settings, wantStream);
 }
 
-async function handleSingleModelTts(body, modelStr, responseFormat, language) {
+async function handleSingleModelTts(body, modelStr, responseFormat, language, request, settings, wantStream = false) {
   const modelInfo = await getModelInfo(modelStr);
   if (!modelInfo.provider) return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format");
 
@@ -88,7 +88,7 @@ async function handleSingleModelTts(body, modelStr, responseFormat, language) {
 
   // noAuth providers — no credential needed
   if (!CREDENTIALED_PROVIDERS.has(provider)) {
-    const result = await handleTtsCore({ provider, model, input: body.input, responseFormat, language });
+    const result = await handleTtsCore({ provider, model, input: body.input, responseFormat, language, wantStream });
     if (result.success) return result.response;
     return errorResponse(result.status || HTTP_STATUS.BAD_GATEWAY, result.error || "TTS failed");
   }
@@ -122,7 +122,7 @@ async function handleSingleModelTts(body, modelStr, responseFormat, language) {
     });
 
     try {
-    const result = await handleTtsCore({ provider, model, input: body.input, credentials, responseFormat, language });
+    const result = await handleTtsCore({ provider, model, input: body.input, credentials, responseFormat, language, wantStream });
 
     if (result.success) return result.response;
 

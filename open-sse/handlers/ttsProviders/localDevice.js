@@ -1,7 +1,7 @@
 // Local device TTS — macOS `say` + Windows SAPI + ffmpeg
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -65,14 +65,47 @@ export async function fetchLocalDeviceVoices() {
 
 async function synthesizeMacOrWin(text, voiceId) {
   const dir = await mkdtemp(join(tmpdir(), "tts-"));
-  const aiffPath = join(dir, "out.aiff");
-  const mp3Path = join(dir, "out.mp3");
+  const textPath = join(dir, "input.txt");
+  const wavPath = join(dir, "out.wav");
+  await writeFile(textPath, text, "utf-8");
+
   try {
-    const args = voiceId ? ["-v", voiceId, "-o", aiffPath, text] : ["-o", aiffPath, text];
-    await execFileAsync("say", args);
-    await execFileAsync("ffmpeg", ["-y", "-i", aiffPath, "-codec:a", "libmp3lame", "-qscale:a", "4", mp3Path]);
-    const buf = await readFile(mp3Path);
-    return buf.toString("base64");
+    if (process.platform === "win32") {
+      // Windows: use PowerShell System.Speech
+      const script = [
+        "Add-Type -AssemblyName System.Speech;",
+        "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;",
+        voiceId ? `$s.SelectVoice(${JSON.stringify(voiceId)});` : "",
+        `$s.SetOutputToWaveFile(${JSON.stringify(wavPath)});`,
+        `$text = Get-Content -Raw -Path ${JSON.stringify(textPath)} -Encoding UTF8;`,
+        "$s.Speak($text);",
+        "$s.Dispose();"
+      ].join(" ");
+
+      await execFileAsync(
+        "powershell.exe",
+        ["-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", script],
+        { windowsHide: true }
+      );
+    } else {
+      // macOS: use say command
+      const args = voiceId
+        ? ["-v", voiceId, "-f", textPath, "-o", wavPath, "--file-format=WAVE"]
+        : ["-f", textPath, "-o", wavPath, "--file-format=WAVE"];
+      await execFileAsync("say", args);
+    }
+
+    // Try converting to mp3 with ffmpeg if available (optional optimization), otherwise fallback to wav
+    const mp3Path = join(dir, "out.mp3");
+    try {
+      await execFileAsync("ffmpeg", ["-y", "-i", wavPath, "-codec:a", "libmp3lame", "-qscale:a", "4", mp3Path]);
+      const buf = await readFile(mp3Path);
+      return { base64: buf.toString("base64"), format: "mp3" };
+    } catch {
+      // If ffmpeg is missing/fails, read WAV directly
+      const buf = await readFile(wavPath);
+      return { base64: buf.toString("base64"), format: "wav" };
+    }
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -81,7 +114,7 @@ async function synthesizeMacOrWin(text, voiceId) {
 export default {
   noAuth: true,
   async synthesize(text, model) {
-    const base64 = await synthesizeMacOrWin(text, model);
-    return { base64, format: "mp3" };
+    const { base64, format } = await synthesizeMacOrWin(text, model);
+    return { base64, format };
   },
 };
