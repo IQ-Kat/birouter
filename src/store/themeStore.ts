@@ -58,7 +58,7 @@ const useThemeStore = create<ThemeState>()(
 );
 
 export const COLOR_THEMES: Record<string, string> = {
-  coral: "#e54d5e",
+  coral: "#0ea5e9",
   blue: "#3b82f6",
   red: "#ef4444",
   green: "#22c55e",

@@ -543,7 +543,7 @@ export function WeeklySquares7d({ activityMap }) {
   function getSquareStyle(intensity) {
     if (intensity === 0) return { background: "rgba(255,255,255,0.04)" };
     const opacity = 0.15 + intensity * 0.75;
-    return { background: `rgba(229, 77, 94, ${opacity.toFixed(2)})` };
+    return { background: `rgba(14, 165, 233, ${opacity.toFixed(2)})` };
   }
 
   return (

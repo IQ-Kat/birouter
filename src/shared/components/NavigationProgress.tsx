@@ -97,7 +97,7 @@ export default function NavigationProgress() {
         style={{
           width: `${progress}%`,
           opacity: progress >= 100 ? 0 : 1,
-          boxShadow: "0 0 10px rgba(99, 102, 241, 0.6), 0 0 4px rgba(229, 77, 94, 0.4)",
+          boxShadow: "0 0 10px rgba(99, 102, 241, 0.6), 0 0 4px rgba(14, 165, 233, 0.4)",
         }}
       />
     </div>
