@@ -4,6 +4,8 @@
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
+    "birouter": "bin/omniroute.mjs",
+    "birouter-reset-password": "bin/reset-password.mjs",
     "omniroute": "bin/omniroute.mjs",
     "omniroute-reset-password": "bin/reset-password.mjs"
   },
