@@ -76,12 +76,12 @@ export async function runServe(opts = {}) {
   const noOpen = opts.open === false;
 
   console.log(`
-\x1b[36m   ____                  _ ____              _
-   / __ \\                (_) __ \\            | |
-  | |  | |_ __ ___  _ __ _| |__) |___  _   _| |_ ___
-  | |  | | '_ \` _ \\| '_ \\ |  _  // _ \\| | | | __/ _ \\
-  | |__| | | | | | | | | | | | \\ \\ (_) | |_| | ||  __/
-   \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
+\x1b[36m   ____  _                     _
+  |  _ \\(_)               _   | |
+  | |_) |_ _ __ ___  _   | |_ | |_ ___  _ __
+  |  _ <| | '__/ _ \\| | | |  _|| __/ _ \\| '__|
+  | |_) | | | | (_) | |_| | |_ | ||  __/| |
+  |____/|_|_|  \\___/ \\__,_|\\__| \\__\\___||_|
 \x1b[0m`);
   console.log(`\x1b[2m  v${_pkg.version}\x1b[0m\n`);
 
@@ -382,7 +382,7 @@ async function maybeStartTray(port, apiPort, supervisor) {
   } catch (err) {
     // tray is optional — do not fail the server, but surface why it failed so
     // "--tray shows nothing" is diagnosable instead of silent (#4605).
-    process.stderr.write(`[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`);
+    process.stderr.write(`[birouter][tray] failed to start: ${err?.message ?? String(err)}\n`);
   }
 }
 
@@ -395,7 +395,7 @@ async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
       : "0.0";
 
   console.log(`
-  \x1b[32m✔ OmniRoute is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
+  \x1b[32m✔ Birouter is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
 
   \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
   \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1
