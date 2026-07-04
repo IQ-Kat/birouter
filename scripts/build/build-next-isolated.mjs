@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs/promises";
+import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -10,6 +11,60 @@ import {
   syncStandaloneNativeAssets as _syncNativeAssets,
   syncStandaloneExtraModules as _syncExtraModules,
 } from "./assembleStandalone.mjs";
+
+// --- Load .env early ---
+// next.config.mjs is evaluated inside the spawned `next build` child process
+// BEFORE Next.js's own dotenv loader runs, so build-control flags like
+// OMNIROUTE_BUILD_STANDALONE must be available in process.env before spawn().
+// We do a minimal .env parse here (no overriding existing vars, no interpolation)
+// to mirror Next.js's own dotenv precedence rules.
+{
+  const envPath = path.resolve(process.cwd(), ".env");
+  try {
+    const raw = fsSync.readFileSync(envPath, "utf8");
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx < 1) continue;
+      const key = trimmed.slice(0, eqIdx).trim();
+      const val = trimmed
+        .slice(eqIdx + 1)
+        .trim()
+        .replace(/^["']|["']$/g, "");
+      if (!(key in process.env)) process.env[key] = val;
+    }
+  } catch {
+    // .env is optional — ignore if missing
+  }
+}
+// --- end Load .env early ---
+
+// --- Windows EPERM guard ---
+// On Windows, @vercel/nft (used by Next.js file tracing) traverses the project
+// root and follows NTFS junction symlinks (e.g. "Application Data", "Cookies")
+// into system-protected directories. These generate EPERM errors that surface as
+// unhandledRejections and crash the webpack compilation with a misleading
+// "Cannot read properties of undefined (reading 'server')" error.
+// We suppress EPERM / EACCES unhandled rejections that originate from scandir /
+// lstat / readdir syscalls so that Next.js file tracing continues gracefully.
+if (process.platform === "win32") {
+  process.on("unhandledRejection", (reason) => {
+    const code = /** @type {any} */ (reason)?.code;
+    const syscall = /** @type {any} */ (reason)?.syscall;
+    if (
+      (code === "EPERM" || code === "EACCES") &&
+      (syscall === "scandir" || syscall === "lstat" || syscall === "readdir" || syscall === "open")
+    ) {
+      // Benign: Windows system junction folder traversal — not a real build error.
+      return;
+    }
+    // Re-throw anything else so real errors are still surfaced.
+    console.error("[build-next-isolated] Unhandled rejection:", reason);
+    process.exitCode = 1;
+  });
+}
+// --- end Windows EPERM guard ---
 
 /**
  * Layer 1: `app/` has been renamed to `dist/` and the App-Router collision is gone.
@@ -109,7 +164,8 @@ export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
 export function resolveNextBuildEnv(baseEnv = process.env) {
   const env = {
     ...baseEnv,
-    NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
+    NODE_ENV: "production",
+    NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "1",
   };
 
   // Raise the Node heap for the spawned `next build`. The webpack production pass
@@ -125,8 +181,32 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
     // headroom without risk. NOTE: heap size does NOT fix a poisoned scope — if the build
     // OOMs/livelocks far above this, check for worktrees/cruft leaking into the tsconfig
     // scope (run `npm run check:build-scope`), not for "more heap". See incident 2026-06-25.
-    const heapMb = Number(baseEnv.OMNIROUTE_BUILD_MEMORY_MB) || 8192;
+    const heapMb = Number(baseEnv.OMNIROUTE_BUILD_MEMORY_MB) || 14336;
     env.NODE_OPTIONS = `${env.NODE_OPTIONS || ""} --max-old-space-size=${heapMb}`.trim();
+  }
+
+  // On Windows, @vercel/nft (Next.js file tracer) traverses NTFS junction symlinks
+  // (e.g. C:\Users\<user>\Application Data, Cookies) into system-protected directories.
+  // These generate EPERM unhandledRejections that crash the FlightClientEntryPlugin
+  // mid-compilation. Suppress unhandled rejections in the child next build process
+  // on Windows only; Linux/macOS CI still gets the strict default.
+  if (process.platform === "win32" && !/--unhandled-rejections=/.test(env.NODE_OPTIONS || "")) {
+    env.NODE_OPTIONS = `${env.NODE_OPTIONS || ""} --unhandled-rejections=none`.trim();
+  }
+
+  // On Windows, inject a --require hook that patches Node.js's built-in fs.readdir
+  // to return empty arrays for NTFS junction EPERM errors (Application Data, Cookies, etc.)
+  // instead of throwing. This intercepts the EPERM at the lowest level — before it can
+  // propagate through any webpack plugin, NFT, glob, or FileSystemInfo code path.
+  if (process.platform === "win32") {
+    // Use forward slashes: Node.js accepts them on Windows and they don't get
+    // mangled when embedded in NODE_OPTIONS string.
+    const interceptorPath = path
+      .resolve(projectRoot, "scripts", "build", "win32-fs-eperm-interceptor.cjs")
+      .replace(/\\/g, "/");
+    if (!/win32-fs-eperm-interceptor/.test(env.NODE_OPTIONS || "")) {
+      env.NODE_OPTIONS = `${env.NODE_OPTIONS || ""} --require "${interceptorPath}"`.trim();
+    }
   }
 
   return env;

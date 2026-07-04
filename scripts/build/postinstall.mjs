@@ -355,3 +355,16 @@ try {
 } catch {
   // Silently skip — runtime warm-up is best-effort.
 }
+
+// Apply Windows NTFS junction EPERM patches to Next.js webpack plugins.
+// These patch two Next.js 16 build plugins so that EPERM errors from
+// Windows NTFS junction symlinks (Application Data, Cookies, etc.) in the
+// user profile are handled gracefully instead of crashing the production build.
+// Safe no-op on Linux/macOS — the patch script is Windows-aware.
+if (process.platform === "win32") {
+  try {
+    await import("../ad-hoc/patch-win32-build.mjs");
+  } catch (patchErr) {
+    console.warn(`  ⚠️  Windows build patch skipped: ${patchErr.message}`);
+  }
+}

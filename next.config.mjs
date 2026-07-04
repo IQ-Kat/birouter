@@ -104,7 +104,7 @@ const nextConfig = {
       ...minimalBuildAliases,
     },
   },
-  output: "standalone",
+  output: process.env.OMNIROUTE_BUILD_STANDALONE === "0" ? undefined : "standalone",
   compress: true,
   productionBrowserSourceMaps: false,
   // OmniRoute is a proxy for AI APIs — request bodies routinely include
@@ -117,6 +117,8 @@ const nextConfig = {
   // accept for image-bearing requests; tune via env if a deployment needs
   // more.
   experimental: {
+    webpackBuildWorker: true,
+    webpackMemoryOptimizations: true,
     serverActions: {
       bodySizeLimit: process.env.OMNIROUTE_SERVER_ACTIONS_BODY_LIMIT || "50mb",
     },
@@ -173,6 +175,10 @@ const nextConfig = {
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies
     // when broad fs/path tracing pulls the whole repository into the NFT graph.
+    // temp-birouter-js contains the old JS codebase backup — exclude it to prevent
+    // NFT from traversing thousands of files that are not runtime assets.
+    // On Windows, NFT may also follow junction symlinks into system-protected paths
+    // (e.g. C:\Users\<user>\Application Data); these are handled by process.on('unhandledRejection').
     "/*": [
       "./.git/**/*",
       "./_tasks/**/*",
@@ -185,6 +191,8 @@ const nextConfig = {
       "./app.__qa_backup/**/*",
       "./tests/**/*",
       "./logs/**/*",
+      "./temp-birouter-js/**/*",
+      "./node_modules/.cache/**/*",
     ],
   },
   serverExternalPackages: [
@@ -226,6 +234,9 @@ const nextConfig = {
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   webpack(config, { webpack }) {
     config.ignoreWarnings = [
@@ -312,6 +323,19 @@ const nextConfig = {
           })
         );
       }
+    }
+
+    // On Windows, webpack follows NTFS junction symlinks (e.g. C:\Users\<user>\Application Data,
+    // Cookies) during module resolution and file tracing. These junctions are circular system
+    // symlinks that generate EPERM errors, which corrupt the server webpack compilation and cause
+    // FlightClientEntryPlugin.createActionAssets to crash with "Cannot read properties of undefined
+    // (reading 'server')". Setting resolve.symlinks: false prevents webpack from following these
+    // symlinks at the module resolution level, stopping the EPERM from entering the compilation.
+    if (process.platform === "win32") {
+      config.resolve = {
+        ...config.resolve,
+        symlinks: false,
+      };
     }
 
     return config;

@@ -18,6 +18,7 @@ import { ensurePersistentManagementPasswordHash } from "./lib/auth/managementPas
 import { skillExecutor } from "./lib/skills/executor";
 import { registerBuiltinSkills } from "./lib/skills/builtins";
 import { createLogger } from "./shared/utils/logger";
+import { startTunnelWatchdog } from "./lib/tunnelWatchdog";
 
 const startupLog = createLogger("server-init");
 
@@ -117,6 +118,10 @@ async function startServer() {
     startReasoningCacheCleanupJob();
     startCleanupScheduler();
     startRuntimeConfigHotReload();
+
+    // Auto-resume tunnels and MITM proxy if previously running/enabled
+    startTunnelWatchdog();
+
     startupLog.info("Server started with cloud sync initialized");
 
     // Log server start event to audit log

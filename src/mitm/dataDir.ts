@@ -1,7 +1,7 @@
 import os from "os";
 import path from "path";
 
-const APP_NAME = "omniroute";
+const APP_NAME = "birouter";
 
 function fallbackHomeDir(): string {
   const envHome = process.env.HOME || process.env.USERPROFILE;

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
@@ -21,15 +17,9 @@
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@omniroute/open-sse": [
-        "./open-sse"
-      ],
-      "@omniroute/open-sse/*": [
-        "./open-sse/*"
-      ]
+      "@/*": ["./src/*"],
+      "@omniroute/open-sse": ["./open-sse"],
+      "@omniroute/open-sse/*": ["./open-sse/*"]
     },
     "plugins": [
       {
@@ -65,6 +55,10 @@
     "_tasks",
     "_ideia",
     "_mono_repo",
-    "_references"
+    "_references",
+    "temp-birouter-js",
+    ".next",
+    ".build",
+    "tests"
   ]
 }

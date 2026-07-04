@@ -140,13 +140,13 @@ function resolveDataDir(overridePath, env = process.env) {
 
   if (process.platform === "win32") {
     const appData = env.APPDATA || path.join(require("os").homedir(), "AppData", "Roaming");
-    return path.join(appData, "omniroute");
+    return path.join(appData, "birouter");
   }
 
   const xdg = env.XDG_CONFIG_HOME?.trim();
-  if (xdg) return path.join(path.resolve(xdg), "omniroute");
+  if (xdg) return path.join(path.resolve(xdg), "birouter");
 
-  return path.join(require("os").homedir(), ".omniroute");
+  return path.join(require("os").homedir(), ".birouter");
 }
 
 function getPreferredEnvFilePath(env = process.env) {
@@ -246,7 +246,7 @@ function setupAutoUpdater() {
 
     if (Notification.isSupported()) {
       const notification = new Notification({
-        title: "OmniRoute Update Ready",
+        title: "Birouter Update Ready",
         body: `Version ${info.version} is ready to install. Click to restart.`,
       });
       notification.on("click", () => {
@@ -353,7 +353,7 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: "OmniRoute",
+    title: "Birouter",
     icon: path.join(RESOURCES_PATH, "assets", "icon.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -440,7 +440,7 @@ function createTray() {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: "Open OmniRoute",
+      label: "Open Birouter",
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -478,7 +478,7 @@ function createTray() {
     },
   ]);
 
-  tray.setToolTip("OmniRoute");
+  tray.setToolTip("Birouter");
   tray.setContextMenu(contextMenu);
 
   tray.on("double-click", () => {
@@ -723,15 +723,15 @@ function enableLinuxDesktopAutostart() {
       [
         "[Desktop Entry]",
         "Type=Application",
-        "Name=OmniRoute",
-        "Comment=OmniRoute Desktop Client",
+        "Name=Birouter",
+        "Comment=Birouter Desktop Client",
         `Exec="${execPath}" --hidden`,
         "Terminal=false",
         "Hidden=false",
         "X-GNOME-Autostart-enabled=true",
       ].join("\n") + "\n";
 
-    fs.writeFileSync(path.join(autostartDir, "omniroute-desktop.desktop"), desktopFileContent, {
+    fs.writeFileSync(path.join(autostartDir, "birouter-desktop.desktop"), desktopFileContent, {
       mode: 0o644,
     });
     return true;
@@ -746,12 +746,7 @@ function disableLinuxDesktopAutostart() {
     const os = require("os");
     const fs = require("fs");
     const path = require("path");
-    const desktopPath = path.join(
-      os.homedir(),
-      ".config",
-      "autostart",
-      "omniroute-desktop.desktop"
-    );
+    const desktopPath = path.join(os.homedir(), ".config", "autostart", "birouter-desktop.desktop");
     if (fs.existsSync(desktopPath)) {
       fs.unlinkSync(desktopPath);
     }
@@ -768,7 +763,7 @@ function isLinuxDesktopAutostartEnabled() {
     const fs = require("fs");
     const path = require("path");
     return fs.existsSync(
-      path.join(os.homedir(), ".config", "autostart", "omniroute-desktop.desktop")
+      path.join(os.homedir(), ".config", "autostart", "birouter-desktop.desktop")
     );
   } catch {
     return false;

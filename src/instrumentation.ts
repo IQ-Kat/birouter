@@ -9,6 +9,13 @@
  */
 
 export async function register() {
+  // Guard: do not run server-startup instrumentation during the build phase.
+  // Next.js executes register() during `next build`, which would otherwise
+  // spin up all background timers, database connections, and API bridges.
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return;
+  }
+
   if (process.env.NEXT_RUNTIME === "nodejs") {
     // Literal path so Webpack emits the chunk (computed string breaks dev:
     // MODULE_NOT_FOUND for ./instrumentation-node at runtime).
