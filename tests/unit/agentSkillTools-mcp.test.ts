@@ -43,8 +43,14 @@ test("agentSkillTools exports exactly 3 tools", () => {
 
 test("each agentSkillTool has name, description, inputSchema, and handler", () => {
   for (const toolDef of Object.values(agentSkillTools)) {
-    assert.ok(typeof toolDef.name === "string" && toolDef.name.length > 0, `${toolDef.name}: name missing`);
-    assert.ok(typeof toolDef.description === "string" && toolDef.description.length > 0, `${toolDef.name}: description missing`);
+    assert.ok(
+      typeof toolDef.name === "string" && toolDef.name.length > 0,
+      `${toolDef.name}: name missing`
+    );
+    assert.ok(
+      typeof toolDef.description === "string" && toolDef.description.length > 0,
+      `${toolDef.name}: description missing`
+    );
     assert.ok(toolDef.inputSchema != null, `${toolDef.name}: inputSchema missing`);
     assert.ok(typeof toolDef.handler === "function", `${toolDef.name}: handler missing`);
   }
@@ -165,7 +171,7 @@ test("omniroute_agent_skills_coverage({}) returns coverage shape", async () => {
   assert.equal(result.cli.total, 20);
   assert.ok(typeof result.api.have === "number");
   assert.ok(typeof result.cli.have === "number");
-  assert.ok(result.api.have >= 0 && result.api.have <= 22);
+  assert.ok(result.api.have >= 0 && result.api.have <= 23);
   assert.ok(result.cli.have >= 0 && result.cli.have <= 20);
   assert.ok(typeof result.totalSkills === "number");
   assert.equal(result.totalSkills, result.api.have + result.cli.have + (result.config?.have ?? 0));

@@ -97,6 +97,7 @@ export async function validateResponseQuality(
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
     let anyContentFound = false;
+    let sawAnyBytes = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -234,11 +235,13 @@ export async function validateResponseQuality(
             return { valid: false, reason: "streaming empty content block" };
           }
 
-          // Non-Claude stream with no recognizable content at all — the stream
-          // ended without any content deltas (e.g. Gemini returning HTTP 200
-          // with an empty body or only metadata chunks). Mark as invalid for
-          // combo failover so the sibling model gets tried.
-          if (!anyContentFound && !hasContentBlock) {
+          // Stream ended with a truly EMPTY body (e.g. Gemini returning HTTP
+          // 200 with zero bytes) — mark as invalid for combo failover so the
+          // sibling model gets tried. Streams that carried ANY SSE activity
+          // (an explicit `data: [DONE]`, ping/metadata events, an incomplete
+          // Claude lifecycle) keep the pass-through contract (#3399/#3685):
+          // those are handled by the stream-readiness timeout, not failover.
+          if (!anyContentFound && !hasContentBlock && !sawAnyBytes) {
             log.warn?.(
               "COMBO",
               "Streaming response ended with no recognized content — marking as invalid for combo failover"
@@ -255,6 +258,7 @@ export async function validateResponseQuality(
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
+        if (value && value.length > 0) sawAnyBytes = true;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
