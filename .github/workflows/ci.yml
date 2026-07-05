@@ -506,7 +506,15 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    # Dynamic runner: when the release captain flips the USE_VPS_RUNNER repo var to
+    # 'true' (scripts/vps/release-runner-up.sh does it after the self-hosted VM is
+    # online), the heavy jobs run on the dedicated 32-core VPS runners (label
+    # omni-release) instead of queueing on the 20-concurrent-job hosted pool.
+    # Safety: fork PRs NEVER reach the self-hosted runner — the expression falls
+    # back to ubuntu-latest unless the PR head repo is this repository (push /
+    # dispatch events are own-origin by definition). Any failure path (VM down,
+    # var unset/false) also falls back to ubuntu-latest.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
@@ -621,7 +629,8 @@ jobs:
 
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
+    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     timeout-minutes: 25
     # needs: changes (not build) — this job never downloads the next-build artifact;
     # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
@@ -675,7 +684,8 @@ jobs:
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
-    runs-on: ubuntu-latest
+    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     timeout-minutes: 15
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
