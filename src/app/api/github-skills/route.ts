@@ -11,6 +11,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { searchGitHubSkills } from "@/lib/skills/githubCollector";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +32,8 @@ export async function GET(request: NextRequest) {
     let filtered = repos;
     if (minScore > 0) filtered = filtered.filter((r) => r.score >= minScore);
     if (query) {
-      const q = query.toLowerCase();
       filtered = filtered.filter(
-        (r) => r.fullName.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)
+        (r) => matchesSearch(r.fullName, query) || matchesSearch(r.description, query)
       );
     }
 

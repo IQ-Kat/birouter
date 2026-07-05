@@ -23,7 +23,7 @@ test("saveCallLog persists to DB with correlationId", async () => {
 
   const row = db
     .prepare("SELECT id, correlation_id, status, model FROM call_logs WHERE id = ?")
-    .get(testId) as any;
+    .get(testId) as Record<string, unknown>;
   assert.ok(row, "row should exist in call_logs");
   assert.equal(row.id, testId);
   assert.equal(row.correlation_id, "test-correlation-id-123");
@@ -50,7 +50,7 @@ test("saveCallLog persists null correlationId when not provided", async () => {
 
   const row = db
     .prepare("SELECT id, correlation_id FROM call_logs WHERE id = ?")
-    .get(testId) as any;
+    .get(testId) as Record<string, unknown>;
   assert.ok(row, "row should exist");
   assert.equal(row.correlation_id, null, "correlation_id should be null when not provided");
 
@@ -74,7 +74,7 @@ test("getCallLogs returns correlationId", async () => {
   });
 
   const logs = await getCallLogs({ limit: 100 });
-  const found = logs.find((l: any) => l.id === testId);
+  const found = logs.find((l: { id: string }) => l.id === testId);
   assert.ok(found, "log entry should be found via getCallLogs");
   assert.equal(found.correlationId, "cid-roundtrip-test");
 
@@ -83,12 +83,12 @@ test("getCallLogs returns correlationId", async () => {
 
 test("call_logs table has correlation_id column", () => {
   const db = getDbInstance();
-  const columns = db.prepare("PRAGMA table_info(call_logs)").all() as any[];
-  const colNames = columns.map((c: any) => c.name);
+  const columns = db.prepare("PRAGMA table_info(call_logs)").all() as { name: string }[];
+  const colNames = columns.map((c) => c.name);
   assert.ok(colNames.includes("correlation_id"), "call_logs should have correlation_id column");
 
-  const indexes = db.prepare("PRAGMA index_list(call_logs)").all() as any[];
-  const idxNames = indexes.map((i: any) => i.name);
+  const indexes = db.prepare("PRAGMA index_list(call_logs)").all() as { name: string }[];
+  const idxNames = indexes.map((i) => i.name);
   assert.ok(
     idxNames.includes("idx_cl_correlation_id"),
     "call_logs should have idx_cl_correlation_id index"
@@ -97,8 +97,8 @@ test("call_logs table has correlation_id column", () => {
 
 test("call_logs table has model_pinned column", () => {
   const db = getDbInstance();
-  const columns = db.prepare("PRAGMA table_info(call_logs)").all() as any[];
-  const colNames = columns.map((c: any) => c.name);
+  const columns = db.prepare("PRAGMA table_info(call_logs)").all() as { name: string }[];
+  const colNames = columns.map((c) => c.name);
   assert.ok(colNames.includes("model_pinned"), "call_logs should have model_pinned column");
 });
 
@@ -118,7 +118,9 @@ test("saveCallLog persists modelPinned=true as 1", async () => {
     modelPinned: true,
   });
 
-  const row = db.prepare("SELECT id, model_pinned FROM call_logs WHERE id = ?").get(testId) as any;
+  const row = db
+    .prepare("SELECT id, model_pinned FROM call_logs WHERE id = ?")
+    .get(testId) as Record<string, unknown>;
   assert.ok(row, "row should exist");
   assert.equal(row.model_pinned, 1, "model_pinned should be 1 when modelPinned=true");
 
@@ -141,7 +143,9 @@ test("saveCallLog persists modelPinned=false as 0", async () => {
     modelPinned: false,
   });
 
-  const row = db.prepare("SELECT id, model_pinned FROM call_logs WHERE id = ?").get(testId) as any;
+  const row = db
+    .prepare("SELECT id, model_pinned FROM call_logs WHERE id = ?")
+    .get(testId) as Record<string, unknown>;
   assert.ok(row, "row should exist");
   assert.equal(row.model_pinned, 0, "model_pinned should be 0 when modelPinned=false");
 
@@ -165,7 +169,7 @@ test("getCallLogs returns modelPinned boolean", async () => {
   });
 
   const logs = await getCallLogs({ limit: 100 });
-  const found = logs.find((l: any) => l.id === testId);
+  const found = logs.find((l: { id: string }) => l.id === testId);
   assert.ok(found, "log entry should be found via getCallLogs");
   assert.equal(found.modelPinned, true, "getCallLogs should return modelPinned as boolean true");
 

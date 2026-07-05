@@ -1392,11 +1392,6 @@
       "count": 1
     }
   },
-  "tests/unit/executor-kiro.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "tests/unit/executor-nlpcloud.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -2000,11 +1995,6 @@
   "tests/unit/safe-outbound-fetch.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 9
-    }
-  },
-  "tests/unit/save-call-log-persistence.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
     }
   },
   "tests/unit/schema-coercion.test.ts": {

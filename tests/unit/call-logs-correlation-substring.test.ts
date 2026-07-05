@@ -22,15 +22,54 @@ function seedLogs() {
   db.prepare(
     `INSERT OR REPLACE INTO call_logs (id, timestamp, method, path, status, model, provider, account, duration, tokens_in, tokens_out, correlation_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("log-1", now, "POST", "/v1/chat/completions", 200, "gpt-4", "openai", "acc1", 100, 10, 20, "abc123-def456-ghi789");
+  ).run(
+    "log-1",
+    now,
+    "POST",
+    "/v1/chat/completions",
+    200,
+    "gpt-4",
+    "openai",
+    "acc1",
+    100,
+    10,
+    20,
+    "abc123-def456-ghi789"
+  );
   db.prepare(
     `INSERT OR REPLACE INTO call_logs (id, timestamp, method, path, status, model, provider, account, duration, tokens_in, tokens_out, correlation_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("log-2", now, "POST", "/v1/chat/completions", 200, "claude-3", "anthropic", "acc2", 200, 15, 30, "xyz999-uvw888-tsr777");
+  ).run(
+    "log-2",
+    now,
+    "POST",
+    "/v1/chat/completions",
+    200,
+    "claude-3",
+    "anthropic",
+    "acc2",
+    200,
+    15,
+    30,
+    "xyz999-uvw888-tsr777"
+  );
   db.prepare(
     `INSERT OR REPLACE INTO call_logs (id, timestamp, method, path, status, model, provider, account, duration, tokens_in, tokens_out, correlation_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("log-3", now, "POST", "/v1/chat/completions", 500, "gpt-4", "openai", "acc1", 50, 0, 0, null);
+  ).run(
+    "log-3",
+    now,
+    "POST",
+    "/v1/chat/completions",
+    500,
+    "gpt-4",
+    "openai",
+    "acc1",
+    50,
+    0,
+    0,
+    null
+  );
 }
 
 // ── Exact match ───────────────────────────────────────────────────────────
@@ -72,11 +111,24 @@ test("correlationId substring match returns multiple when shared", async () => {
   db.prepare(
     `INSERT OR REPLACE INTO call_logs (id, timestamp, method, path, status, model, provider, account, duration, tokens_in, tokens_out, correlation_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("log-4", now, "POST", "/v1/chat/completions", 200, "gpt-4", "openai", "acc1", 100, 10, 20, "abc123-RETRY-suffix");
+  ).run(
+    "log-4",
+    now,
+    "POST",
+    "/v1/chat/completions",
+    200,
+    "gpt-4",
+    "openai",
+    "acc1",
+    100,
+    10,
+    20,
+    "abc123-RETRY-suffix"
+  );
 
   const results = await callLogs.getCallLogs({ correlationId: "abc123" });
   assert.equal(results.length, 2);
-  const ids = results.map((r: any) => r.id).sort();
+  const ids = results.map((r: { id: string }) => r.id).sort();
   assert.deepEqual(ids, ["log-1", "log-4"]);
 });
 
@@ -94,7 +146,7 @@ test("rows with null correlationId are excluded from substring search", async ()
   seedLogs();
   // Search for a unique substring that only matches log-1
   const results = await callLogs.getCallLogs({ correlationId: "ghi789" });
-  const ids = results.map((r: any) => r.id);
+  const ids = results.map((r: { id: string }) => r.id);
   assert.ok(!ids.includes("log-3"), "null correlation_id rows must be excluded");
   assert.equal(results.length, 1);
 });
