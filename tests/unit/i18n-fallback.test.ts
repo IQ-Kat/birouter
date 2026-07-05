@@ -17,7 +17,11 @@ test("deepMergeFallback: locale-specific key is preserved when source has the sa
   const target: Record<string, unknown> = { greeting: "Hola" };
   const source: Record<string, unknown> = { greeting: "Hello" };
   const result = deepMergeFallback(target, source);
-  assert.equal(result.greeting, "Hola", "target value must survive when both target and source have the key");
+  assert.equal(
+    result.greeting,
+    "Hola",
+    "target value must survive when both target and source have the key"
+  );
 });
 
 test("deepMergeFallback: returns the same target reference (mutates in-place)", () => {
@@ -91,10 +95,13 @@ test("deepMergeFallback: three levels deep — target wins at all levels", () =>
     l1: { l2: { l3: { key: "fallback", extra: "extra-en" }, l2extra: "l2extra-en" } },
   };
   const result = deepMergeFallback(target, source);
-  const l3 = (((result.l1 as Record<string, unknown>).l2 as Record<string, unknown>).l3 as Record<string, unknown>);
+  const l3 = ((result.l1 as Record<string, unknown>).l2 as Record<string, unknown>).l3 as Record<
+    string,
+    unknown
+  >;
   assert.equal(l3.key, "locale");
   assert.equal(l3.extra, "extra-en");
-  const l2 = ((result.l1 as Record<string, unknown>).l2 as Record<string, unknown>);
+  const l2 = (result.l1 as Record<string, unknown>).l2 as Record<string, unknown>;
   assert.equal(l2.l2extra, "l2extra-en");
 });
 
@@ -204,11 +211,19 @@ test("realistic i18n: es locale with partial translations falls back to EN for m
   // Simulate what the factory does: shallow copy first so we don't mutate the import cache
   const messages = deepMergeFallback({ ...esLocale }, enFallback);
 
-  assert.equal(messages.namespace1, esLocale.namespace1, "namespace1 object is the same reference (mutated in-place)");
+  assert.equal(
+    messages.namespace1,
+    esLocale.namespace1,
+    "namespace1 object is the same reference (mutated in-place)"
+  );
   const ns1 = messages.namespace1 as Record<string, unknown>;
   assert.equal(ns1.localeKey, "Hola", "locale-specific key wins");
   assert.equal(ns1.fallbackKey, "Fallback EN", "missing key filled from EN fallback");
-  assert.deepEqual(messages.namespace2, { onlyEn: "Only EN" }, "entirely missing namespace filled from EN");
+  assert.deepEqual(
+    messages.namespace2,
+    { onlyEn: "Only EN" },
+    "entirely missing namespace filled from EN"
+  );
 });
 
 test("realistic i18n: en locale — shallow copy means no mutation of original en object", () => {
@@ -236,6 +251,77 @@ test("realistic i18n: locale invalid → DEFAULT_LOCALE applies; merge still wor
   assert.equal(common.save, "Salvar", "locale key wins in default locale");
   assert.equal(common.cancel, "Cancel", "missing key filled from EN");
   assert.deepEqual(messages.extra, { key: "Extra EN" }, "missing namespace filled from EN");
+});
+
+// ---------------------------------------------------------------------------
+// 7b. __MISSING__: sentinel — fallback fills in when locale has placeholder
+// ---------------------------------------------------------------------------
+
+test("deepMergeFallback: __MISSING__ sentinel in target is replaced by EN source value", () => {
+  const target: Record<string, unknown> = {
+    builderNeedValidName: "__MISSING__:Define a valid combo name before continuing.",
+    manualModel: "__MISSING__:Manual model",
+    existingKey: "Sudah diterjemahkan",
+  };
+  const source: Record<string, unknown> = {
+    builderNeedValidName: "Define a valid combo name before continuing.",
+    manualModel: "Manual model",
+    existingKey: "Existing EN",
+  };
+  const result = deepMergeFallback(target, source);
+  assert.equal(
+    result.builderNeedValidName,
+    "Define a valid combo name before continuing.",
+    "__MISSING__ must be replaced by EN value"
+  );
+  assert.equal(result.manualModel, "Manual model", "__MISSING__ must be replaced by EN value");
+  assert.equal(
+    result.existingKey,
+    "Sudah diterjemahkan",
+    "non-__MISSING__ locale value must be preserved"
+  );
+});
+
+test("deepMergeFallback: __MISSING__ sentinel nested inside namespace is replaced by EN value", () => {
+  const target: Record<string, unknown> = {
+    combos: {
+      builderNeedValidName: "__MISSING__:Define a valid combo name before continuing.",
+      translatedKey: "Kunci diterjemahkan",
+    },
+  };
+  const source: Record<string, unknown> = {
+    combos: {
+      builderNeedValidName: "Define a valid combo name before continuing.",
+      translatedKey: "Translated key",
+    },
+  };
+  const result = deepMergeFallback(target, source);
+  const combos = result.combos as Record<string, unknown>;
+  assert.equal(
+    combos.builderNeedValidName,
+    "Define a valid combo name before continuing.",
+    "nested __MISSING__ must be replaced"
+  );
+  assert.equal(
+    combos.translatedKey,
+    "Kunci diterjemahkan",
+    "nested non-__MISSING__ value must be preserved"
+  );
+});
+
+test("deepMergeFallback: non-__MISSING__ string values with similar prefix are not affected", () => {
+  const target: Record<string, unknown> = {
+    safeString: "__MISSING_NOT_SENTINEL:some value",
+  };
+  const source: Record<string, unknown> = {
+    safeString: "EN value",
+  };
+  const result = deepMergeFallback(target, source);
+  assert.equal(
+    result.safeString,
+    "__MISSING_NOT_SENTINEL:some value",
+    "strings without exact __MISSING__: prefix must be preserved"
+  );
 });
 
 // ---------------------------------------------------------------------------
