@@ -4402,6 +4402,29 @@
       "stream": "https://api.lingyiwanwu.com/v1/chat/completions"
     }
   },
+  "yuanbao-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://yuanbao.tencent.com/api/chat",
+      "stream": "https://yuanbao.tencent.com/api/chat"
+    }
+  },
   "zai": {
     "format": "claude",
     "headers": {

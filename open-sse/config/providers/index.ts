@@ -134,6 +134,7 @@ import { agentrouterProvider } from "./registry/agentrouter/index.ts";
 import { zaiProvider } from "./registry/zai/index.ts";
 import { waferProvider } from "./registry/wafer/index.ts";
 import { huggingchatProvider } from "./registry/huggingchat/index.ts";
+import { yuanbao_webProvider } from "./registry/yuanbao-web/index.ts";
 import { galadrielProvider } from "./registry/galadriel/index.ts";
 import { qianfanProvider } from "./registry/qianfan/index.ts";
 import { meta_llamaProvider } from "./registry/meta-llama/index.ts";
@@ -314,6 +315,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   agentrouter: agentrouterProvider,
   zai: zaiProvider,
   huggingchat: huggingchatProvider,
+  "yuanbao-web": yuanbao_webProvider,
   galadriel: galadrielProvider,
   qianfan: qianfanProvider,
   "meta-llama": meta_llamaProvider,
