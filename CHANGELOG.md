@@ -284,6 +284,8 @@
 
 ### 📝 Maintenance
 
+- **docs(architecture):** sync stale DB-layer counts (45+/55 → 95+/110+) across `REPOSITORY_MAP.md`, the db-schema diagram and `llm.txt` (+42 i18n mirrors). ([#6167](https://github.com/diegosouzapw/OmniRoute/pull/6167) — thanks @diegosouzapw)
+
 - **docs (architecture):** add `docs/architecture/ROUTER_BACKENDS.md` — an ADR pinning down how the routing engines (`ts` native, `bifrost`, `cliproxy`, `9router`, VibeProxy-compatible) relate to each other along two orthogonal axes (lifecycle: in-process / supervised / external vs. relay selection backend), answering the architecture questions raised in [#5603](https://github.com/diegosouzapw/OmniRoute/issues/5603) (backend interface model, why CLIProxy spawns a process, feature-flag swapping, actionable route-contract errors). The typed router-backend registry the ADR describes lands separately via [#5868](https://github.com/diegosouzapw/OmniRoute/pull/5868). ([#5891](https://github.com/diegosouzapw/OmniRoute/pull/5891))
 
 - **tests (autoCombo):** stabilize the `getTaskFitnessWithSource identifies fitness_table as source for known models` unit test, which flaked whenever the models.dev capabilities DB was populated in CI: the fixture model `gpt-4o` is a real models.dev catalog id, so the fitness resolution chain returned `models_dev_tier` instead of the expected static `fitness_table` source. The fixture now uses `claude-sonnet` (a shortened alias absent from the models.dev catalog, matching the sibling resolution-chain test), which deterministically falls through to the static table — the exact `source` and score assertions are preserved (`0.95` = `FITNESS_TABLE.coding["claude-sonnet"]`). ([#5890](https://github.com/diegosouzapw/OmniRoute/pull/5890)) — thanks @KooshaPari
