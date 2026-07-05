@@ -5,6 +5,7 @@
 ### ✨ New Features
 
 - **feat(providers):** add **Yuanbao (web)** as a cookie-session provider ([#6196](https://github.com/diegosouzapw/OmniRoute/issues/6196)) — `yuanbao-web` (Tencent Yuanbao, `yuanbao.tencent.com`) with cookie-only auth (`hy_user`/`hy_token` + public agent id), SSE→OpenAI translation incl. `reasoning_content`, exposing DeepSeek V3/R1 + Hunyuan / Hunyuan-T1. Regression guard: `tests/unit/providers-yuanbao-web.test.ts`. `together-web` was **deferred** (no verifiable web-session endpoint — needs a captured request) and `huggingchat-web` **dropped** (the existing `huggingchat` already is a web-cookie provider). (thanks @chirag127)
+- **feat(providers):** route the built-in **agentrouter** through the dynamic Claude-Code wire image ([#6056](https://github.com/diegosouzapw/OmniRoute/issues/6056)) — a small static allow-set (`CC_WIRE_IMAGE_BUILTINS` in `open-sse/services/ccWireImageBuiltins.ts`), consulted by `isClaudeCodeCompatible` / `isClaudeCodeCompatibleProvider` / `applyFingerprint`, makes agentrouter adopt the CC wire-image headers + fingerprint **while guarding the CC baseUrl/auth branches** so it keeps its own registry `baseUrl` and `x-api-key` auth. Regression guard: `tests/unit/agentrouter-cc-wire-image.test.ts` (asserts the wire image is applied AND agentrouter's baseUrl/auth are preserved). Live WAF-acceptance against agentrouter.org is a VPS validation follow-up (Hard Rule #18).
 
 ### 🐛 Bug Fixes
 
