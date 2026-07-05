@@ -3641,6 +3641,29 @@
       "stream": "https://api.reka.ai/v1/chat/completions"
     }
   },
+  "requesty": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://router.requesty.ai/v1/chat/completions",
+      "stream": "https://router.requesty.ai/v1/chat/completions"
+    }
+  },
   "sambanova": {
     "format": "openai",
     "headers": {
