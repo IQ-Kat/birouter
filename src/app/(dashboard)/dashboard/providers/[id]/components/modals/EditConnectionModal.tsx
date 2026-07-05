@@ -159,10 +159,10 @@ export default function EditConnectionModal({
   // providerSpecificData.baseUrl.
   const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
   const isBaseUrlOverrideEligible =
-    connection.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+    connection?.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
   const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
     () =>
-      typeof connection.providerSpecificData?.baseUrl === "string" &&
+      typeof connection?.providerSpecificData?.baseUrl === "string" &&
       connection.providerSpecificData.baseUrl.trim().length > 0
   );
   const usesBaseUrl =
