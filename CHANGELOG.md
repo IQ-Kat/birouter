@@ -10,6 +10,8 @@
 
 - **fix(api):** `/v1/messages/count_tokens` now counts `tool_use`, `tool_result` and `thinking` content blocks (and array-form `system` prompts) in the local-estimation path, instead of only `text`. Real agentic conversations keep ~95% of their tokens inside tool results; the previous estimate returned near-zero for them, which silently broke Claude Code's auto-compaction (context grew past the window with no compaction until the upstream API rejected the request). The real provider-side count path is unchanged. Regression guard: `tests/unit/messages-count-tokens-route.test.ts`. ([#6221](https://github.com/diegosouzapw/OmniRoute/pull/6221) — thanks @luweiCN)
 
+- **fix(antigravity):** strip a trailing assistant prefill turn for Vertex Claude models to avoid upstream 400s ([#6114](https://github.com/diegosouzapw/OmniRoute/pull/6114)). Regression guard: `tests/unit/antigravity-claude-prefill-strip.test.ts`. (thanks @anki1kr)
+
 ---
 
 ## [3.8.43] — 2026-07-02
