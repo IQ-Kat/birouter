@@ -19,7 +19,7 @@ if (typeof _detectedLimitsSweep === "object" && "unref" in _detectedLimitsSweep)
   (_detectedLimitsSweep as { unref?: () => void }).unref?.();
 }
 
-export function getEffectiveToolLimit(provider: string): number {
+export function getKnownToolLimit(provider: string | null | undefined): number | null {
   const proactiveLimit = PROVIDER_TOOL_LIMITS[provider];
   if (proactiveLimit !== undefined) {
     return proactiveLimit;
@@ -28,7 +28,11 @@ export function getEffectiveToolLimit(provider: string): number {
   if (cached && Date.now() - cached.timestamp < TTL_MS) {
     return cached.limit;
   }
-  return DEFAULT_LIMIT;
+  return null;
+}
+
+export function getEffectiveToolLimit(provider: string | null | undefined): number {
+  return getKnownToolLimit(provider) ?? DEFAULT_LIMIT;
 }
 
 export function setDetectedToolLimit(provider: string, limit: number): void {

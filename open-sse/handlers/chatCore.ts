@@ -583,6 +583,7 @@ export async function handleChatCore({
     isResponsesEndpoint,
     nativeCodexPassthrough,
     isDroidCLI,
+    isOpencodeClient,
     copilotCompatibleReasoning,
     clientResponseFormat,
   } = resolveChatCoreRequestFormat({ clientRawRequest, body, provider, userAgent });
@@ -2236,6 +2237,7 @@ export async function handleChatCore({
         targetFormat,
         credentials,
         log,
+        bypassDefaultToolLimit: isOpencodeClient,
       });
 
       updatePendingScope(pendingScope, {
