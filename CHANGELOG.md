@@ -33,6 +33,7 @@
 ### 📝 Maintenance
 
 - **i18n(it):** add 118 missing Italian (`it`) translations (net-additive — no existing keys dropped, valid JSON), improving Italian UI coverage. ([#6212](https://github.com/diegosouzapw/OmniRoute/pull/6212) — thanks @serverless83)
+- **chore(providers):** remove deprecated **MiMo V2** model entries from the catalogs (xiaomi-mimo, opencode-go, zenmux-free, audio TTS) — the upstream V2 line is superseded by MiMo V2.5; drops `mimo-v2-tts`, `mimo-v2-pro`, `mimo-v2-omni`, `mimo-v2-flash`, `mimo-v2-flash-free` and realigns the provider-catalog tests. ([#6248](https://github.com/diegosouzapw/OmniRoute/pull/6248) — thanks @backryun)
 
 ---
 
