@@ -277,9 +277,9 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
                   {group.sectionLabel}
                 </div>
                 <ul role="group" aria-label={group.sectionLabel}>
-                  {group.subgroups.map((subgroup) => (
+                  {group.subgroups.map((subgroup, sgIdx) => (
                     <li
-                      key={`${group.sectionId}::${subgroup.subgroupId ?? "_root"}`}
+                      key={`${group.sectionId}::${subgroup.subgroupId ?? sgIdx}`}
                       role="presentation"
                     >
                       {subgroup.subgroupLabel && (
