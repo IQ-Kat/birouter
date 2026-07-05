@@ -8,6 +8,8 @@
 
 - **fix(mitm):** the macOS MITM-cert install check now matches the system keychain again. `security find-certificate -a -Z` prints the SHA-1 as a colon-less hex string, but the installed-check compared it against `getCertFingerprint()`'s colon-separated form, so the substring match never hit — the cert was reported as not-installed and re-prompted for the sudo install on every run. Fingerprints are now normalized (colons stripped, upper-cased) on both sides via the extracted `macCertOutputHasFingerprint` helper. Regression guard: `tests/unit/mitm-cert-mac-fingerprint.test.ts`. ([#6204](https://github.com/diegosouzapw/OmniRoute/pull/6204), closes [#6134](https://github.com/diegosouzapw/OmniRoute/issues/6134) — thanks @rianonehub)
 
+- **fix(api):** `/v1/messages/count_tokens` now counts `tool_use`, `tool_result` and `thinking` content blocks (and array-form `system` prompts) in the local-estimation path, instead of only `text`. Real agentic conversations keep ~95% of their tokens inside tool results; the previous estimate returned near-zero for them, which silently broke Claude Code's auto-compaction (context grew past the window with no compaction until the upstream API rejected the request). The real provider-side count path is unchanged. Regression guard: `tests/unit/messages-count-tokens-route.test.ts`. ([#6221](https://github.com/diegosouzapw/OmniRoute/pull/6221) — thanks @luweiCN)
+
 ---
 
 ## [3.8.43] — 2026-07-02
