@@ -1,7 +1,7 @@
 ###
 # @name Embedding - should require authentication
 # this should return an error about invalid authentication, not a 200
-POST {{omniroute-address}}/v1/embeddings
+POST {{birouter-address}}/v1/embeddings
 Authorization: Bearer invalid
 Content-Type: application/json
 
@@ -12,8 +12,8 @@ Content-Type: application/json
 
 ###
 # @name Embedding
-POST {{omniroute-address}}/v1/embeddings
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/embeddings
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 {
@@ -23,8 +23,8 @@ Content-Type: application/json
 
 ###
 # @name Embedding - long input
-POST {{omniroute-address}}/v1/embeddings
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/embeddings
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 {

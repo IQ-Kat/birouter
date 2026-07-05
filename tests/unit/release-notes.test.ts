@@ -9,7 +9,7 @@ test("parseActiveNewsPayload returns only valid active announcements", () => {
       active: true,
       title: "Launch",
       message: "A short announcement",
-      link: "https://github.com/IQ-Kat/tOmni",
+      link: "https://github.com/IQ-Kat/birouter",
       linkLabel: "Learn more",
       icon: "campaign",
     }),
@@ -17,7 +17,7 @@ test("parseActiveNewsPayload returns only valid active announcements", () => {
       active: true,
       title: "Launch",
       message: "A short announcement",
-      link: "https://github.com/IQ-Kat/tOmni",
+      link: "https://github.com/IQ-Kat/birouter",
       linkLabel: "Learn more",
       icon: "campaign",
     }

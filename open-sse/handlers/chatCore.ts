@@ -137,6 +137,10 @@ import {
   isStreamRecoveryExplicitlyConfigured,
 } from "@/lib/resilience/settings";
 import {
+  acquireSmartPacedSemaphore,
+  adaptPacingFromResponse,
+} from "../services/smartPacingIntegration.ts";
+import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
@@ -2237,13 +2241,24 @@ export async function handleChatCore({
                 stage: "waiting_account_slot",
               });
             }
-            const releaseAccountSemaphore =
-              accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
-                ? await acquireAccountSemaphore(accountSemaphoreKey, {
-                    maxConcurrency: accountSemaphoreMaxConcurrency,
-                    signal: streamController.signal,
-                  })
-                : () => {};
+            // Smart Pacing: wraps accountSemaphore with priority queuing, gap enforcement, and jitter
+            const pacingResult = await acquireSmartPacedSemaphore({
+              provider,
+              model: modelToCall,
+              connectionId: attemptConnectionId,
+              maxConcurrency: accountSemaphoreMaxConcurrency,
+              semaphoreKey: accountSemaphoreKey,
+              settings: cachedSettings,
+              signal: streamController.signal,
+              headers: clientRawRequest?.headers,
+            });
+            const releaseAccountSemaphore = pacingResult.release;
+            if (pacingResult.pacingSlot.delayed) {
+              log?.info?.(
+                "PACING",
+                `${provider}/${modelToCall} | delayed ${pacingResult.pacingSlot.delayMs}ms for account safety`
+              );
+            }
             trace("post_semaphore");
             updatePendingScope(pendingScope, {
               stage: "waiting_rate_limit",
@@ -2292,6 +2307,15 @@ export async function handleChatCore({
               );
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
+
+              // Smart Pacing: adapt pressure from upstream response headers
+              if (attemptConnectionId && res?.response?.headers) {
+                try {
+                  adaptPacingFromResponse(attemptConnectionId, res.response.headers);
+                } catch {
+                  // Best-effort — never let pacing adaptation throw
+                }
+              }
 
               // Track Gemini RPM + RPD request counts for 429 classification
               if (provider === "gemini") {

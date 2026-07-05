@@ -78,7 +78,7 @@ export default function Footer() {
             </a>
             <a
               className="text-gray-400 hover:text-[#0ea5e9] text-sm transition-colors"
-              href="https://www.npmjs.com/package/omniroute"
+              href="https://www.npmjs.com/package/birouter"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -116,7 +116,7 @@ export default function Footer() {
             </a>
             <a
               className="text-gray-600 hover:text-white text-sm transition-colors"
-              href="https://www.npmjs.com/package/omniroute"
+              href="https://www.npmjs.com/package/birouter"
               target="_blank"
               rel="noopener noreferrer"
             >

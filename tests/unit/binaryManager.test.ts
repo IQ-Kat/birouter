@@ -27,7 +27,7 @@ describe("binaryManager", () => {
     assert.ok(mod.getAssetName);
     assert.ok(mod.getTargetPlatform);
     assert.ok(mod.installVersion);
-    assert.ok(mod.getCurrentOmninaryPath);
+    assert.ok(mod.getCurrentBinaryPath);
     assert.ok(mod.getInstalledVersions);
     assert.ok(mod.rollbackVersion);
     assert.ok(mod.removeVersion);
@@ -65,16 +65,16 @@ describe("binaryManager", () => {
     });
   });
 
-  describe("getCurrentOmninaryPath", () => {
+  describe("getCurrentBinaryPath", () => {
     it("should return null when no symlink", async () => {
-      assert.equal(await mod.getCurrentOmninaryPath(tmpDir), null);
+      assert.equal(await mod.getCurrentBinaryPath(tmpDir), null);
     });
 
     it("should return null when symlink target missing", async () => {
       const binDir = path.join(tmpDir, "bin");
       fs.mkdirSync(binDir, { recursive: true });
       fs.symlinkSync("/nonexistent/binary", path.join(binDir, "cliproxyapi"));
-      assert.equal(await mod.getCurrentOmninaryPath(tmpDir), null);
+      assert.equal(await mod.getCurrentBinaryPath(tmpDir), null);
     });
 
     it("should return real path when valid symlink", async () => {
@@ -84,7 +84,7 @@ describe("binaryManager", () => {
       fs.mkdirSync(path.dirname(real), { recursive: true });
       fs.writeFileSync(real, "bin");
       fs.symlinkSync(real, path.join(binDir, "cliproxyapi"));
-      const result = await mod.getCurrentOmninaryPath(tmpDir);
+      const result = await mod.getCurrentBinaryPath(tmpDir);
       assert.ok(result.includes("cliproxyapi-1.0.0"));
     });
   });

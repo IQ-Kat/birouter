@@ -5,8 +5,8 @@ Authorization: Bearer {{LLAMACPP_API_KEY}}
 
 ###
 # @name List all models
-GET {{omniroute-address}}/models
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+GET {{birouter-address}}/models
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 ###
@@ -27,8 +27,8 @@ Authorization: Bearer {{LLAMACPP_API_KEY}}
 
 ###
 # @name Send a standard OpenAI chat request to this llama-cpp provider
-POST {{omniroute-address}}/v1/chat/completions
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/chat/completions
+Authorization: Bearer {{BIROUTER_API_KEY}}
 
 {
   "model": "llamacpp/unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M",

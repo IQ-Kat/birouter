@@ -1,7 +1,7 @@
 ###
-# @name Omniroute - Generate Image
-POST {{omniroute-address}}/v1/images/generations
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+# @name Birouter - Generate Image
+POST {{birouter-address}}/v1/images/generations
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 {
@@ -17,9 +17,9 @@ Content-Type: application/json
 
 ###
 
-# @name Omniroute - Generate Image - Custom OpenAI compatible endpoint
-POST {{omniroute-address}}/v1/images/generations
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+# @name Birouter - Generate Image - Custom OpenAI compatible endpoint
+POST {{birouter-address}}/v1/images/generations
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 {
@@ -51,11 +51,11 @@ Content-Type: application/json
 }
 
 ###
-# @name Omniroute - Codex image via /v1/images/generations (GPT-Image shim)
+# @name Birouter - Codex image via /v1/images/generations (GPT-Image shim)
 # Translates a GPT-Image-style request into a /responses call with the
 # image_generation hosted tool. Use with OpenWebUI's image generation feature.
-POST {{omniroute-address}}/v1/images/generations
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/images/generations
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 {
@@ -67,12 +67,12 @@ Content-Type: application/json
 }
 
 ###
-# @name Omniroute - Codex hosted image_generation (Responses API)
+# @name Birouter - Codex hosted image_generation (Responses API)
 # Requires a Codex provider connection authenticated via ChatGPT OAuth.
 # Expect SSE stream to include `response.output_item.done` with
 # `item.type === "image_generation_call"` and a base64 PNG in `item.result`.
-POST {{omniroute-address}}/v1/responses
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/responses
+Authorization: Bearer {{BIROUTER_API_KEY}}
 Content-Type: application/json
 
 {

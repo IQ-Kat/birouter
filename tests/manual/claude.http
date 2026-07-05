@@ -1,7 +1,7 @@
 ###
 # @name Gemini - Anthropics Messages API-format - streaming response test - max_tokens test
-POST {{omniroute-address}}/v1/messages
-x-api-key: {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/messages
+x-api-key: {{BIROUTER_API_KEY}}
 anthropic-version: 2023-06-01
 Content-Type: text/event-stream
 
@@ -18,8 +18,8 @@ Content-Type: text/event-stream
 
 ###
 # @name Gemini - Anthropics Messages API-format - non-streaming response test - max_tokens test
-POST {{omniroute-address}}/v1/messages
-x-api-key: {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/messages
+x-api-key: {{BIROUTER_API_KEY}}
 anthropic-version: 2023-06-01
 Content-Type: application/json
 
@@ -37,8 +37,8 @@ Content-Type: application/json
 
 ###
 # @name Gemini - Anthropics Messages API-format - streaming response test - thinking-budget not supported
-POST {{omniroute-address}}/v1/messages
-x-api-key: {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/messages
+x-api-key: {{BIROUTER_API_KEY}}
 anthropic-version: 2023-06-01
 Content-Type: application/json
 
@@ -59,8 +59,8 @@ Content-Type: application/json
 ###
 # @name Gemini - Anthropics Messages API-format - streaming response test
 # @timeout 300
-POST {{omniroute-address}}/v1/messages
-x-api-key: {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/messages
+x-api-key: {{BIROUTER_API_KEY}}
 anthropic-version: 2023-06-01
 Content-Type: text/event-stream
 
@@ -77,8 +77,8 @@ Content-Type: text/event-stream
 ###
 # @name Gemini - Anthropics Messages API-format - non-streaming response test
 # @timeout 300
-POST {{omniroute-address}}/v1/messages
-x-api-key: {{OMNIROUTE_API_KEY}}
+POST {{birouter-address}}/v1/messages
+x-api-key: {{BIROUTER_API_KEY}}
 anthropic-version: 2023-06-01
 Content-Type: application/json
 
@@ -95,9 +95,9 @@ Content-Type: application/json
 
 ###
 # @name Gemini - OpenAI API-format - streaming response test - max_tokens test
-POST {{omniroute-address}}/v1/chat/completions
+POST {{birouter-address}}/v1/chat/completions
 Content-Type: text/event-stream
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Authorization: Bearer {{BIROUTER_API_KEY}}
 
 {
   "model": "default",
@@ -113,9 +113,9 @@ Authorization: Bearer {{OMNIROUTE_API_KEY}}
 
 ###
 # @name Gemini - OpenAI API-format - non-streaming response test - max_tokens test
-POST {{omniroute-address}}/v1/chat/completions
+POST {{birouter-address}}/v1/chat/completions
 Content-Type: application/json
-Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Authorization: Bearer {{BIROUTER_API_KEY}}
 
 {
   "model": "default",

@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
+import path from "node:path";
 import * as generator from "../../../src/lib/cli-helper/config-generator/index.ts";
 
 describe("config-generator", () => {
@@ -36,7 +37,7 @@ describe("config-generator", () => {
     it("allows a public Birouter Cloud target", async () => {
       const { assertSafeCatalogUrl } =
         await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
-      assert.doesNotThrow(() => assertSafeCatalogUrl("https://api.omniroute.online/v1/models"));
+      assert.doesNotThrow(() => assertSafeCatalogUrl("https://api.birouter.online/v1/models"));
     });
 
     it("blocks the cloud-metadata SSRF→IAM pivot (169.254.169.254)", async () => {
@@ -91,7 +92,10 @@ describe("config-generator", () => {
         model: "gpt-5.4-mini",
       });
       assert.strictEqual(result.success, true);
-      assert.ok(result.configPath.endsWith(".hermes/config.yaml"));
+      assert.ok(
+        result.configPath.endsWith(path.join(".hermes", "config.yaml")),
+        `expected configPath to end with '.hermes${path.sep}config.yaml', got: ${result.configPath}`
+      );
       assert.ok(String(result.content || "").includes("providers:"));
       assert.ok(String(result.content || "").includes("birouter"));
     });

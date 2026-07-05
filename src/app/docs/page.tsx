@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     description:
       "Comprehensive docs for Birouter AI gateway — setup, API, compression, deployment, and more.",
     type: "website",
-    url: "https://omniroute.online/docs",
+    url: "https://github.com/IQ-Kat/birouter",
   },
   twitter: {
     card: "summary_large_image",

@@ -39,7 +39,7 @@ function quoteExecArg(value) {
   return `"${value.replace(/(["\\])/g, "\\$1")}"`;
 }
 
-function buildServeExecLine(cliPath, { tray = false } = {}) {
+function buildServeExecLine(cliPath, { tray = true } = {}) {
   const parts = [quoteExecArg(process.execPath), quoteExecArg(cliPath), "serve", "--no-open"];
   if (tray) parts.push("--tray");
   return parts.join(" ");
@@ -121,7 +121,7 @@ function writeLinuxSystemdUnit(cliPath) {
     "",
     "[Service]",
     "Type=simple",
-    `ExecStart=${buildServeExecLine(cliPath, { tray: false })}`,
+    `ExecStart=${buildServeExecLine(cliPath)}`,
     "Restart=on-failure",
     "RestartSec=5",
   ];

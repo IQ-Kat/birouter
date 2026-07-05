@@ -3,22 +3,19 @@ import assert from "node:assert/strict";
 import {
   clearBifrostFailure,
   getActiveBifrostCooldown,
-  getOmnifrostFailureCooldownMs,
+  getBifrostFailureCooldownMs,
   recordBifrostFailure,
-  resetOmnifrostCooldowns,
+  resetBifrostCooldowns,
 } from "../../../../src/app/api/v1/relay/chat/completions/bifrostCooldown.ts";
 
 afterEach(() => {
-  resetOmnifrostCooldowns();
+  resetBifrostCooldowns();
 });
 
 test("bifrost cooldown defaults to a short retry suppression window", () => {
-  assert.equal(getOmnifrostFailureCooldownMs({}), 5000);
-  assert.equal(getOmnifrostFailureCooldownMs({ BIROUTER_BIFROST_FAILURE_COOLDOWN_MS: "250" }), 250);
-  assert.equal(
-    getOmnifrostFailureCooldownMs({ BIROUTER_BIFROST_FAILURE_COOLDOWN_MS: "bad" }),
-    5000
-  );
+  assert.equal(getBifrostFailureCooldownMs({}), 5000);
+  assert.equal(getBifrostFailureCooldownMs({ BIROUTER_BIFROST_FAILURE_COOLDOWN_MS: "250" }), 250);
+  assert.equal(getBifrostFailureCooldownMs({ BIROUTER_BIFROST_FAILURE_COOLDOWN_MS: "bad" }), 5000);
 });
 
 test("bifrost cooldown reports remaining time and expires", () => {
