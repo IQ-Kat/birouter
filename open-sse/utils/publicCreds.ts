@@ -29,7 +29,7 @@
  * so no migration is required for current installations.
  */
 
-const MASK = "omniroute-public-v1";
+const MASK = "birouter-public-v1";
 
 const RAW_VALUE_PATTERN =
   /^(AIza[A-Za-z0-9_-]{20,}|GOCSPX-[A-Za-z0-9_-]+|\d+-[a-z0-9]{32}\.apps\.googleusercontent\.com|Iv1\.[a-f0-9]+)$/;
