@@ -1,4 +1,4 @@
-# OmniRoute PR and Coverage Instructions
+# Birouter PR and Coverage Instructions
 
 - Treat `npm run test:coverage` as a required gate for PR work.
 - The repository minimum is `60%` for statements, lines, functions, and branches.

@@ -8,8 +8,8 @@ import {
 const RAW = JSON.stringify({
   $schema: "https://opencode.ai/config.json",
   provider: {
-    omniroute: {
-      name: "OmniRoute",
+    birouter: {
+      name: "Birouter",
       npm: "@ai-sdk/openai-compatible",
       options: { baseURL: "http://vps:20128/v1", apiKey: "sk-secret-literal" },
       models: {
@@ -25,8 +25,8 @@ test("postProcessOpencodeConfig replaces the literal API key with an env ref (no
   const { json } = postProcessOpencodeConfig(RAW);
   assert.equal(json.includes("sk-secret-literal"), false);
   const cfg = JSON.parse(json);
-  assert.equal(cfg.provider.omniroute.options.apiKey, "{env:OMNIROUTE_API_KEY}");
-  assert.equal(cfg.provider.omniroute.options.baseURL, "http://vps:20128/v1");
+  assert.equal(cfg.provider.birouter.options.apiKey, "{env:BIROUTER_API_KEY}");
+  assert.equal(cfg.provider.birouter.options.baseURL, "http://vps:20128/v1");
 });
 
 test("postProcessOpencodeConfig keeps all models by default", () => {
@@ -38,16 +38,16 @@ test("postProcessOpencodeConfig --only filters the model map by substring", () =
   const { json, modelCount } = postProcessOpencodeConfig(RAW, { only: ["glm", "kimi"] });
   const cfg = JSON.parse(json);
   assert.equal(modelCount, 2);
-  assert.ok(cfg.provider.omniroute.models["glm/glm-5.2"]);
-  assert.ok(cfg.provider.omniroute.models["kmc/kimi-k2.7"]);
-  assert.equal("openai/gpt-4o" in cfg.provider.omniroute.models, false);
+  assert.ok(cfg.provider.birouter.models["glm/glm-5.2"]);
+  assert.ok(cfg.provider.birouter.models["kmc/kimi-k2.7"]);
+  assert.equal("openai/gpt-4o" in cfg.provider.birouter.models, false);
 });
 
 test("postProcessOpencodeConfig preserves $schema, provider name and npm", () => {
   const { json } = postProcessOpencodeConfig(RAW);
   const cfg = JSON.parse(json);
   assert.equal(cfg.$schema, "https://opencode.ai/config.json");
-  assert.equal(cfg.provider.omniroute.npm, "@ai-sdk/openai-compatible");
+  assert.equal(cfg.provider.birouter.npm, "@ai-sdk/openai-compatible");
 });
 
 test("resolveOpencodeTarget: --remote wins and trailing slashes are trimmed", () => {

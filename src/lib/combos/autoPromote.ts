@@ -6,7 +6,7 @@
  * successfully, the winning model is moved to position #1 of the persisted
  * combo so future requests try it first.
  *
- * OmniRoute stores `combo.models` as an array of `ComboStep` objects
+ * Birouter stores `combo.models` as an array of `ComboStep` objects
  * (`{ kind: "model", model, ... }`), unlike the upstream project which stores
  * plain model strings. This helper accepts both shapes and reorders in place
  * without mutating the input, returning `null` when no change is required

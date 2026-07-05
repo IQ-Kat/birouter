@@ -64,7 +64,7 @@ export function extendComboSuggest(combo) {
       };
       const res = await apiFetch("/api/mcp/tools/call", {
         method: "POST",
-        body: { name: "omniroute_best_combo_for_task", arguments: body },
+        body: { name: "birouter_best_combo_for_task", arguments: body },
       });
       if (!res.ok) {
         process.stderr.write(`Error: ${res.status}\n`);

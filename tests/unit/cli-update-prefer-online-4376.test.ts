@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 
 const update = await import("../../bin/cli/commands/update.mjs");
 
-// #4376: `omniroute update` reported "Latest version: 3.8.30" while npm's `latest`
+// #4376: `birouter update` reported "Latest version: 3.8.30" while npm's `latest`
 // dist-tag was already 3.8.31, so it told users on an old build they were "running
-// the latest version". Root cause: getLatestVersion() ran `npm view omniroute version`
+// the latest version". Root cause: getLatestVersion() ran `npm view birouter version`
 // without `--prefer-online`, so npm served a stale value from its HTTP cache.
 // The fix forces npm to revalidate the cache against the registry.
 test("getLatestVersion passes --prefer-online to bypass the stale npm cache (#4376)", async () => {
@@ -24,7 +24,7 @@ test("getLatestVersion passes --prefer-online to bypass the stale npm cache (#43
   );
   // still the right query
   assert.ok(capturedArgs.args.includes("view"));
-  assert.ok(capturedArgs.args.includes("omniroute"));
+  assert.ok(capturedArgs.args.includes("birouter"));
   assert.ok(capturedArgs.args.includes("version"));
 });
 

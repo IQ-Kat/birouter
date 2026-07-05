@@ -3,7 +3,7 @@
  *
  * Host: `chatgpt.com` (Codex paths).
  * Format: OpenAI-compatible Chat Completions — `body.model` is rewritten to
- * the mapped target and the request is forwarded to the OmniRoute router.
+ * the mapped target and the request is forwarded to the Birouter router.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AgentId } from "../types";
@@ -16,7 +16,7 @@ export class CodexHandler extends MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void> {
     const startedAt = this.now();
     const intercepted = await this.hookBufferStart(req, body, mappedModel);
@@ -30,7 +30,7 @@ export class CodexHandler extends MitmHandlerBase {
 
       if (!upstream.ok) {
         const errText = await upstream.text().catch(() => "");
-        throw new Error(`OmniRoute ${upstream.status}: ${errText}`);
+        throw new Error(`Birouter ${upstream.status}: ${errText}`);
       }
 
       let collected = "";

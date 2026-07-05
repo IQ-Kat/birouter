@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chat-combo-live-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-chat-combo-live-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -231,7 +231,7 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
     const liveResponse = await chatRoute.POST(
       makeRequest({
         "X-Internal-Test": "combo-health-check",
-        "X-OmniRoute-No-Cache": "true",
+        "X-Birouter-No-Cache": "true",
         "X-Request-Id": "combo-test-cache-bypass",
       })
     );
@@ -274,7 +274,7 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(response.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(response);
-  assert.match(body, /: omniroute-keepalive/);
+  assert.match(body, /: birouter-keepalive/);
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);
 });
@@ -300,7 +300,7 @@ test("chat completions route returns JSON without early SSE framing when stream 
   const response = await chatRoute.POST(
     makeRequestWithoutStreamFlag({
       Accept: "application/json",
-      "X-OmniRoute-No-Cache": "true",
+      "X-Birouter-No-Cache": "true",
       "X-Request-Id": "chat-route-omitted-stream-json",
     })
   );

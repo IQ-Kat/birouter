@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chat-pipeline-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-chat-pipeline-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.REQUIRE_API_KEY = "false";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-chat-pipeline-secret";
@@ -911,9 +911,9 @@ test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and 
   assert.equal(secondResponse.status, 200);
   assert.equal(thirdResponse.status, 200);
 
-  assert.equal(firstResponse.headers.get("X-OmniRoute-Cache"), "MISS");
-  assert.equal(secondResponse.headers.get("X-OmniRoute-Cache"), "HIT");
-  assert.equal(thirdResponse.headers.get("X-OmniRoute-Cache"), "HIT");
+  assert.equal(firstResponse.headers.get("X-Birouter-Cache"), "MISS");
+  assert.equal(secondResponse.headers.get("X-Birouter-Cache"), "HIT");
+  assert.equal(thirdResponse.headers.get("X-Birouter-Cache"), "HIT");
 
   assert.equal(fetchCalls.length, 1, "expected upstream to be called only once for MISS");
   assert.match(fetchCalls[0].url, /\/responses$/);
@@ -1152,7 +1152,7 @@ test("chat pipeline treats Accept text/event-stream as streaming mode and return
   const raw = await response.text();
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Content-Type"), "text/event-stream");
-  assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
+  assert.ok(response.headers.get("X-Birouter-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);
 });

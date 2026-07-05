@@ -28,7 +28,7 @@ function requestPeerAddress(ctx: PolicyContext): string | null {
   // null → isLoopbackRequest/isPrivateLanRequest return false → fail closed.
   const stamped = resolveStampedPeer(
     ctx.request.headers?.get?.(PEER_IP_HEADER) ?? null,
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    process.env.BIROUTER_PEER_STAMP_TOKEN
   );
   if (stamped) return stamped;
   // Non-middleware callers (tests / direct Node) may carry a real socket peer.
@@ -46,7 +46,7 @@ function requestPeerAddress(ctx: PolicyContext): string | null {
 function isViaProxyRequest(ctx: PolicyContext): boolean {
   return resolveStampedViaProxy(
     ctx.request.headers?.get?.(VIA_PROXY_HEADER) ?? null,
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    process.env.BIROUTER_PEER_STAMP_TOKEN
   );
 }
 
@@ -90,17 +90,17 @@ function isInternalModelSyncRequest(ctx: PolicyContext): boolean {
 }
 
 const WS_BRIDGE_INTERNAL_PATH = "/api/internal/codex-responses-ws";
-const WS_BRIDGE_SECRET_HEADER = "x-omniroute-ws-bridge-secret";
+const WS_BRIDGE_SECRET_HEADER = "x-birouter-ws-bridge-secret";
 
 // The in-process codex Responses-over-WebSocket proxy authenticates its internal
 // authenticate/prepare calls with a per-process, unguessable secret minted by
-// server-ws.mjs (OMNIROUTE_WS_BRIDGE_SECRET). Without this carve-out the MANAGEMENT
+// server-ws.mjs (BIROUTER_WS_BRIDGE_SECRET). Without this carve-out the MANAGEMENT
 // classification 401s that loopback call, which then leaks chunked/security headers
 // back onto the upgrade socket. The internal route re-validates the secret timing-safe
 // (bridgeSecretMatches), so this is the same trust boundary, surfaced one layer up.
 function isValidWsBridgeRequest(ctx: PolicyContext): boolean {
   if (ctx.classification.normalizedPath !== WS_BRIDGE_INTERNAL_PATH) return false;
-  const expected = process.env.OMNIROUTE_WS_BRIDGE_SECRET || "";
+  const expected = process.env.BIROUTER_WS_BRIDGE_SECRET || "";
   if (!expected) return false;
   const provided = ctx.request.headers?.get?.(WS_BRIDGE_SECRET_HEADER) ?? "";
   if (!provided) return false;
@@ -144,7 +144,11 @@ export const managementPolicy: RoutePolicy = {
     //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path, ctx.request?.method) && !isLoopbackRequest(ctx) && !isPrivateLanRequest(ctx)) {
+    if (
+      isLocalOnlyPath(path, ctx.request?.method) &&
+      !isLoopbackRequest(ctx) &&
+      !isPrivateLanRequest(ctx)
+    ) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         // Management auth is header-only — a URL-borne token must never satisfy a
         // manage-scope bypass of a LOCAL_ONLY route. See #3300 follow-up.

@@ -4,15 +4,13 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const tmpDir = mkdtempSync(join(tmpdir(), "omniroute-rt-"));
+const tmpDir = mkdtempSync(join(tmpdir(), "birouter-rt-"));
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../../src/lib/db/core.ts");
 core.resetDbInstance();
-const {
-  insertCompressionRunTelemetryRow,
-  getCompressionRunTelemetrySummary,
-} = await import("../../../src/lib/db/compressionRunTelemetry.ts");
+const { insertCompressionRunTelemetryRow, getCompressionRunTelemetrySummary } =
+  await import("../../../src/lib/db/compressionRunTelemetry.ts");
 const { getDbInstance } = core;
 
 describe("compressionRunTelemetry", () => {

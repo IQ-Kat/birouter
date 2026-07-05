@@ -9,7 +9,7 @@ const ORIGINAL_USERPROFILE = process.env.USERPROFILE;
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_NEXT_PHASE = process.env.NEXT_PHASE;
 
-const TEST_HOME_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-migrations-home-"));
+const TEST_HOME_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-usage-migrations-home-"));
 const TEST_DATA_DIR = path.join(TEST_HOME_DIR, "data");
 
 process.env.HOME = TEST_HOME_DIR;
@@ -20,7 +20,7 @@ delete process.env.NEXT_PHASE;
 const migrations = await import("../../src/lib/usage/migrations.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
-const LEGACY_DATA_DIR = path.join(TEST_HOME_DIR, ".omniroute");
+const LEGACY_DATA_DIR = path.join(TEST_HOME_DIR, ".birouter");
 const LEGACY_USAGE_JSON_FILE = path.join(LEGACY_DATA_DIR, "usage.json");
 const LEGACY_CALL_LOGS_JSON_FILE = path.join(LEGACY_DATA_DIR, "call_logs.json");
 const USAGE_JSON_FILE = path.join(TEST_DATA_DIR, "usage.json");

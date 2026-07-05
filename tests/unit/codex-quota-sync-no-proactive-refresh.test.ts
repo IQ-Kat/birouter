@@ -25,7 +25,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-quota-"));
+process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-codex-quota-"));
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { refreshAndUpdateCredentials } = await import("../../src/lib/usage/providerLimits.ts");
@@ -94,11 +94,7 @@ test("non-rotating OAuth provider is still refreshed proactively from quota-sync
       }),
       "a non-rotating provider with a failed refresh should surface the 401"
     );
-    assert.equal(
-      refreshCalls,
-      1,
-      "non-rotating provider must still attempt the proactive refresh"
-    );
+    assert.equal(refreshCalls, 1, "non-rotating provider must still attempt the proactive refresh");
   } finally {
     exec.needsRefresh = origNeeds;
     exec.refreshCredentials = origRefresh;

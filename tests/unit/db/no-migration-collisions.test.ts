@@ -2,7 +2,7 @@
  * PM-02 — CI guard against migration version-number collisions.
  *
  * The migration runner tracks applied migrations by version (PRIMARY KEY in
- * _omniroute_migrations). When two files share the same numeric prefix
+ * _birouter_migrations). When two files share the same numeric prefix
  * (e.g. 068_a.sql + 068_b.sql), only the first is applied; the rest are
  * silently skipped. This caused a production regression in v3.8.4 (three
  * PRs each shipped a 068_*.sql; see _tasks/features-v3.8.4/9route/POST-MERGE-AUDIT.md).

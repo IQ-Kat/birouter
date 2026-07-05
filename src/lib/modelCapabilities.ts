@@ -1,8 +1,5 @@
-import {
-  PROVIDER_ID_TO_ALIAS,
-  PROVIDER_MODELS,
-} from "@omniroute/open-sse/config/providerModels.ts";
-import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
+import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@birouter/open-sse/config/providerModels.ts";
+import { parseModel, resolveCanonicalProviderModel } from "@birouter/open-sse/services/model.ts";
 import { MODEL_SPECS, getModelSpec, type ModelSpec } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
@@ -262,10 +259,10 @@ export function modelIdLikelyVision(modelId: string | null | undefined): boolean
  * `attachment:true` cannot route an image request to a blind model (the #4071 failure
  * mode). Keep this list tiny and doc-backed.
  *
- * Xiaomi MiMo: only `mimo-v2.5` and `mimo-v2-omni` accept images; the `*-pro` chat
+ * Xiaomi MiMo: only `mimo-v2.5` and `mimo-v2-bi` accept images; the `*-pro` chat
  * models are text-only (mimo.mi.com .../image-understanding; hermes-agent#18884).
  * Anchored to the full id (`$`) and tolerant of a `provider/` prefix so `mimo-v2.5-pro`
- * never matches the multimodal `mimo-v2.5`, and `mimo-v2-pro` never matches `mimo-v2-omni`.
+ * never matches the multimodal `mimo-v2.5`, and `mimo-v2-pro` never matches `mimo-v2-bi`.
  */
 const KNOWN_TEXT_ONLY_DESPITE_SYNC: readonly RegExp[] = [
   /(?:^|\/)mimo-v2\.5-pro$/i,

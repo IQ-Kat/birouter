@@ -61,25 +61,25 @@ test("cliMitmStartSchema accepts null keyId", () => {
   }
 });
 
-// Regression test: null apiKey + unresolvable keyId must yield the sentinel 'sk_omniroute',
+// Regression test: null apiKey + unresolvable keyId must yield the sentinel 'sk_birouter',
 // which the route guard must reject with a 400 rather than letting it pass to startMitm.
 test("resolveApiKey returns sentinel when apiKey is null and keyId is null", async () => {
   const result = await resolveApiKey(null, null);
   assert.equal(
     result,
-    "sk_omniroute",
+    "sk_birouter",
     "resolveApiKey should return the sentinel when no real key is available"
   );
 });
 
-test("sentinel guard condition catches sk_omniroute and null", () => {
-  const SENTINEL = "sk_omniroute";
-  // Simulate what the route guard checks: (!apiKey || apiKey === 'sk_omniroute')
+test("sentinel guard condition catches sk_birouter and null", () => {
+  const SENTINEL = "sk_birouter";
+  // Simulate what the route guard checks: (!apiKey || apiKey === 'sk_birouter')
   const shouldReject = (apiKey: string | null | undefined): boolean =>
     !apiKey || apiKey === SENTINEL;
 
   assert.equal(shouldReject(null), true, "null apiKey must be rejected");
   assert.equal(shouldReject(undefined), true, "undefined apiKey must be rejected");
-  assert.equal(shouldReject("sk_omniroute"), true, "sentinel must be rejected");
+  assert.equal(shouldReject("sk_birouter"), true, "sentinel must be rejected");
   assert.equal(shouldReject("sk-real-key-abc"), false, "real key must be allowed");
 });

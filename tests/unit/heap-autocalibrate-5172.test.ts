@@ -1,13 +1,13 @@
 /**
  * Issue #5172 / #5160 / #5152 — server OOM ("Ineffective mark-compacts near heap
  * limit ... ~500MB") on machines with plenty of RAM. Root cause: the server was
- * spawned with a FIXED 512MB heap default (`omniroute serve`) or with no
+ * spawned with a FIXED 512MB heap default (`birouter serve`) or with no
  * `--max-old-space-size` at all (Electron), so a 16GB box with 65 providers /
  * 2600 models still crashed at ~512MB.
  *
  * Fix: `calibrateHeapFallbackMb(totalmemBytes)` derives a sane default heap from
  * the host's physical RAM (~35%, clamped to [512, 4096]) so the out-of-the-box
- * ceiling scales with the machine. An explicit `OMNIROUTE_MEMORY_MB` still wins
+ * ceiling scales with the machine. An explicit `BIROUTER_MEMORY_MB` still wins
  * (resolveMaxOldSpaceMb), and the existing #2939 contract is unchanged.
  */
 import test from "node:test";
@@ -41,7 +41,7 @@ test("#5172 falls back to 512 for missing/invalid totalmem", () => {
   assert.equal(calibrateHeapFallbackMb(-1), 512);
 });
 
-test("#5172 an explicit OMNIROUTE_MEMORY_MB still wins over the calibrated default", () => {
+test("#5172 an explicit BIROUTER_MEMORY_MB still wins over the calibrated default", () => {
   const calibrated = calibrateHeapFallbackMb(16 * GB); // 4096
   // explicit override (in-range) is honored verbatim, not the calibrated default
   assert.equal(resolveMaxOldSpaceMb("1536", calibrated), 1536);

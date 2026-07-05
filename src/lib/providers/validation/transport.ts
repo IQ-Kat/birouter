@@ -8,7 +8,7 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderValidationGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
-import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
+import { selectProxyForValidation } from "@birouter/open-sse/services/proxyAutoSelector.ts";
 
 /**
  * Wrapped fetch call that auto-retries with a proxy when the direct connection

@@ -1,7 +1,7 @@
 /**
  * Tests for Kiro multi-account isolation (issue #2328).
  *
- * Each OmniRoute connection must own its own OIDC client registration
+ * Each Birouter connection must own its own OIDC client registration
  * (clientId + clientSecret) so that refreshing or re-authenticating one
  * account does not invalidate another account's refresh token.
  */

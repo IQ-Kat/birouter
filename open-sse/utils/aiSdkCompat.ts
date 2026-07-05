@@ -68,7 +68,7 @@ export function acceptHeaderForcesStream(acceptHeader: unknown, bodyStream: unkn
  * Optional `sourceFormat` argument lets callers apply spec-correct defaults
  * when both `stream` and `Accept` are ambiguous. The Anthropic Messages API
  * and the OpenAI Responses API both default to non-stream when the body omits
- * `stream`. Without this hint, OmniRoute previously routed those requests with
+ * `stream`. Without this hint, Birouter previously routed those requests with
  * a curl-default wildcard Accept header through the streaming branch even
  * though upstream returned JSON, producing STREAM_EARLY_EOF / HTTP 502.
  */
@@ -81,7 +81,7 @@ export function resolveStreamFlag(
   const options = normalizeResolveStreamFlagOptions(optionsOrUserAgent);
 
   // Stream-only providers must keep streaming even when the client asked for JSON;
-  // OmniRoute accumulates the provider stream and converts it to JSON for the client
+  // Birouter accumulates the provider stream and converts it to JSON for the client
   // downstream (handleForcedSSEToJson). Sending stream:false to such a provider
   // returns HTTP 400. (#2081)
   if (options.providerRequiresStreaming) return true;
@@ -106,7 +106,7 @@ export function resolveStreamFlag(
 
   // Nextcloud's OpenAI/LocalAI integration sends synchronous JSON requests and
   // does not set `stream: false`. With a wildcard/empty Accept header, the legacy
-  // OmniRoute fallback would force SSE upstream and fail JSON-only providers as
+  // Birouter fallback would force SSE upstream and fail JSON-only providers as
   // STREAM_EARLY_EOF before Nextcloud could receive a response.
   if (isKnownJsonOnlyClient(options.userAgent) && !acceptsEventStream) {
     return false;
@@ -130,7 +130,7 @@ export function resolveStreamFlag(
     return false;
   }
 
-  // No explicit stream param — preserve OmniRoute's streaming default unless
+  // No explicit stream param — preserve Birouter's streaming default unless
   // the client explicitly asks for JSON and does not also accept SSE.
   return !clientWantsJsonResponse(acceptHeader);
 }

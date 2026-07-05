@@ -1,6 +1,6 @@
 /**
  * db/jsonMigration.ts — Shared helper to hydrate an SQLite database from a
- * legacy OmniRoute JSON backup object.
+ * legacy Birouter JSON backup object.
  *
  * Used by:
  *  - db/core.ts  (auto-migration at startup when db.json is found)

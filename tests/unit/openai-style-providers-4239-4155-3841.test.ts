@@ -105,7 +105,7 @@ for (const spec of SPECS) {
 
 // ── Live /models discovery + fallback (the NAMED_OPENAI_STYLE_PROVIDERS branch) ──
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-providers-batch-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-providers-batch-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

@@ -10,9 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-agentbridge-config-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-agentbridge-config-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -76,9 +74,7 @@ test("import then export roundtrips bypass + custom hosts + mappings", () => {
   const config = {
     version: 1 as const,
     bypassPatterns: ["*.bank.test", "literal.example.com"],
-    customHosts: [
-      { host: "api.internal.test", kind: "custom" as const, label: "Internal LLM" },
-    ],
+    customHosts: [{ host: "api.internal.test", kind: "custom" as const, label: "Internal LLM" }],
     agentMappings: {
       cursor: [{ source: "gpt-4o", target: "claude-sonnet-4-5" }],
     },

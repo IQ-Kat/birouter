@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// #4683: Qoder PAT (`pt-*`) chat requests failed with a Cosy 500 because OmniRoute
+// #4683: Qoder PAT (`pt-*`) chat requests failed with a Cosy 500 because Birouter
 // injected the raw `pt-*` PAT into the Cosy `security_oauth_token`. The official
 // qodercli uses a TWO-step flow: exchange the PAT for a short-lived `jt-*` job token
 // at openapi.qoder.sh/api/v1/jobToken/exchange, then carry the `jt-*` in the Cosy

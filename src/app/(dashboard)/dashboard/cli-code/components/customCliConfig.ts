@@ -35,7 +35,7 @@ export function buildAliasEnvVar(alias: string): string | null {
     .toUpperCase();
 
   if (!normalized) return null;
-  return `OMNIROUTE_MODEL_${normalized}`;
+  return `BIROUTER_MODEL_${normalized}`;
 }
 
 function getValidMappings(aliasMappings: CustomCliAliasMapping[] = []): CustomCliAliasMapping[] {
@@ -58,7 +58,7 @@ export function buildCustomCliEnvScript({
   const mappings = getValidMappings(aliasMappings);
 
   const lines = [
-    `# ${resolvedName} -> OmniRoute (OpenAI-compatible)`,
+    `# ${resolvedName} -> Birouter (OpenAI-compatible)`,
     `export OPENAI_BASE_URL="${normalizedBaseUrl}"`,
     `export OPENAI_API_KEY="${apiKey}"`,
   ];

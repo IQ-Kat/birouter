@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-proxy-registry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
 
@@ -496,14 +496,14 @@ test("provider connection proxy toggle fields round-trip as booleans", async () 
 
 test("createProxyRegistrySchema accepts type:vercel and source:vercel-relay (schema gap-06)", async () => {
   // Note: We validate the schema directly using the worktree's absolute path because
-  // tests run with CWD=/OmniRoute, so `@/` aliases resolve to the main branch's src/.
+  // tests run with CWD=/Birouter, so `@/` aliases resolve to the main branch's src/.
   // The assertion below confirms the worktree's schema accepts the new enum values.
   const { createProxyRegistrySchema } = await import("../../src/shared/validation/schemas.ts");
 
   const result = createProxyRegistrySchema.safeParse({
     name: "Vercel Relay Test",
     type: "vercel",
-    host: "omniroute-relay-abc123.vercel.app",
+    host: "birouter-relay-abc123.vercel.app",
     port: 443,
     source: "vercel-relay",
     notes: JSON.stringify({ relayAuth: "secret-relay-token" }),
@@ -525,7 +525,7 @@ test("createProxy persists type:vercel and source:vercel-relay to DB (schema gap
   const created = await proxiesDb.createProxy({
     name: "Vercel Relay DB Test",
     type: "vercel",
-    host: "omniroute-relay-xyz.vercel.app",
+    host: "birouter-relay-xyz.vercel.app",
     port: 443,
     source: "vercel-relay",
     notes: JSON.stringify({ relayAuth: "my-token" }),

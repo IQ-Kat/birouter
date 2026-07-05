@@ -120,21 +120,21 @@ test("completion bash outputs bash script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
   const { output, result } = await captureStdout(() => runCompletionCommand("bash"));
   assert.equal(result, 0);
-  assert.ok(output.includes("_omniroute"));
+  assert.ok(output.includes("_birouter"));
 });
 
 test("completion zsh outputs zsh script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
   const { output, result } = await captureStdout(() => runCompletionCommand("zsh"));
   assert.equal(result, 0);
-  assert.ok(output.includes("#compdef omniroute"));
+  assert.ok(output.includes("#compdef birouter"));
 });
 
 test("completion fish outputs fish script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
   const { output, result } = await captureStdout(() => runCompletionCommand("fish"));
   assert.equal(result, 0);
-  assert.ok(output.includes("complete -c omniroute"));
+  assert.ok(output.includes("complete -c birouter"));
 });
 
 // ── env ───────────────────────────────────────────────────────────────────────
@@ -149,14 +149,14 @@ test("env show returns 0", async () => {
 });
 
 test("env get returns 0 and prints env value", async () => {
-  process.env.__OMNIROUTE_TEST_KEY__ = "hello";
+  process.env.__BIROUTER_TEST_KEY__ = "hello";
   const { runEnvGetCommand } = await import("../../bin/cli/commands/env.mjs");
   const lines: string[] = [];
   const originalLog = console.log;
   console.log = (msg: string) => lines.push(msg);
-  const result = await runEnvGetCommand("__OMNIROUTE_TEST_KEY__");
+  const result = await runEnvGetCommand("__BIROUTER_TEST_KEY__");
   console.log = originalLog;
-  delete process.env.__OMNIROUTE_TEST_KEY__;
+  delete process.env.__BIROUTER_TEST_KEY__;
   assert.equal(result, 0);
   assert.ok(lines.join("").includes("hello"));
 });

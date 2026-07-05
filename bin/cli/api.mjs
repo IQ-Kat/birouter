@@ -23,14 +23,14 @@ const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 export function getBaseUrl(opts = {}) {
   if (opts.baseUrl) return stripTrailingSlash(opts.baseUrl);
-  const envUrl = process.env.OMNIROUTE_BASE_URL;
+  const envUrl = process.env.BIROUTER_BASE_URL;
   if (envUrl) return stripTrailingSlash(envUrl);
 
   // Resolve from the active context (canonical store + legacy profile fallback).
-  // This is what makes "remote mode" work: `omniroute contexts use <remote>`
+  // This is what makes "remote mode" work: `birouter contexts use <remote>`
   // routes every command at the remote server's baseUrl.
   try {
-    const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+    const ctx = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT);
     if (ctx?.baseUrl) return stripTrailingSlash(ctx.baseUrl);
   } catch {
     // Config read failures are not fatal — fall through to default.
@@ -60,10 +60,10 @@ export async function buildHeaders(opts) {
   }
   // Auth precedence: explicit key → active-context credential → ambient env key.
   //
-  // The active context's scoped token MUST win over the ambient OMNIROUTE_API_KEY:
-  // `omniroute connect <remote>` saves the context's token, but users keep
-  // OMNIROUTE_API_KEY in their shell. The global `--api-key` option is bound to
-  // that env var (.env("OMNIROUTE_API_KEY")), so commands that spread
+  // The active context's scoped token MUST win over the ambient BIROUTER_API_KEY:
+  // `birouter connect <remote>` saves the context's token, but users keep
+  // BIROUTER_API_KEY in their shell. The global `--api-key` option is bound to
+  // that env var (.env("BIROUTER_API_KEY")), so commands that spread
   // `optsWithGlobals()` into apiFetch carry opts.apiKey === the env value. If that
   // echoed value outranked the context, every remote management command would send
   // the local inference key and fail with "Invalid management token" — defeating
@@ -72,12 +72,12 @@ export async function buildHeaders(opts) {
   // key — a real `--api-key <x>` flag or a command-supplied token like
   // `connect --key` — counts as explicit and wins. Within a context the scoped
   // accessToken wins over the legacy apiKey.
-  const ambientKey = process.env.OMNIROUTE_API_KEY || null;
+  const ambientKey = process.env.BIROUTER_API_KEY || null;
   const explicitKey = opts.apiKey && opts.apiKey !== ambientKey ? opts.apiKey : null;
   let auth = explicitKey;
   if (!auth) {
     try {
-      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      const ctx = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT);
       auth = ctx?.accessToken || ctx?.apiKey || null;
     } catch {
       // No context credential available — fall through to the ambient fallback.
@@ -88,7 +88,7 @@ export async function buildHeaders(opts) {
     headers.set("authorization", `Bearer ${auth}`);
   }
   // Inject machine-id derived CLI token; env var override for testing.
-  const cliToken = opts.cliToken ?? process.env.OMNIROUTE_CLI_TOKEN ?? (await getCliToken());
+  const cliToken = opts.cliToken ?? process.env.BIROUTER_CLI_TOKEN ?? (await getCliToken());
   if (cliToken && !headers.has(CLI_TOKEN_HEADER)) {
     headers.set(CLI_TOKEN_HEADER, cliToken);
   }
@@ -183,9 +183,9 @@ export async function apiFetch(path, opts = {}) {
   const headers = await buildHeaders(opts);
   const body = serializeBody(opts.body, headers);
   const timeout =
-    opts.timeout ?? (Number.parseInt(process.env.OMNIROUTE_HTTP_TIMEOUT_MS || "", 10) || 30000);
+    opts.timeout ?? (Number.parseInt(process.env.BIROUTER_HTTP_TIMEOUT_MS || "", 10) || 30000);
   const maxAttempts = opts.retry === false ? 1 : (opts.retryMax ?? RETRY_DEFAULTS.maxAttempts);
-  const verbose = opts.verbose ?? process.env.OMNIROUTE_VERBOSE === "1";
+  const verbose = opts.verbose ?? process.env.BIROUTER_VERBOSE === "1";
 
   let lastErr;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {

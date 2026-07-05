@@ -12,13 +12,18 @@ describe("resolved proxy config → URL family encoding", () => {
     assert.ok(url!.endsWith("?family=ipv6"), url!);
   });
   it("omits family marker when auto", () => {
-    const url = proxyConfigToUrl({ type: "http", host: "p.example.com", port: 8080, family: "auto" });
+    const url = proxyConfigToUrl({
+      type: "http",
+      host: "p.example.com",
+      port: 8080,
+      family: "auto",
+    });
     assert.ok(!url!.includes("family="), url!);
   });
 });
 
 // ──────────────── Integration: family survives the resolveProxyForConnection cascade ──
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-resolve-family-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-resolve-family-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
 

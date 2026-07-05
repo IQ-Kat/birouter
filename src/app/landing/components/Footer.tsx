@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
+import BirouterLogo from "@/shared/components/BirouterLogo";
 
 export default function Footer() {
   const t = useTranslations("landing");
@@ -15,7 +15,7 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="size-6 rounded bg-[#0ea5e9] flex items-center justify-center text-white">
-                <OmniRouteLogo size={16} className="text-white" />
+                <BirouterLogo size={16} className="text-white" />
               </div>
               <h3 className="text-white text-lg font-bold">{t("brandName")}</h3>
             </div>
@@ -23,7 +23,7 @@ export default function Footer() {
             <div className="flex gap-4">
               <a
                 className="text-gray-400 hover:text-white transition-colors"
-                href="https://github.com/diegosouzapw/OmniRoute"
+                href="https://github.com/IQ-Kat/birouter"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -51,7 +51,7 @@ export default function Footer() {
             </a>
             <a
               className="text-gray-400 hover:text-[#0ea5e9] text-sm transition-colors"
-              href="https://github.com/diegosouzapw/OmniRoute/releases"
+              href="https://github.com/IQ-Kat/birouter/releases"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -70,7 +70,7 @@ export default function Footer() {
             </Link>
             <a
               className="text-gray-400 hover:text-[#0ea5e9] text-sm transition-colors"
-              href="https://github.com/diegosouzapw/OmniRoute"
+              href="https://github.com/IQ-Kat/birouter"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -91,7 +91,7 @@ export default function Footer() {
             <h4 className="font-bold text-white">{t("legal")}</h4>
             <a
               className="text-gray-400 hover:text-[#0ea5e9] text-sm transition-colors"
-              href="https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE"
+              href="https://github.com/IQ-Kat/birouter/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -108,7 +108,7 @@ export default function Footer() {
           <div className="flex gap-6">
             <a
               className="text-gray-600 hover:text-white text-sm transition-colors"
-              href="https://github.com/diegosouzapw/OmniRoute"
+              href="https://github.com/IQ-Kat/birouter"
               target="_blank"
               rel="noopener noreferrer"
             >

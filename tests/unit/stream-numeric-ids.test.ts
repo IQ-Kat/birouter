@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-stream-numeric-ids-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-stream-numeric-ids-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 
@@ -232,7 +232,9 @@ test("createSSEStream responses passthrough coerces numeric ids to strings", asy
   assert.equal(typeof added.item.call_id, "string");
   assert.equal(added.item.call_id, "654");
 
-  const delta = payloads.find((payload) => payload.type === "response.function_call_arguments.delta");
+  const delta = payloads.find(
+    (payload) => payload.type === "response.function_call_arguments.delta"
+  );
   assert.equal(typeof delta.response_id, "string");
   assert.equal(delta.response_id, "987");
   assert.equal(typeof delta.item_id, "string");

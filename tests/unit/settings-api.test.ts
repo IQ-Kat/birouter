@@ -6,7 +6,7 @@ import path from "node:path";
 
 // --- Create harness function (similar to _chatPipelineHarness pattern) ---
 async function createSettingsApiHarness() {
-  const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-settings-api-"));
+  const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-settings-api-"));
   process.env.DATA_DIR = testDataDir;
   process.env.REQUIRE_API_KEY = "false";
   if (!process.env.API_KEY_SECRET) {

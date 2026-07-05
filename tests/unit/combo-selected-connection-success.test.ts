@@ -5,7 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-sel-conn-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-sel-conn-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -130,7 +130,7 @@ describe("combo selected connection success handling", () => {
           status: 200,
           headers: {
             "content-type": "application/json",
-            "X-OmniRoute-Selected-Connection-Id": dynamicConnId,
+            "X-Birouter-Selected-Connection-Id": dynamicConnId,
           },
         });
       },
@@ -234,7 +234,7 @@ describe("combo selected connection success handling", () => {
           status: 200,
           headers: {
             "content-type": "application/json",
-            "x-omniroute-selected-connection-id": dynamicConnId,
+            "x-birouter-selected-connection-id": dynamicConnId,
           },
         });
       },
@@ -335,7 +335,7 @@ describe("combo selected connection success handling", () => {
           status: 200,
           headers: {
             "content-type": "application/json",
-            "X-OmniRoute-Selected-Connection-Id": dynamicConnId,
+            "X-Birouter-Selected-Connection-Id": dynamicConnId,
           },
         });
       },

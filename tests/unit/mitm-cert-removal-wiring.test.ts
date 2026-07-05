@@ -1,6 +1,6 @@
 /**
  * Gap 9 regression: uninstallCert() was fully implemented but had ZERO
- * production call sites — the OmniRoute root CA stayed trusted machine-wide
+ * production call sites — the Birouter root CA stayed trusted machine-wide
  * forever after MITM was disabled. These tests pin the wiring contract:
  *   (a) the cert module exports uninstallCert + checkCertInstalled, and
  *   (b) the cert route now exposes a DELETE handler that performs the removal.
@@ -9,9 +9,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const certModule = await import("../../src/mitm/cert/install.ts");
-const certRoute = await import(
-  "../../src/app/api/tools/agent-bridge/cert/route.ts"
-);
+const certRoute = await import("../../src/app/api/tools/agent-bridge/cert/route.ts");
 
 test("cert module exports uninstallCert", () => {
   assert.equal(typeof certModule.uninstallCert, "function", "uninstallCert must be exported");

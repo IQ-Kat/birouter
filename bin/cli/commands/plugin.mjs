@@ -19,8 +19,8 @@ function runNpm(args) {
 const TEMPLATE_INDEX = `export const meta = {
   name: "PLUGIN_NAME",
   version: "0.1.0",
-  description: "OmniRoute plugin",
-  omnirouteApi: ">=4.0.0",
+  description: "Birouter plugin",
+  birouterApi: ">=4.0.0",
 };
 
 export function register(program, ctx) {
@@ -40,7 +40,7 @@ export function register(program, ctx) {
 export function registerPlugin(program) {
   const plugin = program
     .command("plugin")
-    .description(t("plugin.description") || "Manage CLI plugins (omniroute-cmd-*)");
+    .description(t("plugin.description") || "Manage CLI plugins (birouter-cmd-*)");
 
   plugin
     .command("list")
@@ -53,7 +53,7 @@ export function registerPlugin(program) {
       );
       if (plugins.length === 0) {
         process.stdout.write("No plugins installed.\n");
-        process.stdout.write(`Install: omniroute plugin install <name>\n`);
+        process.stdout.write(`Install: birouter plugin install <name>\n`);
       }
     });
 
@@ -63,11 +63,11 @@ export function registerPlugin(program) {
     .option("-y, --yes", "Skip confirmation prompt")
     .action(async (name, opts) => {
       const isLocal = name.startsWith("./") || name.startsWith("/") || name.startsWith("../");
-      const pkgName = isLocal ? name : `omniroute-cmd-${name}`;
+      const pkgName = isLocal ? name : `birouter-cmd-${name}`;
 
       if (!opts.yes) {
         process.stderr.write(
-          `⚠ WARNING: Plugins run with the same privileges as omniroute CLI.\n` +
+          `⚠ WARNING: Plugins run with the same privileges as birouter CLI.\n` +
             `  Only install plugins from sources you trust.\n` +
             `  Installing: ${pkgName}\n` +
             `  Pass --yes to skip this prompt.\n`
@@ -94,7 +94,7 @@ export function registerPlugin(program) {
     .description(t("plugin.remove") || "Remove a plugin")
     .option("-y, --yes", "Skip confirmation")
     .action(async (name, opts) => {
-      const pkgName = name.startsWith("omniroute-cmd-") ? name : `omniroute-cmd-${name}`;
+      const pkgName = name.startsWith("birouter-cmd-") ? name : `birouter-cmd-${name}`;
       if (!opts.yes) {
         process.stderr.write(`Removing: ${pkgName} — pass --yes to confirm.\n`);
         if (!process.stdin.isTTY) {
@@ -115,7 +115,7 @@ export function registerPlugin(program) {
     .description(t("plugin.info") || "Show plugin details")
     .action(async (name, opts, cmd) => {
       const plugins = await discoverPlugins();
-      const p = plugins.find((x) => x.name === name || x.name === `omniroute-cmd-${name}`);
+      const p = plugins.find((x) => x.name === name || x.name === `birouter-cmd-${name}`);
       if (!p) {
         process.stderr.write(`Plugin '${name}' not found.\n`);
         process.exit(1);
@@ -127,7 +127,7 @@ export function registerPlugin(program) {
     .command("search [query]")
     .description(t("plugin.search") || "Search npm for available plugins")
     .action(async (query) => {
-      const q = query ? `omniroute-cmd-${query}` : "omniroute-cmd";
+      const q = query ? `birouter-cmd-${query}` : "birouter-cmd";
       const url = `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(q)}&size=50`;
       try {
         const res = await fetch(url);
@@ -139,7 +139,7 @@ export function registerPlugin(program) {
           description: o.package.description,
         }));
         if (rows.length === 0) {
-          process.stdout.write(`No plugins found for '${query || "omniroute-cmd"}'.\n`);
+          process.stdout.write(`No plugins found for '${query || "birouter-cmd"}'.\n`);
         } else {
           rows.forEach((r) =>
             process.stdout.write(`  ${r.name}@${r.version}  ${r.description || ""}\n`)
@@ -157,18 +157,18 @@ export function registerPlugin(program) {
     .action(async (name) => {
       try {
         if (name) {
-          const pkg = `omniroute-cmd-${name}`;
+          const pkg = `birouter-cmd-${name}`;
           runNpm(["update", "-g", pkg]);
           process.stdout.write(`✓ Updated: ${pkg}\n`);
           return;
         }
         // No name → update every installed plugin. Enumerate them explicitly
-        // instead of relying on a shell glob (`omniroute-cmd-*`), which never
+        // instead of relying on a shell glob (`birouter-cmd-*`), which never
         // expands without a shell and would otherwise update nothing.
         const plugins = await discoverPlugins();
         const names = plugins
           .map((p) => p.name)
-          .filter((n) => typeof n === "string" && n.startsWith("omniroute-cmd-"));
+          .filter((n) => typeof n === "string" && n.startsWith("birouter-cmd-"));
         if (names.length === 0) {
           process.stdout.write("No plugins installed to update.\n");
           return;
@@ -186,7 +186,7 @@ export function registerPlugin(program) {
     .description(t("plugin.scaffold") || "Scaffold a new plugin boilerplate")
     .action(async (name) => {
       const safeName = name.replace(/[^a-z0-9-]/g, "-");
-      const dir = join(process.cwd(), `omniroute-cmd-${safeName}`);
+      const dir = join(process.cwd(), `birouter-cmd-${safeName}`);
       if (existsSync(dir)) {
         process.stderr.write(`Directory already exists: ${dir}\n`);
         process.exit(1);
@@ -196,13 +196,13 @@ export function registerPlugin(program) {
         join(dir, "package.json"),
         JSON.stringify(
           {
-            name: `omniroute-cmd-${safeName}`,
+            name: `birouter-cmd-${safeName}`,
             version: "0.1.0",
             type: "module",
             main: "index.mjs",
-            description: `OmniRoute CLI plugin: ${safeName}`,
-            engines: { omniroute: ">=4.0.0" },
-            keywords: ["omniroute-plugin", "omniroute-cmd"],
+            description: `Birouter CLI plugin: ${safeName}`,
+            engines: { birouter: ">=4.0.0" },
+            keywords: ["birouter-plugin", "birouter-cmd"],
           },
           null,
           2
@@ -211,9 +211,9 @@ export function registerPlugin(program) {
       writeFileSync(join(dir, "index.mjs"), TEMPLATE_INDEX.replace(/PLUGIN_NAME/g, safeName));
       writeFileSync(
         join(dir, "README.md"),
-        `# omniroute-cmd-${safeName}\n\nAn OmniRoute CLI plugin.\n\n## Install\n\n\`\`\`bash\nomniroute plugin install ${safeName}\n\`\`\`\n`
+        `# birouter-cmd-${safeName}\n\nAn Birouter CLI plugin.\n\n## Install\n\n\`\`\`bash\nbirouter plugin install ${safeName}\n\`\`\`\n`
       );
       process.stdout.write(`✓ Scaffolded: ${dir}\n`);
-      process.stdout.write(`  Run: cd ${dir} && omniroute plugin install .\n`);
+      process.stdout.write(`  Run: cd ${dir} && birouter plugin install .\n`);
     });
 }

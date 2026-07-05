@@ -4,7 +4,7 @@ import {
   setThinkingBudgetConfig,
   getThinkingBudgetConfig,
   ThinkingMode,
-} from "@omniroute/open-sse/services/thinkingBudget.ts";
+} from "@birouter/open-sse/services/thinkingBudget.ts";
 import { updateThinkingBudgetSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";

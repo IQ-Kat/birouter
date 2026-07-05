@@ -24,7 +24,7 @@ interface CountRow {
 }
 
 function createTempDataDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-keys-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-keys-"));
 }
 
 async function withCliKeysEnv(fn: (dataDir: string, dbPath: string) => Promise<void>) {

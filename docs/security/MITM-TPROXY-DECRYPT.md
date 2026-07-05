@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # MITM TPROXY Transparent Decrypt
 
-TPROXY transparent decrypt is OmniRoute's **5th capture mode** for the
+TPROXY transparent decrypt is Birouter's **5th capture mode** for the
 [Traffic Inspector](../frameworks/TRAFFIC_INSPECTOR.md) / [AgentBridge](../frameworks/AGENTBRIDGE.md)
 MITM stack. It intercepts and **decrypts** local outbound HTTPS traffic on Linux
 using kernel TPROXY + policy routing — **without** spoofing `/etc/hosts` and
@@ -55,7 +55,7 @@ Use it when you want to capture and decrypt traffic from a process that:
 - you do not want to disturb with a system-wide proxy change.
 
 Because interception happens in the kernel, the originating process needs **no
-configuration change** — but the process must trust the dynamic CA OmniRoute
+configuration change** — but the process must trust the dynamic CA Birouter
 installs (see [§4](#4-the-per-sni-dynamic-ca-and-trust-store-installer)).
 
 ---
@@ -74,7 +74,7 @@ addon not built), the addon loader (`src/mitm/tproxy/transparentSocket.ts::loadT
 returns `null` rather than throwing. The capture-mode status then reports
 `available: false`, the dashboard toggle is **disabled** with the tooltip
 "TPROXY decrypt requires Linux + root + the native addon", and the rest of
-OmniRoute keeps working.
+Birouter keeps working.
 
 ---
 
@@ -126,7 +126,7 @@ present a valid leaf for whatever SNI the client requests.
 
 `DynamicCertStore` runs a local CA (built on the `selfsigned` dependency) that:
 
-- Generates a long-lived CA via `generateMitmCa()` (CN `"OmniRoute MITM CA"`,
+- Generates a long-lived CA via `generateMitmCa()` (CN `"Birouter MITM CA"`,
   10-year validity, `basicConstraints CA=true` + `keyUsage keyCertSign,cRLSign`,
   2048-bit RSA / SHA-256).
 - Issues a **leaf per SNI hostname on demand** via `issueLeafCert()` (1-year
@@ -142,8 +142,8 @@ The CA private key **never leaves the machine**.
 
 The intercepted client must trust the dynamic CA, so starting the capture mode
 installs the CA cert into the OS trust store under a **dedicated slot** —
-`omniroute-tproxy-ca.crt` (constant `TPROXY_CA_CERT_NAME`) — kept separate from
-the static MITM cert's slot (`omniroute-mitm.crt`) so the two never clobber each
+`birouter-tproxy-ca.crt` (constant `TPROXY_CA_CERT_NAME`) — kept separate from
+the static MITM cert's slot (`birouter-mitm.crt`) so the two never clobber each
 other.
 
 `installTproxyCa(caPem, sudoPassword?)` detects the distro's anchor directory
@@ -232,7 +232,7 @@ forward path defends against this with a bypass socket mark (**SO_MARK**):
 | Control                          | Detail                                                                                                                                                                                                                                                                                                                                                             |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Loopback-only API**            | `/api/tools/agent-bridge/tproxy` is covered by the `/api/tools/agent-bridge/` prefix in `LOCAL_ONLY_API_PREFIXES` (`src/server/authz/routeGuard.ts`). Loopback enforcement runs **before** auth (Hard Rules #15 + #17) — a leaked JWT over a tunnel cannot start TPROXY capture, which applies `iptables` rules and installs a trust-store CA via child processes. |
-| **Dedicated CA slot**            | The dynamic CA installs to `omniroute-tproxy-ca.crt`, never clobbering the static MITM cert.                                                                                                                                                                                                                                                                       |
+| **Dedicated CA slot**            | The dynamic CA installs to `birouter-tproxy-ca.crt`, never clobbering the static MITM cert.                                                                                                                                                                                                                                                                        |
 | **CA key never leaves the host** | `DynamicCertStore` holds the CA key in memory; it is not exported.                                                                                                                                                                                                                                                                                                 |
 | **Secret masking**               | `maskSecret()` on request/response bodies and `sanitizeHeaders()` on headers run **before** `globalTrafficBuffer.push()`.                                                                                                                                                                                                                                          |
 | **No shell interpolation**       | All `iptables`/`ip`/trust-store commands run via `execFile`/`execFileWithPassword` with arg arrays (Hard Rule #13).                                                                                                                                                                                                                                                |
@@ -240,7 +240,7 @@ forward path defends against this with a bypass socket mark (**SO_MARK**):
 | **Error sanitization**           | The route's error responses go through `sanitizeErrorMessage()` (Hard Rule #12).                                                                                                                                                                                                                                                                                   |
 
 **The MITM CA is a powerful capability.** A CA trusted by the OS that can sign any
-host means anything OmniRoute intercepts can be decrypted. It is gated behind the
+host means anything Birouter intercepts can be decrypted. It is gated behind the
 explicit, local-only TPROXY capture mode, off by default, and the trust-store
 entry is removed when you stop the mode.
 
@@ -341,7 +341,7 @@ returns `available: false` when the addon is missing.
 - Confirm the intercepted process actually connects to the configured `dport`
   (default `443`).
 - Confirm the process trusts the dynamic CA. The CA is installed under
-  `omniroute-tproxy-ca.crt`; apps with their own trust store (Firefox/Chrome NSS)
+  `birouter-tproxy-ca.crt`; apps with their own trust store (Firefox/Chrome NSS)
   may need the cert added there too.
 - Run the AgentBridge **Diagnose** self-test (see
   [`AGENTBRIDGE.md`](../frameworks/AGENTBRIDGE.md)) for cert-trusted / server
@@ -350,7 +350,7 @@ returns `available: false` when the addon is missing.
 ### Stale firewall rules after a crash
 
 `revertTproxy()` is the exact inverse of apply and is idempotent. Stopping the
-mode reverts the rules; if OmniRoute was killed mid-session, use the AgentBridge
+mode reverts the rules; if Birouter was killed mid-session, use the AgentBridge
 **Repair** action (`POST /api/tools/agent-bridge/repair`) to undo orphaned system
 state (DNS spoof, root CA, system proxy). The TPROXY `mangle` rules and route also
 flush automatically on reboot.

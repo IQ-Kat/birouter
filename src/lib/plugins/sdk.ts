@@ -2,17 +2,12 @@
  * Plugin SDK — typed API for plugin developers.
  *
  * Provides `definePlugin()` factory and re-exports all types needed
- * to build OmniRoute plugins.
+ * to build Birouter plugins.
  *
  * @module plugins/sdk
  */
 
-import type {
-  Plugin,
-  PluginContext,
-  PluginResult,
-  BlockingHookResult,
-} from "./hooks.ts";
+import type { Plugin, PluginContext, PluginResult, BlockingHookResult } from "./hooks.ts";
 
 export type { Plugin, PluginContext, PluginResult, BlockingHookResult };
 
@@ -34,11 +29,11 @@ export interface PluginDefinition {
 }
 
 /**
- * Define an OmniRoute plugin with type safety.
+ * Define an Birouter plugin with type safety.
  *
  * @example
  * ```ts
- * import { definePlugin } from "omniroute/plugins/sdk";
+ * import { definePlugin } from "birouter/plugins/sdk";
  *
  * export default definePlugin({
  *   name: "my-plugin",

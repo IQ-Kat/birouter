@@ -11,7 +11,7 @@ const CONFIG_PATH = path.join(os.homedir(), ".config", "opencode", "opencode.jso
 
 /**
  * SSRF guard for the catalog fetch (CodeQL js/request-forgery #326). The catalog
- * source is the user's OWN OmniRoute instance, so loopback/private hosts are the
+ * source is the user's OWN Birouter instance, so loopback/private hosts are the
  * legitimate default and must stay allowed — we cannot use the public-only guard
  * here. What has NO legitimate use as a catalog source is the cloud-metadata /
  * link-local pivot (169.254.169.254, metadata.google.internal, …): that is the
@@ -21,10 +21,11 @@ const CONFIG_PATH = path.join(os.homedir(), ".config", "opencode", "opencode.jso
 export function assertSafeCatalogUrl(rawUrl: string): URL {
   const url = parseOutboundUrl(rawUrl); // throws on bad protocol / embedded creds
   if (isCloudMetadataHost(url.hostname)) {
-    throw new OutboundUrlGuardError(
-      "Blocked cloud-metadata catalog URL (SSRF protection)",
-      { code: "OUTBOUND_URL_GUARD_BLOCKED", url: url.toString(), hostname: url.hostname }
-    );
+    throw new OutboundUrlGuardError("Blocked cloud-metadata catalog URL (SSRF protection)", {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname,
+    });
   }
   // Return the re-parsed URL so callers fetch the validated value (a `new URL()`
   // round-trip is a recognized request-forgery barrier — clears CodeQL #326).
@@ -95,11 +96,11 @@ export interface CatalogFetchResult {
 }
 
 /**
- * Fetch the live `/v1/models` catalog from OmniRoute. The catalog is the
+ * Fetch the live `/v1/models` catalog from Birouter. The catalog is the
  * single source of truth for context windows — opencode.json must NOT
  * hardcode values, otherwise we drift from the provider's actual limits.
  */
-export async function fetchOmniRouteCatalog(
+export async function fetchBirouterCatalog(
   baseUrl: string,
   apiKey: string,
   timeoutMs = 5_000
@@ -127,9 +128,7 @@ export async function fetchOmniRouteCatalog(
       signal: controller.signal,
     });
     if (!response.ok) {
-      throw new Error(
-        `OmniRoute /v1/models returned ${response.status} ${response.statusText}`
-      );
+      throw new Error(`Birouter /v1/models returned ${response.status} ${response.statusText}`);
     }
     const body = (await response.json()) as unknown;
     const list: unknown[] = Array.isArray(body)
@@ -219,10 +218,7 @@ function buildModelEntry(
   // (OpenCode v1 defaults to 128K when `limit.context` is missing.)
   const userLimit = existing?.limit?.context;
   const catalogLimit = catalog ? resolveContextLength(catalog) : undefined;
-  const context =
-    typeof userLimit === "number" && userLimit > 0
-      ? userLimit
-      : catalogLimit;
+  const context = typeof userLimit === "number" && userLimit > 0 ? userLimit : catalogLimit;
 
   // `limit.output` is REQUIRED by OpenCode's v1 provider schema (configV1).
   // Use the catalog's max_output_tokens when available; otherwise fall
@@ -237,20 +233,20 @@ function buildModelEntry(
       ? catalog.max_output_tokens
       : undefined;
   const output =
-    typeof userOutput === "number" && userOutput > 0
-      ? userOutput
-      : catalogOutput ?? 8_192;
+    typeof userOutput === "number" && userOutput > 0 ? userOutput : (catalogOutput ?? 8_192);
 
   // Emit `limit` only if we have at least one of context/output. We never
   // emit a half-baked limit block with only an `output` (would be misleading).
-  if (typeof context === "number" || typeof userOutput === "number" || typeof catalogOutput === "number") {
+  if (
+    typeof context === "number" ||
+    typeof userOutput === "number" ||
+    typeof catalogOutput === "number"
+  ) {
     const limit: { context?: number; input?: number; output?: number } = {};
     if (typeof context === "number") limit.context = context;
     if (typeof userOutput === "number" || typeof catalogOutput === "number") {
       limit.output =
-        typeof userOutput === "number" && userOutput > 0
-          ? userOutput
-          : catalogOutput ?? 8_192;
+        typeof userOutput === "number" && userOutput > 0 ? userOutput : (catalogOutput ?? 8_192);
     }
     const userInput = existing?.limit?.input;
     if (typeof userInput === "number" && userInput > 0) {
@@ -288,7 +284,7 @@ export interface GenerateOpencodeOptions {
   model?: string;
   /**
    * Override the default `provider.id` used in the generated config.
-   * Defaults to `"omniroute"`.
+   * Defaults to `"birouter"`.
    */
   providerId?: string;
   /**
@@ -308,7 +304,7 @@ export interface GenerateOpencodeOptions {
 }
 
 /**
- * Generate a full `opencode.json` document for OmniRoute. The catalog is the
+ * Generate a full `opencode.json` document for Birouter. The catalog is the
  * single source of truth for context windows — we never hardcode values.
  *
  * Behavior:
@@ -324,13 +320,11 @@ export interface GenerateOpencodeOptions {
  *  - Throws if the catalog fetch fails — the user must fix the upstream
  *    before we can generate a reliable opencode.json.
  */
-export async function generateOpencodeConfig(
-  options: GenerateOpencodeOptions
-): Promise<string> {
+export async function generateOpencodeConfig(options: GenerateOpencodeOptions): Promise<string> {
   const cleanBase = options.baseUrl.replace(/\/+$/, "");
   const baseURL = cleanBase.endsWith("/v1") ? cleanBase : `${cleanBase}/v1`;
 
-  const providerId = options.providerId?.trim() || "omniroute";
+  const providerId = options.providerId?.trim() || "birouter";
   const fetchCatalog = options.fetchCatalog !== false;
   const timeoutMs = options.catalogTimeoutMs ?? 5_000;
 
@@ -339,7 +333,7 @@ export async function generateOpencodeConfig(
   // picking the wrong context window.
   let catalogById = new Map<string, CatalogModelEntry>();
   if (fetchCatalog) {
-    const result = await fetchOmniRouteCatalog(baseURL, options.apiKey, timeoutMs);
+    const result = await fetchBirouterCatalog(baseURL, options.apiKey, timeoutMs);
     catalogById = result.byId;
   } else {
     throw new Error(
@@ -365,7 +359,7 @@ export async function generateOpencodeConfig(
   }
 
   const provider: Record<string, unknown> = {
-    name: existingProvider?.name ?? "OmniRoute",
+    name: existingProvider?.name ?? "Birouter",
     npm: existingProvider?.npm ?? "@ai-sdk/openai-compatible",
     options: {
       baseURL,
@@ -428,7 +422,7 @@ export function generateOpencodeConfigSync(options: {
   const base = cleanBase.endsWith("/v1") ? cleanBase.slice(0, -3) : cleanBase;
 
   const config = {
-    provider: "omniroute",
+    provider: "birouter",
     baseURL: `${base}/v1`,
     apiKey: options.apiKey,
     model: options.model || "opencode",

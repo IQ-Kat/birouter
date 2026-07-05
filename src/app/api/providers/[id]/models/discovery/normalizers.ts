@@ -3,16 +3,16 @@ import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import {
   getAntigravityModelsDiscoveryUrls,
   getAntigravityFetchAvailableModelsUrls,
-} from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+} from "@birouter/open-sse/config/antigravityUpstream.ts";
+import { getAntigravityHeaders } from "@birouter/open-sse/services/antigravityHeaders.ts";
 import {
   getClientVisibleAntigravityModelName,
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
-} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+} from "@birouter/open-sse/config/antigravityModelAliases.ts";
 import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
-import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
-import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
+import { resolveAntigravityVersion } from "@birouter/open-sse/services/antigravityVersion.ts";
+import { ensureAntigravityProjectAssigned } from "@birouter/open-sse/services/antigravityProjectBootstrap.ts";
 import { asRecord, toNonEmptyString } from "./helpers";
 
 const antigravityDiscoveryInflight = new Map<

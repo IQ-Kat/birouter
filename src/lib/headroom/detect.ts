@@ -5,7 +5,7 @@
  * Original authors: decolua, Carmelo Campos (@carmelogunsroses), Cursor.
  *
  * Headroom is the optional third-party token-saver proxy (headroom-ai
- * Python CLI). OmniRoute can either:
+ * Python CLI). Birouter can either:
  *   1. Manage a local proxy lifecycle (loopback URL → start/stop from the
  *      dashboard via `process.ts`).
  *   2. Use an external Docker sidecar proxy (non-loopback HEADROOM_URL).

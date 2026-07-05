@@ -14,7 +14,7 @@ const {
 } = await import("../../scripts/build/build-next-isolated.mjs");
 
 async function withTempDir(fn) {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-build-next-isolated-"));
 
   try {
     await fn(tempDir);
@@ -132,8 +132,8 @@ test("resolveNextBuildEnv does not clobber an existing --max-old-space-size (Doc
   assert.match(env.NODE_OPTIONS, /--max-old-space-size=8192/);
 });
 
-test("resolveNextBuildEnv honors the OMNIROUTE_BUILD_MEMORY_MB override", () => {
-  const env = resolveNextBuildEnv({ OMNIROUTE_BUILD_MEMORY_MB: "6144" });
+test("resolveNextBuildEnv honors the BIROUTER_BUILD_MEMORY_MB override", () => {
+  const env = resolveNextBuildEnv({ BIROUTER_BUILD_MEMORY_MB: "6144" });
   assert.match(env.NODE_OPTIONS, /--max-old-space-size=6144/);
 });
 
@@ -153,7 +153,7 @@ test("getTransientBuildPaths leaves _tasks in place by default", () => {
 });
 
 test("getTransientBuildPaths only moves _tasks when explicitly enabled", () => {
-  const paths = getTransientBuildPaths("/repo", { OMNIROUTE_BUILD_MOVE_TASKS: "1" });
+  const paths = getTransientBuildPaths("/repo", { BIROUTER_BUILD_MOVE_TASKS: "1" });
 
   assert.equal(
     paths.some((entry) => path.basename(entry.sourcePath) === "_tasks"),

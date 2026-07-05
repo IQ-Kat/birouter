@@ -1,7 +1,7 @@
 -- Migration 067: Serverless Relay Proxies
 -- Creates tables for relay tokens, rate limits, and usage tracking.
 
--- Relay tokens: map external API consumers to internal OmniRoute configuration
+-- Relay tokens: map external API consumers to internal Birouter configuration
 CREATE TABLE IF NOT EXISTS relay_tokens (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,

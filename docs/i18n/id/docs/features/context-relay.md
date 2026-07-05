@@ -10,8 +10,8 @@ berputar sebelum percakapan selesai.
 Runtime saat ini berperilaku seperti routing prioritas untuk pemilihan model, kemudian menambahkan
 lapisan handoff di atasnya:
 
-- sebelum akun aktif habis, OmniRoute menghasilkan ringkasan terstruktur yang ringkas
-- setelah autentikasi memilih akun berbeda untuk sesi yang sama, OmniRoute menyuntikkan
+- sebelum akun aktif habis, Birouter menghasilkan ringkasan terstruktur yang ringkas
+- setelah autentikasi memilih akun berbeda untuk sesi yang sama, Birouter menyuntikkan
   ringkasan tersebut sebagai pesan sistem ke dalam permintaan berikutnya
 - setelah handoff berhasil dikonsumsi, handoff tersebut dihapus dari penyimpanan
 
@@ -36,7 +36,7 @@ Tidak ada handoff yang dihasilkan. Permintaan berperilaku seperti routing priori
 
 ### 85% hingga 94% kuota terpakai
 
-Jika penyedia aktif diaktifkan di `handoffProviders`, OmniRoute menghasilkan ringkasan handoff
+Jika penyedia aktif diaktifkan di `handoffProviders`, Birouter menghasilkan ringkasan handoff
 terstruktur di latar belakang sebelum akun habis sepenuhnya.
 
 Detail penting:
@@ -54,7 +54,7 @@ mendekati habis dan runtime menghindari penjadwalan permintaan ringkasan lain.
 ### Setelah rotasi akun
 
 Ketika permintaan berikutnya untuk sesi yang sama menghasilkan akun terautentikasi yang berbeda,
-OmniRoute menambahkan handoff yang tersimpan sebagai pesan sistem. Penyuntikan hanya terjadi setelah
+Birouter menambahkan handoff yang tersimpan sebagai pesan sistem. Penyuntikan hanya terjadi setelah
 pergantian akun nyata diketahui.
 
 ## Muatan Handoff
@@ -85,7 +85,7 @@ Model ringkasan diperintahkan untuk mengembalikan objek JSON dengan struktur ber
 }
 ```
 
-Pada saat penyuntikan, OmniRoute mengonversi muatan tersebut menjadi pesan sistem `<context_handoff>`
+Pada saat penyuntikan, Birouter mengonversi muatan tersebut menjadi pesan sistem `<context_handoff>`
 agar akun berikutnya dapat melanjutkan dengan konteks lokal yang benar.
 
 ## Konfigurasi

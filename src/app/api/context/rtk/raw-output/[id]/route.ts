@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readRtkRawOutput } from "@omniroute/open-sse/services/compression/engines/rtk";
+import { readRtkRawOutput } from "@birouter/open-sse/services/compression/engines/rtk";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

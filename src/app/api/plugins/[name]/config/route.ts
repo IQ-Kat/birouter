@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 import { getPluginByName, updatePluginConfig } from "@/lib/db/plugins";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { z } from "zod";

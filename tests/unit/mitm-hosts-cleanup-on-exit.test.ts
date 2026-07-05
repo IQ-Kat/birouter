@@ -19,7 +19,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mitm-exit-cleanup-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mitm-exit-cleanup-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -99,7 +99,11 @@ test("handleExitCleanup: with a cached sudo password, best-effort reverts manage
 
 test("handleExitCleanup: with NO cached password, falls back to orphaned-state flag and skips DNS removal", async () => {
   manager.clearCachedPassword();
-  assert.equal(manager.getCachedPassword(), null, "precondition: no password cached in this session");
+  assert.equal(
+    manager.getCachedPassword(),
+    null,
+    "precondition: no password cached in this session"
+  );
 
   let removeDNSEntryCalled = false;
   let removeDNSEntriesCalled = false;

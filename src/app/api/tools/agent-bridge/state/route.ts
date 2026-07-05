@@ -4,7 +4,7 @@
  * LOCAL_ONLY: registered in routeGuard.ts
  */
 import { getMitmStatus, getAllAgentsStatus } from "@/mitm/manager";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function GET(): Promise<Response> {

@@ -1,13 +1,13 @@
-# OmniRoute — Design System & Visual Identity
+# Birouter — Design System & Visual Identity
 
 > **Status:** standardization plan. **Phases 1–3 are implemented in this PR** (grid, primitives, status-color centralization, mono token, and the DataTable token migration). The DataTable migration is **faithful** — dark stays byte-identical (the new `--table-*` dark values equal the old hardcoded rgba); light is fixed (it was buggy always-dark via dead `var()` fallbacks). **⚠️ Wants a visual pass before merge** (light-theme tables + the secondary-text shift `#888`→`--color-text-muted`). **Phase 4 is now largely done too** (C6 focus-ring → accent, C7 Checkbox/Textarea primitives, C9 `cn()`→tailwind-merge); only the selective C8 hex-sweep remains. Note several remaining "hardcoded" hex are _intentional_ (always-dark console terminal, ReactFlow SVG strokes) and must NOT be swept. **Phase 5 (D4 + D8): the grid now reaches every standalone screen** (login/auth/error/legal/status/onboarding — their opaque `bg-bg` full-screen wrappers were hiding it) **and the dashboard content shell is fluid up to 4K** (`max-w-7xl` → `max-w-[3840px]`) so it follows the viewport on large monitors instead of centering with wide side gutters. **Phase 6 (D9): data tables are now opaque surfaces** so the grid no longer bleeds through their rows — card-less tables paint `bg-surface`, and the two log tables' semi-transparent `bg-black/5` tint (which tailwind-merge let win over the Card's `bg-surface`) is removed. The grid size itself is already correct (32px, identical to the site); a "bigger" grid on a running instance is a stale build, not code.
-> **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
+> **Date:** 2026-06-16 · **Scope:** unify the Birouter dashboard (`src/`) with the marketing site (`_mono_repo/birouterSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
 
 ---
 
 ## 1. Purpose
 
-The marketing site (`viral.omniroute.online`, `why.omniroute.online`, `omniroute.online`) and the product dashboard should look like **one product**. The site already borrowed its palette from the dashboard — its `css/tokens.css` even says _"Palette mirrors the OmniRoute dashboard (src/app/globals.css)"_. So the two are already ~80% aligned at the color level. What's missing on the dashboard:
+The marketing site (`viral.omniroute.online`, `why.omniroute.online`, `omniroute.online`) and the product dashboard should look like **one product**. The site already borrowed its palette from the dashboard — its `css/tokens.css` even says _"Palette mirrors the Birouter dashboard (src/app/globals.css)"_. So the two are already ~80% aligned at the color level. What's missing on the dashboard:
 
 1. The **graph-paper grid wallpaper** the site uses on every page.
 2. A handful of **shared design tokens** the site has but the dashboard lacks (radius scale, brand gradient, `surface-2`, mono font).
@@ -71,7 +71,7 @@ Every brand color and surface already matches the site **by value** (only the na
 
 ### 4.1 What it is
 
-The exact recipe from the site (`_mono_repo/omnirouteSite/css/base.css`): a **fixed, full-viewport pseudo-element** painting two 1px line gradients, sitting at `z-index:-1` behind all content.
+The exact recipe from the site (`_mono_repo/birouterSite/css/base.css`): a **fixed, full-viewport pseudo-element** painting two 1px line gradients, sitting at `z-index:-1` behind all content.
 
 ```css
 body::before {
@@ -218,4 +218,4 @@ Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 | Status-color sources              | `flow/edgeStyles.ts`, `TokenHealthBadge.tsx`, `DegradationBadge.tsx`, `logTableStyles.ts`                            |
 | `cn` util                         | `src/shared/utils/cn.ts`                                                                                             |
 | Phase 1 guard test                | `tests/unit/design-grid-background.test.ts`                                                                          |
-| Site reference                    | `_mono_repo/omnirouteSite/css/tokens.css`, `css/base.css`                                                            |
+| Site reference                    | `_mono_repo/birouterSite/css/tokens.css`, `css/base.css`                                                             |

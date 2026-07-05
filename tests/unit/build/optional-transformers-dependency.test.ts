@@ -9,7 +9,7 @@ function readJson<T = Record<string, unknown>>(relPath: string): T {
   return JSON.parse(readFileSync(join(repoRoot, relPath), "utf8")) as T;
 }
 
-test("@huggingface/transformers is optional so onnxruntime CUDA install failures cannot abort OmniRoute install", () => {
+test("@huggingface/transformers is optional so onnxruntime CUDA install failures cannot abort Birouter install", () => {
   const pkg = readJson<{
     dependencies?: Record<string, string>;
     optionalDependencies?: Record<string, string>;
@@ -25,7 +25,14 @@ test("@huggingface/transformers is optional so onnxruntime CUDA install failures
 
 test("package-lock marks transformers and its onnxruntime runtime as optional", () => {
   const lock = readJson<{
-    packages: Record<string, { optional?: boolean; dependencies?: Record<string, string>; optionalDependencies?: Record<string, string> }>;
+    packages: Record<
+      string,
+      {
+        optional?: boolean;
+        dependencies?: Record<string, string>;
+        optionalDependencies?: Record<string, string>;
+      }
+    >;
   }>("package-lock.json");
 
   assert.equal(

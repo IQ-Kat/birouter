@@ -4,7 +4,7 @@ import { DASHBOARD_CSRF_HEADER } from "@/shared/constants/dashboardCsrf";
 
 const TOKEN_VERSION = "v1";
 const TOKEN_TTL_SECONDS = 10 * 60;
-const TOKEN_CONTEXT = "omniroute-dashboard-csrf-v1";
+const TOKEN_CONTEXT = "birouter-dashboard-csrf-v1";
 
 export interface DashboardCsrfToken {
   token: string;

@@ -28,7 +28,7 @@ export const CLI_COMPAT_DISPLAY_PROVIDER_IDS = [
  * - Kiro and Cursor already apply their native parity inside custom executors, so a toggle would
  *   be misleading unless it controls additional behavior.
  * - Droid, OpenClaw, Windsurf and Hermes are CLI tool setup guides/settings, not upstream provider
- *   fingerprints handled by OmniRoute.
+ *   fingerprints handled by Birouter.
  * - Cline, Kilo Code, OpenCode and Kimi Coding have real provider/backend integrations, but no
  *   captured `CLI_FINGERPRINTS` entry is wired to `applyFingerprint()` yet.
  *

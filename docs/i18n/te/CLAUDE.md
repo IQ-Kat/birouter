@@ -39,7 +39,7 @@ npm run test:all
 
 ## ప్రాజెక్ట్ ఒక చూపులో
 
-**OmniRoute** — ఏకీకృత AI ప్రాక్సీ/రౌటర్. ఒక ఎండ్‌పాయింట్, 160+ LLM ప్రొవైడర్లు, ఆటో-ఫాల్బ్యాక్.
+**Birouter** — ఏకీకృత AI ప్రాక్సీ/రౌటర్. ఒక ఎండ్‌పాయింట్, 160+ LLM ప్రొవైడర్లు, ఆటో-ఫాల్బ్యాక్.
 
 | పొర              | స్థానం                  | ఉద్దేశ్యం                                                                        |
 | ---------------- | ----------------------- | -------------------------------------------------------------------------------- |
@@ -80,7 +80,7 @@ API మార్గాలు ఒక సుసంగత నమూనాను అ
 
 ## స్థిరత్వం రన్‌టైమ్ స్థితి
 
-OmniRouteకు మూడు సంబంధిత కానీ ప్రత్యేక తాత్కాలిక-పరాజయ యంత్రాంగాలు ఉన్నాయి. రూటింగ్ ప్రవర్తనను డీబగ్ చేస్తూ వాటి పరిధిని వేరుగా ఉంచండి. ఒక తక్షణ-చిత్రం మ్యాప్ కోసం [3-పొర స్థిరత్వం చిత్రాన్ని](./docs/diagrams/exported/resilience-3layers.svg) చూడండి (మూలం: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd)).
+Birouterకు మూడు సంబంధిత కానీ ప్రత్యేక తాత్కాలిక-పరాజయ యంత్రాంగాలు ఉన్నాయి. రూటింగ్ ప్రవర్తనను డీబగ్ చేస్తూ వాటి పరిధిని వేరుగా ఉంచండి. ఒక తక్షణ-చిత్రం మ్యాప్ కోసం [3-పొర స్థిరత్వం చిత్రాన్ని](./docs/diagrams/exported/resilience-3layers.svg) చూడండి (మూలం: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd)).
 
 ### ప్రొవైడర్ సర్క్యూట్ బ్రేకర్
 
@@ -192,7 +192,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### కోడ్ శైలి
 
 - **2 స్థలాలు**, సెమికోలన్‌లు, డబుల్ కోట్స్, 100 అక్షరాల వెడల్పు, es5 ట్రైలింగ్ కమీలు (lint-staged ద్వారా Prettier ద్వారా అమలు చేయబడింది)
-- **ఇంపోర్ట్స్**: బాహ్య → అంతర్గత (`@/`, `@omniroute/open-sse`) → సంబంధిత
+- **ఇంపోర్ట్స్**: బాహ్య → అంతర్గత (`@/`, `@birouter/open-sse`) → సంబంధిత
 - **నామకరణం**: ఫైళ్లు=camelCase/kebab, భాగాలు=PascalCase, స్థిరాంకాలు=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = ఎక్కడైనా పొరపాటు; `no-explicit-any` = `open-sse/` మరియు `tests/` లో హెచ్చరిక
 - **TypeScript**: `strict: false`, లక్ష్యం ES2022, మాడ్యూల్ esnext, రిజల్యూషన్ బండ్లర్. స్పష్టమైన రకాలపై ప్రాధాన్యత ఇవ్వండి.
@@ -358,9 +358,9 @@ git push -u origin feat/your-feature
 
 - **రన్‌టైమ్**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES మాడ్యూల్స్
 - **TypeScript**: 5.9+, లక్ష్యం ES2022, మాడ్యూల్ esnext, రిజల్యూషన్ బండ్లర్
-- **పాత్ అలియాసులు**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **పాత్ అలియాసులు**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **డిఫాల్ట్ పోర్ట్**: 20128 (API + డాష్‌బోర్డ్ ఒకే పోర్ట్‌లో)
-- **డేటా డైరెక్టరీ**: `DATA_DIR` env var, డిఫాల్ట్ గా `~/.omniroute/`
+- **డేటా డైరెక్టరీ**: `DATA_DIR` env var, డిఫాల్ట్ గా `~/.birouter/`
 - **కీ env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - సెటప్: `cp .env.example .env` తరువాత `JWT_SECRET` (`openssl rand -base64 48`) మరియు `API_KEY_SECRET` (`openssl rand -hex 32`) ను ఉత్పత్తి చేయండి
 
@@ -383,4 +383,4 @@ git push -u origin feat/your-feature
 13. `exec()`/`spawn()` కు పంపబడిన షెల్ స్క్రిప్ట్స్‌లో బాహ్య పాత్‌లు లేదా రన్‌టైమ్ విలువలను ఎప్పుడూ స్ట్రింగ్-ఇంటర్‌పోలేట్ చేయకండి — బదులుగా `env` ఎంపిక ద్వారా పంపండి. సూచన: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. కోడ్‌QL / సీక్రెట్-స్కానింగ్ అలర్ట్‌ను ఎప్పుడూ విస్మరించకండి (a) పై ప్యాటర్న్ డాక్స్‌ను మొదట తనిఖీ చేయడం ద్వారా సహాయాన్ని చూడండి, మరియు (b) విస్మరణ వ్యాఖ్యలో సాంకేతిక న్యాయాన్ని నమోదు చేయండి. ప్రీసిడెంట్: `js/stack-trace-exposure` ఇప్పటికే `sanitizeErrorMessage()` ద్వారా మార్గం చేయబడిన కాల్‌సైట్‌లపై లేవనెత్తబడింది ఇది ఒక తెలిసిన కోడ్‌QL పరిమితి (అనుకూల శుభ్రతలు గుర్తించబడలేదు) — `docs/security/ERROR_SANITIZATION.md` ను సూచిస్తూ `false positive` గా విస్మరించండి.
 15. `isLocalOnlyPath()` వర్గీకరణ లేకుండా పిల్ల ప్రాసెస్‌లను స్పాన్ చేసే మార్గాలను ఎప్పుడూ ప్రదర్శించకండి (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` లో. లూప్‌బ్యాక్ అమలు ఏదైనా ఆథ్ తనిఖీకి ముందు నిర్దిష్టంగా జరుగుతుంది — టన్నెల్ ద్వారా లీకైన JWT ప్రాసెస్ స్పాన్‌ను ప్రేరేపించలదు. చూడండి `docs/security/ROUTE_GUARD_TIERS.md`.
-16. AI అసిస్టెంట్, LLM లేదా ఆటోమేషన్ ఖాతాకు క్రెడిట్ ఇచ్చే `Co-Authored-By` ట్రెయిలర్‌లను commit సందేశాలలో ఎప్పటికీ చేర్చకండి (ఉదా. "Claude", "GPT", "Copilot", "Bot" కలిగిన పేర్లు; `anthropic.com` / `openai.com` / bot-యాజమాన్యం గల `noreply.github.com` చిరునామాల వద్ద ఇమెయిల్‌లు). ఇటువంటి ట్రెయిలర్‌లు GitHub లో bot ఖాతాకు commit attribution ను రూట్ చేస్తాయి, PR చరిత్రలో నిజమైన రచయిత (`diegosouzapw`) ను దాస్తాయి. మానవ సహకారులు — upstream PR రచయితలు మరియు OmniRoute కు port అవుతున్న issue రిపోర్టర్‌లతో సహా — ప్రామాణిక `Co-authored-by: Name <email>` ట్రెయిలర్‌లతో క్రెడిట్ పొందవచ్చు మరియు పొందాలి; upstream-port పనిప్రవాహాలు (`/port-upstream-features`, `/port-upstream-issues`) దీనిపై ఆధారపడి ఉన్నాయి.
+16. AI అసిస్టెంట్, LLM లేదా ఆటోమేషన్ ఖాతాకు క్రెడిట్ ఇచ్చే `Co-Authored-By` ట్రెయిలర్‌లను commit సందేశాలలో ఎప్పటికీ చేర్చకండి (ఉదా. "Claude", "GPT", "Copilot", "Bot" కలిగిన పేర్లు; `anthropic.com` / `openai.com` / bot-యాజమాన్యం గల `noreply.github.com` చిరునామాల వద్ద ఇమెయిల్‌లు). ఇటువంటి ట్రెయిలర్‌లు GitHub లో bot ఖాతాకు commit attribution ను రూట్ చేస్తాయి, PR చరిత్రలో నిజమైన రచయిత (`diegosouzapw`) ను దాస్తాయి. మానవ సహకారులు — upstream PR రచయితలు మరియు Birouter కు port అవుతున్న issue రిపోర్టర్‌లతో సహా — ప్రామాణిక `Co-authored-by: Name <email>` ట్రెయిలర్‌లతో క్రెడిట్ పొందవచ్చు మరియు పొందాలి; upstream-port పనిప్రవాహాలు (`/port-upstream-features`, `/port-upstream-issues`) దీనిపై ఆధారపడి ఉన్నాయి.

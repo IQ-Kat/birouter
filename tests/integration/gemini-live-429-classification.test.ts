@@ -2,7 +2,7 @@
  * Gemini 429 classification integration tests.
  *
  * Tests the end-to-end classification path for Gemini rate-limit errors
- * through OmniRoute. Sends bursts of requests to try to trigger published
+ * through Birouter. Sends bursts of requests to try to trigger published
  * RPM/RPD limits, then verifies the classification is correct.
  *
  * The tests are "best effort" — if rate limits aren't triggered (Gemini
@@ -11,8 +11,8 @@
  * provide the definitive coverage of classification logic.
  *
  * Env vars:
- *   OMNIROUTE_URL                 — base URL (default http://localhost:20128)
- *   OMNIROUTE_API_KEY             — API key for auth (REQUIRED)
+ *   BIROUTER_URL                 — base URL (default http://localhost:20128)
+ *   BIROUTER_API_KEY             — API key for auth (REQUIRED)
  *   TEST_GEMINI_RPM_MODEL         — RPM model (default gemini/gemma-4-31b-it)
  *   TEST_GEMINI_RPD_MODEL         — RPD model (default gemini/gemini-2.5-flash)
  */
@@ -20,12 +20,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const API_KEY = process.env.OMNIROUTE_API_KEY;
-const BASE_URL = process.env.OMNIROUTE_URL || "http://localhost:20128";
+const API_KEY = process.env.BIROUTER_API_KEY;
+const BASE_URL = process.env.BIROUTER_URL || "http://localhost:20128";
 const RPM_MODEL = process.env.TEST_GEMINI_RPM_MODEL || "gemini/gemma-4-31b-it";
 const RPD_MODEL = process.env.TEST_GEMINI_RPD_MODEL || "gemini/gemini-2.5-flash";
 
-const skip = !API_KEY ? "OMNIROUTE_API_KEY not set — skipping live test" : undefined;
+const skip = !API_KEY ? "BIROUTER_API_KEY not set — skipping live test" : undefined;
 
 async function chat(model: string, content: string) {
   const res = await fetch(`${BASE_URL}/api/v1/chat/completions`, {

@@ -102,10 +102,10 @@ export function isArenaEloSyncEnabled(): boolean {
 
 export function isControlPlaneProxyDirectFallbackEnabled(): boolean {
   try {
-    return isFeatureFlagEnabled("OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK");
+    return isFeatureFlagEnabled("BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK");
   } catch (error) {
     console.error(
-      "[featureFlags] Failed to resolve OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK, defaulting to disabled:",
+      "[featureFlags] Failed to resolve BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;

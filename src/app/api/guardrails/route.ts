@@ -1,7 +1,7 @@
 /**
  * GET /api/guardrails — list the registered runtime guardrails and their status
  * (name / enabled / priority). Guardrails run on every request; per-call opt-out
- * is done via the `x-omniroute-disabled-guardrails` header, so there is no
+ * is done via the `x-birouter-disabled-guardrails` header, so there is no
  * persisted enable/disable surface — see POST /api/guardrails/test to dry-run
  * the pipeline. (#3496)
  *

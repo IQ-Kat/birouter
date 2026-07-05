@@ -4,7 +4,7 @@
 
 ---
 
-Referensi lengkap untuk semua titik akhir API OmniRoute.
+Referensi lengkap untuk semua titik akhir API Birouter.
 
 ---
 
@@ -40,18 +40,18 @@ Content-Type: application/json
 
 ### Header Kustom
 
-| Header                   | Arah      | Deskripsi                                                    |
-| ------------------------ | --------- | ------------------------------------------------------------ |
-| `X-OmniRoute-No-Cache`   | Permintaan | Atur ke `true` untuk melewati cache                          |
-| `X-OmniRoute-Progress`   | Permintaan | Atur ke `true` untuk event progres                           |
-| `X-Session-Id`           | Permintaan | Kunci sesi tetap untuk afinitas sesi eksternal               |
-| `x_session_id`           | Permintaan | Varian garis bawah juga diterima (HTTP langsung)             |
-| `Idempotency-Key`        | Permintaan | Kunci deduplikasi (jendela 5 detik)                          |
-| `X-Request-Id`           | Permintaan | Kunci deduplikasi alternatif                                 |
-| `X-OmniRoute-Cache`      | Respons   | `HIT` atau `MISS` (non-streaming)                            |
-| `X-OmniRoute-Idempotent` | Respons   | `true` jika dideduplikasi                                    |
-| `X-OmniRoute-Progress`   | Respons   | `enabled` jika pelacakan progres aktif                       |
-| `X-OmniRoute-Session-Id` | Respons   | ID sesi efektif yang digunakan OmniRoute                     |
+| Header                  | Arah       | Deskripsi                                        |
+| ----------------------- | ---------- | ------------------------------------------------ |
+| `X-Birouter-No-Cache`   | Permintaan | Atur ke `true` untuk melewati cache              |
+| `X-Birouter-Progress`   | Permintaan | Atur ke `true` untuk event progres               |
+| `X-Session-Id`          | Permintaan | Kunci sesi tetap untuk afinitas sesi eksternal   |
+| `x_session_id`          | Permintaan | Varian garis bawah juga diterima (HTTP langsung) |
+| `Idempotency-Key`       | Permintaan | Kunci deduplikasi (jendela 5 detik)              |
+| `X-Request-Id`          | Permintaan | Kunci deduplikasi alternatif                     |
+| `X-Birouter-Cache`      | Respons    | `HIT` atau `MISS` (non-streaming)                |
+| `X-Birouter-Idempotent` | Respons    | `true` jika dideduplikasi                        |
+| `X-Birouter-Progress`   | Respons    | `enabled` jika pelacakan progres aktif           |
+| `X-Birouter-Session-Id` | Respons    | ID sesi efektif yang digunakan Birouter          |
 
 > Catatan Nginx: jika Anda mengandalkan header bergaris bawah (misalnya `x_session_id`), aktifkan `underscores_in_headers on;`.
 
@@ -173,104 +173,104 @@ Contoh respons:
 
 ### Otentikasi
 
-| Titik Akhir                   | Metode  | Deskripsi                          |
-| ----------------------------- | ------- | ---------------------------------- |
-| `/api/auth/login`             | POST    | Masuk                              |
-| `/api/auth/logout`            | POST    | Keluar                             |
-| `/api/settings/require-login` | GET/PUT | Aktifkan/nonaktifkan wajib login   |
+| Titik Akhir                   | Metode  | Deskripsi                        |
+| ----------------------------- | ------- | -------------------------------- |
+| `/api/auth/login`             | POST    | Masuk                            |
+| `/api/auth/logout`            | POST    | Keluar                           |
+| `/api/settings/require-login` | GET/PUT | Aktifkan/nonaktifkan wajib login |
 
 ### Manajemen Penyedia
 
-| Titik Akhir                  | Metode                | Deskripsi                                                  |
-| ---------------------------- | --------------------- | ---------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | Daftar / buat penyedia                                     |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Kelola penyedia                                            |
-| `/api/providers/[id]/test`   | POST                  | Uji koneksi penyedia                                       |
-| `/api/providers/[id]/models` | GET                   | Daftar model penyedia                                      |
-| `/api/providers/validate`    | POST                  | Validasi konfigurasi penyedia                              |
-| `/api/provider-nodes*`       | Berbagai              | Manajemen simpul penyedia                                  |
+| Titik Akhir                  | Metode                | Deskripsi                                                     |
+| ---------------------------- | --------------------- | ------------------------------------------------------------- |
+| `/api/providers`             | GET/POST              | Daftar / buat penyedia                                        |
+| `/api/providers/[id]`        | GET/PUT/DELETE        | Kelola penyedia                                               |
+| `/api/providers/[id]/test`   | POST                  | Uji koneksi penyedia                                          |
+| `/api/providers/[id]/models` | GET                   | Daftar model penyedia                                         |
+| `/api/providers/validate`    | POST                  | Validasi konfigurasi penyedia                                 |
+| `/api/provider-nodes*`       | Berbagai              | Manajemen simpul penyedia                                     |
 | `/api/provider-models`       | GET/POST/PATCH/DELETE | Model kustom (tambah, perbarui, sembunyikan/tampilkan, hapus) |
 
 ### Alur OAuth
 
-| Titik Akhir                      | Metode   | Deskripsi                     |
-| -------------------------------- | -------- | ----------------------------- |
-| `/api/oauth/[provider]/[action]` | Berbagai | OAuth khusus penyedia         |
+| Titik Akhir                      | Metode   | Deskripsi             |
+| -------------------------------- | -------- | --------------------- |
+| `/api/oauth/[provider]/[action]` | Berbagai | OAuth khusus penyedia |
 
 ### Perutean & Konfigurasi
 
-| Titik Akhir           | Metode   | Deskripsi                           |
-| --------------------- | -------- | ----------------------------------- |
-| `/api/models/alias`   | GET/POST | Alias model                         |
+| Titik Akhir           | Metode   | Deskripsi                               |
+| --------------------- | -------- | --------------------------------------- |
+| `/api/models/alias`   | GET/POST | Alias model                             |
 | `/api/models/catalog` | GET      | Semua model berdasarkan penyedia + tipe |
-| `/api/combos*`        | Berbagai | Manajemen combo                     |
-| `/api/keys*`          | Berbagai | Manajemen kunci API                 |
-| `/api/pricing`        | GET      | Harga model                         |
+| `/api/combos*`        | Berbagai | Manajemen combo                         |
+| `/api/keys*`          | Berbagai | Manajemen kunci API                     |
+| `/api/pricing`        | GET      | Harga model                             |
 
 ### Penggunaan & Analitik
 
-| Titik Akhir                 | Metode | Deskripsi                      |
-| --------------------------- | ------ | ------------------------------ |
-| `/api/usage/history`        | GET    | Riwayat penggunaan             |
-| `/api/usage/logs`           | GET    | Log penggunaan                 |
-| `/api/usage/request-logs`   | GET    | Log tingkat permintaan         |
-| `/api/usage/[connectionId]` | GET    | Penggunaan per koneksi         |
+| Titik Akhir                 | Metode | Deskripsi              |
+| --------------------------- | ------ | ---------------------- |
+| `/api/usage/history`        | GET    | Riwayat penggunaan     |
+| `/api/usage/logs`           | GET    | Log penggunaan         |
+| `/api/usage/request-logs`   | GET    | Log tingkat permintaan |
+| `/api/usage/[connectionId]` | GET    | Penggunaan per koneksi |
 
 ### Pengaturan
 
-| Titik Akhir                     | Metode        | Deskripsi                       |
-| ------------------------------- | ------------- | ------------------------------- |
-| `/api/settings`                 | GET/PUT/PATCH | Pengaturan umum                 |
-| `/api/settings/proxy`           | GET/PUT       | Konfigurasi proksi jaringan     |
-| `/api/settings/proxy/test`      | POST          | Uji koneksi proksi              |
-| `/api/settings/ip-filter`       | GET/PUT       | Daftar izin/blokir IP           |
-| `/api/settings/thinking-budget` | GET/PUT       | Anggaran token penalaran        |
-| `/api/settings/system-prompt`   | GET/PUT       | Prompt sistem global            |
+| Titik Akhir                     | Metode        | Deskripsi                   |
+| ------------------------------- | ------------- | --------------------------- |
+| `/api/settings`                 | GET/PUT/PATCH | Pengaturan umum             |
+| `/api/settings/proxy`           | GET/PUT       | Konfigurasi proksi jaringan |
+| `/api/settings/proxy/test`      | POST          | Uji koneksi proksi          |
+| `/api/settings/ip-filter`       | GET/PUT       | Daftar izin/blokir IP       |
+| `/api/settings/thinking-budget` | GET/PUT       | Anggaran token penalaran    |
+| `/api/settings/system-prompt`   | GET/PUT       | Prompt sistem global        |
 
 ### Pemantauan
 
-| Titik Akhir              | Metode     | Deskripsi                                                                                                              |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`          | GET        | Pelacakan sesi aktif                                                                                                   |
-| `/api/rate-limits`       | GET        | Batas laju per akun                                                                                                    |
-| `/api/monitoring/health` | GET        | Pemeriksaan kesehatan + ringkasan penyedia (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`)        |
-| `/api/cache/stats`       | GET/DELETE | Statistik cache / hapus                                                                                                |
+| Titik Akhir              | Metode     | Deskripsi                                                                                                       |
+| ------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`          | GET        | Pelacakan sesi aktif                                                                                            |
+| `/api/rate-limits`       | GET        | Batas laju per akun                                                                                             |
+| `/api/monitoring/health` | GET        | Pemeriksaan kesehatan + ringkasan penyedia (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`) |
+| `/api/cache/stats`       | GET/DELETE | Statistik cache / hapus                                                                                         |
 
 ### Cadangan & Ekspor/Impor
 
-| Titik Akhir                 | Metode | Deskripsi                                        |
-| --------------------------- | ------ | ------------------------------------------------ |
-| `/api/db-backups`           | GET    | Daftar cadangan yang tersedia                    |
-| `/api/db-backups`           | PUT    | Buat cadangan manual                             |
-| `/api/db-backups`           | POST   | Pulihkan dari cadangan tertentu                  |
-| `/api/db-backups/export`    | GET    | Unduh database sebagai file .sqlite              |
-| `/api/db-backups/import`    | POST   | Unggah file .sqlite untuk mengganti database     |
-| `/api/db-backups/exportAll` | GET    | Unduh cadangan lengkap sebagai arsip .tar.gz     |
+| Titik Akhir                 | Metode | Deskripsi                                    |
+| --------------------------- | ------ | -------------------------------------------- |
+| `/api/db-backups`           | GET    | Daftar cadangan yang tersedia                |
+| `/api/db-backups`           | PUT    | Buat cadangan manual                         |
+| `/api/db-backups`           | POST   | Pulihkan dari cadangan tertentu              |
+| `/api/db-backups/export`    | GET    | Unduh database sebagai file .sqlite          |
+| `/api/db-backups/import`    | POST   | Unggah file .sqlite untuk mengganti database |
+| `/api/db-backups/exportAll` | GET    | Unduh cadangan lengkap sebagai arsip .tar.gz |
 
 ### Sinkronisasi Cloud
 
-| Titik Akhir            | Metode   | Deskripsi                      |
-| ---------------------- | -------- | ------------------------------ |
-| `/api/sync/cloud`      | Berbagai | Operasi sinkronisasi cloud     |
-| `/api/sync/initialize` | POST     | Inisialisasi sinkronisasi      |
-| `/api/cloud/*`         | Berbagai | Manajemen cloud                |
+| Titik Akhir            | Metode   | Deskripsi                  |
+| ---------------------- | -------- | -------------------------- |
+| `/api/sync/cloud`      | Berbagai | Operasi sinkronisasi cloud |
+| `/api/sync/initialize` | POST     | Inisialisasi sinkronisasi  |
+| `/api/cloud/*`         | Berbagai | Manajemen cloud            |
 
 ### Terowongan
 
-| Titik Akhir                | Metode | Deskripsi                                                                                       |
-| -------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Baca status instalasi/runtime Cloudflare Quick Tunnel untuk dasbor                              |
-| `/api/tunnels/cloudflared` | POST   | Aktifkan atau nonaktifkan Cloudflare Quick Tunnel (`action=enable/disable`)                     |
+| Titik Akhir                | Metode | Deskripsi                                                                   |
+| -------------------------- | ------ | --------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | Baca status instalasi/runtime Cloudflare Quick Tunnel untuk dasbor          |
+| `/api/tunnels/cloudflared` | POST   | Aktifkan atau nonaktifkan Cloudflare Quick Tunnel (`action=enable/disable`) |
 
 ### Alat CLI
 
-| Titik Akhir                        | Metode | Deskripsi              |
-| ---------------------------------- | ------ | ---------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Status CLI Claude      |
-| `/api/cli-tools/codex-settings`    | GET    | Status CLI Codex       |
-| `/api/cli-tools/droid-settings`    | GET    | Status CLI Droid       |
-| `/api/cli-tools/openclaw-settings` | GET    | Status CLI OpenClaw    |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Runtime CLI generik    |
+| Titik Akhir                        | Metode | Deskripsi           |
+| ---------------------------------- | ------ | ------------------- |
+| `/api/cli-tools/claude-settings`   | GET    | Status CLI Claude   |
+| `/api/cli-tools/codex-settings`    | GET    | Status CLI Codex    |
+| `/api/cli-tools/droid-settings`    | GET    | Status CLI Droid    |
+| `/api/cli-tools/openclaw-settings` | GET    | Status CLI OpenClaw |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Runtime CLI generik |
 
 Respons CLI mencakup: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
@@ -286,50 +286,50 @@ Respons GET mencakup `agents[]` (id, name, binary, version, installed, protocol,
 
 ### Ketahanan & Batas Laju
 
-| Titik Akhir             | Metode    | Deskripsi                                                                                          |
-| ----------------------- | --------- | -------------------------------------------------------------------------------------------------- |
+| Titik Akhir             | Metode    | Deskripsi                                                                                            |
+| ----------------------- | --------- | ---------------------------------------------------------------------------------------------------- |
 | `/api/resilience`       | GET/PATCH | Ambil/perbarui antrean permintaan, cooldown koneksi, pemutus sirkuit penyedia, dan pengaturan tunggu |
-| `/api/resilience/reset` | POST      | Reset pemutus sirkuit penyedia                                                                     |
-| `/api/rate-limits`      | GET       | Status batas laju per akun                                                                         |
-| `/api/rate-limit`       | GET       | Konfigurasi batas laju global                                                                      |
+| `/api/resilience/reset` | POST      | Reset pemutus sirkuit penyedia                                                                       |
+| `/api/rate-limits`      | GET       | Status batas laju per akun                                                                           |
+| `/api/rate-limit`       | GET       | Konfigurasi batas laju global                                                                        |
 
 ### Eval
 
-| Titik Akhir  | Metode   | Deskripsi                              |
-| ------------ | -------- | -------------------------------------- |
-| `/api/evals` | GET/POST | Daftar suite eval / jalankan evaluasi  |
+| Titik Akhir  | Metode   | Deskripsi                             |
+| ------------ | -------- | ------------------------------------- |
+| `/api/evals` | GET/POST | Daftar suite eval / jalankan evaluasi |
 
 ### Kebijakan
 
-| Titik Akhir     | Metode          | Deskripsi                      |
-| --------------- | --------------- | ------------------------------ |
-| `/api/policies` | GET/POST/DELETE | Kelola kebijakan perutean      |
+| Titik Akhir     | Metode          | Deskripsi                 |
+| --------------- | --------------- | ------------------------- |
+| `/api/policies` | GET/POST/DELETE | Kelola kebijakan perutean |
 
 ### Kepatuhan
 
-| Titik Akhir                 | Metode | Deskripsi                           |
-| --------------------------- | ------ | ----------------------------------- |
-| `/api/compliance/audit-log` | GET    | Log audit kepatuhan (N terakhir)    |
+| Titik Akhir                 | Metode | Deskripsi                        |
+| --------------------------- | ------ | -------------------------------- |
+| `/api/compliance/audit-log` | GET    | Log audit kepatuhan (N terakhir) |
 
 ### v1beta (Kompatibel dengan Gemini)
 
-| Titik Akhir                | Metode | Deskripsi                           |
-| -------------------------- | ------ | ----------------------------------- |
-| `/v1beta/models`           | GET    | Daftar model dalam format Gemini    |
+| Titik Akhir                | Metode | Deskripsi                            |
+| -------------------------- | ------ | ------------------------------------ |
+| `/v1beta/models`           | GET    | Daftar model dalam format Gemini     |
 | `/v1beta/models/{...path}` | POST   | Titik akhir `generateContent` Gemini |
 
 Titik akhir ini mencerminkan format API Gemini untuk klien yang mengharapkan kompatibilitas SDK Gemini asli.
 
 ### API Internal / Sistem
 
-| Titik Akhir              | Metode | Deskripsi                                                        |
-| ------------------------ | ------ | ---------------------------------------------------------------- |
-| `/api/init`              | GET    | Pemeriksaan inisialisasi aplikasi (digunakan saat pertama kali)  |
-| `/api/tags`              | GET    | Tag model kompatibel Ollama (untuk klien Ollama)                 |
-| `/api/restart`           | POST   | Picu restart server secara halus                                 |
-| `/api/shutdown`          | POST   | Picu penghentian server secara halus                             |
-| `/api/system/env/repair` | POST   | Perbaiki variabel lingkungan penyedia OAuth                      |
-| `/api/system-info`       | GET    | Buat laporan diagnostik sistem                                   |
+| Titik Akhir              | Metode | Deskripsi                                                       |
+| ------------------------ | ------ | --------------------------------------------------------------- |
+| `/api/init`              | GET    | Pemeriksaan inisialisasi aplikasi (digunakan saat pertama kali) |
+| `/api/tags`              | GET    | Tag model kompatibel Ollama (untuk klien Ollama)                |
+| `/api/restart`           | POST   | Picu restart server secara halus                                |
+| `/api/shutdown`          | POST   | Picu penghentian server secara halus                            |
+| `/api/system/env/repair` | POST   | Perbaiki variabel lingkungan penyedia OAuth                     |
+| `/api/system-info`       | GET    | Buat laporan diagnostik sistem                                  |
 
 > **Catatan:** Titik akhir ini digunakan secara internal oleh sistem atau untuk kompatibilitas klien Ollama. Biasanya tidak dipanggil langsung oleh pengguna akhir.
 
@@ -350,7 +350,7 @@ Memperbaiki variabel lingkungan OAuth yang hilang atau rusak untuk penyedia tert
 {
   "success": true,
   "repaired": ["CLAUDE_CODE_OAUTH_CLIENT_ID", "CLAUDE_CODE_OAUTH_CLIENT_SECRET"],
-  "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
+  "backupPath": "/home/user/.birouter/backups/env-repair-2026-04-11.bak"
 }
 ```
 

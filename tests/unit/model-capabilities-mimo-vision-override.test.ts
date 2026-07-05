@@ -2,7 +2,7 @@
  * Xiaomi MiMo vision capability — robust override against a wrong synced `attachment`.
  *
  * Per Xiaomi's official docs (mimo.mi.com .../multimodal-understanding/image-understanding)
- * ONLY `mimo-v2.5` and `mimo-v2-omni` accept image input. The `*-pro` chat models
+ * ONLY `mimo-v2.5` and `mimo-v2-bi` accept image input. The `*-pro` chat models
  * (`mimo-v2.5-pro`, `mimo-v2-pro`) and `mimo-v2-flash` are TEXT-ONLY.
  *
  * models.dev mislabels `mimo-v2.5-pro` as attachment-capable (hermes-agent#18884),
@@ -21,7 +21,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mimo-vision-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mimo-vision-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -59,7 +59,7 @@ function resetStorage() {
 
 // Mirror the WRONG models.dev `xiaomi-mimo` keying: the text-only `*-pro` chat models
 // carry attachment:true (the upstream mislabel), while the genuinely multimodal
-// `mimo-v2.5` / `mimo-v2-omni` correctly carry attachment:true too.
+// `mimo-v2.5` / `mimo-v2-bi` correctly carry attachment:true too.
 function seedMimoCapabilities() {
   modelsDevSync.saveModelsDevCapabilities({
     "xiaomi-mimo": {
@@ -81,7 +81,7 @@ function seedMimoCapabilities() {
         modalities_output: JSON.stringify(["text"]),
         status: "stable",
       }),
-      "mimo-v2-omni": buildCapability({
+      "mimo-v2-bi": buildCapability({
         attachment: true, // genuinely multimodal — must stay vision-capable
         modalities_input: JSON.stringify(["text", "image", "audio", "video"]),
         modalities_output: JSON.stringify(["text"]),
@@ -104,22 +104,42 @@ test("mimo-v2.5-pro stays text-only even when models.dev says attachment:true", 
   seedMimoCapabilities();
   const pro = modelCapabilities.getResolvedModelCapabilities("xiaomi-mimo/mimo-v2.5-pro");
   // attachment is the seeded synced value, but the override forces vision false.
-  assert.equal(pro.attachment, true, "synced attachment row is present (proves override, not absence)");
-  assert.equal(pro.supportsVision, false, "text-only override must beat the wrong synced attachment");
+  assert.equal(
+    pro.attachment,
+    true,
+    "synced attachment row is present (proves override, not absence)"
+  );
+  assert.equal(
+    pro.supportsVision,
+    false,
+    "text-only override must beat the wrong synced attachment"
+  );
 });
 
 test("mimo-v2-pro stays text-only even when models.dev says attachment:true", () => {
   seedMimoCapabilities();
   const pro = modelCapabilities.getResolvedModelCapabilities("xiaomi-mimo/mimo-v2-pro");
-  assert.equal(pro.supportsVision, false, "text-only override must beat the wrong synced attachment");
+  assert.equal(
+    pro.supportsVision,
+    false,
+    "text-only override must beat the wrong synced attachment"
+  );
 });
 
 test("genuinely multimodal mimo models keep vision (override is precise, not broad)", () => {
   seedMimoCapabilities();
   const v25 = modelCapabilities.getResolvedModelCapabilities("xiaomi-mimo/mimo-v2.5");
-  const omni = modelCapabilities.getResolvedModelCapabilities("xiaomi-mimo/mimo-v2-omni");
-  assert.equal(v25.supportsVision, true, "mimo-v2.5 is multimodal — must NOT be caught by the override");
-  assert.equal(omni.supportsVision, true, "mimo-v2-omni is multimodal — must NOT be caught by the override");
+  const bi = modelCapabilities.getResolvedModelCapabilities("xiaomi-mimo/mimo-v2-bi");
+  assert.equal(
+    v25.supportsVision,
+    true,
+    "mimo-v2.5 is multimodal — must NOT be caught by the override"
+  );
+  assert.equal(
+    bi.supportsVision,
+    true,
+    "mimo-v2-bi is multimodal — must NOT be caught by the override"
+  );
 });
 
 test("the bare (unqualified) text-only id is also overridden", () => {

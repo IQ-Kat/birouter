@@ -1,9 +1,9 @@
 /**
- * OmniRoute MCP Compression Tools — Manage and monitor prompt compression.
+ * Birouter MCP Compression Tools — Manage and monitor prompt compression.
  *
  * Tools:
- *   1. omniroute_compression_status   — Get compression config, analytics, and cache stats
- *   2. omniroute_compression_configure — Update compression settings
+ *   1. birouter_compression_status   — Get compression config, analytics, and cache stats
+ *   2. birouter_compression_configure — Update compression settings
  */
 
 import { logToolCall } from "../audit.ts";
@@ -131,14 +131,14 @@ export async function handleCompressionStatus(
     };
 
     const duration = Date.now() - start;
-    await logToolCall("omniroute_compression_status", args, result, duration, true);
+    await logToolCall("birouter_compression_status", args, result, duration, true);
 
     return result;
   } catch (error) {
     const duration = Date.now() - start;
     const errorMessage = error instanceof Error ? error.message : String(error);
     await logToolCall(
-      "omniroute_compression_status",
+      "birouter_compression_status",
       args,
       { error: errorMessage },
       duration,
@@ -216,14 +216,14 @@ export async function handleCompressionConfigure(
     };
 
     const duration = Date.now() - start;
-    await logToolCall("omniroute_compression_configure", args, result, duration, true);
+    await logToolCall("birouter_compression_configure", args, result, duration, true);
 
     return result;
   } catch (error) {
     const duration = Date.now() - start;
     const errorMessage = error instanceof Error ? error.message : String(error);
     await logToolCall(
-      "omniroute_compression_configure",
+      "birouter_compression_configure",
       args,
       { error: errorMessage },
       duration,
@@ -323,12 +323,24 @@ export async function handleCompressionComboStats(
 // T07 — RTK learn/discover exposed via MCP (read-only; suggestions only). Mines the opt-in
 // raw-output sample store, exactly like the /api/context/rtk/{discover,learn} routes.
 const rtkDiscoverInput = z.object({
-  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(2000)
+    .optional()
+    .describe("Max samples to scan (default 500)"),
 });
 
 const rtkLearnInput = z.object({
   command: z.string().min(1).max(500).describe("The command to learn an RTK filter draft for"),
-  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(2000)
+    .optional()
+    .describe("Max samples to scan (default 500)"),
 });
 
 function resolveSampleLimit(limit?: number): number {
@@ -343,7 +355,7 @@ export async function handleRtkDiscover(
   const samples = listRtkCommandSamples({ limit: resolveSampleLimit(args.limit) });
   const candidates = discoverRepeatedNoise(samples);
   const result = { sampleCount: samples.length, candidates };
-  await logToolCall("omniroute_rtk_discover", args, result, Date.now() - start, true);
+  await logToolCall("birouter_rtk_discover", args, result, Date.now() - start, true);
   return result;
 }
 
@@ -358,51 +370,51 @@ export async function handleRtkLearn(
   );
   const filter = suggestFilter(command, matching);
   const result = { command, sampleCount: matching.length, filter };
-  await logToolCall("omniroute_rtk_learn", args, result, Date.now() - start, true);
+  await logToolCall("birouter_rtk_learn", args, result, Date.now() - start, true);
   return result;
 }
 
 export const compressionTools = {
-  omniroute_compression_status: {
-    name: "omniroute_compression_status",
+  birouter_compression_status: {
+    name: "birouter_compression_status",
     description:
       "Returns current compression configuration, strategy, analytics summary (requests compressed, tokens saved, avg ratio), and provider-aware cache statistics.",
     scopes: ["read:compression"],
     inputSchema: compressionStatusInput,
     handler: (args: z.infer<typeof compressionStatusInput>) => handleCompressionStatus(args),
   },
-  omniroute_compression_configure: {
-    name: "omniroute_compression_configure",
+  birouter_compression_configure: {
+    name: "birouter_compression_configure",
     description:
       "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
     scopes: ["write:compression"],
     inputSchema: compressionConfigureInput,
     handler: (args: z.infer<typeof compressionConfigureInput>) => handleCompressionConfigure(args),
   },
-  omniroute_set_compression_engine: {
-    name: "omniroute_set_compression_engine",
+  birouter_set_compression_engine: {
+    name: "birouter_set_compression_engine",
     description: "Set the active compression engine and Caveman/RTK runtime options.",
     scopes: ["write:compression"],
     inputSchema: setCompressionEngineInput,
     handler: (args: z.infer<typeof setCompressionEngineInput>) => handleSetCompressionEngine(args),
   },
-  omniroute_list_compression_combos: {
-    name: "omniroute_list_compression_combos",
+  birouter_list_compression_combos: {
+    name: "birouter_list_compression_combos",
     description: "List compression combos and their engine pipelines.",
     scopes: ["read:compression"],
     inputSchema: listCompressionCombosInput,
     handler: (_args: z.infer<typeof listCompressionCombosInput>) => handleListCompressionCombos(),
   },
-  omniroute_compression_combo_stats: {
-    name: "omniroute_compression_combo_stats",
+  birouter_compression_combo_stats: {
+    name: "birouter_compression_combo_stats",
     description: "Get compression analytics grouped by engine and compression combo.",
     scopes: ["read:compression"],
     inputSchema: compressionComboStatsInput,
     handler: (args: z.infer<typeof compressionComboStatsInput>) =>
       handleCompressionComboStats(args),
   },
-  omniroute_ccr_retrieve: {
-    name: "omniroute_ccr_retrieve",
+  birouter_ccr_retrieve: {
+    name: "birouter_ccr_retrieve",
     description:
       "Retrieve the verbatim content block stored by the CCR compression engine. " +
       "When a large block is compressed, a marker `[CCR retrieve hash=<24hex> chars=N]` " +
@@ -415,7 +427,7 @@ export const compressionTools = {
       // Retrieve must use the SAME principal the CCR store used at compression time:
       // `String(apiKeyInfo.id)` (chatCore → getApiKeyMetadata(rawKey)). On MCP HTTP
       // transports the raw key lives in httpAuthContext (not in extra.authInfo, since
-      // OmniRoute auth is API-key not OAuth-clientId) — resolve it to the same key id
+      // Birouter auth is API-key not OAuth-clientId) — resolve it to the same key id
       // so the block is found. Without this the caller resolved to "anonymous" and the
       // store-key never matched (#5649). Cross-tenant IDOR stays closed: a different
       // key → different id → miss; no key → undefined → anonymous bucket only.
@@ -428,8 +440,8 @@ export const compressionTools = {
       return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
     },
   },
-  omniroute_rtk_discover: {
-    name: "omniroute_rtk_discover",
+  birouter_rtk_discover: {
+    name: "birouter_rtk_discover",
     description:
       "Mine the opt-in RTK raw-output sample store for recurring noise lines and return them " +
       "as ranked candidates the operator can turn into strip/collapse filters. Read-only; " +
@@ -438,8 +450,8 @@ export const compressionTools = {
     inputSchema: rtkDiscoverInput,
     handler: (args: z.infer<typeof rtkDiscoverInput>) => handleRtkDiscover(args),
   },
-  omniroute_rtk_learn: {
-    name: "omniroute_rtk_learn",
+  birouter_rtk_learn: {
+    name: "birouter_rtk_learn",
     description:
       "Suggest an RTK filter draft for a specific command, learned from that command's captured " +
       "outputs in the opt-in raw-output sample store. Read-only; returns a draft for the operator " +

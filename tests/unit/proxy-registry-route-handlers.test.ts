@@ -11,15 +11,14 @@ import path from "node:path";
 // branches — id+whereUsed, id-only, list (no id) — must stay equivalent across
 // the parameterized callers.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-route-handlers-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-proxy-route-handlers-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
-const { resolveProxyLookupResponse } = await import(
-  "../../src/lib/api/proxyRegistryRouteHandlers.ts"
-);
+const { resolveProxyLookupResponse } =
+  await import("../../src/lib/api/proxyRegistryRouteHandlers.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;

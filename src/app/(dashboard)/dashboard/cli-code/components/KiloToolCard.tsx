@@ -42,7 +42,7 @@ export default function KiloToolCard({
 
   const getConfigStatus = () => {
     if (!cliReady) return null;
-    if (!kiloStatus.hasOmniRoute) return "not_configured";
+    if (!kiloStatus.hasBirouter) return "not_configured";
     return "configured";
   };
 
@@ -154,7 +154,7 @@ export default function KiloToolCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           baseUrl: normalizedBaseUrl,
-          apiKey: !cloudEnabled ? "sk_omniroute" : null,
+          apiKey: !cloudEnabled ? "sk_birouter" : null,
           keyId: selectedKeyId,
           model: selectedModel,
         }),
@@ -321,7 +321,7 @@ export default function KiloToolCard({
                       </span>
                       <div className="flex flex-col gap-1">
                         <p className="text-sm text-green-700 dark:text-green-300">
-                          {t("omnirouteConfiguredOpenAiCompatible")}
+                          {t("birouterConfiguredOpenAiCompatible")}
                         </p>
                         <p className="text-xs text-text-muted">
                           {t("providers")}:{" "}
@@ -377,7 +377,7 @@ export default function KiloToolCard({
                       </select>
                     ) : (
                       <p className="text-sm text-text-muted">
-                        {cloudEnabled ? t("noApiKeysAvailable") : t("usingDefaultOmniroute")}
+                        {cloudEnabled ? t("noApiKeysAvailable") : t("usingDefaultBirouter")}
                       </p>
                     )}
                   </div>

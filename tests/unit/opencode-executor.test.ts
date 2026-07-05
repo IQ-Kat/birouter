@@ -229,7 +229,7 @@ describe("OpencodeExecutor", () => {
       registerModel("opencode-go", { id: "glm-5.1", name: "GLM-5.1", contextLength: 204800 });
       registerModel("opencode-go", { id: "kimi-k2.6", name: "Kimi K2.6" });
       registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo V2 Pro" });
-      registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo V2 Omni" });
+      registerModel("opencode-go", { id: "mimo-v2-bi", name: "MiMo V2 Bi" });
 
       // glm-5.1
       const glm51 = await goExecutor.execute(createInput("glm-5.1"));
@@ -243,9 +243,9 @@ describe("OpencodeExecutor", () => {
       const mimoPro = await goExecutor.execute(createInput("mimo-v2-pro"));
       assert.equal(mimoPro.url, "https://opencode.ai/zen/go/v1/chat/completions");
 
-      // mimo-v2-omni
-      const mimoOmni = await goExecutor.execute(createInput("mimo-v2-omni"));
-      assert.equal(mimoOmni.url, "https://opencode.ai/zen/go/v1/chat/completions");
+      // mimo-v2-bi
+      const mimoBi = await goExecutor.execute(createInput("mimo-v2-bi"));
+      assert.equal(mimoBi.url, "https://opencode.ai/zen/go/v1/chat/completions");
     });
 
     it("routes opencode-go qwen models to claude messages endpoint", async () => {
@@ -279,7 +279,7 @@ describe("OpencodeExecutor", () => {
       // Register new models
       registerModel("opencode-go", { id: "glm-6-max", name: "GLM-6 Max" });
       registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo-V2-Pro" });
-      registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo-V2-Omni" });
+      registerModel("opencode-go", { id: "mimo-v2-bi", name: "MiMo-V2-Bi" });
       registerModel("opencode-go", { id: "hy3-preview", name: "Hunyuan3 Preview" });
 
       // glm-6-max
@@ -290,9 +290,9 @@ describe("OpencodeExecutor", () => {
       const mimoPro = await goExecutor.execute(createInput("mimo-v2-pro"));
       assert.equal(mimoPro.url, "https://opencode.ai/zen/go/v1/chat/completions");
 
-      // mimo-v2-omni
-      const mimoOmni = await goExecutor.execute(createInput("mimo-v2-omni"));
-      assert.equal(mimoOmni.url, "https://opencode.ai/zen/go/v1/chat/completions");
+      // mimo-v2-bi
+      const mimoBi = await goExecutor.execute(createInput("mimo-v2-bi"));
+      assert.equal(mimoBi.url, "https://opencode.ai/zen/go/v1/chat/completions");
 
       // hy3-preview
       const hy3 = await goExecutor.execute(createInput("hy3-preview"));
@@ -429,7 +429,7 @@ describe("OpencodeExecutor", () => {
   });
 
   // #4022: OpenCode CLI only emits x-opencode-* when the provider id starts with
-  // "opencode". For a custom-named provider (e.g. "omniroute") it instead sends
+  // "opencode". For a custom-named provider (e.g. "birouter") it instead sends
   // x-session-affinity / X-Session-Id (both carry the same OpenCode sessionID).
   // The executor must map that session id onto x-opencode-session so session
   // continuity to the opencode.ai upstream works regardless of provider name.

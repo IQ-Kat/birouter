@@ -14,7 +14,7 @@ export default function DenoRelayModal({ isOpen, onClose, onDeployed }: DenoRela
   const [denoToken, setDenoToken] = useState("");
   const [orgDomain, setOrgDomain] = useState("");
   const [projectName, setProjectName] = useState(
-    process.env.NEXT_PUBLIC_DENO_RELAY_DEFAULT_PROJECT || "omniroute-deno-relay"
+    process.env.NEXT_PUBLIC_DENO_RELAY_DEFAULT_PROJECT || "birouter-deno-relay"
   );
   const [deploying, setDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +127,7 @@ export default function DenoRelayModal({ isOpen, onClose, onDeployed }: DenoRela
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               className="w-full text-sm bg-surface-alt border border-border rounded px-3 py-2 focus:outline-none focus:border-primary"
-              placeholder="omniroute-deno-relay"
+              placeholder="birouter-deno-relay"
             />
           </div>
         </div>

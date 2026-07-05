@@ -2,7 +2,7 @@
  * CC Bridge Transforms — config-driven request body normalization for the
  * Claude Code Compatible (`anthropic-compatible-cc-*`) bridge.
  *
- * Goal: ensure the final request body OmniRoute sends to Anthropic's
+ * Goal: ensure the final request body Birouter sends to Anthropic's
  * `/v1/messages?beta=true` endpoint has classifier-correct structure
  * regardless of which client (OpenCode, Cline, Cursor, Continue, raw API
  * consumer) supplied the prompt.
@@ -17,7 +17,7 @@
  * prefixes, text replacements, billing header algorithm) but generalised
  * behind a discriminated-union DSL so future fingerprints are configurable.
  *
- * Related: OmniRoute issue #2260.
+ * Related: Birouter issue #2260.
  */
 import { createHash } from "node:crypto";
 
@@ -86,9 +86,9 @@ export interface InjectBillingHeaderOp {
   /**
    * Version suffix algorithm:
    *   - ex-machina: sha256(SALT + chars-at-positions + version).slice(0,3)
-   *   - omniroute-daystamp: sha256(YYYY-MM-DD + version).slice(0,3)
+   *   - birouter-daystamp: sha256(YYYY-MM-DD + version).slice(0,3)
    */
-  versionFormat: "ex-machina" | "omniroute-daystamp";
+  versionFormat: "ex-machina" | "birouter-daystamp";
   /**
    * CCH attestation algorithm:
    *   - sha256-first-user: sha256(firstUserMessageText).slice(0,5)  (ex-machina)
@@ -139,7 +139,7 @@ export const DEFAULT_TEXT_REPLACEMENTS: Array<{ match: string; replacement: stri
 
 /**
  * Default pipeline shipped with the PR — matches the T4-200 fixture layout
- * proven against the live OmniRoute deployment (call log
+ * proven against the live Birouter deployment (call log
  * f0c2fedb-b27a-4f1d-9ee6-0c88646a6d42).
  *
  * Layout after pipeline (system blocks):
@@ -246,7 +246,7 @@ export function computeExMachinaVersionSuffix(firstUserText: string, version: st
 }
 
 /**
- * Compute the `cc_version` suffix per the OmniRoute native-OAuth algorithm:
+ * Compute the `cc_version` suffix per the Birouter native-OAuth algorithm:
  * sha256(YYYY-MM-DD + version).slice(0,3). Stable per UTC day.
  */
 export function computeDaystampVersionSuffix(version: string, now: Date = new Date()): string {
@@ -264,7 +264,7 @@ export function computeCchSha256FirstUser(firstUserText: string): string {
 
 interface BuildBillingHeaderOptions {
   entrypoint: string;
-  versionFormat: "ex-machina" | "omniroute-daystamp";
+  versionFormat: "ex-machina" | "birouter-daystamp";
   cchAlgo: "sha256-first-user" | "xxhash64-body" | "static-zero";
   version?: string;
   now?: Date;
@@ -287,7 +287,7 @@ export function buildBillingHeaderValue(
   const firstUserText = extractFirstUserMessageText(messages);
 
   const suffix =
-    options.versionFormat === "omniroute-daystamp"
+    options.versionFormat === "birouter-daystamp"
       ? computeDaystampVersionSuffix(version, options.now)
       : computeExMachinaVersionSuffix(firstUserText, version);
 

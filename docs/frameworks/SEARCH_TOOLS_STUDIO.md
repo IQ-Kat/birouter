@@ -124,7 +124,7 @@ all keys are currently in cooldown.
 
 `ExportCodeModal` (imported from Playground Studio) + `codeExport.ts` generate
 curl / Python / TypeScript snippets for both `/v1/search` and `/v1/web/fetch` calls.
-API key placeholder is always `$OMNIROUTE_API_KEY` (D11, shared with Playground Studio).
+API key placeholder is always `$BIROUTER_API_KEY` (D11, shared with Playground Studio).
 
 ---
 

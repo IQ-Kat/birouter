@@ -18,7 +18,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-apikeys-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-db-apikeys-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-for-crc-operations-do-not-use-in-prod";
 
@@ -51,7 +51,7 @@ test("createApiKey creates a key and returns it with id, key, name, machineId", 
   const key = await apiKeys.createApiKey("Test Key", "machine-001");
   assert.ok(key.id);
   assert.ok(key.key);
-  assert.ok(key.key.startsWith("omni_") || key.key.length > 0);
+  assert.ok(key.key.startsWith("bi_") || key.key.length > 0);
   assert.equal(key.name, "Test Key");
   assert.equal(key.machineId, "machine-001");
 });
@@ -65,10 +65,9 @@ test("createApiKey with scopes stores them", async () => {
 
 test("createApiKey rejects empty machineId", async () => {
   await resetStorage();
-  await assert.rejects(
-    () => apiKeys.createApiKey("Bad Key", ""),
-    { message: /machineId is required/i }
-  );
+  await assert.rejects(() => apiKeys.createApiKey("Bad Key", ""), {
+    message: /machineId is required/i,
+  });
 });
 
 // ──────────────── getApiKeys ────────────────
@@ -118,12 +117,12 @@ test("validateApiKey returns false for null / undefined / empty", async () => {
 
 test("validateApiKey returns true for env key", async () => {
   await resetStorage();
-  const prev = process.env.OMNIROUTE_API_KEY;
-  process.env.OMNIROUTE_API_KEY = "env-key-test-abc123";
+  const prev = process.env.BIROUTER_API_KEY;
+  process.env.BIROUTER_API_KEY = "env-key-test-abc123";
   try {
     assert.equal(await apiKeys.validateApiKey("env-key-test-abc123"), true);
   } finally {
-    process.env.OMNIROUTE_API_KEY = prev;
+    process.env.BIROUTER_API_KEY = prev;
   }
 });
 
@@ -135,7 +134,7 @@ test("validateApiKey returns true for valid key", async () => {
 
 test("validateApiKey returns false for non-existent key", async () => {
   await resetStorage();
-  assert.equal(await apiKeys.validateApiKey("omni_nonexistent_key_abc123"), false);
+  assert.equal(await apiKeys.validateApiKey("bi_nonexistent_key_abc123"), false);
 });
 
 test("validateApiKey returns false for banned key", async () => {
@@ -184,8 +183,8 @@ test("getApiKeyMetadata returns null for null / undefined / empty", async () => 
 
 test("getApiKeyMetadata returns env-key record for env key", async () => {
   await resetStorage();
-  const prev = process.env.OMNIROUTE_API_KEY;
-  process.env.OMNIROUTE_API_KEY = "env-key-meta-001";
+  const prev = process.env.BIROUTER_API_KEY;
+  process.env.BIROUTER_API_KEY = "env-key-meta-001";
   try {
     const meta = await apiKeys.getApiKeyMetadata("env-key-meta-001");
     assert.ok(meta !== null);
@@ -194,7 +193,7 @@ test("getApiKeyMetadata returns env-key record for env key", async () => {
     assert.ok(meta!.scopes.includes("manage"));
     assert.equal(meta!.isActive, true);
   } finally {
-    process.env.OMNIROUTE_API_KEY = prev;
+    process.env.BIROUTER_API_KEY = prev;
   }
 });
 
@@ -213,7 +212,7 @@ test("getApiKeyMetadata returns metadata for valid key", async () => {
 
 test("getApiKeyMetadata returns null for non-existent key", async () => {
   await resetStorage();
-  assert.equal(await apiKeys.getApiKeyMetadata("omni_meta_nonexistent"), null);
+  assert.equal(await apiKeys.getApiKeyMetadata("bi_meta_nonexistent"), null);
 });
 
 // ──────────────── isModelAllowedForKey ────────────────
@@ -232,7 +231,7 @@ test("isModelAllowedForKey returns false when no modelId provided", async () => 
 
 test("isModelAllowedForKey returns false for non-existent key", async () => {
   await resetStorage();
-  assert.equal(await apiKeys.isModelAllowedForKey("omni_bogus_key", "gpt-4"), false);
+  assert.equal(await apiKeys.isModelAllowedForKey("bi_bogus_key", "gpt-4"), false);
 });
 
 test("isModelAllowedForKey returns true when allowedModels is unrestricted (empty)", async () => {
@@ -338,7 +337,10 @@ test("updateApiKeyPermissions clears accessSchedule with null", async () => {
 test("updateApiKeyPermissions sets rateLimits", async () => {
   await resetStorage();
   const created = await apiKeys.createApiKey("Rate Limited", "ma-026");
-  const limits = [{ limit: 100, window: 60 }, { limit: 1000, window: 3600 }];
+  const limits = [
+    { limit: 100, window: 60 },
+    { limit: 1000, window: 3600 },
+  ];
   await apiKeys.updateApiKeyPermissions(created.id, { rateLimits: limits });
   const loaded = await apiKeys.getApiKeyById(created.id);
   assert.deepEqual(loaded!.rateLimits, limits);

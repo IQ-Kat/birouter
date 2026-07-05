@@ -3,14 +3,14 @@
  *
  * Serverless Relay Proxy endpoint.
  * Authenticates via relay token, applies rate limits, then proxies
- * to the internal OmniRoute chat completions pipeline.
+ * to the internal Birouter chat completions pipeline.
  */
 
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { handleChat } from "@/sse/handlers/chat";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 import {
   checkIpRateLimit,
   extractToken,
@@ -291,8 +291,7 @@ export async function POST(request: Request) {
     const bifrostConfig = getBifrostRoutingConfig();
     let bifrostFallbackReason: string | null = null;
     if (shouldTryBifrost(backend, bifrostConfig)) {
-      const cooldown =
-        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+      const cooldown = backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {
         bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
       } else {

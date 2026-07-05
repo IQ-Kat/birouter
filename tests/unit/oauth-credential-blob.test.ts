@@ -6,7 +6,7 @@
 // VPS install the loopback is unreachable, so the consent hangs and never emits
 // a code — the normal "paste the callback URL" fallback has nothing to paste.
 //
-// The fix is a local helper (`omniroute login antigravity`) that runs the OAuth
+// The fix is a local helper (`birouter login antigravity`) that runs the OAuth
 // on the user's own machine (loopback reachable → consent completes → tokens),
 // then prints a single-line, paste-safe credential blob. The user pastes it into
 // the remote dashboard, which decodes it and persists the connection.
@@ -43,7 +43,7 @@ test("encode → decode roundtrips the provider and tokens", () => {
 
 test("blob is a single paste-safe line with the recognizable prefix", () => {
   const blob = encodeCredentialBlob(SAMPLE);
-  assert.ok(blob.startsWith(CREDENTIAL_BLOB_PREFIX), "must carry the omniroute prefix");
+  assert.ok(blob.startsWith(CREDENTIAL_BLOB_PREFIX), "must carry the birouter prefix");
   assert.ok(!/\s/.test(blob), "must contain no whitespace (single line, copy-paste safe)");
   // base64url only after the prefix — no +/= that break in URLs / shells.
   const payload = blob.slice(CREDENTIAL_BLOB_PREFIX.length);

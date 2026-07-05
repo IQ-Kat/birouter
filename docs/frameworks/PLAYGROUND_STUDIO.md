@@ -109,7 +109,7 @@ preserves config state.
 ## Export Code Modal
 
 `ExportCodeModal.tsx` uses `codeExport.ts` to generate curl / Python / TypeScript snippets
-from the current `PlaygroundState`. API key placeholder is always `$OMNIROUTE_API_KEY` (D11).
+from the current `PlaygroundState`. API key placeholder is always `$BIROUTER_API_KEY` (D11).
 
 ---
 
@@ -199,7 +199,7 @@ Auth: optional (`REQUIRE_API_KEY`). Errors via `buildErrorBody()` (Hard Rule #12
 | Metrics show `null` TTFT               | First chunk handler not wired | Check `useStreamMetrics.onFirstChunk()` is called in the SSE reader loop        |
 | Preset not persisting                  | DB migration not run          | Run `npm run db:migrate` or restart the server (migration auto-runs on startup) |
 | Improve prompt returns 502             | Model not set in Config       | User must enter a model name in the Config pane before improving                |
-| Export code shows `MISSING_API_KEY`    | Placeholder not inserted      | `codeExport.ts` always uses `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`        |
+| Export code shows `MISSING_API_KEY`    | Placeholder not inserted      | `codeExport.ts` always uses `API_KEY_PLACEHOLDER = "$BIROUTER_API_KEY"`         |
 
 ---
 

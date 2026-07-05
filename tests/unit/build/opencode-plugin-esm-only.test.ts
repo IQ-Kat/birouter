@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-// Regression guard for #3883: the @omniroute/opencode-plugin must ship an
+// Regression guard for #3883: the @birouter/opencode-plugin must ship an
 // ESM-only bundle. OpenCode's Bun-based plugin loader resolves the package
 // `main`/`exports` and applies CJS-to-ESM interop on a dual CJS bundle, which
 // turns `mod.default` into the whole exports namespace, fails V1 plugin
@@ -11,8 +11,8 @@ import { fileURLToPath } from "node:url";
 // Shipping ESM-only (with a `./runtime` subpath) keeps `mod.default` the V1
 // plugin object so the loader registers it. Do NOT re-introduce a CJS bundle.
 
-const PKG_URL = new URL("../../../@omniroute/opencode-plugin/package.json", import.meta.url);
-const TSUP_URL = new URL("../../../@omniroute/opencode-plugin/tsup.config.ts", import.meta.url);
+const PKG_URL = new URL("../../../@birouter/opencode-plugin/package.json", import.meta.url);
+const TSUP_URL = new URL("../../../@birouter/opencode-plugin/tsup.config.ts", import.meta.url);
 
 function readJson(url: URL): Record<string, unknown> {
   return JSON.parse(readFileSync(fileURLToPath(url), "utf8"));

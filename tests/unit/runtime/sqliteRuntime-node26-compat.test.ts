@@ -6,7 +6,7 @@ import { join } from "node:path";
 // Regression guard for upstream PR decolua/9router#1827 (issue #1812):
 // better-sqlite3 < 12.10.1 ships no prebuilt binary for Node 26 (ABI 147),
 // causing "Could not locate the bindings file" on startup. The pinned runtime
-// versions MUST be >= 12.10.1 so omniroute boots on Node 26.x.
+// versions MUST be >= 12.10.1 so birouter boots on Node 26.x.
 const MIN = [12, 10, 1] as const;
 
 function parseSemver(v: string): [number, number, number] {

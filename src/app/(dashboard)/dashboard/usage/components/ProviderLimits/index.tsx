@@ -26,10 +26,10 @@ import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
 
-const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
-const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
-const LS_ENV_FILTER = "omniroute:limits:envFilter";
-const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
+const LS_PURCHASE_FILTER = "birouter:limits:purchaseFilter";
+const LS_STATUS_FILTER = "birouter:limits:statusFilter";
+const LS_ENV_FILTER = "birouter:limits:envFilter";
+const LS_PROVIDER_FILTER = "birouter:limits:providerFilter";
 
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;

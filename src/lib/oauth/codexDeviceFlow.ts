@@ -3,7 +3,7 @@
  *
  * Runs ENTIRELY in the user's browser. `auth.openai.com` blocks datacenter IPs
  * (Cloudflare) but allows CORS, so the device flow MUST originate from the
- * user's browser — never from the OmniRoute server. The final tokens are handed
+ * user's browser — never from the Birouter server. The final tokens are handed
  * to the backend for persistence (see the OAuth route's persistence path).
  *
  * Wire contract (from OpenAI Codex CLI — codex-rs/login/src/device_code_auth.rs,
@@ -42,12 +42,7 @@ const DEFAULT_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_INTERVAL_SEC = 5;
 
 export type CodexDeviceFlowErrorCode =
-  | "device_disabled"
-  | "usercode_failed"
-  | "exchange_failed"
-  | "timeout"
-  | "aborted"
-  | "network";
+  "device_disabled" | "usercode_failed" | "exchange_failed" | "timeout" | "aborted" | "network";
 
 export class CodexDeviceFlowError extends Error {
   code: CodexDeviceFlowErrorCode;

@@ -2,7 +2,7 @@
  * Kiro (AWS CodeWhisperer) tool-result compression — ported from upstream
  * decolua/9router#1194 (zanuartri).
  *
- * The upstream PR added Kiro-format support directly inside RTK. OmniRoute
+ * The upstream PR added Kiro-format support directly inside RTK. Birouter
  * lifts that capability to `bodyAdapter`, so the Kiro envelope
  * (`conversationState.history[].userInputMessage.userInputMessageContext.toolResults`)
  * flattens to OpenAI-shape `role:"tool"` messages — every compression engine
@@ -103,8 +103,8 @@ describe("Kiro tool-result compression (port of decolua/9router#1194)", () => {
         userInputMessageContext: { toolResults: Array<{ content: Array<{ text: string }> }> };
       };
     };
-    const afterLen = restored.userInputMessage.userInputMessageContext.toolResults[0].content[0]
-      .text.length;
+    const afterLen =
+      restored.userInputMessage.userInputMessageContext.toolResults[0].content[0].text.length;
     assert.ok(
       afterLen < originalLen,
       `Kiro tool-result text must shrink (before=${originalLen}, after=${afterLen})`
@@ -174,8 +174,9 @@ describe("Kiro tool-result compression (port of decolua/9router#1194)", () => {
         };
       }>;
     };
-    const afterLen = state.history[0].userInputMessage.userInputMessageContext.toolResults[0]
-      .content[0].text.length;
+    const afterLen =
+      state.history[0].userInputMessage.userInputMessageContext.toolResults[0].content[0].text
+        .length;
     assert.ok(
       afterLen < originalLen,
       `history tool-result text must shrink (before=${originalLen}, after=${afterLen})`

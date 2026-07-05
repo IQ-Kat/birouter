@@ -1,13 +1,13 @@
-# OmniRoute — Design System & Visual Identity
+# Birouter — Design System & Visual Identity
 
 > **Status:** analysis + standardization plan (no code applied yet — this doc is the spec to approve before implementation).
-> **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
+> **Date:** 2026-06-16 · **Scope:** unify the Birouter dashboard (`src/`) with the marketing site (`_mono_repo/birouterSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
 
 ---
 
 ## 1. Purpose
 
-The marketing site (`viral.omniroute.online`, `why.omniroute.online`, `omniroute.online`) and the product dashboard should look like **one product**. The site already borrowed its palette from the dashboard — its `css/tokens.css` even says _"Palette mirrors the OmniRoute dashboard (src/app/globals.css)"_. So the two are already ~80% aligned at the color level. What's missing on the dashboard:
+The marketing site (`viral.omniroute.online`, `why.omniroute.online`, `omniroute.online`) and the product dashboard should look like **one product**. The site already borrowed its palette from the dashboard — its `css/tokens.css` even says _"Palette mirrors the Birouter dashboard (src/app/globals.css)"_. So the two are already ~80% aligned at the color level. What's missing on the dashboard:
 
 1. The **graph-paper grid wallpaper** the site uses on every page.
 2. A handful of **shared design tokens** the site has but the dashboard lacks (radius scale, brand gradient, `surface-2`, mono font).
@@ -70,7 +70,7 @@ Every brand color and surface already matches the site **by value** (only the na
 
 ### 4.1 What it is
 
-The exact recipe from the site (`_mono_repo/omnirouteSite/css/base.css`): a **fixed, full-viewport pseudo-element** painting two 1px line gradients, sitting at `z-index:-1` behind all content.
+The exact recipe from the site (`_mono_repo/birouterSite/css/base.css`): a **fixed, full-viewport pseudo-element** painting two 1px line gradients, sitting at `z-index:-1` behind all content.
 
 ```css
 body::before {
@@ -251,4 +251,4 @@ Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass. Per repo 
 | Primitives                 | `src/shared/components/{Button,Card,Input,Select,Badge,Modal,Toggle,SegmentedControl,Loading,Tooltip,DataTable}.tsx`, barrel `index.tsx` |
 | Status-color sources       | `flow/edgeStyles.ts`, `TokenHealthBadge.tsx`, `DegradationBadge.tsx`, `logTableStyles.ts`                                                |
 | `cn` util                  | `src/shared/utils/cn.ts`                                                                                                                 |
-| Site reference             | `_mono_repo/omnirouteSite/css/tokens.css`, `css/base.css` (grid `body::before`)                                                          |
+| Site reference             | `_mono_repo/birouterSite/css/tokens.css`, `css/base.css` (grid `body::before`)                                                           |

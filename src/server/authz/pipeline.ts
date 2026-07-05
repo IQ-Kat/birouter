@@ -177,7 +177,7 @@ function invalidOriginResponse(requestId: string): NextResponse {
         code: "INVALID_ORIGIN",
         message:
           "Invalid request origin. Same-origin dashboard writes must include a valid dashboard CSRF token. " +
-          "Refresh the dashboard and retry, or set OMNIROUTE_PUBLIC_BASE_URL for non-dashboard browser integrations.",
+          "Refresh the dashboard and retry, or set BIROUTER_PUBLIC_BASE_URL for non-dashboard browser integrations.",
         correlation_id: requestId,
       },
     },
@@ -290,7 +290,7 @@ export async function runAuthzPipeline(
     classifyStampedPeerLocality(
       request.headers.get(PEER_IP_HEADER),
       request.headers.get(VIA_PROXY_HEADER),
-      process.env.OMNIROUTE_PEER_STAMP_TOKEN
+      process.env.BIROUTER_PEER_STAMP_TOKEN
     )
   );
 

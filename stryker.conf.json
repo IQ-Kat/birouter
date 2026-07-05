@@ -104,7 +104,7 @@
       "tests/unit/combo-health-route.test.ts",
       "tests/unit/combo-hedging.test.ts",
       "tests/unit/combo-max-depth-config.test.ts",
-      "tests/unit/combo-omnimodel-tag-stripping.test.ts",
+      "tests/unit/combo-bimodel-tag-stripping.test.ts",
       "tests/unit/combo-prescreen.test.ts",
       "tests/unit/combo-provider-cooldown.test.ts",
       "tests/unit/combo-provider-diversity-wiring.test.ts",
@@ -362,5 +362,5 @@
     "  grep -rlE \"circuitBreaker|publicCreds|accountFallback|routeGuard|services/auth|chatCore|services/combo|utils/error|public-client|account-fallback|route-guard|circuit-breaker\" tests/unit --include=\"*.test.ts\" | sort -u"
   ],
   "dryRunTimeoutMinutes": 30,
-  "_concurrency_comment": "concurrency=4 (was 1): the covering node:test files used to share SQLite/module state via the default DATA_DIR (~/.omniroute), so running them concurrently in the Stryker sandbox caused cross-file races that failed the all-green baseline. tap.nodeArgs now imports ./tests/_setup/isolateDataDir.ts, which gives each spawned test process its own temp DATA_DIR — eliminating the shared on-disk DB, so concurrency>1 is deterministic. A/B verified 2026-06-17: dry-run at concurrency=4 fails WITHOUT the isolation import (account-fallback-service tap exit 9) and passes WITH it. Raise further only if the runner has spare cores."
+  "_concurrency_comment": "concurrency=4 (was 1): the covering node:test files used to share SQLite/module state via the default DATA_DIR (~/.birouter), so running them concurrently in the Stryker sandbox caused cross-file races that failed the all-green baseline. tap.nodeArgs now imports ./tests/_setup/isolateDataDir.ts, which gives each spawned test process its own temp DATA_DIR — eliminating the shared on-disk DB, so concurrency>1 is deterministic. A/B verified 2026-06-17: dry-run at concurrency=4 fails WITHOUT the isolation import (account-fallback-service tap exit 9) and passes WITH it. Raise further only if the runner has spare cores."
 }

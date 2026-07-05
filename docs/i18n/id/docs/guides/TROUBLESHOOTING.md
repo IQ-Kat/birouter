@@ -4,22 +4,22 @@
 
 ---
 
-Masalah umum dan solusinya untuk OmniRoute.
+Masalah umum dan solusinya untuk Birouter.
 
 ---
 
 ## Perbaikan Cepat
 
-| Masalah                                             | Solusi                                                                                                                                                           |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Login pertama tidak berfungsi                       | Atur `INITIAL_PASSWORD` di `.env` (tidak ada nilai default yang dikodekan langsung)                                                                              |
-| Dashboard terbuka di port yang salah                | Atur `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                              |
-| Tidak ada log yang ditulis ke disk                  | Atur `APP_LOG_TO_FILE=true` dan pastikan pengambilan log panggilan diaktifkan                                                                                    |
-| EACCES: permission denied                           | Atur `DATA_DIR=/path/to/writable/dir` untuk mengganti `~/.omniroute`                                                                                            |
-| Strategi routing tidak tersimpan                    | Perbarui ke v1.4.11+ (perbaikan skema Zod untuk persistensi pengaturan)                                                                                         |
-| Login crash / halaman kosong                        | Periksa versi Node.js — lihat [Kompatibilitas Node.js](#nodejs-compatibility) di bawah                                                                          |
-| `dlopen` / `slice is not valid mach-o file` (macOS) | Jalankan `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — lihat [Pembangunan ulang modul native macOS](#macos-native-module-rebuild) di bawah |
-| Proxy "fetch failed"                                | Pastikan konfigurasi proxy diatur pada tingkat yang tepat — lihat [Masalah Proxy](#proxy-issues) di bawah                                                       |
+| Masalah                                             | Solusi                                                                                                                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Login pertama tidak berfungsi                       | Atur `INITIAL_PASSWORD` di `.env` (tidak ada nilai default yang dikodekan langsung)                                                                                       |
+| Dashboard terbuka di port yang salah                | Atur `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                       |
+| Tidak ada log yang ditulis ke disk                  | Atur `APP_LOG_TO_FILE=true` dan pastikan pengambilan log panggilan diaktifkan                                                                                             |
+| EACCES: permission denied                           | Atur `DATA_DIR=/path/to/writable/dir` untuk mengganti `~/.birouter`                                                                                                       |
+| Strategi routing tidak tersimpan                    | Perbarui ke v1.4.11+ (perbaikan skema Zod untuk persistensi pengaturan)                                                                                                   |
+| Login crash / halaman kosong                        | Periksa versi Node.js — lihat [Kompatibilitas Node.js](#nodejs-compatibility) di bawah                                                                                    |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | Jalankan `cd $(npm root -g)/birouter/app && npm rebuild better-sqlite3 && birouter` — lihat [Pembangunan ulang modul native macOS](#macos-native-module-rebuild) di bawah |
+| Proxy "fetch failed"                                | Pastikan konfigurasi proxy diatur pada tingkat yang tepat — lihat [Masalah Proxy](#proxy-issues) di bawah                                                                 |
 
 ---
 
@@ -29,7 +29,7 @@ Masalah umum dan solusinya untuk OmniRoute.
 
 ### Halaman login crash atau menampilkan error "Module self-registration"
 
-**Penyebab:** Anda menjalankan versi Node.js di luar batas runtime aman yang disetujui OmniRoute. Kasus paling umum adalah menjalankan Node 20, 22, atau 24 versi patch lama yang berada di bawah batas keamanan yang diperlukan OmniRoute.
+**Penyebab:** Anda menjalankan versi Node.js di luar batas runtime aman yang disetujui Birouter. Kasus paling umum adalah menjalankan Node 20, 22, atau 24 versi patch lama yang berada di bawah batas keamanan yang diperlukan Birouter.
 
 **Gejala:**
 
@@ -45,8 +45,8 @@ Masalah umum dan solusinya untuk OmniRoute.
    nvm use 24
    ```
 2. Verifikasi versi Anda: `node --version` seharusnya menampilkan `v24.0.0` atau lebih baru pada lini LTS 24.x
-3. Instal ulang OmniRoute: `npm install -g omniroute`
-4. Mulai ulang: `omniroute`
+3. Instal ulang Birouter: `npm install -g birouter`
+4. Mulai ulang: `birouter`
 
 > **Versi aman yang didukung:** `>=20.20.2 <21`, `>=22.22.2 <23`, atau `>=24.0.0 <25`. Node.js 24.x LTS (Krypton) sepenuhnya didukung.
 
@@ -54,7 +54,7 @@ Masalah umum dan solusinya untuk OmniRoute.
 
 <a name="macos-native-module-rebuild"></a>
 
-**Penyebab:** Setelah `npm install -g omniroute` secara global, biner native `better-sqlite3` di dalam paket mungkin telah dikompilasi untuk arsitektur atau ABI Node.js yang berbeda dari yang berjalan secara lokal. Hal ini umum terjadi di macOS (baik Apple Silicon maupun Intel) ketika biner yang sudah dibangun tidak cocok dengan lingkungan Anda.
+**Penyebab:** Setelah `npm install -g birouter` secara global, biner native `better-sqlite3` di dalam paket mungkin telah dikompilasi untuk arsitektur atau ABI Node.js yang berbeda dari yang berjalan secara lokal. Hal ini umum terjadi di macOS (baik Apple Silicon maupun Intel) ketika biner yang sudah dibangun tidak cocok dengan lingkungan Anda.
 
 **Gejala:**
 
@@ -63,15 +63,15 @@ Masalah umum dan solusinya untuk OmniRoute.
 - Contoh lengkap:
 
 ```
-dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
+dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/birouter/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
 **Solusi — bangun ulang untuk lingkungan lokal Anda (tidak perlu downgrade Node.js):**
 
 ```bash
-cd $(npm root -g)/omniroute/app
+cd $(npm root -g)/birouter/app
 npm rebuild better-sqlite3
-omniroute
+birouter
 ```
 
 > **Catatan:** Perintah ini mengompilasi ulang binding native terhadap versi Node.js dan arsitektur CPU lokal Anda, mengatasi ketidakcocokan biner. Rentang yang resmi didukung adalah **`>=20.20.2 <21`, `>=22.22.2 <23`, atau `>=24.0.0 <25`** (kolom `engines` di `package.json`). Node.js 24.x LTS (Krypton) sepenuhnya didukung dengan `better-sqlite3` v12.x.
@@ -98,7 +98,7 @@ omniroute
 
 **Penyebab:** Pada Node.js 22, dispatcher undici@8 tidak kompatibel dengan implementasi `fetch()` bawaan Node.
 
-**Solusi (v3.5.5+):** OmniRoute sekarang menggunakan fungsi `fetch()` milik undici sendiri ketika dispatcher proxy aktif, memastikan perilaku yang konsisten. Perbarui ke v3.5.5+.
+**Solusi (v3.5.5+):** Birouter sekarang menggunakan fungsi `fetch()` milik undici sendiri ketika dispatcher proxy aktif, memastikan perilaku yang konsisten. Perbarui ke v3.5.5+.
 
 ---
 
@@ -125,7 +125,7 @@ omniroute
 
 ### Token OAuth Kedaluwarsa
 
-OmniRoute memperbarui token secara otomatis. Jika masalah berlanjut:
+Birouter memperbarui token secara otomatis. Jika masalah berlanjut:
 
 1. Dashboard → Penyedia → Sambungkan Ulang
 2. Hapus dan tambahkan ulang koneksi penyedia
@@ -137,7 +137,7 @@ OmniRoute memperbarui token secara otomatis. Jika masalah berlanjut:
 ### Error Sinkronisasi Cloud
 
 1. Pastikan `BASE_URL` mengarah ke instans yang sedang berjalan (misalnya, `http://localhost:20128`)
-2. Pastikan `CLOUD_URL` mengarah ke endpoint cloud Anda (misalnya, `https://omniroute.dev`)
+2. Pastikan `CLOUD_URL` mengarah ke endpoint cloud Anda (misalnya, `https://birouter.dev`)
 3. Jaga agar nilai `NEXT_PUBLIC_*` selaras dengan nilai sisi server
 
 ### Cloud `stream=false` Mengembalikan 500
@@ -255,12 +255,12 @@ Jika penyedia berulang kali masuk ke status OPEN:
 
 Gunakan **Dashboard → Translator** untuk melakukan debug masalah terjemahan format:
 
-| Mode             | Kapan Digunakan                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Playground**   | Bandingkan format input/output berdampingan — tempel permintaan yang gagal untuk melihat cara terjemahannya  |
-| **Chat Tester**  | Kirim pesan langsung dan periksa payload permintaan/respons lengkap termasuk header                          |
-| **Test Bench**   | Jalankan pengujian batch di berbagai kombinasi format untuk menemukan terjemahan mana yang rusak             |
-| **Live Monitor** | Pantau aliran permintaan secara real-time untuk menangkap masalah terjemahan yang intermiten                 |
+| Mode             | Kapan Digunakan                                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Playground**   | Bandingkan format input/output berdampingan — tempel permintaan yang gagal untuk melihat cara terjemahannya |
+| **Chat Tester**  | Kirim pesan langsung dan periksa payload permintaan/respons lengkap termasuk header                         |
+| **Test Bench**   | Jalankan pengujian batch di berbagai kombinasi format untuk menemukan terjemahan mana yang rusak            |
+| **Live Monitor** | Pantau aliran permintaan secara real-time untuk menangkap masalah terjemahan yang intermiten                |
 
 ### Masalah format yang umum
 
@@ -292,13 +292,13 @@ Profil penyedia mendukung pengaturan berikut:
 
 ### Anti-thundering herd
 
-Ketika banyak permintaan bersamaan mengenai penyedia yang dibatasi lajunya, OmniRoute menggunakan mutex + auto rate-limiting untuk membuat serialisasi permintaan dan mencegah kegagalan berantai. Ini berjalan otomatis untuk penyedia dengan API key.
+Ketika banyak permintaan bersamaan mengenai penyedia yang dibatasi lajunya, Birouter menggunakan mutex + auto rate-limiting untuk membuat serialisasi permintaan dan mencegah kegagalan berantai. Ini berjalan otomatis untuk penyedia dengan API key.
 
 ---
 
 ## Taksonomi Kegagalan RAG / LLM Opsional (16 masalah)
 
-Beberapa pengguna OmniRoute menempatkan gateway di depan tumpukan RAG atau agen. Dalam pengaturan tersebut, umum terjadi pola yang aneh: OmniRoute terlihat sehat (penyedia aktif, profil routing baik, tidak ada peringatan batas laju) tetapi jawaban akhir masih salah.
+Beberapa pengguna Birouter menempatkan gateway di depan tumpukan RAG atau agen. Dalam pengaturan tersebut, umum terjadi pola yang aneh: Birouter terlihat sehat (penyedia aktif, profil routing baik, tidak ada peringatan batas laju) tetapi jawaban akhir masih salah.
 
 Dalam praktiknya, insiden ini biasanya berasal dari pipeline RAG downstream, bukan dari gateway itu sendiri.
 
@@ -317,23 +317,23 @@ Idenya sederhana:
 
 1. Saat Anda menyelidiki respons yang buruk, kumpulkan:
    - tugas pengguna dan permintaan
-   - route atau combo penyedia di OmniRoute
+   - route atau combo penyedia di Birouter
    - konteks RAG apa pun yang digunakan di downstream (dokumen yang diambil, tool call, dll.)
 2. Petakan insiden ke satu atau dua nomor WFGY ProblemMap (`No.1` … `No.16`).
-3. Simpan nomornya di dashboard, runbook, atau pelacak insiden Anda sendiri di samping log OmniRoute.
+3. Simpan nomornya di dashboard, runbook, atau pelacak insiden Anda sendiri di samping log Birouter.
 4. Gunakan halaman WFGY yang sesuai untuk memutuskan apakah Anda perlu mengubah tumpukan RAG, retriever, atau strategi routing Anda.
 
 Teks lengkap dan resep konkret tersedia di sini (lisensi MIT, hanya teks):
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Anda dapat mengabaikan bagian ini jika Anda tidak menjalankan pipeline RAG atau agen di belakang OmniRoute.
+Anda dapat mengabaikan bagian ini jika Anda tidak menjalankan pipeline RAG atau agen di belakang Birouter.
 
 ---
 
 ## Masih Terjebak?
 
-- **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **GitHub Issues**: [github.com/IQ-Kat/birouter/issues](https://github.com/IQ-Kat/birouter/issues)
 - **Arsitektur**: Lihat [`docs/architecture/ARCHITECTURE.md`](ARCHITECTURE.md) untuk detail internal
 - **Referensi API**: Lihat [`docs/reference/API_REFERENCE.md`](API_REFERENCE.md) untuk semua endpoint
 - **Health Dashboard**: Periksa **Dashboard → Health** untuk status sistem secara real-time

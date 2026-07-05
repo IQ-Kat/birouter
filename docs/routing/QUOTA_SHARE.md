@@ -17,7 +17,7 @@ The Quota Sharing Engine distributes a provider's time-based quota (e.g. Codex
 5-hour window, Kimi 1500 req/h) fairly across multiple API keys that share the
 same connection.
 
-**Problem it solves:** OmniRoute proxies many API keys against the same upstream
+**Problem it solves:** Birouter proxies many API keys against the same upstream
 provider account. Without sharing logic, a burst from key A can exhaust the
 provider quota for the hour, leaving keys B and C blocked until the window resets.
 The engine prevents this by:
@@ -121,7 +121,7 @@ Redis driver: Lua EVAL script for atomic increment — runs as a single Redis co
 
 - Table: `quota_consumption` (see migration `073_quota_pools.sql` / `074_quota_consumption.sql`).
 - Best for single-instance deployments.
-- All persistence is in the existing OmniRoute SQLite DB (`DATA_DIR/storage.sqlite`).
+- All persistence is in the existing Birouter SQLite DB (`DATA_DIR/storage.sqlite`).
 
 ### Redis (optional, multi-instance)
 
@@ -327,7 +327,7 @@ accordingly.
 When `/dashboard/costs/quota-share` first loads, the hook `useLocalStoragePoolMigration`
 checks:
 
-1. `localStorage.getItem("omniroute:quota-share:pools")` is non-empty.
+1. `localStorage.getItem("birouter:quota-share:pools")` is non-empty.
 2. `GET /api/quota/pools` returns `[]` (DB is empty).
 
 If both are true, it posts each legacy pool to `POST /api/quota/pools` in batch,

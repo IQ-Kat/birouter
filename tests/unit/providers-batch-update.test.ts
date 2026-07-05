@@ -4,14 +4,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-update-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-batch-update-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { batchUpdateProviderConnectionsSchema, providersBatchTestSchema } = await import(
-  "../../src/shared/validation/schemas.ts"
-);
+const { batchUpdateProviderConnectionsSchema, providersBatchTestSchema } =
+  await import("../../src/shared/validation/schemas.ts");
 
 type Connection = Awaited<ReturnType<typeof providersDb.createProviderConnection>>;
 

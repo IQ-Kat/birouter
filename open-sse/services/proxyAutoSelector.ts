@@ -13,7 +13,7 @@
 import {
   findWorkingProxy,
   clearProxyFallbackCache,
-} from "@omniroute/open-sse/utils/proxyFallback.ts";
+} from "@birouter/open-sse/utils/proxyFallback.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 // ---------------------------------------------------------------------------

@@ -38,7 +38,7 @@ export function getModelSyncInternalBaseUrl(): string {
 }
 
 const globalState = globalThis as typeof globalThis & {
-  __omnirouteModelSyncInternalAuthToken?: string;
+  __birouterModelSyncInternalAuthToken?: string;
 };
 
 let schedulerTimer: NodeJS.Timeout | null = null;
@@ -47,8 +47,8 @@ let internalAuthToken: string | null = null;
 
 function getInternalAuthToken(): string {
   if (!internalAuthToken) {
-    internalAuthToken = globalState.__omnirouteModelSyncInternalAuthToken || randomUUID();
-    globalState.__omnirouteModelSyncInternalAuthToken = internalAuthToken;
+    internalAuthToken = globalState.__birouterModelSyncInternalAuthToken || randomUUID();
+    globalState.__birouterModelSyncInternalAuthToken = internalAuthToken;
   }
   return internalAuthToken;
 }
@@ -62,8 +62,8 @@ export function buildModelSyncInternalHeaders(): Record<string, string> {
 }
 
 export function isModelSyncInternalRequest(request: { headers: Headers }): boolean {
-  if (!internalAuthToken && globalState.__omnirouteModelSyncInternalAuthToken) {
-    internalAuthToken = globalState.__omnirouteModelSyncInternalAuthToken;
+  if (!internalAuthToken && globalState.__birouterModelSyncInternalAuthToken) {
+    internalAuthToken = globalState.__birouterModelSyncInternalAuthToken;
   }
   const headerToken = request.headers.get(MODEL_SYNC_INTERNAL_AUTH_HEADER);
   return Boolean(headerToken && internalAuthToken && headerToken === internalAuthToken);
@@ -173,7 +173,7 @@ async function runSyncCycle(apiBaseUrl: string): Promise<void> {
 
 /**
  * Start the model sync scheduler.
- * @param apiBaseUrl — internal base URL to call OmniRoute's own API
+ * @param apiBaseUrl — internal base URL to call Birouter's own API
  * @param intervalMs — sync interval in milliseconds (default: 24h)
  */
 export function startModelSyncScheduler(

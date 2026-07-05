@@ -294,7 +294,7 @@ function buildFactors(log: ExplainLog, targetStats: TargetStats): ExplanationFac
     contribution: log.comboName ? 0.25 : 0.15,
     details: log.comboName
       ? `Request matched combo ${log.comboName}${log.comboStepId ? ` at step ${log.comboStepId}` : ""}.`
-      : "No combo metadata was persisted, so OmniRoute treated this as direct routing.",
+      : "No combo metadata was persisted, so Birouter treated this as direct routing.",
   });
 
   factors.push({
@@ -359,7 +359,7 @@ function buildFactors(log: ExplainLog, targetStats: TargetStats): ExplanationFac
     weight: 0.05,
     contribution:
       log.cacheSource === "semantic" || toNumber(log.tokens?.compressed) > 0 ? 0.05 : 0.025,
-    details: "Shows whether OmniRoute cache or compression affected cost/latency for this route.",
+    details: "Shows whether Birouter cache or compression affected cost/latency for this route.",
   });
 
   return factors;

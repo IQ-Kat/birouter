@@ -5,7 +5,7 @@
  * text/code file via a Read tool), RTK's default caps (maxLinesPerResult: 120,
  * maxCharsPerResult: 12000) drop the middle and most lines are silently
  * suppressed. Disabling compression OR the RTK "tool results" toggle fixes it;
- * OpenRouter (no OmniRoute) is unaffected.
+ * OpenRouter (no Birouter) is unaffected.
  *
  * Root cause: the final `smartTruncate` hard-cap in processRtkText fires for ANY
  * tool result over 120 lines — including document/file reads — even though RTK's
@@ -100,9 +100,6 @@ describe("RTK file-read tool result — #4559 no over-truncation", () => {
       config: { maxLinesPerResult: 120, maxCharsPerResult: 12000 },
     });
 
-    assert.ok(
-      result.compressed,
-      "repetitive npm install output should still be compressed"
-    );
+    assert.ok(result.compressed, "repetitive npm install output should still be compressed");
   });
 });

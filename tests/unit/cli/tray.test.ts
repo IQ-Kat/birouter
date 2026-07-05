@@ -5,13 +5,13 @@ import { buildMenuItems, isTraySupported } from "../../../bin/cli/tray/tray.ts";
 test("buildMenuItems contains expected entries", () => {
   const items = buildMenuItems({ port: 20128, autostartEnabled: false });
   const titles = items.map((i) => i.title);
-  assert.ok(titles.includes("Open OmniRoute Dashboard"), "has Open entry");
+  assert.ok(titles.includes("Open Birouter Dashboard"), "has Open entry");
   assert.ok(
     titles.some((t) => t.startsWith("Port: 20128")),
     "shows port"
   );
   assert.ok(titles.includes("Enable Autostart"), "shows toggle when disabled");
-  assert.ok(titles.includes("Quit OmniRoute"), "has quit");
+  assert.ok(titles.includes("Quit Birouter"), "has quit");
 });
 
 test("buildMenuItems shows Disable Autostart when enabled", () => {

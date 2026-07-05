@@ -230,7 +230,7 @@ function sanitizeValue(
 }
 
 function shouldSanitizeVscodeContext(): boolean {
-  return process.env.OMNIROUTE_VSCODE_SANITIZE_CONTEXT !== "0";
+  return process.env.BIROUTER_VSCODE_SANITIZE_CONTEXT !== "0";
 }
 
 export function sanitizeVscodeRequestBody<T>(body: T): VscodeContextSanitizerResult<T> {

@@ -21,13 +21,13 @@ test("buildCodexEnv strips stale OpenAI/Codex creds from the child env (defense-
   assert.equal(env.OPENAI_BASE_URL, undefined);
   assert.equal(env.OPENAI_ORG_ID, undefined);
   assert.equal(env.CODEX_API_KEY, undefined);
-  assert.equal(env.OMNIROUTE_API_KEY, "oma_live_x");
+  assert.equal(env.BIROUTER_API_KEY, "oma_live_x");
   assert.equal(env.PATH, "/bin", "unrelated vars preserved");
 });
 
 test("buildCodexEnv uses a no-auth sentinel when no token is given", () => {
   const env = buildCodexEnv({ PATH: "/bin" }, undefined);
-  assert.equal(env.OMNIROUTE_API_KEY, "omniroute-no-auth");
+  assert.equal(env.BIROUTER_API_KEY, "birouter-no-auth");
 });
 
 test("buildCodexEnv does not mutate the input env", () => {
@@ -36,14 +36,14 @@ test("buildCodexEnv does not mutate the input env", () => {
   assert.equal(input.OPENAI_API_KEY, "leak");
 });
 
-test("buildCodexProviderArgs defines the omniroute provider inline (works without config.toml)", () => {
+test("buildCodexProviderArgs defines the birouter provider inline (works without config.toml)", () => {
   const args = buildCodexProviderArgs("http://vps:20128");
   const joined = args.join(" ");
-  assert.ok(joined.includes('model_provider="omniroute"'));
-  assert.ok(joined.includes('model_providers.omniroute.base_url="http://vps:20128/v1"'));
-  assert.ok(joined.includes('model_providers.omniroute.env_key="OMNIROUTE_API_KEY"'));
-  assert.ok(joined.includes('model_providers.omniroute.wire_api="responses"'));
-  assert.ok(joined.includes("model_providers.omniroute.requires_openai_auth=false"));
+  assert.ok(joined.includes('model_provider="birouter"'));
+  assert.ok(joined.includes('model_providers.birouter.base_url="http://vps:20128/v1"'));
+  assert.ok(joined.includes('model_providers.birouter.env_key="BIROUTER_API_KEY"'));
+  assert.ok(joined.includes('model_providers.birouter.wire_api="responses"'));
+  assert.ok(joined.includes("model_providers.birouter.requires_openai_auth=false"));
   // each assignment is preceded by a -c flag
   assert.equal(args.filter((a) => a === "-c").length, 6);
 });

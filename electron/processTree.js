@@ -2,12 +2,12 @@
 
 // Cross-platform "kill the whole process tree" helper (#3347).
 //
-// The embedded server is spawned via process.execPath (= omniroute.exe) with
+// The embedded server is spawned via process.execPath (= birouter.exe) with
 // ELECTRON_RUN_AS_NODE=1, and it in turn spawns grandchildren (embedded services,
-// MITM proxy, tunnels — several also omniroute.exe-as-node). On Windows, Node's
+// MITM proxy, tunnels — several also birouter.exe-as-node). On Windows, Node's
 // ChildProcess.kill()/SIGTERM/SIGKILL only terminate the DIRECT child via
 // TerminateProcess — they do NOT walk the tree. Surviving grandchildren keep a lock
-// on omniroute.exe, so the process "hangs in memory" after Exit and updates fail with
+// on birouter.exe, so the process "hangs in memory" after Exit and updates fail with
 // "file in use". Windows needs `taskkill /PID <pid> /T /F` (the /T flag terminates the
 // process AND its descendants). POSIX keeps signal-based termination, which propagates.
 

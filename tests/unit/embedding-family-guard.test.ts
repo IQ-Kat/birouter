@@ -6,14 +6,12 @@ import { join } from "node:path";
 
 // familyGuard imports combo.ts which transitively touches DB modules at load;
 // give it a throwaway DATA_DIR so it uses defaults instead of the real store.
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-embed-family-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-embed-family-"));
 
-const { getEmbeddingDimension, detectEmbeddingDimensionConflict } = await import(
-  "../../open-sse/config/embeddingRegistry.ts"
-);
-const { findEmbeddingComboDimensionConflict } = await import(
-  "../../src/lib/embeddings/familyGuard.ts"
-);
+const { getEmbeddingDimension, detectEmbeddingDimensionConflict } =
+  await import("../../open-sse/config/embeddingRegistry.ts");
+const { findEmbeddingComboDimensionConflict } =
+  await import("../../src/lib/embeddings/familyGuard.ts");
 
 test("getEmbeddingDimension resolves known dimensions from the registry", () => {
   assert.equal(getEmbeddingDimension("openai/text-embedding-3-small"), 1536);
@@ -58,10 +56,7 @@ test("detectEmbeddingDimensionConflict ignores unknown dimensions (no false posi
 
 test("detectEmbeddingDimensionConflict is a no-op for empty / all-unknown lists", () => {
   assert.equal(detectEmbeddingDimensionConflict([]).conflict, false);
-  assert.equal(
-    detectEmbeddingDimensionConflict(["localembed/a", "localembed/b"]).conflict,
-    false
-  );
+  assert.equal(detectEmbeddingDimensionConflict(["localembed/a", "localembed/b"]).conflict, false);
 });
 
 test("findEmbeddingComboDimensionConflict flags a mixed-dimension embedding combo", () => {

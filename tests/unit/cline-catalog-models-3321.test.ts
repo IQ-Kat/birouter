@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { getModelsByProviderId } from "../../open-sse/config/providerModels.ts";
 
 // #3321 — Cline maps its model catalog through OpenRouter (`modelsProviderId:
-// "openrouter"`) and OmniRoute's Cline provider forwards any id (passthroughModels).
+// "openrouter"`) and Birouter's Cline provider forwards any id (passthroughModels).
 // The free OpenRouter-served models reporters asked for were missing from the
 // static catalog, so they never showed in the model picker. Verify the verified
 // additions are present with their 1M context windows.

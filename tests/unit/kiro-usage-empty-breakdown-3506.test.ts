@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildKiroUsageResult } from "@omniroute/open-sse/services/usage.ts";
+import { buildKiroUsageResult } from "@birouter/open-sse/services/usage.ts";
 
 // Regression for #3506: a Kiro connection (e.g. via AWS IAM) whose GetUsageLimits response has
 // no usageBreakdownList produced `{ plan, quotas: {} }`, which the dashboard renders as a blank
@@ -20,11 +20,18 @@ test("#3506 a real usageBreakdownList yields normalized quotas", () => {
     subscriptionInfo: { subscriptionTitle: "Kiro Pro" },
     nextDateReset: "2026-07-01T00:00:00Z",
     usageBreakdownList: [
-      { resourceType: "AGENTIC_REQUEST", currentUsageWithPrecision: 30, usageLimitWithPrecision: 100 },
+      {
+        resourceType: "AGENTIC_REQUEST",
+        currentUsageWithPrecision: 30,
+        usageLimitWithPrecision: 100,
+      },
     ],
   });
   assert.ok("quotas" in result, "must return quotas when a breakdown is present");
-  const r = result as { plan: string; quotas: Record<string, { used: number; total: number; remaining: number }> };
+  const r = result as {
+    plan: string;
+    quotas: Record<string, { used: number; total: number; remaining: number }>;
+  };
   assert.equal(r.plan, "Kiro Pro");
   assert.equal(r.quotas.agentic_request.used, 30);
   assert.equal(r.quotas.agentic_request.total, 100);

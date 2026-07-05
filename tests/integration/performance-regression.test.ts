@@ -1,5 +1,5 @@
 /**
- * Performance regression tests for OmniRoute
+ * Performance regression tests for Birouter
  *
  * Tests bulk data operations against acceptable time thresholds.
  * Thresholds are 2x the expected target to account for slow CI machines.
@@ -14,7 +14,7 @@ import os from "node:os";
 import path from "node:path";
 
 // --- Environment setup (must come before dynamic imports) ---
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-perf-regression-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-perf-regression-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.REQUIRE_API_KEY = "false";
 if (!process.env.API_KEY_SECRET) {

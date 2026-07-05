@@ -11,7 +11,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-db-callogstats-3500-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-db-callogstats-3500-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -110,11 +110,14 @@ test("#3500 getProviderMetrics — aggregates totals and latency per provider", 
   // Provider '-' should be excluded
   insertCallLog({ provider: "-", status: 200 });
   // Provider null should be excluded (insert directly to avoid type issue)
-  core.getDbInstance().prepare(
-    `INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, duration,
+  core
+    .getDbInstance()
+    .prepare(
+      `INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, duration,
       tokens_in, tokens_out, cache_source, detail_state, has_request_body, has_response_body, has_pipeline_details)
      VALUES (?, ?, 'POST', '/v1/test', 200, 'x', NULL, 100, 0, 0, 'upstream', 'none', 0, 0, 0)`
-  ).run(`log-3500-null-${++_idSeq}`, new Date().toISOString());
+    )
+    .run(`log-3500-null-${++_idSeq}`, new Date().toISOString());
 
   const rows = mod.getProviderMetrics();
 
@@ -202,12 +205,36 @@ test("#3500 getSearchAggregateStats — correct totals, today, errors, avg, cach
   // Rows inserted after todayStart qualify as "today"
   const nowIso = new Date().toISOString();
   // duration=0 → excluded from avg_duration; duration=3 → cached (>0 && <5)
-  insertCallLog({ provider: "brave", status: 200, duration: 100, request_type: "search", timestamp: nowIso });
-  insertCallLog({ provider: "brave", status: 200, duration: 3, request_type: "search", timestamp: nowIso });
-  insertCallLog({ provider: "brave", status: 500, duration: 80, request_type: "search", timestamp: nowIso });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 100,
+    request_type: "search",
+    timestamp: nowIso,
+  });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 3,
+    request_type: "search",
+    timestamp: nowIso,
+  });
+  insertCallLog({
+    provider: "brave",
+    status: 500,
+    duration: 80,
+    request_type: "search",
+    timestamp: nowIso,
+  });
   // Old row (yesterday) — not in today count
   const yesterday = new Date(Date.now() - 86_400_000).toISOString();
-  insertCallLog({ provider: "brave", status: 200, duration: 200, request_type: "search", timestamp: yesterday });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 200,
+    request_type: "search",
+    timestamp: yesterday,
+  });
 
   const result = mod.getSearchAggregateStats(todayIso);
 

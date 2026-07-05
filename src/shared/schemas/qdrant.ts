@@ -6,7 +6,7 @@ export const QdrantSettingsSchema = z.object({
   enabled: z.boolean(),
   host: z.string().min(0), // string vazia OK quando enabled=false
   port: z.number().int().min(1).max(65535).default(6333),
-  collection: z.string().min(1).default("omniroute_memory"),
+  collection: z.string().min(1).default("birouter_memory"),
   embeddingModel: z.string().default("openai/text-embedding-3-small"),
   quantization: QdrantQuantizationSchema.default("none"),
   hasApiKey: z.boolean().default(false),

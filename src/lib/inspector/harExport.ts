@@ -3,10 +3,10 @@
  *
  * HAR is the standard format consumed by Chrome DevTools, Charles, Fiddler,
  * Postman, and most observability tools. Exporting lets users carry the
- * trace out of OmniRoute into their existing workflow.
+ * trace out of Birouter into their existing workflow.
  *
  * Secrets are *always* masked on export, regardless of the UI state — see
- * Hard Rule #1 (no credentials in artefacts). The OmniRoute capture source
+ * Hard Rule #1 (no credentials in artefacts). The Birouter capture source
  * (agent-bridge / custom-host / http-proxy / system-proxy) is preserved as
  * `_source`, a custom field allowed by the HAR spec's underscore convention.
  */
@@ -15,7 +15,7 @@ import { maskSecret } from "@/mitm/maskSecrets";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 
 const HAR_VERSION = "1.2";
-const CREATOR_NAME = "OmniRoute Traffic Inspector";
+const CREATOR_NAME = "Birouter Traffic Inspector";
 const CREATOR_VERSION = "3.8.6";
 
 interface HarNameValue {
@@ -79,7 +79,7 @@ interface HarEntry {
   _sessionId?: string;
   _annotation?: string;
   _note?: string;
-  _omniRouteId?: string;
+  _biRouteId?: string;
 }
 
 export interface HarFile {
@@ -160,7 +160,7 @@ function buildEntry(req: InterceptedRequest): HarEntry {
       receive: (req.totalLatencyMs ?? 0) - (req.upstreamLatencyMs ?? 0),
     },
     _source: req.source,
-    _omniRouteId: req.id,
+    _biRouteId: req.id,
   };
 
   if (req.agent) entry._agent = req.agent;

@@ -7,7 +7,7 @@ import path from "node:path";
 const playwrightRunner = await import("../../scripts/dev/run-next-playwright.mjs");
 
 test("resolvePlaywrightAppBackupDir uses a per-run backup when a stale backup already exists", () => {
-  const cwd = "/tmp/omniroute-playwright-runner";
+  const cwd = "/tmp/birouter-playwright-runner";
 
   assert.equal(
     playwrightRunner.resolvePlaywrightAppBackupDir({
@@ -36,7 +36,7 @@ test("shouldUseWebpackForPlaywrightDev only opts into webpack when turbopack is 
   assert.equal(
     playwrightRunner.shouldUseWebpackForPlaywrightDev({
       mode: "dev",
-      env: { OMNIROUTE_USE_TURBOPACK: "1" },
+      env: { BIROUTER_USE_TURBOPACK: "1" },
     }),
     false
   );
@@ -44,7 +44,7 @@ test("shouldUseWebpackForPlaywrightDev only opts into webpack when turbopack is 
   assert.equal(
     playwrightRunner.shouldUseWebpackForPlaywrightDev({
       mode: "dev",
-      env: { OMNIROUTE_USE_TURBOPACK: "0" },
+      env: { BIROUTER_USE_TURBOPACK: "0" },
     }),
     true
   );
@@ -52,14 +52,14 @@ test("shouldUseWebpackForPlaywrightDev only opts into webpack when turbopack is 
   assert.equal(
     playwrightRunner.shouldUseWebpackForPlaywrightDev({
       mode: "start",
-      env: { OMNIROUTE_USE_TURBOPACK: "1" },
+      env: { BIROUTER_USE_TURBOPACK: "1" },
     }),
     false
   );
 });
 
 test("standalone asset helpers detect and rehydrate missing standalone static assets", () => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-playwright-assets-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-playwright-assets-"));
   const standaloneServerPath = path.join(tempRoot, ".next", "standalone", "server.js");
   const rootStaticDirPath = path.join(tempRoot, ".next", "static");
   const standaloneStaticDirPath = path.join(tempRoot, ".next", "standalone", ".next", "static");

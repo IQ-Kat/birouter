@@ -12,7 +12,7 @@ export const MODERATION_PROVIDERS = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "omni-moderation-latest", name: "Omni Moderation Latest" },
+      { id: "bi-moderation-latest", name: "Bi Moderation Latest" },
       { id: "text-moderation-latest", name: "Text Moderation Latest" },
     ],
   },

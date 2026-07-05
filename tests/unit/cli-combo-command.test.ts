@@ -8,7 +8,7 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_FETCH = globalThis.fetch;
 
 function createTempDataDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-combo-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-combo-"));
 }
 
 async function withComboEnv(fn: (dataDir: string) => Promise<void>) {

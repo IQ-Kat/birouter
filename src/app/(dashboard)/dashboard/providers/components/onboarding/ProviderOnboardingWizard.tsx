@@ -858,7 +858,7 @@ export default function ProviderOnboardingWizard() {
             <div className="rounded-lg border border-border bg-bg-subtle p-4 text-sm text-text-muted">
               {text(
                 "onboardingOAuthFlowDescription",
-                "OmniRoute will open the existing OAuth flow for this provider. After login, the wizard reloads the saved connection and runs the same connection test as the provider page."
+                "Birouter will open the existing OAuth flow for this provider. After login, the wizard reloads the saved connection and runs the same connection test as the provider page."
               )}
             </div>
             <div className="flex flex-wrap gap-2">

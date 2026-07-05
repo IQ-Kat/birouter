@@ -17,7 +17,7 @@ const { dispatch } = await import("@/lib/batches/dispatch");
 const batchProcessor = await import("../../open-sse/services/batchProcessor.ts");
 const { waitForAllBatches, getCachedHeaders, resetCachedHeaders } = batchProcessor;
 
-const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
+const ORIGINAL_BIROUTER_API_KEY = process.env.BIROUTER_API_KEY;
 const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
 
 async function reset() {
@@ -39,7 +39,7 @@ async function reset() {
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
   delete process.env.ROUTER_API_KEY;
 
   resetCachedHeaders();

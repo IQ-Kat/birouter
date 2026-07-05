@@ -16,7 +16,7 @@ import {
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+const PENDING_REQUEST_CLEARED_MARKER = "__birouterPendingRequestCleared";
 
 async function readStreamText(stream) {
   const reader = stream.getReader();

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-proxy-registry-flow-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-proxy-registry-flow-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 // Disable dashboard auth for direct route handler calls in CI
 // (CI sets JWT_SECRET + INITIAL_PASSWORD, causing isAuthRequired() → true)

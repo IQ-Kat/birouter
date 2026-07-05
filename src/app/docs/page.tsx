@@ -3,20 +3,20 @@ import { Metadata } from "next";
 import { source } from "@/lib/source";
 
 export const metadata: Metadata = {
-  title: "OmniRoute Documentation",
+  title: "Birouter Documentation",
   description:
     "Everything you need to route, compress, and scale your AI — setup guides, API reference, compression, deployment, and more.",
   openGraph: {
-    title: "OmniRoute Documentation",
+    title: "Birouter Documentation",
     description:
-      "Comprehensive docs for OmniRoute AI gateway — setup, API, compression, deployment, and more.",
+      "Comprehensive docs for Birouter AI gateway — setup, API, compression, deployment, and more.",
     type: "website",
     url: "https://omniroute.online/docs",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OmniRoute Documentation",
-    description: "Comprehensive docs for OmniRoute AI gateway",
+    title: "Birouter Documentation",
+    description: "Comprehensive docs for Birouter AI gateway",
   },
 };
 
@@ -25,13 +25,13 @@ const featuredLinks = [
     href: "/docs/getting-started/quick-start",
     title: "Quick Start",
     icon: "rocket_launch",
-    desc: "Get OmniRoute running in 3 minutes",
+    desc: "Get Birouter running in 3 minutes",
   },
   {
     href: "/docs/getting-started/auto-combo-guide",
     title: "Auto-Combo Guide",
     icon: "auto_awesome",
-    desc: "Let OmniRoute pick the best AI for you",
+    desc: "Let Birouter pick the best AI for you",
   },
   {
     href: "/docs/getting-started/providers-guide",
@@ -54,7 +54,15 @@ const sections = [
     subtitle: "Deep dive into architecture, APIs, and internals",
     icon: "code",
     color: "blue",
-    folders: ["architecture", "reference", "frameworks", "routing", "security", "compression", "ops"],
+    folders: [
+      "architecture",
+      "reference",
+      "frameworks",
+      "routing",
+      "security",
+      "compression",
+      "ops",
+    ],
   },
 ];
 
@@ -64,7 +72,7 @@ export default function DocsHomePage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="text-center mb-16 mt-8">
-        <h1 className="text-4xl font-bold text-fd-foreground mb-5">OmniRoute Documentation</h1>
+        <h1 className="text-4xl font-bold text-fd-foreground mb-5">Birouter Documentation</h1>
         <p className="text-lg text-fd-muted-foreground mb-6">
           Everything you need to route, compress, and scale your AI
         </p>

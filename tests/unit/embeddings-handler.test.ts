@@ -4,7 +4,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-embeddings-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-embeddings-"));
 
 const { handleEmbedding } = await import("../../open-sse/handlers/embeddings.ts");
 

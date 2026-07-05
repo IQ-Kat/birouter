@@ -3,7 +3,7 @@
  *
  * Every `/api/plugins/**` route MUST:
  *   1. NOT return raw `err.message` / `err.stack` in any NextResponse.json body.
- *   2. Import and use `buildErrorBody` from `@omniroute/open-sse/utils/error`.
+ *   2. Import and use `buildErrorBody` from `@birouter/open-sse/utils/error`.
  *
  * See docs/security/ERROR_SANITIZATION.md and CLAUDE.md hard rule #12.
  * Pattern mirrors tests/unit/route-error-sanitization-v382.test.ts.
@@ -89,12 +89,12 @@ for (const { rel, label } of PLUGIN_ROUTES) {
     }
   });
 
-  test(`${label}: imports buildErrorBody from @omniroute/open-sse/utils/error`, () => {
+  test(`${label}: imports buildErrorBody from @birouter/open-sse/utils/error`, () => {
     const src = readRoute(rel);
     assert.match(
       src,
-      /import \{[^}]*buildErrorBody[^}]*\} from ["']@omniroute\/open-sse\/utils\/error["']/,
-      `${rel}: must import buildErrorBody from @omniroute/open-sse/utils/error`
+      /import \{[^}]*buildErrorBody[^}]*\} from ["']@birouter\/open-sse\/utils\/error["']/,
+      `${rel}: must import buildErrorBody from @birouter/open-sse/utils/error`
     );
   });
 

@@ -16,7 +16,7 @@ interface ModelSelectorModalProps {
 }
 
 /**
- * Modal for picking an OmniRoute target model for model-mapping.
+ * Modal for picking an Birouter target model for model-mapping.
  */
 export function ModelSelectorModal({
   open,
@@ -115,9 +115,7 @@ export function ModelSelectorModal({
               }`}
             >
               <span className="font-mono text-xs">{m.id}</span>
-              {m.name !== m.id && (
-                <span className="ml-2 text-text-muted text-xs">{m.name}</span>
-              )}
+              {m.name !== m.id && <span className="ml-2 text-text-muted text-xs">{m.name}</span>}
             </button>
           ))}
         </div>

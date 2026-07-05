@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-const STORAGE_KEY = "omniroute-agentbridge-risk-dismissed";
+const STORAGE_KEY = "birouter-agentbridge-risk-dismissed";
 
 function isNotDismissed(): boolean {
   try {

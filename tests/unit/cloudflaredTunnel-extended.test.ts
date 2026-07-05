@@ -107,7 +107,7 @@ test.afterEach(async () => {
 });
 
 test("getCloudflaredRuntimeDirs and status resolve a managed binary from the data dir", async () => {
-  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-managed-");
+  const dataDir = await createCloudflaredDataDir("birouter-cloudflared-managed-");
   const binaryPath = path.join(
     dataDir,
     "cloudflared",
@@ -137,7 +137,7 @@ test("getCloudflaredRuntimeDirs and status resolve a managed binary from the dat
 });
 
 test("getCloudflaredTunnelStatus resolves a PATH-installed binary when no managed install exists", async () => {
-  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-path-");
+  const dataDir = await createCloudflaredDataDir("birouter-cloudflared-path-");
   process.env.DATA_DIR = dataDir;
   delete process.env.CLOUDFLARED_BIN;
   const lookupCommand = process.platform === "win32" ? "where" : "which";
@@ -168,7 +168,7 @@ test("getCloudflaredTunnelStatus resolves a PATH-installed binary when no manage
 });
 
 test("getCloudflaredTunnelStatus reports a starting tunnel while the spawned pid is alive", async () => {
-  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-starting-");
+  const dataDir = await createCloudflaredDataDir("birouter-cloudflared-starting-");
   const binaryPath = path.join(dataDir, "bin", "cloudflared");
   const stateDir = path.join(dataDir, "cloudflared");
   process.env.DATA_DIR = dataDir;
@@ -214,7 +214,7 @@ test("getCloudflaredTunnelStatus reports a starting tunnel while the spawned pid
 });
 
 test("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel clears persisted runtime state", async () => {
-  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-run-");
+  const dataDir = await createCloudflaredDataDir("birouter-cloudflared-run-");
   const binaryPath = path.join(
     dataDir,
     "cloudflared",
@@ -306,7 +306,7 @@ test("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel cle
 });
 
 test("startCloudflaredTunnel records an error state when the child exits before a public tunnel URL is available", async () => {
-  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-error-");
+  const dataDir = await createCloudflaredDataDir("birouter-cloudflared-error-");
   const binaryPath = path.join(dataDir, "bin", "cloudflared");
   process.env.DATA_DIR = dataDir;
   process.env.CLOUDFLARED_BIN = binaryPath;
@@ -362,7 +362,7 @@ test("startCloudflaredTunnel records an error state when the child exits before 
 });
 
 test("startCloudflaredTunnel fails fast when the spawned child has no pid", async () => {
-  const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-nopid-");
+  const dataDir = await createCloudflaredDataDir("birouter-cloudflared-nopid-");
   const binaryPath = path.join(dataDir, "bin", "cloudflared");
   process.env.DATA_DIR = dataDir;
   process.env.CLOUDFLARED_BIN = binaryPath;

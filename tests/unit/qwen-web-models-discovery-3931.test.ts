@@ -20,7 +20,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-3931-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-3931-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -83,7 +83,11 @@ test("#3931 qwen-web model discovery fetches the public /api/v2/models catalog",
     assert.equal(response.status, 200);
     const body = (await response.json()) as ModelsBody;
     assert.equal(body.provider, "qwen-web");
-    assert.equal(body.source, "api", "should serve the live qwen-web catalog, not local_catalog/empty");
+    assert.equal(
+      body.source,
+      "api",
+      "should serve the live qwen-web catalog, not local_catalog/empty"
+    );
     assert.ok(fetchedUrl, `should have probed ${QWEN_WEB_MODELS_URL}`);
     const ids = body.models.map((m) => m.id);
     assert.ok(ids.includes("qwen3-max"), `live ids missing: ${ids.join(",")}`);

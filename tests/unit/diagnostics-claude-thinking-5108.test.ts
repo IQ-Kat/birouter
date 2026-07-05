@@ -7,7 +7,7 @@
  *
  * `detectMalformedNonStream` only understood OpenAI Chat Completions (`choices`) and
  * Responses API (`object:"response"`) shapes — a Claude body (`type:"message"`,
- * `content:[…]`) has neither, so it fell through to `empty_choices` and OmniRoute
+ * `content:[…]`) has neither, so it fell through to `empty_choices` and Birouter
  * returned 502 (cascading to "All models failed" inside a combo). The signature proves
  * the thinking step actually ran, so this is a valid completion, not an empty one.
  *
@@ -55,9 +55,6 @@ test("#5108 Claude thinking block with neither text nor signature is still flagg
 
 // Existing OpenAI / Responses behavior must be unchanged.
 test("#5108 OpenAI chat completion still validated normally", () => {
-  assert.equal(
-    detectMalformedNonStream({ choices: [{ message: { content: "hi" } }] }),
-    null
-  );
+  assert.equal(detectMalformedNonStream({ choices: [{ message: { content: "hi" } }] }), null);
   assert.equal(detectMalformedNonStream({ choices: [] }), "empty_choices");
 });

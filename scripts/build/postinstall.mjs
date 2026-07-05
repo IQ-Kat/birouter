@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OmniRoute — Postinstall Native Module Fix
+ * Birouter — Postinstall Native Module Fix
  *
  * The npm package ships with a Next.js standalone build that includes
  * native modules compiled for the build platform (Linux x64) inside
@@ -16,10 +16,10 @@
  *   - better-sqlite3 (SQLite bindings)
  *   - wreq-js (TLS client for OAuth providers)
  *
- * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/129
- * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/321
- * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/426
- * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
+ * Fixes: https://github.com/IQ-Kat/birouter/issues/129
+ * Fixes: https://github.com/IQ-Kat/birouter/issues/321
+ * Fixes: https://github.com/IQ-Kat/birouter/issues/426
+ * Fixes: https://github.com/IQ-Kat/birouter/issues/1634
  */
 
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync } from "node:fs";
@@ -43,7 +43,7 @@ const appBinary = join(
   "Release",
   "better_sqlite3.node"
 );
-const rootBinary = join(
+const rootOmninary = join(
   ROOT,
   "node_modules",
   "better-sqlite3",
@@ -71,10 +71,10 @@ async function fixBetterSqliteBinary() {
 
   console.log(`\n  🔧 Fixing better-sqlite3 binary for ${process.platform}-${process.arch}...`);
 
-  if (existsSync(rootBinary)) {
+  if (existsSync(rootOmninary)) {
     try {
       mkdirSync(dirname(appBinary), { recursive: true });
-      copyFileSync(rootBinary, appBinary);
+      copyFileSync(rootOmninary, appBinary);
     } catch (err) {
       console.warn(`  ⚠️  Failed to copy binary: ${err.message}`);
     }
@@ -194,7 +194,7 @@ async function fixBetterSqliteBinary() {
  * The standalone build may only contain Linux binaries from the CI.
  * This copies the correct platform binary from the root install.
  *
- * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
+ * Fixes: https://github.com/IQ-Kat/birouter/issues/1634
  */
 async function fixWreqJsBinary() {
   // wreq-js native module is not loadable in Termux (libgcc path mismatch).
@@ -216,7 +216,7 @@ async function fixWreqJsBinary() {
 
   const binaryName = `wreq-js.${process.platform}-${process.arch}.node`;
   const appBinaryPath = join(appWreqDir, binaryName);
-  const rootBinaryPath = join(rootWreqDir, binaryName);
+  const rootOmninaryPath = join(rootWreqDir, binaryName);
 
   // Check if the platform binary already exists and loads
   if (existsSync(appBinaryPath)) {
@@ -231,10 +231,10 @@ async function fixWreqJsBinary() {
   console.log(`\n  🔧 Fixing wreq-js binary for ${process.platform}-${process.arch}...`);
 
   // Strategy 1: Copy from root node_modules
-  if (existsSync(rootBinaryPath)) {
+  if (existsSync(rootOmninaryPath)) {
     try {
       mkdirSync(appWreqDir, { recursive: true });
-      copyFileSync(rootBinaryPath, appBinaryPath);
+      copyFileSync(rootOmninaryPath, appBinaryPath);
       process.dlopen({ exports: {} }, appBinaryPath);
       console.log("  ✅ wreq-js native module fixed successfully!\n");
       return;
@@ -348,7 +348,7 @@ await ensureSwcHelpers();
 await ensureLlmlinguaOptionals();
 await syncProjectEnv();
 
-// Warm up native runtimes (better-sqlite3 in ~/.omniroute/runtime/).
+// Warm up native runtimes (better-sqlite3 in ~/.birouter/runtime/).
 // Non-fatal: errors are caught inside postinstall.mjs.
 try {
   await import("../postinstall.mjs");

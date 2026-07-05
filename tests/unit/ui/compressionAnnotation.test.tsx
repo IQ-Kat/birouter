@@ -4,7 +4,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CompressionAnnotation } from "@/app/(dashboard)/dashboard/compression/studio/CompressionAnnotation";
-import type { CompressionStats } from "@omniroute/open-sse/services/compression/types";
+import type { CompressionStats } from "@birouter/open-sse/services/compression/types";
 
 let container: HTMLDivElement;
 

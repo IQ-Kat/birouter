@@ -6,7 +6,7 @@ import {
   update as npmUpdate,
 } from "@/lib/services/installers/ninerouter";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export async function POST(): Promise<Response> {
   try {

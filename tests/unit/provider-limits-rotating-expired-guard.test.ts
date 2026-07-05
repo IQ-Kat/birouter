@@ -5,13 +5,12 @@ import os from "node:os";
 import path from "node:path";
 
 // providerLimits.ts touches the DB singleton at import time; give it a scratch dir.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rotating-expired-guard-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rotating-expired-guard-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "rotating-expired-guard-secret";
 
-const { quotaPathShouldMarkExpired, shouldAttemptRotatingRefresh } = await import(
-  "../../src/lib/usage/providerLimits.ts"
-);
+const { quotaPathShouldMarkExpired, shouldAttemptRotatingRefresh } =
+  await import("../../src/lib/usage/providerLimits.ts");
 
 test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -56,7 +55,11 @@ test("an already-expired connection is left untouched (no redundant write)", () 
 test("bulk path never refreshes rotating providers (preserves #3019)", () => {
   for (const provider of ["codex", "openai", "claude", "kiro", "qwen", "gitlab-duo"]) {
     assert.equal(shouldAttemptRotatingRefresh(provider, undefined), false, `${provider} bulk`);
-    assert.equal(shouldAttemptRotatingRefresh(provider, false), false, `${provider} explicit false`);
+    assert.equal(
+      shouldAttemptRotatingRefresh(provider, false),
+      false,
+      `${provider} explicit false`
+    );
   }
 });
 

@@ -130,7 +130,7 @@ test("runSkillsEnable envia POST para tools/call", async () => {
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("/api/mcp/tools/call"));
   const body = JSON.parse(capturedInit?.body);
-  assert.equal(body.name, "omniroute_skills_enable");
+  assert.equal(body.name, "birouter_skills_enable");
   assert.equal(body.arguments.skillId, "sk_pdf");
   assert.equal(body.arguments.enabled, true);
   assert.ok(out.includes("sk_pdf"));
@@ -150,7 +150,7 @@ test("runSkillsExecute envia POST com skillId e input", async () => {
   );
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_skills_execute");
+  assert.equal(capturedBody.name, "birouter_skills_execute");
   assert.equal(capturedBody.arguments.skillId, "sk_pdf");
   assert.deepEqual(capturedBody.arguments.input, { file: "doc.pdf" });
 });

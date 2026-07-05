@@ -17,7 +17,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-e2e-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-e2e-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -160,7 +160,7 @@ describe("opencode-zen ↔ opencode alias fix (end-to-end)", () => {
   });
 
   it("combo of 4 opencode/* targets computes context_length = min(known) = 200000", () => {
-    // Simulate the "Opencode FREE Omni" combo: 4 targets, all under
+    // Simulate the "Opencode FREE Bi" combo: 4 targets, all under
     // provider "opencode". The min of the 4 known contexts (200k, 400k,
     // 200k, 200k) is 200000 — NOT 128000, NOT null.
     const targets = [

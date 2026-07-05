@@ -41,14 +41,14 @@ export interface ComboSetup {
 }
 
 /**
- * Server-side context cache pinning (replaces the <omniModel> tag roundtrip): re-pins the
+ * Server-side context cache pinning (replaces the <biModel> tag roundtrip): re-pins the
  * combo to the model used last for this session via session_model_history — no client-side
  * tag injection, no visible output pollution. Rewrites ctx.body when a model is pinned.
  *
  * #3825: when the client sends no session id (most OpenAI-compatible clients), fall back to a
  * stable conversation fingerprint derived from the body so the combo still re-pins across
  * turns. ONLY engaged when context_cache_protection is truthy — when off, behaviour is
- * unchanged (combos rotate as before, no pin read/write, no <omniModel> tag).
+ * unchanged (combos rotate as before, no pin read/write, no <biModel> tag).
  *
  * Extracted from phaseComboSetup to keep that function under the complexity ceiling and to
  * further the combo god-file decomposition.
@@ -90,9 +90,7 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
 
   const universalHandoffConfig = resolveUniversalHandoffConfig(
     (combo.universal_handoff || combo.universalHandoff) as
-      | Record<string, unknown>
-      | null
-      | undefined,
+      Record<string, unknown> | null | undefined,
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
 

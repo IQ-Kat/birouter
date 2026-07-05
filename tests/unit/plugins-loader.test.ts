@@ -81,7 +81,7 @@ test(
   "loadPlugin runs hooks in an isolated child process over IPC",
   { timeout: 5_000 },
   async (t) => {
-    const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-loader-"));
+    const pluginDir = await mkdtemp(join(tmpdir(), "birouter-plugin-loader-"));
     const entryPoint = join(pluginDir, "index.mjs");
     let loaded: LoadedPlugin | undefined;
 
@@ -141,7 +141,7 @@ test(
   "loadPlugin wires declared lifecycle hooks and skips undeclared ones",
   { timeout: 5_000 },
   async (t) => {
-    const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-lifecycle-"));
+    const pluginDir = await mkdtemp(join(tmpdir(), "birouter-plugin-lifecycle-"));
     const entryPoint = join(pluginDir, "index.mjs");
     let loaded: LoadedPlugin | undefined;
 

@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # AgentBridge
 
-AgentBridge is OmniRoute's MITM (Man-in-the-Middle) proxy that intercepts HTTPS traffic from IDE AI agents and reroutes it through OmniRoute's unified routing engine. It supports **9 IDE agents** — Antigravity, Kiro, GitHub Copilot, OpenAI Codex, Cursor, Zed, Claude Code, Open Code, and Trae (investigating) — making OmniRoute the broadest-coverage MITM proxy for AI coding assistants on the market.
+AgentBridge is Birouter's MITM (Man-in-the-Middle) proxy that intercepts HTTPS traffic from IDE AI agents and reroutes it through Birouter's unified routing engine. It supports **9 IDE agents** — Antigravity, Kiro, GitHub Copilot, OpenAI Codex, Cursor, Zed, Claude Code, Open Code, and Trae (investigating) — making Birouter the broadest-coverage MITM proxy for AI coding assistants on the market.
 
 **Dashboard location:** `/dashboard/tools/agent-bridge`
 **Sidebar group:** Tools (after Cloud Agents)
@@ -18,34 +18,34 @@ AgentBridge is OmniRoute's MITM (Man-in-the-Middle) proxy that intercepts HTTPS 
 
 ### What is AgentBridge?
 
-When an IDE agent (e.g., GitHub Copilot, Cursor, Claude Code) makes an API call, it connects directly to the upstream AI provider (OpenAI, Anthropic, etc.). AgentBridge intercepts that connection transparently at the TLS level — without requiring any agent configuration change — and rewrites the request through OmniRoute.
+When an IDE agent (e.g., GitHub Copilot, Cursor, Claude Code) makes an API call, it connects directly to the upstream AI provider (OpenAI, Anthropic, etc.). AgentBridge intercepts that connection transparently at the TLS level — without requiring any agent configuration change — and rewrites the request through Birouter.
 
 This means you can:
 
-- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of OmniRoute's 226+ providers.
+- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of Birouter's 226+ providers.
 - **Apply model mappings**: `gemini-3-flash` → `claude-sonnet-4.7` transparently at the handler level.
 - **Observe all agent traffic**: every intercepted request is published to the [Traffic Inspector](./TRAFFIC_INSPECTOR.md).
-- **Apply OmniRoute resilience**: combo routing, circuit breakers, fallbacks, and cost tracking work for IDE agent traffic too.
+- **Apply Birouter resilience**: combo routing, circuit breakers, fallbacks, and cost tracking work for IDE agent traffic too.
 
 ### Positioning vs. the market
 
-| Feature           | 9router | anti-api | llm-interceptor | **OmniRoute AgentBridge** |
-| ----------------- | :-----: | :------: | :-------------: | :-----------------------: |
-| Antigravity       |    ✓    |    ✓     |        —        |             ✓             |
-| GitHub Copilot    |    ✓    |    ✓     |        —        |             ✓             |
-| Kiro (AWS)        |    ✓    |    ✓     |        —        |             ✓             |
-| OpenAI Codex      |    —    |    ✓     |        —        |             ✓             |
-| Cursor IDE        |    ✓    |    ✓     |        —        |             ✓             |
-| Zed Industries    |    —    |    ✓     |        —        |             ✓             |
-| Claude Code       |    —    |    —     |        ✓        |             ✓             |
-| Open Code         |    —    |    —     |        ✓        |             ✓             |
-| Trae              |    —    |    —     |        —        |     🔍 Investigating      |
-| Dashboard UI      |    ✓    |    ✗     |        ✗        |             ✓             |
-| Traffic Inspector |    ✗    |    ✗     |        ✓        |             ✓             |
-| OmniRoute routing |    ✗    |    ✗     |        ✗        |             ✓             |
-| Model mapping UI  |    ✗    |    ✗     |        ✗        |             ✓             |
-| Bypass list       |    ✗    |    ✗     |        ✓        |             ✓             |
-| Upstream CA cert  |    ✗    |    ✗     |        ✓        |             ✓             |
+| Feature           | 9router | anti-api | llm-interceptor | **Birouter AgentBridge** |
+| ----------------- | :-----: | :------: | :-------------: | :----------------------: |
+| Antigravity       |    ✓    |    ✓     |        —        |            ✓             |
+| GitHub Copilot    |    ✓    |    ✓     |        —        |            ✓             |
+| Kiro (AWS)        |    ✓    |    ✓     |        —        |            ✓             |
+| OpenAI Codex      |    —    |    ✓     |        —        |            ✓             |
+| Cursor IDE        |    ✓    |    ✓     |        —        |            ✓             |
+| Zed Industries    |    —    |    ✓     |        —        |            ✓             |
+| Claude Code       |    —    |    —     |        ✓        |            ✓             |
+| Open Code         |    —    |    —     |        ✓        |            ✓             |
+| Trae              |    —    |    —     |        —        |     🔍 Investigating     |
+| Dashboard UI      |    ✓    |    ✗     |        ✗        |            ✓             |
+| Traffic Inspector |    ✗    |    ✗     |        ✓        |            ✓             |
+| Birouter routing  |    ✗    |    ✗     |        ✗        |            ✓             |
+| Model mapping UI  |    ✗    |    ✗     |        ✗        |            ✓             |
+| Bypass list       |    ✗    |    ✗     |        ✓        |            ✓             |
+| Upstream CA cert  |    ✗    |    ✗     |        ✓        |            ✓             |
 
 ---
 
@@ -64,7 +64,7 @@ src/mitm/server.cjs  (port 443, CJS child process)
     │  resolves target by Host header SNI
     │  generates per-SNI TLS cert signed by AgentBridge CA
     ├── Bypass list match? → TCP passthrough (no decrypt)
-    ├── Target match? → fetch → OmniRoute router (port 20128)
+    ├── Target match? → fetch → Birouter router (port 20128)
     │       └── handler.intercept() — TypeScript
     │               ├── maskSecrets() on request body/headers
     │               ├── TrafficBuffer.push() — publishes to Traffic Inspector
@@ -186,20 +186,20 @@ The AgentBridge CA certificate must be trusted by the OS before IDEs will accept
 **Linux (NSS — Chrome/Firefox):**
 
 ```bash
-certutil -A -d sql:$HOME/.pki/nssdb -n "OmniRoute AgentBridge" -t CT,, -i ~/.omniroute/mitm/ca.crt
+certutil -A -d sql:$HOME/.pki/nssdb -n "Birouter AgentBridge" -t CT,, -i ~/.birouter/mitm/ca.crt
 ```
 
 **macOS (Keychain):**
 
 ```bash
 sudo security add-trusted-cert -d -r trustRoot \
-  -k /Library/Keychains/System.keychain ~/.omniroute/mitm/ca.crt
+  -k /Library/Keychains/System.keychain ~/.birouter/mitm/ca.crt
 ```
 
 **Windows (certmgr):**
 
 ```powershell
-certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
+certutil -addstore -f Root $env:USERPROFILE\.birouter\mitm\ca.crt
 ```
 
 Or use the "Trust Cert" button in the dashboard (runs the appropriate command for your OS, with sudo prompt if needed).
@@ -216,7 +216,7 @@ required, and both matter:
 
 1. Point the runtime at the CA explicitly:
    ```bash
-   export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
+   export NODE_EXTRA_CA_CERTS=/path/to/birouter-agentbridge-ca.crt
    ```
 2. **Launch the IDE from that shell.** Starting it from the desktop icon / Dock / Start menu
    does **not** inherit shell exports, and `~/.config/environment.d/*.conf` only applies after
@@ -242,10 +242,10 @@ Example `/etc/hosts` entries for GitHub Copilot:
 
 Use the Model Mapping Table in each agent card to define source → target mappings:
 
-| Source model (agent native) | Target model (OmniRoute) |
-| --------------------------- | ------------------------ |
-| `gpt-4o`                    | `claude-sonnet-4.7`      |
-| `*` (wildcard)              | `claude-haiku-4.7`       |
+| Source model (agent native) | Target model (Birouter) |
+| --------------------------- | ----------------------- |
+| `gpt-4o`                    | `claude-sonnet-4.7`     |
+| `*` (wildcard)              | `claude-haiku-4.7`      |
 
 Wildcard `*` maps any unrecognized model to the specified target. Persisted in `agent_bridge_mappings` table.
 
@@ -258,7 +258,7 @@ Wildcard `*` maps any unrecognized model to the specified target. Persisted in `
 
 ### 3.5 Risk notice
 
-AgentBridge intercepts credentials (OAuth tokens, API keys) that the IDE uses to authenticate with upstream providers. These are **masked before logging** (see §2.7) but are visible to OmniRoute's MITM layer. First activation of each agent shows a dismissible risk notice modal.
+AgentBridge intercepts credentials (OAuth tokens, API keys) that the IDE uses to authenticate with upstream providers. These are **masked before logging** (see §2.7) but are visible to Birouter's MITM layer. First activation of each agent shows a dismissible risk notice modal.
 
 ### 3.6 Maintenance & Diagnostics
 
@@ -367,7 +367,7 @@ Detection uses OS-specific paths and binary checks (e.g., `code --list-extension
 
 ### Bypass list for sensitive hosts
 
-The bypass list ensures that financial institutions, OAuth/SSO providers, and other sensitive hosts are **never decrypted**. Their TLS traffic passes through as a transparent TCP tunnel — OmniRoute never sees the plaintext.
+The bypass list ensures that financial institutions, OAuth/SSO providers, and other sensitive hosts are **never decrypted**. Their TLS traffic passes through as a transparent TCP tunnel — Birouter never sees the plaintext.
 
 Default bypass patterns include:
 
@@ -418,7 +418,7 @@ Alternatively, configure a non-privileged port in AgentBridge settings and set u
 
 If the IDE shows TLS errors after starting AgentBridge:
 
-1. Verify the cert was installed: `security find-certificate -c "OmniRoute AgentBridge"` (macOS) or `certutil -L -d sql:$HOME/.pki/nssdb` (Linux/NSS)
+1. Verify the cert was installed: `security find-certificate -c "Birouter AgentBridge"` (macOS) or `certutil -L -d sql:$HOME/.pki/nssdb` (Linux/NSS)
 2. Some apps maintain their own trust store (Firefox, Chrome on Linux). Run "Trust Cert" again and check the NSS/Firefox-specific cert store.
 3. Restart the IDE after trusting — in-flight TLS sessions use the old trust state.
 
@@ -443,7 +443,7 @@ variant fails under the same setup.
 Check that `/etc/hosts` was updated:
 
 ```bash
-grep "omniroute\|127.0.0.1.*github\|127.0.0.1.*cursor" /etc/hosts
+grep "birouter\|127.0.0.1.*github\|127.0.0.1.*cursor" /etc/hosts
 ```
 
 Flush DNS cache:
@@ -469,8 +469,8 @@ Auto-detection uses common installation paths. If detection fails but the IDE is
 If AgentBridge intercepts but all requests fail:
 
 1. Verify at least one provider is connected at `/dashboard/providers`
-2. Check OmniRoute server logs: `APP_LOG_LEVEL=debug` in `.env`
-3. Verify `OMNIROUTE_BASE_URL` points to the correct router endpoint (default: `http://127.0.0.1:20128`)
+2. Check Birouter server logs: `APP_LOG_LEVEL=debug` in `.env`
+3. Verify `BIROUTER_BASE_URL` points to the correct router endpoint (default: `http://127.0.0.1:20128`)
 
 ---
 

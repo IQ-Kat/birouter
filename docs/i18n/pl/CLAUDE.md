@@ -39,7 +39,7 @@ Aby zobaczyć pełną macierz testów, zapoznaj się z `CONTRIBUTING.md` → "Ur
 
 ## Projekt w Skrócie
 
-**OmniRoute** — zjednoczony proxy/router AI. Jeden punkt końcowy, 160+ dostawców LLM, automatyczne przełączanie.
+**Birouter** — zjednoczony proxy/router AI. Jeden punkt końcowy, 160+ dostawców LLM, automatyczne przełączanie.
 
 | Warstwa       | Lokalizacja             | Cel                                                                                |
 | ------------- | ----------------------- | ---------------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Trasy API podążają za spójnym wzorem: `Trasa → wstępne zapytanie CORS →
 
 ## Stan Czasu Wykonania Odporności
 
-OmniRoute ma trzy powiązane, ale odrębne mechanizmy tymczasowej awarii. Zachowaj ich zakres oddzielnie podczas debugowania zachowania routingu. Zobacz
+Birouter ma trzy powiązane, ale odrębne mechanizmy tymczasowej awarii. Zachowaj ich zakres oddzielnie podczas debugowania zachowania routingu. Zobacz
 [diagram odporności 3-warstwowej](./docs/diagrams/exported/resilience-3layers.svg)
 (źródło: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 dla szybkiej mapy.
@@ -215,7 +215,7 @@ połączeniu kontynuować obsługę innych modeli.
 ### Styl Kodowania
 
 - **2 spacje**, średniki, podwójne cudzysłowy, szerokość 100 znaków, es5 przecinki na końcu (egzekwowane przez lint-staged za pomocą Prettier)
-- **Importy**: zewnętrzne → wewnętrzne (`@/`, `@omniroute/open-sse`) → względne
+- **Importy**: zewnętrzne → wewnętrzne (`@/`, `@birouter/open-sse`) → względne
 - **Nazewnictwo**: pliki=camelCase/kebab, komponenty=PascalCase, stałe=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = błąd wszędzie; `no-explicit-any` = ostrzeżenie w `open-sse/` i `tests/`
 - **TypeScript**: `strict: false`, cel ES2022, moduł esnext, rozdzielczość bundler. Preferuj jawne typy.
@@ -381,9 +381,9 @@ git push -u origin feat/your-feature
 
 - **Czas działania**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, cel ES2022, moduł esnext, rozdzielczość bundler
-- **Alias ścieżek**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Alias ścieżek**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Domyślny port**: 20128 (API + dashboard na tym samym porcie)
-- **Katalog danych**: zmienna środowiskowa `DATA_DIR`, domyślnie `~/.omniroute/`
+- **Katalog danych**: zmienna środowiskowa `DATA_DIR`, domyślnie `~/.birouter/`
 - **Kluczowe zmienne środowiskowe**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Konfiguracja: `cp .env.example .env`, a następnie wygeneruj `JWT_SECRET` (`openssl rand -base64 48`) i `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -406,4 +406,4 @@ git push -u origin feat/your-feature
 13. Nigdy nie interpoluj zewnętrznych ścieżek ani wartości czasu wykonania do skryptów powłoki przekazywanych do `exec()`/`spawn()` — przekazuj przez opcję `env`. Odniesienie: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Nigdy nie ignoruj alertu CodeQL / Secret-Scanning bez (a) najpierw sprawdzenia dokumentacji wzorców powyżej, aby zobaczyć, czy pomocnik ma zastosowanie, oraz (b) zapisania uzasadnienia technicznego w komentarzu o odrzuceniu. Precedens: `js/stack-trace-exposure` zgłoszone w miejscach wywołania, które już kierują przez `sanitizeErrorMessage()`, jest znanym ograniczeniem CodeQL (niestandardowe sanitizery nie są rozpoznawane) — odrzuć jako `fałszywy pozytyw`, odnosząc się do `docs/security/ERROR_SANITIZATION.md`.
 15. Nigdy nie udostępniaj tras, które uruchamiają procesy podrzędne (`/api/mcp/`, `/api/cli-tools/runtime/`) bez klasyfikacji `isLocalOnlyPath()` w `src/server/authz/routeGuard.ts`. Egzekucja loopback odbywa się bezwarunkowo przed jakąkolwiek kontrolą autoryzacji — wyciekający JWT przez tunel nie może uruchomić procesów. Zobacz `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Nigdy nie dołączaj nagłówków `Co-Authored-By`, które przypisują zasługi asystentowi AI, LLM lub kontu automatyzacji (np. nazwy zawierające "Claude", "GPT", "Copilot", "Bot"; e-maile w `anthropic.com` / `openai.com` / adresach `noreply.github.com` należących do botów). Takie nagłówki kierują atrybucję commitów do konta bota na GitHubie, ukrywając prawdziwego autora (`diegosouzapw`) w historii PR. Współpracownicy ludzcy — w tym autorzy upstream PR i zgłaszający issues portowanych do OmniRoute — MOGĄ i POWINNI być uznawani standardowymi nagłówkami `Co-authored-by: Name <email>`; przepływy pracy upstream-port (`/port-upstream-features`, `/port-upstream-issues`) zależą od tego.
+16. Nigdy nie dołączaj nagłówków `Co-Authored-By`, które przypisują zasługi asystentowi AI, LLM lub kontu automatyzacji (np. nazwy zawierające "Claude", "GPT", "Copilot", "Bot"; e-maile w `anthropic.com` / `openai.com` / adresach `noreply.github.com` należących do botów). Takie nagłówki kierują atrybucję commitów do konta bota na GitHubie, ukrywając prawdziwego autora (`diegosouzapw`) w historii PR. Współpracownicy ludzcy — w tym autorzy upstream PR i zgłaszający issues portowanych do Birouter — MOGĄ i POWINNI być uznawani standardowymi nagłówkami `Co-authored-by: Name <email>`; przepływy pracy upstream-port (`/port-upstream-features`, `/port-upstream-issues`) zależą od tego.

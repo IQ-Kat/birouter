@@ -1,6 +1,6 @@
 /**
  * Tests for composerToolCalls.ts — DeepSeek inline tool-call parser.
- * Ported from decolua/9router#1335 (noestelar), adapted to OmniRoute
+ * Ported from decolua/9router#1335 (noestelar), adapted to Birouter
  * node:test conventions.
  */
 

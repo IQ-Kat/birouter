@@ -65,7 +65,7 @@ export const DEFAULT_THINKING_CONFIG = {
 // boot hydration would land on the instrumentation graph's copy and never reach
 // base.ts — exactly the #5312 fix-A break proven on the VPS. Mirrors the same
 // globalThis pattern systemPrompt.ts already uses for the Global System Prompt (#2470).
-const GLOBAL_KEY = "__omniroute_thinkingBudget_config__";
+const GLOBAL_KEY = "__birouter_thinkingBudget_config__";
 const _store = globalThis as unknown as Record<string, ThinkingBudgetConfig | undefined>;
 
 function getConfig(): ThinkingBudgetConfig {

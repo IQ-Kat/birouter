@@ -5,7 +5,7 @@ import { CREDENTIAL_BLOB_PREFIX } from "@/lib/oauth/credentialBlob";
  * Helpers for the remote-login "paste credentials" path in OAuthModal.
  *
  * Google's native-loopback consent can't complete on a remote install, so the
- * user runs `omniroute login antigravity` locally and pastes the credential blob
+ * user runs `birouter login antigravity` locally and pastes the credential blob
  * it prints into the modal's Step 2 field. Extracted from OAuthModal to keep that
  * (god-file) component within its frozen size budget.
  */

@@ -6,13 +6,13 @@ lastUpdated: 2026-06-28
 
 # Delegated Context Editing (Anthropic)
 
-Delegated **Context Editing** is a Claude-only context-management feature. Unlike OmniRoute's local
+Delegated **Context Editing** is a Claude-only context-management feature. Unlike Birouter's local
 compression engines (Caveman, RTK, LLMLingua, stacked pipelines) — which rewrite the request body
 _before_ it leaves the proxy — Context Editing asks the **provider** to clear stale
-tool-use / tool-result blocks from its own running context window. OmniRoute only attaches a body
+tool-use / tool-result blocks from its own running context window. Birouter only attaches a body
 parameter (`context_management.edits[]`); Claude does the actual clearing against its own tokenizer.
 
-This is a delegated capability by nature: other providers reject the parameter, so OmniRoute scopes
+This is a delegated capability by nature: other providers reject the parameter, so Birouter scopes
 it strictly to Claude and Claude-Code-compatible relays.
 
 Source of truth: `open-sse/config/contextEditing.ts` (strategy ids, body injection, telemetry
@@ -21,7 +21,7 @@ extraction), `open-sse/executors/base.ts` (injection gate + 400-fallback), and
 
 ## What `clear_tool_uses` does
 
-OmniRoute injects a single edit into the outbound Anthropic Messages body:
+Birouter injects a single edit into the outbound Anthropic Messages body:
 
 ```json
 {
@@ -44,11 +44,11 @@ OmniRoute injects a single edit into the outbound Anthropic Messages body:
   (`CONTEXT_EDITING_DEFAULT_KEEP_TOOL_USES`).
 
 The beta is advertised via the `anthropic-beta: context-management-2025-06-27` header, which
-OmniRoute already emits on Claude requests.
+Birouter already emits on Claude requests.
 
 Injection is performed by `applyContextEditingToBody()` and is **idempotent**: if a `clear_tool_uses`
 edit already exists on the body (added by a previous call or supplied by the client), the body is
-left as-is. If a `clear_thinking_20251015` edit is also present, OmniRoute stable-sorts the
+left as-is. If a `clear_thinking_20251015` edit is also present, Birouter stable-sorts the
 `clear_thinking` edit to the front, because Anthropic requires `clear_thinking` to precede
 `clear_tool_uses` in the `edits[]` array.
 
@@ -147,7 +147,7 @@ Genuine Claude carries the beta in `ANTHROPIC_BETA_BASE` and does not hit this f
 
 ## `applied_edits` telemetry
 
-After a Claude response, OmniRoute records how much context the provider actually cleared. This is
+After a Claude response, Birouter records how much context the provider actually cleared. This is
 **not** streamed — it is extracted from the non-streaming response body, best-effort, and never
 affects the response (telemetry failures are swallowed).
 
@@ -177,14 +177,14 @@ So delegated clearing shows up in compression analytics alongside the local engi
 
 | Aspect            | Local engines (Caveman / RTK / LLMLingua / stacked) | Delegated Context Editing                   |
 | ----------------- | --------------------------------------------------- | ------------------------------------------- |
-| Where it runs     | In OmniRoute, before the request leaves the proxy   | In the provider (Claude), server-side       |
+| Where it runs     | In Birouter, before the request leaves the proxy    | In the provider (Claude), server-side       |
 | What it edits     | Prompt / context / tool-result text                 | Old tool-use / tool-result blocks           |
 | Provider scope    | All providers                                       | `claude` + `anthropic-compatible-cc-*` only |
 | Toggle            | Compression mode settings                           | `contextEditing.enabled`                    |
 | Failure mode      | Fail-open (original text)                           | 400-fallback: strip param, retry once       |
 | Savings telemetry | `engine: <engine id>`                               | `engine: "context-editing"`                 |
 
-The two are complementary: local engines compress the bytes OmniRoute sends; Context Editing lets
+The two are complementary: local engines compress the bytes Birouter sends; Context Editing lets
 Claude prune the running context across turns. They can be enabled together.
 
 ## See Also

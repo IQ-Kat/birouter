@@ -1,4 +1,4 @@
-# Berkontribusi ke OmniRoute (Bahasa Indonesia)
+# Berkontribusi ke Birouter (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md)
 
@@ -19,8 +19,8 @@ Terima kasih atas minat Anda untuk berkontribusi! Panduan ini mencakup semua yan
 ### Kloning & Instalasi
 
 ```bash
-git clone https://github.com/diegosouzapw/OmniRoute.git
-cd OmniRoute
+git clone https://github.com/IQ-Kat/birouter.git
+cd Birouter
 npm install
 ```
 
@@ -37,22 +37,22 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 Variabel-variabel utama untuk pengembangan:
 
-| Variable               | Development Default      | Deskripsi                         |
-| ---------------------- | ------------------------ | --------------------------------- |
-| `PORT`                 | `20128`                  | Port server                       |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL dasar untuk frontend          |
-| `JWT_SECRET`           | (generate above)         | Kunci penandatanganan JWT         |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | Kata sandi login pertama          |
-| `APP_LOG_LEVEL`        | `info`                   | Tingkat verbositas log            |
+| Variable               | Development Default      | Deskripsi                 |
+| ---------------------- | ------------------------ | ------------------------- |
+| `PORT`                 | `20128`                  | Port server               |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL dasar untuk frontend  |
+| `JWT_SECRET`           | (generate above)         | Kunci penandatanganan JWT |
+| `INITIAL_PASSWORD`     | `CHANGEME`               | Kata sandi login pertama  |
+| `APP_LOG_LEVEL`        | `info`                   | Tingkat verbositas log    |
 
 ### Pengaturan Dashboard
 
 Dashboard menyediakan tombol UI untuk fitur-fitur yang juga dapat dikonfigurasi melalui variabel lingkungan:
 
-| Lokasi Pengaturan   | Tombol             | Deskripsi                                |
-| ------------------- | ------------------ | ---------------------------------------- |
-| Settings → Advanced | Debug Mode         | Aktifkan log permintaan debug (UI)       |
-| Settings → General  | Sidebar Visibility | Tampilkan/sembunyikan bagian sidebar     |
+| Lokasi Pengaturan   | Tombol             | Deskripsi                            |
+| ------------------- | ------------------ | ------------------------------------ |
+| Settings → Advanced | Debug Mode         | Aktifkan log permintaan debug (UI)   |
+| Settings → General  | Sidebar Visibility | Tampilkan/sembunyikan bagian sidebar |
 
 Pengaturan ini disimpan di database dan tetap ada setelah restart, menggantikan nilai default variabel lingkungan jika sudah diatur.
 
@@ -91,14 +91,14 @@ git push -u origin feat/your-feature-name
 
 ### Penamaan Cabang
 
-| Awalan      | Tujuan                         |
-| ----------- | ------------------------------ |
-| `feat/`     | Fitur baru                     |
-| `fix/`      | Perbaikan bug                  |
-| `refactor/` | Restrukturisasi kode           |
-| `docs/`     | Perubahan dokumentasi          |
-| `test/`     | Penambahan/perbaikan tes       |
-| `chore/`    | Perkakas, CI, dependensi       |
+| Awalan      | Tujuan                   |
+| ----------- | ------------------------ |
+| `feat/`     | Fitur baru               |
+| `fix/`      | Perbaikan bug            |
+| `refactor/` | Restrukturisasi kode     |
+| `docs/`     | Perubahan dokumentasi    |
+| `test/`     | Penambahan/perbaikan tes |
+| `chore/`    | Perkakas, CI, dependensi |
 
 ### Pesan Commit
 
@@ -217,7 +217,7 @@ src/                        # TypeScript (.ts / .tsx)
 │   └── validation/         # Skema Zod v4
 └── sse/                    # Pipeline proxy SSE
 
-open-sse/                   # Workspace @omniroute/open-sse
+open-sse/                   # Workspace @birouter/open-sse
 ├── executors/              # 14 eksekutor permintaan khusus penyedia
 ├── handlers/               # 11 penangan permintaan (chat, responses, embeddings, images, dll.)
 ├── mcp-server/             # Server MCP (25 alat, 3 transport, 10 cakupan)
@@ -307,5 +307,5 @@ Rilis dikelola melalui alur kerja `/generate-release`. Ketika GitHub Release bar
 
 - **Arsitektur**: Lihat [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Referensi API**: Lihat [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Masalah**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Masalah**: [github.com/IQ-Kat/birouter/issues](https://github.com/IQ-Kat/birouter/issues)
 - **ADR**: Lihat `docs/adr/` untuk catatan keputusan arsitektur

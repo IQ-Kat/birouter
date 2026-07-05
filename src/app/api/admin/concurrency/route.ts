@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getAllRateLimitStatus } from "@omniroute/open-sse/services/rateLimitManager.ts";
+import { getAllRateLimitStatus } from "@birouter/open-sse/services/rateLimitManager.ts";
 import {
   getStats as getSemaphoreStats,
   resetAll as resetAllSemaphores,
-} from "@omniroute/open-sse/services/accountSemaphore.ts";
+} from "@birouter/open-sse/services/accountSemaphore.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {

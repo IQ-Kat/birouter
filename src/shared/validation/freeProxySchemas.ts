@@ -56,7 +56,7 @@ export const denoDeploySchema = z.object({
     .min(3)
     .max(52)
     .regex(/^[a-z0-9-]+$/, "Project name must be lowercase alphanumeric with hyphens")
-    .default("omniroute-deno-relay"),
+    .default("birouter-deno-relay"),
 });
 
 export const vercelDeploySchema = z.object({
@@ -77,7 +77,7 @@ export const vercelDeploySchema = z.object({
     .min(3)
     .max(52)
     .regex(/^[a-z0-9-]+$/, "Project name must be lowercase alphanumeric with hyphens")
-    .default("omniroute-relay"),
+    .default("birouter-relay"),
 });
 
 export const cloudflareDeploySchema = z.object({
@@ -87,10 +87,7 @@ export const cloudflareDeploySchema = z.object({
     .string()
     .min(8, "Cloudflare Account ID looks too short")
     .max(64)
-    .regex(
-      /^[a-f0-9]+$/,
-      "Cloudflare Account ID must be lowercase hex"
-    ),
+    .regex(/^[a-f0-9]+$/, "Cloudflare Account ID must be lowercase hex"),
   // Cloudflare API tokens are opaque alphanumeric (40+ chars) — same alphabet
   // we accept for Vercel tokens; constrain length to catch paste accidents.
   apiToken: z
@@ -106,6 +103,5 @@ export const cloudflareDeploySchema = z.object({
     .min(3)
     .max(52)
     .regex(/^[a-z0-9-]+$/, "Worker name must be lowercase alphanumeric with hyphens")
-    .default("omniroute-relay"),
+    .default("birouter-relay"),
 });
-

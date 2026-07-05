@@ -1,5 +1,5 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { getChatGptImage } from "@omniroute/open-sse/services/chatgptImageCache.ts";
+import { getChatGptImage } from "@birouter/open-sse/services/chatgptImageCache.ts";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -12,7 +12,7 @@ export async function OPTIONS() {
  * the entry has a short TTL, so the URL is unguessable for the lifetime of
  * the chat turn. We need it open because it's loaded by the user's BROWSER
  * (via an `<img>` tag rendered from markdown) — that fetch doesn't carry
- * the OmniRoute API key. Rate limiting / abuse protection sit at the
+ * the Birouter API key. Rate limiting / abuse protection sit at the
  * network layer the same way they do for any other static asset.
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {

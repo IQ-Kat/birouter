@@ -9,29 +9,29 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/skills/` and `src/app/api/skills/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute exposes an extensible Skills framework that lets language models (and operators) compose reusable capabilities — from filesystem reads and HTTP requests to sandboxed code execution and curated marketplace skills.
+Birouter exposes an extensible Skills framework that lets language models (and operators) compose reusable capabilities — from filesystem reads and HTTP requests to sandboxed code execution and curated marketplace skills.
 
-A skill is a versioned, schema-defined unit of work. OmniRoute can inject skills as tool definitions into outbound requests, intercept tool calls coming back from the model, run the matching handler, and feed the result back to the model so the conversation can continue. The model never sees the implementation — only the tool interface.
+A skill is a versioned, schema-defined unit of work. Birouter can inject skills as tool definitions into outbound requests, intercept tool calls coming back from the model, run the matching handler, and feed the result back to the model so the conversation can continue. The model never sees the implementation — only the tool interface.
 
 ---
 
-## Agent Skills vs Omni Skills
+## Agent Skills vs Bi Skills
 
-OmniRoute has two distinct but complementary skill systems:
+Birouter has two distinct but complementary skill systems:
 
-| Dimension       | **Omni Skills** (this doc)                                    | **Agent Skills**                                                                            |
-| :-------------- | :------------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
-| Purpose         | LLM tool injection + sandboxed execution                      | SKILL.md catalog for external agents to discover and consume                                |
-| Source of truth | `src/lib/skills/` + marketplace                               | `src/lib/agentSkills/` + `skills/` directory                                                |
-| Runtime mode    | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints                                  |
-| Who uses it     | OmniRoute itself (combo routing, inbound LLM calls)           | External agents, MCP clients, A2A orchestrators                                             |
-| Count           | Variable (marketplace-driven)                                 | 42 canonical entries (22 API + 20 CLI)                                                      |
-| Format          | `SkillDefinition` with tool schema + handler                  | `SKILL.md` frontmatter + markdown body                                                      |
-| Discovery       | `/api/skills/*` REST + `omniroute_skills_*` MCP tools         | `/api/agent-skills/*` REST + `omniroute_agent_skills_*` MCP tools + A2A `list-capabilities` |
+| Dimension       | **Bi Skills** (this doc)                                      | **Agent Skills**                                                                           |
+| :-------------- | :------------------------------------------------------------ | :----------------------------------------------------------------------------------------- |
+| Purpose         | LLM tool injection + sandboxed execution                      | SKILL.md catalog for external agents to discover and consume                               |
+| Source of truth | `src/lib/skills/` + marketplace                               | `src/lib/agentSkills/` + `skills/` directory                                               |
+| Runtime mode    | Injected into outbound requests, executed on tool-call events | Static markdown catalog + REST/MCP/A2A discovery endpoints                                 |
+| Who uses it     | Birouter itself (combo routing, inbound LLM calls)            | External agents, MCP clients, A2A orchestrators                                            |
+| Count           | Variable (marketplace-driven)                                 | 42 canonical entries (22 API + 20 CLI)                                                     |
+| Format          | `SkillDefinition` with tool schema + handler                  | `SKILL.md` frontmatter + markdown body                                                     |
+| Discovery       | `/api/skills/*` REST + `birouter_skills_*` MCP tools          | `/api/agent-skills/*` REST + `birouter_agent_skills_*` MCP tools + A2A `list-capabilities` |
 
-**Omni Skills** are the execution engine — they define what OmniRoute _can do_ when an LLM invokes a tool.
+**Bi Skills** are the execution engine — they define what Birouter _can do_ when an LLM invokes a tool.
 
-**Agent Skills** are the documentation catalog — they explain to external agents _how to use_ OmniRoute's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
+**Agent Skills** are the documentation catalog — they explain to external agents _how to use_ Birouter's REST API and CLI, with structured SKILL.md files that can be fed directly into agent prompts.
 
 For the Agent Skills catalog, generator, MCP tools, and A2A skill, see [docs/frameworks/AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
@@ -43,14 +43,14 @@ For the Agent Skills catalog, generator, MCP tools, and A2A skill, see [docs/fra
 
 Three sources of skills coexist in the same registry:
 
-1. **Built-in skills** (`src/lib/skills/builtins.ts`) — shipped with OmniRoute. Cover the common cases:
+1. **Built-in skills** (`src/lib/skills/builtins.ts`) — shipped with Birouter. Cover the common cases:
    - `file_read`, `file_write` — per-API-key sandbox workspace under `<DATA_DIR>/skills/workspaces/<hashed-key>/`
    - `http_request` — outbound HTTP through `safeOutboundFetch` with `guard: "public-only"`
    - `web_search` — pluggable search provider with caching (`executeWebSearch`)
    - `eval_code` — Docker-sandboxed `node` or `python` execution
    - `execute_command` — Docker-sandboxed shell command
    - `browser` — Playwright-backed scaffolding, disabled by default (`builtin/browser.ts`)
-2. **SkillsMP** (the OmniRoute Marketplace) — fetched from `https://skillsmp.com/api/v1/skills/search`. Requires `skillsmpApiKey` in Settings.
+2. **SkillsMP** (the Birouter Marketplace) — fetched from `https://skillsmp.com/api/v1/skills/search`. Requires `skillsmpApiKey` in Settings.
 3. **SkillsSH** (`skills.sh` community catalog) — fetched from `https://skills.sh/api/search`. No auth needed; SKILL.md content pulled from GitHub raw.
 
 A single "active provider" controls which catalog the dashboard installs from (`src/lib/skills/providerSettings.ts`). Switch it under **Settings → Memory & Skills**. Default: `skillsmp`.
@@ -120,7 +120,7 @@ Top `AUTO_MAX_SKILLS = 5` skills with `score >= AUTO_MIN_SCORE = 3` are injected
 `handleToolCallExecution()` in `src/lib/skills/interception.ts` is invoked by the chat handler after the upstream returns a tool-calling response:
 
 1. `extractToolCalls()` reads provider-specific shapes (OpenAI `tool_calls` / Responses `function_call`, Anthropic `tool_use`, Gemini `functionCalls`).
-2. Built-in tool aliases (e.g. `omniroute_web_search` → `web_search`) are resolved first. Built-in handlers run inline.
+2. Built-in tool aliases (e.g. `birouter_web_search` → `web_search`) are resolved first. Built-in handlers run inline.
 3. Anything else routes through `skillExecutor.execute(name@version, args, { apiKeyId, sessionId })`.
 4. Results are spliced back into the response — `tool_results`, `function_call_output` items, or Anthropic `tool_result` blocks as appropriate.
 
@@ -172,7 +172,7 @@ Default allowed images: `alpine:3.20`, `node:22-alpine`, `python:3.12-alpine`. A
 
 ### Workspace Isolation
 
-`file_read` and `file_write` resolve every path relative to a per-API-key workspace at `<DATA_DIR>/skills/workspaces/<sha256(apiKeyId).slice(0,24)>/`. Path traversal (`..`) and forbidden segments (`.env`, `.git`, `.ssh`, `.omniroute`, `.codex`, `secrets`) are rejected before any disk I/O.
+`file_read` and `file_write` resolve every path relative to a per-API-key workspace at `<DATA_DIR>/skills/workspaces/<sha256(apiKeyId).slice(0,24)>/`. Path traversal (`..`) and forbidden segments (`.env`, `.git`, `.ssh`, `.birouter`, `.codex`, `secrets`) are rejected before any disk I/O.
 
 ### HTTP Hardening
 
@@ -207,18 +207,18 @@ Schema lives in two migrations:
 
 All endpoints live under `src/app/api/skills/`. Management endpoints (`/api/skills`, `/api/skills/[id]`, `/api/skills/install`) require **management auth** via `requireManagementAuth()`. The marketplace/install flows use the lighter `isAuthenticated()` (session or API key).
 
-| Endpoint                          | Method | Purpose                                                                  |
+| Endpoint | Method | Purpose |
 | --------------------------------- | ------ | ------------------------------------------------------------------------ | --- | ------------------------ | -------- | ------------------ |
-| `/api/skills`                     | GET    | List registered skills. Supports `?q=`, `?mode=on                        | off | auto`, `?source=skillsmp | skillssh | local`, pagination |
-| `/api/skills/[id]`                | PUT    | Update `enabled` or `mode`                                               |
-| `/api/skills/[id]`                | DELETE | Unregister by id                                                         |
-| `/api/skills/install`             | POST   | Install a custom skill (handler code + schema)                           |
-| `/api/skills/marketplace`         | GET    | Search the SkillsMP catalog (returns popular defaults when `q` is empty) |
-| `/api/skills/marketplace/install` | POST   | Install a SkillsMP skill (requires active provider = `skillsmp`)         |
-| `/api/skills/skillssh`            | GET    | Search the skills.sh catalog (`?q=&limit=`, capped at 100)               |
-| `/api/skills/skillssh/install`    | POST   | Install a skills.sh skill (requires active provider = `skillssh`)        |
-| `/api/skills/executions`          | GET    | Paginated execution history (`?apiKeyId=`)                               |
-| `/api/skills/executions`          | POST   | Execute a registered skill ad-hoc                                        |
+| `/api/skills` | GET | List registered skills. Supports `?q=`, `?mode=on                        | off | auto`, `?source=skillsmp | skillssh | local`, pagination |
+| `/api/skills/[id]` | PUT | Update `enabled` or `mode` |
+| `/api/skills/[id]` | DELETE | Unregister by id |
+| `/api/skills/install` | POST | Install a custom skill (handler code + schema) |
+| `/api/skills/marketplace` | GET | Search the SkillsMP catalog (returns popular defaults when `q` is empty) |
+| `/api/skills/marketplace/install` | POST | Install a SkillsMP skill (requires active provider = `skillsmp`) |
+| `/api/skills/skillssh` | GET | Search the skills.sh catalog (`?q=&limit=`, capped at 100) |
+| `/api/skills/skillssh/install` | POST | Install a skills.sh skill (requires active provider = `skillssh`) |
+| `/api/skills/executions` | GET | Paginated execution history (`?apiKeyId=`) |
+| `/api/skills/executions` | POST | Execute a registered skill ad-hoc |
 
 The `POST /api/skills/executions` endpoint returns HTTP `503` with `{ error: "Skills execution is disabled..." }` when `settings.skillsEnabled === false` (`executor.ts:42-45`). Operators can flip the master switch from **Settings → AI**.
 
@@ -226,7 +226,7 @@ The `POST /api/skills/executions` endpoint returns HTTP `503` with `{ error: "Sk
 
 ```bash
 curl -X POST http://localhost:20128/api/skills/install \
-  -H "Authorization: Bearer $OMNIROUTE_MGMT_TOKEN" \
+  -H "Authorization: Bearer $BIROUTER_MGMT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "reverse-text",
@@ -249,12 +249,12 @@ The `handlerCode` string is a **handler name lookup** — not executable code. T
 
 Four MCP tools wrap the skills surface (`open-sse/mcp-server/tools/skillTools.ts`). They are auto-registered when the MCP server boots.
 
-| Tool                          | Description                                                  |
-| ----------------------------- | ------------------------------------------------------------ |
-| `omniroute_skills_list`       | List skills, optional filters: `apiKeyId`, `name`, `enabled` |
-| `omniroute_skills_enable`     | Enable/disable a skill by `skillId`                          |
-| `omniroute_skills_execute`    | Execute a skill with an input payload                        |
-| `omniroute_skills_executions` | Recent execution history (default 50, max 100)               |
+| Tool                         | Description                                                  |
+| ---------------------------- | ------------------------------------------------------------ |
+| `birouter_skills_list`       | List skills, optional filters: `apiKeyId`, `name`, `enabled` |
+| `birouter_skills_enable`     | Enable/disable a skill by `skillId`                          |
+| `birouter_skills_execute`    | Execute a skill with an input payload                        |
+| `birouter_skills_executions` | Recent execution history (default 50, max 100)               |
 
 See [MCP-SERVER.md](./MCP-SERVER.md) for transport setup and scope assignments.
 
@@ -294,7 +294,7 @@ See [MCP-SERVER.md](./MCP-SERVER.md) for transport setup and scope assignments.
 - **Master switch:** `settings.skillsEnabled = false` blocks all execution and returns HTTP `503` on `/api/skills/executions`. The registry continues to load.
 - **Lock down egress:** keep `SKILLS_SANDBOX_NETWORK_ENABLED` unset (default) for fully air-gapped sandboxing. Per-call `networkEnabled: true` still requires the master gate.
 - **Allow specific images:** set `SKILLS_ALLOWED_SANDBOX_IMAGES="myorg/sandbox:1.0,node:22-alpine"` to extend the allowlist.
-- **Audit executions:** `/dashboard/skills/executions` and `omniroute_skills_executions` both query `skill_executions`. Successful runs include `durationMs`; failures include `errorMessage`.
+- **Audit executions:** `/dashboard/skills/executions` and `birouter_skills_executions` both query `skill_executions`. Successful runs include `durationMs`; failures include `errorMessage`.
 - **Cache invalidation:** call `skillRegistry.invalidateCache()` after manual DB edits; otherwise wait 60 s.
 - **Anonymous workspace:** when `apiKeyId` is empty, all calls hash to the same `"anonymous"` workspace — share-aware code should always pass a real key.
 
@@ -358,7 +358,7 @@ enum SkillStatus {
 ### Inspecting Executions
 
 ```ts
-import { skillExecutor } from "omniroute/skills/executor";
+import { skillExecutor } from "birouter/skills/executor";
 
 // Get a specific execution by ID
 const exec = skillExecutor.getExecution("exec-uuid-123");
@@ -444,7 +444,7 @@ document; there is no float `0.6`-style threshold and no `registry.ts` scoring.
 
 ## Built-in Skills Catalog
 
-OmniRoute ships with a curated set of built-in skills in `src/lib/skills/builtin/`. The most common ones:
+Birouter ships with a curated set of built-in skills in `src/lib/skills/builtin/`. The most common ones:
 
 ### Browser Automation Skill
 

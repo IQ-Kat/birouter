@@ -1,11 +1,11 @@
-# Panduan Pengaturan Alat CLI — OmniRoute (Bahasa Indonesia)
+# Panduan Pengaturan Alat CLI — Birouter (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/CLI-TOOLS.md) · 🇸🇦 [ar](../../ar/docs/CLI-TOOLS.md) · 🇧🇬 [bg](../../bg/docs/CLI-TOOLS.md) · 🇧🇩 [bn](../../bn/docs/CLI-TOOLS.md) · 🇨🇿 [cs](../../cs/docs/CLI-TOOLS.md) · 🇩🇰 [da](../../da/docs/CLI-TOOLS.md) · 🇩🇪 [de](../../de/docs/CLI-TOOLS.md) · 🇪🇸 [es](../../es/docs/CLI-TOOLS.md) · 🇮🇷 [fa](../../fa/docs/CLI-TOOLS.md) · 🇫🇮 [fi](../../fi/docs/CLI-TOOLS.md) · 🇫🇷 [fr](../../fr/docs/CLI-TOOLS.md) · 🇮🇳 [gu](../../gu/docs/CLI-TOOLS.md) · 🇮🇱 [he](../../he/docs/CLI-TOOLS.md) · 🇮🇳 [hi](../../hi/docs/CLI-TOOLS.md) · 🇭🇺 [hu](../../hu/docs/CLI-TOOLS.md) · 🇮🇩 [id](../../id/docs/CLI-TOOLS.md) · 🇮🇹 [it](../../it/docs/CLI-TOOLS.md) · 🇯🇵 [ja](../../ja/docs/CLI-TOOLS.md) · 🇰🇷 [ko](../../ko/docs/CLI-TOOLS.md) · 🇮🇳 [mr](../../mr/docs/CLI-TOOLS.md) · 🇲🇾 [ms](../../ms/docs/CLI-TOOLS.md) · 🇳🇱 [nl](../../nl/docs/CLI-TOOLS.md) · 🇳🇴 [no](../../no/docs/CLI-TOOLS.md) · 🇵🇭 [phi](../../phi/docs/CLI-TOOLS.md) · 🇵🇱 [pl](../../pl/docs/CLI-TOOLS.md) · 🇵🇹 [pt](../../pt/docs/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/CLI-TOOLS.md) · 🇷🇴 [ro](../../ro/docs/CLI-TOOLS.md) · 🇷🇺 [ru](../../ru/docs/CLI-TOOLS.md) · 🇸🇰 [sk](../../sk/docs/CLI-TOOLS.md) · 🇸🇪 [sv](../../sv/docs/CLI-TOOLS.md) · 🇰🇪 [sw](../../sw/docs/CLI-TOOLS.md) · 🇮🇳 [ta](../../ta/docs/CLI-TOOLS.md) · 🇮🇳 [te](../../te/docs/CLI-TOOLS.md) · 🇹🇭 [th](../../th/docs/CLI-TOOLS.md) · 🇹🇷 [tr](../../tr/docs/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/CLI-TOOLS.md) · 🇵🇰 [ur](../../ur/docs/CLI-TOOLS.md) · 🇻🇳 [vi](../../vi/docs/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/CLI-TOOLS.md)
 
 ---
 
 Panduan ini menjelaskan cara menginstal dan mengonfigurasi semua alat CLI coding AI yang didukung
-untuk menggunakan **OmniRoute** sebagai backend terpadu, memberikan manajemen kunci terpusat,
+untuk menggunakan **Birouter** sebagai backend terpadu, memberikan manajemen kunci terpusat,
 pelacakan biaya, pergantian model, dan pencatatan permintaan di semua alat.
 
 ---
@@ -15,10 +15,10 @@ pelacakan biaya, pergantian model, dan pencatatan permintaan di semua alat.
 ```
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
-           ▼  (semua mengarah ke OmniRoute)
+           ▼  (semua mengarah ke Birouter)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute meneruskan ke penyedia yang tepat)
+           ▼  (Birouter meneruskan ke penyedia yang tepat)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
@@ -46,7 +46,7 @@ Daftar saat ini (v3.0.0-rc.16):
 | **Cline**          | `cline`       | `cline`    | custom          | npm              |
 | **Kilo Code**      | `kilo`        | `kilocode` | custom          | npm              |
 | **Continue**       | `continue`    | extension  | guide           | VS Code          |
-| **Antigravity**    | `antigravity` | internal   | mitm            | OmniRoute        |
+| **Antigravity**    | `antigravity` | internal   | mitm            | Birouter         |
 | **GitHub Copilot** | `copilot`     | extension  | custom          | VS Code          |
 | **OpenCode**       | `opencode`    | `opencode` | guide           | npm              |
 | **Kiro AI**        | `kiro`        | app/cli    | mitm            | desktop/CLI      |
@@ -67,9 +67,9 @@ ID lama yang masih diterima untuk kompatibilitas: `copilot`, `kimi-coding`, `qwe
 
 ---
 
-## Langkah 1 — Dapatkan API Key OmniRoute
+## Langkah 1 — Dapatkan API Key Birouter
 
-1. Buka dashboard OmniRoute → **API Manager** (`/dashboard/api-manager`)
+1. Buka dashboard Birouter → **API Manager** (`/dashboard/api-manager`)
 2. Klik **Create API Key**
 3. Beri nama (misalnya `cli-tools`) dan pilih semua izin
 4. Salin kunci tersebut — Anda akan membutuhkannya untuk setiap CLI di bawah
@@ -122,13 +122,13 @@ kiro-cli --version   # 1.x.x
 Tambahkan ke `~/.bashrc` (atau `~/.zshrc`), lalu jalankan `source ~/.bashrc`:
 
 ```bash
-# OmniRoute Universal Endpoint
+# Birouter Universal Endpoint
 export OPENAI_BASE_URL="http://localhost:20128/v1"
-export OPENAI_API_KEY="sk-your-omniroute-key"
+export OPENAI_API_KEY="sk-your-birouter-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
-export ANTHROPIC_API_KEY="sk-your-omniroute-key"
+export ANTHROPIC_API_KEY="sk-your-birouter-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
-export GEMINI_API_KEY="sk-your-omniroute-key"
+export GEMINI_API_KEY="sk-your-birouter-key"
 ```
 
 > Untuk **server jarak jauh**, ganti `localhost:20128` dengan IP atau domain server,
@@ -148,7 +148,7 @@ claude config set --global api-base-url http://localhost:20128/v1
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "sk-your-omniroute-key"
+  "apiKey": "sk-your-birouter-key"
 }
 EOF
 ```
@@ -162,7 +162,7 @@ EOF
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
-apiKey: sk-your-omniroute-key
+apiKey: sk-your-birouter-key
 apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
@@ -177,7 +177,7 @@ EOF
 mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
 [provider.openai]
 base_url = "http://localhost:20128/v1"
-api_key = "sk-your-omniroute-key"
+api_key = "sk-your-birouter-key"
 EOF
 ```
 
@@ -194,7 +194,7 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
   "openAiBaseUrl": "http://localhost:20128/v1",
-  "openAiApiKey": "sk-your-omniroute-key"
+  "openAiApiKey": "sk-your-birouter-key"
 }
 EOF
 ```
@@ -202,7 +202,7 @@ EOF
 **Mode VS Code:**
 Pengaturan ekstensi Cline → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-Atau gunakan dashboard OmniRoute → **CLI Tools → Cline → Apply Config**.
+Atau gunakan dashboard Birouter → **CLI Tools → Cline → Apply Config**.
 
 ---
 
@@ -211,7 +211,7 @@ Atau gunakan dashboard OmniRoute → **CLI Tools → Cline → Apply Config**.
 **Mode CLI:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
+kilocode --api-base http://localhost:20128/v1 --api-key sk-your-birouter-key
 ```
 
 **Pengaturan VS Code:**
@@ -219,11 +219,11 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```json
 {
   "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-  "kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.apiKey": "sk-your-birouter-key"
 }
 ```
 
-Atau gunakan dashboard OmniRoute → **CLI Tools → KiloCode → Apply Config**.
+Atau gunakan dashboard Birouter → **CLI Tools → KiloCode → Apply Config**.
 
 ---
 
@@ -233,11 +233,11 @@ Edit `~/.continue/config.yaml`:
 
 ```yaml
 models:
-  - name: OmniRoute
+  - name: Birouter
     provider: openai
     model: auto
     apiBase: http://localhost:20128/v1
-    apiKey: sk-your-omniroute-key
+    apiKey: sk-your-birouter-key
     default: true
 ```
 
@@ -251,8 +251,8 @@ Mulai ulang VS Code setelah mengedit.
 # Login ke akun AWS/Kiro Anda:
 kiro-cli login
 
-# CLI ini menggunakan autentikasinya sendiri — OmniRoute tidak diperlukan sebagai backend untuk Kiro CLI itu sendiri.
-# Gunakan kiro-cli bersama OmniRoute untuk alat lainnya.
+# CLI ini menggunakan autentikasinya sendiri — Birouter tidak diperlukan sebagai backend untuk Kiro CLI itu sendiri.
+# Gunakan kiro-cli bersama Birouter untuk alat lainnya.
 kiro-cli status
 ```
 
@@ -266,7 +266,7 @@ Qwen Code mendukung endpoint API yang kompatibel dengan OpenAI melalui variabel 
 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
-OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_API_KEY="sk-your-birouter-key"
 OPENAI_BASE_URL="http://localhost:20128/v1"
 OPENAI_MODEL="auto"
 EOF
@@ -278,14 +278,14 @@ EOF
 // ~/.qwen/settings.json
 {
   "env": {
-    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_API_KEY": "sk-your-birouter-key",
     "OPENAI_BASE_URL": "http://localhost:20128/v1"
   },
   "modelProviders": {
     "openai": [
       {
-        "id": "omniroute-default",
-        "name": "OmniRoute (Auto)",
+        "id": "birouter-default",
+        "name": "Birouter (Auto)",
         "envKey": "OPENAI_API_KEY",
         "baseUrl": "http://localhost:20128/v1"
       }
@@ -298,7 +298,7 @@ EOF
 
 ```bash
 OPENAI_BASE_URL="http://localhost:20128/v1" \
-OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_API_KEY="sk-your-birouter-key" \
 OPENAI_MODEL="auto" \
 qwen
 ```
@@ -309,19 +309,19 @@ qwen
 
 ### Cursor (Aplikasi Desktop)
 
-> **Catatan:** Cursor merutekan permintaan melalui cloudnya sendiri. Untuk integrasi OmniRoute,
-> aktifkan **Cloud Endpoint** di Pengaturan OmniRoute dan gunakan URL domain publik Anda.
+> **Catatan:** Cursor merutekan permintaan melalui cloudnya sendiri. Untuk integrasi Birouter,
+> aktifkan **Cloud Endpoint** di Pengaturan Birouter dan gunakan URL domain publik Anda.
 
 Melalui GUI: **Settings → Models → OpenAI API Key**
 
 - Base URL: `https://your-domain.com/v1`
-- API Key: kunci OmniRoute Anda
+- API Key: kunci Birouter Anda
 
 ---
 
 ## Konfigurasi Otomatis Dashboard
 
-Dashboard OmniRoute mengotomatiskan konfigurasi untuk sebagian besar alat:
+Dashboard Birouter mengotomatiskan konfigurasi untuk sebagian besar alat:
 
 1. Buka `http://localhost:20128/dashboard/cli-tools`
 2. Perluas kartu alat mana pun
@@ -333,8 +333,8 @@ Dashboard OmniRoute mengotomatiskan konfigurasi untuk sebagian besar alat:
 
 ## Agen Bawaan: Droid & OpenClaw
 
-**Droid** dan **OpenClaw** adalah agen AI yang dibangun langsung ke dalam OmniRoute — tidak perlu instalasi.
-Keduanya berjalan sebagai rute internal dan menggunakan perutean model OmniRoute secara otomatis.
+**Droid** dan **OpenClaw** adalah agen AI yang dibangun langsung ke dalam Birouter — tidak perlu instalasi.
+Keduanya berjalan sebagai rute internal dan menggunakan perutean model Birouter secara otomatis.
 
 - Akses: `http://localhost:20128/dashboard/agents`
 - Konfigurasi: combo dan penyedia yang sama seperti semua alat lainnya
@@ -344,37 +344,37 @@ Keduanya berjalan sebagai rute internal dan menggunakan perutean model OmniRoute
 
 ## Endpoint API yang Tersedia
 
-| Endpoint                   | Deskripsi                         | Digunakan Untuk             |
-| -------------------------- | --------------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Chat standar (semua penyedia)     | Semua alat modern           |
-| `/v1/responses`            | Responses API (format OpenAI)     | Codex, alur kerja agentik   |
-| `/v1/completions`          | Penyelesaian teks lama            | Alat lama yang menggunakan `prompt:` |
-| `/v1/embeddings`           | Embedding teks                    | RAG, pencarian              |
-| `/v1/images/generations`   | Pembuatan gambar                  | GPT-Image, Flux, dll.       |
-| `/v1/audio/speech`         | Teks ke ucapan                    | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Ucapan ke teks                    | Deepgram, AssemblyAI        |
+| Endpoint                   | Deskripsi                     | Digunakan Untuk                      |
+| -------------------------- | ----------------------------- | ------------------------------------ |
+| `/v1/chat/completions`     | Chat standar (semua penyedia) | Semua alat modern                    |
+| `/v1/responses`            | Responses API (format OpenAI) | Codex, alur kerja agentik            |
+| `/v1/completions`          | Penyelesaian teks lama        | Alat lama yang menggunakan `prompt:` |
+| `/v1/embeddings`           | Embedding teks                | RAG, pencarian                       |
+| `/v1/images/generations`   | Pembuatan gambar              | GPT-Image, Flux, dll.                |
+| `/v1/audio/speech`         | Teks ke ucapan                | ElevenLabs, OpenAI TTS               |
+| `/v1/audio/transcriptions` | Ucapan ke teks                | Deepgram, AssemblyAI                 |
 
 ---
 
 ## Pemecahan Masalah
 
-| Error                     | Penyebab                          | Solusi                                     |
-| ------------------------- | --------------------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute tidak berjalan          | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | API key salah                     | Periksa di `/dashboard/api-manager`        |
-| `No combo configured`     | Tidak ada combo perutean aktif    | Atur di `/dashboard/combos`                |
-| `invalid model`           | Model tidak ada dalam katalog     | Gunakan `auto` atau periksa `/dashboard/providers` |
-| CLI menampilkan "not installed" | Biner tidak ada di PATH    | Periksa `which <command>`                  |
-| `kiro-cli: not found`     | Tidak ada di PATH                 | `export PATH="$HOME/.local/bin:$PATH"`     |
+| Error                           | Penyebab                       | Solusi                                             |
+| ------------------------------- | ------------------------------ | -------------------------------------------------- |
+| `Connection refused`            | Birouter tidak berjalan        | `pm2 start birouter`                               |
+| `401 Unauthorized`              | API key salah                  | Periksa di `/dashboard/api-manager`                |
+| `No combo configured`           | Tidak ada combo perutean aktif | Atur di `/dashboard/combos`                        |
+| `invalid model`                 | Model tidak ada dalam katalog  | Gunakan `auto` atau periksa `/dashboard/providers` |
+| CLI menampilkan "not installed" | Biner tidak ada di PATH        | Periksa `which <command>`                          |
+| `kiro-cli: not found`           | Tidak ada di PATH              | `export PATH="$HOME/.local/bin:$PATH"`             |
 
 ---
 
 ## Skrip Pengaturan Cepat (Satu Perintah)
 
 ```bash
-# Instal semua CLI dan konfigurasi untuk OmniRoute (ganti dengan kunci dan URL server Anda)
-OMNIROUTE_URL="http://localhost:20128/v1"
-OMNIROUTE_KEY="sk-your-omniroute-key"
+# Instal semua CLI dan konfigurasi untuk Birouter (ganti dengan kunci dan URL server Anda)
+BIROUTER_URL="http://localhost:20128/v1"
+BIROUTER_KEY="sk-your-birouter-key"
 
 npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
@@ -384,15 +384,15 @@ apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | 
 # Tulis konfigurasi
 mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
-cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
-cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
+cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$BIROUTER_URL\",\"apiKey\":\"$BIROUTER_KEY\"}"
+cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $BIROUTER_KEY\napiBaseUrl: $BIROUTER_URL"
 cat >> ~/.bashrc << EOF
-export OPENAI_BASE_URL="$OMNIROUTE_URL"
-export OPENAI_API_KEY="$OMNIROUTE_KEY"
-export ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
-export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
+export OPENAI_BASE_URL="$BIROUTER_URL"
+export OPENAI_API_KEY="$BIROUTER_KEY"
+export ANTHROPIC_BASE_URL="$BIROUTER_URL"
+export ANTHROPIC_API_KEY="$BIROUTER_KEY"
 EOF
 
 source ~/.bashrc
-echo "✅ All CLIs installed and configured for OmniRoute"
+echo "✅ All CLIs installed and configured for Birouter"
 ```

@@ -29,7 +29,7 @@ function resolveDataDir(): string {
   if (typeof configured === "string" && configured.trim().length > 0) {
     return configured.trim();
   }
-  return join(homedir(), ".omniroute");
+  return join(homedir(), ".birouter");
 }
 
 export function resolveMcpHeartbeatPath(): string {

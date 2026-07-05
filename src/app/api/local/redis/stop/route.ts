@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isLocalRequestAllowed } from "@/lib/security/localEndpoints";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 import {
   REDIS_CONTAINER_NAME,

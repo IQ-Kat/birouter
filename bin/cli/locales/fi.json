@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "Virhe: {message}",
-    "serverOffline": "OmniRoute-palvelin on offline. Käynnistä komennolla: omniroute serve",
-    "authRequired": "Todennus vaaditaan. Aseta OMNIROUTE_API_KEY tai suorita: omniroute setup",
+    "serverOffline": "Birouter-palvelin on offline. Käynnistä komennolla: birouter serve",
+    "authRequired": "Todennus vaaditaan. Aseta BIROUTER_API_KEY tai suorita: birouter setup",
     "rateLimited": "Pyyntöraja ylitetty. Yritä uudelleen {seconds}s kuluttua.",
     "timeout": "Pyyntö aikakatkaistiin {ms}ms jälkeen.",
     "success": "Valmis.",
@@ -15,18 +15,18 @@
     "yesOpt": "Ohita vahvistuspyyntö"
   },
   "program": {
-    "description": "OmniRoute — Älykäs AI-reititin automaattisella fallbackilla",
+    "description": "Birouter — Älykäs AI-reititin automaattisella fallbackilla",
     "version": "Tulosta versio ja poistu",
     "output": "Tulostusmuoto (table, json, jsonl, csv)",
     "quiet": "Piilota epäolennaiset tulosteet",
     "no_color": "Poista väritulostus käytöstä",
     "timeout": "HTTP-pyyntöjen aikakatkaisu millisekunteina",
-    "api_key": "API-avain OmniRoute-palvelimelle",
-    "base_url": "OmniRoute-palvelimen perus-URL",
+    "api_key": "API-avain Birouter-palvelimelle",
+    "base_url": "Birouter-palvelimen perus-URL",
     "context": "Palvelimen konteksti/profiili tälle komennolle",
-    "lang": "Aseta CLI-näyttökieli (ohittaa OMNIROUTE_LANG)"
+    "lang": "Aseta CLI-näyttökieli (ohittaa BIROUTER_LANG)"
   },
   "redis": {
-    "description": "Käynnistä paikallinen Redis-säiliö yhdellä napsautuksella (Podman tai Docker) OmniRoute-välimuistia ja kiintiöiden seurantaa varten"
+    "description": "Käynnistä paikallinen Redis-säiliö yhdellä napsautuksella (Podman tai Docker) Birouter-välimuistia ja kiintiöiden seurantaa varten"
   }
 }

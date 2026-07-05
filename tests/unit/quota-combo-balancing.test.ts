@@ -19,7 +19,7 @@ import path from "node:path";
 // load. Never delete the SQLite file between tests — under --test-concurrency=4
 // modules are cached across files and SQLITE_FILE is frozen at first import.
 // Wipe test data via SQL DELETEs instead to avoid cross-file path corruption.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-combo-balancing-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-quota-combo-balancing-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

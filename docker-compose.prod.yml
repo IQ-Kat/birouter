@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────────────────────────
-#  OmniRoute — Docker Compose (Production Snapshot)
+#  Birouter — Docker Compose (Production Snapshot)
 # ──────────────────────────────────────────────────────────────────────
 #
 #  Isolated production instance running on port 20130.
@@ -11,26 +11,26 @@
 #    docker compose -f docker-compose.prod.yml logs -f
 #
 #  Image flavors (two Dockerfile stages):
-#    runner-base (default / omniroute:prod)
+#    runner-base (default / birouter:prod)
 #      Lean image — no Playwright/Chromium. Suitable for all providers
 #      except web-cookie ones (gemini-web, claude-web, claude-turnstile).
 #
-#    runner-web (omniroute:prod-web) — opt-in, ~300 MB extra
+#    runner-web (birouter:prod-web) — opt-in, ~300 MB extra
 #      Includes Playwright + Chromium system libs. Required for web-cookie
 #      providers. To use this flavor, override the build target:
 #
-#        omniroute-prod:
+#        birouter-prod:
 #          build:
 #            context: .
 #            target: runner-web
-#          image: omniroute:prod-web
+#          image: birouter:prod-web
 # ──────────────────────────────────────────────────────────────────────
 
 services:
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
     image: redis:8.6.2-alpine
-    container_name: omniroute-redis-prod
+    container_name: birouter-redis-prod
     restart: unless-stopped
     volumes:
       - redis-prod-data:/data
@@ -41,15 +41,15 @@ services:
       timeout: 5s
       retries: 3
 
-  omniroute-prod:
-    container_name: omniroute-prod
+  birouter-prod:
+    container_name: birouter-prod
     depends_on:
       redis:
         condition: service_healthy
     build:
       context: .
       target: runner-cli
-    image: omniroute:prod
+    image: birouter:prod
     restart: unless-stopped
     stop_grace_period: 40s
     env_file: .env
@@ -65,7 +65,7 @@ services:
       - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
       - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"
     volumes:
-      - omniroute-prod-data:/app/data
+      - birouter-prod-data:/app/data
     healthcheck:
       test: ["CMD", "node", "healthcheck.mjs"]
       interval: 30s
@@ -74,7 +74,7 @@ services:
       start_period: 15s
 
 volumes:
-  omniroute-prod-data:
-    name: omniroute-prod-data
+  birouter-prod-data:
+    name: birouter-prod-data
   redis-prod-data:
     name: redis-prod-data

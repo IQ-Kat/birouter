@@ -43,7 +43,7 @@ export function SkillPreviewPane({
 
   const handleCopyRawUrl = useCallback(async () => {
     if (!skillId) return;
-    const rawUrl = `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills/${skillId}/SKILL.md`;
+    const rawUrl = `https://raw.githubusercontent.com/IQ-Kat/birouter/refs/heads/main/skills/${skillId}/SKILL.md`;
     try {
       await navigator.clipboard.writeText(rawUrl);
     } catch {
@@ -52,7 +52,7 @@ export function SkillPreviewPane({
   }, [skillId]);
 
   const githubUrl = skillId
-    ? `https://github.com/diegosouzapw/OmniRoute/blob/main/skills/${skillId}/SKILL.md`
+    ? `https://github.com/IQ-Kat/birouter/blob/main/skills/${skillId}/SKILL.md`
     : null;
 
   // Empty state
@@ -62,9 +62,7 @@ export function SkillPreviewPane({
         className="flex flex-col items-center justify-center h-full min-h-[300px] rounded-xl border border-dashed border-border bg-bg-subtle/30 p-8 text-center"
         data-testid="skill-preview-empty"
       >
-        <span className="material-symbols-outlined text-[32px] text-text-muted mb-3">
-          article
-        </span>
+        <span className="material-symbols-outlined text-[32px] text-text-muted mb-3">article</span>
         <p className="text-sm text-text-muted">{t("previewEmpty")}</p>
       </div>
     );

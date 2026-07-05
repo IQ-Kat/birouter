@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   discoverRepeatedNoise,
   listRtkCommandSamples,
-} from "@omniroute/open-sse/services/compression/engines/rtk";
+} from "@birouter/open-sse/services/compression/engines/rtk";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 /** Parse a positive `limit` query param, clamped to [1, 2000]; default 500. */

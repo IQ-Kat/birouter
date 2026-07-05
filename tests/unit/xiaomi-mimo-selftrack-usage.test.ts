@@ -2,7 +2,7 @@
  * tests/unit/xiaomi-mimo-selftrack-usage.test.ts
  *
  * Xiaomi MiMo exposes plan usage only behind a console session cookie (the API
- * key cannot reach the upstream usage endpoint), so OmniRoute SELF-TRACKS it:
+ * key cannot reach the upstream usage endpoint), so Birouter SELF-TRACKS it:
  * it sums the tokens it routed to the connection in the current UTC month
  * (usage_history) and compares them to the known Token Plan monthly limit
  * (4.1B). These tests cover the aggregation helper + the fetcher shape, with a
@@ -16,13 +16,11 @@ import path from "node:path";
 import fs from "node:fs";
 
 // DATA_DIR must be set before any module that opens the DB is imported.
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "omni-xiaomi-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "bi-xiaomi-"));
 process.env.DATA_DIR = TMP;
 
 const core = await import("../../src/lib/db/core.ts");
-const { getMonthlyProviderTokensForConnection } = await import(
-  "../../src/lib/usage/usageStats.ts"
-);
+const { getMonthlyProviderTokensForConnection } = await import("../../src/lib/usage/usageStats.ts");
 const { __testing } = await import("../../open-sse/services/usage.ts");
 const { getXiaomiMimoUsage } = __testing;
 
@@ -82,7 +80,16 @@ describe("xiaomi-mimo self-tracked quota", () => {
   it("getXiaomiMimoUsage returns a monthly quota against the 4.1B limit", async () => {
     const r = (await getXiaomiMimoUsage("conn-x")) as {
       plan?: string;
-      quotas?: Record<string, { used: number; total: number; remaining?: number; remainingPercentage?: number; resetAt: string | null }>;
+      quotas?: Record<
+        string,
+        {
+          used: number;
+          total: number;
+          remaining?: number;
+          remainingPercentage?: number;
+          resetAt: string | null;
+        }
+      >;
       message?: string;
     };
     assert.ok(r.quotas, `expected quotas, got message: ${r.message}`);

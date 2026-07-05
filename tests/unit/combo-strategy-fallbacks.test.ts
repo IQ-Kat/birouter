@@ -8,7 +8,7 @@ import path from "node:path";
 // (fill-first, p2c, random, cost-optimized, strict-random), plus circuit-breaker
 // HALF_OPEN recovery in the combo loop and strategy-name normalization.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-fallbacks-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-fallbacks-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

@@ -7,7 +7,7 @@ import {
 } from "@/domain/modelAvailability";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody } from "@/shared/validation/helpers";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const deleteCooldownSchema = z
   .object({

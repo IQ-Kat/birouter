@@ -41,33 +41,34 @@ function generateCrc(machineId: string, keyId: string): string {
 
 /**
  * Generate API key with machineId embedded
- * Format: sk-{machineId}-{keyId}-{crc8}
+ * Format: bi-{machineId}-{keyId}-{crc8}
  * @param {string} machineId - 16-char machine ID
  * @returns {{ key: string, keyId: string }}
  */
 export function generateApiKeyWithMachine(machineId: string): { key: string; keyId: string } {
   const keyId = generateKeyId();
   const crc = generateCrc(machineId, keyId);
-  const key = `sk-${machineId}-${keyId}-${crc}`;
+  const key = `bi-${machineId}-${keyId}-${crc}`;
   return { key, keyId };
 }
 
 /**
  * Parse API key and extract machineId + keyId
  * Supports both formats:
- * - New: sk-{machineId}-{keyId}-{crc8}
- * - Old: sk-{random8}
+ * - New: bi-{machineId}-{keyId}-{crc8}
+ * - Old: bi-{random8}
+ * - Legacy: sk-{machineId}-{keyId}-{crc8} (migrated from birouter)
  * @param {string} apiKey
  * @returns {{ machineId: string, keyId: string, isNewFormat: boolean } | null}
  */
 export function parseApiKey(
   apiKey: string
 ): { machineId: string | null; keyId: string; isNewFormat: boolean } | null {
-  if (!apiKey || !apiKey.startsWith("sk-")) return null;
+  if (!apiKey || (!apiKey.startsWith("bi-") && !apiKey.startsWith("sk-"))) return null;
 
   const parts = apiKey.split("-");
 
-  // New format: sk-{machineId}-{keyId}-{crc8} = 4 parts
+  // New format: bi-{machineId}-{keyId}-{crc8} = 4 parts
   if (parts.length === 4) {
     const [, machineId, keyId, crc] = parts;
 
@@ -83,7 +84,7 @@ export function parseApiKey(
     return { machineId, keyId, isNewFormat: true };
   }
 
-  // Old format: sk-{random8} = 2 parts
+  // Old format: bi-{random8} = 2 parts
   if (parts.length === 2) {
     return { machineId: null, keyId: parts[1], isNewFormat: false };
   }

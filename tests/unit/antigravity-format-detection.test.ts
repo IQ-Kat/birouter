@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { detectFormatFromEndpoint } from "@omniroute/open-sse/services/provider.ts";
+import { detectFormatFromEndpoint } from "@birouter/open-sse/services/provider.ts";
 
 const ENVELOPE = {
   model: "gemini-2.5-pro",

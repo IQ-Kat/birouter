@@ -1,6 +1,6 @@
 // Port of decolua/9router PR #769 — provider dropdown filter for the quota
 // dashboard. The upstream PR added the dropdown plus an "Expiring first" sort
-// toggle; OmniRoute already always sorts by soonest reset within each status
+// toggle; Birouter already always sorts by soonest reset within each status
 // group (see ProviderLimits/index.tsx `visibleConnections`), so only the
 // dropdown is genuinely new here. These tests guard the pure helpers that
 // back the dropdown so regressions in the inline `useMemo` predicates fail
@@ -78,7 +78,10 @@ test("PR#769: buildProviderOptions — honors a custom comparator (e.g. Turkish-
   // unchanged — verify with a reverse comparator instead of pulling in the
   // real i18n helper.
   const reverse = (a: string, b: string) => b.localeCompare(a);
-  const out = buildProviderOptions([{ provider: "a" }, { provider: "c" }, { provider: "b" }], reverse);
+  const out = buildProviderOptions(
+    [{ provider: "a" }, { provider: "c" }, { provider: "b" }],
+    reverse
+  );
   assert.deepEqual(out, ["c", "b", "a"]);
 });
 

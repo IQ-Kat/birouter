@@ -1,10 +1,10 @@
-# Dokumentasi Server A2A OmniRoute (Bahasa Indonesia)
+# Dokumentasi Server A2A Birouter (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/A2A-SERVER.md) · 🇸🇦 [ar](../../ar/docs/A2A-SERVER.md) · 🇧🇬 [bg](../../bg/docs/A2A-SERVER.md) · 🇧🇩 [bn](../../bn/docs/A2A-SERVER.md) · 🇨🇿 [cs](../../cs/docs/A2A-SERVER.md) · 🇩🇰 [da](../../da/docs/A2A-SERVER.md) · 🇩🇪 [de](../../de/docs/A2A-SERVER.md) · 🇪🇸 [es](../../es/docs/A2A-SERVER.md) · 🇮🇷 [fa](../../fa/docs/A2A-SERVER.md) · 🇫🇮 [fi](../../fi/docs/A2A-SERVER.md) · 🇫🇷 [fr](../../fr/docs/A2A-SERVER.md) · 🇮🇳 [gu](../../gu/docs/A2A-SERVER.md) · 🇮🇱 [he](../../he/docs/A2A-SERVER.md) · 🇮🇳 [hi](../../hi/docs/A2A-SERVER.md) · 🇭🇺 [hu](../../hu/docs/A2A-SERVER.md) · 🇮🇩 [id](../../id/docs/A2A-SERVER.md) · 🇮🇹 [it](../../it/docs/A2A-SERVER.md) · 🇯🇵 [ja](../../ja/docs/A2A-SERVER.md) · 🇰🇷 [ko](../../ko/docs/A2A-SERVER.md) · 🇮🇳 [mr](../../mr/docs/A2A-SERVER.md) · 🇲🇾 [ms](../../ms/docs/A2A-SERVER.md) · 🇳🇱 [nl](../../nl/docs/A2A-SERVER.md) · 🇳🇴 [no](../../no/docs/A2A-SERVER.md) · 🇵🇭 [phi](../../phi/docs/A2A-SERVER.md) · 🇵🇱 [pl](../../pl/docs/A2A-SERVER.md) · 🇵🇹 [pt](../../pt/docs/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/A2A-SERVER.md) · 🇷🇴 [ro](../../ro/docs/A2A-SERVER.md) · 🇷🇺 [ru](../../ru/docs/A2A-SERVER.md) · 🇸🇰 [sk](../../sk/docs/A2A-SERVER.md) · 🇸🇪 [sv](../../sv/docs/A2A-SERVER.md) · 🇰🇪 [sw](../../sw/docs/A2A-SERVER.md) · 🇮🇳 [ta](../../ta/docs/A2A-SERVER.md) · 🇮🇳 [te](../../te/docs/A2A-SERVER.md) · 🇹🇭 [th](../../th/docs/A2A-SERVER.md) · 🇹🇷 [tr](../../tr/docs/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/A2A-SERVER.md) · 🇵🇰 [ur](../../ur/docs/A2A-SERVER.md) · 🇻🇳 [vi](../../vi/docs/A2A-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/A2A-SERVER.md)
 
 ---
 
-> Protokol Agent-to-Agent v0.3 — OmniRoute sebagai agen routing cerdas
+> Protokol Agent-to-Agent v0.3 — Birouter sebagai agen routing cerdas
 
 ## Penemuan Agen
 
@@ -12,7 +12,7 @@
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Mengembalikan Kartu Agen yang mendeskripsikan kemampuan, keterampilan, dan persyaratan autentikasi OmniRoute.
+Mengembalikan Kartu Agen yang mendeskripsikan kemampuan, keterampilan, dan persyaratan autentikasi Birouter.
 
 ---
 
@@ -21,7 +21,7 @@ Mengembalikan Kartu Agen yang mendeskripsikan kemampuan, keterampilan, dan persy
 Semua permintaan `/a2a` memerlukan kunci API melalui header `Authorization`:
 
 ```
-Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+Authorization: Bearer YOUR_BIROUTER_API_KEY
 ```
 
 Jika tidak ada kunci API yang dikonfigurasi di server, autentikasi akan dilewati.
@@ -122,10 +122,10 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Keterampilan yang Tersedia
 
-| Keterampilan       | Deskripsi                                                                                                                                               |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Merutekan prompt melalui pipeline cerdas OmniRoute. Mengembalikan respons beserta penjelasan routing, biaya, dan jejak ketahanan.                        |
-| `quota-management` | Menjawab kueri bahasa alami tentang kuota penyedia, menyarankan combo gratis, dan memberikan peringkat kuota.                                           |
+| Keterampilan       | Deskripsi                                                                                                                        |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `smart-routing`    | Merutekan prompt melalui pipeline cerdas Birouter. Mengembalikan respons beserta penjelasan routing, biaya, dan jejak ketahanan. |
+| `quota-management` | Menjawab kueri bahasa alami tentang kuota penyedia, menyarankan combo gratis, dan memberikan peringkat kuota.                    |
 
 ---
 
@@ -145,13 +145,13 @@ submitted → working → completed
 
 ## Kode Kesalahan
 
-| Kode   | Arti                                    |
-| :----- | :-------------------------------------- |
-| -32700 | Kesalahan parse (JSON tidak valid)      |
+| Kode   | Arti                                       |
+| :----- | :----------------------------------------- |
+| -32700 | Kesalahan parse (JSON tidak valid)         |
 | -32600 | Permintaan tidak valid / Tidak diotorisasi |
-| -32601 | Metode atau keterampilan tidak ditemukan |
-| -32602 | Parameter tidak valid                   |
-| -32603 | Kesalahan internal                      |
+| -32601 | Metode atau keterampilan tidak ditemukan   |
+| -32602 | Parameter tidak valid                      |
+| -32603 | Kesalahan internal                         |
 
 ---
 

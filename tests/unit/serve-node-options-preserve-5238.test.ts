@@ -1,5 +1,5 @@
 /**
- * Issue #5238 (Defect C) — `omniroute serve` silently DISCARDED a user-set
+ * Issue #5238 (Defect C) — `birouter serve` silently DISCARDED a user-set
  * `NODE_OPTIONS=--max-old-space-size=…`. The serve command spread `process.env`
  * then UNCONDITIONALLY overwrote NODE_OPTIONS with the calibrated default, so a
  * user who exported `NODE_OPTIONS=--max-old-space-size=8192` still ran at the
@@ -14,9 +14,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { buildServerNodeOptions, buildNodeHeapArgs, envHasExplicitHeapFlag } = await import(
-  "../../scripts/build/runtime-env.mjs"
-);
+const { buildServerNodeOptions, buildNodeHeapArgs, envHasExplicitHeapFlag } =
+  await import("../../scripts/build/runtime-env.mjs");
 
 const HEAP_RE = /--max-old-space-size=(\d+)/g;
 function heapValues(nodeOptions: string): string[] {

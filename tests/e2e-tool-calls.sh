@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-OMNIROUTE_URL="${OMNIROUTE_URL:-http://localhost:20128}"
-MODEL="${1:-${OMNIROUTE_MODEL:-}}"
-AUTH_TOKEN="${OMNIROUTE_AUTH_TOKEN:-dummy}"
+BIROUTER_URL="${BIROUTER_URL:-http://localhost:20128}"
+MODEL="${1:-${BIROUTER_MODEL:-}}"
+AUTH_TOKEN="${BIROUTER_AUTH_TOKEN:-dummy}"
 FAILURES=0
 
 if [[ -z "$MODEL" ]]; then
@@ -26,12 +26,12 @@ check_corruption() {
 require_tool curl
 require_tool jq
 
-echo "=== OmniRoute Tool Call Integrity E2E Test ==="
-echo "URL: $OMNIROUTE_URL | Model: $MODEL"
+echo "=== Birouter Tool Call Integrity E2E Test ==="
+echo "URL: $BIROUTER_URL | Model: $MODEL"
 
 echo
 echo "[TEST 1] Non-streaming tool call integrity..."
-response=$(curl -fsS -X POST "$OMNIROUTE_URL/v1/chat/completions" \
+response=$(curl -fsS -X POST "$BIROUTER_URL/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $AUTH_TOKEN" \
   -d @- <<JSON
@@ -82,7 +82,7 @@ fi
 
 echo
 echo "[TEST 2] Streaming tool call integrity..."
-stream_output=$(curl -fsS -X POST "$OMNIROUTE_URL/v1/chat/completions" \
+stream_output=$(curl -fsS -X POST "$BIROUTER_URL/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $AUTH_TOKEN" \
   -d @- <<JSON
@@ -127,7 +127,7 @@ fi
 
 echo
 echo "[TEST 3] API health check..."
-models=$(curl -fsS "$OMNIROUTE_URL/v1/models" \
+models=$(curl -fsS "$BIROUTER_URL/v1/models" \
   -H "Authorization: Bearer $AUTH_TOKEN" \
   | jq -r '.data | length' 2>/dev/null || echo 0)
 

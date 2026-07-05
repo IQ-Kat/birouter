@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-catalog-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-model-catalog-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-test-secret";
 
@@ -862,7 +862,7 @@ test("v1 models catalog includes media, moderation, rerank, video, and music mod
   assert.equal((byId.get("openai/gpt-image-2") as any).type, "image");
   assert.equal((byId.get("openai/whisper-1") as any).type, "audio");
   assert.equal((byId.get("openai/whisper-1") as any).subtype, "transcription");
-  assert.equal((byId.get("openai/omni-moderation-latest") as any).type, "moderation");
+  assert.equal((byId.get("openai/bi-moderation-latest") as any).type, "moderation");
   assert.equal((byId.get("cohere/rerank-v3.5") as any).type, "rerank");
   assert.equal((byId.get("comfyui/animatediff") as any).type, "video");
   assert.equal((byId.get("comfyui/stable-audio-open") as any).type, "music");

@@ -1,4 +1,4 @@
-# omniroute — Agent Guidelines
+# birouter — Agent Guidelines
 
 ## Project
 
@@ -46,7 +46,7 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 
 - **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
-- **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
+- **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.birouter/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
 - **i18n**: next-intl with 42 locales (`src/i18n/messages/`) — refresh with `ls src/i18n/messages/*.json | wc -l`
@@ -82,7 +82,7 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 
 The pipeline is a single `next build` pass — intermediates land in `.build/next/`, the
 assembled bundle in `dist/`. VPS deploys rsync `dist/` into the remote
-`/usr/lib/node_modules/omniroute/app/` directory (VPS image path is unchanged).
+`/usr/lib/node_modules/birouter/app/` directory (VPS image path is unchanged).
 
 ### Running Tests
 
@@ -130,7 +130,7 @@ Always run `prettier --write` on changed files.
 
 - **Target**: ES2022 · **Module**: `esnext` · **Resolution**: `bundler`
 - `strict: false` — prefer explicit types, don't rely on inference
-- Path aliases: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- Path aliases: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 
 ### ESLint Rules
 
@@ -151,7 +151,7 @@ Always run `prettier --write` on changed files.
 
 ### Imports
 
-- **Order**: external → internal (`@/`, `@omniroute/open-sse`) → relative (`./`, `../`)
+- **Order**: external → internal (`@/`, `@birouter/open-sse`) → relative (`./`, `../`)
 - **No barrel imports** from `localDb.ts` — import from the specific `db/` module instead
 
 ### Error Handling
@@ -195,9 +195,9 @@ Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run 
 #### DB Internals
 
 - **`core.ts`**: `getDbInstance()` returns a singleton `better-sqlite3` instance with WAL
-  journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_omniroute_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
+  journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_birouter_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
-  Tracks applied migrations in `_omniroute_migrations` table.
+  Tracks applied migrations in `_birouter_migrations` table.
 - **Migrations**: 97 files (`001_initial_schema.sql` → `099_*.sql`).
   Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
@@ -391,7 +391,7 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-**94 tools** total (`TOTAL_MCP_TOOL_COUNT`, `open-sse/mcp-server/server.ts`): a 34-entry base registry (`MCP_TOOLS` in `schemas/tools.ts`, bundling the core / cache / compression / 1proxy / advanced tools) **plus** standalone module sets — memory (3), skill (4), agentSkill (3), pool (6), gamification (8), plugin (8), notion (6), obsidian (22). 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (30 scopes — see `OMNIROUTE_MCP_SCOPES`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
+**94 tools** total (`TOTAL_MCP_TOOL_COUNT`, `open-sse/mcp-server/server.ts`): a 34-entry base registry (`MCP_TOOLS` in `schemas/tools.ts`, bundling the core / cache / compression / 1proxy / advanced tools) **plus** standalone module sets — memory (3), skill (4), agentSkill (3), pool (6), gamification (8), plugin (8), notion (6), obsidian (22). 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (30 scopes — see `BIROUTER_MCP_SCOPES`), Zod schemas. See [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md).
 
 **Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
 route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
@@ -423,7 +423,7 @@ list_compression_combos, compression_combo_stats.
 handler: async (args) => {...} }`. Zod validates inputs before the handler fires.
 - **`createMcpServer()`** and **`startMcpStdio()`** exported from `mcp-server/index.ts`.
   `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
-- **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
+- **Transports**: stdio (CLI `birouter --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
   (`/api/mcp/stream`). All share the same tool/scope engine.
 - **Scopes** (30): Control which tool categories an API key can access. Enforcement happens
   before handler dispatch.
@@ -470,7 +470,7 @@ custom skill support, interception, and injection.
   Receives skill name + input, looks up the skill, runs it in the sandbox.
 - **`sandbox.ts`**: Isolation layer for custom (user-provided) skills. Limits resource
   access and execution time.
-- **Built-in skills**: Ship with OmniRoute (e.g., quota management, routing). Located
+- **Built-in skills**: Ship with Birouter (e.g., quota management, routing). Located
   alongside the registry.
 - **Interception/Injection**: Skills can intercept requests in the pipeline (pre/post
   processing) or inject context into prompts.
@@ -489,7 +489,7 @@ Request middleware including `promptInjectionGuard.ts`.
 
 ### Guardrails (`src/lib/guardrails/`)
 
-Hot-reloadable guardrails framework (3 built-in: pii-masker, prompt-injection, vision-bridge). Fail-open. The `pii-masker` guardrail is registered and runs on every request, but its data-mutating logic is **opt-in** and OFF by default — it only redacts when `PII_REDACTION_ENABLED` (request) / `PII_RESPONSE_SANITIZATION` (response + streaming) are enabled (both `defaultValue: "false"`); with them off, payloads pass through untouched. A request can additionally opt OUT of any guardrail via header (`x-omniroute-disabled-guardrails`). Never make PII default-on (Hard Rule #20). See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+Hot-reloadable guardrails framework (3 built-in: pii-masker, prompt-injection, vision-bridge). Fail-open. The `pii-masker` guardrail is registered and runs on every request, but its data-mutating logic is **opt-in** and OFF by default — it only redacts when `PII_REDACTION_ENABLED` (request) / `PII_RESPONSE_SANITIZATION` (response + streaming) are enabled (both `defaultValue: "false"`); with them off, payloads pass through untouched. A request can additionally opt OUT of any guardrail via header (`x-birouter-disabled-guardrails`). Never make PII default-on (Hard Rule #20). See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
 ### Cloud Agents (`src/lib/cloudAgent/`)
 
@@ -566,7 +566,7 @@ For any non-trivial change, read the matching deep-dive first:
 
 ## Fork / Upstream Workflow
 
-This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operational
+This repository is a fork of `IQ-Kat/birouter`. Keep fork-only operational
 changes (for example GHCR image publishing, personal deployment workflows, or local
 automation) out of upstream contribution PRs.
 

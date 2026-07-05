@@ -9,7 +9,7 @@
 
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
-import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
+import { resolvePublicCred } from "@birouter/open-sse/utils/publicCreds.ts";
 
 const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy"]);
 
@@ -52,7 +52,7 @@ function isLoopbackHostname(hostname: string): boolean {
  * credentials keep working on out-of-the-box local installs. When operators
  * provide their own Google OAuth client IDs for a remote deployment, prefer the
  * public callback URL documented in .env.example / docs/README so the popup can
- * navigate back to OmniRoute instead of stalling on localhost.
+ * navigate back to Birouter instead of stalling on localhost.
  */
 export function resolveBrowserOAuthRedirectUri(
   providerName: string,
@@ -68,7 +68,7 @@ export function resolveBrowserOAuthRedirectUri(
   }
 
   const publicBaseUrl =
-    normalizeBaseUrl(env.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env.OMNIROUTE_PUBLIC_BASE_URL);
+    normalizeBaseUrl(env.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env.BIROUTER_PUBLIC_BASE_URL);
 
   if (!publicBaseUrl) {
     return redirectUri;

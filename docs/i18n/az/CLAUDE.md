@@ -39,7 +39,7 @@ Tam test matrisası üçün `CONTRIBUTING.md` → "Testləri İcra Etmək" bölm
 
 ## Layihəyə Qısa Baxış
 
-**OmniRoute** — birləşdirilmiş AI proxy/router. Bir uç nöqtə, 160+ LLM təminatçısı, avtomatik geri dönmə.
+**Birouter** — birləşdirilmiş AI proxy/router. Bir uç nöqtə, 160+ LLM təminatçısı, avtomatik geri dönmə.
 
 | Təbəqə        | Yer                     | Məqsəd                                                          |
 | ------------- | ----------------------- | --------------------------------------------------------------- |
@@ -56,7 +56,7 @@ Tam test matrisası üçün `CONTRIBUTING.md` → "Testləri İcra Etmək" bölm
 | Bacarıqlar    | `src/lib/skills/`       | Genişləndirilə bilən bacarıq çərçivəsi                          |
 | Yaddaş        | `src/lib/memory/`       | Davamlı söhbət yaddaşı                                          |
 
-Monorepo: `src/` (Next.js 16 tətbiqi), `open-sse/` (axın mühərriki iş sahəsi), `electron/` (masaüstü tətbiqi), `tests/`, `bin/` (CLI giriş nöqtəsi).
+Monorepo: `src/` (Next.js 16 tətomniqi), `open-sse/` (axın mühərriki iş sahəsi), `electron/` (masaüstü tətomniqi), `tests/`, `bin/` (CLI giriş nöqtəsi).
 
 ---
 
@@ -82,7 +82,7 @@ API marşrutları ardıcıl bir nümunəni izləyir: `Marşrut → CORS əvvəlc
 
 ## Davamlılıq İcraat Vəziyyəti
 
-OmniRoute-un üç əlaqəli, lakin fərqli müvəqqəti uğursuzluq mexanizmi var. Marşrut davranışını düzəldərkən onların
+Birouter-un üç əlaqəli, lakin fərqli müvəqqəti uğursuzluq mexanizmi var. Marşrut davranışını düzəldərkən onların
 sahəsini ayrı saxlayın. Bir baxışda xəritə üçün
 [3-laylı davamlılıq diaqramı](./docs/diagrams/exported/resilience-3layers.svg)
 (mənbə: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))-na baxın.
@@ -209,8 +209,8 @@ bağlantının digər modelləri xidmət etməyə davam etməsinə icazə verir.
 
 ### Kod Üslubu
 
-- **2 boşluq**, nöqtəli vergüllər, ikiqat dırnaqlar, 100 simvol genişlik, es5 son vergüllər (lint-staged vasitəsilə Prettier tərəfindən tətbiq olunur)
-- **İdxallar**: xarici → daxili (`@/`, `@omniroute/open-sse`) → nisbət
+- **2 boşluq**, nöqtəli vergüllər, ikiqat dırnaqlar, 100 simvol genişlik, es5 son vergüllər (lint-staged vasitəsilə Prettier tərəfindən tətomniq olunur)
+- **İdxallar**: xarici → daxili (`@/`, `@birouter/open-sse`) → nisbət
 - **Adlandırma**: fayllar=camelCase/kebab, komponentlər=PascalCase, sabitlər=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = hər yerdə səhv; `no-explicit-any` = `open-sse/` və `tests/` içində xəbərdarlıq
 - **TypeScript**: `strict: false`, hədəf ES2022, modul esnext, həll edici bundler. Aydın tipləri üstün tutun.
@@ -238,7 +238,7 @@ bağlantının digər modelləri xidmət etməyə davam etməsinə icazə verir.
 - **İctimai yuxarı axın şifrələri** (Gemini/Antigravity/Windsurf üslubunda OAuth client_id/sirri + ictimai CLI-lərdən çıxarılmış Firebase Web açarları): **MÜTLƏQ** `resolvePublicCred()` vasitəsilə `open-sse/utils/publicCreds.ts`-də yerləşdirilməlidir — **heç vaxt** string literal olaraq. Məcburi nümunə üçün `docs/security/PUBLIC_CREDS.md`-ə baxın.
 - **Xəta cavabları** (HTTP / SSE / executor / MCP handler): **MÜTLƏQ** `buildErrorBody()` və ya `sanitizeErrorMessage()` vasitəsilə `open-sse/utils/error.ts`-dən yönləndirilməlidir — **heç vaxt** xam `err.stack` və ya `err.message` cavab bədənində qoymayın. `docs/security/ERROR_SANITIZATION.md`-ə baxın.
 - **Dəyişənlərdən yaradılan shell əmrləri**: `exec()`/`spawn()` çağırarkən runtime dəyərlərinə ehtiyac olan bir skript ilə, onları `env` seçimi vasitəsilə ötürün (avtomatik olaraq shell-qaçırılmış) — **heç vaxt** etibarsız/xarici yolları skript bədəninə string-interpolate etməyin. İstinad: `src/mitm/cert/install.ts::updateNssDatabases`.
-- **Təhlükəsiz-default kitabxanaları** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): yeni təhlükəsizlik həssas səthlər əlavə edərkən Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink-i öz tətbiqlərinizdən üstün tutun.
+- **Təhlükəsiz-default kitabxanaları** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): yeni təhlükəsizlik həssas səthlər əlavə edərkən Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink-i öz tətomniqlərinizdən üstün tutun.
 
 ---
 
@@ -378,9 +378,9 @@ git push -u origin feat/your-feature
 
 - **İcra mühiti**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modulları
 - **TypeScript**: 5.9+, hədəf ES2022, modul esnext, resolution bundler
-- **Yol aliasları**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Yol aliasları**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard eyni portda)
-- **Məlumat qovluğu**: `DATA_DIR` env var, varsayılan `~/.omniroute/`
+- **Məlumat qovluğu**: `DATA_DIR` env var, varsayılan `~/.birouter/`
 - **Əsas env var-lar**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Quraşdırma: `cp .env.example .env` sonra `JWT_SECRET` (`openssl rand -base64 48`) və `API_KEY_SECRET` (`openssl rand -hex 32`) yaradın
 
@@ -401,6 +401,6 @@ git push -u origin feat/your-feature
 11. Heç vaxt ictimai upstream OAuth client_id/secret və ya Firebase Web açarlarını string literal kimi daxil etməyin — həmişə `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`) vasitəsilə keçin. `docs/security/PUBLIC_CREDS.md`-ə baxın.
 12. Heç vaxt HTTP / SSE / executor cavablarında xam `err.stack` / `err.message` qaytarmayın — həmişə `buildErrorBody()` və ya `sanitizeErrorMessage()` (`open-sse/utils/error.ts`) vasitəsilə yönləndirin. `docs/security/ERROR_SANITIZATION.md`-ə baxın.
 13. Heç vaxt xarici yolları və ya icra dəyərlərini `exec()`/`spawn()`-a ötürülən shell skriptlərinə string-interpolate etməyin — bunun əvəzinə `env` seçimi vasitəsilə ötürün. İstinad: `src/mitm/cert/install.ts::updateNssDatabases`.
-14. Heç vaxt CodeQL / Gizli-Skanlama xəbərdarlığını (a) əvvəlcə yuxarıdakı naxış sənədlərini yoxlamadan, köməkçinin tətbiq olunub-olunmadığını görmək üçün, və (b) rədd etmə şərhində texniki əsaslandırmanı qeyd etmədən rədd etməyin. Precedent: `js/stack-trace-exposure` `sanitizeErrorMessage()` vasitəsilə yönləndirilən çağırış yerlərində qaldırılmışdır, bu, tanınmayan xüsusi sanitizatorların olduğu məlum CodeQL məhdudiyyətidir — `docs/security/ERROR_SANITIZATION.md`-ə istinad edərək `false positive` olaraq rədd edin.
+14. Heç vaxt CodeQL / Gizli-Skanlama xəbərdarlığını (a) əvvəlcə yuxarıdakı naxış sənədlərini yoxlamadan, köməkçinin tətomniq olunub-olunmadığını görmək üçün, və (b) rədd etmə şərhində texniki əsaslandırmanı qeyd etmədən rədd etməyin. Precedent: `js/stack-trace-exposure` `sanitizeErrorMessage()` vasitəsilə yönləndirilən çağırış yerlərində qaldırılmışdır, bu, tanınmayan xüsusi sanitizatorların olduğu məlum CodeQL məhdudiyyətidir — `docs/security/ERROR_SANITIZATION.md`-ə istinad edərək `false positive` olaraq rədd edin.
 15. Heç vaxt uşaq prosesləri yaradan marşrutları (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts`-də `isLocalOnlyPath()` təsnifatı olmadan daxil etməyin. Loopback icrası hər hansı bir auth yoxlamasından əvvəl şərtsiz baş verir — tunel vasitəsilə sızan JWT prosesin yaranmasına səbəb ola bilməz. `docs/security/ROUTE_GUARD_TIERS.md`-ə baxın.
-16. Heç vaxt commit mesajlarında AI assistant, LLM və ya avtomatlaşdırma hesabını kreditə salan `Co-Authored-By` əlavələrini daxil etməyin (məsələn, "Claude", "GPT", "Copilot", "Bot" sözlərini ehtiva edən adlar; `anthropic.com` / `openai.com` / bot-aid olan `noreply.github.com` ünvanlarında olan emaillər). Belə əlavələr commitləri GitHub-da bot hesabına aid edir və PR tarixində real müəllifi (`diegosouzapw`) gizlədir. İnsan əməkdaşları — o cümlədən upstream PR müəllifləri və OmniRoute-a köçürülən issue məruzəçiləri — standart `Co-authored-by: Name <email>` əlavələri ilə kreditə salına BİLƏRLƏR və SALINMALIDIRLAR; upstream-port iş axınları (`/port-upstream-features`, `/port-upstream-issues`) bundan asılıdır.
+16. Heç vaxt commit mesajlarında AI assistant, LLM və ya avtomatlaşdırma hesabını kreditə salan `Co-Authored-By` əlavələrini daxil etməyin (məsələn, "Claude", "GPT", "Copilot", "Bot" sözlərini ehtiva edən adlar; `anthropic.com` / `openai.com` / bot-aid olan `noreply.github.com` ünvanlarında olan emaillər). Belə əlavələr commitləri GitHub-da bot hesabına aid edir və PR tarixində real müəllifi (`diegosouzapw`) gizlədir. İnsan əməkdaşları — o cümlədən upstream PR müəllifləri və Birouter-a köçürülən issue məruzəçiləri — standart `Co-authored-by: Name <email>` əlavələri ilə kreditə salına BİLƏRLƏR və SALINMALIDIRLAR; upstream-port iş axınları (`/port-upstream-features`, `/port-upstream-issues`) bundan asılıdır.

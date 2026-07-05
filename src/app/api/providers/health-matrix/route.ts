@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import pino from "pino";
 import { z } from "zod";
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { buildProviderHealthMatrix } from "@/lib/monitoring/providerHealthMatrix";

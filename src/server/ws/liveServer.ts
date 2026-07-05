@@ -20,12 +20,7 @@ import { randomUUID } from "crypto";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-import type {
-  WsClientMessage,
-  WsServerMessage,
-  WsEventMessage,
-  WsAuthResult,
-} from "./types";
+import type { WsClientMessage, WsServerMessage, WsEventMessage, WsAuthResult } from "./types";
 
 import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/events/eventBus";
 
@@ -318,7 +313,7 @@ function isLoopbackRequest(req: IncomingMessage): boolean {
 }
 
 function handleInternalEventRequest(req: IncomingMessage, res: ServerResponse): void {
-  if (req.method !== "POST" || req.url !== "/__omniroute_event") {
+  if (req.method !== "POST" || req.url !== "/__birouter_event") {
     res.writeHead(404).end();
     return;
   }
@@ -592,7 +587,7 @@ export async function startLiveDashboardServer(
 //
 // Default: ON, bound to loopback (127.0.0.1). The live dashboard WebSocket
 // starts automatically unless explicitly disabled. To disable, set:
-//   OMNIROUTE_ENABLE_LIVE_WS=0   (or "false")
+//   BIROUTER_ENABLE_LIVE_WS=0   (or "false")
 //
 // LAN exposure remains opt-in via LIVE_WS_HOST=0.0.0.0 combined with
 // LIVE_WS_ALLOWED_ORIGINS. DEFAULT_HOST stays "127.0.0.1".
@@ -609,7 +604,7 @@ function isBuildOrTest(): boolean {
 }
 
 export function isLiveWsEnabled(): boolean {
-  const v = process.env.OMNIROUTE_ENABLE_LIVE_WS;
+  const v = process.env.BIROUTER_ENABLE_LIVE_WS;
   if (v === undefined) return true; // default ON (loopback-bound)
   return v === "1" || v.toLowerCase() === "true";
 }

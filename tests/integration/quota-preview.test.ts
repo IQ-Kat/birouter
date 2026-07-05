@@ -19,7 +19,7 @@ import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-preview-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-quota-preview-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-quota-preview-secret";
 process.env.QUOTA_STORE_DRIVER = "sqlite";
@@ -57,9 +57,7 @@ test.after(() => {
 
 test("GET /api/quota/preview without auth → 401", async () => {
   await enableManagementAuth();
-  const req = new Request(
-    "http://localhost/api/quota/preview?apiKeyId=k1&poolId=p1"
-  );
+  const req = new Request("http://localhost/api/quota/preview?apiKeyId=k1&poolId=p1");
   const res = await previewRoute.GET(req);
   assert.equal(res.status, 401);
 });
@@ -89,9 +87,7 @@ test("GET /api/quota/preview with nonexistent poolId → 404", async () => {
 test("GET /api/quota/preview with valid params → { decision } with kind", async () => {
   // Create a real pool
   const pool = createPool({ connectionId: "conn-preview", name: "Preview Pool" });
-  upsertAllocations(pool.id, [
-    { apiKeyId: "preview-key-1", weight: 100, policy: "soft" },
-  ]);
+  upsertAllocations(pool.id, [{ apiKeyId: "preview-key-1", weight: 100, policy: "soft" }]);
 
   const req = await makeManagementSessionRequest(
     `http://localhost/api/quota/preview?apiKeyId=preview-key-1&poolId=${pool.id}&estimatedTokens=100`
@@ -110,9 +106,7 @@ test("GET /api/quota/preview with valid params → { decision } with kind", asyn
 test("GET /api/quota/preview is dry-run: store counters unchanged after call", async () => {
   // Create pool and seed some consumption
   const pool = createPool({ connectionId: "conn-dryrun", name: "Dry Run Pool" });
-  upsertAllocations(pool.id, [
-    { apiKeyId: "dryrun-key", weight: 100, policy: "hard" },
-  ]);
+  upsertAllocations(pool.id, [{ apiKeyId: "dryrun-key", weight: 100, policy: "hard" }]);
 
   const store = getSqliteQuotaStore();
   const dim = { poolId: pool.id, unit: "tokens" as const, window: "daily" as const };

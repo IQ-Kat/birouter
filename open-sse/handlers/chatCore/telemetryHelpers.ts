@@ -32,7 +32,7 @@ export async function forwardDashboardEventToLiveWs(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 1_500);
   try {
-    await fetchImpl(`http://127.0.0.1:${port}/__omniroute_event`, {
+    await fetchImpl(`http://127.0.0.1:${port}/__birouter_event`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ event, payload, timestamp: now() }),

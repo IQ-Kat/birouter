@@ -14,7 +14,7 @@ import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 const TOOL_ID = "deepseek-tui";
 
@@ -25,13 +25,13 @@ const getDeepseekTuiConfigPath = (): string =>
 const getDeepseekTuiDir = () => path.dirname(getDeepseekTuiConfigPath());
 
 /**
- * Render the OmniRoute config block in DeepSeek TUI TOML format.
+ * Render the Birouter config block in DeepSeek TUI TOML format.
  * DeepSeek TUI reads OPENAI_BASE_URL and OPENAI_API_KEY from its config.
  * Reference: https://github.com/hunterbown/deepseek-tui
  */
 function renderDeepseekTuiConfig(baseUrl: string, apiKey: string, model: string): string {
   return [
-    "# DeepSeek TUI config — managed by OmniRoute (plan 14)",
+    "# DeepSeek TUI config — managed by Birouter (plan 14)",
     "",
     "[openai]",
     `base_url = "${baseUrl}"`,
@@ -42,11 +42,11 @@ function renderDeepseekTuiConfig(baseUrl: string, apiKey: string, model: string)
 }
 
 /**
- * Check if the config file contains OmniRoute settings.
+ * Check if the config file contains Birouter settings.
  */
-const hasOmniRouteConfig = (content: string | null): boolean => {
+const hasBirouterConfig = (content: string | null): boolean => {
   if (!content) return false;
-  return content.includes("managed by OmniRoute");
+  return content.includes("managed by Birouter");
 };
 
 // Read current config.toml
@@ -93,18 +93,15 @@ export async function GET(request: Request) {
       runtimeMode: runtime.runtimeMode,
       reason: runtime.reason,
       config,
-      hasOmniRoute: hasOmniRouteConfig(config),
+      hasBirouter: hasBirouterConfig(config),
       configPath: getDeepseekTuiConfigPath(),
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// POST — write OmniRoute settings to DeepSeek TUI config.toml
+// POST — write Birouter settings to DeepSeek TUI config.toml
 export async function POST(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -113,10 +110,7 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: { message: "Invalid JSON body" } },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
   try {
@@ -161,14 +155,11 @@ export async function POST(request: Request) {
       configPath,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// DELETE — remove DeepSeek TUI OmniRoute config
+// DELETE — remove DeepSeek TUI Birouter config
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -198,9 +189,6 @@ export async function DELETE(request: Request) {
       message: "DeepSeek TUI settings removed successfully",
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }

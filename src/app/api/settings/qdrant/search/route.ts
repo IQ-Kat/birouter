@@ -3,7 +3,7 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { QdrantSearchSchema } from "@/shared/schemas/qdrant";
 import { searchSemanticMemory } from "@/lib/memory/qdrant";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 export async function POST(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: { message: "Invalid JSON body", details: [] } },
-      { status: 400 },
+      { status: 400 }
     );
   }
 

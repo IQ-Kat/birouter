@@ -5,8 +5,8 @@ import {
   deleteReasoningCacheEntry,
   getReasoningCacheServiceEntries,
   getReasoningCacheServiceStats,
-} from "@omniroute/open-sse/services/reasoningCache.ts";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+} from "@birouter/open-sse/services/reasoningCache.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 function errorMessage(error: unknown): string {
   return sanitizeErrorMessage(error);

@@ -6,7 +6,7 @@ import {
   writeClaudeAuthFileToLocalCli,
 } from "@/lib/oauth/utils/claudeAuthFile";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof ClaudeAuthFileError) {

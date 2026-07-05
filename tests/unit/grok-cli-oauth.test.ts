@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { grokCli } = await import("../../src/lib/oauth/providers/grok-cli.ts");
-const { resolvePublicCred } = await import("@omniroute/open-sse/utils/publicCreds");
+const { resolvePublicCred } = await import("@birouter/open-sse/utils/publicCreds");
 
 test("Grok Build OAuth Provider - config", () => {
   assert.ok(grokCli.config.clientId, "clientId should be defined");

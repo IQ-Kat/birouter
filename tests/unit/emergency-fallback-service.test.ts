@@ -6,7 +6,7 @@ import path from "node:path";
 
 const previousDataDir = process.env.DATA_DIR;
 const previousDisableSqliteAutoBackup = process.env.DISABLE_SQLITE_AUTO_BACKUP;
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-emergency-fallback-service-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-emergency-fallback-service-"));
 process.env.DATA_DIR = tmpDir;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
@@ -31,7 +31,7 @@ function resetTestState() {
   core.resetDbInstance();
   fs.rmSync(tmpDir, { recursive: true, force: true });
   fs.mkdirSync(tmpDir, { recursive: true });
-  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  delete process.env.BIROUTER_EMERGENCY_FALLBACK;
   resetEmergencyFallbackEnvCache();
 }
 
@@ -40,7 +40,7 @@ test.beforeEach(() => {
 });
 
 test.afterEach(() => {
-  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  delete process.env.BIROUTER_EMERGENCY_FALLBACK;
   resetEmergencyFallbackEnvCache();
 });
 

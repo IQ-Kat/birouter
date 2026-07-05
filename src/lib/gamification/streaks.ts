@@ -1,5 +1,5 @@
 /**
- * Streak Tracker for OmniRoute Gamification
+ * Streak Tracker for Birouter Gamification
  *
  * Tracks consecutive daily active usage per API key.
  * Stores streak data in the existing `key_value` table with

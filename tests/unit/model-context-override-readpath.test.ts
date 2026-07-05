@@ -6,7 +6,7 @@ import path from "node:path";
 
 // Feature 5004 — getModelContextLimit reads the override before the static catalog.
 
-const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-mco-readpath-"));
+const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-mco-readpath-"));
 process.env.DATA_DIR = moduleDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
@@ -28,8 +28,10 @@ after(() => {
 describe("getModelContextLimit override precedence (5004)", () => {
   it("an override wins over the catalog, and removing it falls back to the catalog", () => {
     // Read the override-free catalog value dynamically (non-brittle for any model).
-    const catalog = caps.getResolvedModelCapabilities({ provider: "openai", model: "gpt-4o" })
-      .contextWindow;
+    const catalog = caps.getResolvedModelCapabilities({
+      provider: "openai",
+      model: "gpt-4o",
+    }).contextWindow;
     const distinct = (catalog ?? 0) + 12345;
 
     mco.setModelContextOverride("openai", "gpt-4o", distinct);
@@ -51,9 +53,15 @@ describe("getModelContextLimit override precedence (5004)", () => {
 
   it("leaves getResolvedModelCapabilities override-free (so the reconciler sees the catalog)", () => {
     mco.setModelContextOverride("openai", "gpt-4o", 999999, "auto:discovery");
-    const catalog = caps.getResolvedModelCapabilities({ provider: "openai", model: "gpt-4o" })
-      .contextWindow;
+    const catalog = caps.getResolvedModelCapabilities({
+      provider: "openai",
+      model: "gpt-4o",
+    }).contextWindow;
     assert.notEqual(catalog, 999999, "getResolvedModelCapabilities must not reflect the override");
-    assert.equal(caps.getModelContextLimit("openai", "gpt-4o"), 999999, "but getModelContextLimit does");
+    assert.equal(
+      caps.getModelContextLimit("openai", "gpt-4o"),
+      999999,
+      "but getModelContextLimit does"
+    );
   });
 });

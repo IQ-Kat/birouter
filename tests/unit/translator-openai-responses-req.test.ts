@@ -146,7 +146,7 @@ test("Responses -> Chat passes through web_search_preview tool (web_search famil
 });
 
 test("Responses -> Chat strips background flag and degrades to synchronous execution", () => {
-  // Previously this threw 400 unsupported_feature. OmniRoute is a forward proxy
+  // Previously this threw 400 unsupported_feature. Birouter is a forward proxy
   // and cannot host the deferred run + poll contract, so background=true is
   // silently dropped and the request runs synchronously. Clients that set the
   // flag opportunistically (Capy Captain Pro, Codex agents) work unchanged.
@@ -456,7 +456,7 @@ test("Chat -> Responses preserves prompt_cache_key and session affinity fields",
     {
       messages: [{ role: "user", content: "Hello" }],
       prompt_cache_key: "cache-key-1",
-      session_id: "omniroute-session-abc",
+      session_id: "birouter-session-abc",
       conversation_id: "conv-123",
     },
     false,
@@ -464,7 +464,7 @@ test("Chat -> Responses preserves prompt_cache_key and session affinity fields",
   );
 
   (assert as any).equal((result as any).prompt_cache_key, "cache-key-1");
-  (assert as any).equal((result as any).session_id, "omniroute-session-abc");
+  (assert as any).equal((result as any).session_id, "birouter-session-abc");
   assert.equal((result as any).conversation_id, "conv-123");
   assert.equal((result as any).store, undefined);
 });
@@ -798,7 +798,7 @@ test("Responses -> Chat: unknown tool type still throws unsupported_feature (no 
 
 test("Responses -> Chat: tool_search does not throw (issue #2766)", () => {
   // Codex newer clients send tool_search as a Responses API built-in.
-  // OmniRoute must not return 400 — it should silently drop the tool_search entry.
+  // Birouter must not return 400 — it should silently drop the tool_search entry.
   assert.doesNotThrow(() =>
     openaiResponsesToOpenAIRequest(
       "gpt-4o",

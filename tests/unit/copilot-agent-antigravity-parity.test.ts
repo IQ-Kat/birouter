@@ -4,7 +4,7 @@
 // `maxOutputTokens` values well above what the Antigravity Cloud Code backend
 // will accept — the backend rejects the call with HTTP 400 "Invalid Argument"
 // even though the request envelope is otherwise valid. The same trigger is
-// repeatedly observed in upstream issue reports and in OmniRoute connection
+// repeatedly observed in upstream issue reports and in Birouter connection
 // cooldowns spiking on Copilot traffic.
 //
 // Fix: hard-cap `generationConfig.maxOutputTokens` to MAX_ANTIGRAVITY_OUTPUT_TOKENS

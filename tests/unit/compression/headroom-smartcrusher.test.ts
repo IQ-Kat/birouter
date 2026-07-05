@@ -308,7 +308,7 @@ describe("headroomEngine — losslessness on mixed-type columns (regression)", (
   });
 });
 
-// ─── 6. GCF encoding: capabilities beyond legacy omni-tabular ──────────────
+// ─── 6. GCF encoding: capabilities beyond legacy bi-tabular ──────────────
 
 describe("GCF encoding — advanced capabilities", () => {
   async function reconstruct(body: Record<string, unknown>) {
@@ -360,35 +360,35 @@ describe("GCF encoding — advanced capabilities", () => {
     assert.deepEqual(restored, body, "nested arrays must round-trip losslessly");
   });
 
-  it("uses gcf-generic fence marker (not omni-tabular)", async () => {
+  it("uses gcf-generic fence marker (not bi-tabular)", async () => {
     const rows = makeRows(20);
     const encoded = encodeTabular(rows);
     assert.ok(encoded.includes("```gcf-generic"), "must use gcf-generic fence marker");
-    assert.ok(!encoded.includes("omni-tabular"), "must not use legacy omni-tabular marker");
+    assert.ok(!encoded.includes("bi-tabular"), "must not use legacy bi-tabular marker");
   });
 
-  it("still decodes legacy omni-tabular encoded content (backward compat)", async () => {
+  it("still decodes legacy bi-tabular encoded content (backward compat)", async () => {
     // Import legacy encoder
     const mod = await import("../../../open-sse/services/compression/engines/headroom/tabular.ts");
     const legacyEncode = mod.encodeTabularBlockLegacy;
 
     const rows = makeRows(10);
-    const legacyBlock = `\`\`\`omni-tabular\n${legacyEncode(rows)}\n\`\`\``;
+    const legacyBlock = `\`\`\`bi-tabular\n${legacyEncode(rows)}\n\`\`\``;
     const decoded = decodeTabular(legacyBlock);
-    assert.deepEqual(decoded, rows, "legacy omni-tabular content must still decode correctly");
+    assert.deepEqual(decoded, rows, "legacy bi-tabular content must still decode correctly");
   });
 });
 
 // ─── 7. GCF vs legacy benchmark comparison ─────────────────────────────────
 
-describe("GCF vs legacy omni-tabular — compression comparison", () => {
+describe("GCF vs legacy bi-tabular — compression comparison", () => {
   it("GCF achieves comparable or better compression on homogeneous arrays", async () => {
     const rows = makeRows(50);
     const jsonStr = JSON.stringify(rows);
 
-    // Legacy omni-tabular
+    // Legacy bi-tabular
     const mod = await import("../../../open-sse/services/compression/engines/headroom/tabular.ts");
-    const legacyBlock = `\`\`\`omni-tabular\n${mod.encodeTabularBlockLegacy(rows)}\n\`\`\``;
+    const legacyBlock = `\`\`\`bi-tabular\n${mod.encodeTabularBlockLegacy(rows)}\n\`\`\``;
     const legacySavings = ((jsonStr.length - legacyBlock.length) / jsonStr.length) * 100;
 
     // GCF
@@ -402,7 +402,7 @@ describe("GCF vs legacy omni-tabular — compression comparison", () => {
     );
   });
 
-  it("GCF compresses cases that legacy omni-tabular skips entirely", async () => {
+  it("GCF compresses cases that legacy bi-tabular skips entirely", async () => {
     // Heterogeneous: legacy would skip, GCF handles it
     const heteroRows: Record<string, unknown>[] = [
       ...Array.from({ length: 10 }, (_, i) => ({ id: i, name: `user-${i}`, role: "admin" })),
@@ -425,7 +425,7 @@ describe("GCF vs legacy omni-tabular — compression comparison", () => {
     );
   });
 
-  it("GCF compresses nested objects that legacy omni-tabular JSON-stringifies", async () => {
+  it("GCF compresses nested objects that legacy bi-tabular JSON-stringifies", async () => {
     const nestedRows = Array.from({ length: 20 }, (_, i) => ({
       id: i,
       user: {

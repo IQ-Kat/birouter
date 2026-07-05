@@ -126,7 +126,7 @@ describe("Electron URL Validation", () => {
   });
 
   it("should allow https URLs", () => {
-    assert.equal(validateExternalUrl("https://github.com/diegosouzapw/OmniRoute").allowed, true);
+    assert.equal(validateExternalUrl("https://github.com/IQ-Kat/birouter").allowed, true);
   });
 
   it("should block file:// protocol (RCE risk)", () => {
@@ -480,7 +480,7 @@ describe("Electron SQLite credential inspection", () => {
   } = require("../../electron/sqlite-inspection.js");
 
   function withTempDb(fn) {
-    const dir = mkdtempSync(join(tmpdir(), "omniroute-electron-db-"));
+    const dir = mkdtempSync(join(tmpdir(), "birouter-electron-db-"));
     const dbPath = join(dir, "storage.sqlite");
     const db = new DatabaseSync(dbPath);
 
@@ -517,6 +517,6 @@ describe("Electron SQLite credential inspection", () => {
   });
 
   it("should return false when the database file does not exist", () => {
-    assert.equal(hasEncryptedCredentials(join(tmpdir(), "missing-omniroute.sqlite")), false);
+    assert.equal(hasEncryptedCredentials(join(tmpdir(), "missing-birouter.sqlite")), false);
   });
 });

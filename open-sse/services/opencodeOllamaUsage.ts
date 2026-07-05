@@ -14,14 +14,14 @@ type UsageQuota = {
 };
 
 const OPENCODE_GO_QUOTA_URL =
-  process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL ?? "https://api.z.ai/api/monitor/usage/quota/limit";
+  process.env.BIROUTER_OPENCODE_GO_QUOTA_URL ?? "https://api.z.ai/api/monitor/usage/quota/limit";
 const OPENCODE_GO_DASHBOARD_BASE_URL =
-  process.env.OMNIROUTE_OPENCODE_GO_DASHBOARD_URL ?? "https://opencode.ai/workspace";
+  process.env.BIROUTER_OPENCODE_GO_DASHBOARD_URL ?? "https://opencode.ai/workspace";
 const OPENCODE_GO_QUOTA_TOTALS = { session: 12, weekly: 30, mcp_monthly: 60 } as const;
 const OPENCODE_GO_QUOTA_ORDER = ["session", "weekly", "mcp_monthly"] as const;
 const OPENCODE_GO_SCRAPED_NUMBER = String.raw`(-?\d+(?:\.\d+)?)`;
 const OLLAMA_CLOUD_USAGE_URL =
-  process.env.OMNIROUTE_OLLAMA_CLOUD_USAGE_URL ?? "https://ollama.com/settings";
+  process.env.BIROUTER_OLLAMA_CLOUD_USAGE_URL ?? "https://ollama.com/settings";
 const OLLAMA_CLOUD_SESSION_COOKIE = "__Secure-session";
 
 type OpenCodeGoQuotaName = (typeof OPENCODE_GO_QUOTA_ORDER)[number];
@@ -37,9 +37,7 @@ type OllamaCloudUsage = {
   planTier?: string | null;
 };
 type OllamaCloudConfig =
-  | { state: "configured"; cookie: string }
-  | { state: "invalid"; error: string }
-  | { state: "none" };
+  { state: "configured"; cookie: string } | { state: "invalid"; error: string } | { state: "none" };
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -102,7 +100,7 @@ function resolveOpenCodeGoDashboardConfig(
   providerSpecificData?: JsonRecord
 ): OpenCodeGoDashboardConfig {
   const workspaceId =
-    process.env.OMNIROUTE_OPENCODE_GO_WORKSPACE_ID?.trim() ||
+    process.env.BIROUTER_OPENCODE_GO_WORKSPACE_ID?.trim() ||
     process.env.OPENCODE_GO_WORKSPACE_ID?.trim() ||
     getProviderSpecificString(providerSpecificData, [
       "openCodeGoWorkspaceId",
@@ -110,7 +108,7 @@ function resolveOpenCodeGoDashboardConfig(
       "workspaceId",
     ]);
   const authCookie =
-    process.env.OMNIROUTE_OPENCODE_GO_AUTH_COOKIE?.trim() ||
+    process.env.BIROUTER_OPENCODE_GO_AUTH_COOKIE?.trim() ||
     process.env.OPENCODE_GO_AUTH_COOKIE?.trim() ||
     getProviderSpecificString(providerSpecificData, [
       "openCodeGoAuthCookie",
@@ -355,7 +353,7 @@ export async function getOpenCodeGoUsage(apiKey: string, providerSpecificData?: 
       return {
         message:
           `OpenCode Go quota API error (${res.status}). ` +
-          "Set OMNIROUTE_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
+          "Set BIROUTER_OPENCODE_GO_QUOTA_URL to a working endpoint, or follow " +
           "https://github.com/anomalyco/opencode/issues/16017 for upstream status.",
       };
     }
@@ -443,7 +441,7 @@ export async function getOpenCodeGoUsage(apiKey: string, providerSpecificData?: 
 
 function resolveOllamaCloudConfig(providerSpecificData?: JsonRecord): OllamaCloudConfig {
   const cookie =
-    process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE?.trim() ||
+    process.env.BIROUTER_OLLAMA_USAGE_COOKIE?.trim() ||
     process.env.OLLAMA_USAGE_COOKIE?.trim() ||
     process.env.OLLAMA_CLOUD_USAGE_COOKIE?.trim() ||
     getProviderSpecificString(providerSpecificData, [

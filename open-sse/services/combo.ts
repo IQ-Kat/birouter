@@ -1976,8 +1976,8 @@ export async function handleComboChat({
           // Success — validate response quality before returning
           if (result.ok) {
             const selectedConnectionId =
-              result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-              result.headers?.get("x-omniroute-selected-connection-id") ||
+              result.headers?.get("X-Birouter-Selected-Connection-Id") ||
+              result.headers?.get("x-birouter-selected-connection-id") ||
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
@@ -2328,8 +2328,8 @@ export async function handleComboChat({
           );
           const { cooldownMs } = fallbackResult;
           const selectedConnectionId =
-            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-            result.headers?.get("x-omniroute-selected-connection-id") ||
+            result.headers?.get("X-Birouter-Selected-Connection-Id") ||
+            result.headers?.get("x-birouter-selected-connection-id") ||
             undefined;
           const targetWithConnection = selectedConnectionId
             ? { ...target, connectionId: selectedConnectionId }
@@ -2400,7 +2400,7 @@ export async function handleComboChat({
           // If the next target in the combo is on the same provider, don't mark the provider
           // as failed — different models on the same provider may still succeed.
           // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor
-          // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
+          // outage signalled via X-Bi-Fallback-Hint: connection_cooldown) apply connection
           // cooldown only — do NOT trip the whole-provider breaker.
           const nextTarget = orderedTargets[i + 1];
           const sameProviderNext =
@@ -3072,8 +3072,8 @@ async function handleRoundRobinCombo({
           recordedAttempts++;
 
           const selectedConnectionId =
-            result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-            result.headers?.get("x-omniroute-selected-connection-id") ||
+            result.headers?.get("X-Birouter-Selected-Connection-Id") ||
+            result.headers?.get("x-birouter-selected-connection-id") ||
             undefined;
           const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
@@ -3231,8 +3231,8 @@ async function handleRoundRobinCombo({
         );
         const { cooldownMs } = fallbackResult;
         const selectedConnectionId =
-          result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
-          result.headers?.get("x-omniroute-selected-connection-id") ||
+          result.headers?.get("X-Birouter-Selected-Connection-Id") ||
+          result.headers?.get("x-birouter-selected-connection-id") ||
           undefined;
         const targetWithConnection = selectedConnectionId
           ? { ...target, connectionId: selectedConnectionId }

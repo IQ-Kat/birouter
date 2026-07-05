@@ -4,7 +4,7 @@ import {
   getComboMetrics,
   resetComboMetrics,
   resetAllComboMetrics,
-} from "@omniroute/open-sse/services/comboMetrics.ts";
+} from "@birouter/open-sse/services/comboMetrics.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/combos/metrics - Get per-combo metrics

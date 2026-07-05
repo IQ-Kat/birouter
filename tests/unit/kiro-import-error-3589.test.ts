@@ -14,7 +14,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Hermetic temp DATA_DIR so importing the route's dependency graph is safe.
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-kiro-3589-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-kiro-3589-"));
 process.env.DATA_DIR = tmpDir;
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-jwt-secret-3589";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-api-key-secret-3589";

@@ -1,6 +1,6 @@
 /**
  * rebrandColorToBlue.mjs
- * Replaces all OmniRoute/legacy red brand colors with Birouter sky-blue palette
+ * Replaces all Birouter/legacy red brand colors with Birouter sky-blue palette
  * across all .tsx, .ts, .css files in src/.
  *
  * Red → Blue mapping:

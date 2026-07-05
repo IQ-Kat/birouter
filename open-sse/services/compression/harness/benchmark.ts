@@ -59,7 +59,7 @@ export interface EngineBenchmarkGateRow {
 
 // ── Fixture corpus (BENCHMARK_CORPUS) ────────────────────────────────────────
 // Representative samples for reproducible A/B runs in CI and local dev.
-// Three task groups mirror real OmniRoute workloads:
+// Three task groups mirror real Birouter workloads:
 //   "prose"       — conversational / documentation turns
 //   "tool-output" — bash/CLI raw output with repeated structural noise
 //   "json"        — structured tool results / API responses

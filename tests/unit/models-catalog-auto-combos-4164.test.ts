@@ -1,7 +1,7 @@
 /**
  * #4164 — the built-in `auto/*` combos must be advertised in `/v1/models`.
  *
- * OmniRoute ships a zero-setup `auto/*` catalog (auto/best-coding, auto/pro-
+ * Birouter ships a zero-setup `auto/*` catalog (auto/best-coding, auto/pro-
  * reasoning, …) that the dashboard advertises and that resolve on demand via
  * createBuiltinAutoCombo. But the `/v1/models` listing only emitted persisted DB
  * combos + provider models, so clients that build their model picker from
@@ -15,7 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-catalog-auto-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-catalog-auto-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-auto-test-secret";
 
@@ -113,7 +113,11 @@ test("#4189 every auto/* entry exposes token limits + baseline capabilities", as
       `${entry.id} must expose a numeric context_length`
     );
     assert.ok((entry.context_length ?? 0) > 0, `${entry.id} context_length must be positive`);
-    assert.equal(typeof entry.max_input_tokens, "number", `${entry.id} must expose max_input_tokens`);
+    assert.equal(
+      typeof entry.max_input_tokens,
+      "number",
+      `${entry.id} must expose max_input_tokens`
+    );
     assert.equal(
       typeof entry.max_output_tokens,
       "number",

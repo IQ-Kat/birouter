@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  getBifrostRoutingConfig,
+  getOmnifrostRoutingConfig,
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
@@ -11,17 +11,17 @@ test("relay routing backend defaults to TypeScript without bifrost", () => {
   const env = {};
 
   assert.equal(resolveRelayRoutingBackend(env), "ts");
-  assert.equal(getBifrostRoutingConfig(env), null);
+  assert.equal(getOmnifrostRoutingConfig(env), null);
 });
 
 test("relay routing backend auto-enables bifrost when base URL is configured", () => {
   const env = {
     BIFROST_BASE_URL: "http://127.0.0.1:8080/",
-    OMNIROUTE_BIFROST_KEY: "sidecar-key",
+    BIROUTER_BIFROST_KEY: "sidecar-key",
     BIFROST_TIMEOUT_MS: "250",
   };
 
-  const config = getBifrostRoutingConfig(env);
+  const config = getOmnifrostRoutingConfig(env);
 
   assert.equal(resolveRelayRoutingBackend(env), "auto");
   assert.equal(config?.baseUrl, "http://127.0.0.1:8080");
@@ -35,14 +35,14 @@ test("relay routing backend auto-enables bifrost when base URL is configured", (
 test("relay routing backend honors explicit TS and strict bifrost modes", () => {
   const env = {
     BIFROST_BASE_URL: "http://127.0.0.1:8080",
-    OMNIROUTE_RELAY_BACKEND: "ts",
+    BIROUTER_RELAY_BACKEND: "ts",
   };
-  const config = getBifrostRoutingConfig(env);
+  const config = getOmnifrostRoutingConfig(env);
 
   assert.equal(resolveRelayRoutingBackend(env), "ts");
   assert.equal(shouldTryBifrost("ts", config), false);
 
-  env.OMNIROUTE_RELAY_BACKEND = "bifrost";
+  env.BIROUTER_RELAY_BACKEND = "bifrost";
   assert.equal(resolveRelayRoutingBackend(env), "bifrost");
   assert.equal(shouldTryBifrost("bifrost", config), true);
 });
@@ -52,7 +52,7 @@ test("relay routing backend respects bifrost killswitch", () => {
     BIFROST_BASE_URL: "http://127.0.0.1:8080",
     BIFROST_ENABLED: "0",
   };
-  const config = getBifrostRoutingConfig(env);
+  const config = getOmnifrostRoutingConfig(env);
 
   assert.equal(resolveRelayRoutingBackend(env), "ts");
   assert.equal(config?.enabled, false);
@@ -65,11 +65,11 @@ test("relay routing backend falls back on invalid timeout values", () => {
     BIFROST_TIMEOUT_MS: "not-a-number",
   };
 
-  assert.equal(getBifrostRoutingConfig(env)?.timeoutMs, 30000);
+  assert.equal(getOmnifrostRoutingConfig(env)?.timeoutMs, 30000);
 });
 
 test("relay routing backend exposes TS fallback header only for enabled auto bifrost fallback", () => {
-  const config = getBifrostRoutingConfig({
+  const config = getOmnifrostRoutingConfig({
     BIFROST_BASE_URL: "http://127.0.0.1:8080",
   });
 
@@ -79,7 +79,7 @@ test("relay routing backend exposes TS fallback header only for enabled auto bif
   assert.equal(
     getRoutingFallbackHeader(
       "auto",
-      getBifrostRoutingConfig({
+      getOmnifrostRoutingConfig({
         BIFROST_BASE_URL: "http://127.0.0.1:8080",
         BIFROST_ENABLED: "0",
       })
@@ -90,11 +90,11 @@ test("relay routing backend exposes TS fallback header only for enabled auto bif
 });
 
 test("relay routing backend keeps strict bifrost failures out of auto fallback accounting", () => {
-  const config = getBifrostRoutingConfig({
+  const config = getOmnifrostRoutingConfig({
     BIFROST_BASE_URL: "http://127.0.0.1:8080",
   });
 
   assert.equal(shouldTryBifrost("bifrost", config), true);
   assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
-  assert.equal(resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "bifrost" }), "bifrost");
+  assert.equal(resolveRelayRoutingBackend({ BIROUTER_RELAY_BACKEND: "bifrost" }), "bifrost");
 });

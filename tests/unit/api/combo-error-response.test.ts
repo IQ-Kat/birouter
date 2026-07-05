@@ -1,7 +1,7 @@
 /**
  * Unit tests for the standardized combo error response helper.
  *
- * Bug #3 from `plans/2026-06-23-omniroute-v3.8.34-deep-audit.md`:
+ * Bug #3 from `plans/2026-06-23-birouter-v3.8.34-deep-audit.md`:
  * every 4xx response from `/api/combos/{id}` must include a stable
  * machine-readable `code` token, an `error.message`, optional
  * `error.details`, and `requestId` correlation. These tests assert the

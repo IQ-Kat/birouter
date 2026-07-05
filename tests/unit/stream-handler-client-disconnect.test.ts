@@ -16,7 +16,7 @@ test("client disconnect: ResponseAborted is a client disconnect", () => {
 });
 
 test("client disconnect: 'Controller is already closed' TypeError is a client disconnect", () => {
-  // Thrown when OmniRoute enqueues into a response stream the client already closed.
+  // Thrown when Birouter enqueues into a response stream the client already closed.
   // name is "TypeError", so this must be matched by message, not name.
   const err = new TypeError("Invalid state: Controller is already closed");
   assert.equal(isClientDisconnectError(err), true);

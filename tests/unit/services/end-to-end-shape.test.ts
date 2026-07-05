@@ -21,7 +21,7 @@ import path from "node:path";
 // Isolated test DB
 // ---------------------------------------------------------------------------
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-e2e-shape-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-e2e-shape-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
@@ -298,7 +298,7 @@ describe("9router — response shapes", () => {
       const expectedShape = {
         ok: true,
         installedVersion: "0.4.59",
-        installPath: "/home/user/.omniroute/bin",
+        installPath: "/home/user/.birouter/bin",
         durationMs: 1200,
       };
       // Shape assertion (structural, not calling install which spawns npm):
@@ -450,7 +450,7 @@ describe("cliproxy — response shapes", () => {
       const expectedShape = {
         ok: true,
         installedVersion: "6.1.2",
-        installPath: "/home/user/.omniroute/bin",
+        installPath: "/home/user/.birouter/bin",
         durationMs: 800,
       };
       assert.strictEqual(expectedShape.ok, true);

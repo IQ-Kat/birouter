@@ -66,7 +66,7 @@ export function WebSearchExampleCard({ providerId }: Props) {
   const t = useTranslations("miniPlayground");
   const { apiKey } = useApiKey();
 
-  const [query, setQuery] = useState<string>("What is OmniRoute AI gateway?");
+  const [query, setQuery] = useState<string>("What is Birouter AI gateway?");
   const [numResults, setNumResults] = useState<number>(5);
   const [running, setRunning] = useState<boolean>(false);
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
@@ -133,7 +133,7 @@ export function WebSearchExampleCard({ providerId }: Props) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="What is OmniRoute AI gateway?"
+          placeholder="What is Birouter AI gateway?"
           className="w-full rounded-md border border-border bg-bg-subtle text-sm px-2 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>

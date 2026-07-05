@@ -7,7 +7,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ultraCompress } from "@omniroute/open-sse/services/compression/ultra.ts";
+import { ultraCompress } from "@birouter/open-sse/services/compression/ultra.ts";
 
 test("ultraCompress preserves fenced code, inline code, and URLs byte-identical", async () => {
   const code = "```ts\nexport function add(a, b) {\n  return a + b;\n}\n```";

@@ -7,7 +7,7 @@
  * optional `details` payload, and the current `requestId` for log
  * correlation. The prior shape returned `{ error: <string|object> }` with
  * no `code` field, which forced clients to string-match English error
- * messages. See `plans/2026-06-23-omniroute-v3.8.34-deep-audit.md` (Bug #3).
+ * messages. See `plans/2026-06-23-birouter-v3.8.34-deep-audit.md` (Bug #3).
  *
  * Usage:
  *   return comboErrorResponse("COMBO_002", 400, { issues: validation.issues });
@@ -19,10 +19,7 @@
  */
 
 import { ERROR_CODES } from "@/shared/constants/errorCodes";
-import {
-  attachRequestIdToResponse,
-  getRequestId,
-} from "@/shared/utils/requestId";
+import { attachRequestIdToResponse, getRequestId } from "@/shared/utils/requestId";
 
 export type ComboErrorCode =
   | "COMBO_001" // request body is not valid JSON
@@ -46,10 +43,7 @@ export interface ComboErrorBody {
   };
 }
 
-export function buildComboErrorBody(
-  code: ComboErrorCode,
-  details?: unknown
-): ComboErrorBody {
+export function buildComboErrorBody(code: ComboErrorCode, details?: unknown): ComboErrorBody {
   const def = ERROR_CODES[code] ?? ERROR_CODES.INTERNAL_001;
   const requestId = getRequestId();
   return {

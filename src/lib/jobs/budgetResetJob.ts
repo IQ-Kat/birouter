@@ -5,7 +5,7 @@ const DEFAULT_INTERVAL_MS = 10 * 60 * 1000;
 let timer: NodeJS.Timeout | null = null;
 
 function getIntervalMs() {
-  const raw = process.env.OMNIROUTE_BUDGET_RESET_JOB_INTERVAL_MS;
+  const raw = process.env.BIROUTER_BUDGET_RESET_JOB_INTERVAL_MS;
   const parsed = raw ? Number(raw) : Number.NaN;
   return Number.isFinite(parsed) && parsed >= 10_000 ? parsed : DEFAULT_INTERVAL_MS;
 }

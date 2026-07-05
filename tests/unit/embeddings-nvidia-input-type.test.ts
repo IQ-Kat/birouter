@@ -4,13 +4,13 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-embeddings-nvidia-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-embeddings-nvidia-"));
 
 const { handleEmbedding } = await import("../../open-sse/handlers/embeddings.ts");
 
 // Issue #1378: NVIDIA NIM asymmetric embedding models (e.g. nvidia/nv-embedqa-e5-v5)
 // require an `input_type` parameter ("query" | "passage"); without it the upstream
-// returns 400 "'input_type' parameter is required". OmniRoute must inject the
+// returns 400 "'input_type' parameter is required". Birouter must inject the
 // registered model-level default when the client omits input_type, and must respect
 // a client-supplied input_type when present.
 

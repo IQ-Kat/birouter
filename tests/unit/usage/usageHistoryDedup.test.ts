@@ -16,7 +16,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolate the DB from other tests and from the real data dir.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-dedup-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-usage-dedup-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 // Dynamic imports so DATA_DIR is set before any module initialises the DB.

@@ -1,10 +1,10 @@
 ---
-title: "🐳 Docker Guide — OmniRoute"
+title: "🐳 Docker Guide — Birouter"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🐳 Docker Guide — OmniRoute
+# 🐳 Docker Guide — Birouter
 
 > Complete Docker deployment reference. For a quick start, see the [README Docker section](../README.md#-docker).
 
@@ -29,12 +29,12 @@ lastUpdated: 2026-06-28
 
 ```bash
 docker run -d \
-  --name omniroute \
+  --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
   -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
+  -v birouter-data:/app/data \
+  IQ-Kat/birouter:latest
 ```
 
 ## With Environment File
@@ -44,13 +44,13 @@ docker run -d \
 cp .env.example .env
 
 docker run -d \
-  --name omniroute \
+  --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
   --env-file .env \
   -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
+  -v birouter-data:/app/data \
+  IQ-Kat/birouter:latest
 ```
 
 ## Docker Compose
@@ -71,28 +71,28 @@ docker compose --profile cli --profile cliproxyapi up -d
 
 ## Available Profiles
 
-OmniRoute ships four Compose profiles. Pick the one that matches your environment.
+Birouter ships four Compose profiles. Pick the one that matches your environment.
 
-| Profile          | Service          | When to use                                                                                                                       | Command                                      |
-| ---------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `base` (default) | `omniroute-base` | Headless server / minimal runtime, no provider CLIs bundled                                                                       | `docker compose --profile base up -d`        |
-| `cli`            | `omniroute-cli`  | Agentic workflows that call `omniroute providers/setup/doctor` and bundled CLIs (Codex, Claude Code, Droid, OpenClaw)             | `docker compose --profile cli up -d`         |
-| `host`           | `omniroute-host` | Linux hosts that want `network_mode`-like access to host CLIs by mounting `~/.local/bin`, `~/.codex`, `~/.claude`, etc. read-only | `docker compose --profile host up -d`        |
-| `cliproxyapi`    | `cliproxyapi`    | Run the [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar on port `8317` for upstream CLI proxying              | `docker compose --profile cliproxyapi up -d` |
+| Profile          | Service         | When to use                                                                                                                       | Command                                      |
+| ---------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `base` (default) | `birouter-base` | Headless server / minimal runtime, no provider CLIs bundled                                                                       | `docker compose --profile base up -d`        |
+| `cli`            | `birouter-cli`  | Agentic workflows that call `birouter providers/setup/doctor` and bundled CLIs (Codex, Claude Code, Droid, OpenClaw)              | `docker compose --profile cli up -d`         |
+| `host`           | `birouter-host` | Linux hosts that want `network_mode`-like access to host CLIs by mounting `~/.local/bin`, `~/.codex`, `~/.claude`, etc. read-only | `docker compose --profile host up -d`        |
+| `cliproxyapi`    | `cliproxyapi`   | Run the [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar on port `8317` for upstream CLI proxying              | `docker compose --profile cliproxyapi up -d` |
 
 > Multiple profiles can be combined: `docker compose --profile cli --profile cliproxyapi up -d`.
 
 ## Redis Sidecar
 
-OmniRoute relies on Redis to back the distributed rate limiter and shared cache. The `redis` service is **always defined** in `docker-compose.yml` (it has no profile gate) and starts alongside any other profile.
+Birouter relies on Redis to back the distributed rate limiter and shared cache. The `redis` service is **always defined** in `docker-compose.yml` (it has no profile gate) and starts alongside any other profile.
 
 | Detail               | Value                             |
 | -------------------- | --------------------------------- |
 | Image                | `redis:7-alpine`                  |
-| Container name       | `omniroute-redis`                 |
+| Container name       | `birouter-redis`                  |
 | Internal port        | `6379`                            |
 | Host port (override) | `REDIS_PORT` (defaults to `6379`) |
-| Volume               | `omniroute-redis-data` → `/data`  |
+| Volume               | `birouter-redis-data` → `/data`   |
 | Healthcheck          | `redis-cli ping` (10s interval)   |
 
 Related environment variables:
@@ -115,9 +115,9 @@ For an isolated production snapshot running alongside dev, use `docker-compose.p
 | File                   | `docker-compose.prod.yml`                                                          |
 | Default dashboard port | `PROD_DASHBOARD_PORT=20130` (mapped to internal `${DASHBOARD_PORT:-20128}`)        |
 | Default API port       | `PROD_API_PORT=20131`                                                              |
-| Image                  | `omniroute:prod` (built from `runner-cli` target)                                  |
-| Redis container        | `omniroute-redis-prod` (`redis:8.6.2`, dedicated `redis-prod-data` volume)         |
-| Data volume            | `omniroute-prod-data` (named, persisted across rebuilds)                           |
+| Image                  | `birouter:prod` (built from `runner-cli` target)                                   |
+| Redis container        | `birouter-redis-prod` (`redis:8.6.2`, dedicated `redis-prod-data` volume)          |
+| Data volume            | `birouter-prod-data` (named, persisted across rebuilds)                            |
 | Healthchecks           | `node healthcheck.mjs` + `redis-cli ping`, with `depends_on` gated on Redis health |
 
 How to use:
@@ -148,18 +148,18 @@ The repository ships a multi-stage Dockerfile (`Dockerfile`). Three stages are e
 Build a specific target manually:
 
 ```bash
-docker build --target runner-base -t omniroute:base .
-docker build --target runner-cli  -t omniroute:cli  .
+docker build --target runner-base -t birouter:base .
+docker build --target runner-cli  -t birouter:cli  .
 ```
 
-Defaults exported by `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `NODE_OPTIONS=--max-old-space-size=512`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Defaults exported by `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `NODE_OPTIONS=--max-old-space-size=512`, `DATA_DIR=/app/data`, `BIROUTER_MIGRATIONS_DIR=/app/migrations`.
 
 Memory behavior in Docker:
 
 - `NODE_OPTIONS=--max-old-space-size=512` is baked into the image as a fallback.
-- The actual server process is started by the standalone launcher, which reads `OMNIROUTE_MEMORY_MB` and appends `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node uses the last repeated `--max-old-space-size` value, so setting `OMNIROUTE_MEMORY_MB` controls the effective Docker heap limit.
-- If `OMNIROUTE_MEMORY_MB` is unset, the launcher uses `512`.
+- The actual server process is started by the standalone launcher, which reads `BIROUTER_MEMORY_MB` and appends `--max-old-space-size=<BIROUTER_MEMORY_MB>`.
+- Node uses the last repeated `--max-old-space-size` value, so setting `BIROUTER_MEMORY_MB` controls the effective Docker heap limit.
+- If `BIROUTER_MEMORY_MB` is unset, the launcher uses `512`.
 
 ## Critical Environment Variables
 
@@ -167,33 +167,33 @@ Beyond the defaults documented in [ENVIRONMENT.md](../reference/ENVIRONMENT.md),
 
 | Variable                      | Purpose                                                                                             | Default                  |
 | ----------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------ |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Shared secret for the WebSocket bridge. **Required in production** — set to a strong random string. | unset (must be provided) |
+| `BIROUTER_WS_BRIDGE_SECRET`   | Shared secret for the WebSocket bridge. **Required in production** — set to a strong random string. | unset (must be provided) |
 | `REDIS_URL`                   | Connection string for the rate limiter / cache backend                                              | `redis://redis:6379`     |
 | `REDIS_PORT`                  | Host-side port for the bundled Redis container                                                      | `6379`                   |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Host path mounted into `cli` profile at `/workspace/omniroute` for self-update workflows            | `.` (current directory)  |
-| `OMNIROUTE_MEMORY_MB`         | Runtime Node heap ceiling for the Docker standalone server; overrides the image fallback above      | `512`                    |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Host path mounted into `cli` profile at `/workspace/birouter` for self-update workflows             | `.` (current directory)  |
+| `BIROUTER_MEMORY_MB`          | Runtime Node heap ceiling for the Docker standalone server; overrides the image fallback above      | `512`                    |
 | `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (20128) and API (20129)                                        | `20128` / `20129`        |
 | `PROD_DASHBOARD_PORT`         | Host-side dashboard port for `docker-compose.prod.yml`                                              | `20130`                  |
 | `CLIPROXYAPI_PORT`            | Host-side port for the `cliproxyapi` sidecar                                                        | `8317`                   |
 
 ## Docker Compose with Caddy (HTTPS Auto-TLS)
 
-OmniRoute can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
+Birouter can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
 
 ```yaml
 services:
-  omniroute:
-    image: diegosouzapw/omniroute:latest
-    container_name: omniroute
+  birouter:
+    image: IQ-Kat/birouter:latest
+    container_name: birouter
     restart: unless-stopped
     volumes:
-      - omniroute-data:/app/data
+      - birouter-data:/app/data
     environment:
       - PORT=20128
       # Browser-facing origin for OAuth callbacks, dashboard links, and generated public URLs.
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
       # Internal server-to-server URL for scheduled jobs / self-fetches.
-      - BASE_URL=http://omniroute:20128
+      - BASE_URL=http://birouter:20128
       - AUTH_COOKIE_SECURE=true
 
   caddy:
@@ -203,17 +203,17 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
+    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:20128
 
 volumes:
-  omniroute-data:
+  birouter-data:
 ```
 
-Caddy sets the standard forwarding headers for the upstream container. OmniRoute uses
+Caddy sets the standard forwarding headers for the upstream container. Birouter uses
 `NEXT_PUBLIC_BASE_URL` as the canonical public origin for OAuth callbacks and generated public
 links; authenticated dashboard writes use same-origin requests plus session-bound CSRF
-protection. Only enable `OMNIROUTE_TRUST_PROXY` for advanced deployments where you intentionally
-want OmniRoute to derive the public origin from trusted forwarded headers instead of explicit
+protection. Only enable `BIROUTER_TRUST_PROXY` for advanced deployments where you intentionally
+want Birouter to derive the public origin from trusted forwarded headers instead of explicit
 configuration.
 
 ## Cloudflare Quick Tunnel
@@ -225,24 +225,24 @@ Endpoint tunnel panels (Cloudflare, Tailscale, ngrok) can be shown or hidden fro
 ### Tunnel Notes
 
 - Quick Tunnel URLs are temporary and change after every restart.
-- Quick Tunnels are not auto-restored after an OmniRoute or container restart. Re-enable them from the dashboard when needed.
+- Quick Tunnels are not auto-restored after an Birouter or container restart. Re-enable them from the dashboard when needed.
 - Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
 - Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained container environments. Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want a different transport.
 - Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
-- Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
+- Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want Birouter to use an existing binary instead of downloading one.
 
 ## Image Tags
 
-| Image                    | Tag      | Size   | Description           |
-| ------------------------ | -------- | ------ | --------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Current version       |
+| Image             | Tag      | Size   | Description           |
+| ----------------- | -------- | ------ | --------------------- |
+| `IQ-Kat/birouter` | `latest` | ~250MB | Latest stable release |
+| `IQ-Kat/birouter` | `3.8.0`  | ~250MB | Current version       |
 
 Multi-platform manifest: `linux/amd64` + `linux/arm64` native (Apple Silicon, AWS Graviton, Raspberry Pi). Docker selects the matching architecture automatically; pass `--platform linux/amd64` if you need to force AMD64 emulation on ARM hosts.
 
 ## Important Notes
 
-- **SQLite WAL Mode:** `docker stop` should be allowed to finish so OmniRoute can checkpoint the latest changes back into `storage.sqlite`. The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40`.
+- **SQLite WAL Mode:** `docker stop` should be allowed to finish so Birouter can checkpoint the latest changes back into `storage.sqlite`. The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40`.
 - **`DISABLE_SQLITE_AUTO_BACKUP`:** Set to `true` if backups are managed externally.
 - **Data Persistence:** Always mount a volume to `/app/data` to persist your database, keys, and configurations across container restarts.
 - **Port Configuration:** Override `PORT` environment variable to change the default `20128` port.

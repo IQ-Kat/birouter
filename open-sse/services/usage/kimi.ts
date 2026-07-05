@@ -50,7 +50,7 @@ function getKimiPlanName(level: unknown): string {
 export async function getKimiUsage(accessToken?: string, apiKey?: string) {
   // Generate device info for headers (same as OAuth flow)
   const deviceId = "kimi-usage-" + Date.now();
-  const platform = "omniroute";
+  const platform = "birouter";
   const version = "2.1.2";
   const deviceModel =
     typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";

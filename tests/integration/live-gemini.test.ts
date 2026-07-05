@@ -5,7 +5,7 @@ import { ensureTestEnvironment, MODEL, BASE_URL, API_KEY } from "./liveGeminiSha
 
 const DIRECT_MODEL = process.env.TEST_GEMINI_DIRECT_MODEL || "gemini/gemini-2.0-flash";
 
-const skip = !API_KEY ? "OMNIROUTE_API_KEY not set — skipping live test" : undefined;
+const skip = !API_KEY ? "BIROUTER_API_KEY not set — skipping live test" : undefined;
 
 test.before(async () => {
   await ensureTestEnvironment();

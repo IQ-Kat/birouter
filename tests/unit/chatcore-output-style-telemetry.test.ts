@@ -9,13 +9,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-os-telemetry-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-os-telemetry-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { emitOutputStyleTelemetry } = await import(
-  "../../open-sse/handlers/chatCore/outputStyleTelemetry.ts"
-);
+const { emitOutputStyleTelemetry } =
+  await import("../../open-sse/handlers/chatCore/outputStyleTelemetry.ts");
 
 function rowFor(requestId: string): Record<string, unknown> | undefined {
   try {
@@ -71,7 +70,12 @@ test("null outputStyleResult is a no-op (returns synchronously, no throw)", asyn
 
 test("applied output-style result records a run-telemetry row (source=active-profile when combo id set)", async () => {
   emitOutputStyleTelemetry({
-    outputStyleResult: { body: {} as never, applied: true, appliedStyles: [], skippedReason: undefined },
+    outputStyleResult: {
+      body: {} as never,
+      applied: true,
+      appliedStyles: [],
+      skippedReason: undefined,
+    },
     skillRequestId: "os-req-1",
     traceId: "trace-1",
     effectiveModel: "gpt-os",

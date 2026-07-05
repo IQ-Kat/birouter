@@ -1,4 +1,4 @@
-# OmniRoute CLI — Internal Conventions
+# Birouter CLI — Internal Conventions
 
 > Status: normative. Source: `_tasks/features-v3.8.0/cli/fase-0-preparacao/0.3-definir-convencoes.md`.
 > This file is the authoritative reference for every new or migrated CLI command.
@@ -10,16 +10,16 @@
 **Standard**: `git`-style nested verbs.
 
 ```
-omniroute keys add openai sk-xxx
-omniroute combo switch fastest
-omniroute memory search "react hooks"
+birouter keys add openai sk-xxx
+birouter combo switch fastest
+birouter memory search "react hooks"
 ```
 
 **Not allowed**:
 
 ```
-omniroute --add-key openai sk-xxx     # ❌ flag-as-verb
-omniroute add-key openai sk-xxx       # ❌ hyphen at the top level
+birouter --add-key openai sk-xxx     # ❌ flag-as-verb
+birouter add-key openai sk-xxx       # ❌ hyphen at the top level
 ```
 
 ## 2. Flags
@@ -68,10 +68,10 @@ Helper: `exitWith(code, message?)` from `bin/cli/exit.mjs` (added under
 
 All API calls go through `apiFetch(path, opts)` (`bin/cli/api.mjs`), which:
 
-- Reads base URL from `OMNIROUTE_BASE_URL` env or `~/.omniroute/config.json`
+- Reads base URL from `BIROUTER_BASE_URL` env or `~/.birouter/config.json`
   (active profile).
-- Injects `Authorization: Bearer ${OMNIROUTE_API_KEY}` when available.
-- Injects `x-omniroute-cli-token` when applicable (see task 8.12).
+- Injects `Authorization: Bearer ${BIROUTER_API_KEY}` when available.
+- Injects `x-birouter-cli-token` when applicable (see task 8.12).
 - Applies a per-attempt timeout (`--timeout 30000`, default 30s).
 - Maps status → exit code (401→4, 429→5, 5xx→1, etc.).
 - Never exposes `err.stack` (CLAUDE.md hard rule #12).
@@ -138,8 +138,8 @@ export const RETRY_DEFAULTS = {
 - Catalogs live in `bin/cli/locales/{locale}.json` (nested objects).
   42 files ship out-of-the-box: `en`, `pt-BR`, and 40 additional locales.
   11 locales are scaffold-only (empty `{}`); all keys fall back to `en` automatically.
-- Detection order: `--lang` flag → `OMNIROUTE_LANG` env → `LC_ALL` → `LC_MESSAGES` → `LANG` → `en`.
-- Locale persisted via `config lang set <code>` — saves `OMNIROUTE_LANG` to `~/.omniroute/.env`.
+- Detection order: `--lang` flag → `BIROUTER_LANG` env → `LC_ALL` → `LC_MESSAGES` → `LANG` → `en`.
+- Locale persisted via `config lang set <code>` — saves `BIROUTER_LANG` to `~/.birouter/.env`.
 - Missing keys return the key itself (no crash).
 - PRs that add new strings **must** update `en.json` and `pt-BR.json`.
   Other locale files are best-effort; missing keys silently fall back to `en`.
@@ -201,7 +201,7 @@ Commands that mutate state (delete, reset, `--force`) **must**:
 - **Never** log secrets. Mask as `sk-***-xxx` via `maskSecret()` from
   `bin/cli/output.mjs`.
 - **Never** accept a secret via positional without warning. Prefer:
-  - env (`OMNIROUTE_*_API_KEY`)
+  - env (`BIROUTER_*_API_KEY`)
   - stdin (`--api-key-stdin`)
   - interactive `askSecret()` (echo off — already implemented in `io.mjs`)
 - Secrets must not appear in `--verbose` / `--debug` output.

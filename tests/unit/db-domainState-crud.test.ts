@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-domainstate-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-db-domainstate-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -166,7 +166,15 @@ test("saveBudgetResetLog and loadBudgetResetLogs", async () => {
 test("deleteBudget removes budget and reset logs", async () => {
   await resetStorage();
   ds.saveBudget("del-key", { dailyLimitUsd: 10 });
-  ds.saveBudgetResetLog({ apiKeyId: "del-key", resetInterval: "daily", previousSpend: 3, resetAt: 1, nextResetAt: 2, periodStart: 0, periodEnd: 1 });
+  ds.saveBudgetResetLog({
+    apiKeyId: "del-key",
+    resetInterval: "daily",
+    previousSpend: 3,
+    resetAt: 1,
+    nextResetAt: 2,
+    periodStart: 0,
+    periodEnd: 1,
+  });
   ds.deleteBudget("del-key");
   assert.equal(ds.loadBudget("del-key"), null);
   assert.deepEqual(ds.loadBudgetResetLogs("del-key"), []);

@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Compression Engines
 
-OmniRoute compression is built around engine contracts. A mode can run one engine directly
+Birouter compression is built around engine contracts. A mode can run one engine directly
 (`caveman` or `rtk`) or a deterministic stacked pipeline that executes multiple engines in order.
 
 ## Modes
@@ -69,7 +69,7 @@ Caveman mode focuses on semantic condensation of normal prose:
 The dashboard surface is `Dashboard -> Context & Cache -> Caveman`.
 
 Caveman upstream reports `~75%` fewer output tokens, `65%` average output savings in benchmarks
-with a `22-87%` range, and a `~46%` input-compression tool. OmniRoute uses the Caveman input-side
+with a `22-87%` range, and a `~46%` input-compression tool. Birouter uses the Caveman input-side
 number when documenting stacked prompt/context savings; Caveman output mode remains a separate
 response-behavior feature.
 
@@ -141,7 +141,7 @@ The prunable LLMLingua runtime peer stack is **optional**. Three packages are de
 `@huggingface/transformers` is pinned at `3.5.2` as an **optional** dependency (shared with
 the local embeddings path and also traced into the standalone bundle). Keeping it optional prevents
 `onnxruntime-node` CUDA provider postinstall failures on CUDA 11 hosts from aborting the whole
-OmniRoute install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
+Birouter install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
 packages above are prunable SLM peers. A standard `npm install` (dev) installs the optional stack
 automatically unless optional dependencies are omitted.
 
@@ -163,7 +163,7 @@ Per environment:
 
 - **Dev / `npm install`** — installed automatically unless you passed `--omit=optional`
   (or `--no-optional`). No action needed.
-- **Global npm (`npm i -g omniroute`) / standalone** — run the install command above inside
+- **Global npm (`npm i -g birouter`) / standalone** — run the install command above inside
   the installed package directory, or reinstall without omitting optional deps.
 - **Docker** — add the install command in a derived image layer; the published image
   ships slim by design.
@@ -291,13 +291,13 @@ Management routes require management authentication or API-key policy checks.
 
 Compression exposes five MCP tools:
 
-| Tool                                | Scope               | Purpose                          |
-| ----------------------------------- | ------------------- | -------------------------------- |
-| `omniroute_compression_status`      | `read:compression`  | Settings, analytics, cache stats |
-| `omniroute_compression_configure`   | `write:compression` | Update global settings           |
-| `omniroute_set_compression_engine`  | `write:compression` | Set mode and optional pipeline   |
-| `omniroute_list_compression_combos` | `read:compression`  | List compression combos          |
-| `omniroute_compression_combo_stats` | `read:compression`  | Read combo/engine analytics      |
+| Tool                               | Scope               | Purpose                          |
+| ---------------------------------- | ------------------- | -------------------------------- |
+| `birouter_compression_status`      | `read:compression`  | Settings, analytics, cache stats |
+| `birouter_compression_configure`   | `write:compression` | Update global settings           |
+| `birouter_set_compression_engine`  | `write:compression` | Set mode and optional pipeline   |
+| `birouter_list_compression_combos` | `read:compression`  | List compression combos          |
+| `birouter_compression_combo_stats` | `read:compression`  | Read combo/engine analytics      |
 
 ## Known limitations
 

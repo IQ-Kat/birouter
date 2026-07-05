@@ -84,8 +84,7 @@ async function main() {
   }
 
   const version = spec.info && typeof spec.info.version === "string" ? spec.info.version : "0.0.0";
-  const title =
-    spec.info && typeof spec.info.title === "string" ? spec.info.title : "OmniRoute API";
+  const title = spec.info && typeof spec.info.title === "string" ? spec.info.title : "Birouter API";
 
   const endpoints = [];
   for (const [rawPath, pathItem] of Object.entries(spec.paths)) {

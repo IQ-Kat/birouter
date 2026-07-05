@@ -20,7 +20,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-db-backups-skills-3500-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-db-backups-skills-3500-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -161,9 +161,7 @@ test("exportAllSummaryRows — returns provider_connections rows (no credentials
 
   const { providers } = backupMod.exportAllSummaryRows();
 
-  const found = (providers as Array<{ id: string; provider: string }>).find(
-    (p) => p.id === connId
-  );
+  const found = (providers as Array<{ id: string; provider: string }>).find((p) => p.id === connId);
   assert.ok(found, "providers must include seeded row");
   assert.equal(found?.provider, "openai");
   // Sensitive credential columns must NOT be exported — the query only selects

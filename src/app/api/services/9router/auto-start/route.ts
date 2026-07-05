@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { updateServiceField } from "@/lib/db/versionManager";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const BodySchema = z.object({ enabled: z.boolean() });
 

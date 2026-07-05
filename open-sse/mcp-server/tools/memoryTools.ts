@@ -32,8 +32,8 @@ export const MemoryClearSchema = z.object({
 });
 
 export const memoryTools = {
-  omniroute_memory_search: {
-    name: "omniroute_memory_search",
+  birouter_memory_search: {
+    name: "birouter_memory_search",
     description: "Search memories by query, type, or API key with token budget enforcement",
     scopes: ["read:memory"],
     inputSchema: MemorySearchSchema,
@@ -71,8 +71,8 @@ export const memoryTools = {
     },
   },
 
-  omniroute_memory_add: {
-    name: "omniroute_memory_add",
+  birouter_memory_add: {
+    name: "birouter_memory_add",
     description: "Add a new memory entry",
     scopes: ["write:memory"],
     inputSchema: MemoryAddSchema,
@@ -97,8 +97,8 @@ export const memoryTools = {
     },
   },
 
-  omniroute_memory_clear: {
-    name: "omniroute_memory_clear",
+  birouter_memory_clear: {
+    name: "birouter_memory_clear",
     description: "Clear memories for an API key, optionally filtered by type or age",
     scopes: ["write:memory"],
     inputSchema: MemoryClearSchema,

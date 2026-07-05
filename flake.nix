@@ -1,5 +1,5 @@
 {
-  description = "OmniRoute - Unified AI router with 160+ providers";
+  description = "Birouter - Unified AI router with 160+ providers";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -19,7 +19,7 @@
           ];
 
           shellHook = ''
-            echo "Welcome to OmniRoute dev environment"
+            echo "Welcome to Birouter dev environment"
             export PATH="$PWD/node_modules/.bin:$PATH"
             
             # Install dependencies if node_modules doesn't exist

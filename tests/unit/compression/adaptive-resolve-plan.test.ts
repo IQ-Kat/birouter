@@ -4,7 +4,7 @@ import {
   DEFAULT_LADDER,
   aggressivenessOf,
   expectedReductionFactor,
-} from "@omniroute/open-sse/services/compression/adaptiveCompression/ladder.ts";
+} from "@birouter/open-sse/services/compression/adaptiveCompression/ladder.ts";
 
 test("default ladder is cheapest → most aggressive (stackPriority order)", () => {
   assert.deepEqual(
@@ -28,16 +28,19 @@ test("expectedReductionFactor is in (0,1) and heavier engines reduce more", () =
   assert.ok(expectedReductionFactor("ultra") < expectedReductionFactor("rtk"));
 });
 
-import { resolveAdaptivePlan } from "@omniroute/open-sse/services/compression/adaptiveCompression/resolveAdaptivePlan.ts";
-import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
+import { resolveAdaptivePlan } from "@birouter/open-sse/services/compression/adaptiveCompression/resolveAdaptivePlan.ts";
+import { DEFAULT_CONTEXT_BUDGET } from "@birouter/open-sse/services/compression/adaptiveCompression/types.ts";
 
 const cfg = (over = {}) => ({ ...DEFAULT_CONTEXT_BUDGET, mode: "floor" as const, ...over });
-const basePlan = { mode: "off", stackedPipeline: [] as Array<{ engine: string; intensity?: string }> };
+const basePlan = {
+  mode: "off",
+  stackedPipeline: [] as Array<{ engine: string; intensity?: string }>,
+};
 
 test("already fits → base plan unchanged, fit=true, no stages", () => {
   const { plan, telemetry } = resolveAdaptivePlan({
     basePlan,
-    estimatedTokens: 1000,        // well under target
+    estimatedTokens: 1000, // well under target
     modelContextLimit: 200000,
     requestMaxTokens: 8000,
     config: cfg(),
@@ -98,10 +101,10 @@ test("ladder exhausted, still over target → fit=false, all stages applied, pla
     config: cfg(),
     estimate: noop,
   });
-  assert.equal(telemetry!.fit, false);                 // budget-exceeded
-  assert.equal(telemetry!.stagesApplied.length, 7);    // entire DEFAULT_LADDER above "off"
+  assert.equal(telemetry!.fit, false); // budget-exceeded
+  assert.equal(telemetry!.stagesApplied.length, 7); // entire DEFAULT_LADDER above "off"
   assert.equal(plan.mode, "stacked");
-  assert.ok(plan.stackedPipeline.length >= 7);          // best-effort plan, content NOT dropped
+  assert.ok(plan.stackedPipeline.length >= 7); // best-effort plan, content NOT dropped
   assert.ok(telemetry!.headroomAfter < 0);
 });
 
@@ -110,16 +113,22 @@ test("replace-autotrigger: fires on bare off base, defers to an explicit base pl
   // bare off base → it acts
   const acts = resolveAdaptivePlan({
     basePlan: { mode: "off", stackedPipeline: [] },
-    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
-    config: cfg({ mode: "replace-autotrigger" }), estimate: halve,
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg({ mode: "replace-autotrigger" }),
+    estimate: halve,
   });
   assert.ok(acts.telemetry!.stagesApplied.length > 0);
 
   // explicit aggressive base → defer (choice wins, may overflow)
   const defers = resolveAdaptivePlan({
     basePlan: { mode: "aggressive", stackedPipeline: [] },
-    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
-    config: cfg({ mode: "replace-autotrigger" }), estimate: halve,
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    config: cfg({ mode: "replace-autotrigger" }),
+    estimate: halve,
   });
   assert.deepEqual(defers.plan, { mode: "aggressive", stackedPipeline: [] });
   assert.deepEqual(defers.telemetry!.stagesApplied, []);
@@ -129,8 +138,11 @@ test("replace-autotrigger: fires on bare off base, defers to an explicit base pl
 test("unknown model context limit → skip adaptive (null telemetry, base unchanged)", () => {
   for (const lim of [null, 0, -1]) {
     const { plan, telemetry } = resolveAdaptivePlan({
-      basePlan, estimatedTokens: 999999, modelContextLimit: lim,
-      requestMaxTokens: 8000, config: cfg(),
+      basePlan,
+      estimatedTokens: 999999,
+      modelContextLimit: lim,
+      requestMaxTokens: 8000,
+      config: cfg(),
     });
     assert.equal(telemetry, null);
     assert.deepEqual(plan, basePlan);
@@ -141,7 +153,9 @@ test("hard-off: floor still escalates an overflowing 'off' base plan (spec §9)"
   const halve = (prior: number) => Math.round(prior / 2);
   const { telemetry } = resolveAdaptivePlan({
     basePlan: { mode: "off", stackedPipeline: [] }, // explicit off (header off resolves to this)
-    estimatedTokens: 400000, modelContextLimit: 200000, requestMaxTokens: 8000,
+    estimatedTokens: 400000,
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
     config: cfg(), // mode: "floor"
     estimate: halve,
   });

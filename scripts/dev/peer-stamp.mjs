@@ -10,7 +10,7 @@ import { randomUUID } from "node:crypto";
  *
  * Our custom servers DO have the real `req.socket.remoteAddress`. They stamp it
  * into PEER_IP_HEADER as `<token>|<ip>`, where <token> is a per-process secret
- * (OMNIROUTE_PEER_STAMP_TOKEN). Any client-supplied value of PEER_IP_HEADER is
+ * (BIROUTER_PEER_STAMP_TOKEN). Any client-supplied value of PEER_IP_HEADER is
  * deleted first, so a remote caller cannot pre-populate it. The middleware
  * (src/server/authz/policies/management.ts → resolveStampedPeer) trusts the IP
  * ONLY when the token matches this process's secret; otherwise it fails closed.
@@ -18,7 +18,7 @@ import { randomUUID } from "node:crypto";
  * Keep PEER_IP_HEADER in sync with PEER_IP_HEADER in
  * src/server/authz/headers.ts (the TS side cannot import this .mjs).
  */
-export const PEER_IP_HEADER = "x-omniroute-peer-ip";
+export const PEER_IP_HEADER = "x-birouter-peer-ip";
 
 /**
  * Companion header to PEER_IP_HEADER: `<token>|1` when the inbound TCP request
@@ -32,13 +32,13 @@ export const PEER_IP_HEADER = "x-omniroute-peer-ip";
  * Keep VIA_PROXY_HEADER in sync with VIA_PROXY_HEADER in
  * src/server/authz/headers.ts (the TS side cannot import this .mjs).
  */
-export const VIA_PROXY_HEADER = "x-omniroute-via-proxy";
+export const VIA_PROXY_HEADER = "x-birouter-via-proxy";
 
 /** Generate (once) and return the per-process stamp token, persisting it in env
  *  so the middleware running in the same process reads the identical value. */
 export function ensurePeerStampToken() {
-  process.env.OMNIROUTE_PEER_STAMP_TOKEN ||= randomUUID();
-  return process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  process.env.BIROUTER_PEER_STAMP_TOKEN ||= randomUUID();
+  return process.env.BIROUTER_PEER_STAMP_TOKEN;
 }
 
 /** Strip any client-supplied PEER_IP_HEADER + VIA_PROXY_HEADER and stamp the

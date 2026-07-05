@@ -22,10 +22,18 @@ function makeTarget(overrides: Partial<ResolvedComboTarget> = {}): ResolvedCombo
 function makeLogger(): ComboLogger {
   const msgs: string[] = [];
   return {
-    info: (...args: unknown[]) => { msgs.push(args.join(" ")); },
-    warn: (...args: unknown[]) => { msgs.push(args.join(" ")); },
-    error: (...args: unknown[]) => { msgs.push(args.join(" ")); },
-    debug: (...args: unknown[]) => { msgs.push(args.join(" ")); },
+    info: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
+    warn: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
+    error: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
+    debug: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
     _msgs: msgs,
   } as ComboLogger & { _msgs: string[] };
 }
@@ -246,11 +254,11 @@ describe("applyComboTargetExhaustion", () => {
     expect(sets.exhaustedConnections.size).toBe(0);
   });
 
-  it("does NOT mark anything for circuit-open (X-OmniRoute-Provider-Breaker header)", () => {
+  it("does NOT mark anything for circuit-open (X-Birouter-Provider-Breaker header)", () => {
     const sets = makeSets();
     const log = makeLogger();
     const exhausted = applyComboTargetExhaustion(makeTarget(), {
-      result: { status: 503, headers: new Map([["x-omniroute-provider-breaker", "open"]]) as any },
+      result: { status: 503, headers: new Map([["x-birouter-provider-breaker", "open"]]) as any },
       fallbackResult: {} as any,
       errorText: "",
       rawModel: "gpt-4",

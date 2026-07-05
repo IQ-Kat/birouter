@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Feature Flags
 
-> Runtime toggles that change OmniRoute's behavior **without a redeploy**.
+> Runtime toggles that change Birouter's behavior **without a redeploy**.
 > Every flag listed here is defined in
 > [`src/shared/constants/featureFlagDefinitions.ts`](../../src/shared/constants/featureFlagDefinitions.ts)
 > — the single source of truth. The dashboard and the REST API both read from
@@ -63,16 +63,16 @@ used when neither a DB override nor an environment variable is present.
 
 ### Network (8)
 
-| Key                                             | Type    | Default | Restart | Description                                                                                                                                                                                   |
-| ----------------------------------------------- | ------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ENABLE_TLS_FINGERPRINT`                        | boolean | `false` | ✓       | Enable TLS fingerprint stealth mode.                                                                                                                                                          |
-| `ONEPROXY_ENABLED`                              | boolean | `true`  |         | Enable 1proxy request proxying.                                                                                                                                                               |
-| `PROXY_AUTO_SELECT_ENABLED`                     | boolean | `false` |         | When no proxy is assigned to a connection, auto-select the first working proxy from the registry. Off by default (otherwise any registry proxy becomes a global fallback — #3332).            |
-| `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |         | Allow OAuth and provider validation flows to bypass a pinned proxy and connect directly when proxy reachability pre-checks fail. Off by default because this can change egress IP.            |
-| `MITM_DISABLE_TLS_VERIFY`                       | boolean | `false` | ✓       | Disable TLS certificate verification for the MITM proxy. **Danger.**                                                                                                                          |
-| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |         | Allow provider URLs pointing to private/internal networks.                                                                                                                                    |
-| `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |         | Allow adding/validating providers on local/private addresses (127.0.0.1, localhost, LAN). On by default (local-first); disable for strict public-only blocking. Cloud-metadata stays blocked. |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`                 | boolean | `false` | ✓       | Enable Claude Code compatible provider mode.                                                                                                                                                  |
+| Key                                            | Type    | Default | Restart | Description                                                                                                                                                                                   |
+| ---------------------------------------------- | ------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENABLE_TLS_FINGERPRINT`                       | boolean | `false` | ✓       | Enable TLS fingerprint stealth mode.                                                                                                                                                          |
+| `ONEPROXY_ENABLED`                             | boolean | `true`  |         | Enable 1proxy request proxying.                                                                                                                                                               |
+| `PROXY_AUTO_SELECT_ENABLED`                    | boolean | `false` |         | When no proxy is assigned to a connection, auto-select the first working proxy from the registry. Off by default (otherwise any registry proxy becomes a global fallback — #3332).            |
+| `BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` | boolean | `false` |         | Allow OAuth and provider validation flows to bypass a pinned proxy and connect directly when proxy reachability pre-checks fail. Off by default because this can change egress IP.            |
+| `MITM_DISABLE_TLS_VERIFY`                      | boolean | `false` | ✓       | Disable TLS certificate verification for the MITM proxy. **Danger.**                                                                                                                          |
+| `BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS`         | boolean | `false` |         | Allow provider URLs pointing to private/internal networks.                                                                                                                                    |
+| `BIROUTER_ALLOW_LOCAL_PROVIDER_URLS`           | boolean | `true`  |         | Allow adding/validating providers on local/private addresses (127.0.0.1, localhost, LAN). On by default (local-first); disable for strict public-only blocking. Cloud-metadata stays blocked. |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`                | boolean | `false` | ✓       | Enable Claude Code compatible provider mode.                                                                                                                                                  |
 
 ### Policies (3)
 
@@ -84,18 +84,18 @@ used when neither a DB override nor an environment variable is present.
 
 ### Runtime (10)
 
-| Key                                         | Type    | Default | Restart | Description                                                                                                                                         |
-| ------------------------------------------- | ------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`              | boolean | `true`  |         | Enforce scope restrictions on MCP tool access.                                                                                                      |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`       | boolean | `false` |         | Compress MCP tool descriptions to reduce token usage.                                                                                               |
-| `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` | boolean | `false` |         | Enable background task processing at runtime.                                                                                                       |
-| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`     | boolean | `false` | ✓       | Disable all background services (quota refresh, sync, etc).                                                                                         |
-| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS`       | boolean | `false` |         | Trust project-level RTK filters without validation.                                                                                                 |
-| `OMNIROUTE_ENABLE_LIVE_WS`                  | boolean | `true`  | ✓       | Start the real-time dashboard WebSocket server on import (port 20129 by default).                                                                   |
-| `OMNIROUTE_CODEX_WS_ENABLED`                | boolean | `true`  |         | Allow Codex to use the Responses-over-WebSocket transport. When off, Codex falls back to HTTP Responses.                                            |
-| `OMNIROUTE_EMERGENCY_FALLBACK`              | boolean | `true`  |         | Route budget-exhausted requests to the emergency free fallback provider/model. (See [Emergency Budget Fallback](#emergency-budget-fallback) below.) |
-| `MODEL_CATALOG_INCLUDE_NAMES`               | boolean | `true`  |         | Include display-friendly name fields in `/v1/models` responses. Disable for clients that expect model IDs only.                                     |
-| `ARENA_ELO_SYNC_ENABLED`                    | boolean | `true`  |         | Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.                                                                      |
+| Key                                        | Type    | Default | Restart | Description                                                                                                                                         |
+| ------------------------------------------ | ------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BIROUTER_MCP_ENFORCE_SCOPES`              | boolean | `true`  |         | Enforce scope restrictions on MCP tool access.                                                                                                      |
+| `BIROUTER_MCP_COMPRESS_DESCRIPTIONS`       | boolean | `false` |         | Compress MCP tool descriptions to reduce token usage.                                                                                               |
+| `BIROUTER_ENABLE_RUNTIME_BACKGROUND_TASKS` | boolean | `false` |         | Enable background task processing at runtime.                                                                                                       |
+| `BIROUTER_DISABLE_BACKGROUND_SERVICES`     | boolean | `false` | ✓       | Disable all background services (quota refresh, sync, etc).                                                                                         |
+| `BIROUTER_RTK_TRUST_PROJECT_FILTERS`       | boolean | `false` |         | Trust project-level RTK filters without validation.                                                                                                 |
+| `BIROUTER_ENABLE_LIVE_WS`                  | boolean | `true`  | ✓       | Start the real-time dashboard WebSocket server on import (port 20129 by default).                                                                   |
+| `BIROUTER_CODEX_WS_ENABLED`                | boolean | `true`  |         | Allow Codex to use the Responses-over-WebSocket transport. When off, Codex falls back to HTTP Responses.                                            |
+| `BIROUTER_EMERGENCY_FALLBACK`              | boolean | `true`  |         | Route budget-exhausted requests to the emergency free fallback provider/model. (See [Emergency Budget Fallback](#emergency-budget-fallback) below.) |
+| `MODEL_CATALOG_INCLUDE_NAMES`              | boolean | `true`  |         | Include display-friendly name fields in `/v1/models` responses. Disable for clients that expect model IDs only.                                     |
+| `ARENA_ELO_SYNC_ENABLED`                   | boolean | `true`  |         | Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.                                                                      |
 
 ### CLI (3)
 
@@ -107,11 +107,11 @@ used when neither a DB override nor an environment variable is present.
 
 ### Health (3)
 
-| Key                                   | Type    | Default | Description                                              |
-| ------------------------------------- | ------- | ------- | -------------------------------------------------------- |
-| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK` | boolean | `false` | Disable the local instance health check endpoint.        |
-| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK` | boolean | `false` | Disable the token validation health check.               |
-| `SKILLS_SANDBOX_NETWORK_ENABLED`      | boolean | `false` | Enable network access in the skills sandbox environment. |
+| Key                                  | Type    | Default | Description                                              |
+| ------------------------------------ | ------- | ------- | -------------------------------------------------------- |
+| `BIROUTER_DISABLE_LOCAL_HEALTHCHECK` | boolean | `false` | Disable the local instance health check endpoint.        |
+| `BIROUTER_DISABLE_TOKEN_HEALTHCHECK` | boolean | `false` | Disable the token validation health check.               |
+| `SKILLS_SANDBOX_NETWORK_ENABLED`     | boolean | `false` | Enable network access in the skills sandbox environment. |
 
 > [!NOTE]
 > The `Restart` column marks flags with `requiresRestart: true` — the value is
@@ -213,12 +213,12 @@ value. Returns `{ cleared: <count>, message: "..." }`.
 
 ## Emergency Budget Fallback
 
-`OMNIROUTE_EMERGENCY_FALLBACK` (category `runtime`, default `true`) controls the
+`BIROUTER_EMERGENCY_FALLBACK` (category `runtime`, default `true`) controls the
 emergency free-fallback path in
 [`open-sse/services/emergencyFallback.ts`](../../open-sse/services/emergencyFallback.ts).
 When enabled, requests that exhaust their budget are routed to a free fallback
 provider/model instead of failing outright. Set it to `false` (or `0`) — via the
-dashboard toggle, a DB override, or the `OMNIROUTE_EMERGENCY_FALLBACK`
+dashboard toggle, a DB override, or the `BIROUTER_EMERGENCY_FALLBACK`
 environment variable — to disable the behavior and let budget-exhausted requests
 fail. (Surfaced as a dashboard toggle in PRs #3741 / #3752.)
 

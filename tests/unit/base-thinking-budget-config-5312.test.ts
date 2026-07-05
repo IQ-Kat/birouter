@@ -55,7 +55,7 @@ async function captureUpstreamBody(
       // #5480: the default adaptive-thinking injection (and the native-Claude-Code wire
       // image these #5312 cases exercise) is gated behind a real Claude Code client
       // (`x-app: cli` / `claude-code` UA). A bare OAuth token from a generic OpenAI-compat
-      // client must opt in via x-omniroute-thinking, so identify as a Claude Code client here.
+      // client must opt in via x-birouter-thinking, so identify as a Claude Code client here.
       clientHeaders: { "x-app": "cli" },
     });
   } finally {

@@ -82,7 +82,7 @@ test("Fix C reverted: codexAuthImport does NOT refresh tokens on import (avoids 
   );
   assert.doesNotMatch(
     src,
-    /import\s*\{[^}]*getAccessToken[^}]*\}\s*from\s*"@omniroute\/open-sse\/services\/tokenRefresh/,
+    /import\s*\{[^}]*getAccessToken[^}]*\}\s*from\s*"@birouter\/open-sse\/services\/tokenRefresh/,
     "codexAuthImport should not import getAccessToken (refresh-on-import was reverted)"
   );
 });

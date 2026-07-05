@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-models-ext-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-models-ext-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -12,11 +12,11 @@ const models = await import("../../src/lib/db/models.ts");
 
 function cleanupGlobalDb() {
   try {
-    if ((globalThis as any).__omnirouteDb?.open) {
-      (globalThis as any).__omnirouteDb.close();
+    if ((globalThis as any).__birouterDb?.open) {
+      (globalThis as any).__birouterDb.close();
     }
   } catch {}
-  delete (globalThis as any).__omnirouteDb;
+  delete (globalThis as any).__birouterDb;
 }
 
 async function resetStorage() {

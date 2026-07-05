@@ -17,11 +17,11 @@ import os from "node:os";
 import path from "node:path";
 
 import { makeManagementSessionRequest } from "../../helpers/managementSession.ts";
-import { deriveDefaultPlan } from "@omniroute/open-sse/services/compression/deriveDefaultPlan.ts";
+import { deriveDefaultPlan } from "@birouter/open-sse/services/compression/deriveDefaultPlan.ts";
 
 // ─── isolated temp DB ─────────────────────────────────────────────────────────
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ctx-combos-default-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-ctx-combos-default-route-"));
 const originalDataDir = process.env.DATA_DIR;
 const originalJwtSecret = process.env.JWT_SECRET;
 
@@ -110,7 +110,10 @@ test("GET /api/context/combos/default returns the derived stacked pipeline (refl
   assert.equal(body.mode, "stacked");
   assert.deepEqual(body.pipeline, expected.stackedPipeline);
   const engineIds = body.pipeline.map((s) => s.engine);
-  assert.ok(engineIds.includes("caveman"), `expected caveman in derived pipeline, got: ${engineIds}`);
+  assert.ok(
+    engineIds.includes("caveman"),
+    `expected caveman in derived pipeline, got: ${engineIds}`
+  );
 });
 
 test("GET /api/context/combos/default returns off when master switch is disabled", async () => {

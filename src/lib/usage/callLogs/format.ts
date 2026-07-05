@@ -1,4 +1,4 @@
-import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
+import type { RequestPipelinePayloads } from "@birouter/open-sse/utils/requestLogger.ts";
 import { sanitizePII } from "../../piiSanitizer";
 import { protectPayloadForLog } from "../../logPayloads";
 import type { CallLogDetailState } from "../callLogArtifacts";

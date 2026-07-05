@@ -576,7 +576,7 @@ export default function EvalsTab() {
   function handleExportSuite(suite: EvalSuite) {
     try {
       const exportPayload = {
-        format: "omniroute.eval-suite.v1",
+        format: "birouter.eval-suite.v1",
         exportedAt: new Date().toISOString(),
         id: suite.id,
         name: suite.name || suite.id,

@@ -14,7 +14,7 @@ import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 // Unique temp dir for this test run to avoid cross-contamination
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-allstatuses-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-allstatuses-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-all-statuses-secret";
 
@@ -27,9 +27,7 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const { clearCache, setCached } = await import("../../src/lib/cliTools/batchStatusCache.ts");
 
 // Import the route under test
-const allStatusesRoute = await import(
-  "../../src/app/api/cli-tools/all-statuses/route.ts"
-);
+const allStatusesRoute = await import("../../src/app/api/cli-tools/all-statuses/route.ts");
 
 // Import CLI_TOOLS to know how many tools exist
 const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
@@ -105,14 +103,8 @@ test("happy path: returns status map covering all tools in CLI_TOOLS", async () 
     // Each returned entry should have detection and config fields
     for (const [toolId, entry] of Object.entries(body)) {
       const e = entry as Record<string, unknown>;
-      assert.ok(
-        "detection" in e,
-        `tool ${toolId} missing detection field`
-      );
-      assert.ok(
-        "config" in e,
-        `tool ${toolId} missing config field`
-      );
+      assert.ok("detection" in e, `tool ${toolId} missing detection field`);
+      assert.ok("config" in e, `tool ${toolId} missing config field`);
     }
   } else {
     // If 500 (e.g., runtime detection fails in CI), error body must be sanitized
@@ -190,14 +182,8 @@ test("timeout in 1 tool: others succeed + slot has error field (no full request 
           typeof entry.error === "string",
           `tool ${toolId} error should be a string, got ${typeof entry.error}`
         );
-        assert.ok(
-          "detection" in entry,
-          `tool ${toolId} with error should still have detection`
-        );
-        assert.ok(
-          "config" in entry,
-          `tool ${toolId} with error should still have config`
-        );
+        assert.ok("detection" in entry, `tool ${toolId} with error should still have detection`);
+        assert.ok("config" in entry, `tool ${toolId} with error should still have config`);
       }
     }
   }
@@ -210,7 +196,7 @@ test("cache hit: pre-populated cache is returned without re-executing", async ()
   const toolId = Object.keys(CLI_TOOLS)[0];
   const knownStatus = {
     detection: { installed: true, runnable: true, version: "1.0.0-cached" },
-    config: { status: "configured" as const, endpoint: "http://cached.omniroute.local" },
+    config: { status: "configured" as const, endpoint: "http://cached.birouter.local" },
   };
   // mtime 0 = no config file; getCached(toolId, 0) will return this
   setCached(toolId, 0, knownStatus);

@@ -4,7 +4,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const tmpDir = mkdtempSync(join(tmpdir(), "omniroute-mcp-test-"));
+const tmpDir = mkdtempSync(join(tmpdir(), "birouter-mcp-test-"));
 process.env.DATA_DIR = tmpDir;
 
 const {

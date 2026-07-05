@@ -64,7 +64,7 @@ describe("RTK command detector", () => {
         "terraform-plan",
       ],
       ["OpenTofu will perform the following actions:\nPlan: 1 to add", "tofu plan", "tofu-plan"],
-      ["Active: failed (Result: exit-code)", "systemctl status omniroute", "systemctl-status"],
+      ["Active: failed (Result: exit-code)", "systemctl status birouter", "systemctl-status"],
       ["Checked 12 files in 18ms. No fixes applied.", "biome check .", "biome"],
       ["Checking formatting...\n[warn] src/app.ts", "prettier --check .", "prettier"],
       ["• Packages in scope: web\nTasks: 1 successful", "turbo build", "turbo"],

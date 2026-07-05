@@ -78,12 +78,12 @@ export const INTENTIONALLY_INTERNAL = new Set([
 export const KNOWN_UNEXPORTED = INTENTIONALLY_INTERNAL;
 
 // (c) Leituras de SQL contra bancos EXTERNOS, permitidas por design (#3500).
-// Estas rotas NÃO consultam o DB do OmniRoute (getDbInstance) — elas abrem o
+// Estas rotas NÃO consultam o DB do Birouter (getDbInstance) — elas abrem o
 // SQLite de OUTRO aplicativo (Cursor / Kiro) para auto-importar credenciais.
-// Por isso NÃO podem viver em src/lib/db/ (que é o domínio do DB do OmniRoute):
+// Por isso NÃO podem viver em src/lib/db/ (que é o domínio do DB do Birouter):
 // são leituras read-only de um arquivo externo, com caminho/escopo próprios.
 // Continuam no allowlist como exceção DOCUMENTADA — o gate ainda bloqueia
-// QUALQUER novo SQL cru contra o DB do OmniRoute em rotas/handlers.
+// QUALQUER novo SQL cru contra o DB do Birouter em rotas/handlers.
 // Toda a dívida real da Hard Rule #5 (15 rotas internas) foi migrada para
 // módulos src/lib/db/ nas slices do #3500; este set ficou só com as exceções.
 const EXTERNAL_DB_ALLOWED = new Set([

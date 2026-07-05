@@ -7,14 +7,14 @@ lastUpdated: 2026-06-28
 # Repository Map
 
 > **One-line description for every directory and root file.**
-> Last updated: 2026-06-28 — OmniRoute v3.8.40
+> Last updated: 2026-06-28 — Birouter v3.8.40
 >
 > Use this map to navigate the codebase quickly. For deep dives, follow links to dedicated docs.
 
 ## Top-level tree
 
 ```
-OmniRoute/
+Birouter/
 ├── src/                  # Next.js 16 application (UI + API routes + libs + domain + server)
 ├── open-sse/             # Streaming engine workspace (handlers, executors, translator, MCP server)
 ├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
@@ -25,9 +25,9 @@ OmniRoute/
 ├── public/               # Next.js static assets, PWA manifest, service worker, icons
 ├── config/               # Static config + quality-gate state (i18n, payloadRules, quality/)
 ├── images/               # Marketing / README image assets
-├── @omniroute/           # Publishable companion packages (opencode-plugin, opencode-provider)
-├── skills/               # CLI/agent skill packs (cli-* + omni-* + config-codex-cli)
-├── examples/             # Sample plugins + omniroute-cmd-hello starter
+├── @birouter/           # Publishable companion packages (opencode-plugin, opencode-provider)
+├── skills/               # CLI/agent skill packs (cli-* + bi-* + config-codex-cli)
+├── examples/             # Sample plugins + birouter-cmd-hello starter
 ├── contrib/              # Community contributions (podman/)
 ├── .source/              # Fumadocs source config (source.config.mjs + server/browser/dynamic)
 ├── .github/              # GitHub Actions workflows + issue templates + PR template
@@ -260,7 +260,7 @@ src/
 
 ## `open-sse/` — Streaming Engine Workspace
 
-Separate npm workspace (`@omniroute/open-sse`). Handles request processing + provider execution.
+Separate npm workspace (`@birouter/open-sse`). Handles request processing + provider execution.
 
 ```
 open-sse/
@@ -302,7 +302,7 @@ open-sse/
 | File             | Purpose                                                                           |
 | ---------------- | --------------------------------------------------------------------------------- |
 | `main.js`        | Electron main process (BrowserWindow, embedded Next.js server, tray, auto-update) |
-| `preload.js`     | IPC bridge (contextBridge → `window.omniroute`)                                   |
+| `preload.js`     | IPC bridge (contextBridge → `window.birouter`)                                    |
 | `package.json`   | electron-builder config + Electron 41 + electron-builder 26.10 deps               |
 | `assets/`        | App icons (Windows .ico, macOS .icns, Linux .png)                                 |
 | `dist-electron/` | Build output (gitignored)                                                         |
@@ -313,29 +313,29 @@ open-sse/
 
 ## `bin/` — CLI
 
-| File                                                                                                        | Purpose                                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `omniroute.mjs`                                                                                             | Main CLI entry — `omniroute serve`, `omniroute setup`, `omniroute doctor`, `omniroute providers`, `omniroute combos`, etc. |
-| `reset-password.mjs`                                                                                        | Standalone password reset CLI                                                                                              |
-| `cli/commands/setup.mjs`                                                                                    | Interactive + non-interactive setup wizard                                                                                 |
-| `cli/commands/doctor.mjs`                                                                                   | System health diagnostics (8+ checks)                                                                                      |
-| `cli/commands/providers.mjs`                                                                                | Provider list/test/validate                                                                                                |
-| `cli/{args,data-dir,encryption,io,provider-catalog,provider-store,provider-test,settings-store,sqlite}.mjs` | CLI helper modules                                                                                                         |
-| `cli/tray/tray.ts`                                                                                          | System tray integration (cross-platform: NotifyIcon on Windows, systray2 on macOS/Linux)                                   |
-| `cli/tray/tray.ps1`                                                                                         | PowerShell NotifyIcon backend (Windows, zero new binaries)                                                                 |
-| `cli/tray/autostart.ts`                                                                                     | Cross-platform autostart (LaunchAgent / .desktop / registry)                                                               |
-| `cli/runtime/sqliteRuntime.mjs`                                                                             | 5-step SQLite driver resolution chain (bundled → runtime → lazy-install → node:sqlite → sql.js)                            |
-| `cli/runtime/magicBytes.mjs`                                                                                | Binary magic-byte validation (ELF / Mach-O / Mach-O fat / PE)                                                              |
-| `cli/runtime/index.mjs`                                                                                     | `warmUpRuntimes()` — pre-resolves drivers at postinstall / first startup                                                   |
-| `nodeRuntimeSupport.mjs`                                                                                    | Validate supported Node.js version on install                                                                              |
+| File                                                                                                        | Purpose                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `birouter.mjs`                                                                                              | Main CLI entry — `birouter serve`, `birouter setup`, `birouter doctor`, `birouter providers`, `birouter combos`, etc. |
+| `reset-password.mjs`                                                                                        | Standalone password reset CLI                                                                                         |
+| `cli/commands/setup.mjs`                                                                                    | Interactive + non-interactive setup wizard                                                                            |
+| `cli/commands/doctor.mjs`                                                                                   | System health diagnostics (8+ checks)                                                                                 |
+| `cli/commands/providers.mjs`                                                                                | Provider list/test/validate                                                                                           |
+| `cli/{args,data-dir,encryption,io,provider-catalog,provider-store,provider-test,settings-store,sqlite}.mjs` | CLI helper modules                                                                                                    |
+| `cli/tray/tray.ts`                                                                                          | System tray integration (cross-platform: NotifyIcon on Windows, systray2 on macOS/Linux)                              |
+| `cli/tray/tray.ps1`                                                                                         | PowerShell NotifyIcon backend (Windows, zero new binaries)                                                            |
+| `cli/tray/autostart.ts`                                                                                     | Cross-platform autostart (LaunchAgent / .desktop / registry)                                                          |
+| `cli/runtime/sqliteRuntime.mjs`                                                                             | 5-step SQLite driver resolution chain (bundled → runtime → lazy-install → node:sqlite → sql.js)                       |
+| `cli/runtime/magicBytes.mjs`                                                                                | Binary magic-byte validation (ELF / Mach-O / Mach-O fat / PE)                                                         |
+| `cli/runtime/index.mjs`                                                                                     | `warmUpRuntimes()` — pre-resolves drivers at postinstall / first startup                                              |
+| `nodeRuntimeSupport.mjs`                                                                                    | Validate supported Node.js version on install                                                                         |
 
 ---
 
 ## `skills/` — Public Agent Skills
 
-| File                         | Purpose                                                                            |
-| ---------------------------- | ---------------------------------------------------------------------------------- |
-| `skills/omniroute*/SKILL.md` | 10 skill manifests for external AI agents (Claude Desktop, ChatGPT, Cursor, Cline) |
+| File                        | Purpose                                                                            |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| `skills/birouter*/SKILL.md` | 10 skill manifests for external AI agents (Claude Desktop, ChatGPT, Cursor, Cline) |
 
 ---
 
@@ -396,7 +396,7 @@ open-sse/
 | `RELEASE_CHECKLIST.md`      | Full release flow (skills, husky, conventional commits, deploy)                       |
 | `COVERAGE_PLAN.md`          | Coverage goals and current state                                                      |
 | `FREE_TIERS.md`             | Curated free-tier providers (48+ free + 11 OAuth)                                     |
-| `CLI-TOOLS.md`              | External CLI integrations + Internal OmniRoute CLI                                    |
+| `CLI-TOOLS.md`              | External CLI integrations + Internal Birouter CLI                                     |
 | `I18N.md`                   | i18n architecture, adding a language, 30 locales                                      |
 | `UNINSTALL.md`              | Clean uninstall steps                                                                 |
 | `PROVIDER_REFERENCE.md`     | **Auto-generated** catalog of 236 providers (regen: `npm run gen:provider-reference`) |
@@ -548,7 +548,7 @@ Shipped configuration templates plus the committed quality-gate baselines
 These underscore-prefixed directories hold non-shipping content:
 
 - **`_ideia/`** — design notes (defer / notfit / viable categories)
-- **`_mono_repo/`** — historic subprojects (omnirouteCloud, omnirouteSite, vscode-extension)
+- **`_mono_repo/`** — historic subprojects (birouterCloud, birouterSite, vscode-extension)
 - **`_references/`** — read-only clones of related OSS projects (LiteLLM, 9router, ClawRouter, CLIProxyAPI, modelrelay, new-api, etc.) for cross-reference during development
 - **`_tasks/`** — per-release task tracking files (informal)
 

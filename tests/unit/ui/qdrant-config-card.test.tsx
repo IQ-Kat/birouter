@@ -20,7 +20,7 @@ const MOCK_QDRANT_SETTINGS = {
   enabled: false,
   host: "http://127.0.0.1",
   port: 6333,
-  collection: "omniroute_memory",
+  collection: "birouter_memory",
   embeddingModel: "openai/text-embedding-3-small",
   hasApiKey: false,
   apiKeyMasked: null,
@@ -37,8 +37,9 @@ function makeContainer(): HTMLElement {
 
 describe("QdrantConfigCard", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-      true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
     globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url === "/api/settings/qdrant") {
         return Promise.resolve({
@@ -68,9 +69,8 @@ describe("QdrantConfigCard", () => {
   });
 
   it("renders after loading qdrant settings", async () => {
-    const { default: QdrantConfigCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard"
-    );
+    const { default: QdrantConfigCard } =
+      await import("../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -110,9 +110,8 @@ describe("QdrantConfigCard", () => {
     });
     globalThis.fetch = fetchMock;
 
-    const { default: QdrantConfigCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard"
-    );
+    const { default: QdrantConfigCard } =
+      await import("../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -123,7 +122,7 @@ describe("QdrantConfigCard", () => {
     });
 
     const toggleBtn = container.querySelector(
-      "[data-testid='qdrant-enabled-switch']",
+      "[data-testid='qdrant-enabled-switch']"
     ) as HTMLButtonElement | null;
     expect(toggleBtn).toBeTruthy();
     await act(async () => {
@@ -135,9 +134,7 @@ describe("QdrantConfigCard", () => {
 
     const putCalls = fetchMock.mock.calls.filter(
       (c: [string, { method?: string }]) =>
-        typeof c[0] === "string" &&
-        c[0] === "/api/settings/qdrant" &&
-        c[1]?.method === "PUT",
+        typeof c[0] === "string" && c[0] === "/api/settings/qdrant" && c[1]?.method === "PUT"
     );
     expect(putCalls.length).toBeGreaterThan(0);
   });
@@ -166,9 +163,8 @@ describe("QdrantConfigCard", () => {
     });
     globalThis.fetch = fetchMock;
 
-    const { default: QdrantConfigCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard"
-    );
+    const { default: QdrantConfigCard } =
+      await import("../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -179,7 +175,7 @@ describe("QdrantConfigCard", () => {
     });
 
     const testBtn = container.querySelector(
-      "[data-testid='qdrant-test-connection']",
+      "[data-testid='qdrant-test-connection']"
     ) as HTMLButtonElement | null;
     expect(testBtn).toBeTruthy();
     await act(async () => {
@@ -190,7 +186,7 @@ describe("QdrantConfigCard", () => {
     });
 
     const healthCalls = fetchMock.mock.calls.filter(
-      (c: [string]) => typeof c[0] === "string" && c[0] === "/api/settings/qdrant/health",
+      (c: [string]) => typeof c[0] === "string" && c[0] === "/api/settings/qdrant/health"
     );
     expect(healthCalls.length).toBeGreaterThan(0);
     // Health OK result should be shown
@@ -198,37 +194,36 @@ describe("QdrantConfigCard", () => {
   });
 
   it("search test button calls /api/settings/qdrant/search and renders results", async () => {
-    const fetchMock = vi.fn().mockImplementation((url: string, opts?: { method?: string; body?: string }) => {
-      if (url === "/api/settings/qdrant") {
-        return Promise.resolve({
-          ok: true,
-          json: async () => MOCK_QDRANT_SETTINGS,
-        });
-      }
-      if (url === "/api/settings/qdrant/embedding-models") {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ models: [] }),
-        });
-      }
-      if (url === "/api/settings/qdrant/search" && opts?.method === "POST") {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((url: string, opts?: { method?: string; body?: string }) => {
+        if (url === "/api/settings/qdrant") {
+          return Promise.resolve({
             ok: true,
-            results: [
-              { id: "r1", score: 0.9876, payload: { content: "test content" } },
-            ],
-          }),
-        });
-      }
-      return Promise.resolve({ ok: true, json: async () => ({}) });
-    });
+            json: async () => MOCK_QDRANT_SETTINGS,
+          });
+        }
+        if (url === "/api/settings/qdrant/embedding-models") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ models: [] }),
+          });
+        }
+        if (url === "/api/settings/qdrant/search" && opts?.method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              ok: true,
+              results: [{ id: "r1", score: 0.9876, payload: { content: "test content" } }],
+            }),
+          });
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) });
+      });
     globalThis.fetch = fetchMock;
 
-    const { default: QdrantConfigCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard"
-    );
+    const { default: QdrantConfigCard } =
+      await import("../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -240,7 +235,7 @@ describe("QdrantConfigCard", () => {
 
     // Set search query by manipulating the input
     const searchInputs = Array.from(container.querySelectorAll("input")).filter(
-      (i) => i.type !== "password" && i.type !== "number",
+      (i) => i.type !== "password" && i.type !== "number"
     );
     // The search query input is the one with the search placeholder
     const searchInput = searchInputs[searchInputs.length - 1] as HTMLInputElement | null;
@@ -250,7 +245,7 @@ describe("QdrantConfigCard", () => {
       if (searchInput) {
         const nativeSetter = Object.getOwnPropertyDescriptor(
           window.HTMLInputElement.prototype,
-          "value",
+          "value"
         )?.set;
         nativeSetter?.call(searchInput, "test query");
         searchInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -258,7 +253,7 @@ describe("QdrantConfigCard", () => {
     });
 
     const searchTestBtn = container.querySelector(
-      "[data-testid='qdrant-search-test']",
+      "[data-testid='qdrant-search-test']"
     ) as HTMLButtonElement | null;
     expect(searchTestBtn).toBeTruthy();
     await act(async () => {
@@ -272,7 +267,7 @@ describe("QdrantConfigCard", () => {
       (c: [string, { method?: string }]) =>
         typeof c[0] === "string" &&
         c[0] === "/api/settings/qdrant/search" &&
-        c[1]?.method === "POST",
+        c[1]?.method === "POST"
     );
     expect(searchCalls.length).toBeGreaterThan(0);
   });
@@ -301,9 +296,8 @@ describe("QdrantConfigCard", () => {
     });
     globalThis.fetch = fetchMock;
 
-    const { default: QdrantConfigCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard"
-    );
+    const { default: QdrantConfigCard } =
+      await import("../../../src/app/(dashboard)/dashboard/memory/components/QdrantConfigCard");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -314,7 +308,7 @@ describe("QdrantConfigCard", () => {
     });
 
     const cleanupBtn = container.querySelector(
-      "[data-testid='qdrant-cleanup']",
+      "[data-testid='qdrant-cleanup']"
     ) as HTMLButtonElement | null;
     expect(cleanupBtn).toBeTruthy();
     await act(async () => {
@@ -328,7 +322,7 @@ describe("QdrantConfigCard", () => {
       (c: [string, { method?: string }]) =>
         typeof c[0] === "string" &&
         c[0] === "/api/settings/qdrant/cleanup" &&
-        c[1]?.method === "POST",
+        c[1]?.method === "POST"
     );
     expect(cleanupCalls.length).toBeGreaterThan(0);
     // Shows cleanup success message

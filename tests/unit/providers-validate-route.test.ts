@@ -4,10 +4,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-providers-validate-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-providers-validate-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-const originalAllowLocalProviderUrls = process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+const originalAllowPrivateProviderUrls = process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+const originalAllowLocalProviderUrls = process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
 // Load modules at top level
 const core = await import("../../src/lib/db/core.ts");
@@ -24,14 +24,14 @@ test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   if (originalAllowPrivateProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
   if (originalAllowLocalProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
+    process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
   }
 });
 
@@ -119,10 +119,10 @@ test("providers validate route forwards baseUrl to built-in specialty validators
 
 test("providers validate route blocks private baseUrl values when local provider URLs are disabled", async () => {
   await resetStorage();
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
   // #5066: local provider URLs are allowed by default; this test exercises the strict
   // public-only path by explicitly disabling the local-first allowance.
-  process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = "false";
+  process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS = "false";
 
   let called = false;
   const originalFetch = globalThis.fetch;
@@ -164,14 +164,14 @@ test("providers validate route blocks private baseUrl values when local provider
     });
   } finally {
     globalThis.fetch = originalFetch;
-    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
   }
 });
 
 test("providers validate route allows a local baseUrl by default (#5066 local-first)", async () => {
   await resetStorage();
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS; // default ON
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS; // default ON
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, init = {}) => {
@@ -203,8 +203,8 @@ test("providers validate route allows a local baseUrl by default (#5066 local-fi
 
 test("providers validate route still blocks cloud-metadata even with local URLs allowed (#5066)", async () => {
   await resetStorage();
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS; // default ON
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS; // default ON
 
   let called = false;
   const originalFetch = globalThis.fetch;
@@ -236,7 +236,7 @@ test("providers validate route still blocks cloud-metadata even with local URLs 
 
 test("providers validate route allows private baseUrl values when opt-in env is enabled", async () => {
   await resetStorage();
-  process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
+  process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS = "true";
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, init = {}) => {
@@ -264,16 +264,16 @@ test("providers validate route allows private baseUrl values when opt-in env is 
   } finally {
     globalThis.fetch = originalFetch;
     if (originalAllowPrivateProviderUrls === undefined) {
-      delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+      delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
     } else {
-      process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+      process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
     }
   }
 });
 
 test("providers validate route returns 504 on controlled outbound timeout", async () => {
   await resetStorage();
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {

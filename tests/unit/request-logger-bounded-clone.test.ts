@@ -15,7 +15,7 @@ test("cloneBoundedForLog: tools array is exempt from truncation (debug-critical)
   assert.equal(result.tools[44].name, "tool_44");
   // No truncation marker should appear inside tools
   assert.ok(
-    !("_omniroute_truncated_array" in result.tools[0]),
+    !("_birouter_truncated_array" in result.tools[0]),
     "tools array should NOT have truncation marker"
   );
 });
@@ -25,7 +25,7 @@ test("cloneBoundedForLog: other large arrays still truncated to MAX_LOG_ARRAY_IT
   const result = cloneBoundedForLog({ messages }) as { messages: Array<Record<string, unknown>> };
   assert.equal(result.messages.length, MAX_LOG_ARRAY_ITEMS + 1, "1 marker + tail items");
   const marker = result.messages[0];
-  assert.equal(marker._omniroute_truncated_array, true);
+  assert.equal(marker._birouter_truncated_array, true);
   assert.equal(marker.originalLength, 45);
   assert.equal(marker.retainedTailItems, MAX_LOG_ARRAY_ITEMS);
 });

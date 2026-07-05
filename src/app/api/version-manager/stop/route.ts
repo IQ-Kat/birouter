@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { getSupervisor } from "@/lib/services/registry";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 import { parseVersionManagerToolRequest } from "../request";
 

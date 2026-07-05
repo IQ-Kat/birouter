@@ -8,7 +8,7 @@
  * `resolveCodexWsModelInfo` re-resolves bare ids under the codex/ prefix.
  *
  * Empirically: with the bare id, ChatGPT's codex backend accepts model
- * "gpt-5.5" and streams a response; without this re-resolution OmniRoute routed
+ * "gpt-5.5" and streams a response; without this re-resolution Birouter routed
  * "gpt-5.5" to openrouter ("No credentials for provider: openrouter").
  */
 
@@ -19,7 +19,7 @@ import {
   type ModelResolver,
 } from "../../src/app/api/internal/codex-responses-ws/modelResolution.ts";
 
-// A resolver mirroring OmniRoute's real behavior: bare "gpt-5.5" → openrouter,
+// A resolver mirroring Birouter's real behavior: bare "gpt-5.5" → openrouter,
 // but the codex/ prefix forces provider=codex with the prefix stripped.
 const realisticResolver: ModelResolver = async (m) =>
   m.startsWith("codex/")

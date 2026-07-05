@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-sync-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-model-sync-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
@@ -163,7 +163,7 @@ test("initCloudSync skips auto initialization during build and test processes un
     initCloudSync.shouldSkipCloudSyncInitialization(
       {
         NODE_ENV: "test",
-        OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS: "1",
+        BIROUTER_ENABLE_RUNTIME_BACKGROUND_TASKS: "1",
       },
       ["node", "--test"]
     ),

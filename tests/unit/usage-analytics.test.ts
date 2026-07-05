@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-analytics-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-usage-analytics-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -323,12 +323,12 @@ test("getUsageStats groups renamed API key usage by stable ID", async () => {
   ).run(
     "api-key-rename",
     "Current Name",
-    "omni-test-key",
+    "bi-test-key",
     "machine1234567890",
     "[]",
     0,
     now,
-    "omni-test-ke"
+    "bi-test-ke"
   );
 
   await usageHistory.saveRequestUsage({

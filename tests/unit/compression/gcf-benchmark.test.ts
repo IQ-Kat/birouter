@@ -1,5 +1,5 @@
 /**
- * GCF (Graph Compact Format) vs legacy omni-tabular benchmark.
+ * GCF (Graph Compact Format) vs legacy bi-tabular benchmark.
  *
  * Compares compression savings, round-trip correctness, and coverage on
  * realistic payloads including cases the legacy encoder cannot handle.
@@ -156,7 +156,7 @@ describe("GCF benchmark — compression savings", () => {
 describe("GCF benchmark — coverage comparison with legacy", () => {
   const payloads = buildPayloads();
 
-  it("legacy omni-tabular handles only homogeneous payloads", () => {
+  it("legacy bi-tabular handles only homogeneous payloads", () => {
     for (const payload of payloads) {
       const isHomogeneous = detectHomogeneous(payload.data) !== null;
       if (payload.legacyCanHandle) {
@@ -200,7 +200,7 @@ describe("GCF benchmark — savings table", () => {
       let advantage = "N/A (legacy can't encode)";
 
       if (payload.legacyCanHandle && detectHomogeneous(payload.data)) {
-        const legacyBlock = `\`\`\`omni-tabular\n${encodeTabularBlockLegacy(payload.data)}\n\`\`\``;
+        const legacyBlock = `\`\`\`bi-tabular\n${encodeTabularBlockLegacy(payload.data)}\n\`\`\``;
         legacySize = String(legacyBlock.length);
         const ls = ((jsonStr.length - legacyBlock.length) / jsonStr.length) * 100;
         legacySavings = ls.toFixed(1) + "%";

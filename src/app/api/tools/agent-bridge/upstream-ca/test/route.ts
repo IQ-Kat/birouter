@@ -12,7 +12,7 @@ import crypto from "crypto";
 import fs from "fs";
 
 import { AgentBridgeUpstreamCaPostSchema } from "@/shared/schemas/agentBridge";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function POST(request: Request): Promise<Response> {

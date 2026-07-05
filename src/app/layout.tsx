@@ -8,6 +8,7 @@ import { normalizeComplianceEventTypes } from "@/i18n/request";
 import { getSettings } from "@/lib/db/settings";
 import type { Viewport } from "next";
 import { PwaRegister } from "@/shared/components/PwaRegister";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -62,7 +63,11 @@ export default async function RootLayout({ children }) {
         {/* Material Symbols icon font is self-hosted via globals.css
             (@import "material-symbols/outlined.css") so icons render even when
             the Google Fonts CDN is unreachable (#3695). */}
-        <script
+        {/* Use next/script with beforeInteractive so the polyfill + theme init
+            run before hydration in React 19 / Next.js 16 (#script-tag-warning). */}
+        <Script
+          id="crypto-theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               if (typeof window !== 'undefined') {
@@ -73,23 +78,23 @@ export default async function RootLayout({ children }) {
                   window.crypto.randomUUID = function() {
                     if (window.crypto.getRandomValues) {
                       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                        const r = window.crypto.getRandomValues(new Uint8Array(1))[0] % 16;
-                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        var r = window.crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+                        var v = c === 'x' ? r : (r & 0x3 | 0x8);
                         return v.toString(16);
                       });
                     }
                     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                      const r = Math.random() * 16 | 0;
-                      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                      var r = Math.random() * 16 | 0;
+                      var v = c === 'x' ? r : (r & 0x3 | 0x8);
                       return v.toString(16);
                     });
                   };
                 }
               }
               try {
-                const stored = localStorage.getItem('theme');
-                const parsed = stored ? JSON.parse(stored) : null;
-                const theme = parsed?.state?.theme || 'system';
+                var stored = localStorage.getItem('theme');
+                var parsed = stored ? JSON.parse(stored) : null;
+                var theme = parsed && parsed.state && parsed.state.theme ? parsed.state.theme : 'system';
                 if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                   document.documentElement.classList.add('dark');
                 } else {

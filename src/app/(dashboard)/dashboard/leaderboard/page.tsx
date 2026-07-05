@@ -191,7 +191,7 @@ export default function LeaderboardPage() {
           {entries.length === 0 && !error && (
             <Card>
               <div className="text-center py-12 text-text-muted">
-                No entries yet for this scope. Start using OmniRoute to earn points!
+                No entries yet for this scope. Start using Birouter to earn points!
               </div>
             </Card>
           )}

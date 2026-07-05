@@ -8,13 +8,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-comp-settings-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-comp-settings-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { resolveCompressionSettings } = await import(
-  "../../open-sse/handlers/chatCore/compressionSettings.ts"
-);
+const { resolveCompressionSettings } =
+  await import("../../open-sse/handlers/chatCore/compressionSettings.ts");
 
 before(async () => {
   await coreDb.ensureDbInitialized();

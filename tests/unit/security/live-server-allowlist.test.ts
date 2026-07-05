@@ -1,7 +1,7 @@
 /**
  * Unit tests for `liveServerAllowList`.
  *
- * Bug #1 (plans/2026-06-23-omniroute-v3.8.34-deep-audit.md) introduced the
+ * Bug #1 (plans/2026-06-23-birouter-v3.8.34-deep-audit.md) introduced the
  * `LIVE_WS_ALLOWED_HOSTS` opt-in for LAN/Tailscale deployments. These tests
  * pin down the contract: defaults remain loopback-only; the env var extends
  * the allow-list with bare hostnames or `host:port` pairs; the absence of

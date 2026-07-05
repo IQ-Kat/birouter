@@ -11,7 +11,7 @@ import { bulkWebSessionImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { sanitizeProviderSpecificDataForResponse } from "@/lib/providers/requestDefaults";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import {
   requiresWebSessionCredential,
   getWebSessionCredentialRequirement,
@@ -59,10 +59,7 @@ export async function POST(request: Request) {
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     try {
-      const providerSpecificData = buildProviderSpecificData(
-        requirement,
-        entry.credential
-      );
+      const providerSpecificData = buildProviderSpecificData(requirement, entry.credential);
 
       if (!hasUsableWebSessionCredential(provider, providerSpecificData)) {
         throw new Error(

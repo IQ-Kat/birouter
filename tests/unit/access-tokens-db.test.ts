@@ -6,7 +6,7 @@ import path from "node:path";
 
 // DB-backed access-token store. Uses an isolated DATA_DIR + closes the handle in
 // test.after (CLAUDE.md "Database Handles in Tests" — otherwise Node's runner hangs).
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-access-tokens-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-access-tokens-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 

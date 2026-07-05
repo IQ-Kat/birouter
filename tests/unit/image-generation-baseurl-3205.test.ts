@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveImageBaseUrl } from "@omniroute/open-sse/handlers/imageGeneration.ts";
+import { resolveImageBaseUrl } from "@birouter/open-sse/handlers/imageGeneration.ts";
 
 const GEMINI_FALLBACK =
   "https://generativelanguage.googleapis.com/v1beta/openai/images/generations";

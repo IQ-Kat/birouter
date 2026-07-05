@@ -39,7 +39,7 @@ Voor de volledige testmatrix, zie `CONTRIBUTING.md` → "Tests Uitvoeren". Voor 
 
 ## Project in een Oogopslag
 
-**OmniRoute** — verenigde AI proxy/router. Eén eindpunt, 160+ LLM-providers, automatische fallback.
+**Birouter** — verenigde AI proxy/router. Eén eindpunt, 160+ LLM-providers, automatische fallback.
 
 | Laag          | Locatie                 | Doel                                                                         |
 | ------------- | ----------------------- | ---------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ API-routes volgen een consistent patroon: `Route → CORS preflight → Zod body
 
 ## Veerkracht Runtime Status
 
-OmniRoute heeft drie gerelateerde maar verschillende mechanismen voor tijdelijke fouten. Houd hun
+Birouter heeft drie gerelateerde maar verschillende mechanismen voor tijdelijke fouten. Houd hun
 bereik gescheiden bij het debuggen van routeringsgedrag. Zie het
 [3-laags veerkracht diagram](./docs/diagrams/exported/resilience-3layers.svg)
 (bron: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
@@ -221,7 +221,7 @@ verbinding andere modellen blijven bedienen.
 ### Code Stijl
 
 - **2 spaties**, puntkomma's, dubbele aanhalingstekens, 100 tekens breed, es5 trailing commas (afgedwongen door lint-staged via Prettier)
-- **Imports**: extern → intern (`@/`, `@omniroute/open-sse`) → relatief
+- **Imports**: extern → intern (`@/`, `@birouter/open-sse`) → relatief
 - **Naming**: bestanden=camelCase/kebab, componenten=PascalCase, constanten=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = fout overal; `no-explicit-any` = waarschuwing in `open-sse/` en `tests/`
 - **TypeScript**: `strict: false`, doel ES2022, module esnext, resolutie bundelaar. Geef de voorkeur aan expliciete types.
@@ -387,9 +387,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
-- **Padaliassen**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Padaliassen**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Standaardpoort**: 20128 (API + dashboard op dezelfde poort)
-- **Gegevensdirectory**: `DATA_DIR` omgevingsvariabele, standaard `~/.omniroute/`
+- **Gegevensdirectory**: `DATA_DIR` omgevingsvariabele, standaard `~/.birouter/`
 - **Belangrijke omgevingsvariabelen**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Setup: `cp .env.example .env` en genereer vervolgens `JWT_SECRET` (`openssl rand -base64 48`) en `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -412,4 +412,4 @@ git push -u origin feat/your-feature
 13. Nooit externe paden of runtime-waarden in shell-scripts die aan `exec()`/`spawn()` worden doorgegeven, string-interpoleren — geef in plaats daarvan door via de `env` optie. Referentie: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Nooit een CodeQL / Secret-Scanning waarschuwing negeren zonder (a) eerst de patroon-documentatie hierboven te controleren om te zien of de helper van toepassing is, en (b) de technische rechtvaardiging in de afwijscommentaar vast te leggen. Precedent: `js/stack-trace-exposure` opgegooid op callsites die al via `sanitizeErrorMessage()` gaan, is een bekende CodeQL-beperking (aangepaste sanitizers niet herkend) — afwijzen als `false positive` met verwijzing naar `docs/security/ERROR_SANITIZATION.md`.
 15. Nooit routes blootstellen die kindprocessen opstarten (`/api/mcp/`, `/api/cli-tools/runtime/`) zonder `isLocalOnlyPath()` classificatie in `src/server/authz/routeGuard.ts`. Loopback-afdwinging gebeurt onvoorwaardelijk vóór elke auth-controle — gelekte JWT via tunnel kan geen procesopstarten activeren. Zie `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Neem nooit `Co-Authored-By`-trailers op die een AI-assistent, LLM of automatiseringsaccount crediteren (bijv. namen met "Claude", "GPT", "Copilot", "Bot"; e-mails op `anthropic.com` / `openai.com` / `noreply.github.com`-adressen die eigendom zijn van bots). Dergelijke trailers leiden commit-attributie naar het botaccount op GitHub, waardoor de werkelijke auteur (`diegosouzapw`) in de PR-geschiedenis verborgen blijft. Menselijke medewerkers — inclusief upstream PR-auteurs en issue-rapporteurs die naar OmniRoute worden geport — MOGEN en MOETEN worden gecrediteerd met standaard `Co-authored-by: Name <email>`-trailers; de upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`) zijn hiervan afhankelijk.
+16. Neem nooit `Co-Authored-By`-trailers op die een AI-assistent, LLM of automatiseringsaccount crediteren (bijv. namen met "Claude", "GPT", "Copilot", "Bot"; e-mails op `anthropic.com` / `openai.com` / `noreply.github.com`-adressen die eigendom zijn van bots). Dergelijke trailers leiden commit-attributie naar het botaccount op GitHub, waardoor de werkelijke auteur (`diegosouzapw`) in de PR-geschiedenis verborgen blijft. Menselijke medewerkers — inclusief upstream PR-auteurs en issue-rapporteurs die naar Birouter worden geport — MOGEN en MOETEN worden gecrediteerd met standaard `Co-authored-by: Name <email>`-trailers; de upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`) zijn hiervan afhankelijk.

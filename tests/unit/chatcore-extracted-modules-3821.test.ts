@@ -32,7 +32,11 @@ test("sanitizeChatRequestBody: Responses target maps max_completion_tokens → m
 });
 
 test("sanitizeChatRequestBody: Responses target maps max_tokens → max_output_tokens", () => {
-  const out = sanitizeChatRequestBody({ max_tokens: 128 }, FORMATS.OPENAI_RESPONSES, FORMATS.OPENAI);
+  const out = sanitizeChatRequestBody(
+    { max_tokens: 128 },
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.OPENAI
+  );
   assert.equal(out.max_output_tokens, 128);
   assert.equal(out.max_tokens, undefined);
 });
@@ -91,9 +95,13 @@ test("checkIdempotencyCache returns a hit Response reusing the same key after a 
     log: undefined,
   });
 
-  assert.equal(result.idempotencyKey, key, "the resolved key is returned for the save site to reuse");
+  assert.equal(
+    result.idempotencyKey,
+    key,
+    "the resolved key is returned for the save site to reuse"
+  );
   assert.ok(result.hit, "a cached entry produces a hit");
-  assert.equal(result.hit!.response.headers.get("X-OmniRoute-Idempotent"), "true");
+  assert.equal(result.hit!.response.headers.get("X-Birouter-Idempotent"), "true");
 });
 
 test("checkIdempotencyCache resolves a null key when no idempotency headers are present", async () => {

@@ -6,7 +6,7 @@ import path from "node:path";
 
 // Isolated DATA_DIR set BEFORE importing anything that touches the DB
 // (injectMemoryAndSkills -> getMemorySettings / retrieveMemories / injectSkills).
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mem-skills-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mem-skills-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getSkillsProviderForFormat, injectMemoryAndSkills } =

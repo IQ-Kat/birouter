@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-sse-shim-"));
+const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-sse-shim-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const repoRoot = join(import.meta.dirname, "../..");
@@ -59,8 +59,8 @@ test("src/sse service wrappers delegate to open-sse and shared infrastructure", 
   const modelSource = readProjectFile("src/sse/services/model.ts");
   const loggerSource = readProjectFile("src/sse/utils/logger.ts");
 
-  assert.match(tokenRefreshSource, /@omniroute\/open-sse\/services\/tokenRefresh\.ts/);
-  assert.match(modelSource, /@omniroute\/open-sse\/services\/model\.ts/);
+  assert.match(tokenRefreshSource, /@birouter\/open-sse\/services\/tokenRefresh\.ts/);
+  assert.match(modelSource, /@birouter\/open-sse\/services\/model\.ts/);
   assert.match(loggerSource, /@\/shared\/utils\/logger/);
   assert.doesNotMatch(loggerSource, /console\.(log|warn|error|info|debug)/);
 });

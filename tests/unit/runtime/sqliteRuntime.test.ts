@@ -33,7 +33,7 @@ test("runtime dir exists after loadSqliteRuntime when runtime source used", asyn
   clearRuntimeCache();
   const r = await loadSqliteRuntime();
   if (r.source === "runtime-installed-now" || r.source === "runtime") {
-    const runtimeDir = join(homedir(), ".omniroute", "runtime");
+    const runtimeDir = join(homedir(), ".birouter", "runtime");
     assert.ok(existsSync(runtimeDir), "runtime dir created");
   }
 });

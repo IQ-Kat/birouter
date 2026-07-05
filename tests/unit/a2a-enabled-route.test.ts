@@ -5,12 +5,12 @@ import os from "node:os";
 import path from "node:path";
 import type { NextRequest } from "next/server";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-a2a-enabled-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-a2a-enabled-route-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
-const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
+const ORIGINAL_BIROUTER_API_KEY = process.env.BIROUTER_API_KEY;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
-delete process.env.OMNIROUTE_API_KEY;
+delete process.env.BIROUTER_API_KEY;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -32,7 +32,7 @@ function makeJsonRpcRequest(body: unknown): NextRequest {
 }
 
 test.beforeEach(async () => {
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
   await resetStorage();
 });
 
@@ -46,10 +46,10 @@ test.after(() => {
     process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   }
 
-  if (ORIGINAL_OMNIROUTE_API_KEY === undefined) {
-    delete process.env.OMNIROUTE_API_KEY;
+  if (ORIGINAL_BIROUTER_API_KEY === undefined) {
+    delete process.env.BIROUTER_API_KEY;
   } else {
-    process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
+    process.env.BIROUTER_API_KEY = ORIGINAL_BIROUTER_API_KEY;
   }
 });
 
@@ -85,7 +85,7 @@ test("A2A JSON-RPC rejects requests while the endpoint is disabled", async () =>
 });
 
 test("A2A JSON-RPC checks auth before returning disabled state", async () => {
-  process.env.OMNIROUTE_API_KEY = "test-secret";
+  process.env.BIROUTER_API_KEY = "test-secret";
 
   const response = await a2aRoute.POST(
     makeJsonRpcRequest({

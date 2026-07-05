@@ -1,4 +1,4 @@
-# .gitleaks.toml — Configuração do gitleaks para OmniRoute
+# .gitleaks.toml — Configuração do gitleaks para Birouter
 # Task 7.18 — PLANO-QUALITY-GATES-FASE7.md
 #
 # Estende as regras padrão do gitleaks com allowlists específicas do projeto.
@@ -35,7 +35,7 @@
 # Entradas aqui são ignoradas em TODAS as varreduras.
 # ---------------------------------------------------------------------------
 [allowlist]
-  description = "OmniRoute project-level allowlist — fixtures, test vectors, public OAuth creds"
+  description = "Birouter project-level allowlist — fixtures, test vectors, public OAuth creds"
 
   # Paths a ignorar completamente (node_modules, builds, etc.)
   paths = [

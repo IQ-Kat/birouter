@@ -72,27 +72,27 @@ test("pt-BR.json tem todas as seções top-level de en.json", () => {
   assert.deepEqual(missing, [], `Seções top-level faltando em pt-BR.json: ${missing.join(", ")}`);
 });
 
-test("i18n.mjs detecta locale por OMNIROUTE_LANG", async () => {
+test("i18n.mjs detecta locale por BIROUTER_LANG", async () => {
   const { resetForTests, detectLocale } = await import("../../bin/cli/i18n.mjs");
-  const orig = process.env.OMNIROUTE_LANG;
-  process.env.OMNIROUTE_LANG = "pt-BR";
+  const orig = process.env.BIROUTER_LANG;
+  process.env.BIROUTER_LANG = "pt-BR";
   resetForTests();
   const locale = detectLocale();
   assert.equal(locale, "pt-BR");
-  if (orig === undefined) delete process.env.OMNIROUTE_LANG;
-  else process.env.OMNIROUTE_LANG = orig;
+  if (orig === undefined) delete process.env.BIROUTER_LANG;
+  else process.env.BIROUTER_LANG = orig;
   resetForTests();
 });
 
 test("i18n.mjs usa fallback en quando locale não existe", async () => {
   const { resetForTests, detectLocale } = await import("../../bin/cli/i18n.mjs");
-  const orig = process.env.OMNIROUTE_LANG;
-  process.env.OMNIROUTE_LANG = "xx-FAKE";
+  const orig = process.env.BIROUTER_LANG;
+  process.env.BIROUTER_LANG = "xx-FAKE";
   resetForTests();
   const locale = detectLocale();
   assert.equal(locale, "en");
-  if (orig === undefined) delete process.env.OMNIROUTE_LANG;
-  else process.env.OMNIROUTE_LANG = orig;
+  if (orig === undefined) delete process.env.BIROUTER_LANG;
+  else process.env.BIROUTER_LANG = orig;
   resetForTests();
 });
 
@@ -119,6 +119,6 @@ test("t() usa pt-BR quando disponível", async () => {
   resetForTests();
   setLocale("pt-BR");
   const result = t("health.noServer");
-  assert.ok(result.includes("omniroute serve"), `Esperava mensagem pt-BR, obteve: ${result}`);
+  assert.ok(result.includes("birouter serve"), `Esperava mensagem pt-BR, obteve: ${result}`);
   resetForTests();
 });

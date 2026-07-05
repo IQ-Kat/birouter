@@ -72,7 +72,7 @@ function getModuleDir(): string {
       dir = parent;
     }
   }
-  return path.join(os.homedir(), ".omniroute");
+  return path.join(os.homedir(), ".birouter");
 }
 
 function getRulesDir(): string {

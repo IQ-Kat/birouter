@@ -8,7 +8,7 @@ import path from "node:path";
 // fetch window. getCallLogs must honor `limit` and `offset` and keep a stable
 // `timestamp DESC` ordering so each page returns the expected rows.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-calllogs-pagination-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-calllogs-pagination-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.CALL_LOG_RETENTION_DAYS = "3650";
 process.env.CALL_LOG_MAX_ENTRIES = "100000";

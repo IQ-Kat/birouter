@@ -132,7 +132,7 @@ function isLoopbackIp(ip) {
 
 /**
  * Defense-in-depth loop guard (Gap 14). The primary guard is the
- * x-omniroute-source header; this is a structural backstop. If a forwarded
+ * x-birouter-source header; this is a structural backstop. If a forwarded
  * request's resolved upstream is a loopback address on the MITM server's own
  * listen port, dialing it would re-enter this same server — an infinite loop /
  * fd storm. Callers should refuse instead of dialing themselves.

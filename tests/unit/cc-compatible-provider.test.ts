@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cc-compatible-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cc-compatible-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -29,8 +29,8 @@ const providerModelsRoute = await import("../../src/app/api/providers/[id]/model
 
 const originalFetch = globalThis.fetch;
 const originalFlag = process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
-const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-const originalAllowLocalProviderUrls = process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+const originalAllowPrivateProviderUrls = process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+const originalAllowLocalProviderUrls = process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -46,14 +46,14 @@ test.afterEach(async () => {
     process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
   }
   if (originalAllowPrivateProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
   if (originalAllowLocalProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
+    process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
   }
   await resetStorage();
 });
@@ -66,14 +66,14 @@ test.after(() => {
     process.env.ENABLE_CC_COMPATIBLE_PROVIDER = originalFlag;
   }
   if (originalAllowPrivateProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
   if (originalAllowLocalProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
+    process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
   }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -892,8 +892,8 @@ test("provider-nodes validate route rejects invalid JSON and schema errors", asy
 });
 
 test("provider-nodes validate route allows local provider hosts by default", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
   let called = false;
   globalThis.fetch = async () => {
@@ -918,8 +918,8 @@ test("provider-nodes validate route allows local provider hosts by default", asy
 });
 
 test("provider-nodes validate route blocks cloud metadata provider hosts before fetch", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
   let called = false;
   globalThis.fetch = async () => {

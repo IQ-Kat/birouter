@@ -10,7 +10,7 @@ lastUpdated: 2026-06-28
 > **Last updated:** 2026-06-28 — v3.8.40 (injection-guard coverage + 16 KB scan bound + red-team)
 
 Guardrails enforce safety, policy, and content transformations at the boundary
-between OmniRoute and upstream providers. Each guardrail can inspect (and
+between Birouter and upstream providers. Each guardrail can inspect (and
 optionally reject, transform, or annotate) request payloads (`preCall`) and
 upstream responses (`postCall`).
 
@@ -186,7 +186,7 @@ request. Sources (all optional, all merged):
 - `apiKeyInfo.disabledGuardrails`
 - Request body `disabledGuardrails` (top-level)
 - Request body `metadata.disabledGuardrails`
-- Header `x-omniroute-disabled-guardrails` (or legacy
+- Header `x-birouter-disabled-guardrails` (or legacy
   `x-disabled-guardrails`)
 
 Values may be arrays of strings or a comma-separated string; names are
@@ -311,7 +311,7 @@ dispatch) has two jobs:
   previous instructions…", DAN-style jailbreaks) asserts the response carries
   `error.code === "SECURITY_001"`, i.e. the guard actually rejected the request.
 - **`garak` (advisory)** — runs garak `--probes promptinject,dan,leakreplay`
-  against a local OmniRoute instance (`http://localhost:20128/v1`). Gated on a
+  against a local Birouter instance (`http://localhost:20128/v1`). Gated on a
   provider secret (`PROMPTFOO_PROVIDER_KEY`); skips gracefully and is suffixed
   `|| true`, so it reports without failing CI.
 

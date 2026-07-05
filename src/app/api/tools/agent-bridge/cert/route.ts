@@ -9,7 +9,7 @@ import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { getCachedPassword } from "@/mitm/manager";
 import path from "path";
 import fs from "fs";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 // Exported for unit testing. Next.js only treats GET/POST/etc. as route
@@ -75,7 +75,7 @@ export async function POST(request: Request): Promise<Response> {
 /**
  * DELETE /api/tools/agent-bridge/cert — untrust (uninstall) the MITM root CA.
  *
- * OmniRoute keeps the CA installed across normal stop/start to avoid repeated
+ * Birouter keeps the CA installed across normal stop/start to avoid repeated
  * sudo prompts (same as mitmproxy/Charles), so removal is an explicit action.
  * Idempotent: removing an absent cert reports success. (Gap 9 — a persistent
  * always-trusted MITM root CA whose key lives on disk is an attack surface.)

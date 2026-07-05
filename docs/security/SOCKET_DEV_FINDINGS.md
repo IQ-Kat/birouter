@@ -1,19 +1,19 @@
 ---
 title: "Socket.dev Supply-Chain Finding Attestation"
-description: "Maintainer attestation for the AI-detected potential-malware findings raised against omniroute and the v3.8.6 mitigations applied at each flagged call site."
+description: "Maintainer attestation for the AI-detected potential-malware findings raised against birouter and the v3.8.6 mitigations applied at each flagged call site."
 ---
 
 # Socket.dev / supply-chain finding attestation
 
 This document is the maintainer-authored attestation for the six
-`AI-detected potential malware` findings raised against `omniroute@3.8.5` and
-the mitigations applied in `omniroute@3.8.6`. It exists so:
+`AI-detected potential malware` findings raised against `birouter@3.8.5` and
+the mitigations applied in `birouter@3.8.6`. It exists so:
 
 1. Security-pipeline operators have a single reference to cite when they need
    to evaluate the findings against the actual source.
 2. Future AI scanners can pick up the maintainer-signed claim that each
    flagged path is intentional, opt-in, and documented.
-3. We have a written record of *why* each call site is shaped the way it is —
+3. We have a written record of _why_ each call site is shaped the way it is —
    so a future refactor doesn't accidentally reintroduce a fingerprint that
    was deliberately removed.
 
@@ -39,15 +39,15 @@ JWT exposed via a tunnel **cannot** trigger this code path.
 
 **Privileged operations performed (per platform)**:
 
-| OS      | Command(s)                                                                                     |
-| ------- | ---------------------------------------------------------------------------------------------- |
-| Windows | `certutil -addstore Root <cert>` via UAC                                                       |
-| macOS   | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain <cert>`  |
-| Linux   | `sudo cp <cert> <distro-trust-dir>` + `sudo update-ca-certificates` (Debian) / `sudo update-ca-trust` (RHEL/SUSE) |
-| Linux+Firefox/Chromium | per-profile NSS DB update via `certutil -d sql:<profile>`                          |
+| OS                     | Command(s)                                                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Windows                | `certutil -addstore Root <cert>` via UAC                                                                          |
+| macOS                  | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain <cert>`                     |
+| Linux                  | `sudo cp <cert> <distro-trust-dir>` + `sudo update-ca-certificates` (Debian) / `sudo update-ca-trust` (RHEL/SUSE) |
+| Linux+Firefox/Chromium | per-profile NSS DB update via `certutil -d sql:<profile>`                                                         |
 
 These are the same commands used by `mitmproxy`, Charles Proxy, Fiddler, and
-Caddy. The fact that they exist in OmniRoute is documented at
+Caddy. The fact that they exist in Birouter is documented at
 `docs/security/STEALTH_GUIDE.md`.
 
 **v3.8.6 mitigation**:
@@ -71,10 +71,10 @@ it would break the agent-bridge feature set.
 
 **Source files**:
 
-- `src/app/api/providers/zed/discover/route.ts` *(new in v3.8.6)*
+- `src/app/api/providers/zed/discover/route.ts` _(new in v3.8.6)_
 - `src/app/api/providers/zed/import/route.ts`
 - `src/lib/zed-oauth/keychain-reader.ts`
-- `src/lib/zed-oauth/credentialFingerprint.ts` *(new in v3.8.6)*
+- `src/lib/zed-oauth/credentialFingerprint.ts` _(new in v3.8.6)_
 
 **Trigger**: user clicks "Import from Zed" in the local dashboard Providers
 page. Endpoint is gated by `requireManagementAuth`. The Zed editor itself
@@ -102,12 +102,12 @@ fingerprint, just "found N tokens, all imported."
    if the live token has changed since discover, the fingerprint no longer
    matches and the credential is skipped.
 
-A `OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP=true` env flag preserves the v3.8.5
+A `BIROUTER_ZED_IMPORT_LEGACY_ONE_STEP=true` env flag preserves the v3.8.5
 behaviour for operators who haven't yet updated their automation. It will be
 removed in v3.9.
 
 **Why we keep it**: Zed import is the friendliest onboarding path for users
-who already use Zed and want to mirror their provider keys into OmniRoute
+who already use Zed and want to mirror their provider keys into Birouter
 without re-pasting.
 
 ---
@@ -119,7 +119,7 @@ without re-pasting.
 **Why flagged**: the chunk re-exports `execFileWithPassword`,
 `runElevatedPowerShell`, and the shared `quotePowerShell` helper. Socket.dev's
 AI classifier sees them as a generic "host execution + privilege elevation
-toolkit." Within OmniRoute they are only used by the MITM cert install path
+toolkit." Within Birouter they are only used by the MITM cert install path
 (§1) and by `execFileWithPassword` for `sudo` command execution.
 
 **v3.8.6 mitigation**:
@@ -160,7 +160,7 @@ the local dashboard.
   write unless the user enables logging from the dashboard.
 
 **v3.8.6 mitigation**: no functional change. The minimal build profile
-(`OMNIROUTE_BUILD_PROFILE=minimal`) replaces
+(`BIROUTER_BUILD_PROFILE=minimal`) replaces
 `src/lib/services/installers/ninerouter.ts` with a stub for users who want
 the privileged paths physically removed from the bundle.
 
@@ -169,7 +169,7 @@ service (think: WordPress-style plugin) — strict opt-in.
 
 ---
 
-## §5 — OmniRoute Cloud Sync credential write-back (`api/keys/[id]/route.js`)
+## §5 — Birouter Cloud Sync credential write-back (`api/keys/[id]/route.js`)
 
 **Source files**:
 
@@ -191,18 +191,18 @@ provider OAuth tokens silently.
 **v3.8.6 mitigation**:
 
 1. **HMAC verification**: `verifyCloudSignature(rawBody, sigHeader)` checks
-   the `X-Cloud-Sig` header (`HMAC-SHA256(OMNIROUTE_CLOUD_SYNC_SECRET,
-   rawBody)`) before parsing the JSON. If the secret is set, the signature is
+   the `X-Cloud-Sig` header (`HMAC-SHA256(BIROUTER_CLOUD_SYNC_SECRET,
+rawBody)`) before parsing the JSON. If the secret is set, the signature is
    required. If not (legacy mode), a warning is logged and the response is
    accepted — the secret will be required in v3.9.
 2. **Secret-field opt-in**: `accessToken` / `refreshToken` /
    `providerSpecificData` are **only** overwritten when
-   `OMNIROUTE_CLOUD_SYNC_SECRETS=true`. The default mode syncs only
+   `BIROUTER_CLOUD_SYNC_SECRETS=true`. The default mode syncs only
    non-credential metadata (`expiresAt`, `status`, `lastError*`,
    `rateLimitedUntil`, `updatedAt`). This is a **breaking change** for users
    who relied on remote token sync — they must explicitly opt in.
 
-**Why we keep it**: Cloud Sync is the only way for an OmniRoute Cloud tenant
+**Why we keep it**: Cloud Sync is the only way for an Birouter Cloud tenant
 to centralise team credentials. The fix makes the threat model honest:
 "server signs, client verifies, operator opts in."
 
@@ -213,24 +213,24 @@ to centralise team credentials. The fix makes the threat model honest:
 For users who need a Socket-friendly artifact, build with:
 
 ```bash
-OMNIROUTE_BUILD_PROFILE=minimal npm run build
+BIROUTER_BUILD_PROFILE=minimal npm run build
 ```
 
 The webpack `NormalModuleReplacementPlugin` aliases four modules to stubs:
 
-| Module                                              | Stub                                                         |
-| --------------------------------------------------- | ------------------------------------------------------------ |
-| `src/mitm/cert/install.ts`                          | `src/mitm/cert/install.stub.ts`                              |
-| `src/lib/zed-oauth/keychain-reader.ts`              | `src/lib/zed-oauth/keychain-reader.stub.ts`                  |
-| `src/lib/cloudSync.ts`                              | `src/lib/cloudSync.stub.ts`                                  |
-| `src/lib/services/installers/ninerouter.ts`         | `src/lib/services/installers/ninerouter.stub.ts`             |
+| Module                                      | Stub                                             |
+| ------------------------------------------- | ------------------------------------------------ |
+| `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
+| `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
+| `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
+| `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Each stub exports the same surface but every function throws a
 `featureDisabledError(name)` at runtime. Routes that depend on the disabled
 module return HTTP 503 with a clear message instead of activating the
 sensitive code path.
 
-The resulting bundle is intended to be published as `omniroute-secure`. See
+The resulting bundle is intended to be published as `birouter-secure`. See
 `docs/ops/PUBLISHING_SECURE.md` for the publishing recipe.
 
 ---

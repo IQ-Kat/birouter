@@ -3,9 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 const dashboardPort = process.env.DASHBOARD_PORT || process.env.PORT || "20128";
 const dashboardBaseUrl = `http://localhost:${dashboardPort}`;
 const webServerReadyUrl = `${dashboardBaseUrl}/api/monitoring/health`;
-const playwrightServerMode = process.env.OMNIROUTE_PLAYWRIGHT_SERVER_MODE || "start";
+const playwrightServerMode = process.env.BIROUTER_PLAYWRIGHT_SERVER_MODE || "start";
 const playwrightWebServerTimeout = Number.parseInt(
-  process.env.OMNIROUTE_PLAYWRIGHT_WEB_SERVER_TIMEOUT || "900000",
+  process.env.BIROUTER_PLAYWRIGHT_WEB_SERVER_TIMEOUT || "900000",
   10
 );
 

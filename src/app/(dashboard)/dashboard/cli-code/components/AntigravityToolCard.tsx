@@ -93,9 +93,7 @@ export default function AntigravityToolCard({
   // browser hitting a Windows server does not (#822).
   const serverIsWindows = status?.isWin === true;
   const canRunWithoutPassword =
-    serverIsWindows ||
-    status?.hasCachedPassword === true ||
-    status?.needsSudoPassword === false;
+    serverIsWindows || status?.hasCachedPassword === true || status?.needsSudoPassword === false;
 
   const handleStart = () => {
     if (canRunWithoutPassword) {
@@ -127,7 +125,7 @@ export default function AntigravityToolCard({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          apiKey: !cloudEnabled ? "sk_omniroute" : null,
+          apiKey: !cloudEnabled ? "sk_birouter" : null,
           keyId: selectedKeyId,
           sudoPassword: password,
         }),
@@ -331,7 +329,7 @@ export default function AntigravityToolCard({
                   </select>
                 ) : (
                   <span className="flex-1 text-xs text-text-muted px-2 py-1.5">
-                    {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultOmnirouteKey")}
+                    {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultBirouterKey")}
                   </span>
                 )}
               </div>

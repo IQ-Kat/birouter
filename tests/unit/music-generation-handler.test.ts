@@ -4,7 +4,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-music-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-music-"));
 
 const { handleMusicGeneration } = await import("../../open-sse/handlers/musicGeneration.ts");
 const { MUSIC_PROVIDERS } = await import("../../open-sse/config/musicRegistry.ts");

@@ -130,7 +130,7 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
     const body = init.body ? JSON.parse(String(init.body)) : {};
     const serializedBody = JSON.stringify(body);
     const isSummaryRequest =
-      body._omnirouteInternalRequest === "context-handoff" ||
+      body._birouterInternalRequest === "context-handoff" ||
       serializedBody.includes("You are a context summarizer");
 
     if (isSummaryRequest) {
@@ -244,7 +244,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
     const body = init.body ? JSON.parse(String(init.body)) : {};
     const serializedBody = JSON.stringify(body);
     const isSummaryRequest =
-      body._omnirouteInternalRequest === "context-handoff" ||
+      body._birouterInternalRequest === "context-handoff" ||
       serializedBody.includes("You are a context summarizer");
 
     if (isSummaryRequest) {
@@ -279,7 +279,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
       url: "http://localhost/v1/responses",
       headers: {
         "X-Session-Id": "relay-live-session",
-        "X-OmniRoute-No-Cache": "true",
+        "X-Birouter-No-Cache": "true",
       },
       body: {
         model: "relay-live-combo",
@@ -311,7 +311,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
       url: "http://localhost/v1/responses",
       headers: {
         "X-Session-Id": "relay-live-session",
-        "X-OmniRoute-No-Cache": "true",
+        "X-Birouter-No-Cache": "true",
       },
       body: {
         model: "relay-live-combo",
@@ -331,9 +331,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
   assert.equal(secondResponse.status, 200);
 
   const relayedSecondaryCall = upstreamBodies.find(
-    (call) =>
-      call.authHeader === "Bearer token-b" &&
-      typeof call.body.instructions === "string"
+    (call) => call.authHeader === "Bearer token-b" && typeof call.body.instructions === "string"
   );
 
   assert.ok(relayedSecondaryCall, "secondary account should receive a request after primary 429");

@@ -4,11 +4,11 @@
 // invocations (package.json test scripts, stryker.conf.json tap.nodeArgs, the
 // quality.yml TIA step, and the CI test jobs) — NEVER from production. It MUST stay
 // out of open-sse/utils/setupPolyfill.ts, which is also imported by production
-// (bin/omniroute.mjs, proxyFetch.ts, proxyDispatcher.ts) where redirecting DATA_DIR
+// (bin/birouter.mjs, proxyFetch.ts, proxyDispatcher.ts) where redirecting DATA_DIR
 // would point the live SQLite DB at a throwaway temp dir.
 //
 // Why: node:test spawns a process per test file and Stryker spawns one per sandbox,
-// but every process resolves DATA_DIR to the SAME default (~/.omniroute) when the env
+// but every process resolves DATA_DIR to the SAME default (~/.birouter) when the env
 // var is unset (see src/lib/dataPaths.ts::resolveDataDir). Concurrent processes then
 // open the SAME on-disk storage.sqlite, causing cross-file state races: SQLite lock
 // contention that hangs `test:unit` under high `--test-concurrency`, and the
@@ -22,7 +22,7 @@ import os from "node:os";
 import path from "node:path";
 
 if (!process.env.DATA_DIR) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-test-"));
   process.env.DATA_DIR = dir;
 
   // Best-effort cleanup so a long suite run does not leak hundreds of temp DBs.

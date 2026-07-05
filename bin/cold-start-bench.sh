@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bin/cold-start-bench.sh — measure OmniRoute cold-start against the target
+# bin/cold-start-bench.sh — measure Birouter cold-start against the target
 # budgets (container start → HTTP listening ≤ 800 ms; first warm
 # TTFB ≤ 200 ms). Boots the server on a throwaway port, times until
 # /api/health/ping answers 200, measures a warm request, and reports PASS/FAIL.
@@ -12,7 +12,7 @@ usage() {
 Usage: bin/cold-start-bench.sh [--port <n>] [--start-cmd "<cmd>"] [--url <base>]
                                [--listen-budget-ms <n>] [--ttfb-budget-ms <n>] [-h|--help]
 
-Boots OmniRoute, times cold-start to the first /api/health/ping 200, measures
+Boots Birouter, times cold-start to the first /api/health/ping 200, measures
 warm TTFB, and compares against the cold-start budgets
 (listen ≤ 800 ms, TTFB ≤ 200 ms). Exits non-zero if a budget is exceeded.
 
@@ -57,11 +57,11 @@ else
   ops_log "booting: $START_CMD"
   start_ms="$(now_ms)"
   # shellcheck disable=SC2086
-  PORT="$PORT" $START_CMD >/tmp/omniroute-coldstart.log 2>&1 &
+  PORT="$PORT" $START_CMD >/tmp/birouter-coldstart.log 2>&1 &
   SERVER_PID="$!"
   deadline=$(($(now_ms) + 30000))
   until ping_ok "$BASE_URL"; do
-    kill -0 "$SERVER_PID" 2>/dev/null || ops_die "server process exited during boot (see /tmp/omniroute-coldstart.log)"
+    kill -0 "$SERVER_PID" 2>/dev/null || ops_die "server process exited during boot (see /tmp/birouter-coldstart.log)"
     [ "$(now_ms)" -gt "$deadline" ] && ops_die "server did not answer /api/health/ping within 30s"
     sleep 0.05
   done

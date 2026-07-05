@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/db/reasoningCache.ts`, `open-sse/services/reasoningCache.ts`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute captures assistant `reasoning_content` produced by thinking-mode models and replays it transparently on multi-turn requests when the upstream provider requires it. This eliminates the HTTP 400 errors that strict providers raise when a client's conversation history is missing the prior turn's reasoning.
+Birouter captures assistant `reasoning_content` produced by thinking-mode models and replays it transparently on multi-turn requests when the upstream provider requires it. This eliminates the HTTP 400 errors that strict providers raise when a client's conversation history is missing the prior turn's reasoning.
 
 ## Why This Exists
 
@@ -19,7 +19,7 @@ Several thinking-mode providers reject a follow-up turn unless the **previous as
 Param Incorrect: The reasoning_content in the thinking mode must be passed back to the API.
 ```
 
-But typical clients (Cursor, Cline, Roo Code, OpenAI SDK) strip `reasoning_content` from the history they replay. OmniRoute restores it from a server-side cache so the request the upstream sees is consistent. Issue #1628 introduced the hybrid memory/SQLite persistence so the cache survives process restarts.
+But typical clients (Cursor, Cline, Roo Code, OpenAI SDK) strip `reasoning_content` from the history they replay. Birouter restores it from a server-side cache so the request the upstream sees is consistent. Issue #1628 introduced the hybrid memory/SQLite persistence so the cache survives process restarts.
 
 ## Architecture
 

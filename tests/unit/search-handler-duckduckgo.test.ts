@@ -4,7 +4,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-ddg-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-ddg-"));
 
 const { handleSearch } = await import("../../open-sse/handlers/search.ts");
 

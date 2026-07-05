@@ -2,7 +2,7 @@
  * Latest-version discovery + comparison for the dashboard "Update Available" banner.
  *
  * #4100: the banner is gated on `isNewer(latest, current)`. Previously `latest` came
- * ONLY from `npm info omniroute version --json` (the `npm` CLI binary). When that binary
+ * ONLY from `npm info birouter version --json` (the `npm` CLI binary). When that binary
  * is absent (Docker / desktop / locked-down installs) or the registry is unreachable, the
  * call returned null and the banner silently never rendered — even when an update existed.
  *
@@ -25,15 +25,14 @@ const execFileAsync = promisify(execFile);
 const log = createLogger("system/versionCheck");
 
 /** npm-binary-free latest-version source: the registry JSON API. */
-const NPM_REGISTRY_LATEST_URL = "https://registry.npmjs.org/omniroute/latest";
+const NPM_REGISTRY_LATEST_URL = "https://registry.npmjs.org/birouter/latest";
 
 /**
  * Second npm-binary-free source: the GitHub releases API. Works on networks that allow
  * GitHub (where `getNews()` already succeeds) but block the npm registry — the most likely
  * surviving cause of "#4100 still not fixed" after the registry fallback shipped in v3.8.28.
  */
-const GITHUB_RELEASES_LATEST_URL =
-  "https://api.github.com/repos/diegosouzapw/OmniRoute/releases/latest";
+const GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/IQ-Kat/birouter/releases/latest";
 
 const LOOKUP_TIMEOUT_MS = 10_000;
 
@@ -76,7 +75,7 @@ export async function getLatestVersionFromNpmCli(): Promise<string | null> {
     // on Node ≥24 (nodejs/node#52554). buildNpmExecOptions enables the shell on win32.
     const { stdout } = await execFileAsync(
       "npm",
-      ["info", "omniroute", "version", "--json"],
+      ["info", "birouter", "version", "--json"],
       buildNpmExecOptions(process.platform, { timeoutMs: LOOKUP_TIMEOUT_MS })
     );
     const parsed = JSON.parse(String(stdout).trim());
@@ -120,7 +119,7 @@ export async function getLatestVersionFromGitHub(
       signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
       headers: {
         // GitHub's API rejects requests without a User-Agent.
-        "User-Agent": "omniroute-version-check",
+        "User-Agent": "birouter-version-check",
         Accept: "application/vnd.github+json",
       },
     });

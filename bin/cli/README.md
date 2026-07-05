@@ -1,6 +1,6 @@
-# bin/cli — OmniRoute CLI internals
+# bin/cli — Birouter CLI internals
 
-This directory contains the CLI runtime, helpers, and commands for the `omniroute` binary.
+This directory contains the CLI runtime, helpers, and commands for the `birouter` binary.
 
 ## Structure
 
@@ -15,7 +15,7 @@ bin/cli/
 ├── output.mjs              ← emit() — table/json/jsonl/csv + printSuccess/printError
 ├── io.mjs                  ← ask() / askSecret() — interactive prompts
 ├── data-dir.mjs            ← resolveDataDir() / resolveStoragePath()
-├── sqlite.mjs              ← openOmniRouteDb() — DB bootstrap
+├── sqlite.mjs              ← openBirouterDb() — DB bootstrap
 ├── encryption.mjs          ← encrypt/decrypt credentials
 ├── provider-catalog.mjs    ← static provider catalog
 ├── provider-store.mjs      ← DB CRUD for provider_connections
@@ -41,7 +41,7 @@ bin/cli/
 
 ### `apiFetch(path, opts)` — `api.mjs`
 
-All HTTP calls to the OmniRoute server must go through this wrapper.
+All HTTP calls to the Birouter server must go through this wrapper.
 
 ```js
 import { apiFetch } from "./api.mjs";
@@ -53,8 +53,8 @@ const data = await res.json();
 
 Options:
 
-- `baseUrl` — override base URL (default: `OMNIROUTE_BASE_URL` env or `localhost:20128`)
-- `apiKey` — override API key (default: `OMNIROUTE_API_KEY`)
+- `baseUrl` — override base URL (default: `BIROUTER_BASE_URL` env or `localhost:20128`)
+- `apiKey` — override API key (default: `BIROUTER_API_KEY`)
 - `method`, `body`, `headers` — standard fetch options
 - `timeout` — per-attempt ms (default: `30000`)
 - `retry` — `false` to disable (default: enabled)
@@ -91,7 +91,7 @@ console.log(t("common.serverOffline"));
 console.log(t("setup.testFailed", { error: err.message }));
 ```
 
-Locale detection order: `OMNIROUTE_LANG` → `LC_ALL` → `LC_MESSAGES` → `LANG` → `en`.
+Locale detection order: `BIROUTER_LANG` → `LC_ALL` → `LC_MESSAGES` → `LANG` → `en`.
 
 ### `emit(data, opts)` — `output.mjs`
 
@@ -110,23 +110,23 @@ process.exit(EXIT_CODES.SERVER_OFFLINE);
 The CLI displays text in the user's language. Detection order:
 
 1. `--lang <code>` flag on the command line
-2. `OMNIROUTE_LANG` environment variable
+2. `BIROUTER_LANG` environment variable
 3. System env: `LC_ALL` → `LC_MESSAGES` → `LANG`
 4. Fallback: `en`
 
 **Set permanently:**
 
 ```bash
-omniroute config lang set pt-BR       # saves to ~/.omniroute/.env
-omniroute config lang list            # show all 42 available locales
-omniroute config lang get             # show currently active locale
+birouter config lang set pt-BR       # saves to ~/.birouter/.env
+birouter config lang list            # show all 42 available locales
+birouter config lang get             # show currently active locale
 ```
 
 **One-time override:**
 
 ```bash
-omniroute --lang de providers list    # run in German, not persisted
-OMNIROUTE_LANG=ja omniroute status    # same effect via env
+birouter --lang de providers list    # run in German, not persisted
+BIROUTER_LANG=ja birouter status    # same effect via env
 ```
 
 **Adding a new locale**: add entry to `config/i18n.json`, then run:

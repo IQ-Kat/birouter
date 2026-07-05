@@ -787,7 +787,7 @@ export default function CachePage() {
                   <div className="mt-4 grid gap-3">
                     <InfoRow icon="info">{t("behaviorDeterministic")}</InfoRow>
                     <InfoRow icon="info">
-                      {t("behaviorBypass", { header: "X-OmniRoute-No-Cache: true" })}
+                      {t("behaviorBypass", { header: "X-Birouter-No-Cache: true" })}
                     </InfoRow>
                     <InfoRow icon="info">{t("behaviorTwoTier")}</InfoRow>
                     <InfoRow icon="info">

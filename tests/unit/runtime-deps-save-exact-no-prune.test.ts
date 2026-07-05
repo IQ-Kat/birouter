@@ -1,7 +1,7 @@
 // Regression (port of decolua/9router#1606): the SQLite and tray runtime installers
 // must persist their package to the user-writable runtime dir's package.json
 // (`--save-exact`) instead of using `--no-save`. Both installers write to the SAME
-// runtime dir (`~/.omniroute/runtime`), so a `--no-save` install marks the other's
+// runtime dir (`~/.birouter/runtime`), so a `--no-save` install marks the other's
 // package as "extraneous" and a later sibling `npm install` prunes it — reproducing
 // "No SQLite driver available" after a tray install removes the just-installed
 // better-sqlite3. Saving each dep with an exact version keeps both.
@@ -11,7 +11,15 @@
 // code path with zero network use.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, chmodSync, existsSync, readFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  rmSync,
+  mkdirSync,
+  writeFileSync,
+  chmodSync,
+  existsSync,
+  readFileSync,
+} from "node:fs";
 import { join, delimiter } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -25,7 +33,7 @@ const original = {
 };
 
 function setup(): void {
-  tmpDir = mkdtempSync(join(tmpdir(), "omniroute-runtime-deps-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "birouter-runtime-deps-"));
   binDir = join(tmpDir, "bin");
   logFile = join(tmpDir, "npm-calls.log");
   mkdirSync(binDir, { recursive: true });

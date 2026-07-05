@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-command-code-auth-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-command-code-auth-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.STORAGE_ENCRYPTION_KEY = "test-command-code-auth-encryption-key";
 delete process.env.INITIAL_PASSWORD;
@@ -32,8 +32,8 @@ function jsonRequest(url: string, body: unknown, headers: HeadersInit = {}) {
 }
 
 test.beforeEach(() => {
-  delete process.env.OMNIROUTE_PUBLIC_BASE_URL;
-  delete process.env.OMNIROUTE_BASE_URL;
+  delete process.env.BIROUTER_PUBLIC_BASE_URL;
+  delete process.env.BIROUTER_BASE_URL;
   delete process.env.BASE_URL;
   delete process.env.NEXT_PUBLIC_BASE_URL;
   delete process.env.COMMAND_CODE_CALLBACK_PORT;
@@ -147,7 +147,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
 });
 
 test("Command Code auth assist keeps auth URL callback on CLI localhost contract", async () => {
-  process.env.OMNIROUTE_PUBLIC_BASE_URL = "https://omniroute.example.com/base-path";
+  process.env.BIROUTER_PUBLIC_BASE_URL = "https://birouter.example.com/base-path";
 
   const startResponse = await startRoute.POST(
     new Request("http://localhost:20128/api/providers/command-code/auth/start", {

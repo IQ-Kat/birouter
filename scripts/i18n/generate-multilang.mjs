@@ -418,8 +418,8 @@ const EXISTING_README_CODES = new Set(["pt-BR", "es", "fr", "it", "ru", "zh-CN",
 const RTL_LOCALES = new Set(["ar", "fa", "he", "ur"]);
 
 const URL_MAX_TEXT_LENGTH = 1800;
-const DELIMITER = "\n__OMNIROUTE_I18N_SEPARATOR__\n";
-const DELIMITER_REGEX = /\n\s*__OMNIROUTE_I18N_SEPARATOR__\s*\n/g;
+const DELIMITER = "\n__BIROUTER_I18N_SEPARATOR__\n";
+const DELIMITER_REGEX = /\n\s*__BIROUTER_I18N_SEPARATOR__\s*\n/g;
 const TRANSLATION_CACHE = new Map();
 const REQUEST_TIMEOUT_MS = 20000;
 
@@ -493,7 +493,7 @@ function maskBalancedCurlyBraces(input, stash) {
 function protectText(input, options = {}) {
   const tokens = [];
   const stash = (value) => {
-    const token = `__OMNI_TOKEN_${tokens.length}__`;
+    const token = `__BI_TOKEN_${tokens.length}__`;
     tokens.push(value);
     return token;
   };
@@ -517,7 +517,7 @@ function protectText(input, options = {}) {
 function restoreText(input, tokens) {
   let output = input;
   for (let i = 0; i < tokens.length; i += 1) {
-    output = output.replaceAll(`__OMNI_TOKEN_${i}__`, tokens[i]);
+    output = output.replaceAll(`__BI_TOKEN_${i}__`, tokens[i]);
   }
   return output;
 }
@@ -553,7 +553,7 @@ async function translateTextRaw(text, targetLanguage, sourceLanguage = "en", att
     response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        "User-Agent": "Mozilla/5.0 OmniRoute-I18N",
+        "User-Agent": "Mozilla/5.0 Birouter-I18N",
       },
     });
   } catch (error) {

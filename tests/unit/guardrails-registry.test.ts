@@ -94,7 +94,7 @@ test("resolveDisabledGuardrails merges api key, body metadata, and headers", () 
   const disabled = resolveDisabledGuardrails({
     apiKeyInfo: { disabledGuardrails: ["pii-masker"] },
     body: { metadata: { disabledGuardrails: ["prompt_injection"] } },
-    headers: { "x-omniroute-disabled-guardrails": "custom-rule" },
+    headers: { "x-birouter-disabled-guardrails": "custom-rule" },
   });
 
   assert.deepEqual(disabled, ["pii-masker", "prompt-injection", "custom-rule"]);
@@ -154,7 +154,8 @@ test("pii masker guardrail redacts request and response payloads", async () => {
         (postCall?.modifiedResponse as Record<string, unknown>).choices?.[0]?.message?.content
       );
       assert.ok(
-        redactedContent.includes("[EMAIL_REDACTED]") || redactedContent.includes("[PHONE_REDACTED]"),
+        redactedContent.includes("[EMAIL_REDACTED]") ||
+          redactedContent.includes("[PHONE_REDACTED]"),
         "email or phone should be redacted in response"
       );
     }

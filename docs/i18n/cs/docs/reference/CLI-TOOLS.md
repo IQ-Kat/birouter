@@ -1,11 +1,11 @@
-# CLI Tools Setup Guide — OmniRoute (Čeština)
+# CLI Tools Setup Guide — Birouter (Čeština)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/CLI-TOOLS.md) · 🇸🇦 [ar](../../ar/docs/CLI-TOOLS.md) · 🇧🇬 [bg](../../bg/docs/CLI-TOOLS.md) · 🇧🇩 [bn](../../bn/docs/CLI-TOOLS.md) · 🇨🇿 [cs](../../cs/docs/CLI-TOOLS.md) · 🇩🇰 [da](../../da/docs/CLI-TOOLS.md) · 🇩🇪 [de](../../de/docs/CLI-TOOLS.md) · 🇪🇸 [es](../../es/docs/CLI-TOOLS.md) · 🇮🇷 [fa](../../fa/docs/CLI-TOOLS.md) · 🇫🇮 [fi](../../fi/docs/CLI-TOOLS.md) · 🇫🇷 [fr](../../fr/docs/CLI-TOOLS.md) · 🇮🇳 [gu](../../gu/docs/CLI-TOOLS.md) · 🇮🇱 [he](../../he/docs/CLI-TOOLS.md) · 🇮🇳 [hi](../../hi/docs/CLI-TOOLS.md) · 🇭🇺 [hu](../../hu/docs/CLI-TOOLS.md) · 🇮🇩 [id](../../id/docs/CLI-TOOLS.md) · 🇮🇹 [it](../../it/docs/CLI-TOOLS.md) · 🇯🇵 [ja](../../ja/docs/CLI-TOOLS.md) · 🇰🇷 [ko](../../ko/docs/CLI-TOOLS.md) · 🇮🇳 [mr](../../mr/docs/CLI-TOOLS.md) · 🇲🇾 [ms](../../ms/docs/CLI-TOOLS.md) · 🇳🇱 [nl](../../nl/docs/CLI-TOOLS.md) · 🇳🇴 [no](../../no/docs/CLI-TOOLS.md) · 🇵🇭 [phi](../../phi/docs/CLI-TOOLS.md) · 🇵🇱 [pl](../../pl/docs/CLI-TOOLS.md) · 🇵🇹 [pt](../../pt/docs/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/CLI-TOOLS.md) · 🇷🇴 [ro](../../ro/docs/CLI-TOOLS.md) · 🇷🇺 [ru](../../ru/docs/CLI-TOOLS.md) · 🇸🇰 [sk](../../sk/docs/CLI-TOOLS.md) · 🇸🇪 [sv](../../sv/docs/CLI-TOOLS.md) · 🇰🇪 [sw](../../sw/docs/CLI-TOOLS.md) · 🇮🇳 [ta](../../ta/docs/CLI-TOOLS.md) · 🇮🇳 [te](../../te/docs/CLI-TOOLS.md) · 🇹🇭 [th](../../th/docs/CLI-TOOLS.md) · 🇹🇷 [tr](../../tr/docs/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/CLI-TOOLS.md) · 🇵🇰 [ur](../../ur/docs/CLI-TOOLS.md) · 🇻🇳 [vi](../../vi/docs/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/CLI-TOOLS.md)
 
 ---
 
 This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
+to use **Birouter** as the unified backend, giving you centralized key management,
 cost tracking, model switching, and request logging across every tool.
 
 ---
@@ -15,10 +15,10 @@ cost tracking, model switching, and request logging across every tool.
 ```
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
-           ▼  (all point to OmniRoute)
+           ▼  (all point to Birouter)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute routes to the right provider)
+           ▼  (Birouter routes to the right provider)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
@@ -46,7 +46,7 @@ Current list (v3.0.0-rc.16):
 | **Cline**          | `cline`       | `cline`    | custom     | npm            |
 | **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
 | **Continue**       | `continue`    | extension  | guide      | VS Code        |
-| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
+| **Antigravity**    | `antigravity` | internal   | mitm       | Birouter       |
 | **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
 | **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
 | **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
@@ -67,9 +67,9 @@ Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
 ---
 
-## Step 1 — Get an OmniRoute API Key
+## Step 1 — Get an Birouter API Key
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
+1. Open the Birouter dashboard → **API Manager** (`/dashboard/api-manager`)
 2. Click **Create API Key**
 3. Give it a name (e.g. `cli-tools`) and select all permissions
 4. Copy the key — you'll need it for every CLI below
@@ -122,13 +122,13 @@ kiro-cli --version   # 1.x.x
 Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
 
 ```bash
-# OmniRoute Universal Endpoint
+# Birouter Universal Endpoint
 export OPENAI_BASE_URL="http://localhost:20128/v1"
-export OPENAI_API_KEY="sk-your-omniroute-key"
+export OPENAI_API_KEY="sk-your-birouter-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
-export ANTHROPIC_API_KEY="sk-your-omniroute-key"
+export ANTHROPIC_API_KEY="sk-your-birouter-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
-export GEMINI_API_KEY="sk-your-omniroute-key"
+export GEMINI_API_KEY="sk-your-birouter-key"
 ```
 
 > For a **remote server** replace `localhost:20128` with the server IP or domain,
@@ -148,7 +148,7 @@ claude config set --global api-base-url http://localhost:20128/v1
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "sk-your-omniroute-key"
+  "apiKey": "sk-your-birouter-key"
 }
 EOF
 ```
@@ -162,7 +162,7 @@ EOF
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
-apiKey: sk-your-omniroute-key
+apiKey: sk-your-birouter-key
 apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
@@ -177,7 +177,7 @@ EOF
 mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
 [provider.openai]
 base_url = "http://localhost:20128/v1"
-api_key = "sk-your-omniroute-key"
+api_key = "sk-your-birouter-key"
 EOF
 ```
 
@@ -194,7 +194,7 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
   "openAiBaseUrl": "http://localhost:20128/v1",
-  "openAiApiKey": "sk-your-omniroute-key"
+  "openAiApiKey": "sk-your-birouter-key"
 }
 EOF
 ```
@@ -202,7 +202,7 @@ EOF
 **VS Code mode:**
 Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+Or use the Birouter dashboard → **CLI Tools → Cline → Apply Config**.
 
 ---
 
@@ -211,7 +211,7 @@ Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
 **CLI mode:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
+kilocode --api-base http://localhost:20128/v1 --api-key sk-your-birouter-key
 ```
 
 **VS Code settings:**
@@ -219,11 +219,11 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```json
 {
   "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-  "kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.apiKey": "sk-your-birouter-key"
 }
 ```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+Or use the Birouter dashboard → **CLI Tools → KiloCode → Apply Config**.
 
 ---
 
@@ -233,11 +233,11 @@ Edit `~/.continue/config.yaml`:
 
 ```yaml
 models:
-  - name: OmniRoute
+  - name: Birouter
     provider: openai
     model: auto
     apiBase: http://localhost:20128/v1
-    apiKey: sk-your-omniroute-key
+    apiKey: sk-your-birouter-key
     default: true
 ```
 
@@ -251,8 +251,8 @@ Restart VS Code after editing.
 # Login to your AWS/Kiro account:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# The CLI uses its own auth — Birouter is not needed as backend for Kiro CLI itself.
+# Use kiro-cli alongside Birouter for other tools.
 kiro-cli status
 ```
 
@@ -266,7 +266,7 @@ Qwen Code supports OpenAI-compatible API endpoints via environment variables or 
 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
-OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_API_KEY="sk-your-birouter-key"
 OPENAI_BASE_URL="http://localhost:20128/v1"
 OPENAI_MODEL="auto"
 EOF
@@ -278,14 +278,14 @@ EOF
 // ~/.qwen/settings.json
 {
   "env": {
-    "OPENAI_API_KEY": "sk-your-omniroute-key",
+    "OPENAI_API_KEY": "sk-your-birouter-key",
     "OPENAI_BASE_URL": "http://localhost:20128/v1"
   },
   "modelProviders": {
     "openai": [
       {
-        "id": "omniroute-default",
-        "name": "OmniRoute (Auto)",
+        "id": "birouter-default",
+        "name": "Birouter (Auto)",
         "envKey": "OPENAI_API_KEY",
         "baseUrl": "http://localhost:20128/v1"
       }
@@ -298,7 +298,7 @@ EOF
 
 ```bash
 OPENAI_BASE_URL="http://localhost:20128/v1" \
-OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_API_KEY="sk-your-birouter-key" \
 OPENAI_MODEL="auto" \
 qwen
 ```
@@ -309,19 +309,19 @@ qwen
 
 ### Cursor (Desktop App)
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
+> **Note:** Cursor routes requests through its cloud. For Birouter integration,
+> enable **Cloud Endpoint** in Birouter Settings and use your public domain URL.
 
 Via GUI: **Settings → Models → OpenAI API Key**
 
 - Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
+- API Key: your Birouter key
 
 ---
 
 ## Dashboard Auto-Configuration
 
-The OmniRoute dashboard automates configuration for most tools:
+The Birouter dashboard automates configuration for most tools:
 
 1. Go to `http://localhost:20128/dashboard/cli-tools`
 2. Expand any tool card
@@ -333,8 +333,8 @@ The OmniRoute dashboard automates configuration for most tools:
 
 ## Built-in Agents: Droid & OpenClaw
 
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
+**Droid** and **OpenClaw** are AI agents built directly into Birouter — no installation needed.
+They run as internal routes and use Birouter's model routing automatically.
 
 - Access: `http://localhost:20128/dashboard/agents`
 - Configure: same combos and providers as all other tools
@@ -360,7 +360,7 @@ They run as internal routes and use OmniRoute's model routing automatically.
 
 | Error                     | Cause                   | Fix                                        |
 | ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
+| `Connection refused`      | Birouter not running    | `pm2 start birouter`                       |
 | `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
 | `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
 | `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
@@ -372,9 +372,9 @@ They run as internal routes and use OmniRoute's model routing automatically.
 ## Quick Setup Script (One Command)
 
 ```bash
-# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
-OMNIROUTE_URL="http://localhost:20128/v1"
-OMNIROUTE_KEY="sk-your-omniroute-key"
+# Install all CLIs and configure for Birouter (replace with your key and server URL)
+BIROUTER_URL="http://localhost:20128/v1"
+BIROUTER_KEY="sk-your-birouter-key"
 
 npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
 
@@ -384,15 +384,15 @@ apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | 
 # Write configs
 mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
-cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
-cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
+cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$BIROUTER_URL\",\"apiKey\":\"$BIROUTER_KEY\"}"
+cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $BIROUTER_KEY\napiBaseUrl: $BIROUTER_URL"
 cat >> ~/.bashrc << EOF
-export OPENAI_BASE_URL="$OMNIROUTE_URL"
-export OPENAI_API_KEY="$OMNIROUTE_KEY"
-export ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
-export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
+export OPENAI_BASE_URL="$BIROUTER_URL"
+export OPENAI_API_KEY="$BIROUTER_KEY"
+export ANTHROPIC_BASE_URL="$BIROUTER_URL"
+export ANTHROPIC_API_KEY="$BIROUTER_KEY"
 EOF
 
 source ~/.bashrc
-echo "✅ All CLIs installed and configured for OmniRoute"
+echo "✅ All CLIs installed and configured for Birouter"
 ```

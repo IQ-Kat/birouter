@@ -93,7 +93,7 @@ test(
       env: {
         ...process.env,
         NODE_ENV: "test",
-        OMNIROUTE_API_KEY: apiKey,
+        BIROUTER_API_KEY: apiKey,
         JWT_SECRET: jwtSecret,
         LIVE_WS_HOST: "127.0.0.1",
         LIVE_WS_PORT: String(port),
@@ -151,7 +151,7 @@ test(
       // Guards #4004's cookie-parse regex: a literal-"s" bug (\s vs \\s) only matched auth_token
       // when it was the FIRST cookie, silently breaking same-origin reverse-proxy auth otherwise.
       await expectLiveWsOpen({
-        Cookie: `omni_pref=dark; auth_token=${dashboardToken}`,
+        Cookie: `bi_pref=dark; auth_token=${dashboardToken}`,
         Origin: origin,
       });
     } finally {

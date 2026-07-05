@@ -8,17 +8,10 @@ import {
   CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH,
   joinClaudeCodeCompatibleUrl,
   joinBaseUrlAndPath,
-} from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
-import {
-  normalizeAnthropicBaseUrl,
-  normalizeClaudeCodeCompatibleBaseUrl,
-} from "./urlHelpers";
+} from "@birouter/open-sse/services/claudeCodeCompatible.ts";
+import { normalizeAnthropicBaseUrl, normalizeClaudeCodeCompatibleBaseUrl } from "./urlHelpers";
 import { applyCustomUserAgent } from "./headers";
-import {
-  toValidationErrorResult,
-  validationRead,
-  validationWrite,
-} from "./transport";
+import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 
 export async function validateAnthropicLikeProvider({
   apiKey,
@@ -126,7 +119,6 @@ export async function validateAnthropicLikeProvider({
   }
 }
 
-
 export async function validateClaudeOAuthInline({
   apiKey,
   modelId,
@@ -140,7 +132,7 @@ export async function validateClaudeOAuthInline({
     providerSpecificData?.validationModelId || modelId || "claude-haiku-4-5-20251001";
 
   try {
-    const { getExecutor } = await import("@omniroute/open-sse/executors/index.ts");
+    const { getExecutor } = await import("@birouter/open-sse/executors/index.ts");
     const { response } = await getExecutor("claude").execute({
       model: testModelId,
       body: {
@@ -163,7 +155,6 @@ export async function validateClaudeOAuthInline({
     return toValidationErrorResult(error);
   }
 }
-
 
 export async function validateAnthropicCompatibleProvider({
   apiKey,
@@ -235,7 +226,6 @@ export async function validateAnthropicCompatibleProvider({
     return toValidationErrorResult(error);
   }
 }
-
 
 export async function validateClaudeCodeCompatibleProvider({
   apiKey,
@@ -316,4 +306,3 @@ export async function validateClaudeCodeCompatibleProvider({
     return toValidationErrorResult(error);
   }
 }
-

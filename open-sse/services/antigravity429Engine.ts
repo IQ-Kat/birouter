@@ -2,7 +2,7 @@
  * Antigravity 429 classification and retry decision engine.
  *
  * CLIProxyAPI classifies 429 responses into 4 categories and makes nuanced
- * retry decisions for each. OmniRoute previously had only 2 categories
+ * retry decisions for each. Birouter previously had only 2 categories
  * (free tier vs RPM). This module brings full parity.
  *
  * Categories:

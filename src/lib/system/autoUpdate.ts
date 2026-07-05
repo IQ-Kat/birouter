@@ -120,8 +120,8 @@ function parsePatchCommits(raw: string | undefined): string[] {
 }
 
 export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoUpdateConfig {
-  const dataDir = env.DATA_DIR || "/tmp/omniroute";
-  const repoDir = env.AUTO_UPDATE_REPO_DIR || "/workspace/omniroute";
+  const dataDir = env.DATA_DIR || "/tmp/birouter";
+  const repoDir = env.AUTO_UPDATE_REPO_DIR || "/workspace/birouter";
 
   let mode = normalizeMode(env.AUTO_UPDATE_MODE);
   if (mode === "npm") {
@@ -135,7 +135,7 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
     repoDir,
     composeFile: env.AUTO_UPDATE_COMPOSE_FILE || path.join(repoDir, "docker-compose.yml"),
     composeProfile: env.AUTO_UPDATE_COMPOSE_PROFILE || "cli",
-    composeService: env.AUTO_UPDATE_SERVICE || "omniroute-cli",
+    composeService: env.AUTO_UPDATE_SERVICE || "birouter-cli",
     gitRemote: env.AUTO_UPDATE_GIT_REMOTE || "origin",
     patchCommits: parsePatchCommits(env.AUTO_UPDATE_PATCH_COMMITS),
     logPath: env.AUTO_UPDATE_LOG_PATH || path.join(dataDir, "logs", "auto-update.log"),
@@ -215,7 +215,7 @@ export async function validateAutoUpdateRuntime(
   if (!(await existsImpl("/var/run/docker.sock"))) {
     return {
       supported: false,
-      reason: "Docker socket is not mounted into the OmniRoute container.",
+      reason: "Docker socket is not mounted into the Birouter container.",
       composeCommand: null,
     };
   }
@@ -225,7 +225,7 @@ export async function validateAutoUpdateRuntime(
   } catch {
     return {
       supported: false,
-      reason: "git is not available inside the OmniRoute container.",
+      reason: "git is not available inside the Birouter container.",
       composeCommand: null,
     };
   }
@@ -235,7 +235,7 @@ export async function validateAutoUpdateRuntime(
     return {
       supported: false,
       reason:
-        "Neither docker compose nor docker-compose is available inside the OmniRoute container.",
+        "Neither docker compose nor docker-compose is available inside the Birouter container.",
       composeCommand: null,
     };
   }
@@ -264,9 +264,9 @@ export function buildNpmUpdateScript(latest: string): string {
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, and the llmlingua SLM stack) installed on every update so an
     // `omit=optional` config / .npmrc cannot silently drop them.
-    `npm install -g omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
+    `npm install -g birouter@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
     "if command -v pm2 >/dev/null 2>&1; then",
-    "  pm2 restart omniroute || true",
+    "  pm2 restart birouter || true",
     "fi",
     `echo \"[AutoUpdate] Successfully updated to v${latest}.\"`,
   ].join("\n");
@@ -290,7 +290,7 @@ export function buildSourceUpdateScript(latest: string, gitRemote = "origin"): s
     "node scripts/dev/sync-env.mjs 2>/dev/null || true",
     "npm run build",
     "if command -v pm2 >/dev/null 2>&1; then",
-    "  pm2 restart omniroute --update-env || true",
+    "  pm2 restart birouter --update-env || true",
     "fi",
     `echo "[AutoUpdate] Successfully updated to ${targetTag}."`,
   ].join("\n");

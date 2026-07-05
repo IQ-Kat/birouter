@@ -1,5 +1,5 @@
 /**
- * WebDAV file server handler for OmniRoute.
+ * WebDAV file server handler for Birouter.
  *
  * Serves the Obsidian vault directory at /api/v1/webdav, enabling
  * Obsidian mobile (Remotely-Save plugin) to sync over Tailscale.
@@ -51,11 +51,11 @@ const WEBDAV_METHODS = new Set([
 // ─────────────────────────────────────────────────────────────────────────────
 // Encryption: minimal port of src/lib/db/encryption.ts
 // Must reproduce the EXACT format: enc:v1:<iv_hex>:<ciphertext_hex>:<authTag_hex>
-// Key derivation: scryptSync(secret, "omniroute-field-encryption-v1", 32)
+// Key derivation: scryptSync(secret, "birouter-field-encryption-v1", 32)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ENC_PREFIX = "enc:v1:";
-const STATIC_SALT = "omniroute-field-encryption-v1";
+const STATIC_SALT = "birouter-field-encryption-v1";
 const KEY_LENGTH = 32;
 const AUTH_TAG_LENGTH = 16;
 const ALGORITHM = "aes-256-gcm";
@@ -79,7 +79,7 @@ function getStaticKey() {
 }
 
 /**
- * Decrypt a value that may be encrypted with the OmniRoute enc:v1: format.
+ * Decrypt a value that may be encrypted with the Birouter enc:v1: format.
  * If the value does not have the enc:v1: prefix, treat as plaintext (backward compat).
  * Returns null if decryption fails.
  *
@@ -347,9 +347,9 @@ export function resolveDataDir() {
 
 function getDefaultDataDir() {
   const homeDir = os.homedir();
-  const legacyDir = path.join(homeDir, ".omniroute"); // getLegacyDotDataDir()
+  const legacyDir = path.join(homeDir, ".birouter"); // getLegacyDotDataDir()
 
-  // 2) Preserve the legacy ~/.omniroute path if it already exists (avoid data loss).
+  // 2) Preserve the legacy ~/.birouter path if it already exists (avoid data loss).
   try {
     if (fs.existsSync(legacyDir) && fs.statSync(legacyDir).isDirectory()) {
       return legacyDir;
@@ -358,19 +358,19 @@ function getDefaultDataDir() {
     // ignore stat errors
   }
 
-  // 3) Windows → %APPDATA%/omniroute.
+  // 3) Windows → %APPDATA%/birouter.
   if (process.platform === "win32") {
     const appData = process.env.APPDATA || path.join(homeDir, "AppData", "Roaming");
-    return path.join(appData, "omniroute");
+    return path.join(appData, "birouter");
   }
 
   // 4) XDG on Linux/macOS only when XDG_CONFIG_HOME is explicitly configured.
   const xdgConfigHome = process.env.XDG_CONFIG_HOME;
   if (typeof xdgConfigHome === "string" && xdgConfigHome.trim().length > 0) {
-    return path.join(path.resolve(xdgConfigHome.trim()), "omniroute");
+    return path.join(path.resolve(xdgConfigHome.trim()), "birouter");
   }
 
-  // 5) Default → legacy ~/.omniroute (even if it does not exist yet).
+  // 5) Default → legacy ~/.birouter (even if it does not exist yet).
   return legacyDir;
 }
 
@@ -464,7 +464,7 @@ function sendError(res, status, safeMessage, extraHeaders = {}) {
  */
 function sendUnauthorized(res) {
   sendError(res, 401, "Unauthorized", {
-    "WWW-Authenticate": 'Basic realm="OmniRoute WebDAV"',
+    "WWW-Authenticate": 'Basic realm="Birouter WebDAV"',
   });
 }
 
@@ -494,8 +494,7 @@ function buildEntryHref(baseHref, relativePath, isDir) {
 function handleOptions(req, res) {
   res.writeHead(200, {
     DAV: "1, 2",
-    Allow:
-      "OPTIONS, GET, HEAD, PUT, DELETE, MKCOL, MOVE, COPY, PROPFIND, LOCK, UNLOCK",
+    Allow: "OPTIONS, GET, HEAD, PUT, DELETE, MKCOL, MOVE, COPY, PROPFIND, LOCK, UNLOCK",
     "MS-Author-Via": "DAV",
     "Content-Length": "0",
   });
@@ -647,7 +646,7 @@ async function handlePut(req, res, absPath) {
 
   let written = 0;
   let limitExceeded = false;
-  const tmpPath = absPath + ".omniroute-webdav-tmp-" + Date.now();
+  const tmpPath = absPath + ".birouter-webdav-tmp-" + Date.now();
   let writeStream;
   try {
     writeStream = fs.createWriteStream(tmpPath);

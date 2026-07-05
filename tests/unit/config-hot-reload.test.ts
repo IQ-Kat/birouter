@@ -4,9 +4,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-config-hot-reload-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-config-hot-reload-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-process.env.OMNIROUTE_CONFIG_HOT_RELOAD_MS = "100";
+process.env.BIROUTER_CONFIG_HOT_RELOAD_MS = "100";
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");

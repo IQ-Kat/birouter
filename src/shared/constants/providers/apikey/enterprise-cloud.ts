@@ -26,7 +26,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     authHint:
       "Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/.",
     apiHint:
-      "Foundry uses the OpenAI v1 surface with deployment names as models. OmniRoute normalizes root resource URLs to the v1 chat and /models endpoints.",
+      "Foundry uses the OpenAI v1 surface with deployment names as models. Birouter normalizes root resource URLs to the v1 chat and /models endpoints.",
     passthroughModels: true,
   },
   bedrock: {
@@ -38,7 +38,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     textIcon: "BR",
     website: "https://aws.amazon.com/bedrock",
     authHint:
-      "Use your Amazon Bedrock API key and configure the AWS region where your models are enabled (for example eu-west-2). OmniRoute calls Bedrock's native Converse API directly.",
+      "Use your Amazon Bedrock API key and configure the AWS region where your models are enabled (for example eu-west-2). Birouter calls Bedrock's native Converse API directly.",
     apiHint:
       "Native Bedrock integration: model discovery uses Bedrock foundation models and inference profiles, while chat uses the regional Bedrock Runtime Converse/ConverseStream APIs.",
     passthroughModels: true,
@@ -68,7 +68,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     authHint:
       "Use your OCI Generative AI API key or IAM bearer token. Base URL can be https://inference.generativeai.<region>.oci.oraclecloud.com/openai/v1/.",
     apiHint:
-      "OCI exposes OpenAI-compatible chat and responses endpoints. Project ID is optional in OmniRoute but may be required for Responses and agentic workflows.",
+      "OCI exposes OpenAI-compatible chat and responses endpoints. Project ID is optional in Birouter but may be required for Responses and agentic workflows.",
     passthroughModels: true,
   },
   sap: {
@@ -97,7 +97,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     authHint:
       "Use the bearer token that protects your Modal deployment, if enabled. Base URL should point to your OpenAI-compatible Modal app, for example https://<workspace>--<app>.modal.run/v1.",
     apiHint:
-      "Modal commonly serves user-hosted OpenAI-compatible apps on /v1. OmniRoute will probe /v1/models and route chat traffic to /v1/chat/completions.",
+      "Modal commonly serves user-hosted OpenAI-compatible apps on /v1. Birouter will probe /v1/models and route chat traffic to /v1/chat/completions.",
     hasFree: true,
     freeNote: "$30/month free credits for new accounts",
     passthroughModels: true,
@@ -197,7 +197,7 @@ export const APIKEY_PROVIDERS_ENTERPRISE = {
     textIcon: "CF",
     website: "https://docs.clarifai.com",
     authHint:
-      "Use your Clarifai PAT or app-specific API key. OmniRoute targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>.",
+      "Use your Clarifai PAT or app-specific API key. Birouter targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>.",
     apiHint:
       "Clarifai exposes OpenAI-compatible chat, responses and /models on /v2/ext/openai/v1. Public/community models typically require a PAT; app-scoped keys only work for resources inside that app.",
     passthroughModels: true,

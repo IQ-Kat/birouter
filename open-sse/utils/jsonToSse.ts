@@ -4,7 +4,7 @@
  *
  * Some "reasoning" openai-compatible upstreams ignore a `stream: true` request
  * and reply with a single `application/json` chat-completion body instead of an
- * SSE stream. OmniRoute's streaming readiness check only recognizes SSE `data:`
+ * SSE stream. Birouter's streaming readiness check only recognizes SSE `data:`
  * frames, so such a body produced a spurious `STREAM_EARLY_EOF` / HTTP 502 even
  * though it carried valid `content` / `reasoning_content`. Synthesizing an SSE
  * stream from that JSON lets the normal streaming pipeline (and the client) get
@@ -78,7 +78,7 @@ export function synthesizeOpenAiSseFromJson(jsonText: string): string {
   const choices = parsed.choices;
   if (!Array.isArray(choices) || choices.length === 0) return "";
 
-  const id = typeof parsed.id === "string" && parsed.id ? parsed.id : "chatcmpl-omniroute-sse";
+  const id = typeof parsed.id === "string" && parsed.id ? parsed.id : "chatcmpl-birouter-sse";
   const created = typeof parsed.created === "number" ? parsed.created : 0;
   const model = typeof parsed.model === "string" ? parsed.model : "";
   const base = { id, object: "chat.completion.chunk", created, model };

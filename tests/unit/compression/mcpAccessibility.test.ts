@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { smartFilterText } from "@omniroute/open-sse/services/compression/engines/mcpAccessibility/index.ts";
-import { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "@omniroute/open-sse/services/compression/engines/mcpAccessibility/constants.ts";
+import { smartFilterText } from "@birouter/open-sse/services/compression/engines/mcpAccessibility/index.ts";
+import { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "@birouter/open-sse/services/compression/engines/mcpAccessibility/constants.ts";
 
 test("collapses ≥30 sibling buttons into head + summary + tail", () => {
   const lines = [];

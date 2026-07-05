@@ -6,13 +6,13 @@
 
 ---
 
-title: "Arquitetura do OmniRoute"
+title: "Arquitetura do Birouter"
 version: 3.8.2
 lastUpdated: 2026-05-13
 
 ---
 
-# Arquitetura do OmniRoute
+# Arquitetura do Birouter
 
 🌐 **Idiomas:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md)
 
@@ -20,7 +20,7 @@ _Última atualização: 2026-05-13_
 
 ## Resumo Executivo
 
-OmniRoute é um gateway de roteamento de IA local e um painel construído sobre Next.js.  
+Birouter é um gateway de roteamento de IA local e um painel construído sobre Next.js.  
 Ele fornece um único endpoint compatível com OpenAI (`/v1/*`) e roteia o tráfego entre vários provedores upstream com tradução, fallback, atualização de token e rastreamento de uso.
 
 Capacidades principais:
@@ -174,7 +174,7 @@ flowchart LR
         BROWSER[Dashboard do Navegador]
     end
 
-    subgraph Router[Processo Local OmniRoute]
+    subgraph Router[Processo Local Birouter]
         API[V1 API de Compatibilidade\n/v1/*]
         DASH[Dashboard + API de Gerenciamento\n/api/*]
         CORE[Núcleo SSE + Tradução\nopen-sse + src/sse]
@@ -416,7 +416,7 @@ precisem montar a lógica de bloqueio/orçamento/fallback por conta própria.
 - Cache de cota: `src/domain/quotaCache.ts`
 - Estado de degradação: `src/domain/degradation.ts`
 - Auditoria de configuração: `src/domain/configAudit.ts`
-- Construtor de metadados de resposta OmniRoute: `src/domain/omnirouteResponseMeta.ts`
+- Construtor de metadados de resposta Birouter: `src/domain/birouterResponseMeta.ts`
 - Subsistema de avaliação: `src/domain/assessment/` — trabalhos de avaliação periódica
 
 ### E. Pipeline de Autorização
@@ -499,7 +499,7 @@ Banco de dados de estado primário (SQLite):
 
 - Infraestrutura principal: `src/lib/db/core.ts` (better-sqlite3, migrações, WAL)
 - Fachada de re-exportação: `src/lib/localDb.ts` (camada de compatibilidade fina para chamadores)
-- arquivo: `${DATA_DIR}/storage.sqlite` (ou `$XDG_CONFIG_HOME/omniroute/storage.sqlite` quando definido, caso contrário `~/.omniroute/storage.sqlite`)
+- arquivo: `${DATA_DIR}/storage.sqlite` (ou `$XDG_CONFIG_HOME/birouter/storage.sqlite` quando definido, caso contrário `~/.birouter/storage.sqlite`)
 - entidades (tabelas + namespaces KV): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**
 
 Persistência de uso:
@@ -795,7 +795,7 @@ flowchart LR
         Browser[Navegador do Dashboard]
     end
 
-    subgraph ContainerOrProcess[Runtime do OmniRoute]
+    subgraph ContainerOrProcess[Runtime do Birouter]
         Next[Servidor Next.js\nPORT=20128]
         Core[Núcleo SSE + Executores]
         MainDB[(storage.sqlite)]
@@ -915,7 +915,7 @@ Todos os outros provedores (incluindo nós compatíveis personalizados) usam o `
 ## Matriz de Compatibilidade de Provedores
 
 > **Nota:** A matriz abaixo é uma amostra representativa dos 177 provedores registrados no
-> OmniRoute v3.8.0. Para a lista canônica e continuamente atualizada, consulte
+> Birouter v3.8.0. Para a lista canônica e continuamente atualizada, consulte
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (gerada automaticamente) ou a fonte
 > de verdade em `src/shared/constants/providers.ts` (validada pelo Zod na carga).
 
@@ -1098,7 +1098,7 @@ A captura detalhada do payload da solicitação armazena até quatro estágios d
 - solicitação bruta recebida do cliente
 - solicitação traduzida realmente enviada para upstream
 - resposta do provedor reconstruída como JSON; respostas transmitidas são compactadas para o resumo final mais metadados do stream
-- resposta final do cliente retornada pelo OmniRoute; respostas transmitidas são armazenadas na mesma forma de resumo compacto
+- resposta final do cliente retornada pelo Birouter; respostas transmitidas são armazenadas na mesma forma de resumo compacto
 
 ## Limites Sensíveis à Segurança
 
@@ -1125,11 +1125,11 @@ Variáveis de ambiente ativamente usadas pelo código:
 
 ## Notas Arquitetônicas Conhecidas
 
-1. `usageDb` e `localDb` compartilham a mesma política de diretório base (`DATA_DIR` -> `XDG_CONFIG_HOME/omniroute` -> `~/.omniroute`) com migração de arquivos legados.
+1. `usageDb` e `localDb` compartilham a mesma política de diretório base (`DATA_DIR` -> `XDG_CONFIG_HOME/birouter` -> `~/.birouter`) com migração de arquivos legados.
 2. `/api/v1/route.ts` delega ao mesmo construtor de catálogo unificado usado por `/api/v1/models` (`src/app/api/v1/models/catalog.ts`) para evitar desvios semânticos.
 3. O registrador de requisições escreve cabeçalhos/corpo completos quando habilitado; trate o diretório de logs como sensível.
 4. O comportamento na nuvem depende do correto `NEXT_PUBLIC_BASE_URL` e da acessibilidade do endpoint da nuvem.
-5. O diretório `open-sse/` é publicado como o pacote de **workspace npm** `@omniroute/open-sse`. O código-fonte o importa via `@omniroute/open-sse/...` (resolvido pelo Next.js `transpilePackages`). Os caminhos de arquivo neste documento ainda usam o nome do diretório `open-sse/` para consistência.
+5. O diretório `open-sse/` é publicado como o pacote de **workspace npm** `@birouter/open-sse`. O código-fonte o importa via `@birouter/open-sse/...` (resolvido pelo Next.js `transpilePackages`). Os caminhos de arquivo neste documento ainda usam o nome do diretório `open-sse/` para consistência.
 6. Gráficos no painel usam **Recharts** (baseado em SVG) para visualizações analíticas acessíveis e interativas (gráficos de barras de uso de modelo, tabelas de quebra de provedor com taxas de sucesso).
 7. Testes E2E usam **Playwright** (`tests/e2e/`), executados via `npm run test:e2e`. Testes unitários usam **Node.js test runner** (`tests/unit/`), executados via `npm run test:unit`. O código-fonte sob `src/` é **TypeScript** (`.ts`/`.tsx`); o workspace `open-sse/` permanece em JavaScript (`.js`).
 8. A página de configurações é organizada em 7 abas: Geral, Aparência, IA, Segurança, Roteamento, Resiliência, Avançado. A página de Resiliência configura apenas a fila de requisições, o tempo de espera de conexão, o quebra-provedor e o comportamento de espera pelo tempo de espera; o estado de tempo de execução do quebra ao vivo é mostrado na página de Saúde.
@@ -1140,7 +1140,7 @@ Variáveis de ambiente ativamente usadas pelo código:
 ## Lista de Verificação de Verificação Operacional
 
 - Compilar a partir do código-fonte: `npm run build`
-- Construir imagem Docker: `docker build -t omniroute .`
+- Construir imagem Docker: `docker build -t birouter .`
 - Iniciar serviço e verificar:
 - `GET /api/settings`
 - `GET /api/v1/models`

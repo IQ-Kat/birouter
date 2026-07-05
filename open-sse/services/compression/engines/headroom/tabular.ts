@@ -1,5 +1,5 @@
 /**
- * tabular.ts — GCF-powered encoder + backward-compatible omni-tabular decoder.
+ * tabular.ts — GCF-powered encoder + backward-compatible bi-tabular decoder.
  *
  * Encoding now uses GCF (Graph Compact Format) generic profile, which handles:
  *   - Homogeneous AND heterogeneous arrays of objects
@@ -9,9 +9,9 @@
  *
  * Decoding supports BOTH formats for backward compatibility:
  *   - ```gcf-generic ... ``` (new GCF format)
- *   - ```omni-tabular ... ``` (legacy format, still decoded correctly)
+ *   - ```bi-tabular ... ``` (legacy format, still decoded correctly)
  *
- * The legacy omni-tabular encoder is preserved as encodeTabularBlockLegacy
+ * The legacy bi-tabular encoder is preserved as encodeTabularBlockLegacy
  * for backward-compat decoding and benchmark comparison.
  */
 
@@ -25,9 +25,9 @@ export const GCF_FENCE_OPEN = "```gcf-generic";
 export const GCF_FENCE_CLOSE = "```";
 
 /** Legacy fence markers (kept for backward-compat decoding). */
-export const TABULAR_FENCE_OPEN = "```omni-tabular";
+export const TABULAR_FENCE_OPEN = "```bi-tabular";
 export const TABULAR_FENCE_CLOSE = "```";
-export const TABULAR_MARKER_RE = /```(?:gcf-generic|omni-tabular)\n([\s\S]*?)\n```/g;
+export const TABULAR_MARKER_RE = /```(?:gcf-generic|bi-tabular)\n([\s\S]*?)\n```/g;
 
 // ─── legacy types (for backward-compat decoder) ─────────────────────────────
 
@@ -81,7 +81,7 @@ export function wrapTabular(blockContent: string): string {
   return wrapGcf(blockContent);
 }
 
-// ─── legacy omni-tabular encoder (preserved for tests/benchmarks) ────────────
+// ─── legacy bi-tabular encoder (preserved for tests/benchmarks) ────────────
 
 function encodeCell(raw: string): string {
   const needsQuoting =
@@ -173,7 +173,7 @@ export function encodeTabularBlockLegacy(arr: Record<string, unknown>[]): string
 // ─── dual-format decoder ─────────────────────────────────────────────────────
 
 /**
- * Decode a legacy omni-tabular block back to the original array.
+ * Decode a legacy bi-tabular block back to the original array.
  */
 export function decodeTabularBlockLegacy(block: string): Record<string, unknown>[] {
   const lines = block.split("\n");
@@ -223,7 +223,7 @@ export function decodeTabularBlockLegacy(block: string): Record<string, unknown>
 }
 
 /**
- * Public API — decode a fenced block (either GCF or legacy omni-tabular).
+ * Public API — decode a fenced block (either GCF or legacy bi-tabular).
  * Auto-detects format from the fence marker.
  */
 export function decodeTabular(text: string): Record<string, unknown>[] {
@@ -249,7 +249,7 @@ export function decodeTabular(text: string): Record<string, unknown>[] {
     return [result as Record<string, unknown>];
   }
 
-  // Legacy omni-tabular format.
+  // Legacy bi-tabular format.
   let inner = text;
   if (inner.startsWith(TABULAR_FENCE_OPEN + "\n")) {
     inner = inner.slice(TABULAR_FENCE_OPEN.length + 1);

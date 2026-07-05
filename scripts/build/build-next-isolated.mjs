@@ -15,7 +15,7 @@ import {
 // --- Load .env early ---
 // next.config.mjs is evaluated inside the spawned `next build` child process
 // BEFORE Next.js's own dotenv loader runs, so build-control flags like
-// OMNIROUTE_BUILD_STANDALONE must be available in process.env before spawn().
+// BIROUTER_BUILD_STANDALONE must be available in process.env before spawn().
 // We do a minimal .env parse here (no overriding existing vars, no interpolation)
 // to mirror Next.js's own dotenv precedence rules.
 {
@@ -74,7 +74,7 @@ if (process.platform === "win32") {
 
 const projectRoot = process.cwd();
 const distDir = path.resolve(process.env.NEXT_DIST_DIR || ".build/next");
-const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
+const backupRoot = path.join(os.tmpdir(), `birouter-build-isolated-${process.pid}-${Date.now()}`);
 
 export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
   const paths = [
@@ -85,7 +85,7 @@ export function getTransientBuildPaths(rootDir = projectRoot, env = process.env)
     },
   ];
 
-  if (env.OMNIROUTE_BUILD_MOVE_TASKS === "1") {
+  if (env.BIROUTER_BUILD_MOVE_TASKS === "1") {
     paths.push({
       label: "task planning workspace",
       sourcePath: path.join(rootDir, "_tasks"),
@@ -131,8 +131,8 @@ export async function movePath(sourcePath, destinationPath, fsImpl = fs) {
 
 function runNextBuild() {
   return new Promise((resolve) => {
-    const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
-    const child = spawn(process.execPath, [nextBin, "build", resolveNextBuildBundlerFlag()], {
+    const nextOmnin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
+    const child = spawn(process.execPath, [nextOmnin, "build", resolveNextBuildBundlerFlag()], {
       cwd: projectRoot,
       stdio: "inherit",
       env: resolveNextBuildEnv(process.env),
@@ -158,7 +158,7 @@ function runNextBuild() {
 }
 
 export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
-  return baseEnv.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
+  return baseEnv.BIROUTER_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
@@ -174,14 +174,14 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
   // stalling/OOMing local `npm run build` (npm-global installs). #4076/#4104 fixed
   // this only in the Docker builder stage (ENV NODE_OPTIONS); the local/native path
   // was left unprotected. Respect an existing --max-old-space-size (Docker already
-  // sets one — don't clobber/duplicate) and let OMNIROUTE_BUILD_MEMORY_MB override.
+  // sets one — don't clobber/duplicate) and let BIROUTER_BUILD_MEMORY_MB override.
   if (!/--max-old-space-size/.test(env.NODE_OPTIONS || "")) {
     // Default 8 GB (was 4 GB): the clean module graph peaks ~3.9 GB during the webpack
     // production pass, which brushed the old 4 GB ceiling on a borderline OOM. 8 GB gives
     // headroom without risk. NOTE: heap size does NOT fix a poisoned scope — if the build
     // OOMs/livelocks far above this, check for worktrees/cruft leaking into the tsconfig
     // scope (run `npm run check:build-scope`), not for "more heap". See incident 2026-06-25.
-    const heapMb = Number(baseEnv.OMNIROUTE_BUILD_MEMORY_MB) || 14336;
+    const heapMb = Number(baseEnv.BIROUTER_BUILD_MEMORY_MB) || 14336;
     env.NODE_OPTIONS = `${env.NODE_OPTIONS || ""} --max-old-space-size=${heapMb}`.trim();
   }
 

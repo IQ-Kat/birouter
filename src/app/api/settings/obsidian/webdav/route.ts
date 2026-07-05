@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 import {
   getObsidianSyncStatus,
   enableObsidianVaultSync,
@@ -47,10 +47,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = enableSchema.safeParse(rawBody);
   if (!parsed.success) {
-    return NextResponse.json(
-      buildErrorBody(400, "Missing or invalid vaultPath"),
-      { status: 400 }
-    );
+    return NextResponse.json(buildErrorBody(400, "Missing or invalid vaultPath"), { status: 400 });
   }
 
   const result = await enableObsidianVaultSync(parsed.data.vaultPath);

@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { isApplyDisabled, isResetDisabled } = await import(
-  "../../src/app/(dashboard)/dashboard/cli-code/components/codexButtonState.ts"
-);
+const { isApplyDisabled, isResetDisabled } =
+  await import("../../src/app/(dashboard)/dashboard/cli-code/components/codexButtonState.ts");
 
 test("Codex tool card — Apply / Reset disabled state", async (t) => {
   // ──────────────────────────── Apply ────────────────────────────
@@ -16,7 +15,7 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
         cloudEnabled: true,
         apiKeys: ["key-1"],
       }),
-      true,
+      true
     );
     assert.equal(
       isApplyDisabled({
@@ -25,15 +24,15 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
         cloudEnabled: false,
         apiKeys: [],
       }),
-      true,
+      true
     );
   });
 
   await t.test(
-    "Apply is ENABLED with model + no key when cloud is disabled (default sk_omniroute path)",
+    "Apply is ENABLED with model + no key when cloud is disabled (default sk_birouter path)",
     () => {
       // This is the central case the upstream port fixes: in local-mode the
-      // sk_omniroute default kicks in, so an empty selectedApiKey must not
+      // sk_birouter default kicks in, so an empty selectedApiKey must not
       // disable Apply.
       assert.equal(
         isApplyDisabled({
@@ -42,9 +41,9 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
           cloudEnabled: false,
           apiKeys: ["key-1"], // even with keys configured, local mode wins
         }),
-        false,
+        false
       );
-    },
+    }
   );
 
   await t.test("Apply is ENABLED with model + no key when no keys exist at all", () => {
@@ -57,7 +56,7 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
         cloudEnabled: true,
         apiKeys: [],
       }),
-      false,
+      false
     );
   });
 
@@ -71,9 +70,9 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
           cloudEnabled: true,
           apiKeys: ["key-1", "key-2"],
         }),
-        true,
+        true
       );
-    },
+    }
   );
 
   await t.test("Apply is ENABLED when a model and a key are both selected", () => {
@@ -84,7 +83,7 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
         cloudEnabled: true,
         apiKeys: ["key-1"],
       }),
-      false,
+      false
     );
   });
 
@@ -96,7 +95,7 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
         cloudEnabled: true,
         apiKeys: null,
       }),
-      false,
+      false
     );
     assert.equal(
       isApplyDisabled({
@@ -105,7 +104,7 @@ test("Codex tool card — Apply / Reset disabled state", async (t) => {
         cloudEnabled: true,
         apiKeys: undefined,
       }),
-      false,
+      false
     );
   });
 

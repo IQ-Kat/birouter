@@ -28,10 +28,7 @@ const shim = requireCjs("../../src/mitm/_internal/bypass.cjs") as {
   parseBypassJson: (raw: string) => string[];
 };
 
-const TARGETS = new Set([
-  "daily-cloudcode-pa.googleapis.com",
-  "api.githubcopilot.com",
-]);
+const TARGETS = new Set(["daily-cloudcode-pa.googleapis.com", "api.githubcopilot.com"]);
 
 test("DEFAULT_BYPASS_PATTERNS — at least the 4 mandatory regexes", () => {
   assert.ok(shim.DEFAULT_BYPASS_PATTERNS.length >= 4);
@@ -66,10 +63,7 @@ test("routeBypass — bypass beats target match (precedence)", () => {
 });
 
 test("routeBypass — known target hostname → target", () => {
-  assert.equal(
-    shim.routeBypass("daily-cloudcode-pa.googleapis.com", TARGETS, []),
-    "target"
-  );
+  assert.equal(shim.routeBypass("daily-cloudcode-pa.googleapis.com", TARGETS, []), "target");
   assert.equal(shim.routeBypass("api.githubcopilot.com", TARGETS, []), "target");
 });
 
@@ -80,44 +74,25 @@ test("routeBypass — unknown hostname → passthrough", () => {
 
 test("routeBypass — user glob pattern → bypass", () => {
   const userPatterns = ["*.internal.example.com"];
-  assert.equal(
-    shim.routeBypass("admin.internal.example.com", TARGETS, userPatterns),
-    "bypass"
-  );
-  assert.equal(
-    shim.routeBypass("external.example.com", TARGETS, userPatterns),
-    "passthrough"
-  );
+  assert.equal(shim.routeBypass("admin.internal.example.com", TARGETS, userPatterns), "bypass");
+  assert.equal(shim.routeBypass("external.example.com", TARGETS, userPatterns), "passthrough");
 });
 
 test("routeBypass — empty hostname → passthrough", () => {
   assert.equal(shim.routeBypass("", TARGETS, []), "passthrough");
-  assert.equal(
-    shim.routeBypass(undefined as unknown as string, TARGETS, []),
-    "passthrough"
-  );
+  assert.equal(shim.routeBypass(undefined as unknown as string, TARGETS, []), "passthrough");
 });
 
 test("routeBypass — targetHosts may be an array (not just Set)", () => {
-  const targetsArr = [
-    "daily-cloudcode-pa.googleapis.com",
-    "api.githubcopilot.com",
-  ];
-  assert.equal(
-    shim.routeBypass("api.githubcopilot.com", targetsArr, []),
-    "target"
-  );
+  const targetsArr = ["daily-cloudcode-pa.googleapis.com", "api.githubcopilot.com"];
+  assert.equal(shim.routeBypass("api.githubcopilot.com", targetsArr, []), "target");
   assert.equal(shim.routeBypass("example.com", targetsArr, []), "passthrough");
 });
 
 test("routeBypass — case-insensitive on hostname", () => {
   assert.equal(shim.routeBypass("MyApp.Okta.COM", TARGETS, []), "bypass");
   assert.equal(
-    shim.routeBypass(
-      "DAILY-cloudcode-pa.googleapis.com".toLowerCase(),
-      TARGETS,
-      []
-    ),
+    shim.routeBypass("DAILY-cloudcode-pa.googleapis.com".toLowerCase(), TARGETS, []),
     "target"
   );
 });
@@ -175,10 +150,7 @@ test("parseBypassJson — missing patterns property → []", () => {
 });
 
 test("parseBypassJson — patterns not an array → []", () => {
-  assert.deepEqual(
-    shim.parseBypassJson(JSON.stringify({ patterns: "foo" })),
-    []
-  );
+  assert.deepEqual(shim.parseBypassJson(JSON.stringify({ patterns: "foo" })), []);
 });
 
 test("parseBypassJson — filters out non-string and empty entries", () => {
@@ -189,7 +161,7 @@ test("parseBypassJson — filters out non-string and empty entries", () => {
   assert.deepEqual(parsed, ["valid.com", "another.com"]);
 });
 
-test("C2 header contract — server.cjs intercept must inject x-omniroute-source and x-omniroute-agent", async () => {
+test("C2 header contract — server.cjs intercept must inject x-birouter-source and x-birouter-agent", async () => {
   // This is a documentation/spec assertion: the exact header names that
   // server.cjs::intercept must inject per master plan §3.5. If anyone
   // edits server.cjs to remove or rename them, this test fails and
@@ -202,13 +174,13 @@ test("C2 header contract — server.cjs intercept must inject x-omniroute-source
   const src = fs.readFileSync(serverPath, "utf-8");
   assert.match(
     src,
-    /"x-omniroute-source":\s*"agent-bridge"/,
-    'server.cjs must inject "x-omniroute-source: agent-bridge"'
+    /"x-birouter-source":\s*"agent-bridge"/,
+    'server.cjs must inject "x-birouter-source: agent-bridge"'
   );
   assert.match(
     src,
-    /"x-omniroute-agent":\s*agentId/,
-    'server.cjs must inject "x-omniroute-agent: <id>" from the host→agent map'
+    /"x-birouter-agent":\s*agentId/,
+    'server.cjs must inject "x-birouter-agent: <id>" from the host→agent map'
   );
   // Antigravity non-regression: the historical host must still resolve to
   // the antigravity agent id, so the existing flow continues to work.
@@ -257,11 +229,7 @@ test("C1 contract — server.cjs registers a CONNECT handler", async () => {
   const here = path.dirname(url.fileURLToPath(import.meta.url));
   const serverPath = path.resolve(here, "../../src/mitm/server.cjs");
   const src = fs.readFileSync(serverPath, "utf-8");
-  assert.match(
-    src,
-    /server\.on\(\s*"connect"/,
-    "server.cjs must register a CONNECT handler"
-  );
+  assert.match(src, /server\.on\(\s*"connect"/, "server.cjs must register a CONNECT handler");
   assert.match(
     src,
     /net\.connect\(/,

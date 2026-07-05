@@ -255,7 +255,7 @@ test("ServerSupervisor.handleExit com string code não passa string para process
 
 test("writePidFile/readPidFile/cleanupPidFile operam por service", async () => {
   const os = await import("node:os");
-  const tmpDir = os.default.tmpdir() + "/omniroute-pid-test-" + Date.now();
+  const tmpDir = os.default.tmpdir() + "/birouter-pid-test-" + Date.now();
   process.env.DATA_DIR = tmpDir;
 
   const { writePidFile, readPidFile, cleanupPidFile } = await import("../../bin/cli/utils/pid.mjs");

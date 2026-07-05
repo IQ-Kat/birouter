@@ -20,12 +20,15 @@ test("testImportsModule matches static, dynamic and require imports of the modul
   const frag = "handlers/chatCore/headers";
   // static import-from
   assert.equal(
-    testImportsModule(`import { x } from "@omniroute/open-sse/handlers/chatCore/headers";`, frag),
+    testImportsModule(`import { x } from "@birouter/open-sse/handlers/chatCore/headers";`, frag),
     true
   );
   // dynamic await import, even split across lines
   assert.equal(
-    testImportsModule(`const { y } = await import(\n  "../../open-sse/handlers/chatCore/headers.ts"\n);`, frag),
+    testImportsModule(
+      `const { y } = await import(\n  "../../open-sse/handlers/chatCore/headers.ts"\n);`,
+      frag
+    ),
     true
   );
   // require()
@@ -35,7 +38,10 @@ test("testImportsModule matches static, dynamic and require imports of the modul
   );
   // unrelated module is not matched
   assert.equal(
-    testImportsModule(`import { a } from "@omniroute/open-sse/handlers/chatCore/idempotency";`, frag),
+    testImportsModule(
+      `import { a } from "@birouter/open-sse/handlers/chatCore/idempotency";`,
+      frag
+    ),
     false
   );
   // the fragment appearing only in a comment (not an import string) is NOT a match
@@ -54,11 +60,20 @@ test("findCoverageDrift flags covering unit tests absent from tap.testFiles", ()
   const tapTestFiles = ["tests/unit/chatcore-headers.test.ts"];
   const unitTests = [
     // covers headers, already in tap -> not drift
-    { path: "tests/unit/chatcore-headers.test.ts", content: `await import("../../open-sse/handlers/chatCore/headers.ts");` },
+    {
+      path: "tests/unit/chatcore-headers.test.ts",
+      content: `await import("../../open-sse/handlers/chatCore/headers.ts");`,
+    },
     // covers headers, NOT in tap -> drift
-    { path: "tests/unit/no-memory-header.test.ts", content: `const { isNoMemoryRequested } = await import("../../open-sse/handlers/chatCore/headers.ts");` },
+    {
+      path: "tests/unit/no-memory-header.test.ts",
+      content: `const { isNoMemoryRequested } = await import("../../open-sse/handlers/chatCore/headers.ts");`,
+    },
     // covers idempotency, NOT in tap -> drift
-    { path: "tests/unit/idempo.test.ts", content: `import { x } from "@omniroute/open-sse/handlers/chatCore/idempotency";` },
+    {
+      path: "tests/unit/idempo.test.ts",
+      content: `import { x } from "@birouter/open-sse/handlers/chatCore/idempotency";`,
+    },
     // covers nothing mutated -> ignored
     { path: "tests/unit/unrelated.test.ts", content: `import { z } from "@/lib/foo";` },
   ];

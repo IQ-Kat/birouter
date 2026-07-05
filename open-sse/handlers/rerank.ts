@@ -8,7 +8,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 
 import { getRerankProvider, parseRerankModel, RERANK_PROVIDERS } from "../config/rerankRegistry.ts";
 import { errorResponse } from "../utils/error.ts";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachBirouterMetaHeaders } from "@/domain/birouterResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { saveCallLog } from "@/lib/usageDb";
@@ -196,7 +196,7 @@ export async function handleRerank({
     }).catch(() => {});
 
     const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
+    attachBirouterMetaHeaders(headers, {
       provider: providerId,
       model: modelId,
       costUsd,

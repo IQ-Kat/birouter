@@ -39,7 +39,7 @@ Para la matriz completa de pruebas, consulta `CONTRIBUTING.md` → "Ejecución d
 
 ## Proyecto a Simple Vista
 
-**OmniRoute** — proxy/router de IA unificado. Un punto final, más de 160 proveedores de LLM, retroceso automático.
+**Birouter** — proxy/router de IA unificado. Un punto final, más de 160 proveedores de LLM, retroceso automático.
 
 | Capa             | Ubicación               | Propósito                                                                         |
 | ---------------- | ----------------------- | --------------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Las rutas de la API siguen un patrón consistente: `Ruta → preflight CORS → 
 
 ## Estado de Ejecución de Resiliencia
 
-OmniRoute tiene tres mecanismos de falla temporal relacionados pero distintos. Mantenga su
+Birouter tiene tres mecanismos de falla temporal relacionados pero distintos. Mantenga su
 alcance separado al depurar el comportamiento de enrutamiento. Consulte el
 [diagrama de resiliencia de 3 capas](./docs/diagrams/exported/resilience-3layers.svg)
 (fuente: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
@@ -220,7 +220,7 @@ conexión continúe atendiendo otros modelos.
 ### Estilo de Código
 
 - **2 espacios**, punto y coma, comillas dobles, ancho de 100 caracteres, comas finales en es5 (aplicado por lint-staged a través de Prettier)
-- **Importaciones**: externo → interno (`@/`, `@omniroute/open-sse`) → relativo
+- **Importaciones**: externo → interno (`@/`, `@birouter/open-sse`) → relativo
 - **Nomenclatura**: archivos=camelCase/kebab, componentes=PascalCase, constantes=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = error en todas partes; `no-explicit-any` = advertencia en `open-sse/` y `tests/`
 - **TypeScript**: `strict: false`, objetivo ES2022, módulo esnext, resolución bundler. Preferir tipos explícitos.
@@ -388,9 +388,9 @@ git push -u origin feat/tu-característica
 
 - **Tiempo de ejecución**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Módulos ES
 - **TypeScript**: 5.9+, objetivo ES2022, módulo esnext, resolución bundler
-- **Alias de ruta**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Alias de ruta**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Puerto predeterminado**: 20128 (API + dashboard en el mismo puerto)
-- **Directorio de datos**: variable de entorno `DATA_DIR`, por defecto `~/.omniroute/`
+- **Directorio de datos**: variable de entorno `DATA_DIR`, por defecto `~/.birouter/`
 - **Variables de entorno clave**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Configuración: `cp .env.example .env` luego genera `JWT_SECRET` (`openssl rand -base64 48`) y `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -413,4 +413,4 @@ git push -u origin feat/tu-característica
 13. Nunca interpolas cadenas de rutas externas o valores de tiempo de ejecución en scripts de shell pasados a `exec()`/`spawn()` — pasa a través de la opción `env` en su lugar. Referencia: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Nunca desestimes una alerta de CodeQL / Escaneo de Secretos sin (a) primero verificar la documentación del patrón anterior para ver si el helper se aplica, y (b) registrar la justificación técnica en el comentario de desestimación. Precedente: `js/stack-trace-exposure` planteado en sitios de llamada que ya enrutan a través de `sanitizeErrorMessage()` es una limitación conocida de CodeQL (sanitizadores personalizados no reconocidos) — desestima como `falso positivo` haciendo referencia a `docs/security/ERROR_SANITIZATION.md`.
 15. Nunca expongas rutas que generan procesos secundarios (`/api/mcp/`, `/api/cli-tools/runtime/`) sin clasificación `isLocalOnlyPath()` en `src/server/authz/routeGuard.ts`. La aplicación de loopback ocurre incondicionalmente antes de cualquier verificación de autenticación — un JWT filtrado a través de un túnel no puede activar la generación de procesos. Ver `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Nunca incluyas trailers `Co-Authored-By` que acrediten a un asistente de IA, LLM o cuenta automatizada (p. ej. nombres que contengan "Claude", "GPT", "Copilot", "Bot"; correos en `anthropic.com` / `openai.com` / direcciones `noreply.github.com` propiedad de bots). Tales trailers redirigen la atribución del commit a la cuenta del bot en GitHub, ocultando al autor real (`diegosouzapw`) en el historial del PR. Los colaboradores humanos — incluyendo autores de PRs upstream y reporteros de issues que se portan a OmniRoute — PUEDEN y DEBEN ser acreditados con trailers estándar `Co-authored-by: Name <email>`; los flujos de trabajo de port upstream (`/port-upstream-features`, `/port-upstream-issues`) dependen de esto.
+16. Nunca incluyas trailers `Co-Authored-By` que acrediten a un asistente de IA, LLM o cuenta automatizada (p. ej. nombres que contengan "Claude", "GPT", "Copilot", "Bot"; correos en `anthropic.com` / `openai.com` / direcciones `noreply.github.com` propiedad de bots). Tales trailers redirigen la atribución del commit a la cuenta del bot en GitHub, ocultando al autor real (`diegosouzapw`) en el historial del PR. Los colaboradores humanos — incluyendo autores de PRs upstream y reporteros de issues que se portan a Birouter — PUEDEN y DEBEN ser acreditados con trailers estándar `Co-authored-by: Name <email>`; los flujos de trabajo de port upstream (`/port-upstream-features`, `/port-upstream-issues`) dependen de esto.

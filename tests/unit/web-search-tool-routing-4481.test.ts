@@ -23,7 +23,7 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 test("chat.ts wires the web-search router at the request entrypoint", () => {
   const chat = readFileSync(join(REPO_ROOT, "src/sse/handlers/chat.ts"), "utf8");
-  assert.match(chat, /from "@omniroute\/open-sse\/services\/webSearchRouting\.ts"/);
+  assert.match(chat, /from "@birouter\/open-sse\/services\/webSearchRouting\.ts"/);
   assert.match(chat, /hasNativeWebSearchTool\(body\)/);
   assert.match(chat, /resolveWebSearchRouteOverride\(/);
 });
@@ -110,9 +110,13 @@ test("routes to the configured model when a native web-search tool is present", 
 });
 
 test("does NOT route when the request has no native web-search tool", () => {
-  const r = resolveWebSearchRouteOverride("minimax,MiniMax-M3", { tools: [{ type: "function" }] }, {
-    webSearchRouteModel: "openrouter,anthropic/claude-3.5-sonnet",
-  });
+  const r = resolveWebSearchRouteOverride(
+    "minimax,MiniMax-M3",
+    { tools: [{ type: "function" }] },
+    {
+      webSearchRouteModel: "openrouter,anthropic/claude-3.5-sonnet",
+    }
+  );
   assert.deepEqual(r, { wasRouted: false, model: "minimax,MiniMax-M3" });
 });
 

@@ -20,7 +20,7 @@ import os from "node:os";
 import path from "node:path";
 
 // ── DB harness (same pattern as db-quota-pools.test.ts) ────────────────────
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-pool-conn-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-pool-conn-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -57,9 +57,7 @@ test.after(async () => {
 // ── D1.1: Migration file ────────────────────────────────────────────────────
 
 test("migration 086 file exists and contains quota_pool_connections DDL", () => {
-  const migrationPath = path.resolve(
-    "src/lib/db/migrations/087_quota_pool_connections.sql"
-  );
+  const migrationPath = path.resolve("src/lib/db/migrations/087_quota_pool_connections.sql");
   assert.ok(fs.existsSync(migrationPath), `migration file not found: ${migrationPath}`);
 
   const sql = fs.readFileSync(migrationPath, "utf8");

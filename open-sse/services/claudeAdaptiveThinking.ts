@@ -12,7 +12,7 @@ function asRecord(value: unknown): JsonRecord | null {
  * Claude Opus 4.7 and later (Opus 4.7/4.8, Fable 5) removed manual extended thinking: the
  * Messages API returns HTTP 400 for `thinking.type:"enabled"` and for ANY
  * `thinking.budget_tokens`. Reasoning is steered exclusively by `output_config.effort`
- * (Anthropic migration guide, 2026-05-19). OmniRoute can still produce a manual thinking
+ * (Anthropic migration guide, 2026-05-19). Birouter can still produce a manual thinking
  * block on these models from several paths — a Claude-native passthrough client sending the
  * legacy shape, the OpenAI→Claude translator's reasoning_effort buckets, or a per-model
  * thinking default — so this is the final, provider-agnostic guard keyed on the target model.

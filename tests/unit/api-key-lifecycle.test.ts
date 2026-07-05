@@ -11,15 +11,19 @@ process.env.API_KEY_SECRET = "test-secret";
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 
-const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
+const ORIGINAL_BIROUTER_API_KEY = process.env.BIROUTER_API_KEY;
 const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
 
 function reset() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch (e) {
+    // Ignore EPERM/locking issues on Windows
+  }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
   delete process.env.ROUTER_API_KEY;
 }
 
@@ -28,9 +32,15 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_OMNIROUTE_API_KEY === undefined) delete process.env.OMNIROUTE_API_KEY;
-  else process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
+  core.resetDbInstance();
+  apiKeysDb.resetApiKeyState();
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch (e) {
+    // Ignore EPERM/locking issues on Windows
+  }
+  if (ORIGINAL_BIROUTER_API_KEY === undefined) delete process.env.BIROUTER_API_KEY;
+  else process.env.BIROUTER_API_KEY = ORIGINAL_BIROUTER_API_KEY;
   if (ORIGINAL_ROUTER_API_KEY === undefined) delete process.env.ROUTER_API_KEY;
   else process.env.ROUTER_API_KEY = ORIGINAL_ROUTER_API_KEY;
 });
@@ -100,7 +110,7 @@ test("getApiKeyMetadata exposes lifecycle and policy fields", async () => {
 });
 
 test("validateApiKey accepts configured environment API keys", async () => {
-  process.env.OMNIROUTE_API_KEY = "sk-env-lifecycle-test";
+  process.env.BIROUTER_API_KEY = "sk-env-lifecycle-test";
   assert.equal(await apiKeysDb.validateApiKey("sk-env-lifecycle-test"), true);
 });
 

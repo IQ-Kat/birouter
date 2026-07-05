@@ -87,15 +87,13 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.equal(getCodexUpstreamModel("gpt-5.5-xhigh"), "gpt-5.5");
   assert.equal(getCodexUpstreamModel("gpt-5.5-medium"), "gpt-5.5");
   // With mock WS transport + codexTransport=websocket, gpt-5.5 models require WS
-  __setCodexWebSocketTransportForTesting(
-    async (): Promise<MockCodexWebSocket> => ({
-      send() {},
-      close() {},
-      onmessage: null,
-      onerror: null,
-      onclose: null,
-    })
-  );
+  __setCodexWebSocketTransportForTesting(async (): Promise<MockCodexWebSocket> => ({
+    send() {},
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  }));
   assert.equal(
     isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
       providerSpecificData: { codexTransport: "websocket" },
@@ -119,7 +117,7 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.ok(getCodexResetTime(quota) >= new Date(quota.resetAt7d).getTime());
 });
 
-test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces HTTP even with codexTransport=websocket", () => {
+test("isCodexResponsesWebSocketRequired: BIROUTER_CODEX_WS_ENABLED=false forces HTTP even with codexTransport=websocket", () => {
   // Transport available + per-connection opt-in would normally enable WS…
   __setCodexWebSocketTransportForTesting(
     () =>
@@ -132,8 +130,8 @@ test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces
         onclose: null,
       }) as unknown as ReturnType<typeof Object>
   );
-  const prev = process.env.OMNIROUTE_CODEX_WS_ENABLED;
-  process.env.OMNIROUTE_CODEX_WS_ENABLED = "false";
+  const prev = process.env.BIROUTER_CODEX_WS_ENABLED;
+  process.env.BIROUTER_CODEX_WS_ENABLED = "false";
   try {
     // …but the global kill-switch (default ON) overrides it to false.
     assert.equal(
@@ -143,8 +141,8 @@ test("isCodexResponsesWebSocketRequired: OMNIROUTE_CODEX_WS_ENABLED=false forces
       false
     );
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_CODEX_WS_ENABLED;
-    else process.env.OMNIROUTE_CODEX_WS_ENABLED = prev;
+    if (prev === undefined) delete process.env.BIROUTER_CODEX_WS_ENABLED;
+    else process.env.BIROUTER_CODEX_WS_ENABLED = prev;
     __setCodexWebSocketTransportForTesting(undefined);
   }
 });
@@ -409,7 +407,7 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
-    _omnirouteResponsesStore: true,
+    _birouterResponsesStore: true,
     instructions: "keep this",
     previous_response_id: "resp_prev_123",
     stream: false,
@@ -423,7 +421,7 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
     },
   });
 
-  assert.equal(result._omnirouteResponsesStore, undefined);
+  assert.equal(result._birouterResponsesStore, undefined);
   assert.equal(result.store, true);
   assert.equal(result.previous_response_id, "resp_prev_123");
 });
@@ -431,7 +429,7 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
-    _omnirouteResponsesStore: true,
+    _birouterResponsesStore: true,
     instructions: "keep this",
     store: true,
     stream: false,
@@ -445,7 +443,7 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
     },
   });
 
-  assert.equal(result._omnirouteResponsesStore, undefined);
+  assert.equal(result._birouterResponsesStore, undefined);
   assert.equal(result.store, undefined);
   assert.equal(result.stream, undefined);
   assert.equal(result.instructions, "keep this");
@@ -1317,15 +1315,15 @@ test("Codex internal websocket bridge secret comparison handles mismatched lengt
 });
 
 test("Codex internal websocket bridge rejects non-object JSON payloads", async () => {
-  await withEnv({ OMNIROUTE_WS_BRIDGE_SECRET: "bridge-secret" }, async () => {
+  await withEnv({ BIROUTER_WS_BRIDGE_SECRET: "bridge-secret" }, async () => {
     const { POST } = await import("../../src/app/api/internal/codex-responses-ws/route.ts");
 
     const response = await POST(
-      new Request("http://omniroute.local/api/internal/codex-responses-ws", {
+      new Request("http://birouter.local/api/internal/codex-responses-ws", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-omniroute-ws-bridge-secret": "bridge-secret",
+          "x-birouter-ws-bridge-secret": "bridge-secret",
         },
         body: JSON.stringify(["invalid"]),
       })

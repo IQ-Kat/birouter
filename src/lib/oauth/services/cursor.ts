@@ -1,5 +1,5 @@
 import { CURSOR_CONFIG } from "../constants/oauth";
-import { getCursorUserAgent } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import { getCursorUserAgent } from "@birouter/open-sse/config/providerHeaderProfiles.ts";
 
 /**
  * Cursor IDE OAuth Service

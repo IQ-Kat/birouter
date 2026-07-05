@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 const {
   prepareWebSearchFallbackBody,
   supportsNativeWebSearchFallbackBypass,
-  OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
+  BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME,
 } = await import("../../open-sse/services/webSearchFallback.ts");
 
 // Regression for #2390: when the target is a Responses-API provider, the injected
-// omniroute_web_search tool must use the FLAT function shape ({ type, name }), not the
+// birouter_web_search tool must use the FLAT function shape ({ type, name }), not the
 // nested Chat Completions shape ({ type, function: { name } }). On the Responses→Responses
 // passthrough path nothing flattens it, so a nested tool reaches the upstream as
 // tools[0].function.name and is rejected with "Missing required parameter: 'tools[0].name'".
@@ -30,7 +30,7 @@ test("#2390 web_search fallback is FLAT for Responses API target", () => {
   assert.equal(fallback.enabled, true);
   const injected = body.tools[0] as Record<string, unknown>;
   assert.equal(injected.type, "function");
-  assert.equal(injected.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(injected.name, BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME);
   assert.equal(
     injected.function,
     undefined,
@@ -50,7 +50,7 @@ test("#2390 web_search fallback stays NESTED for Chat Completions target", () =>
   assert.equal(injected.type, "function");
   const fn = injected.function as Record<string, unknown> | undefined;
   assert.ok(fn, "Chat Completions tool must be nested under .function");
-  assert.equal(fn?.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(fn?.name, BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME);
   assert.equal(
     injected.name,
     undefined,
@@ -64,7 +64,7 @@ test("#2390 tool_choice matches the injected tool shape per target format", () =
     { targetFormat: "openai-responses", nativeCodexPassthrough: false }
   );
   const rChoice = responses.body.tool_choice as Record<string, unknown>;
-  assert.equal(rChoice.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(rChoice.name, BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME);
   assert.equal(rChoice.function, undefined);
 
   const chat = prepareWebSearchFallbackBody(
@@ -73,7 +73,7 @@ test("#2390 tool_choice matches the injected tool shape per target format", () =
   );
   const cChoice = chat.body.tool_choice as Record<string, unknown>;
   const cFn = cChoice.function as Record<string, unknown> | undefined;
-  assert.equal(cFn?.name, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(cFn?.name, BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME);
 });
 
 // ── Native web-search bypass: predicate coverage for every native path ──
@@ -118,7 +118,7 @@ test("bypass predicate: true for Claude -> Claude passthrough", () => {
 // implement Anthropic's typed server tools, so forwarding web_search_20250305 untouched
 // (the Claude->Claude bypass) makes api.minimax.io return HTTP 400 "invalid params,
 // function name or parameters is empty (2013)". For such providers we must NOT bypass —
-// the tool has to be converted to the omniroute_web_search function fallback (which the
+// the tool has to be converted to the birouter_web_search function fallback (which the
 // model accepts as a normal function tool).
 test("bypass predicate: false for Claude -> Claude when provider lacks Anthropic server tools (minimax, #4481)", () => {
   assert.equal(
@@ -249,9 +249,9 @@ test("OpenAI -> Claude (non-passthrough): built-in web_search IS still converted
   });
 
   assert.equal(fallback.enabled, true);
-  assert.equal(fallback.toolName, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+  assert.equal(fallback.toolName, BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME);
   assert.equal(fallback.convertedToolCount, 1);
   const tools = (body.tools as Record<string, any>[]) || [];
   const toolNames = tools.map((t) => (t.function ? t.function.name : t.name));
-  assert.ok(toolNames.includes(OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME));
+  assert.ok(toolNames.includes(BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME));
 });

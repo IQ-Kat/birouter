@@ -71,6 +71,6 @@ export const EVENT_DESCRIPTIONS: Record<WebhookEvent, EventDescription> = {
     label: "Test Ping",
     emoji: "🏓",
     description: "Manual test delivery to verify your webhook is reachable.",
-    exampleData: { message: "Test ping from OmniRoute", webhookId: "preview" },
+    exampleData: { message: "Test ping from Birouter", webhookId: "preview" },
   },
 };

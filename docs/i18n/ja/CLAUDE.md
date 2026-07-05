@@ -39,7 +39,7 @@ npm run test:all
 
 ## プロジェクトの概要
 
-**OmniRoute** — 統一されたAIプロキシ/ルーター。1つのエンドポイント、160以上のLLMプロバイダー、自動フォールバック。
+**Birouter** — 統一されたAIプロキシ/ルーター。1つのエンドポイント、160以上のLLMプロバイダー、自動フォールバック。
 
 | レイヤー           | 場所                    | 目的                                                                                  |
 | ------------------ | ----------------------- | ------------------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ API ルートは一貫したパターンに従います: `ルート → CORS プ
 
 ## レジリエンスランタイム状態
 
-OmniRoute には、関連性があるが異なる一時的な失敗メカニズムが3つあります。ルーティングの動作をデバッグする際には、それぞれのスコープを分けておくことが重要です。概要マップについては、[3層レジリエンスダイアグラム](./docs/diagrams/exported/resilience-3layers.svg)を参照してください (出典: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))。
+Birouter には、関連性があるが異なる一時的な失敗メカニズムが3つあります。ルーティングの動作をデバッグする際には、それぞれのスコープを分けておくことが重要です。概要マップについては、[3層レジリエンスダイアグラム](./docs/diagrams/exported/resilience-3layers.svg)を参照してください (出典: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))。
 
 ### プロバイダーサーキットブレーカー
 
@@ -196,7 +196,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### コードスタイル
 
 - **2スペース**、セミコロン、ダブルクォート、100文字幅、es5トレーリングカンマ（lint-stagedを介してPrettierによって強制）
-- **インポート**: 外部 → 内部 (`@/`, `@omniroute/open-sse`) → 相対
+- **インポート**: 外部 → 内部 (`@/`, `@birouter/open-sse`) → 相対
 - **命名**: ファイル=キャメルケース/ケバブケース、コンポーネント=パスカルケース、定数=UPPER_SNAKE
 - **ESLint**: `no-eval`、`no-implied-eval`、`no-new-func` = どこでもエラー; `no-explicit-any` = `open-sse/` と `tests/` で警告
 - **TypeScript**: `strict: false`、ターゲットES2022、モジュールesnext、解決バンドラー。明示的な型を優先。
@@ -364,9 +364,9 @@ git push -u origin feat/your-feature
 
 - **ランタイム**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, ターゲット ES2022, モジュール esnext, 解決バンドラー
-- **パスエイリアス**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **パスエイリアス**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **デフォルトポート**: 20128 (API + ダッシュボードが同じポート)
-- **データディレクトリ**: `DATA_DIR` 環境変数、デフォルトは `~/.omniroute/`
+- **データディレクトリ**: `DATA_DIR` 環境変数、デフォルトは `~/.birouter/`
 - **主要環境変数**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - セットアップ: `cp .env.example .env` その後 `JWT_SECRET` を生成 (`openssl rand -base64 48`) と `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -389,4 +389,4 @@ git push -u origin feat/your-feature
 13. 外部パスやランタイム値を `exec()`/`spawn()` に渡されるシェルスクリプトに文字列補間しない — 代わりに `env` オプションを通じて渡す。参照: `src/mitm/cert/install.ts::updateNssDatabases`。
 14. CodeQL / Secret-Scanning アラートを無視しない — (a) まず上記のパターンドキュメントを確認してヘルパーが適用されるかどうかを確認し、(b) 無視のコメントに技術的な正当化を記録する。前例: `js/stack-trace-exposure` は、すでに `sanitizeErrorMessage()` を通過するコールサイトで発生する既知のCodeQLの制限（カスタムサニタイザーが認識されない） — `false positive` として無視し、`docs/security/ERROR_SANITIZATION.md` を参照。
 15. 子プロセスを生成するルート（`/api/mcp/`, `/api/cli-tools/runtime/`）を `src/server/authz/routeGuard.ts` で `isLocalOnlyPath()` 分類なしに公開しない。ループバックの強制は、認証チェックの前に無条件に行われます — トンネルを介して漏洩したJWTはプロセスの生成をトリガーできません。参照: `docs/security/ROUTE_GUARD_TIERS.md`。
-16. AI アシスタント、LLM、または自動化アカウントを認める `Co-Authored-By` トレーラー (例: "Claude"、"GPT"、"Copilot"、"Bot" を含む名前; `anthropic.com` / `openai.com` / ボット所有の `noreply.github.com` アドレスのメール) を絶対にコミットメッセージに含めないでください。そのようなトレーラーは GitHub 上でボットアカウントにコミット帰属をルーティングし、PR 履歴で実際の作者 (`diegosouzapw`) を隠します。人間の協力者 — upstream PR の作者や OmniRoute に移植される issue 報告者を含む — は標準の `Co-authored-by: Name <email>` トレーラーで認められることが できる し、認められる べき です; upstream-port ワークフロー (`/port-upstream-features`、`/port-upstream-issues`) はこれに依存しています。
+16. AI アシスタント、LLM、または自動化アカウントを認める `Co-Authored-By` トレーラー (例: "Claude"、"GPT"、"Copilot"、"Bot" を含む名前; `anthropic.com` / `openai.com` / ボット所有の `noreply.github.com` アドレスのメール) を絶対にコミットメッセージに含めないでください。そのようなトレーラーは GitHub 上でボットアカウントにコミット帰属をルーティングし、PR 履歴で実際の作者 (`diegosouzapw`) を隠します。人間の協力者 — upstream PR の作者や Birouter に移植される issue 報告者を含む — は標準の `Co-authored-by: Name <email>` トレーラーで認められることが できる し、認められる べき です; upstream-port ワークフロー (`/port-upstream-features`、`/port-upstream-issues`) はこれに依存しています。

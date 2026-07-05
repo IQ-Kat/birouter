@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-tailscale-"));
+const TEST_DATA_DIR = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-tailscale-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const tailscaleTunnel = await import("../../src/lib/tailscaleTunnel.ts");
@@ -129,16 +129,16 @@ test("extractTailscaleAuthUrl and extractTailscaleEnableUrl parse login URLs", (
 test("getTailscaleUrlFromStatusPayload normalizes DNS names into HTTPS URLs", () => {
   assert.equal(
     tailscaleTunnel.getTailscaleUrlFromStatusPayload({
-      Self: { DNSName: "omniroute-demo.tail123.ts.net." },
+      Self: { DNSName: "birouter-demo.tail123.ts.net." },
     }),
-    "https://omniroute-demo.tail123.ts.net"
+    "https://birouter-demo.tail123.ts.net"
   );
 });
 
 test("getTailscaleTunnelStatus reflects a logged-in running funnel", async () => {
   process.env.TAILSCALE_TEST_STATUS_JSON = JSON.stringify({
     BackendState: "Running",
-    Self: { DNSName: "omniroute-demo.tail123.ts.net." },
+    Self: { DNSName: "birouter-demo.tail123.ts.net." },
   });
   process.env.TAILSCALE_TEST_FUNNEL_STATUS_JSON = JSON.stringify({
     AllowFunnel: {
@@ -152,14 +152,14 @@ test("getTailscaleTunnelStatus reflects a logged-in running funnel", async () =>
   assert.equal(status.loggedIn, true);
   assert.equal(status.running, true);
   assert.equal(status.phase, "running");
-  assert.equal(status.tunnelUrl, "https://omniroute-demo.tail123.ts.net");
-  assert.equal(status.apiUrl, "https://omniroute-demo.tail123.ts.net/v1");
+  assert.equal(status.tunnelUrl, "https://birouter-demo.tail123.ts.net");
+  assert.equal(status.apiUrl, "https://birouter-demo.tail123.ts.net/v1");
 });
 
 test("enableTailscaleTunnel returns an auth URL when login is still required", async () => {
   process.env.TAILSCALE_TEST_STATUS_JSON = JSON.stringify({
     BackendState: "NeedsLogin",
-    Self: { DNSName: "omniroute-demo.tail123.ts.net." },
+    Self: { DNSName: "birouter-demo.tail123.ts.net." },
   });
   process.env.TAILSCALE_TEST_LOGIN_OUTPUT =
     "Authenticate at https://login.tailscale.com/a/login-token";
@@ -176,7 +176,7 @@ test("enableTailscaleTunnel returns an auth URL when login is still required", a
 test("enableTailscaleTunnel returns the funnel enable URL when the tailnet has Funnel disabled", async () => {
   process.env.TAILSCALE_TEST_STATUS_JSON = JSON.stringify({
     BackendState: "Running",
-    Self: { DNSName: "omniroute-demo.tail123.ts.net." },
+    Self: { DNSName: "birouter-demo.tail123.ts.net." },
   });
   process.env.TAILSCALE_TEST_FUNNEL_OUTPUT =
     "Funnel is not enabled. Continue at https://login.tailscale.com/f/funnel-token";
@@ -193,24 +193,24 @@ test("enableTailscaleTunnel returns the funnel enable URL when the tailnet has F
 test("enableTailscaleTunnel stores the funnel URL and disableTailscaleTunnel clears it", async () => {
   process.env.TAILSCALE_TEST_STATUS_JSON = JSON.stringify({
     BackendState: "Running",
-    Self: { DNSName: "omniroute-demo.tail123.ts.net." },
+    Self: { DNSName: "birouter-demo.tail123.ts.net." },
   });
   process.env.TAILSCALE_TEST_FUNNEL_STATUS_JSON = JSON.stringify({
     AllowFunnel: {
       "443": true,
     },
   });
-  process.env.TAILSCALE_TEST_FUNNEL_OUTPUT = "Available at https://omniroute-demo.tail123.ts.net";
+  process.env.TAILSCALE_TEST_FUNNEL_OUTPUT = "Available at https://birouter-demo.tail123.ts.net";
 
   const enabled = await tailscaleTunnel.enableTailscaleTunnel();
   const settingsAfterEnable = await settingsDb.getSettings();
 
   assert.equal(enabled.success, true);
   if (enabled.success) {
-    assert.equal(enabled.tunnelUrl, "https://omniroute-demo.tail123.ts.net");
+    assert.equal(enabled.tunnelUrl, "https://birouter-demo.tail123.ts.net");
   }
   assert.equal(settingsAfterEnable.tailscaleEnabled, true);
-  assert.equal(settingsAfterEnable.tailscaleUrl, "https://omniroute-demo.tail123.ts.net");
+  assert.equal(settingsAfterEnable.tailscaleUrl, "https://birouter-demo.tail123.ts.net");
 
   const disabled = await tailscaleTunnel.disableTailscaleTunnel();
   const settingsAfterDisable = await settingsDb.getSettings();

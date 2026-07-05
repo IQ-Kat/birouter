@@ -37,10 +37,10 @@ async function importHandler(): Promise<typeof import("../../scripts/dev/webdav-
   return import(`${url}?t=${Date.now()}-${Math.random().toString(36).slice(2)}`);
 }
 
-/** Encrypt a string with the OmniRoute enc:v1: format using the given secret.
+/** Encrypt a string with the Birouter enc:v1: format using the given secret.
  *  Mirrors src/lib/db/encryption.ts: scrypt with static salt, AES-256-GCM. */
 function encryptTs(secret: string, plaintext: string): string {
-  const STATIC_SALT = "omniroute-field-encryption-v1";
+  const STATIC_SALT = "birouter-field-encryption-v1";
   const key = scryptSync(secret, STATIC_SALT, 32);
   const iv = randomBytes(16);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
@@ -130,7 +130,7 @@ function basicAuth(user: string, pass: string): string {
 // Setup
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VAULT_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-vault-"));
+const VAULT_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-vault-"));
 const ORIG_KEY = process.env.STORAGE_ENCRYPTION_KEY;
 
 test.after(() => {
@@ -243,10 +243,7 @@ test("verifyBasicAuth: empty header returns false", async () => {
 
 test("verifyBasicAuth: non-Basic scheme returns false", async () => {
   const { verifyBasicAuth } = await importHandler();
-  assert.equal(
-    verifyBasicAuth("Bearer some-token", "alice", "s3cr3t"),
-    false
-  );
+  assert.equal(verifyBasicAuth("Bearer some-token", "alice", "s3cr3t"), false);
 });
 
 test("verifyBasicAuth: malformed base64 returns false", async () => {
@@ -362,7 +359,15 @@ test("buildPropfindXml: escapes XML special chars in names", async () => {
 test("buildPropfindXml: file entry has no D:collection resourcetype", async () => {
   const { buildPropfindXml } = await importHandler();
   const xml = buildPropfindXml(
-    [{ name: "note.md", href: "/api/v1/webdav/note.md", isDir: false, size: 99, mtime: new Date() }],
+    [
+      {
+        name: "note.md",
+        href: "/api/v1/webdav/note.md",
+        isDir: false,
+        size: 99,
+        mtime: new Date(),
+      },
+    ],
     "/api/v1/webdav/"
   );
   // File should have empty resourcetype, not a collection
@@ -448,8 +453,8 @@ const TEST_PASS = "test-password-123";
 const AUTH_HEADER = basicAuth(TEST_USER, TEST_PASS);
 
 // Create integration test environment
-const intDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-int-"));
-const intVaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-vault-int-"));
+const intDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-int-"));
+const intVaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-vault-int-"));
 
 test.before(async () => {
   await createTestDb(intDataDir, {
@@ -628,8 +633,8 @@ test("GET with wrong password returns 401", async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test("disabled WebDAV returns 503", async () => {
-  const disabledDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-disabled-"));
-  const disabledVaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-disabled-vault-"));
+  const disabledDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-disabled-"));
+  const disabledVaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-disabled-vault-"));
 
   try {
     await createTestDb(disabledDataDir, {
@@ -653,7 +658,7 @@ test("disabled WebDAV returns 503", async () => {
 });
 
 test("no DB / missing config returns 503", async () => {
-  const emptyDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-empty-"));
+  const emptyDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-empty-"));
 
   try {
     // No DB file at all
@@ -708,8 +713,8 @@ test("encrypted password in DB is decrypted and auth works", async () => {
   const encSecret = "integration-enc-key-value-32chars!";
   process.env.STORAGE_ENCRYPTION_KEY = encSecret;
 
-  const encDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-enc-"));
-  const encVaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-webdav-enc-vault-"));
+  const encDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-enc-"));
+  const encVaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-webdav-enc-vault-"));
 
   try {
     const encryptedPass = encryptTs(encSecret, TEST_PASS);

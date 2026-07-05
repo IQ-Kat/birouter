@@ -129,7 +129,7 @@ export interface RegistryEntry {
   /**
    * When true, the provider rejects non-streaming requests (HTTP 400).
    * resolveStreamFlag will keep streaming even when the client requests JSON;
-   * OmniRoute accumulates the stream and converts it to a JSON body for the client. (#2081)
+   * Birouter accumulates the stream and converts it to a JSON body for the client. (#2081)
    */
   forceStream?: boolean;
   /**
@@ -295,7 +295,7 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "google/gemma-4-31B-it",
     "google/gemma-4-26B-A4B-it",
     "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
-    "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning",
+    "nvidia/Nemotron-3-Nano-Bi-30B-A3B-Reasoning",
     "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
     "meta-llama/Llama-4-Scout-17B-16E-Instruct",
     "meta-llama/Llama-3.3-70B-Instruct-Turbo",
@@ -429,14 +429,14 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2-pro", name: "MiMo-V2-Pro", contextLength: 262144, maxOutputTokens: 131072 },
-    { id: "mimo-v2-omni", name: "MiMo-V2-Omni", contextLength: 262144, maxOutputTokens: 131072 },
+    { id: "mimo-v2-bi", name: "MiMo-V2-Bi", contextLength: 262144, maxOutputTokens: 131072 },
     { id: "mimo-v2-flash", name: "MiMo-V2-Flash", contextLength: 262144, maxOutputTokens: 65536 },
   ],
   gitlawb: [
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2-pro", name: "MiMo-V2-Pro", contextLength: 262144, maxOutputTokens: 131072 },
-    { id: "mimo-v2-omni", name: "MiMo-V2-Omni", contextLength: 262144, maxOutputTokens: 131072 },
+    { id: "mimo-v2-bi", name: "MiMo-V2-Bi", contextLength: 262144, maxOutputTokens: 131072 },
     { id: "mimo-v2-flash", name: "MiMo-V2-Flash", contextLength: 262144, maxOutputTokens: 65536 },
   ],
   "gitlawb-gmi": [
@@ -646,7 +646,7 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
       maxOutputTokens: 131072,
     },
     {
-      id: "nvidia/NVIDIA-Nemotron-3-Nano-Omni",
+      id: "nvidia/NVIDIA-Nemotron-3-Nano-Bi",
       name: "Nemotron 3 Nano",
       contextLength: 262144,
       maxOutputTokens: 131072,

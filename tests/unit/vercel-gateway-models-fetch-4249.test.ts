@@ -24,7 +24,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-4249-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-4249-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -66,11 +66,7 @@ test("#4249 Vercel AI Gateway import fetches the live /v1/models catalog", async
       fetched = true;
       return Response.json({
         object: "list",
-        data: [
-          { id: "xai/grok-4" },
-          { id: "openai/gpt-5.1" },
-          { id: "anthropic/claude-opus-4.5" },
-        ],
+        data: [{ id: "xai/grok-4" }, { id: "openai/gpt-5.1" }, { id: "anthropic/claude-opus-4.5" }],
       });
     }
     // Bogus probe variants (…/v1/v1/models, …/chat/completions/models) → 404

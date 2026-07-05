@@ -2,7 +2,7 @@
  * Port of 9router PR #98 — add GPT-4o to GitHub Copilot (`github`/alias `gh`).
  *
  * Copilot still serves the original `gpt-4o` chat model via its chat/completions
- * endpoint. The OmniRoute registry only ships the GPT-5.x family, so apps that
+ * endpoint. The Birouter registry only ships the GPT-5.x family, so apps that
  * explicitly request `gpt-4o` against the `gh` alias get an "unknown model"
  * error. Adding the entry restores parity with the upstream Copilot catalog
  * without disturbing the GPT-5.x / Claude / Gemini lineups already curated.

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 
-const { createOmnirouteWsBridge } = await import("../../scripts/dev/v1-ws-bridge.mjs");
+const { createBirouterWsBridge } = await import("../../scripts/dev/v1-ws-bridge.mjs");
 
 function listen(server) {
   return new Promise((resolve) => {
@@ -85,7 +85,7 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
 
   const port = await listen(server);
   const baseUrl = `http://127.0.0.1:${port}`;
-  const bridge = createOmnirouteWsBridge({ baseUrl, pingIntervalMs: 1000, idleTimeoutMs: 10000 });
+  const bridge = createBirouterWsBridge({ baseUrl, pingIntervalMs: 1000, idleTimeoutMs: 10000 });
 
   server.on("upgrade", async (req, socket, head) => {
     const handled = await bridge.handleUpgrade(req, socket, head);

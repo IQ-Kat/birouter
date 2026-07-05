@@ -1,6 +1,6 @@
 import { stopHeadroomProxy } from "@/lib/headroom/process";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 

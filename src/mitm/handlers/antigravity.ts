@@ -3,7 +3,7 @@
  *
  * Antigravity (the Gemini-based IDE) sends requests in native Gemini
  * GenerateContent format (`contents`, `systemInstruction`, `generationConfig`,
- * `thinkingConfig`, …). The OmniRoute router endpoint `/v1/chat/completions`
+ * `thinkingConfig`, …). The Birouter router endpoint `/v1/chat/completions`
  * expects OpenAI Chat Completions format, so the raw Gemini body must be
  * converted before forwarding — otherwise the unknown fields are either
  * ignored or cause upstream providers to return a 400 "invalid argument"
@@ -13,7 +13,7 @@
  * Pipeline:
  *   - parse the incoming Gemini JSON body,
  *   - convert it to an OpenAI chat.completions body (model = mapped model),
- *   - forward to `/v1/chat/completions` on the OmniRoute router,
+ *   - forward to `/v1/chat/completions` on the Birouter router,
  *   - pipe the SSE response back to the IDE.
  *
  * Non-regressive: any change here must keep the Antigravity flow working as
@@ -101,13 +101,13 @@ function joinPartsText(parts: GeminiPart[] | undefined): string {
  * chat.completions body.
  *
  * @param geminiBody parsed Gemini request
- * @param model      resolved OmniRoute model string
+ * @param model      resolved Birouter model string
  * @param stream     whether the original request was streaming
  */
 export function convertGeminiToOpenAI(
   geminiBody: GeminiRequestBody,
   model: string,
-  stream: boolean,
+  stream: boolean
 ): OpenAIChatBody {
   // Unwrap the cloudcode-pa envelope (`.request`) used by the real Antigravity IDE; fall
   // back to the top level for the legacy `/v1beta` shape. (#4294)
@@ -149,7 +149,7 @@ export class AntigravityHandler extends MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void> {
     const startedAt = this.now();
     const intercepted = await this.hookBufferStart(req, body, mappedModel);
@@ -167,7 +167,7 @@ export class AntigravityHandler extends MitmHandlerBase {
 
       if (!upstream.ok) {
         const errText = await upstream.text().catch(() => "");
-        throw new Error(`OmniRoute ${upstream.status}: ${errText}`);
+        throw new Error(`Birouter ${upstream.status}: ${errText}`);
       }
 
       let collected = "";

@@ -91,26 +91,26 @@ describe("MCP description compression", () => {
   });
 
   it("honors settings and environment kill switches", () => {
-    const originalEnv = process.env.OMNIROUTE_MCP_DESCRIPTION_COMPRESSION;
-    const originalAliasEnv = process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS;
+    const originalEnv = process.env.BIROUTER_MCP_DESCRIPTION_COMPRESSION;
+    const originalAliasEnv = process.env.BIROUTER_MCP_COMPRESS_DESCRIPTIONS;
     try {
-      delete process.env.OMNIROUTE_MCP_DESCRIPTION_COMPRESSION;
-      delete process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS;
+      delete process.env.BIROUTER_MCP_DESCRIPTION_COMPRESSION;
+      delete process.env.BIROUTER_MCP_COMPRESS_DESCRIPTIONS;
       const input = "The function returns the weather for a city.";
       assert.equal(maybeCompressMcpDescription(input, { enabled: false }), input);
 
-      process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS = "off";
+      process.env.BIROUTER_MCP_COMPRESS_DESCRIPTIONS = "off";
       assert.equal(maybeCompressMcpDescription(input, { enabled: true }), input);
     } finally {
       if (originalEnv === undefined) {
-        delete process.env.OMNIROUTE_MCP_DESCRIPTION_COMPRESSION;
+        delete process.env.BIROUTER_MCP_DESCRIPTION_COMPRESSION;
       } else {
-        process.env.OMNIROUTE_MCP_DESCRIPTION_COMPRESSION = originalEnv;
+        process.env.BIROUTER_MCP_DESCRIPTION_COMPRESSION = originalEnv;
       }
       if (originalAliasEnv === undefined) {
-        delete process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS;
+        delete process.env.BIROUTER_MCP_COMPRESS_DESCRIPTIONS;
       } else {
-        process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS = originalAliasEnv;
+        process.env.BIROUTER_MCP_COMPRESS_DESCRIPTIONS = originalAliasEnv;
       }
     }
   });

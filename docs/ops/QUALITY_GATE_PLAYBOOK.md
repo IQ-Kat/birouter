@@ -4,7 +4,7 @@ title: "Quality Gate Playbook"
 
 # Quality-Gate System — Avaliação Crítica, Catálogo e Playbook de Replicação
 
-> **O que é este documento.** Uma avaliação crítica do sistema de quality-gates do OmniRoute,
+> **O que é este documento.** Uma avaliação crítica do sistema de quality-gates do Birouter,
 > comparado às melhores práticas da indústria, **mais** um catálogo completo de todos os pontos
 > de qualidade e um **plano de replicação tool-agnóstico** para aplicar o mesmo sistema em
 > qualquer projeto. Gerado em 2026-06-16 a partir do estado real do repositório (não da memória).
@@ -96,62 +96,62 @@ para replicar em qualquer stack.
 
 ### 1. Estilo & formatação (determinístico, rápido)
 
-- **OmniRoute:** Prettier + ESLint via lint-staged (pre-commit), 2-espaços/aspas-duplas/100col.
+- **Birouter:** Prettier + ESLint via lint-staged (pre-commit), 2-espaços/aspas-duplas/100col.
 - **Genérico:** um formatter auto-fixável + um linter, rodando em pre-commit nos arquivos staged.
 
 ### 2. Tipos
 
-- **OmniRoute:** `typecheck:core` (bloqueante) + `typecheck:noimplicit:core` (advisory) + `type-coverage` ratchet 92.17% + any-budget por-arquivo.
+- **Birouter:** `typecheck:core` (bloqueante) + `typecheck:noimplicit:core` (advisory) + `type-coverage` ratchet 92.17% + any-budget por-arquivo.
 - **Genérico:** typecheck estrito no CI + métrica de cobertura-de-tipo ratcheteada + orçamento de `any`/escape-hatches por-arquivo.
 
 ### 3. Testes (intensidade)
 
-- **OmniRoute:** 2 runners não-sobrepostos (Node native + vitest), 8 shards, cobertura global 60/60/60/60 + ratchet ~76% + **8 pisos por-módulo crítico** + testes de propriedade nightly + **mutation testing** nightly.
+- **Birouter:** 2 runners não-sobrepostos (Node native + vitest), 8 shards, cobertura global 60/60/60/60 + ratchet ~76% + **8 pisos por-módulo crítico** + testes de propriedade nightly + **mutation testing** nightly.
 - **Genérico:** runner(s) de teste + piso de cobertura **absoluto** (anti-zero) + **ratchet** de cobertura (anti-regressão) + **pisos por-módulo de alto risco** (anti-Goodhart) + property-based para lógica pura + **mutation testing** nightly como medida real de qualidade-de-teste.
 
 ### 4. Política de testes (anti-gaming)
 
-- **OmniRoute:** `pr-test-policy` (código de prod exige teste), `check-test-masking` (bloqueia enfraquecer asserts), `pr-evidence` (claim de sucesso exige bloco de evidência), `test-discovery` (todo teste coletado por um runner).
+- **Birouter:** `pr-test-policy` (código de prod exige teste), `check-test-masking` (bloqueia enfraquecer asserts), `pr-evidence` (claim de sucesso exige bloco de evidência), `test-discovery` (todo teste coletado por um runner).
 - **Genérico:** gate "código novo ⇒ teste novo" + detector de assert-removido/tautologia + exigência de evidência (TDD ou teste-vivo) + garantia de que nenhum teste fica órfão fora dos globs.
 
 ### 5. Complexidade & saúde de código (ratchets)
 
-- **OmniRoute:** ESLint-warnings (3769↓), duplicação jscpd (5.72%↓), complexidade ciclomática+max-lines (1800↓), complexidade cognitiva sonarjs (753↓), dead-code/unused-exports knip (339↓), file-size por-arquivo (frozen, só-encolhe), circular-deps (Tarjan próprio, bloqueante).
+- **Birouter:** ESLint-warnings (3769↓), duplicação jscpd (5.72%↓), complexidade ciclomática+max-lines (1800↓), complexidade cognitiva sonarjs (753↓), dead-code/unused-exports knip (339↓), file-size por-arquivo (frozen, só-encolhe), circular-deps (Tarjan próprio, bloqueante).
 - **Genérico:** ratchetear toda métrica de saúde (warnings, duplicação, complexidade ciclomática **e** cognitiva, código-morto, tamanho-de-arquivo, ciclos de import). Direção sempre "não-piorar".
 
 ### 6. Segurança estática (SAST + segredos)
 
-- **OmniRoute:** CodeQL (ratchet de alertas = 0), gitleaks (`[extend] useDefault=true` — crítico!), SonarQube, regras de segurança próprias (public-creds, error-helper, route-guard-membership, route-validation).
+- **Birouter:** CodeQL (ratchet de alertas = 0), gitleaks (`[extend] useDefault=true` — crítico!), SonarQube, regras de segurança próprias (public-creds, error-helper, route-guard-membership, route-validation).
 - **Genérico:** SAST (CodeQL/Sonar/semgrep) com ratchet-de-alertas + scanner de segredos com **ruleset default herdado** (config custom que substitui o default = cego) + gates próprios para as Hard Rules de segurança do projeto.
 
 ### 7. Supply-chain (dependências)
 
-- **OmniRoute:** osv-scanner + npm-audit + Trivy + Dependabot (SCA), license-checker (SPDX allowlist), lockfile-lint (HTTPS+sha512+registry), `check-deps` anti-slopsquatting (allowlist + idade ≥72h).
+- **Birouter:** osv-scanner + npm-audit + Trivy + Dependabot (SCA), license-checker (SPDX allowlist), lockfile-lint (HTTPS+sha512+registry), `check-deps` anti-slopsquatting (allowlist + idade ≥72h).
 - **Genérico:** SCA multi-fonte + allowlist de licenças + verificação de integridade de lockfile + allowlist de dependências com checagem de idade/typosquatting + bot de atualização agrupado.
 
 ### 8. Supply-chain (build & release)
 
-- **OmniRoute:** SBOM (CycloneDX + syft), proveniência SLSA (`--provenance`), OpenSSF Scorecard (weekly), hardening de workflow (zizmor: artipacked→`persist-credentials:false`, cache-poisoning, token-permissions).
+- **Birouter:** SBOM (CycloneDX + syft), proveniência SLSA (`--provenance`), OpenSSF Scorecard (weekly), hardening de workflow (zizmor: artipacked→`persist-credentials:false`, cache-poisoning, token-permissions).
 - **Genérico:** gerar SBOM no publish + proveniência assinada (SLSA L2+) + Scorecard agendado + endurecer todos os workflows (mínimo-privilégio de token, sem credencial persistida em checkout não-pusher, actions pinadas por SHA).
 
 ### 9. Contratos & API
 
-- **OmniRoute:** oasdiff (breaking-change OpenAPI), schemathesis (fuzz de contrato nightly), openapi-coverage (% rotas documentadas, ratchet 38.3%), openapi-security-tiers (spec vs route-guard).
+- **Birouter:** oasdiff (breaking-change OpenAPI), schemathesis (fuzz de contrato nightly), openapi-coverage (% rotas documentadas, ratchet 38.3%), openapi-security-tiers (spec vs route-guard).
 - **Genérico:** diff de breaking-change do contrato (oasdiff/buf) + fuzz property-based contra o spec (schemathesis) + cobertura-de-documentação ratcheteada + consistência spec↔código.
 
 ### 10. Docs & i18n (anti-rot)
 
-- **OmniRoute:** docs-sync (versões espelhadas), docs-counts-sync (números nos docs vs código), env-doc-sync, doc-links, fabricated-docs, cli-i18n, i18n-ui-coverage (`--threshold=65` + ratchet 80.1%).
+- **Birouter:** docs-sync (versões espelhadas), docs-counts-sync (números nos docs vs código), env-doc-sync, doc-links, fabricated-docs, cli-i18n, i18n-ui-coverage (`--threshold=65` + ratchet 80.1%).
 - **Genérico:** sincronizar versões/contagens/env-vars entre docs e código (gate, não confiança) + validar links internos + cobertura de i18n ratcheteada.
 
 ### 11. Anti-alucinação / consistência (a categoria rara)
 
-- **OmniRoute:** known-symbols (dispatch por-string ⇒ símbolo vivo), provider-consistency, fetch-targets (fetch cliente ⇒ rota real), docs-symbols, db-rules (Hard Rules #2/#5), migration-numbering.
+- **Birouter:** known-symbols (dispatch por-string ⇒ símbolo vivo), provider-consistency, fetch-targets (fetch cliente ⇒ rota real), docs-symbols, db-rules (Hard Rules #2/#5), migration-numbering.
 - **Genérico:** para toda "fonte de verdade duplicada" (registry, dispatch por-string, referências cross-camada), um gate que prova que os dois lados batem. Pega o rot que typecheck/test não pegam.
 
 ### 12. Resiliência & domínio (específico do produto)
 
-- **OmniRoute:** chaos (fault-injection), heap-growth (leak), k6 (soak), promptfoo+garak (LLM red-team OWASP LLM Top 10), as 3 leis de resiliência (circuit-breaker/cooldown/lockout).
+- **Birouter:** chaos (fault-injection), heap-growth (leak), k6 (soak), promptfoo+garak (LLM red-team OWASP LLM Top 10), as 3 leis de resiliência (circuit-breaker/cooldown/lockout).
 - **Genérico:** identificar os modos-de-falha do **seu** domínio e ter um gate (ainda que nightly) para cada um. Para apps de IA: red-team de injeção. Para sistemas distribuídos: chaos + leak + soak.
 
 ---

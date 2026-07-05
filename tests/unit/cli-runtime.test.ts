@@ -8,7 +8,7 @@ let tmpDir: string;
 let origDataDir: string | undefined;
 
 test.before(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "omniroute-runtime-test-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "birouter-runtime-test-"));
   origDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tmpDir;
 });

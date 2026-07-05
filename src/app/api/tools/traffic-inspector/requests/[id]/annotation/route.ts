@@ -7,7 +7,7 @@
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { InspectorAnnotationPutSchema } from "@/shared/schemas/inspector";
 import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
 
@@ -31,9 +31,7 @@ export async function PUT(request: Request, { params }: Params): Promise<Respons
   const parsed = InspectorAnnotationPutSchema.safeParse(body);
   if (!parsed.success) {
     return new Response(
-      JSON.stringify(
-        buildErrorBody(400, parsed.error.issues[0]?.message ?? "Validation error")
-      ),
+      JSON.stringify(buildErrorBody(400, parsed.error.issues[0]?.message ?? "Validation error")),
       { status: 400, headers: { "content-type": "application/json" } }
     );
   }

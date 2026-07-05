@@ -56,7 +56,7 @@ export async function GET() {
           guard: "public-only",
           timeoutMs: FETCH_TIMEOUT,
           headers: {
-            "User-Agent": "OmniRoute/2.0",
+            "User-Agent": "Birouter/2.0",
           },
         });
 

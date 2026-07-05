@@ -1,13 +1,13 @@
 /**
- * omniroute setup-codex — Remote-aware Codex CLI profile generator.
+ * birouter setup-codex — Remote-aware Codex CLI profile generator.
  *
- * Connects to a running OmniRoute instance (local or remote VPS), fetches the
+ * Connects to a running Birouter instance (local or remote VPS), fetches the
  * live model catalog via GET /v1/models, then generates ~/.codex/<name>.config.toml
  * profile files for each model — so you can switch providers with a single flag
  * (`codex --profile glm52`) without editing config files by hand.
  *
  * Primary use-case: configure a local Codex CLI to use models from a VPS.
- *   omniroute setup-codex --remote http://100.67.86.91:20128 --api-key sk-xxx
+ *   birouter setup-codex --remote http://100.67.86.91:20128 --api-key sk-xxx
  *
  * The command is idempotent: re-running updates existing profile files in place.
  */
@@ -226,7 +226,7 @@ function buildProfileToml(modelId, cfg) {
     `# codex --profile ${cfg.name}`,
     `# ${modelId}`,
     `model                          = "${modelId}"`,
-    `model_provider                 = "omniroute"`,
+    `model_provider                 = "birouter"`,
   ];
 
   if (cfg.effort) {
@@ -300,12 +300,12 @@ export async function syncCodexProfilesFromModels(models, opts = {}) {
 export async function runSetupCodexCommand(opts = {}) {
   const port = Number(opts.port ?? process.env.PORT ?? 20128) || 20128;
   const baseUrl = (opts.remote ?? `http://localhost:${port}`).replace(/\/v1$/, "");
-  const apiKey = opts.apiKey ?? opts["api-key"] ?? process.env.OMNIROUTE_API_KEY ?? "";
+  const apiKey = opts.apiKey ?? opts["api-key"] ?? process.env.BIROUTER_API_KEY ?? "";
   const codexHome = opts.codexHome ?? opts["codex-home"] ?? join(os.homedir(), ".codex");
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
   const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
 
-  printHeading(`OmniRoute → Codex CLI profile generator`);
+  printHeading(`Birouter → Codex CLI profile generator`);
   printInfo(`Connecting to ${baseUrl} …`);
 
   // ── Fetch model catalog ───────────────────────────────────────────────────
@@ -324,8 +324,8 @@ export async function runSetupCodexCommand(opts = {}) {
   } catch (err) {
     printError(`Failed to fetch models: ${err.message}`);
     printInfo(
-      "Make sure OmniRoute is running and the --remote URL is correct.\n" +
-        "You may also need --api-key if OmniRoute requires authentication."
+      "Make sure Birouter is running and the --remote URL is correct.\n" +
+        "You may also need --api-key if Birouter requires authentication."
     );
     return 1;
   }
@@ -362,17 +362,17 @@ export function registerSetupCodex(program) {
   program
     .command("setup-codex")
     .description(
-      "Fetch the live model catalog from OmniRoute (local or remote VPS) and generate " +
+      "Fetch the live model catalog from Birouter (local or remote VPS) and generate " +
         "~/.codex/<name>.config.toml profiles for each supported model"
     )
-    .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
     .option(
       "--remote <url>",
-      "Remote OmniRoute URL, e.g. http://100.67.86.91:20128 — fetches models from there"
+      "Remote Birouter URL, e.g. http://100.67.86.91:20128 — fetches models from there"
     )
     .option(
       "--api-key <key>",
-      "OmniRoute API key for the remote instance (defaults to OMNIROUTE_API_KEY env var)"
+      "Birouter API key for the remote instance (defaults to BIROUTER_API_KEY env var)"
     )
     .option("--codex-home <dir>", "Directory where profile files are written (default: ~/.codex)")
     .option(

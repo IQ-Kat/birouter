@@ -8,7 +8,7 @@ vi.mock("../audit.ts", () => ({
   closeAuditDb: vi.fn(),
 }));
 
-describe("omniroute_tool_search", () => {
+describe("birouter_tool_search", () => {
   let client: Client;
 
   beforeEach(async () => {
@@ -25,15 +25,18 @@ describe("omniroute_tool_search", () => {
 
   it("appears in tools/list with read:tools scope", async () => {
     const { tools } = await client.listTools();
-    expect(tools.find((t) => t.name === "omniroute_tool_search")).toBeTruthy();
+    expect(tools.find((t) => t.name === "birouter_tool_search")).toBeTruthy();
   });
 
   it("returns relevant tool with a signature, not itself", async () => {
-    const res = await client.callTool({ name: "omniroute_tool_search", arguments: { query: "health" } });
+    const res = await client.callTool({
+      name: "birouter_tool_search",
+      arguments: { query: "health" },
+    });
     const text = (res.content as Array<{ text: string }>)[0].text;
     const parsed = JSON.parse(text);
-    expect(parsed.tools.some((t: any) => t.name === "omniroute_get_health")).toBe(true);
-    expect(parsed.tools.every((t: any) => t.name !== "omniroute_tool_search")).toBe(true);
+    expect(parsed.tools.some((t: any) => t.name === "birouter_get_health")).toBe(true);
+    expect(parsed.tools.every((t: any) => t.name !== "birouter_tool_search")).toBe(true);
     expect(typeof parsed.tools[0].signature).toBe("string");
   });
 });

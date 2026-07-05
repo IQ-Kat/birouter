@@ -185,7 +185,7 @@ test("runMigrations applies pending files sequentially in version order", serial
 
     assert.equal(appliedCount, 3);
     assert.deepEqual(
-      db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+      db.prepare("SELECT version FROM _birouter_migrations ORDER BY version").all(),
       [{ version: "001" }, { version: "002" }, { version: "010" }]
     );
     assert.ok(
@@ -228,7 +228,7 @@ test("runMigrations skips versions that are already tracked as applied", serial,
     assert.equal(
       (
         db
-          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT COUNT(*) AS count FROM _birouter_migrations WHERE version = ?")
           .get("001") as any
       ).count,
       1
@@ -236,7 +236,7 @@ test("runMigrations skips versions that are already tracked as applied", serial,
     assert.equal(
       (
         db
-          .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT COUNT(*) AS count FROM _birouter_migrations WHERE version = ?")
           .get("002") as any
       ).count,
       1
@@ -283,7 +283,7 @@ test(
         assert.equal(names.has(expected), true, `${expected} should exist`);
       }
       assert.deepEqual(
-        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        db.prepare("SELECT version, name FROM _birouter_migrations WHERE version = ?").get("032"),
         { version: "032", name: "apikey_lifecycle" }
       );
     } finally {
@@ -321,7 +321,7 @@ test(
       assert.equal(names.has("expires_at"), true);
       assert.equal(names.has("should_not_run"), false);
       assert.deepEqual(
-        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        db.prepare("SELECT version, name FROM _birouter_migrations WHERE version = ?").get("032"),
         { version: "032", name: "renamed_lifecycle_patch" }
       );
     } finally {
@@ -336,13 +336,13 @@ test("getMigrationStatus reports applied and pending migrations", serial, async 
 
   try {
     db.exec(`
-      CREATE TABLE _omniroute_migrations (
+      CREATE TABLE _birouter_migrations (
         version TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         applied_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
     `);
-    db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+    db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
       "001",
       "first"
     );
@@ -404,7 +404,7 @@ test(
       assert.equal(
         (
           db
-            .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
+            .prepare("SELECT COUNT(*) AS count FROM _birouter_migrations WHERE version = ?")
             .get("002") as any
         ).count,
         0
@@ -458,7 +458,7 @@ test("invalid file names are ignored while valid migrations still run", serial, 
 
     assert.equal(count, 1);
     assert.deepEqual(
-      db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+      db.prepare("SELECT version, name FROM _birouter_migrations ORDER BY version").all(),
       [{ version: "003", name: "valid" }]
     );
     assert.equal(
@@ -499,7 +499,7 @@ test(
 
       assert.equal(count, 1);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        db.prepare("SELECT version FROM _birouter_migrations ORDER BY version").all(),
         [{ version: "001" }, { version: "002" }, { version: "003" }]
       );
     } finally {
@@ -517,13 +517,13 @@ test(
 
     try {
       db.exec(`
-      CREATE TABLE _omniroute_migrations (
+      CREATE TABLE _birouter_migrations (
         version TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         applied_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
     `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "999",
         "ghost"
       );
@@ -538,7 +538,7 @@ test(
 
       assert.equal(count, 2);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        db.prepare("SELECT version FROM _birouter_migrations ORDER BY version").all(),
         [{ version: "001" }, { version: "002" }, { version: "999" }]
       );
     } finally {
@@ -556,7 +556,7 @@ test(
 
     try {
       db.exec(`
-      CREATE TABLE _omniroute_migrations (
+      CREATE TABLE _birouter_migrations (
         version TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -575,7 +575,7 @@ test(
         expires_at TEXT
       );
     `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "021",
         "combo_call_log_targets"
       );
@@ -601,7 +601,7 @@ test(
 
       assert.equal(count, 2);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        db.prepare("SELECT version FROM _birouter_migrations ORDER BY version").all(),
         [{ version: "021" }, { version: "022" }, { version: "023" }]
       );
       assert.deepEqual(db.prepare("SELECT memory_id, content FROM memories").get(), {
@@ -628,7 +628,7 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -647,7 +647,7 @@ test(
           expires_at TEXT
         );
       `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "021",
         "combo_call_log_targets"
       );
@@ -663,7 +663,7 @@ test(
 
       assert.equal(count, 1);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        db.prepare("SELECT version FROM _birouter_migrations ORDER BY version").all(),
         [{ version: "021" }, { version: "024" }]
       );
       assert.equal(
@@ -688,13 +688,13 @@ test(
     try {
       createInitialSchemaTables(db);
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "001",
         "initial_schema"
       );
@@ -707,7 +707,7 @@ test(
 
       assert.equal(count, 6);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        db.prepare("SELECT version FROM _birouter_migrations ORDER BY version").all(),
         [
           { version: "001" },
           { version: "002" },
@@ -735,13 +735,13 @@ test(
       createInitialSchemaTables(db);
       db.exec(`
         CREATE TABLE request_detail_logs (id TEXT PRIMARY KEY);
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "001",
         "initial_schema"
       );
@@ -770,14 +770,14 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
       // Simulate a DB where compression_settings was applied at version 028
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "028",
         "compression_settings"
       );
@@ -802,10 +802,10 @@ test(
 
         // The reconcile should have moved 028/compression_settings → 034/compression_settings
         const row028 = db
-          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT version, name FROM _birouter_migrations WHERE version = ?")
           .get("028") as { version: string; name: string } | undefined;
         const row034 = db
-          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT version, name FROM _birouter_migrations WHERE version = ?")
           .get("034") as { version: string; name: string } | undefined;
 
         // After reconciliation, 028 should be free (or have create_files_and_batches)
@@ -839,14 +839,14 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
       // Simulate DB where compression_analytics was applied at version 032
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "032",
         "compression_analytics"
       );
@@ -874,7 +874,7 @@ test(
         );
 
         const row038 = db
-          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT version, name FROM _birouter_migrations WHERE version = ?")
           .get("038") as { version: string; name: string } | undefined;
 
         assert.equal(row038?.name, "compression_analytics");
@@ -905,14 +905,14 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
       // Simulate DB where compression_cache_stats was applied at version 033
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "033",
         "compression_cache_stats"
       );
@@ -935,7 +935,7 @@ test(
         );
 
         const row039 = db
-          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT version, name FROM _birouter_migrations WHERE version = ?")
           .get("039") as { version: string; name: string } | undefined;
 
         assert.equal(row039?.name, "compression_cache_stats");
@@ -993,11 +993,11 @@ test(
 
       assert.equal(count, 3);
       assert.equal(
-        db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("041")?.name,
+        db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("041")?.name,
         "compression_receipts"
       );
       assert.equal(
-        db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("050")?.name,
+        db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("050")?.name,
         "session_account_affinity"
       );
       assert.deepEqual(
@@ -1023,7 +1023,7 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -1033,7 +1033,7 @@ test(
           request_id TEXT
         );
       `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "041",
         "session_account_affinity"
       );
@@ -1067,11 +1067,11 @@ test(
 
         assert.equal(count, 1);
         assert.equal(
-          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("041")?.name,
+          db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("041")?.name,
           "compression_receipts"
         );
         assert.equal(
-          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("050")?.name,
+          db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("050")?.name,
           "session_account_affinity"
         );
 
@@ -1101,13 +1101,13 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "056",
         "manifest_routing"
       );
@@ -1130,11 +1130,11 @@ test(
         );
 
         assert.equal(
-          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("056")?.name,
+          db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("056")?.name,
           "mcp_accessibility_compression"
         );
         assert.equal(
-          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("059")?.name,
+          db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("059")?.name,
           "manifest_routing"
         );
 
@@ -1164,13 +1164,13 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
       `);
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
         "051",
         "usage_history_service_tier"
       );
@@ -1200,11 +1200,11 @@ test(
         );
 
         assert.equal(
-          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("051")?.name,
+          db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("051")?.name,
           "hot_path_db_indexes"
         );
         assert.equal(
-          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("054")?.name,
+          db.prepare("SELECT name FROM _birouter_migrations WHERE version = ?").get("054")?.name,
           "usage_history_service_tier"
         );
 
@@ -1234,7 +1234,7 @@ test(
 
     try {
       db.exec(`
-        CREATE TABLE _omniroute_migrations (
+        CREATE TABLE _birouter_migrations (
           version TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -1251,7 +1251,7 @@ test(
         ["056", "manifest_routing"],
       ] as const;
       for (const [v, n] of oldMigrations) {
-        db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(v, n);
+        db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(v, n);
       }
 
       // Disk has the current migration file layout
@@ -1314,25 +1314,25 @@ test(
 
         // Verify the reconciled entries
         const row034 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("034") as { name: string } | undefined;
         const row038 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("038") as { name: string } | undefined;
         const row039 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("039") as { name: string } | undefined;
         const row051 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("051") as { name: string } | undefined;
         const row054 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("054") as { name: string } | undefined;
         const row056 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("056") as { name: string } | undefined;
         const row059 = db
-          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .prepare("SELECT name FROM _birouter_migrations WHERE version = ?")
           .get("059") as { name: string } | undefined;
 
         assert.equal(row034?.name, "compression_settings");
@@ -1351,7 +1351,7 @@ test(
   }
 );
 
-// ── #3416: OMNIROUTE_MAX_PENDING_MIGRATIONS env override ─────────────────────
+// ── #3416: BIROUTER_MAX_PENDING_MIGRATIONS env override ─────────────────────
 // The mass-migration safety threshold must be overridable at runtime so a user
 // restoring a backup can raise (or lower) the limit without code changes. The
 // resolver reads the env var at CALL TIME inside runMigrations(), so these tests
@@ -1363,29 +1363,29 @@ test(
 // and the abort decision depends purely on the resolved threshold.
 function seedExistingDbWithoutPhysicalBaseline(db) {
   db.exec(`
-    CREATE TABLE _omniroute_migrations (
+    CREATE TABLE _birouter_migrations (
       version TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
-  db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+  db.prepare("INSERT INTO _birouter_migrations (version, name) VALUES (?, ?)").run(
     "001",
     "initial_schema"
   );
 }
 
 test(
-  "runMigrations aborts when OMNIROUTE_MAX_PENDING_MIGRATIONS lowers the threshold (#3416)",
+  "runMigrations aborts when BIROUTER_MAX_PENDING_MIGRATIONS lowers the threshold (#3416)",
   serial,
   async () => {
     const runner = await importFresh("src/lib/db/migrationRunner.ts");
     const db = createDb();
-    const original = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
+    const original = process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
 
     try {
       seedExistingDbWithoutPhysicalBaseline(db);
-      process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "5";
+      process.env.BIROUTER_MAX_PENDING_MIGRATIONS = "5";
 
       // 1 applied (001) + files 001..011 → 10 actionable pending > threshold 5.
       assert.throws(
@@ -1398,24 +1398,24 @@ test(
         /threshold is 5/i
       );
     } finally {
-      if (original === undefined) delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      else process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = original;
+      if (original === undefined) delete process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
+      else process.env.BIROUTER_MAX_PENDING_MIGRATIONS = original;
       db.close();
     }
   }
 );
 
 test(
-  "runMigrations allows a large pending set when OMNIROUTE_MAX_PENDING_MIGRATIONS raises the threshold (#3416)",
+  "runMigrations allows a large pending set when BIROUTER_MAX_PENDING_MIGRATIONS raises the threshold (#3416)",
   serial,
   async () => {
     const runner = await importFresh("src/lib/db/migrationRunner.ts");
     const db = createDb();
-    const original = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
+    const original = process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
 
     try {
       seedExistingDbWithoutPhysicalBaseline(db);
-      process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "500";
+      process.env.BIROUTER_MAX_PENDING_MIGRATIONS = "500";
 
       // 1 applied (001) + 60 plain pending files at versions 100..159 (chosen to
       // avoid the special-cased migration versions 032/041/042). All 60 exceed the
@@ -1432,23 +1432,23 @@ test(
 
       assert.equal(count, 60);
     } finally {
-      if (original === undefined) delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      else process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = original;
+      if (original === undefined) delete process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
+      else process.env.BIROUTER_MAX_PENDING_MIGRATIONS = original;
       db.close();
     }
   }
 );
 
 test(
-  "runMigrations keeps the default 50 threshold when OMNIROUTE_MAX_PENDING_MIGRATIONS is unset or invalid (#3416)",
+  "runMigrations keeps the default 50 threshold when BIROUTER_MAX_PENDING_MIGRATIONS is unset or invalid (#3416)",
   serial,
   async () => {
     const runner = await importFresh("src/lib/db/migrationRunner.ts");
-    const original = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
+    const original = process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
 
     try {
       // Case 1: env unset → default 50 abort message.
-      delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
+      delete process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
       const dbUnset = createDb();
       try {
         seedExistingDbWithoutPhysicalBaseline(dbUnset);
@@ -1466,7 +1466,7 @@ test(
       }
 
       // Case 2: invalid (non-numeric) → fall back to default 50.
-      process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "abc";
+      process.env.BIROUTER_MAX_PENDING_MIGRATIONS = "abc";
       const dbInvalid = createDb();
       try {
         seedExistingDbWithoutPhysicalBaseline(dbInvalid);
@@ -1483,8 +1483,8 @@ test(
         dbInvalid.close();
       }
     } finally {
-      if (original === undefined) delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      else process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = original;
+      if (original === undefined) delete process.env.BIROUTER_MAX_PENDING_MIGRATIONS;
+      else process.env.BIROUTER_MAX_PENDING_MIGRATIONS = original;
     }
   }
 );

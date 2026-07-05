@@ -17,8 +17,8 @@ for (const file of localeFiles) {
     let content = fs.readFileSync(file, "utf8");
 
     // Replace user-facing brand names
-    content = content.replace(/OmniRoute/g, "Birouter");
-    content = content.replace(/Omniroute/g, "Birouter");
+    content = content.replace(/Birouter/g, "Birouter");
+    content = content.replace(/Birouter/g, "Birouter");
 
     // Write back the modified content
     fs.writeFileSync(file, content, "utf8");

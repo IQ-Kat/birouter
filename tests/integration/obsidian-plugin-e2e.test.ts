@@ -71,7 +71,12 @@ function createMockVault(entries) {
   fileMap.set("/", { path: "/", content: "", mtime: 0, isFolder: true });
 
   for (const e of entries) {
-    const entry = { path: e.path, content: e.content ?? "", mtime: e.mtime ?? 1000, isFolder: e.isFolder ?? false };
+    const entry = {
+      path: e.path,
+      content: e.content ?? "",
+      mtime: e.mtime ?? 1000,
+      isFolder: e.isFolder ?? false,
+    };
     fileMap.set(e.path, entry);
     if (e.isFolder) {
       const folder = new TFolder();
@@ -109,8 +114,8 @@ function createMockVault(entries) {
   vault.getAbstractFileByPath = (path) => {
     const entry = fileMap.get(path);
     if (!entry) return null;
-    if (entry.isFolder) return tfolderInstances.find(f => f.path === path) ?? null;
-    return tfileInstances.find(f => f.path === path) ?? null;
+    if (entry.isFolder) return tfolderInstances.find((f) => f.path === path) ?? null;
+    return tfileInstances.find((f) => f.path === path) ?? null;
   };
   vault.getFileByPath = (path) => {
     const f = vault.getAbstractFileByPath(path);
@@ -127,7 +132,10 @@ function createMockVault(entries) {
   vault.getMarkdownFiles = () => [...tfileInstances];
   vault.getAllLoadedFiles = () => [...allLoaded];
   vault.getAllFolders = () => [...tfolderInstances];
-  vault.read = async (file) => { const e = fileMap.get(file.path); return e?.content ?? ""; };
+  vault.read = async (file) => {
+    const e = fileMap.get(file.path);
+    return e?.content ?? "";
+  };
   vault.create = async (path, data) => {
     const file = new TFile();
     file.path = path;
@@ -142,7 +150,12 @@ function createMockVault(entries) {
   };
   vault.modify = async (file, data) => {
     const e = fileMap.get(file.path);
-    if (e) { e.content = data; e.mtime = Date.now(); file.stat.mtime = e.mtime; file.stat.size = data.length; }
+    if (e) {
+      e.content = data;
+      e.mtime = Date.now();
+      file.stat.mtime = e.mtime;
+      file.stat.size = data.length;
+    }
   };
   vault.createFolder = async (path) => {
     const folder = new TFolder();
@@ -155,11 +168,11 @@ function createMockVault(entries) {
   };
   vault.delete = async (file) => {
     fileMap.delete(file.path);
-    const fi = tfileInstances.findIndex(f => f.path === file.path);
+    const fi = tfileInstances.findIndex((f) => f.path === file.path);
     if (fi >= 0) tfileInstances.splice(fi, 1);
-    const gi = tfolderInstances.findIndex(f => f.path === file.path);
+    const gi = tfolderInstances.findIndex((f) => f.path === file.path);
     if (gi >= 0) tfolderInstances.splice(gi, 1);
-    const ai = allLoaded.findIndex(f => f.path === file.path);
+    const ai = allLoaded.findIndex((f) => f.path === file.path);
     if (ai >= 0) allLoaded.splice(ai, 1);
   };
   vault.rename = async (file, newPath) => {
@@ -173,10 +186,26 @@ function createMockVault(entries) {
     if (file instanceof TFile) file.basename = file.name.replace(/\.[^.]+$/, "");
   };
   vault.cachedRead = vault.read;
-  vault.process = async (file, fn) => { const c = await vault.read(file); const n = fn(c); await vault.modify(file, n); return n; };
-  vault.copy = async (file, newPath) => { const e = fileMap.get(file.path); if (file instanceof TFolder) return vault.createFolder(newPath); return vault.create(newPath, e?.content ?? ""); };
+  vault.process = async (file, fn) => {
+    const c = await vault.read(file);
+    const n = fn(c);
+    await vault.modify(file, n);
+    return n;
+  };
+  vault.copy = async (file, newPath) => {
+    const e = fileMap.get(file.path);
+    if (file instanceof TFolder) return vault.createFolder(newPath);
+    return vault.create(newPath, e?.content ?? "");
+  };
   vault.trash = async () => {};
-  vault.append = async (file, data) => { const e = fileMap.get(file.path); if (e) { e.content += data; e.mtime = Date.now(); file.stat.size = e.content.length; } };
+  vault.append = async (file, data) => {
+    const e = fileMap.get(file.path);
+    if (e) {
+      e.content += data;
+      e.mtime = Date.now();
+      file.stat.size = e.content.length;
+    }
+  };
   vault.modifyBinary = async () => {};
   vault.appendBinary = async () => {};
   vault.readBinary = async () => new ArrayBuffer(0);
@@ -187,7 +216,6 @@ function createMockVault(entries) {
   vault.trigger = () => {};
   return vault;
 }
-
 
 function httpRequest(
   url: string,
@@ -299,7 +327,7 @@ describe("Obsidian Plugin E2E — Server + HTTP", { skip: SKIP_OBSIDIAN_E2E }, (
     const res = await httpRequest(`${baseUrl}/vault/discover`);
     assert.equal(res.status, 200);
     const body = res.data as VaultDiscoverResponse;
-    assert.equal(body.service, "omniroute-sync");
+    assert.equal(body.service, "birouter-sync");
     assert.equal(body.vaultName, "test-vault");
     assert.equal(body.port, port);
   });
@@ -374,9 +402,7 @@ describe("Obsidian Plugin E2E — Server + HTTP", { skip: SKIP_OBSIDIAN_E2E }, (
       "POST",
       JSON.stringify({
         since: 0,
-        localManifest: [
-          { path: "readme.md", mtime: 500, size: 29 },
-        ],
+        localManifest: [{ path: "readme.md", mtime: 500, size: 29 }],
       })
     );
     assert.equal(res.status, 200);
@@ -475,21 +501,20 @@ describe("Obsidian Plugin E2E — Server + HTTP", { skip: SKIP_OBSIDIAN_E2E }, (
 
     // Query with since=t2 should return both (both deletedAt <= t2, so deletedAt > t2 is false)
     // Query with since=t1-1 should return both (both deletedAt > t1-1)
-    const res = await httpRequest(
-      `${baseUrl}/vault/sync/tombstones?since=${t1 - 1}`,
-      "GET"
-    );
+    const res = await httpRequest(`${baseUrl}/vault/sync/tombstones?since=${t1 - 1}`, "GET");
     assert.equal(res.status, 200);
     const body = res.data as { tombstones: TombstoneEntry[]; now: number };
     assert.ok(body.tombstones.length >= 2);
-    const paths = body.tombstones.map(t => t.path).sort();
+    const paths = body.tombstones.map((t) => t.path).sort();
     assert.ok(paths.includes("old-deleted.md"));
     assert.ok(paths.includes("new-deleted.md"));
   });
 
   test("GET /vault/list returns root directory", async () => {
     const res = await httpRequest(`${baseUrl}/vault/list?path=%2F`);
-    process.stderr.write("LIST STATUS: " + res.status + " BODY: " + JSON.stringify(res.data) + "\n");
+    process.stderr.write(
+      "LIST STATUS: " + res.status + " BODY: " + JSON.stringify(res.data) + "\n"
+    );
     assert.equal(res.status, 200);
     const body = res.data as any;
     assert.ok(body.files.length >= 0); // mock may return 0 due to instanceof mismatch
@@ -502,7 +527,9 @@ describe("Obsidian Plugin E2E — Server + HTTP", { skip: SKIP_OBSIDIAN_E2E }, (
 
   test("GET /vault/read returns file content and mtime", async () => {
     const res = await httpRequest(`${baseUrl}/vault/read?path=readme.md`);
-    process.stderr.write("READ STATUS: " + res.status + " BODY: " + JSON.stringify(res.data) + "\n");
+    process.stderr.write(
+      "READ STATUS: " + res.status + " BODY: " + JSON.stringify(res.data) + "\n"
+    );
     assert.equal(res.status, 200);
     const body = res.data as any;
     assert.equal(body.path, "readme.md");
@@ -588,9 +615,7 @@ describe("Obsidian Plugin E2E — Auth", { skip: SKIP_OBSIDIAN_E2E }, () => {
     port = 19923 + Math.floor(Math.random() * 1000);
     baseUrl = `http://127.0.0.1:${port}`;
 
-    const vault = createMockVault([
-      { path: "secret.md", content: "classified", mtime: 1000 },
-    ]);
+    const vault = createMockVault([{ path: "secret.md", content: "classified", mtime: 1000 }]);
 
     server = new VaultServer({
       vault,
@@ -609,7 +634,7 @@ describe("Obsidian Plugin E2E — Auth", { skip: SKIP_OBSIDIAN_E2E }, () => {
   test("discover endpoint works without auth", async () => {
     const res = await httpRequest(`${baseUrl}/vault/discover`);
     assert.equal(res.status, 200);
-    assert.equal((res.data as VaultDiscoverResponse).service, "omniroute-sync");
+    assert.equal((res.data as VaultDiscoverResponse).service, "birouter-sync");
   });
 
   test("protected endpoint rejects without auth", async () => {
@@ -683,7 +708,10 @@ describe("Obsidian Plugin E2E — Full Sync Cycle", { skip: SKIP_OBSIDIAN_E2E },
 
     const manifestRes = await httpRequest(`${baseUrl}/vault/sync/manifest`);
     const manifest = manifestRes.data as SyncManifestResponse;
-    const filePaths = manifest.files.filter((f) => !f.isFolder).map((f) => f.path).sort();
+    const filePaths = manifest.files
+      .filter((f) => !f.isFolder)
+      .map((f) => f.path)
+      .sort();
     assert.deepEqual(filePaths, ["a.md", "b.md", "c.md", "d.md"]);
   });
 
@@ -704,9 +732,7 @@ describe("Obsidian Plugin E2E — Full Sync Cycle", { skip: SKIP_OBSIDIAN_E2E },
 
     const manifestRes = await httpRequest(`${baseUrl}/vault/sync/manifest`);
     const manifest = manifestRes.data as SyncManifestResponse;
-    const conflictFiles = manifest.files.filter((f) =>
-      f.path.includes(".conflict-")
-    );
+    const conflictFiles = manifest.files.filter((f) => f.path.includes(".conflict-"));
     // instanceof TFolder mismatch: conflict files not detected in manifest
     // In production (real Obsidian), this works correctly
   });
@@ -719,9 +745,7 @@ describe("Obsidian Plugin E2E — Full Sync Cycle", { skip: SKIP_OBSIDIAN_E2E },
       "POST",
       JSON.stringify({
         since: 0,
-        localManifest: [
-          { path: "c.md", mtime: 3000, size: 10 },
-        ],
+        localManifest: [{ path: "c.md", mtime: 3000, size: 10 }],
       })
     );
     const pullBody = pullRes.data as SyncPullResponse;

@@ -4,24 +4,24 @@ title: "Supply-Chain Gates"
 
 # Supply-Chain Gates (Fase 8 · Bloco A)
 
-OmniRoute publica artefatos npm + Docker. Estes gates dão proveniência,
+Birouter publica artefatos npm + Docker. Estes gates dão proveniência,
 inventário (SBOM) e scan de CVE, todos OSS, plugados nos workflows de release.
 Postura **advisory-first** — reportam agora, promovem a bloqueante depois do 1º
 release verde.
 
-| Gate | Ferramenta | Onde | Bloqueia? | Saída |
-|---|---|---|---|---|
-| SLSA provenance (npm) | `npm --provenance` (OIDC) | `npm-publish.yml` | só se publish falhar | badge npmjs / `npm audit signatures` |
-| SBOM npm | `@cyclonedx/cyclonedx-npm` | `npm-publish.yml` | só se geração quebrar | asset do Release + artifact |
-| SBOM imagem | `anchore/sbom-action` (syft) | `docker-publish.yml` (merge) | advisory | artifact CycloneDX |
-| Trivy CVE (SARIF) | `aquasecurity/trivy-action` | `docker-publish.yml` (merge) | advisory | SARIF (HIGH+CRITICAL) → aba Security |
-| Trivy CRITICAL gate | `aquasecurity/trivy-action` | `docker-publish.yml` (merge) | **bloqueante** | `exit-code: '1'` em CRITICAL fixável |
-| osv vulnCount | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **bloqueante** | catraca `metrics.vulnCount` (direction:down) |
-| OpenSSF Scorecard | `ossf/scorecard-action` | `scorecard.yml` (cron) | advisory | SARIF → Security + badge |
+| Gate                  | Ferramenta                                     | Onde                          | Bloqueia?             | Saída                                        |
+| --------------------- | ---------------------------------------------- | ----------------------------- | --------------------- | -------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | só se publish falhar  | badge npmjs / `npm audit signatures`         |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | só se geração quebrar | asset do Release + artifact                  |
+| SBOM imagem           | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | advisory              | artifact CycloneDX                           |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | advisory              | SARIF (HIGH+CRITICAL) → aba Security         |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **bloqueante**        | `exit-code: '1'` em CRITICAL fixável         |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **bloqueante**        | catraca `metrics.vulnCount` (direction:down) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | advisory              | SARIF → Security + badge                     |
 
 A catraca de CVE da imagem usa **dois passos** no `docker-publish.yml`: o passo
 SARIF (`HIGH,CRITICAL`, `exit-code: 0`) mantém HIGH+CRITICAL visíveis na aba Security
-sem bloquear; o passo *CRITICAL gate* (`severity: CRITICAL`, `ignore-unfixed: true`,
+sem bloquear; o passo _CRITICAL gate_ (`severity: CRITICAL`, `ignore-unfixed: true`,
 `exit-code: 1`) falha o release num CVE CRÍTICO **com fix disponível**. `ignore-unfixed`
 evita travar o release por um CVE de base-image sem patch upstream.
 

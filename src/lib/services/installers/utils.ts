@@ -6,7 +6,7 @@
  */
 
 import { execFile } from "node:child_process";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const DEFAULT_TIMEOUT_MS = 300_000; // 5 min — npm install can be slow
 
@@ -100,7 +100,7 @@ export interface NpmExecOptions {
  * Enabling the shell means the shell — not `execFile` — splits the command line,
  * so NO runtime value may be interpolated into argv (Hard Rule #13). The install
  * prefix (a DATA_DIR path that can legitimately contain spaces, e.g.
- * `C:\Users\John Doe\.omniroute\…`) is therefore exported as the
+ * `C:\Users\John Doe\.birouter\…`) is therefore exported as the
  * `npm_config_prefix` environment variable — npm's documented env form of
  * `--prefix` — never as an argv entry. With the prefix moved to the environment
  * and the version constrained by {@link SERVICE_VERSION_PATTERN}, every remaining

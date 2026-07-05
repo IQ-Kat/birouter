@@ -4,7 +4,7 @@ import {
   setTaskRoutingConfig,
   resetTaskRoutingStats,
   getDefaultTaskModelMap,
-} from "@omniroute/open-sse/services/taskAwareRouter.ts";
+} from "@birouter/open-sse/services/taskAwareRouter.ts";
 import { updateSettings } from "@/lib/db/settings";
 import { taskRoutingActionSchema, updateTaskRoutingSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -57,7 +57,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const config =
-      validation.data as import("@omniroute/open-sse/services/taskAwareRouter.ts").TaskRoutingConfig;
+      validation.data as import("@birouter/open-sse/services/taskAwareRouter.ts").TaskRoutingConfig;
 
     setTaskRoutingConfig(config);
 
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     }
 
     if (actionRequest.action === "detect") {
-      const { detectTaskType } = await import("@omniroute/open-sse/services/taskAwareRouter.ts");
+      const { detectTaskType } = await import("@birouter/open-sse/services/taskAwareRouter.ts");
       const taskType = detectTaskType(actionRequest.body || {});
       const config = getTaskRoutingConfig();
       return NextResponse.json({

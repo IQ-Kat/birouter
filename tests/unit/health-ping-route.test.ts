@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolated data dir so the test does not touch the user's real DB.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-ping-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-health-ping-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-303-ping-secret";
 

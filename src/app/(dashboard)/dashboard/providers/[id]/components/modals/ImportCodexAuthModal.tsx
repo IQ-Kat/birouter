@@ -384,7 +384,7 @@ export function ImportCodexAuthModal({ onClose, onSuccess }: ImportCodexAuthModa
                 />
                 <p className="text-xs text-text-muted">
                   {t("codexImportFileHint") ||
-                    "Select the auth.json file exported from Codex or OmniRoute."}
+                    "Select the auth.json file exported from Codex or Birouter."}
                 </p>
               </div>
             )}

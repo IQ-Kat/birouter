@@ -44,7 +44,7 @@
     "tests/unit/free-budget-card.test.tsx",
     "tests/unit/free-pool-tab.test.tsx",
     "tests/unit/guardrails/visionBridgeRouter.test.tsx",
-    "tests/unit/omni-skills-page.test.tsx",
+    "tests/unit/bi-skills-page.test.tsx",
     "tests/unit/shared-clipboard.test.tsx",
     "tests/unit/shared/components/AutoRoutingBanner.test.tsx",
     "tests/unit/shared/components/KiroAuthModal.test.tsx",

@@ -14,7 +14,7 @@ import os from "node:os";
 import path from "node:path";
 import { createManagementSessionHeaders } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-embedding-providers-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-embedding-providers-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-embedding-providers";
 
@@ -22,9 +22,8 @@ const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 
 // Import route AFTER setting DATA_DIR
-const embeddingProvidersRoute = await import(
-  "../../src/app/api/memory/embedding-providers/route.ts"
-);
+const embeddingProvidersRoute =
+  await import("../../src/app/api/memory/embedding-providers/route.ts");
 const { GET } = embeddingProvidersRoute;
 
 // ── Helpers ──

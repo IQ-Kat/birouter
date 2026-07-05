@@ -20,7 +20,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-4202-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-4202-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -88,7 +88,10 @@ test("#4202 ZenMux import fetches the live /api/v1/models catalog (incl. the fre
       ids.includes("z-ai/glm-5.2-free"),
       `live free models missing from catalog: ${ids.join(",")}`
     );
-    assert.ok(ids.includes("moonshotai/kimi-k2.7-code-free"), `live free models missing: ${ids.join(",")}`);
+    assert.ok(
+      ids.includes("moonshotai/kimi-k2.7-code-free"),
+      `live free models missing: ${ids.join(",")}`
+    );
     // The stale hardcoded registry entry must not be what we serve.
     assert.ok(
       !ids.includes("mistralai/mistral-large-2512"),

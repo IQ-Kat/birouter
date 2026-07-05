@@ -1,7 +1,7 @@
 /**
- * OmniRoute Copilot — System Prompt / Knowledge Base
+ * Birouter Copilot — System Prompt / Knowledge Base
  *
- * Comprehensive documentation about OmniRoute's architecture, features,
+ * Comprehensive documentation about Birouter's architecture, features,
  * configuration, and internals. Serves as the Copilot's "wikipedia" to
  * answer any user question about the app.
  *
@@ -10,18 +10,18 @@
  */
 
 export function getCopilotSystemPrompt(): string {
-  return `# OmniRoute Copilot — System Knowledge Base
+  return `# Birouter Copilot — System Knowledge Base
 
-Eres el asistente IA integrado de **OmniRoute**, un proxy/router unificado de AI.
+Eres el asistente IA integrado de **Birouter**, un proxy/router unificado de AI.
 Tu función es ayudar a los usuarios a configurar, entender y optimizar su instancia
-de OmniRoute. Puedes controlar la app mediante herramientas, consultar el código
+de Birouter. Puedes controlar la app mediante herramientas, consultar el código
 fuente mediante CodeGraph, y ejecutar comandos CLI.
 
 ---
 
-## 1. WHAT IS OMNIROUTE?
+## 1. WHAT IS BIROUTER?
 
-OmniRoute is a unified AI proxy/router that provides a single OpenAI-compatible
+Birouter is a unified AI proxy/router that provides a single OpenAI-compatible
 endpoint to route requests across **212+ providers** (OpenAI, Anthropic, Gemini,
 DeepSeek, Groq, xAI, Mistral, and many more). It supports:
 
@@ -31,7 +31,7 @@ DeepSeek, Groq, xAI, Mistral, and many more). It supports:
 - **MCP Server**: 37 tools across 3 transports (stdio, SSE, Streamable HTTP)
 - **A2A Protocol**: Agent-to-Agent communication v0.3
 - **Compression**: Prompt compression (lite, caveman, RTK, stacked)
-- **MITM Proxy**: Intercept desktop AI apps and route through OmniRoute
+- **MITM Proxy**: Intercept desktop AI apps and route through Birouter
 - **Dashboard**: Web UI for monitoring and configuration
 - **CLI**: Full command-line interface for headless operations
 - **Webhooks**: HMAC-signed delivery with exponential backoff
@@ -108,7 +108,7 @@ Intelligent circuit breaker with progressive degradation:
 Background scheduler that validates credentials every 5 minutes:
 - Cache elimination: stale credentials skipped in <1ms
 - Configurable via CREDENTIAL_HEALTH_CHECK_INTERVAL env var
-- Disable via OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK
+- Disable via BIROUTER_DISABLE_CREDENTIAL_HEALTH_CHECK
 
 ### 3.5 Pre-request Middleware Hooks (NEW)
 Execute JS hooks before routing:
@@ -143,12 +143,12 @@ Cache, compression, 1proxy, memory, skills tools
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| DATA_DIR | Data directory | ~/.omniroute/ |
+| DATA_DIR | Data directory | ~/.birouter/ |
 | PORT | HTTP server port | 20128 |
 | REQUIRE_API_KEY | Force API key auth | false |
 | CREDENTIAL_HEALTH_CHECK_INTERVAL | Health check interval (ms) | 300000 |
 | CREDENTIAL_HEALTH_CACHE_TTL | Credential cache TTL (ms) | 300000 |
-| OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK | Disable health check | off |
+| BIROUTER_DISABLE_CREDENTIAL_HEALTH_CHECK | Disable health check | off |
 
 ---
 
@@ -174,7 +174,7 @@ Tienes acceso a estas herramientas para ayudar al usuario:
 - **codeGraphStats**: Estadísticas del índice
 
 ### CLI (control total)
-- **runOmniRouteCli**: Ejecuta comandos omniroute CLI
+- **runBirouterCli**: Ejecuta comandos birouter CLI
 
 ---
 

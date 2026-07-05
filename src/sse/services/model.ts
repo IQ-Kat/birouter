@@ -8,8 +8,8 @@ import {
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { parseModel, getModelInfoCore } from "@birouter/open-sse/services/model.ts";
+import { REGISTRY } from "@birouter/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
 

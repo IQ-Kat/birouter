@@ -6,7 +6,7 @@ import { buildEvalTargetOptions, runEvalSuiteAgainstTarget } from "@/lib/evals/r
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { evalRunSuiteSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);

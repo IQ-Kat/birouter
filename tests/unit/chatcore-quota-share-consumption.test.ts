@@ -8,13 +8,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-quota-share-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-quota-share-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { scheduleQuotaShareConsumption } = await import(
-  "../../open-sse/handlers/chatCore/quotaShareConsumption.ts"
-);
+const { scheduleQuotaShareConsumption } =
+  await import("../../open-sse/handlers/chatCore/quotaShareConsumption.ts");
 
 const validUsage = { prompt_tokens: 10, completion_tokens: 5 };
 

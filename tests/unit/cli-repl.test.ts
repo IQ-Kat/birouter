@@ -88,7 +88,7 @@ test("Repl.jsx tem painel lateral (SidePanel) com tokens e custo", () => {
 // --- testes de persistência via session.mjs ---
 
 test("saveSession e loadSession persistem e restauram sessão", async () => {
-  const tmpDir = join(tmpdir(), `omniroute-repl-test-${Date.now()}`);
+  const tmpDir = join(tmpdir(), `birouter-repl-test-${Date.now()}`);
   mkdirSync(tmpDir, { recursive: true });
   const origDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tmpDir;
@@ -119,7 +119,7 @@ test("saveSession e loadSession persistem e restauram sessão", async () => {
 });
 
 test("loadSession lança erro se sessão não existe", async () => {
-  const tmpDir = join(tmpdir(), `omniroute-repl-test-${Date.now()}`);
+  const tmpDir = join(tmpdir(), `birouter-repl-test-${Date.now()}`);
   mkdirSync(tmpDir, { recursive: true });
   const origDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tmpDir;
@@ -135,7 +135,7 @@ test("loadSession lança erro se sessão não existe", async () => {
 });
 
 test("listSessions retorna array (vazio ou com sessões)", async () => {
-  const tmpDir = join(tmpdir(), `omniroute-repl-test-${Date.now()}`);
+  const tmpDir = join(tmpdir(), `birouter-repl-test-${Date.now()}`);
   mkdirSync(tmpDir, { recursive: true });
   const origDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tmpDir;
@@ -160,7 +160,7 @@ test("listSessions retorna array (vazio ou com sessões)", async () => {
 });
 
 test("autosave não lança erro em condições normais", async () => {
-  const tmpDir = join(tmpdir(), `omniroute-repl-test-${Date.now()}`);
+  const tmpDir = join(tmpdir(), `birouter-repl-test-${Date.now()}`);
   mkdirSync(tmpDir, { recursive: true });
   const origDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tmpDir;

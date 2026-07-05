@@ -5,7 +5,7 @@
  * URLs) into decoded bytes ready to inline into a cursor SelectedImage
  * (see ../utils/cursorAgentProtobuf.ts::encodeSelectedImageBody).
  *
- * Security (OmniRoute hard rules):
+ * Security (Birouter hard rules):
  *  - SSRF: remote fetches go through the repo's canonical outbound guard
  *    (`parseAndValidatePublicUrl`), which rejects non-http(s) schemes,
  *    embedded credentials, localhost, link-local, private/CGNAT ranges, and
@@ -297,9 +297,7 @@ async function readCapped(response: Response, cap: number): Promise<Buffer> {
  */
 export async function resolveCursorImages(imageUrls: string[]): Promise<EncodedImage[]> {
   if (imageUrls.length > MAX_CURSOR_IMAGES) {
-    throw new CursorImageError(
-      `Too many images in one request (max ${MAX_CURSOR_IMAGES}).`
-    );
+    throw new CursorImageError(`Too many images in one request (max ${MAX_CURSOR_IMAGES}).`);
   }
   const out: EncodedImage[] = [];
   for (const url of imageUrls) {
@@ -327,17 +325,11 @@ export async function resolveCursorImages(imageUrls: string[]): Promise<EncodedI
  * Returns the raw url strings (data: or http(s):) in order. Non-image parts
  * are ignored. A plain string content has no images.
  */
-export function extractImageUrls(
-  content: unknown
-): string[] {
+export function extractImageUrls(content: unknown): string[] {
   if (!Array.isArray(content)) return [];
   const urls: string[] = [];
   for (const part of content) {
-    if (
-      part &&
-      typeof part === "object" &&
-      (part as { type?: unknown }).type === "image_url"
-    ) {
+    if (part && typeof part === "object" && (part as { type?: unknown }).type === "image_url") {
       const imageUrl = (part as { image_url?: unknown }).image_url;
       if (typeof imageUrl === "string") {
         urls.push(imageUrl);

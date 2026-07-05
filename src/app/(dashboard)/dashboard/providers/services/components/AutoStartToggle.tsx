@@ -15,7 +15,7 @@ export function AutoStartToggle({ name, label, description }: AutoStartTogglePro
   const [pending, setPending] = useState(false);
 
   const displayLabel = label ?? "Auto-start";
-  const displayDescription = description ?? `Launch ${name} automatically when OmniRoute starts`;
+  const displayDescription = description ?? `Launch ${name} automatically when Birouter starts`;
 
   async function handleToggle(enabled: boolean) {
     setPending(true);

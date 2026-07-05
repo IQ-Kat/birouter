@@ -8,7 +8,7 @@
  * `/responses`, no matter what `targetFormat` a registry entry (or any future
  * misconfiguration) declares for them.
  *
- * OmniRoute's GithubExecutor decides the endpoint inside `buildUrl()` purely
+ * Birouter's GithubExecutor decides the endpoint inside `buildUrl()` purely
  * from `getModelTargetFormat("gh", model)`. The registry today (`open-sse/
  * config/providers/registry/github/index.ts`) correctly omits
  * `targetFormat: "openai-responses"` on every Claude/Gemini entry — but that is

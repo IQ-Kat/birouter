@@ -12,7 +12,7 @@ import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { configureUpstreamCa } from "@/mitm/upstreamTrust";
 import path from "path";
 import fs from "fs";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 const CA_PATH_FILE = path.join(resolveMitmDataDir(), "mitm", "upstream-ca.path");

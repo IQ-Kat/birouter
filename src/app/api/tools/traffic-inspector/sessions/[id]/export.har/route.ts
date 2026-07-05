@@ -7,7 +7,7 @@
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { getSession, getSessionRequests } from "@/lib/db/inspectorSessions";
 import { toHar } from "@/lib/inspector/harExport";
 import type { InterceptedRequest } from "@/mitm/inspector/types";

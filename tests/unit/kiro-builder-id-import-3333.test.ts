@@ -28,7 +28,7 @@ function makeFakeSsoCache(home: string, creds: { clientId: string; clientSecret:
 }
 
 test.beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-kiro-3333-"));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-kiro-3333-"));
   process.env.HOME = tmpHome;
 });
 

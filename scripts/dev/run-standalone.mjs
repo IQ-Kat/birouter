@@ -13,11 +13,11 @@ const env = bootstrapEnv();
 const runtimePorts = resolveRuntimePorts(env);
 const childEnv = withRuntimePortEnv(env, runtimePorts);
 
-// #2939: honor OMNIROUTE_MEMORY_MB (default 512), the same knob
-// `omniroute serve` uses, so Docker users can control the server heap under
+// #2939: honor BIROUTER_MEMORY_MB (default 512), the same knob
+// `birouter serve` uses, so Docker users can control the server heap under
 // load / large SQLite DBs. A trailing --max-old-space-size wins, so this
 // overrides the image fallback without clobbering any other NODE_OPTIONS flags.
-const maxOldSpaceMb = resolveMaxOldSpaceMb(childEnv.OMNIROUTE_MEMORY_MB);
+const maxOldSpaceMb = resolveMaxOldSpaceMb(childEnv.BIROUTER_MEMORY_MB);
 childEnv.NODE_OPTIONS =
   `${childEnv.NODE_OPTIONS || ""} --max-old-space-size=${maxOldSpaceMb}`.trim();
 

@@ -17,7 +17,7 @@ import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-aliases-selfheal-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-model-aliases-selfheal-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.JWT_SECRET = process.env.JWT_SECRET || "model-aliases-selfheal-jwt";
 

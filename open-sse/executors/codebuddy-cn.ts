@@ -7,7 +7,7 @@ import type { ProviderCredentials } from "./base.ts";
  * CodeBuddy CN is an OpenAI-compatible Tencent gateway but it rejects non-stream
  * chat requests (HTTP 400, code 11101 "Non-stream chat request is currently not
  * supported"). The same-format (openai→openai) translator path leaves body.stream
- * as the client sent it, so we force it true here — OmniRoute still re-aggregates
+ * as the client sent it, so we force it true here — Birouter still re-aggregates
  * the SSE into a JSON response for non-streaming clients.
  *
  * Reasoning params are opt-in: reasoning_summary:"auto" is only added when the

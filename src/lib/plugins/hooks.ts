@@ -1,7 +1,7 @@
 /**
  * Custom hook registry — event-driven plugin hook system.
  *
- * Plugins can register handlers for any OmniRoute event. Built-in events
+ * Plugins can register handlers for any Birouter event. Built-in events
  * cover the full request lifecycle plus routing, rate limiting, and errors.
  *
  * @module plugins/hooks

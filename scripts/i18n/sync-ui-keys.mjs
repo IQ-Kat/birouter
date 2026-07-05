@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — UI i18n key sync (next-intl message catalogs).
+ * Birouter — UI i18n key sync (next-intl message catalogs).
  *
  * Source of truth: `src/i18n/messages/en.json`. Every other locale JSON in
  * `src/i18n/messages/` should mirror the same key tree. This script replicates
@@ -15,7 +15,7 @@
  *   npm run i18n:sync-ui -- --translate-markers
  *   npm run i18n:sync-ui -- --translate-markers --locale=pt-BR --concurrency=4
  *
- * --translate-markers calls the OmniRoute translation backend (same env vars
+ * --translate-markers calls the Birouter translation backend (same env vars
  * as `run-translation.mjs`) and replaces every `__MISSING__:<en>` placeholder
  * with a translated string. Missing env vars cause the script to fail
  * fast — the markers stay in place for a later run.
@@ -214,10 +214,10 @@ function requireEnv(name) {
 }
 
 function backendConfig() {
-  const apiUrl = requireEnv("OMNIROUTE_TRANSLATION_API_URL").replace(/\/$/, "");
-  const apiKey = requireEnv("OMNIROUTE_TRANSLATION_API_KEY");
-  const model = requireEnv("OMNIROUTE_TRANSLATION_MODEL");
-  const timeoutMs = Number(process.env.OMNIROUTE_TRANSLATION_TIMEOUT_MS || 60000);
+  const apiUrl = requireEnv("BIROUTER_TRANSLATION_API_URL").replace(/\/$/, "");
+  const apiKey = requireEnv("BIROUTER_TRANSLATION_API_KEY");
+  const model = requireEnv("BIROUTER_TRANSLATION_MODEL");
+  const timeoutMs = Number(process.env.BIROUTER_TRANSLATION_TIMEOUT_MS || 60000);
   return { apiUrl, apiKey, model, timeoutMs };
 }
 
@@ -401,7 +401,7 @@ async function processLocale(locale, source, config, opts, backend) {
       logWarn(`${locale}: not present in config/i18n.json — skipping translation`);
     } else {
       const concurrency =
-        opts.concurrency ?? Number(process.env.OMNIROUTE_TRANSLATION_CONCURRENCY || 4);
+        opts.concurrency ?? Number(process.env.BIROUTER_TRANSLATION_CONCURRENCY || 4);
       translateStats = await translatePlaceholders(merged, localeEntry, backend, concurrency);
     }
   }
@@ -467,7 +467,7 @@ async function main() {
   if (opts.translateMarkers && !opts.dryRun) {
     backend = backendConfig();
     backend.concurrency =
-      opts.concurrency ?? Number(process.env.OMNIROUTE_TRANSLATION_CONCURRENCY || 4);
+      opts.concurrency ?? Number(process.env.BIROUTER_TRANSLATION_CONCURRENCY || 4);
     logInfo(
       `backend: ${backend.apiUrl} (model=${backend.model}, concurrency=${backend.concurrency}, timeout=${backend.timeoutMs}ms)`
     );

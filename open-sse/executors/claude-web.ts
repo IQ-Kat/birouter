@@ -457,7 +457,7 @@ async function getOrganizationId(
 function shouldUseBrowserBacked(): boolean {
   const flag = process.env.WEB_COOKIE_USE_BROWSER;
   if (flag === "1" || flag === "true" || flag === "on") return true;
-  const poolFlag = process.env.OMNIROUTE_BROWSER_POOL;
+  const poolFlag = process.env.BIROUTER_BROWSER_POOL;
   return poolFlag === "on" || poolFlag === "1" || poolFlag === "true";
 }
 
@@ -768,7 +768,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
       // Prepare browser-emulated headers (used by both paths)
       const headers = getBrowserHeaders(deviceId);
 
-      // Browser-backed path: opt-in via OMNIROUTE_BROWSER_POOL=on or
+      // Browser-backed path: opt-in via BIROUTER_BROWSER_POOL=on or
       // WEB_COOKIE_USE_BROWSER=1. Routes the chat through a shared
       // Playwright/Cloakbrowser page with the user's session cookies
       // injected, so Claude's Cloudflare Turnstile / session fingerprint

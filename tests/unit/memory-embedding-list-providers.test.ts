@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { EMBEDDING_PROVIDERS } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { EMBEDDING_PROVIDERS } from "@birouter/open-sse/config/embeddingRegistry.ts";
 
 // This test validates the shape contract of listEmbeddingProviders
 // and the EMBEDDING_PROVIDERS registry it aggregates from.
@@ -16,7 +16,10 @@ describe("memory-embedding-list-providers: EMBEDDING_PROVIDERS shape", () => {
   it("each provider has id, baseUrl, authType, authHeader, models", () => {
     for (const [id, config] of Object.entries(EMBEDDING_PROVIDERS)) {
       assert.ok(config.id === id, `Provider id mismatch: ${config.id} !== ${id}`);
-      assert.ok(typeof config.baseUrl === "string" && config.baseUrl.length > 0, `${id}: missing baseUrl`);
+      assert.ok(
+        typeof config.baseUrl === "string" && config.baseUrl.length > 0,
+        `${id}: missing baseUrl`
+      );
       assert.ok(typeof config.authType === "string", `${id}: missing authType`);
       assert.ok(typeof config.authHeader === "string", `${id}: missing authHeader`);
       assert.ok(Array.isArray(config.models), `${id}: models should be an array`);
@@ -27,7 +30,10 @@ describe("memory-embedding-list-providers: EMBEDDING_PROVIDERS shape", () => {
     for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
       for (const model of config.models) {
         assert.ok(typeof model.id === "string", `${providerId}/${model.id}: id should be a string`);
-        assert.ok(typeof model.name === "string", `${providerId}/${model.id}: name should be a string`);
+        assert.ok(
+          typeof model.name === "string",
+          `${providerId}/${model.id}: name should be a string`
+        );
       }
     }
   });
@@ -81,7 +87,10 @@ describe("memory-embedding-list-providers: listEmbeddingProviders contract", () 
       for (const model of config.models) {
         const formattedId = `${providerId}/${model.id}`;
         assert.ok(formattedId.includes("/"), `Format check: ${formattedId}`);
-        assert.ok(formattedId.startsWith(providerId + "/"), `Should start with providerId: ${formattedId}`);
+        assert.ok(
+          formattedId.startsWith(providerId + "/"),
+          `Should start with providerId: ${formattedId}`
+        );
       }
     }
   });

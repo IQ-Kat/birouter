@@ -75,7 +75,7 @@ test("#5312: generic Claude OAuth clients can opt in to adaptive thinking", asyn
       credentials: { accessToken: "sk-ant-oat-generic-client-token" },
       clientHeaders: {
         "user-agent": "Cursor/1.0",
-        "x-omniroute-thinking": "adaptive",
+        "x-birouter-thinking": "adaptive",
       },
       contextEditing: { enabled: false },
     });

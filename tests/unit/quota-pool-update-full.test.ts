@@ -16,7 +16,7 @@ import os from "node:os";
 import path from "node:path";
 
 // ── DB harness (mirror quota-pool-connections.test.ts) ──────────────────────
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-pool-update-full-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-pool-update-full-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -24,13 +24,11 @@ const poolsDb = await import("../../src/lib/db/quotaPools.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const { createGroup } = await import("../../src/lib/db/quotaGroups.ts");
-const { syncQuotaCombos, removeQuotaCombosForPool } = await import(
-  "../../src/lib/quota/quotaCombos.ts"
-);
+const { syncQuotaCombos, removeQuotaCombosForPool } =
+  await import("../../src/lib/quota/quotaCombos.ts");
 const { PoolUpdateSchema } = await import("../../src/shared/schemas/quota.ts");
-const { isQuotaModelName, parseQuotaModelName, quotaGroupSlug } = await import(
-  "../../src/lib/quota/quotaModelNaming.ts"
-);
+const { isQuotaModelName, parseQuotaModelName, quotaGroupSlug } =
+  await import("../../src/lib/quota/quotaModelNaming.ts");
 
 async function resetStorage() {
   core.resetDbInstance();

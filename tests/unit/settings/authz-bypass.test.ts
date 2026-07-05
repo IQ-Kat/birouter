@@ -21,7 +21,7 @@ import { makeManagementSessionRequest } from "../../helpers/managementSession.ts
 const fixture = setupSettingsFixture("authz-bypass");
 // API-key auth check uses a Redis-backed cache otherwise — disable so
 // isValidApiKey() does not stall on ETIMEDOUT in the local test loop.
-process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE = "1";
+process.env.BIROUTER_DISABLE_REDIS_AUTH_CACHE = "1";
 
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;

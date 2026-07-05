@@ -32,7 +32,7 @@ type CaptureState = {
   wrappedInnerFetch: typeof fetch | null;
 };
 
-const CAPTURE_STATE_KEY = Symbol.for("omniroute.providerRequestCapture.state");
+const CAPTURE_STATE_KEY = Symbol.for("birouter.providerRequestCapture.state");
 
 function getCaptureState(): CaptureState {
   const scopedGlobal = globalThis as typeof globalThis & {

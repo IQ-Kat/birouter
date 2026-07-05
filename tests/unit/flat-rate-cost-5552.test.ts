@@ -33,7 +33,7 @@ test("isFlatRateProvider: case-insensitive + trimmed", () => {
 });
 
 test("isFlatRateProvider: metered / cost-tracked providers are NOT flat-rate (no hidden cost)", () => {
-  // codex/cx = OmniRoute actively tracks Codex token cost (Fast-tier multipliers,
+  // codex/cx = Birouter actively tracks Codex token cost (Fast-tier multipliers,
   // GPT-5.x pricing) and Codex can be a metered account; byteplus = metered ModelArk;
   // minimax-cn = metered China API; glm-thinking = metered tier.
   for (const id of [

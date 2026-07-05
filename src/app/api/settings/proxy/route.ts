@@ -7,7 +7,7 @@ import {
   getProxyAssignments,
   getProxyById,
 } from "../../../../lib/localDb";
-import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { clearDispatcherCache } from "@birouter/open-sse/utils/proxyDispatcher";
 import { updateProxyConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
@@ -68,9 +68,7 @@ function getRegistryScopeForLevel(
     return undefined;
   }
 
-  return PROXY_LEVEL_TO_REGISTRY_SCOPE[
-    level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE
-  ];
+  return PROXY_LEVEL_TO_REGISTRY_SCOPE[level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE];
 }
 
 async function getRegistryProxyForLevel(level: string, id: string | null) {

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-weak-rng-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-weak-rng-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 test.after(() => {
@@ -47,9 +47,9 @@ test("quotaPools.makeId produces unique IDs across calls", async () => {
 });
 
 test("migrationRunner probe table format uses crypto.randomUUID", async () => {
-  const probeName = `__omniroute_fts5_probe_${crypto.randomUUID().replace(/-/g, "_")}`;
+  const probeName = `__birouter_fts5_probe_${crypto.randomUUID().replace(/-/g, "_")}`;
   assert.match(
     probeName,
-    /^__omniroute_fts5_probe_[0-9a-f]{8}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{12}$/i
+    /^__birouter_fts5_probe_[0-9a-f]{8}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{4}_[0-9a-f]{12}$/i
   );
 });

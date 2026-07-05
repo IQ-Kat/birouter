@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { deriveDefaultPlan } from "@omniroute/open-sse/services/compression/deriveDefaultPlan";
+import { deriveDefaultPlan } from "@birouter/open-sse/services/compression/deriveDefaultPlan";
 import { getCompressionSettings } from "@/lib/db/compression";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 
 // The default compression pipeline is no longer editable here. It is DERIVED from the
 // per-engine toggle map (see open-sse deriveDefaultPlan). This route is a read-only shim:

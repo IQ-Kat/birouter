@@ -8,7 +8,7 @@ import path from "node:path";
 // without an apiKeyId (operator-wide view). These helpers back the no-key case and the
 // badge catalog must be seeded so the grid is populated (see #3472).
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-gami-3484-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-gami-3484-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 if (!process.env.API_KEY_SECRET) {
   process.env.API_KEY_SECRET = "test-gami-3484-secret-" + Date.now();
@@ -16,7 +16,8 @@ if (!process.env.API_KEY_SECRET) {
 
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
 const gami = await import("../../../src/lib/db/gamification.ts");
-const { seedBuiltinBadges, BUILTIN_BADGES } = await import("../../../src/lib/gamification/badges.ts");
+const { seedBuiltinBadges, BUILTIN_BADGES } =
+  await import("../../../src/lib/gamification/badges.ts");
 
 test.after(() => {
   try {

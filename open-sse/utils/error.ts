@@ -391,7 +391,7 @@ export function providerCircuitOpenResponse(
       headers: {
         "Content-Type": "application/json",
         "Retry-After": String(retryAfterSec),
-        "X-OmniRoute-Provider-Breaker": "open",
+        "X-Birouter-Provider-Breaker": "open",
       },
     }
   );
@@ -497,7 +497,8 @@ export function formatProviderError(
   const message = error.message || "Unknown error";
   // Expose low-level cause (e.g. UND_ERR_SOCKET, ECONNRESET, ETIMEDOUT) for diagnosing fetch failures
   const cause = (error as { cause?: unknown }).cause;
-  const causeObj = cause && typeof cause === "object" ? (cause as Record<string, unknown>) : undefined;
+  const causeObj =
+    cause && typeof cause === "object" ? (cause as Record<string, unknown>) : undefined;
   const causeCode = typeof causeObj?.code === "string" ? causeObj.code : undefined;
   const causeMsg = typeof causeObj?.message === "string" ? causeObj.message : undefined;
   const causeStr =

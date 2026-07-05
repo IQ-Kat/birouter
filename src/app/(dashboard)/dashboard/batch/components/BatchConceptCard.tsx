@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-const LS_KEY = "omniroute:concept-batch-collapsed";
+const LS_KEY = "birouter:concept-batch-collapsed";
 
 interface Props {
   className?: string;

@@ -1,7 +1,7 @@
 /**
  * #3786 — Antigravity (`agy` / `antigravity`) `gemini-3.1-pro-high` returns HTTP 400
  * ("Antigravity upstream error (400)") on recent upstream versions; `gemini-3.1-pro-low`
- * still works. OmniRoute sends the requested id VERBATIM (per #3696 wire capture). The
+ * still works. Birouter sends the requested id VERBATIM (per #3696 wire capture). The
  * upstream changed the accepted model-id format for the Pro-high tier and the two
  * actively-maintained competitor proxies DISAGREE on the live id:
  *   - AntigravityManager  → `gemini-3.1-pro-high`

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { checkQdrantHealth } from "@/lib/memory/qdrant";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 export async function GET(request: NextRequest) {
   if (!(await isAuthenticated(request))) {

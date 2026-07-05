@@ -13,7 +13,7 @@ const apiKeysDb = await import("../../../src/lib/db/apiKeys.ts");
 const featureFlagsDb = await import("../../../src/lib/db/featureFlags.ts");
 const core = await import("../../../src/lib/db/core.ts");
 
-const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
+const ORIGINAL_BIROUTER_API_KEY = process.env.BIROUTER_API_KEY;
 const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_REQUIRE_API_KEY = process.env.REQUIRE_API_KEY;
@@ -23,7 +23,7 @@ function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
   delete process.env.ROUTER_API_KEY;
   delete process.env.JWT_SECRET;
   process.env.REQUIRE_API_KEY = "true";
@@ -35,8 +35,8 @@ test.beforeEach(() => {
 
 test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_OMNIROUTE_API_KEY === undefined) delete process.env.OMNIROUTE_API_KEY;
-  else process.env.OMNIROUTE_API_KEY = ORIGINAL_OMNIROUTE_API_KEY;
+  if (ORIGINAL_BIROUTER_API_KEY === undefined) delete process.env.BIROUTER_API_KEY;
+  else process.env.BIROUTER_API_KEY = ORIGINAL_BIROUTER_API_KEY;
   if (ORIGINAL_ROUTER_API_KEY === undefined) delete process.env.ROUTER_API_KEY;
   else process.env.ROUTER_API_KEY = ORIGINAL_ROUTER_API_KEY;
   if (ORIGINAL_JWT_SECRET === undefined) delete process.env.JWT_SECRET;
@@ -170,7 +170,7 @@ test("clientApiPolicy: revoked bearer is rejected", async () => {
 });
 
 test("clientApiPolicy: environment API key remains accepted for client API routes", async () => {
-  process.env.OMNIROUTE_API_KEY = "sk-env-policy-test";
+  process.env.BIROUTER_API_KEY = "sk-env-policy-test";
 
   const policy = await loadPolicy();
   const out = await policy.evaluate(

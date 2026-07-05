@@ -40,16 +40,16 @@ describe("#4580 direct dispatcher options", () => {
     );
   });
 
-  it("connection limit honors OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS", () => {
+  it("connection limit honors BIROUTER_DIRECT_DISPATCHER_CONNECTIONS", () => {
     assert.equal(
-      getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "8" }),
+      getDefaultDispatcherConnectionLimit({ BIROUTER_DIRECT_DISPATCHER_CONNECTIONS: "8" }),
       8
     );
   });
 
   it("connection limit clamps invalid values to the default", () => {
     assert.equal(
-      getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "nonsense" }),
+      getDefaultDispatcherConnectionLimit({ BIROUTER_DIRECT_DISPATCHER_CONNECTIONS: "nonsense" }),
       32
     );
     assert.equal(getDefaultDispatcherConnectionLimit({}), 32);

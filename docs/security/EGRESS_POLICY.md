@@ -10,7 +10,7 @@ lastUpdated: 2026-06-28
 
 > **Source of truth:** `open-sse/utils/proxyFamily.ts`, `open-sse/utils/proxyDispatcher.ts`, `open-sse/utils/proxyFetch.ts`, `open-sse/utils/socksConnectorWithFamily.ts`, `open-sse/utils/proxyFamilyResolve.ts`, `src/shared/validation/schemas.ts`, `src/lib/db/proxies.ts`, `src/lib/db/upstreamProxy.ts`, `src/lib/db/migrations/099_proxy_family.sql`
 
-OmniRoute lets each proxy carry an **address-family egress directive**. By default the OS picks IPv4 or IPv6 (dual-stack, "Happy Eyeballs"). When you set the directive to `ipv4` or `ipv6`, OmniRoute pins every connection through that proxy to the chosen family and **fails closed** rather than falling back to the other family.
+Birouter lets each proxy carry an **address-family egress directive**. By default the OS picks IPv4 or IPv6 (dual-stack, "Happy Eyeballs"). When you set the directive to `ipv4` or `ipv6`, Birouter pins every connection through that proxy to the chosen family and **fails closed** rather than falling back to the other family.
 
 This page documents what the directive is, why it exists, where you configure it, and how the runtime resolves it.
 
@@ -57,7 +57,7 @@ export function parseProxyFamily(value: unknown): ProxyFamily {
 
 ## Why It Exists
 
-Introduced in PR [#3777](https://github.com/diegosouzapw/OmniRoute/pull/3777). The motivating problems:
+Introduced in PR [#3777](https://github.com/IQ-Kat/birouter/pull/3777). The motivating problems:
 
 | Problem                                         | What the directive fixes                                                                                                                                                                                                                                                                                                            |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -124,7 +124,7 @@ For the rest of the proxy CRUD/assignment API, see [PROXY_GUIDE.md](../ops/PROXY
 
 ## How `auto` Resolves
 
-When `family` is `auto`, OmniRoute does **not** append any directive — the proxy URL is used as-is and the connect family is determined intrinsically.
+When `family` is `auto`, Birouter does **not** append any directive — the proxy URL is used as-is and the connect family is determined intrinsically.
 
 At URL-build time (`proxyConfigToUrl` / `normalizeProxyUrl` in `open-sse/utils/proxyDispatcher.ts`), an `auto` proxy yields a plain URL with no marker:
 
@@ -158,7 +158,7 @@ So:
 
 A non-`auto` directive travels as a single synthetic query marker — `?family=ipv4` or `?family=ipv6` — appended once to the normalized proxy URL. `normalizeProxyUrl` is careful to strip and re-append this marker exactly once so it never corrupts port parsing.
 
-When the dispatcher is built, the marker is read and converted to a concrete connect family. If the host is an IP literal of the **opposite** family, OmniRoute throws (contradiction is fail-closed):
+When the dispatcher is built, the marker is read and converted to a concrete connect family. If the host is an IP literal of the **opposite** family, Birouter throws (contradiction is fail-closed):
 
 ```ts
 // open-sse/utils/proxyDispatcher.ts
@@ -179,7 +179,7 @@ The concrete family is then pinned on the connector:
 
 ## SOCKS5 Compatibility
 
-The family pin works with SOCKS5 proxies, but stock `fetch-socks` does not expose the socket options needed to pin the family of the proxy hop. OmniRoute ships its own connector for that:
+The family pin works with SOCKS5 proxies, but stock `fetch-socks` does not expose the socket options needed to pin the family of the proxy hop. Birouter ships its own connector for that:
 
 ```ts
 // open-sse/utils/socksConnectorWithFamily.ts

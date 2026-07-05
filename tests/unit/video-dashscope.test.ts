@@ -4,7 +4,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-video-dashscope-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-video-dashscope-"));
 
 const { handleVideoGeneration } = await import("../../open-sse/handlers/videoGeneration.ts");
 const { VIDEO_PROVIDERS } = await import("../../open-sse/config/videoRegistry.ts");

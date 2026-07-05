@@ -24,7 +24,7 @@ import {
   DEFAULT_THINKING_CONFIG,
 } from "../../open-sse/services/thinkingBudget.ts";
 
-const GLOBAL_KEY = "__omniroute_thinkingBudget_config__";
+const GLOBAL_KEY = "__birouter_thinkingBudget_config__";
 const store = globalThis as unknown as Record<string, { mode?: string; customBudget?: number }>;
 
 test.afterEach(() => {

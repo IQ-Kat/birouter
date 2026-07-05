@@ -1,5 +1,5 @@
 /**
- * OmniRoute — k6 Load / Performance Test (T-5)
+ * Birouter — k6 Load / Performance Test (T-5)
  *
  * Tests the proxy endpoint under sustained load to measure:
  *   - Request throughput (RPS)
@@ -14,7 +14,7 @@
  *
  * Prerequisites:
  *   - k6 installed: https://grafana.com/docs/k6/latest/set-up/install-k6/
- *   - OMNIROUTE_API_KEY env var or --env API_KEY=... set
+ *   - BIROUTER_API_KEY env var or --env API_KEY=... set
  */
 
 import http from "k6/http";
@@ -28,7 +28,7 @@ const healthLatency = new Trend("health_latency", true);
 
 // ── Configuration ──
 const BASE_URL = __ENV.BASE_URL || "http://localhost:3000";
-const API_KEY = __ENV.API_KEY || __ENV.OMNIROUTE_API_KEY || "test-key";
+const API_KEY = __ENV.API_KEY || __ENV.BIROUTER_API_KEY || "test-key";
 const VUS = parseInt(__ENV.VUS || "10", 10);
 const DURATION = __ENV.DURATION || "60s";
 

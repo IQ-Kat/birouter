@@ -11,7 +11,7 @@ import {
   updateProviderTestResult,
 } from "../provider-store.mjs";
 import { encryptCredential } from "../encryption.mjs";
-import { openOmniRouteDb } from "../sqlite.mjs";
+import { openBirouterDb } from "../sqlite.mjs";
 import { t } from "../i18n.mjs";
 
 function publicConnection(connection) {
@@ -189,7 +189,7 @@ export async function runAvailableCommand(opts = {}) {
   if (opts.json) {
     console.log(JSON.stringify({ count: providers.length, categories, providers }, null, 2));
   } else {
-    printHeading("OmniRoute Available Providers");
+    printHeading("Birouter Available Providers");
     printAvailableProviderTable(providers, categories);
   }
 
@@ -197,13 +197,13 @@ export async function runAvailableCommand(opts = {}) {
 }
 
 export async function runListCommand(opts = {}) {
-  const { db } = await openOmniRouteDb();
+  const { db } = await openBirouterDb();
   try {
     const connections = listProviderConnections(db).map(publicConnection);
     if (opts.json) {
       console.log(JSON.stringify({ providers: connections }, null, 2));
     } else {
-      printHeading("OmniRoute Providers");
+      printHeading("Birouter Providers");
       printProviderTable(connections);
     }
     return 0;
@@ -218,7 +218,7 @@ export async function runTestCommand(selector, opts = {}) {
     return 1;
   }
 
-  const { db } = await openOmniRouteDb();
+  const { db } = await openBirouterDb();
   try {
     const connection = findProviderConnection(db, selector);
     if (!connection) {
@@ -241,7 +241,7 @@ export async function runTestCommand(selector, opts = {}) {
 }
 
 export async function runTestAllCommand(opts = {}) {
-  const { db } = await openOmniRouteDb();
+  const { db } = await openBirouterDb();
   try {
     const connections = listProviderConnections(db);
     const results = [];
@@ -261,7 +261,7 @@ export async function runTestAllCommand(opts = {}) {
     if (opts.json) {
       console.log(JSON.stringify({ results }, null, 2));
     } else {
-      printHeading("OmniRoute Provider Tests");
+      printHeading("Birouter Provider Tests");
       for (const result of results) {
         const label = result.valid
           ? "\x1b[32mOK\x1b[0m"
@@ -281,13 +281,13 @@ export async function runTestAllCommand(opts = {}) {
 }
 
 export async function runValidateCommand(opts = {}) {
-  const { db } = await openOmniRouteDb();
+  const { db } = await openBirouterDb();
   try {
     const results = listProviderConnections(db).map(validateConnection);
     if (opts.json) {
       console.log(JSON.stringify({ results }, null, 2));
     } else {
-      printHeading("OmniRoute Provider Validation");
+      printHeading("Birouter Provider Validation");
       if (results.length === 0) {
         console.log("No providers configured.");
       }
@@ -310,7 +310,7 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
   }
 
   // --- Resolve connection ---
-  const { db } = await openOmniRouteDb();
+  const { db } = await openBirouterDb();
   let connection;
   try {
     connection = findProviderConnection(db, selector);
@@ -405,7 +405,7 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
       }
     } catch {
       // Fall through to direct DB write
-      const { db: db2 } = await openOmniRouteDb();
+      const { db: db2 } = await openBirouterDb();
       try {
         updateProviderApiKey(db2, connection.id, encryptCredential(newKey));
       } finally {
@@ -413,7 +413,7 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
       }
     }
   } else {
-    const { db: db2 } = await openOmniRouteDb();
+    const { db: db2 } = await openBirouterDb();
     try {
       updateProviderApiKey(db2, connection.id, encryptCredential(newKey));
     } finally {
@@ -427,7 +427,7 @@ export async function runProvidersRotateCommand(selector, opts = {}) {
 
   // --- Post-rotation test ---
   if (!opts.skipTest) {
-    const { db: db3 } = await openOmniRouteDb();
+    const { db: db3 } = await openBirouterDb();
     try {
       const fresh = findProviderConnection(db3, connection.id);
       if (fresh) {
@@ -500,7 +500,7 @@ export function registerProviders(program) {
 
   providers
     .command("available")
-    .description("Show available providers in the OmniRoute catalog")
+    .description("Show available providers in the Birouter catalog")
     .option("--json", "Print machine-readable JSON")
     .option("--search <query>", "Filter by id, name, alias, or category")
     .option("-q, --q <query>", "Alias for --search")

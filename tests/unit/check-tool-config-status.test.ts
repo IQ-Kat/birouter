@@ -12,13 +12,13 @@ import path from "node:path";
 import os from "node:os";
 
 // Set DATA_DIR before importing modules that read it
-process.env.DATA_DIR = path.join(os.tmpdir(), "omniroute-check-tool-test");
+process.env.DATA_DIR = path.join(os.tmpdir(), "birouter-check-tool-test");
 
 const { checkToolConfigStatus } = await import("../../src/lib/cliTools/checkToolConfigStatus.ts");
 
 // Helper: create a temp file with given content and return its path
 async function writeTempFile(filename: string, content: string): Promise<string> {
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-clicheck-"));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-clicheck-"));
   const filePath = path.join(tmpDir, filename);
   await fs.writeFile(filePath, content, "utf-8");
   return filePath;
@@ -26,13 +26,13 @@ async function writeTempFile(filename: string, content: string): Promise<string>
 
 // Helper: create a temp TOML config for codex with optional auth.json alongside
 async function writeCodexConfig(opts: {
-  hasOmniRoute: boolean;
+  hasBirouter: boolean;
   authApiKey?: string;
 }): Promise<string> {
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-codex-"));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-codex-"));
   const configPath = path.join(tmpDir, "config.toml");
 
-  const tomlContent = opts.hasOmniRoute
+  const tomlContent = opts.hasBirouter
     ? `[openai]\nbase_url = "http://localhost:20128/v1"\napi_key_env = "OPENAI_API_KEY"\n`
     : `[openai]\nbase_url = "https://api.openai.com/v1"\n`;
 
@@ -40,11 +40,7 @@ async function writeCodexConfig(opts: {
 
   if (opts.authApiKey !== undefined) {
     const authPath = path.join(tmpDir, "auth.json");
-    await fs.writeFile(
-      authPath,
-      JSON.stringify({ OPENAI_API_KEY: opts.authApiKey }),
-      "utf-8"
-    );
+    await fs.writeFile(authPath, JSON.stringify({ OPENAI_API_KEY: opts.authApiKey }), "utf-8");
   }
 
   return configPath;
@@ -62,47 +58,44 @@ test("claude: returns 'configured' when ANTHROPIC_BASE_URL is set", async () => 
 });
 
 test("claude: returns 'not_configured' when ANTHROPIC_BASE_URL is absent", async () => {
-  const configPath = await writeTempFile(
-    "settings.json",
-    JSON.stringify({ env: {} })
-  );
+  const configPath = await writeTempFile("settings.json", JSON.stringify({ env: {} }));
   const result = await checkToolConfigStatus("claude", configPath);
   assert.equal(result, "not_configured");
 });
 
 // ── Codex tests ───────────────────────────────────────────────────────────────
 
-test("codex: returns 'configured' when TOML has OmniRoute URL + valid auth key", async () => {
+test("codex: returns 'configured' when TOML has Birouter URL + valid auth key", async () => {
   const configPath = await writeCodexConfig({
-    hasOmniRoute: true,
-    authApiKey: "sk_omniroute_testkey_1234567890abcdef",
+    hasBirouter: true,
+    authApiKey: "sk_birouter_testkey_1234567890abcdef",
   });
   const result = await checkToolConfigStatus("codex", configPath);
   assert.equal(result, "configured");
 });
 
-test("codex: returns 'not_configured' when TOML has OmniRoute URL but auth key is masked", async () => {
+test("codex: returns 'not_configured' when TOML has Birouter URL but auth key is masked", async () => {
   const configPath = await writeCodexConfig({
-    hasOmniRoute: true,
+    hasBirouter: true,
     authApiKey: "sk_****",
   });
   const result = await checkToolConfigStatus("codex", configPath);
   assert.equal(result, "not_configured");
 });
 
-test("codex: returns 'not_configured' when TOML does not mention OmniRoute", async () => {
-  const configPath = await writeCodexConfig({ hasOmniRoute: false });
+test("codex: returns 'not_configured' when TOML does not mention Birouter", async () => {
+  const configPath = await writeCodexConfig({ hasBirouter: false });
   const result = await checkToolConfigStatus("codex", configPath);
   assert.equal(result, "not_configured");
 });
 
 // ── Qwen tests ────────────────────────────────────────────────────────────────
 
-test("qwen: returns 'configured' when modelProviders has OmniRoute URL", async () => {
+test("qwen: returns 'configured' when modelProviders has Birouter URL", async () => {
   const configPath = await writeTempFile(
     "qwen.json",
     JSON.stringify({
-      modelProviders: [{ apiBase: "http://localhost:20128/v1", name: "omniroute" }],
+      modelProviders: [{ apiBase: "http://localhost:20128/v1", name: "birouter" }],
     })
   );
   const result = await checkToolConfigStatus("qwen", configPath);
@@ -117,7 +110,7 @@ test("qwen: returns 'not_configured' when modelProviders is missing", async () =
 
 // ── Hermes tests ──────────────────────────────────────────────────────────────
 
-test("hermes: returns 'configured' when config contains OmniRoute", async () => {
+test("hermes: returns 'configured' when config contains Birouter", async () => {
   const configPath = await writeTempFile(
     "hermes.toml",
     `[openai]\nbase_url = "http://localhost:20128/v1"\n`
@@ -137,19 +130,19 @@ test("hermes: returns 'not_configured' when config points elsewhere", async () =
 
 // ── Droid / Openclaw / Kilo ───────────────────────────────────────────────────
 
-test("droid: returns 'configured' when JSON config contains sk_omniroute marker", async () => {
+test("droid: returns 'configured' when JSON config contains sk_birouter marker", async () => {
   const configPath = await writeTempFile(
     "droid.json",
-    JSON.stringify({ apiKey: "sk_omniroute_somekey", baseUrl: "http://localhost:20128/v1" })
+    JSON.stringify({ apiKey: "sk_birouter_somekey", baseUrl: "http://localhost:20128/v1" })
   );
   const result = await checkToolConfigStatus("droid", configPath);
   assert.equal(result, "configured");
 });
 
-test("openclaw: returns 'configured' when JSON config contains omniroute text", async () => {
+test("openclaw: returns 'configured' when JSON config contains birouter text", async () => {
   const configPath = await writeTempFile(
     "openclaw.json",
-    JSON.stringify({ openAiBaseUrl: "http://omniroute.local/v1", openAiApiKey: "sk-test" })
+    JSON.stringify({ openAiBaseUrl: "http://birouter.local/v1", openAiApiKey: "sk-test" })
   );
   const result = await checkToolConfigStatus("openclaw", configPath);
   assert.equal(result, "configured");
@@ -167,7 +160,7 @@ test("cline: returns 'configured' when openAiBaseUrl is set with openai provider
   assert.equal(result, "configured");
 });
 
-test("kilo: returns 'not_configured' when no OmniRoute markers present", async () => {
+test("kilo: returns 'not_configured' when no Birouter markers present", async () => {
   const configPath = await writeTempFile(
     "kilo.json",
     JSON.stringify({ apiProvider: "anthropic", model: "claude-3-sonnet" })
@@ -186,10 +179,7 @@ test("error path: non-existent file returns 'not_configured' (no throw)", async 
 test("unknown toolId: returns 'unknown' (no configPath for unknown tool)", async () => {
   // unknown tool has no config path via getCliPrimaryConfigPath — configPathOverride not needed
   // but we can also test via override with a valid JSON file to hit the default branch
-  const configPath = await writeTempFile(
-    "unknown.json",
-    JSON.stringify({ foo: "bar" })
-  );
+  const configPath = await writeTempFile("unknown.json", JSON.stringify({ foo: "bar" }));
   const result = await checkToolConfigStatus("totally-unknown-tool-id", configPath);
   assert.equal(result, "unknown");
 });

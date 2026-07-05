@@ -6,7 +6,7 @@ import path from "node:path";
 
 // Feature 5004 — model_context_overrides DB module round-trip.
 
-const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-mco-module-"));
+const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-mco-module-"));
 process.env.DATA_DIR = moduleDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
@@ -47,7 +47,10 @@ describe("modelContextOverrides", () => {
 
   it("upserts on the same (provider, model) key and records the source", () => {
     mco.setModelContextOverride("anthropic", "claude-sonnet-4-5", 200000, "auto:discovery");
-    assert.equal(mco.getModelContextOverrideRecord("anthropic", "claude-sonnet-4-5")?.source, "auto:discovery");
+    assert.equal(
+      mco.getModelContextOverrideRecord("anthropic", "claude-sonnet-4-5")?.source,
+      "auto:discovery"
+    );
     // Re-set as manual overwrites the same row.
     mco.setModelContextOverride("anthropic", "claude-sonnet-4-5", 1000000, "manual");
     const rec = mco.getModelContextOverrideRecord("anthropic", "claude-sonnet-4-5");
@@ -82,9 +85,9 @@ describe("modelContextOverrides", () => {
     mco.setModelContextOverride("anthropic", "claude-sonnet-4-5", 200000, "auto:discovery");
     const all = mco.listModelContextOverrides();
     assert.equal(all.length, 2);
-    assert.deepEqual(
-      all.map((o) => `${o.provider}/${o.modelId}`).sort(),
-      ["anthropic/claude-sonnet-4-5", "openai/gpt-5"]
-    );
+    assert.deepEqual(all.map((o) => `${o.provider}/${o.modelId}`).sort(), [
+      "anthropic/claude-sonnet-4-5",
+      "openai/gpt-5",
+    ]);
   });
 });

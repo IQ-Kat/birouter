@@ -15,7 +15,7 @@
  * turn_ended.
  *
  * Multi-instance considerations: sessions live in process memory. If a
- * follow-up call lands on a different OmniRoute instance, acquire() returns
+ * follow-up call lands on a different Birouter instance, acquire() returns
  * undefined and the executor falls back to cold-resume (fresh RunRequest
  * with all history flattened into UserText). Cold-resume is correctness-
  * preserving but loses the inline efficiency.
@@ -203,6 +203,6 @@ export class CursorSessionManager {
   }
 }
 
-// Module-level singleton — one manager per OmniRoute process. The executor
+// Module-level singleton — one manager per Birouter process. The executor
 // imports this directly. For testing, construct a fresh CursorSessionManager.
 export const cursorSessionManager = new CursorSessionManager();

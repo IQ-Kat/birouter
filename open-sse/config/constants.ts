@@ -160,7 +160,7 @@ export const RateLimitReason = {
 // ─── Provider Resilience Profiles ───────────────────────────────────────────
 // Separate behavior for OAuth (low-limit, session-based) vs API Key (high-limit, metered)
 // Circuit-breaker thresholds and reset windows are overridable via
-// OMNIROUTE_CIRCUIT_BREAKER_* env vars so operators can dampen or harden
+// BIROUTER_CIRCUIT_BREAKER_* env vars so operators can dampen or harden
 // behavior without recompiling.
 function envInt(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -174,8 +174,8 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 5000, // 5s (session tokens — short recovery)
     rateLimitCooldown: 60000, // 60s default when no retry-after header
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
-    circuitBreakerThreshold: envInt("OMNIROUTE_CIRCUIT_BREAKER_OAUTH_THRESHOLD", 8),
-    circuitBreakerReset: envInt("OMNIROUTE_CIRCUIT_BREAKER_OAUTH_RESET_MS", 60000),
+    circuitBreakerThreshold: envInt("BIROUTER_CIRCUIT_BREAKER_OAUTH_THRESHOLD", 8),
+    circuitBreakerReset: envInt("BIROUTER_CIRCUIT_BREAKER_OAUTH_RESET_MS", 60000),
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
     providerFailureThreshold: 10, // Scaled for 500+ connections (was 3)
     providerFailureWindowMs: 900000, // 15min window (was 10min)
@@ -189,8 +189,8 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 3000, // 3s (API providers recover faster)
     rateLimitCooldown: 0, // 0 = respect retry-after header from provider
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
-    circuitBreakerThreshold: envInt("OMNIROUTE_CIRCUIT_BREAKER_API_KEY_THRESHOLD", 12),
-    circuitBreakerReset: envInt("OMNIROUTE_CIRCUIT_BREAKER_API_KEY_RESET_MS", 30000),
+    circuitBreakerThreshold: envInt("BIROUTER_CIRCUIT_BREAKER_API_KEY_THRESHOLD", 12),
+    circuitBreakerReset: envInt("BIROUTER_CIRCUIT_BREAKER_API_KEY_RESET_MS", 30000),
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
     providerFailureThreshold: 15, // Scaled for 500+ connections (was 5)
     providerFailureWindowMs: 1800000, // 30min window (was 20min)
@@ -206,8 +206,8 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 2000, // 2s (local — very fast recovery)
     rateLimitCooldown: 5000, // 5s (local — no real rate limits)
     maxBackoffLevel: 3, // Low ceiling (local either works or doesn't)
-    circuitBreakerThreshold: envInt("OMNIROUTE_CIRCUIT_BREAKER_LOCAL_THRESHOLD", 2),
-    circuitBreakerReset: envInt("OMNIROUTE_CIRCUIT_BREAKER_LOCAL_RESET_MS", 15000),
+    circuitBreakerThreshold: envInt("BIROUTER_CIRCUIT_BREAKER_LOCAL_THRESHOLD", 2),
+    circuitBreakerReset: envInt("BIROUTER_CIRCUIT_BREAKER_LOCAL_RESET_MS", 15000),
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
     providerFailureThreshold: 2, // 2 failures trigger provider cooldown
     providerFailureWindowMs: 300000, // 5min window for counting failures
@@ -263,7 +263,7 @@ export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
  * Stream-recovery tuning (opt-in, see ResilienceSettings.streamRecovery).
  *
  * Ported from free-claude-code's always-on recovery (`core/anthropic/stream_recovery.py`).
- * In OmniRoute the holdback is disabled by default because buffering the opening
+ * In Birouter the holdback is disabled by default because buffering the opening
  * window adds up to HOLDBACK_MS of time-to-first-token latency on every stream;
  * operators opt in via STREAM_RECOVERY_ENABLED / the resilience settings.
  *

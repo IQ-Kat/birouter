@@ -4,7 +4,7 @@
 
 ---
 
-> Complete reference for every environment variable recognized by OmniRoute.
+> Complete reference for every environment variable recognized by Birouter.
 > For a quick-start template, see [`.env.example`](../.env.example).
 
 ---
@@ -65,25 +65,25 @@ echo "INITIAL_PASSWORD=$(openssl rand -base64 16)"
 
 ## 2. Storage & Database
 
-OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These variables control data location, encryption, and lifecycle.
+Birouter uses **SQLite** (via `better-sqlite3`) for all persistence. These variables control data location, encryption, and lifecycle.
 
 | Variable                         | Default              | Source File                                     | Description                                                                                                        |
 | -------------------------------- | -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `DATA_DIR`                       | `~/.omniroute/`      | `src/lib/db/core.ts`                            | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                |
+| `DATA_DIR`                       | `~/.birouter/`       | `src/lib/db/core.ts`                            | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                |
 | `STORAGE_ENCRYPTION_KEY`         | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                         |
 | `STORAGE_ENCRYPTION_KEY_VERSION` | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups. |
 | `DISABLE_SQLITE_AUTO_BACKUP`     | `false`              | `src/lib/db/backup.ts`                          | When `true`, skips the automatic database backup that runs before migrations on every startup.                     |
-| `OMNIROUTE_CRYPT_KEY`            | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.         |
-| `OMNIROUTE_API_KEY_BASE64`       | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                   |
+| `BIROUTER_CRYPT_KEY`             | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.         |
+| `BIROUTER_API_KEY_BASE64`        | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                   |
 
 ### Scenarios
 
 | Scenario              | Configuration                                                                    |
 | --------------------- | -------------------------------------------------------------------------------- |
-| **Local development** | Leave all defaults. DB lives at `~/.omniroute/omniroute.db`.                     |
+| **Local development** | Leave all defaults. DB lives at `~/.birouter/birouter.db`.                       |
 | **Docker**            | `DATA_DIR=/data` + mount a volume at `/data`.                                    |
 | **Encrypted at rest** | Set `STORAGE_ENCRYPTION_KEY` + keep backups of the key! Losing it = losing data. |
-| **CI/Testing**        | `DATA_DIR=/tmp/omniroute-test` — ephemeral, no encryption needed.                |
+| **CI/Testing**        | `DATA_DIR=/tmp/birouter-test` — ephemeral, no encryption needed.                 |
 
 ---
 
@@ -97,7 +97,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the Dashboard UI on this separate port.                               |
 | `PROD_DASHBOARD_PORT` | `20130`      | `docker-compose.prod.yml`  | Host-side published port for the Dashboard in Docker production mode.                  |
 | `PROD_API_PORT`       | `20131`      | `docker-compose.prod.yml`  | Host-side published port for the API in Docker production mode.                        |
-| `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Takes precedence over `PORT` when running inside Electron or other wrappers.           |
+| `BIROUTER_PORT`       | _(unset)_    | `src/lib/runtime/ports.ts` | Takes precedence over `PORT` when running inside Electron or other wrappers.           |
 | `NODE_ENV`            | `production` | Next.js core               | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations. |
 
 ### Port Modes
@@ -154,7 +154,7 @@ MAX_BODY_SIZE_BYTES=5242880    # 5 MB limit
 
 ## 5. Input Sanitization & PII Protection
 
-OmniRoute provides a two-layer defense: request-side injection scanning and response-side PII stripping.
+Birouter provides a two-layer defense: request-side injection scanning and response-side PII stripping.
 
 ### Request-Side: Prompt Injection Guard
 
@@ -202,7 +202,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | `NEXT_PUBLIC_APP_URL`   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                     |
 
 > [!IMPORTANT]
-> When deploying behind a reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **must** be set to your public URL (e.g., `https://omniroute.example.com`). Without this, OAuth callbacks will fail because the redirect_uri won't match.
+> When deploying behind a reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **must** be set to your public URL (e.g., `https://birouter.example.com`). Without this, OAuth callbacks will fail because the redirect_uri won't match.
 
 ---
 
@@ -232,14 +232,14 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 
 ## 9. CLI Tool Integration
 
-Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, etc.).
+Controls how Birouter discovers and launches CLI sidecars (Claude Code, Codex, etc.).
 
 | Variable                  | Default    | Source File                         | Description                                                                |
 | ------------------------- | ---------- | ----------------------------------- | -------------------------------------------------------------------------- |
 | `CLI_MODE`                | `auto`     | `src/shared/services/cliRuntime.ts` | `auto` = search system PATH; `manual` = use explicit paths only.           |
 | `CLI_EXTRA_PATHS`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Additional PATH entries for CLI binary discovery (colon-separated).        |
 | `CLI_CONFIG_HOME`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Override home directory for reading CLI configs (`~/.claude`, `~/.codex`). |
-| `CLI_ALLOW_CONFIG_WRITES` | `false`    | `src/shared/services/cliRuntime.ts` | Allow OmniRoute to write CLI config files (token refresh, session data).   |
+| `CLI_ALLOW_CONFIG_WRITES` | `false`    | `src/shared/services/cliRuntime.ts` | Allow Birouter to write CLI config files (token refresh, session data).    |
 | `CLI_CLAUDE_BIN`          | `claude`   | `src/shared/services/cliRuntime.ts` | Custom path to Claude CLI binary.                                          |
 | `CLI_CODEX_BIN`           | `codex`    | `src/shared/services/cliRuntime.ts` | Custom path to Codex CLI binary.                                           |
 | `CLI_DROID_BIN`           | `droid`    | `src/shared/services/cliRuntime.ts` | Custom path to Droid CLI binary.                                           |
@@ -252,7 +252,7 @@ Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, 
 ### Docker Example
 
 ```bash
-# Mount host binaries into the container and tell OmniRoute where they are:
+# Mount host binaries into the container and tell Birouter where they are:
 CLI_EXTRA_PATHS=/host-cli/bin
 CLI_CONFIG_HOME=/root
 CLI_ALLOW_CONFIG_WRITES=true
@@ -265,28 +265,28 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 
 | Variable                                | Default     | Source File                                 | Description                                                                                                                   |
 | --------------------------------------- | ----------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | auto-detect | `open-sse/mcp-server/server.ts`             | Explicit URL for MCP/A2A tools to reach OmniRoute. Overrides localhost auto-detection.                                        |
-| `OMNIROUTE_API_KEY`                     | _(unset)_   | MCP/A2A modules                             | API key for internal MCP tool and A2A skill calls.                                                                            |
-| `OMNIROUTE_API_KEY_ID`                  | _(unset)_   | `open-sse/mcp-server/audit.ts`              | Key ID for MCP audit log attribution.                                                                                         |
-| `ROUTER_API_KEY`                        | _(unset)_   | Legacy                                      | Legacy alias for `OMNIROUTE_API_KEY`.                                                                                         |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`     | `open-sse/mcp-server/server.ts`             | Enforce scope-based access control on MCP tool calls.                                                                         |
-| `OMNIROUTE_MCP_SCOPES`                  | _(all)_     | `open-sse/mcp-server/server.ts`             | Comma-separated scopes: `admin`, `combos`, `health`, `models`, `routing`, `budget`, `metrics`, `pricing`, `memory`, `skills`. |
+| `BIROUTER_BASE_URL`                     | auto-detect | `open-sse/mcp-server/server.ts`             | Explicit URL for MCP/A2A tools to reach Birouter. Overrides localhost auto-detection.                                         |
+| `BIROUTER_API_KEY`                      | _(unset)_   | MCP/A2A modules                             | API key for internal MCP tool and A2A skill calls.                                                                            |
+| `BIROUTER_API_KEY_ID`                   | _(unset)_   | `open-sse/mcp-server/audit.ts`              | Key ID for MCP audit log attribution.                                                                                         |
+| `ROUTER_API_KEY`                        | _(unset)_   | Legacy                                      | Legacy alias for `BIROUTER_API_KEY`.                                                                                          |
+| `BIROUTER_MCP_ENFORCE_SCOPES`           | `false`     | `open-sse/mcp-server/server.ts`             | Enforce scope-based access control on MCP tool calls.                                                                         |
+| `BIROUTER_MCP_SCOPES`                   | _(all)_     | `open-sse/mcp-server/server.ts`             | Comma-separated scopes: `admin`, `combos`, `health`, `models`, `routing`, `budget`, `metrics`, `pricing`, `memory`, `skills`. |
 | `MODEL_SYNC_INTERVAL_HOURS`             | `24`        | `src/shared/services/modelSyncScheduler.ts` | Model catalog sync interval in hours.                                                                                         |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`        | `src/server-init.ts`                        | Provider rate-limit and quota polling interval.                                                                               |
-| `OMNIROUTE_DISABLE_BACKGROUND_SERVICES` | `false`     | `src/instrumentation-node.ts`               | Disable all background services (sync, pricing, model refresh). Useful for CI/test.                                           |
-| `OMNIROUTE_BOOTSTRAPPED`                | `false`     | `src/app/(dashboard)/dashboard/page.tsx`    | Set `true` by bootstrap script after initial setup. Controls setup wizard visibility.                                         |
-| `OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE` | `0`         | `open-sse/executors/antigravity.ts`         | Escape hatch: allow request body to override the Antigravity project field.                                                   |
+| `BIROUTER_DISABLE_BACKGROUND_SERVICES`  | `false`     | `src/instrumentation-node.ts`               | Disable all background services (sync, pricing, model refresh). Useful for CI/test.                                           |
+| `BIROUTER_BOOTSTRAPPED`                 | `false`     | `src/app/(dashboard)/dashboard/page.tsx`    | Set `true` by bootstrap script after initial setup. Controls setup wizard visibility.                                         |
+| `BIROUTER_ALLOW_BODY_PROJECT_OVERRIDE`  | `0`         | `open-sse/executors/antigravity.ts`         | Escape hatch: allow request body to override the Antigravity project field.                                                   |
 
 ### OAuth CLI Bridge (Internal)
 
-| Variable            | Default     | Source File                     | Description                               |
-| ------------------- | ----------- | ------------------------------- | ----------------------------------------- |
-| `OMNIROUTE_SERVER`  | auto-detect | `src/lib/oauth/config/index.ts` | Server URL for CLI↔OmniRoute auth bridge. |
-| `OMNIROUTE_TOKEN`   | _(unset)_   | `src/lib/oauth/config/index.ts` | Auth token for CLI bridge.                |
-| `OMNIROUTE_USER_ID` | `cli`       | `src/lib/oauth/config/index.ts` | User ID for CLI bridge sessions.          |
-| `SERVER_URL`        | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `OMNIROUTE_SERVER`.      |
-| `CLI_TOKEN`         | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `OMNIROUTE_TOKEN`.       |
-| `CLI_USER_ID`       | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `OMNIROUTE_USER_ID`.     |
+| Variable           | Default     | Source File                     | Description                              |
+| ------------------ | ----------- | ------------------------------- | ---------------------------------------- |
+| `BIROUTER_SERVER`  | auto-detect | `src/lib/oauth/config/index.ts` | Server URL for CLI↔Birouter auth bridge. |
+| `BIROUTER_TOKEN`   | _(unset)_   | `src/lib/oauth/config/index.ts` | Auth token for CLI bridge.               |
+| `BIROUTER_USER_ID` | `cli`       | `src/lib/oauth/config/index.ts` | User ID for CLI bridge sessions.         |
+| `SERVER_URL`       | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `BIROUTER_SERVER`.      |
+| `CLI_TOKEN`        | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `BIROUTER_TOKEN`.       |
+| `CLI_USER_ID`      | _(unset)_   | `src/lib/oauth/config/index.ts` | Legacy alias for `BIROUTER_USER_ID`.     |
 
 ---
 
@@ -313,7 +313,7 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                 |
 | `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                         |
 | `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                       |
-| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
+| `BIROUTER_QODER_WORKSPACE`        | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
 
 > [!WARNING]
 >
@@ -353,7 +353,7 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 ## 13. CLI Fingerprint Compatibility
 
-When enabled, OmniRoute reorders HTTP headers and JSON body fields to match the exact signature of official CLI tools. This reduces the risk of account flagging while preserving your proxy IP.
+When enabled, Birouter reorders HTTP headers and JSON body fields to match the exact signature of official CLI tools. This reduces the risk of account flagging while preserving your proxy IP.
 
 **Source:** `open-sse/config/cliFingerprints.ts`, `open-sse/executors/base.ts`
 
@@ -481,23 +481,23 @@ The logging system writes to both stdout and rotated log files. All configuratio
 
 ## 17. Memory Optimization
 
-| Variable                   | Default                         | Description                                                            |
-| -------------------------- | ------------------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_MEMORY_MB`      | `512`                           | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
-| `PROMPT_CACHE_MAX_SIZE`    | `50`                            | Max cached system prompt entries.                                      |
-| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)                | Max total prompt cache size.                                           |
-| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)                | Prompt cache entry TTL.                                                |
-| `SEMANTIC_CACHE_MAX_SIZE`  | `100`                           | Max cached temperature=0 responses.                                    |
-| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)                | Max total semantic cache size.                                         |
-| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min)              | Semantic cache entry TTL.                                              |
-| `STREAM_HISTORY_MAX`       | `50`                            | Max recent stream events in the Dashboard live view buffer.            |
-| `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Global fallback max context length for models without explicit config. |
-| `USAGE_TOKEN_BUFFER`       | `100`                           | Extra token headroom reserved when tracking usage quotas.              |
+| Variable                   | Default            | Description                                                                                         |
+| -------------------------- | ------------------ | --------------------------------------------------------------------------------------------------- |
+| `BIROUTER_MEMORY_MB`       | `512`              | Runtime V8 heap limit. Docker standalone and `birouter serve` use it to set `--max-old-space-size`. |
+| `PROMPT_CACHE_MAX_SIZE`    | `50`               | Max cached system prompt entries.                                                                   |
+| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)   | Max total prompt cache size.                                                                        |
+| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)   | Prompt cache entry TTL.                                                                             |
+| `SEMANTIC_CACHE_MAX_SIZE`  | `100`              | Max cached temperature=0 responses.                                                                 |
+| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)   | Max total semantic cache size.                                                                      |
+| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min) | Semantic cache entry TTL.                                                                           |
+| `STREAM_HISTORY_MAX`       | `50`               | Max recent stream events in the Dashboard live view buffer.                                         |
+| `CONTEXT_LENGTH_DEFAULT`   | `128000`           | Global fallback max context length for models without explicit config.                              |
+| `USAGE_TOKEN_BUFFER`       | `100`              | Extra token headroom reserved when tracking usage quotas.                                           |
 
 ### Low-RAM Docker Example
 
 ```bash
-OMNIROUTE_MEMORY_MB=128
+BIROUTER_MEMORY_MB=128
 PROMPT_CACHE_MAX_SIZE=20
 PROMPT_CACHE_MAX_BYTES=524288        # 512 KB
 SEMANTIC_CACHE_MAX_SIZE=25
@@ -563,12 +563,12 @@ Automatic model pricing data synchronization from external sources.
 > [!CAUTION]
 > These variables produce **verbose output** and may leak sensitive data. **Never enable in production.**
 
-| Variable                         | Default   | Source File                               | Description                                                    |
-| -------------------------------- | --------- | ----------------------------------------- | -------------------------------------------------------------- |
-| `CURSOR_PROTOBUF_DEBUG`          | _(unset)_ | `open-sse/utils/cursorProtobuf.ts`        | Set `1` to dump Cursor protobuf decode/encode details.         |
-| `CURSOR_STREAM_DEBUG`            | _(unset)_ | `open-sse/executors/cursor.ts`            | Set `1` to dump raw Cursor SSE stream data.                    |
-| `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_ | `open-sse/handlers/responseTranslator.ts` | Set `true` to log Responses API SSE→JSON translation details.  |
-| `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_ | E2E test harness                          | Set `true` to enable E2E test mode (relaxed auth, test hooks). |
+| Variable                        | Default   | Source File                               | Description                                                    |
+| ------------------------------- | --------- | ----------------------------------------- | -------------------------------------------------------------- |
+| `CURSOR_PROTOBUF_DEBUG`         | _(unset)_ | `open-sse/utils/cursorProtobuf.ts`        | Set `1` to dump Cursor protobuf decode/encode details.         |
+| `CURSOR_STREAM_DEBUG`           | _(unset)_ | `open-sse/executors/cursor.ts`            | Set `1` to dump raw Cursor SSE stream data.                    |
+| `DEBUG_RESPONSES_SSE_TO_JSON`   | _(unset)_ | `open-sse/handlers/responseTranslator.ts` | Set `true` to log Responses API SSE→JSON translation details.  |
+| `NEXT_PUBLIC_BIROUTER_E2E_MODE` | _(unset)_ | E2E test harness                          | Set `true` to enable E2E test mode (relaxed auth, test hooks). |
 
 ---
 
@@ -608,9 +608,9 @@ API_PORT=20129
 NODE_ENV=production
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
-NEXT_PUBLIC_BASE_URL=https://omniroute.example.com
+NEXT_PUBLIC_BASE_URL=https://birouter.example.com
 BASE_URL=http://localhost:20128
-OMNIROUTE_MEMORY_MB=512
+BIROUTER_MEMORY_MB=512
 CORS_ORIGIN=https://your-frontend.example.com
 ```
 
@@ -621,7 +621,7 @@ JWT_SECRET=test-jwt-secret-for-ci
 API_KEY_SECRET=test-api-key-secret-for-ci
 INITIAL_PASSWORD=testpass
 NODE_ENV=production
-OMNIROUTE_DISABLE_BACKGROUND_SERVICES=true
+BIROUTER_DISABLE_BACKGROUND_SERVICES=true
 APP_LOG_TO_FILE=false
 ```
 
@@ -634,9 +634,9 @@ STORAGE_ENCRYPTION_KEY=<generated>
 PORT=20128
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
-NEXT_PUBLIC_BASE_URL=https://omniroute.example.com
+NEXT_PUBLIC_BASE_URL=https://birouter.example.com
 BASE_URL=http://127.0.0.1:20128
-CORS_ORIGIN=https://omniroute.example.com
+CORS_ORIGIN=https://birouter.example.com
 ENABLE_TLS_FINGERPRINT=true
 CLI_COMPAT_ALL=1
 ```
@@ -650,7 +650,7 @@ The following variables appeared in previous versions of `.env.example` but have
 | Variable                                              | Reason                                                                                                  |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `STORAGE_DRIVER=sqlite`                               | Never read by any source file. SQLite is the only supported driver — no selection needed.               |
-| `INSTANCE_NAME=omniroute`                             | Present in old docs/env templates but unused at runtime. May return in a future multi-instance feature. |
+| `INSTANCE_NAME=birouter`                              | Present in old docs/env templates but unused at runtime. May return in a future multi-instance feature. |
 | `SQLITE_MAX_SIZE_MB=2048`                             | Not referenced in source code. Database size is not artificially limited.                               |
 | `SQLITE_CLEAN_LEGACY_FILES=true`                      | Not referenced in source code. Legacy cleanup was likely removed.                                       |
 | `CLI_ROO_BIN`                                         | Not registered in `src/shared/services/cliRuntime.ts`.                                                  |

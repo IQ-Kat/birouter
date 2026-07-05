@@ -12,8 +12,7 @@ import { Card } from "@/shared/components";
 
 /** Result of parsing the textarea value. */
 export type MappingParseResult =
-  | { ok: true; value: Record<string, string> }
-  | { ok: false; error: string };
+  { ok: true; value: Record<string, string> } | { ok: false; error: string };
 
 /**
  * Parse and validate the raw textarea string.
@@ -130,7 +129,7 @@ export function CliproxyModelMappingEditor() {
         <div>
           <h3 className="font-medium text-sm">Model Mapping</h3>
           <p className="text-xs text-text-muted">
-            Map OmniRoute model IDs to CLIProxyAPI model IDs (e.g.{" "}
+            Map Birouter model IDs to CLIProxyAPI model IDs (e.g.{" "}
             <code className="font-mono bg-bg-subtle px-1 rounded">
               {'"gpt-4o": "openai-gpt-4o"'}
             </code>

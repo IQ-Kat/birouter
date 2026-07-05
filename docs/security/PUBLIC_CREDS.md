@@ -14,11 +14,10 @@ lastUpdated: 2026-06-28
 
 ## Why this exists
 
-
 - [OAuth 2.0 for native apps (PKCE)](https://developers.google.com/identity/protocols/oauth2/native-app) — OAuth client_id / client_secret for installed apps are public; PKCE provides the actual security.
 - [Firebase API keys](https://firebase.google.com/docs/projects/api-keys) — Web client identifiers are public by design.
 
-OmniRoute must embed these values so users who do not configure `.env` still get a working OAuth flow out of the box. Without an embedded fallback, the Gemini / Antigravity / Windsurf providers stop working for any user who follows the "just clone and run" path.
+Birouter must embed these values so users who do not configure `.env` still get a working OAuth flow out of the box. Without an embedded fallback, the Gemini / Antigravity / Windsurf providers stop working for any user who follows the "just clone and run" path.
 
 However, literal values like `AIzaSy…`, `GOCSPX-…`, `…apps.googleusercontent.com` are matched by **GitHub Secret Scanning**, **Semgrep**, and similar pattern scanners. Every release becomes a noisy stream of false positives, push protection blocks legitimate commits, and operators stop trusting the alert feed.
 

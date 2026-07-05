@@ -18,7 +18,7 @@ import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
 import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumPatterns.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
-// can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
+// can get ENGINE_IDS without a second bare `@birouter/open-sse/...engineCatalog.ts` specifier.
 // That bare alias resolves under tsc/tsx but NOT under vitest (Vite externalizes a brand-new
 // open-sse module to Node, which then can't load the `.ts` subpath), whereas this module is
 // already in Vite's graph and its relative `./engineCatalog.ts` import resolves in-pipeline.

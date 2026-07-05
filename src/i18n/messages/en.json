@@ -869,7 +869,7 @@
     "cloudAgents": "Cloud Agents",
     "memory": "Memory",
     "skills": "Skills",
-    "omniSkills": "OmniSkills",
+    "biSkills": "BiSkills",
     "agentSkills": "AgentSkills",
     "docs": "Docs",
     "issues": "Issues",
@@ -1006,7 +1006,7 @@
     "settingsResilience": "Resilience",
     "modelLockout": "Model Lockout",
     "settingsAdvanced": "Advanced",
-    "omniProxySection": "OmniProxy",
+    "biProxySection": "BiProxy",
     "quotaTracker": "Provider Quota",
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
@@ -1068,7 +1068,7 @@
     "playgroundSubtitle": "Test prompts live",
     "searchToolsSubtitle": "Search tool registry",
     "memorySubtitle": "Persistent agent memory",
-    "omniSkillsSubtitle": "Sandbox skill registry",
+    "biSkillsSubtitle": "Sandbox skill registry",
     "agentSkillsSubtitle": "A2A skill registry",
     "mcpSubtitle": "MCP server controls",
     "a2aSubtitle": "A2A protocol server",
@@ -1468,7 +1468,7 @@
     "settingsAdvancedDescription": "Advanced payload rules, request limits, and proxy API settings",
     "mitmProxyDescription": "Configure MITM proxy settings for traffic inspection and debugging",
     "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining",
-    "omniSkillsDescription": "Install and manage sandbox skills for automated prompt and tool execution"
+    "biSkillsDescription": "Install and manage sandbox skills for automated prompt and tool execution"
   },
   "home": {
     "quickStart": "Quick Start",
@@ -2003,7 +2003,7 @@
     "configurationSaved": "Configuration saved successfully.",
     "failedToSave": "Failed to save configuration.",
     "noApiKeysCreateOne": "No API keys - Create one in Keys page",
-    "defaultBirouterKey": "sk_omniroute (default)",
+    "defaultBirouterKey": "sk_birouter (default)",
     "selectModel": "Select Model",
     "selectModelForAlias": "Select model for {alias}",
     "selectModelForTool": "Select Model for {tool}",
@@ -2091,13 +2091,13 @@
     "applied": "Applied!",
     "failed": "Failed",
     "resetDone": "Reset!",
-    "omnirouteConfiguredOpenAiCompatible": "Birouter is configured as OpenAI-compatible provider",
+    "birouterConfiguredOpenAiCompatible": "Birouter is configured as OpenAI-compatible provider",
     "provider": "Provider",
     "model": "Model",
     "providers": "Providers",
     "auth": "Auth",
     "noApiKeysAvailable": "No API keys available",
-    "usingDefaultBirouter": "Using default: sk_omniroute",
+    "usingDefaultBirouter": "Using default: sk_birouter",
     "updateConfig": "Update Config",
     "applyConfig": "Apply Config",
     "noBackupsAvailable": "No backups available.",
@@ -2301,7 +2301,7 @@
     "customCliNamePlaceholder": "e.g. My Team CLI",
     "customCliDefaultModelLabel": "Default model",
     "customCliDefaultModelHelp": "Use any Birouter model ID or combo. Most OpenAI-compatible CLIs only need the /v1 base URL plus a model string.",
-    "customCliKeyHelper": "For local installs Birouter can use sk_omniroute. In cloud mode, pick one of your management API keys.",
+    "customCliKeyHelper": "For local installs Birouter can use sk_birouter. In cloud mode, pick one of your management API keys.",
     "customCliAliasMappingsLabel": "Alias mappings",
     "customCliAliasMappingsHelp": "Optional helper aliases for wrapper scripts or config files that want stable shorthand names.",
     "customCliAddAlias": "Add alias",
@@ -3035,9 +3035,9 @@
     "openMcpDashboard": "Open MCP management",
     "openA2aDashboard": "Open A2A management",
     "mcpQuickStartTitle": "MCP Quick Start",
-    "mcpQuickStartStep1": "Run the MCP server via `omniroute --mcp`.",
+    "mcpQuickStartStep1": "Run the MCP server via `birouter --mcp`.",
     "mcpQuickStartStep2": "Configure your MCP client to connect over stdio transport.",
-    "mcpQuickStartStep3": "Invoke tools such as `omniroute_get_health` and `omniroute_list_combos`.",
+    "mcpQuickStartStep3": "Invoke tools such as `birouter_get_health` and `birouter_list_combos`.",
     "a2aQuickStartTitle": "A2A Quick Start",
     "a2aQuickStartStep1": "Discover the agent card at `/.well-known/agent.json`.",
     "a2aQuickStartStep2": "Send JSON-RPC requests to `POST /a2a` using `message/send` or `message/stream`.",
@@ -3165,7 +3165,7 @@
     "disableLabel": "Disable {label}",
     "enableLabel": "Enable {label}",
     "transportMode": "Transport Mode",
-    "transportStdioDesc": "Local — IDE spawns process via omniroute --mcp",
+    "transportStdioDesc": "Local — IDE spawns process via birouter --mcp",
     "transportSseDesc": "Remote — Server-Sent Events over HTTP",
     "transportStreamableHttpDesc": "Remote — Modern bidirectional HTTP",
     "copy": "Copy",
@@ -4686,7 +4686,7 @@
     "totalKeysRotating": "{count, plural, one {1 key rotating} other {# keys rotating}}",
     "unhideModel": "Unhide Model",
     "upstreamProxyProviders": "Upstream Proxy Providers",
-    "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider\u2019s first available model.",
+    "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider’s first available model.",
     "validationModelIdLabel": "Validation Model",
     "validationModelIdPlaceholder": "e.g. meta-llama/llama-3.1-8b-instruct",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
@@ -4882,7 +4882,7 @@
     "routingBlockTextHint": "Full text of the new system block. Use a literal string; the system block stores text only.",
     "routingIdempotencyKeyHint": "Optional. If set, the op skips when a block whose text starts with this key is already present. Prevents double-prepend on retries.",
     "routingBillingEntrypointHint": "Value injected as 'cc_entrypoint='. Anthropic accepts 'sdk-cli' (Agent SDK), 'cli' (Claude Code CLI), or other documented values.",
-    "routingBillingVersionFormatHint": "How the 3-char build hash after cc_version= is computed. 'ex-machina' = sha256 of CCH_SALT+chars-from-first-user-msg+version (per-message). 'omniroute-daystamp' = sha256 of YYYY-MM-DD+version (stable per-day).",
+    "routingBillingVersionFormatHint": "How the 3-char build hash after cc_version= is computed. 'ex-machina' = sha256 of CCH_SALT+chars-from-first-user-msg+version (per-message). 'birouter-daystamp' = sha256 of YYYY-MM-DD+version (stable per-day).",
     "routingBillingCchAlgoHint": "How the 5-char cch= token is computed. 'sha256-first-user' = sha256 of first user message text. 'xxhash64-body' = body-level signing fills it later. 'static-zero' = literal '00000' placeholder.",
     "routingObfuscateWordsHint": "Lowercase words to obfuscate. ZWJ insertion is applied case-insensitively, so 'opencode' also matches 'OpenCode' and 'OPENCODE'.",
     "routingObfuscateTargetsHint": "Which body regions to scan for the words: system blocks, user/assistant messages, and/or tool descriptions.",
@@ -4948,7 +4948,7 @@
     "memoryDesc": "Persistent cross-session conversational memory",
     "memoryEnabled": "Enable Memory",
     "memoryEnabledDesc": "When enabled, Birouter will inject relevant past context.",
-    "memoryTokenCostWarning": "Heads up: with memory enabled, Birouter injects up to {tokens} tokens of retrieved context into every chat request — this increases token usage and cost. To skip injection for a specific request, send the \"x-omniroute-no-memory: true\" header.",
+    "memoryTokenCostWarning": "Heads up: with memory enabled, Birouter injects up to {tokens} tokens of retrieved context into every chat request — this increases token usage and cost. To skip injection for a specific request, send the \"x-birouter-no-memory: true\" header.",
     "maxTokens": "Max Tokens",
     "retentionDays": "Retention",
     "recent": "Recent",
@@ -5686,7 +5686,7 @@
     "qdrantEmbeddingModel": "Embedding model",
     "qdrantHelpTitle": "Quick setup help",
     "qdrantHelpQuickTitle": "Quick setup (Qdrant + OpenRouter)",
-    "qdrantHelpStep1": "1. Host: Qdrant IP/URL, Port: 6333, Collection: omniroute_memory.",
+    "qdrantHelpStep1": "1. Host: Qdrant IP/URL, Port: 6333, Collection: birouter_memory.",
     "qdrantHelpStep2": "2. If using nvidia/llama-nemotron-embed-vl-1b-v2:free, use collection dimension 2048.",
     "qdrantHelpStep3": "3. Model field: openrouter/nvidia/llama-nemotron-embed-vl-1b-v2:free.",
     "qdrantHelpStep4": "4. Save, test connection, then test search.",
@@ -5868,7 +5868,7 @@
     "redisLauncherRunning": "Running",
     "redisLauncherReachable": "Reachable",
     "redisLauncherError": "Error: {message}",
-    "redisLauncherHint": "Equivalent to running `omniroute redis up`. The container is named `omniroute-redis` and listens on 127.0.0.1:6379.",
+    "redisLauncherHint": "Equivalent to running `birouter redis up`. The container is named `birouter-redis` and listens on 127.0.0.1:6379.",
     "compressionSettingsAutoTriggerMode": "Auto trigger mode",
     "compressionSettingsMcpDescriptionCompression": "MCP description compression",
     "mcpAccessibilityTitle": "MCP accessibility output",
@@ -7013,7 +7013,7 @@
     "restartServerWithNewPassword": "Restart the server - it will use the new password",
     "backToLogin": "Back to Login",
     "forgotPassword": "Forgot password?",
-    "defaultPasswordHint": "Default password: CHANGEME (unless INITIAL_PASSWORD was set)",
+    "defaultPasswordHint": "Default password: 2468 (unless INITIAL_PASSWORD was set)",
     "Authorization": "Authorization",
     "Content-Disposition": "Content-Disposition",
     "waitingForAuthorization": "Waiting for authorization...",
@@ -7223,9 +7223,9 @@
     "protocolsDescription": "Birouter exposes two operational protocols in addition to OpenAI-compatible APIs: MCP for tool execution and A2A for agent-to-agent workflows.",
     "protocolMcpTitle": "MCP (Model Context Protocol)",
     "protocolMcpDesc": "Use MCP over stdio to let clients discover and call Birouter tools with audit visibility.",
-    "protocolMcpStep1": "Start MCP transport with `omniroute --mcp`.",
+    "protocolMcpStep1": "Start MCP transport with `birouter --mcp`.",
     "protocolMcpStep2": "Point your MCP client to stdio transport.",
-    "protocolMcpStep3": "Call `omniroute_get_health` and `omniroute_list_combos` to validate connectivity.",
+    "protocolMcpStep3": "Call `birouter_get_health` and `birouter_list_combos` to validate connectivity.",
     "protocolA2aTitle": "A2A (Agent2Agent)",
     "protocolA2aDesc": "Use A2A JSON-RPC to submit tasks synchronously or via SSE streaming.",
     "protocolA2aStep1": "Read `/.well-known/agent.json` for agent discovery.",
@@ -7452,7 +7452,7 @@
     "apiSkills": "API Skills",
     "cliSkills": "CLI Skills",
     "apiSkillsSubtitle": "{count} skills — control Birouter via REST / HTTP",
-    "cliSkillsSubtitle": "{count} skills — control Birouter via the omniroute terminal binary",
+    "cliSkillsSubtitle": "{count} skills — control Birouter via the birouter terminal binary",
     "howToUseStep1": "Click <bold>{copyUrl}</bold> on the skill you want your agent to know about.",
     "howToUseStep2": "In your AI agent (Claude, Cursor, Cline…), say:",
     "howToUseStep2Code": "Use the skill at [pasted-url]",
@@ -7748,7 +7748,7 @@
     "deviceCodeVerificationUrl": "Verification URL",
     "deviceCodeYourCode": "Your code",
     "deviceCodeWaiting": "Waiting for authorization...",
-    "googleOAuthWarning": "Remote access + Google OAuth: bundled credentials only accept loopback redirects like <code>127.0.0.1</code>. The browser that approves Google must be able to reach Birouter on that local port, usually by opening Birouter locally or using an SSH/local-forward tunnel. Recommended for remote installs: on your own computer run <code>npx omniroute login antigravity</code> and paste the credential blob it prints into the field below. For fully remote use without this local callback, <a>configure your own OAuth credentials</a>.",
+    "googleOAuthWarning": "Remote access + Google OAuth: bundled credentials only accept loopback redirects like <code>127.0.0.1</code>. The browser that approves Google must be able to reach Birouter on that local port, usually by opening Birouter locally or using an SSH/local-forward tunnel. Recommended for remote installs: on your own computer run <code>npx birouter login antigravity</code> and paste the credential blob it prints into the field below. For fully remote use without this local callback, <a>configure your own OAuth credentials</a>.",
     "remoteAccessInfo": "Remote access: Since you're accessing Birouter remotely, after authorization you'll see an error page (localhost not found). This is normal — just copy the full URL from your browser address bar and paste it below.",
     "step1OpenUrl": "Step 1: Open this URL in your browser",
     "copy": "Copy",
@@ -8396,7 +8396,7 @@
     "scanning": "Scanning...",
     "scanForPlugins": "Scan for Plugins",
     "noPlugins": "No plugins installed",
-    "noPluginsDescription": "Place plugin directories in ~/.omniroute/plugins/ and click Scan.",
+    "noPluginsDescription": "Place plugin directories in ~/.birouter/plugins/ and click Scan.",
     "activate": "Activate",
     "deactivate": "Deactivate",
     "uninstall": "Uninstall",
@@ -8791,20 +8791,20 @@
       "open": "Open →",
       "code": {
         "title": "Code tool",
-        "desc": "Points to Omni",
-        "flow": "you → CLI → Omni → provider",
+        "desc": "Points to Bi",
+        "flow": "you → CLI → Bi → provider",
         "examples": "e.g.: claude, codex"
       },
       "agent": {
         "title": "Broad autonomous agent",
-        "desc": "Points to Omni",
-        "flow": "you → agent → Omni",
+        "desc": "Points to Bi",
+        "flow": "you → agent → Bi",
         "examples": "e.g.: hermes, goose"
       },
       "acp": {
-        "title": "CLI used as backend by Omni",
+        "title": "CLI used as backend by Bi",
         "desc": "Reverse execution",
-        "flow": "Omni → spawn CLI → resp",
+        "flow": "Bi → spawn CLI → resp",
         "examples": "e.g.: claude, codex (ACP)"
       }
     },
@@ -8908,38 +8908,38 @@
         "description": "Agent Skills are machine-readable SKILL.md documents that external AI agents (Claude Code, Cursor, Copilot…) fetch from GitHub to learn how to operate Birouter via REST or CLI. They are read by the agent, not executed by Birouter.",
         "crossLinkLabel": "Understand the difference →"
       },
-      "omni": {
-        "title": "Omni Skills — Inbound",
-        "description": "Omni Skills are sandbox tools that Birouter injects into the model's context on every request. They are executed by Birouter, not read by the agent.",
+      "bi": {
+        "title": "Bi Skills — Inbound",
+        "description": "Bi Skills are sandbox tools that Birouter injects into the model's context on every request. They are executed by Birouter, not read by the agent.",
         "crossLinkLabel": "Understand the difference →"
       },
       "comparison": {
         "colAgent": "Agent Skills",
-        "colOmni": "Omni Skills",
+        "colBi": "Bi Skills",
         "whatIs": {
           "label": "What it is",
           "agent": "Machine-readable SKILL.md that teaches an external agent to operate Birouter",
-          "omni": "Executable tools that Birouter injects as tools into LLM requests"
+          "bi": "Executable tools that Birouter injects as tools into LLM requests"
         },
         "direction": {
           "label": "Direction",
           "agent": "Outbound — external agent learns to control Birouter",
-          "omni": "Inbound — Birouter gives tools to models passing through it"
+          "bi": "Inbound — Birouter gives tools to models passing through it"
         },
         "executor": {
           "label": "Executor",
           "agent": "External agent (reads markdown → acts via API/CLI)",
-          "omni": "Birouter itself (intercepts tool_calls, Docker sandbox)"
+          "bi": "Birouter itself (intercepts tool_calls, Docker sandbox)"
         },
         "storage": {
           "label": "Storage",
           "agent": "Dynamic catalog (/api/agent-skills) → SKILL.md on GitHub",
-          "omni": "SQLite (SkillsMP / skills.sh / local)"
+          "bi": "SQLite (SkillsMP / skills.sh / local)"
         },
         "tagline": {
           "label": "Tagline",
           "agent": "Teach your agent to use Birouter",
-          "omni": "Give executable tools to Birouter models"
+          "bi": "Give executable tools to Birouter models"
         }
       }
     },

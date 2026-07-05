@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Free Provider Rankings (Arena ELO)
 
-> **TL;DR**: OmniRoute ranks its **free** providers by model quality using **Arena AI
+> **TL;DR**: Birouter ranks its **free** providers by model quality using **Arena AI
 > (LMArena-style) ELO scores**. Open the **Free Provider Rankings** page in the
 > dashboard to see which free providers ship the strongest models for your task —
 > overall, or filtered by category (coding, review, documentation, debugging).
@@ -15,7 +15,7 @@ lastUpdated: 2026-06-28
 
 ## What It Is
 
-OmniRoute aggregates 160+ providers, many of which expose a **free tier** (no-auth,
+Birouter aggregates 160+ providers, many of which expose a **free tier** (no-auth,
 free-tier OAuth, or free-tier API key — see the
 [Free Tiers Guide](../getting-started/FREE-TIERS-GUIDE.md) and the full
 [Free Tiers directory](../reference/FREE_TIERS.md)). The catch: free providers vary
@@ -130,9 +130,9 @@ and `code` — from the Arena AI leaderboard API
 (`https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard`). Each leaderboard entry
 carries a model name, vendor, ELO `score`, confidence interval, and vote count.
 
-Leaderboard categories map to OmniRoute task categories:
+Leaderboard categories map to Birouter task categories:
 
-| Arena leaderboard | OmniRoute task categories                         |
+| Arena leaderboard | Birouter task categories                          |
 | ----------------- | ------------------------------------------------- |
 | `text`            | `default`, `review`, `documentation`, `debugging` |
 | `code`            | `coding`                                          |
@@ -169,7 +169,7 @@ The sync runs **on by default**:
 
 - It runs once at server startup and then on a periodic timer
   (`src/lib/arenaEloSync.ts`, wired from `src/server-init.ts`).
-- It is **non-blocking and never fatal** — if the upstream fetch fails, OmniRoute keeps
+- It is **non-blocking and never fatal** — if the upstream fetch fails, Birouter keeps
   running and the rankings simply show the last good data (or an empty state).
 
 Two environment variables control it (documented in
@@ -204,7 +204,7 @@ flexible matching (`findMatchingIntelligence` in `src/lib/freeProviderRankings.t
 3. Prefix match (a leaderboard model name is a prefix of the registry ID).
 
 On the sync side, known vendor prefixes (`anthropic/`, `openai/`, `google/`, …) are
-stripped and a small alias map expands canonical names into the variants OmniRoute uses
+stripped and a small alias map expands canonical names into the variants Birouter uses
 internally, so models stay findable under any name.
 
 ### How a provider is ranked

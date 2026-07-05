@@ -63,7 +63,7 @@ test("getNodeRuntimeSupport rejects unsupported major lines", () => {
 
   assert.equal(node18.nodeCompatible, false);
   assert.equal(node18.reason, "unsupported-major");
-  assert.match(getNodeRuntimeWarning("18.20.8") || "", /outside OmniRoute's approved secure/i);
+  assert.match(getNodeRuntimeWarning("18.20.8") || "", /outside Birouter's approved secure/i);
 
   // Node 20.x is no longer supported (aligned to package.json engines >=22).
   assert.equal(node20.nodeCompatible, false);

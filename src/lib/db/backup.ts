@@ -287,12 +287,7 @@ export function isAutoBackupDisabledBySetting(): boolean {
     // Apply precedence: last non-null wins (mirrors getUserDatabaseSettings — flat alias
     // first, then nested key). Default (no persisted value) → not disabled.
     let enabled: boolean | null = null;
-    for (const candidate of [
-      fromSettingsNested,
-      fromSettingsBackup,
-      fromDbFlat,
-      fromDbNested,
-    ]) {
+    for (const candidate of [fromSettingsNested, fromSettingsBackup, fromDbFlat, fromDbNested]) {
       if (candidate !== null) enabled = candidate;
     }
 
@@ -672,7 +667,7 @@ export function exportAllSummaryRows(): ExportAllRows {
  * Queries an **already-opened** SQLite adapter for the list of table names.
  *
  * Used by the import route to validate that a candidate database contains the
- * required OmniRoute tables before replacing the live database.
+ * required Birouter tables before replacing the live database.
  *
  * Accepting an adapter as a parameter (rather than calling getDbInstance()) is
  * intentional: the import route opens a *temporary* database for validation,

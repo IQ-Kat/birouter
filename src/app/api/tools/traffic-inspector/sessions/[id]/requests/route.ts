@@ -11,7 +11,7 @@
  * is the corresponding caller that POSTs snapshots here on stop().
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { InspectorSessionRequestAppendSchema } from "@/shared/schemas/inspector";
 import { getSession, appendSessionRequest } from "@/lib/db/inspectorSessions";
 

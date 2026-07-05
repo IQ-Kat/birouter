@@ -29,7 +29,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 // Minimal env setup required by combo.ts module loading
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-soft-penalty-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-quota-soft-penalty-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-quota-soft-penalty-test-secret";
 
@@ -146,10 +146,13 @@ test("setCandidateQuotaSoftPenalty — marks candidate via internal registry (wh
         setCandidateQuotaSoftPenalty(target.executionKey, target.stepId, true);
       }
     }
-    return new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "ok" } }] }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ choices: [{ message: { role: "assistant", content: "ok" } }] }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   };
 
   const combo = {

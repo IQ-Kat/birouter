@@ -191,9 +191,9 @@ function getApiKeyStatsKey(apiKeyId: string | null, apiKeyName: string | null): 
 /**
  * Sum of all token columns recorded for one provider connection in the current
  * UTC calendar month. Powers SELF-TRACKED provider quotas (e.g. Xiaomi MiMo
- * Token Plan), where the upstream exposes no API-key usage endpoint — OmniRoute
+ * Token Plan), where the upstream exposes no API-key usage endpoint — Birouter
  * counts the tokens it routed and compares against the known monthly limit.
- * Only reflects traffic that went THROUGH OmniRoute (not the provider's panel).
+ * Only reflects traffic that went THROUGH Birouter (not the provider's panel).
  */
 export function getMonthlyProviderTokensForConnection(
   provider: string,
@@ -220,13 +220,13 @@ export function getMonthlyProviderTokensForConnection(
 }
 
 /**
- * Total USD spend OmniRoute has recorded for a single provider connection, across all time
+ * Total USD spend Birouter has recorded for a single provider connection, across all time
  * (i.e. "since the account was added" — usage_history rows only exist from first use onward).
  *
  * Sums per-model token usage from `usage_history` for the connection and prices each model via the
  * backend pricing table (`calculateCost`). Scoped to the given `provider` and to **successful**
  * requests (`success = 1`) so failed/errored calls and any cross-provider rows can't inflate the
- * total. Only reflects traffic that went THROUGH OmniRoute, not the provider's own dashboard. Used
+ * total. Only reflects traffic that went THROUGH Birouter, not the provider's own dashboard. Used
  * to surface a "$X used since added" figure for providers that expose no native usage/quota API
  * (e.g. Vertex AI).
  */

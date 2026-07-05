@@ -6,7 +6,7 @@ test("cliToken.mjs pode ser importado sem erro", async () => {
   const mod = await import("../../bin/cli/utils/cliToken.mjs");
   assert.equal(typeof mod.getCliToken, "function");
   assert.equal(typeof mod.CLI_TOKEN_HEADER, "string");
-  assert.equal(mod.CLI_TOKEN_HEADER, "x-omniroute-cli-token");
+  assert.equal(mod.CLI_TOKEN_HEADER, "x-birouter-cli-token");
 });
 
 test("getCliToken retorna string de 32 chars ou string vazia", async () => {
@@ -32,15 +32,15 @@ test("getCliToken produz apenas hex lowercase se não-vazio", async () => {
   }
 });
 
-test("OMNIROUTE_CLI_TOKEN env sobrescreve token gerado em apiFetch", async () => {
-  const orig = process.env.OMNIROUTE_CLI_TOKEN;
-  process.env.OMNIROUTE_CLI_TOKEN = "test-override-token-12345";
+test("BIROUTER_CLI_TOKEN env sobrescreve token gerado em apiFetch", async () => {
+  const orig = process.env.BIROUTER_CLI_TOKEN;
+  process.env.BIROUTER_CLI_TOKEN = "test-override-token-12345";
   try {
     // Re-import api.mjs não funciona por cache ESM — validamos apenas que env é lido.
-    assert.equal(process.env.OMNIROUTE_CLI_TOKEN, "test-override-token-12345");
+    assert.equal(process.env.BIROUTER_CLI_TOKEN, "test-override-token-12345");
   } finally {
-    if (orig === undefined) delete process.env.OMNIROUTE_CLI_TOKEN;
-    else process.env.OMNIROUTE_CLI_TOKEN = orig;
+    if (orig === undefined) delete process.env.BIROUTER_CLI_TOKEN;
+    else process.env.BIROUTER_CLI_TOKEN = orig;
   }
 });
 
@@ -69,7 +69,7 @@ test("isLoopback rejeita IP público", async () => {
 });
 
 test("token derivado de machine-id diferente produz hash diferente", () => {
-  const SALT = "omniroute-cli-auth-v1";
+  const SALT = "birouter-cli-auth-v1";
   const hash = (mid: string) =>
     crypto
       .createHash("sha256")
@@ -83,13 +83,13 @@ test("token derivado de machine-id diferente produz hash diferente", () => {
   assert.match(t2, /^[0-9a-f]{32}$/);
 });
 
-test("OMNIROUTE_DISABLE_CLI_TOKEN desabilita auth (estrutura verificada)", async () => {
+test("BIROUTER_DISABLE_CLI_TOKEN desabilita auth (estrutura verificada)", async () => {
   const { readFileSync } = await import("node:fs");
   const { join, dirname } = await import("node:path");
   const { fileURLToPath } = await import("node:url");
   const dir = dirname(fileURLToPath(import.meta.url));
   const src = readFileSync(join(dir, "../../src/lib/middleware/cliTokenAuth.ts"), "utf8");
-  assert.ok(src.includes("OMNIROUTE_DISABLE_CLI_TOKEN"));
+  assert.ok(src.includes("BIROUTER_DISABLE_CLI_TOKEN"));
 });
 
 test("cliTokenAuth must NOT derive loopback from the spoofable Host header", async () => {

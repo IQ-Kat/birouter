@@ -6,8 +6,8 @@ import { isLocalRequestAllowed } from "@/lib/security/localEndpoints";
 
 const execFileAsync = promisify(execFile);
 
-const CONTAINER_NAME = process.env.OMNIROUTE_REDIS_CONTAINER_NAME || "omniroute-redis";
-const HOST_PORT = process.env.OMNIROUTE_REDIS_HOST_PORT || "6379";
+const CONTAINER_NAME = process.env.BIROUTER_REDIS_CONTAINER_NAME || "birouter-redis";
+const HOST_PORT = process.env.BIROUTER_REDIS_HOST_PORT || "6379";
 
 const RUNTIME_PREFERENCE = ["podman", "docker"];
 
@@ -72,12 +72,24 @@ export async function GET() {
   const runtime = await detectRuntime();
   if (!runtime) {
     return NextResponse.json(
-      { exists: false, running: false, reachable: false, error: "No container runtime (podman or docker) found on PATH" },
+      {
+        exists: false,
+        running: false,
+        reachable: false,
+        error: "No container runtime (podman or docker) found on PATH",
+      },
       { status: 503 }
     );
   }
 
   const { exists, running } = await containerState(runtime);
   const reachable = running ? await pingRedis(HOST_PORT) : false;
-  return NextResponse.json({ runtime, name: CONTAINER_NAME, port: HOST_PORT, exists, running, reachable });
+  return NextResponse.json({
+    runtime,
+    name: CONTAINER_NAME,
+    port: HOST_PORT,
+    exists,
+    running,
+    reachable,
+  });
 }

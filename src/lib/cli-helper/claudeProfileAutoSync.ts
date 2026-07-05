@@ -17,11 +17,11 @@ type SyncResult =
     };
 
 function isAutoSyncEnabled() {
-  // Opt-in, default OFF. Backed by the OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES feature flag
+  // Opt-in, default OFF. Backed by the BIROUTER_AUTO_SYNC_CLAUDE_PROFILES feature flag
   // (resolver precedence: DB/dashboard-toggle override > env > default "false"), so a
   // provider model sync never silently writes ~/.claude/profiles/<name>/settings.json
   // unless the operator turned it on — via the providers-dashboard toggle or the env var.
-  return isFeatureFlagEnabled("OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES");
+  return isFeatureFlagEnabled("BIROUTER_AUTO_SYNC_CLAUDE_PROFILES");
 }
 
 function forwardAuthHeaders(request: Request): Record<string, string> {
@@ -69,11 +69,11 @@ export async function autoSyncClaudeProfilesFromLiveCatalog(
   }
   const claudeHome = path.dirname(claudePaths.settings);
 
-  // Each generated profile points ANTHROPIC_BASE_URL at the OmniRoute this server serves.
+  // Each generated profile points ANTHROPIC_BASE_URL at the Birouter this server serves.
   // Strip a trailing /v1 (Claude Code appends the version segment itself).
   const profileBaseUrl = internalBase.replace(/\/v1$/, "");
 
-  // Reuse the CLI generator so automatic sync and `omniroute setup-claude` stay
+  // Reuse the CLI generator so automatic sync and `birouter setup-claude` stay
   // behaviorally identical.
   // @ts-ignore - bin CLI modules are shipped as ESM JavaScript, without TS declarations.
   const { syncClaudeProfilesFromModels } =

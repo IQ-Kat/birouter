@@ -7,7 +7,7 @@ import { join } from "node:path";
 // Real DB-backed integration: seed a mixed-dimension embedding combo, then prove
 // the service rejects it before any upstream dispatch (no vector-store corruption
 // path is reachable). Uses a throwaway DATA_DIR so migrations run against a temp DB.
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-embed-combo-reject-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-embed-combo-reject-"));
 
 const { createCombo } = await import("../../src/lib/db/combos.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");

@@ -1,9 +1,9 @@
 /**
- * Build the OmniRoute `customModels` entries for Factory Droid's `settings.json`.
+ * Build the Birouter `customModels` entries for Factory Droid's `settings.json`.
  *
  * Ported from upstream PR decolua/9router#618 (author Anurag Saxena) — multi-model
- * support for the Factory Droid CLI tool. Adapted to OmniRoute branding
- * (`custom:OmniRoute-<i>`) and extracted as a pure helper so the route-handler
+ * support for the Factory Droid CLI tool. Adapted to Birouter branding
+ * (`custom:Birouter-<i>`) and extracted as a pure helper so the route-handler
  * logic is unit-testable without touching the filesystem.
  */
 
@@ -38,10 +38,7 @@ export interface DroidCustomModelEntry {
  * Accepts either a `models` array (multi-model, upstream #618) or a legacy
  * `model` string (single-model, pre-#618 behavior).
  */
-export function normalizeDroidModelList(input: {
-  model?: unknown;
-  models?: unknown;
-}): string[] {
+export function normalizeDroidModelList(input: { model?: unknown; models?: unknown }): string[] {
   const raw: unknown[] = Array.isArray(input.models)
     ? input.models
     : typeof input.model === "string"
@@ -90,7 +87,7 @@ export function buildDroidCustomModels(
 
   const entries: DroidCustomModelEntry[] = models.map((m, i) => ({
     model: m,
-    id: `custom:OmniRoute-${i}`,
+    id: `custom:Birouter-${i}`,
     index: i,
     baseUrl: opts.baseUrl,
     apiKey: opts.apiKey,
@@ -105,14 +102,14 @@ export function buildDroidCustomModels(
     entries.unshift({ ...defaultEntry, index: 0 });
     entries.forEach((e, i) => {
       e.index = i;
-      e.id = `custom:OmniRoute-${i}`;
+      e.id = `custom:Birouter-${i}`;
     });
   }
 
   return entries;
 }
 
-/** True when a `customModels` entry was written by OmniRoute (any index). */
-export function isOmniRouteCustomModel(entry: { id?: unknown } | null | undefined): boolean {
-  return typeof entry?.id === "string" && entry.id.startsWith("custom:OmniRoute");
+/** True when a `customModels` entry was written by Birouter (any index). */
+export function isBirouterCustomModel(entry: { id?: unknown } | null | undefined): boolean {
+  return typeof entry?.id === "string" && entry.id.startsWith("custom:Birouter");
 }

@@ -4,12 +4,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-obsidian-config-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-obsidian-config-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { getApiKeyContextSource, setApiKeyContextSource, deleteApiKeyContextSource, listApiKeyContextSources } = await import("../../src/lib/db/apiKeyContextSources.ts");
-const { getObsidianConfigForApiKey, setObsidianToken, setObsidianBaseUrl } = await import("../../src/lib/db/obsidian.ts");
+const {
+  getApiKeyContextSource,
+  setApiKeyContextSource,
+  deleteApiKeyContextSource,
+  listApiKeyContextSources,
+} = await import("../../src/lib/db/apiKeyContextSources.ts");
+const { getObsidianConfigForApiKey, setObsidianToken, setObsidianBaseUrl } =
+  await import("../../src/lib/db/obsidian.ts");
 
 async function resetStorage() {
   coreDb.resetDbInstance();
@@ -88,7 +94,7 @@ test("apiKeyContextSources: list returns all sources for a key", () => {
   setApiKeyContextSource("key-5", "notion", { token: "not", enabled: true });
   const results = listApiKeyContextSources("key-5");
   assert.equal(results.length, 2);
-  const types = results.map(r => r.sourceType).sort();
+  const types = results.map((r) => r.sourceType).sort();
   assert.deepEqual(types, ["notion", "obsidian"]);
 });
 

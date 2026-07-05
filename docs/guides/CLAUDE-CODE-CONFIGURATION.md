@@ -1,12 +1,12 @@
 ---
-title: "Claude Code CLI — Configuration with OmniRoute"
+title: "Claude Code CLI — Configuration with Birouter"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# Claude Code CLI — Configuration with OmniRoute
+# Claude Code CLI — Configuration with Birouter
 
-Point the **Claude Code** CLI (`claude`) at OmniRoute — local or a remote VPS —
+Point the **Claude Code** CLI (`claude`) at Birouter — local or a remote VPS —
 with per-model profiles, mirroring the Codex setup.
 
 ---
@@ -14,15 +14,15 @@ with per-model profiles, mirroring the Codex setup.
 ## Quick start
 
 ```bash
-# Launch Claude Code against a local OmniRoute (auto-detects the active context)
-omniroute launch
+# Launch Claude Code against a local Birouter (auto-detects the active context)
+birouter launch
 
-# Against a remote OmniRoute (after `omniroute connect <host>`, this is automatic)
-omniroute launch --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+# Against a remote Birouter (after `birouter connect <host>`, this is automatic)
+birouter launch --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Generate per-model profiles, then launch one
-omniroute setup-claude            # writes ~/.claude/profiles/<name>/settings.json
-omniroute launch --profile glm52  # Claude Code using glm/glm-5.2 via OmniRoute
+birouter setup-claude            # writes ~/.claude/profiles/<name>/settings.json
+birouter launch --profile glm52  # Claude Code using glm/glm-5.2 via Birouter
 ```
 
 ---
@@ -35,7 +35,7 @@ endpoint with environment variables (it has no `--base-url` flag):
 | Variable                                     | Purpose                                                                                |
 | -------------------------------------------- | -------------------------------------------------------------------------------------- |
 | `ANTHROPIC_BASE_URL`                         | Gateway root URL (Claude Code appends `/v1/messages`). **No `/v1` suffix.**            |
-| `ANTHROPIC_AUTH_TOKEN`                       | Sent as `Authorization: Bearer …` — use your OmniRoute access token / API key          |
+| `ANTHROPIC_AUTH_TOKEN`                       | Sent as `Authorization: Bearer …` — use your Birouter access token / API key           |
 | `ANTHROPIC_API_KEY`                          | Alternative: sent as `x-api-key`. If both set, `ANTHROPIC_AUTH_TOKEN` wins             |
 | `ANTHROPIC_MODEL`                            | Force a specific model (overrides the `/model` picker default)                         |
 | `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | `1` → the native `/model` picker lists `claude*`/`anthropic*` models from `/v1/models` |
@@ -44,8 +44,8 @@ endpoint with environment variables (it has no `--base-url` flag):
 
 > Env vars are read **once at startup** — restart Claude Code after changing them.
 
-`omniroute launch` sets all of these for you: it resolves the base URL + token
-from the active context (so `omniroute connect <vps>` then `omniroute launch`
+`birouter launch` sets all of these for you: it resolves the base URL + token
+from the active context (so `birouter connect <vps>` then `birouter launch`
 just works), health-checks the server, and execs `claude`.
 
 ---
@@ -56,7 +56,7 @@ Claude Code has **no native profile files** (unlike Codex's `~/.codex/<name>.con
 The idiomatic mechanism is `CLAUDE_CONFIG_DIR` — a separate config directory per
 profile, each with its own `settings.json`, credentials, history and cache.
 
-`omniroute setup-claude` fetches the live `/v1/models` catalog and writes one
+`birouter setup-claude` fetches the live `/v1/models` catalog and writes one
 profile per model at `~/.claude/profiles/<name>/settings.json`, reusing the
 **same names as `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
@@ -76,42 +76,42 @@ profile per model at `~/.claude/profiles/<name>/settings.json`, reusing the
 ```
 
 > **The auth token is never written to the profile.** Launch with
-> `omniroute launch --profile <name>` (it injects `ANTHROPIC_AUTH_TOKEN` from the
+> `birouter launch --profile <name>` (it injects `ANTHROPIC_AUTH_TOKEN` from the
 > active context), or export `ANTHROPIC_AUTH_TOKEN` yourself and run
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Auto-sync after model discovery (opt-in).** OmniRoute can regenerate these same
+**Auto-sync after model discovery (opt-in).** Birouter can regenerate these same
 `~/.claude/profiles/<name>/settings.json` files automatically whenever a provider model
 sync changes the live catalog — so new/renamed models get profiles without re-running the
 command. It is **off by default**: toggle it from the **CLI Code dashboard** ("CLI profile
-auto-sync" → Claude Code), or set `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (it also honors
+auto-sync" → Claude Code), or set `BIROUTER_AUTO_SYNC_CLAUDE_PROFILES=true` (it also honors
 `CLI_ALLOW_CONFIG_WRITES`, on by default). When enabled it only writes profile files; it never
 changes your active/default Claude config, auth, or the `~/.claude/settings.json`.
 
 ### Generating + using profiles
 
 ```bash
-# Local OmniRoute
-omniroute setup-claude
+# Local Birouter
+birouter setup-claude
 
 # Remote VPS (bakes the VPS URL into every profile)
-omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+birouter setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Only some providers
-omniroute setup-claude --only glm,kimi
+birouter setup-claude --only glm,kimi
 
 # Preview without writing
-omniroute setup-claude --dry-run
+birouter setup-claude --dry-run
 
 # Launch a profile
-omniroute launch --profile kimi-k27
+birouter launch --profile kimi-k27
 ```
 
 ---
 
 ## Model tiers (optional)
 
-Claude Code routes to capability tiers. Map each to an OmniRoute model via env /
+Claude Code routes to capability tiers. Map each to an Birouter model via env /
 settings if you want different providers per tier:
 
 ```bash
@@ -126,8 +126,8 @@ Otherwise a single `ANTHROPIC_MODEL` (what profiles set) is used for everything.
 
 ## Remote mode
 
-Once you've run `omniroute connect <host>` (see
-[Remote Mode](./REMOTE-MODE.md)), `omniroute launch` and `omniroute setup-claude`
+Once you've run `birouter connect <host>` (see
+[Remote Mode](./REMOTE-MODE.md)), `birouter launch` and `birouter setup-claude`
 automatically target that remote server and use its scoped access token — no
 extra flags needed. Override per-invocation with `--remote` / `--api-key`.
 
@@ -136,7 +136,7 @@ extra flags needed. Override per-invocation with `--remote` / `--api-key`.
 ## Troubleshooting
 
 **Claude Code ignores the gateway** — confirm `ANTHROPIC_BASE_URL` has **no
-`/v1`** and restart `claude` (env is read once at startup). `omniroute launch`
+`/v1`** and restart `claude` (env is read once at startup). `birouter launch`
 handles this for you.
 
 **`/model` picker is empty / missing gateway models** — needs Claude Code
@@ -144,7 +144,7 @@ v2.1.129+ and `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`. Only `claude*` /
 `anthropic*` model IDs appear in the picker; force any other model with
 `ANTHROPIC_MODEL=<id>` (this is what profiles do).
 
-**Auth errors** — the profile holds no token. Use `omniroute launch --profile`
+**Auth errors** — the profile holds no token. Use `birouter launch --profile`
 (injects it) or export `ANTHROPIC_AUTH_TOKEN`.
 
 **Profiles don't isolate** — each profile is a distinct `CLAUDE_CONFIG_DIR`;

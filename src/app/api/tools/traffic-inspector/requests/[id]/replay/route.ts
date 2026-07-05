@@ -1,21 +1,21 @@
 /**
  * POST /api/tools/traffic-inspector/requests/[id]/replay
  *
- * Re-issues the captured request through the local OmniRoute instance and
+ * Re-issues the captured request through the local Birouter instance and
  * returns the response body. The replay will itself appear in the traffic
  * buffer (captured by agentBridgeHook or httpProxyServer depending on path).
  *
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
-const OMNIROUTE_BASE = process.env.OMNIROUTE_BASE_URL ?? "http://127.0.0.1:20128";
+const BIROUTER_BASE = process.env.BIROUTER_BASE_URL ?? "http://127.0.0.1:20128";
 
 export async function POST(_request: Request, { params }: Params): Promise<Response> {
   const { id } = await params;
@@ -27,11 +27,11 @@ export async function POST(_request: Request, { params }: Params): Promise<Respo
     });
   }
 
-  const url = `${OMNIROUTE_BASE}${entry.path}`;
+  const url = `${BIROUTER_BASE}${entry.path}`;
 
   const replayHeaders: Record<string, string> = {
     "content-type": "application/json",
-    "x-omniroute-source": "inspector-replay",
+    "x-birouter-source": "inspector-replay",
   };
   // Forward original Authorization if present (masked in buffer — skip if masked)
   const origAuth = entry.requestHeaders["authorization"] ?? entry.requestHeaders["Authorization"];

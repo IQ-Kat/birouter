@@ -30,8 +30,8 @@ export function isAllAccountsRateLimitedResponse(
   return ALL_ACCOUNTS_RATE_LIMITED_PATTERNS.some((p) => p.test(errorText));
 }
 
-// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-OmniRoute-Provider-Breaker`
-// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an OmniRoute
+// #1731v2 guard: a provider circuit-breaker-open response (503 + `X-Birouter-Provider-Breaker`
+// header / `provider_circuit_open` error code, see providerCircuitOpenResponse) is an Birouter
 // resilience signal, NOT a per-connection upstream failure. It must keep being treated as an
 // ordinary target failure (try the next target, including same-provider ones) — so it must NOT
 // poison exhaustedConnections/exhaustedProviders, otherwise remaining same-provider targets get
@@ -40,7 +40,7 @@ export function isProviderCircuitOpenResult(
   result: { headers?: Headers | null; status?: number },
   errorText: string
 ): boolean {
-  const breakerHeader = result.headers?.get?.("x-omniroute-provider-breaker");
+  const breakerHeader = result.headers?.get?.("x-birouter-provider-breaker");
   if (typeof breakerHeader === "string" && breakerHeader.toLowerCase() === "open") return true;
   return /provider_circuit_open/i.test(errorText);
 }
@@ -126,7 +126,7 @@ export function shouldSkipForPredictedTtft(
  * - When the next combo target is on the SAME provider, don't trip the provider breaker:
  *   a different model on that provider may still succeed.
  * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
- *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
+ *   service supervisor outage signalled via `X-Bi-Fallback-Hint: connection_cooldown`)
  *   apply connection cooldown ONLY — never trip the whole-provider breaker.
  *
  * Pure predicate so the breaker decision is unit-testable without the full combo harness.

@@ -4,7 +4,7 @@ title: Account-Ban / Banned-Keyword Detection
 
 # Account-Ban / Banned-Keyword Detection
 
-OmniRoute scans upstream error responses for signals that indicate a provider
+Birouter scans upstream error responses for signals that indicate a provider
 **account is permanently dead** (suspended / deactivated / ToS-banned) and, when
 matched, moves that connection into a **terminal `banned` state** so it is no
 longer selected for requests. This is what the **Security → Banned Keywords**
@@ -38,7 +38,7 @@ this service has been disabled in this account                  (Antigravity)
 > copy is `ACCOUNT_DEACTIVATED_SIGNALS` in `open-sse/services/accountFallback.ts`;
 > treat the block above as a snapshot.
 
-Two adjacent, **separate** signal tables live in the same file and are *not* part
+Two adjacent, **separate** signal tables live in the same file and are _not_ part
 of banned-keyword detection:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — billing/quota depleted (`insufficient_quota`,
@@ -67,7 +67,7 @@ upstream error response
   narrower **`deactivated`** label (`isActive=false` when the connection has no
   spare API keys) is written by the inline `chatCore.ts` path on **HTTP 401 / 403**
   (classified via `classifyProviderError` → `ACCOUNT_DEACTIVATED`). Note the
-  `markAccountUnavailable()` path writes a *different* terminal status —
+  `markAccountUnavailable()` path writes a _different_ terminal status —
   **`expired`** — for the same `ACCOUNT_DEACTIVATED` signal (via
   `resolveTerminalConnectionStatus`), so the same ban can surface as either
   `deactivated` or `expired` depending on which path handled the response. (The
@@ -83,7 +83,7 @@ every failed upstream request flows through — it is **not** gated to
 OAuth/subscription scrapers. The resulting terminal state is per **connection**,
 not per provider.
 
-That said, the built-in *strings* are oriented toward subscription/OAuth
+That said, the built-in _strings_ are oriented toward subscription/OAuth
 providers with real ban risk (ChatGPT Web, Claude Web, Codex, Muse Spark,
 Antigravity). An API-key provider will only trip the detector if its error body
 literally contains one of the substrings.
@@ -127,11 +127,11 @@ re-enable, matching the general terminal-state rule in
 
 ## Source files
 
-| Concern | File |
-| --- | --- |
-| Signal tables + match | `open-sse/services/accountFallback.ts` |
-| Terminalization / persistence | `src/sse/services/auth.ts` (`markAccountUnavailable`, `resolveTerminalConnectionStatus`, `clearAccountError`) |
-| Inline classification | `open-sse/handlers/chatCore.ts`, `open-sse/services/errorClassifier.ts` |
-| Terminal-state recovery exclusion | `src/lib/quota/connectionRecovery.ts` |
-| Custom-keyword runtime load | `src/lib/config/runtimeSettings.ts` (`setCustomBannedSignals`) |
-| Settings UI | `src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx` |
+| Concern                           | File                                                                                                          |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Signal tables + match             | `open-sse/services/accountFallback.ts`                                                                        |
+| Terminalization / persistence     | `src/sse/services/auth.ts` (`markAccountUnavailable`, `resolveTerminalConnectionStatus`, `clearAccountError`) |
+| Inline classification             | `open-sse/handlers/chatCore.ts`, `open-sse/services/errorClassifier.ts`                                       |
+| Terminal-state recovery exclusion | `src/lib/quota/connectionRecovery.ts`                                                                         |
+| Custom-keyword runtime load       | `src/lib/config/runtimeSettings.ts` (`setCustomBannedSignals`)                                                |
+| Settings UI                       | `src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx`                                           |

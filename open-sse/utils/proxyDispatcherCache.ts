@@ -1,8 +1,8 @@
 import type { Dispatcher } from "undici";
 
-const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
-const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
-const RETRY_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.retry");
+const DISPATCHER_CACHE_KEY = Symbol.for("birouter.proxyDispatcher.cache");
+const DEFAULT_DISPATCHER_KEY = Symbol.for("birouter.proxyDispatcher.default");
+const RETRY_DISPATCHER_KEY = Symbol.for("birouter.proxyDispatcher.retry");
 
 type DispatcherCache = Map<string, Dispatcher>;
 type GlobalWithDispatcherCache = typeof globalThis & {

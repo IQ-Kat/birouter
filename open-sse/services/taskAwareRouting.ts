@@ -8,7 +8,7 @@
  *
  * Ported from upstream PR #2045 (decolua/9router) by @nguyenxvotanminh3.
  * Adaptation: operates on ResolvedComboTarget[] (TS target objects) rather than
- * plain string arrays, uses getResolvedModelCapabilities (OmniRoute TS API) instead
+ * plain string arrays, uses getResolvedModelCapabilities (Birouter TS API) instead
  * of getCapabilitiesForModel, and is wired additively — only applies when
  * isTaskRoutingStrategy() returns true. All other strategies are unaffected.
  *

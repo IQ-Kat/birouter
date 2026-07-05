@@ -415,7 +415,7 @@ export default function QuotaSharePageClient() {
           <span className="font-semibold">{t("betaTitle")}</span> — {t("betaText")}
         </span>
         <a
-          href="https://github.com/diegosouzapw/OmniRoute/issues/new?labels=quota-share,beta&title=%5Bquota-share%5D%20"
+          href="https://github.com/IQ-Kat/birouter/issues/new?labels=quota-share,beta&title=%5Bquota-share%5D%20"
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-300 hover:underline"

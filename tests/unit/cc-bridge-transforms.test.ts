@@ -270,7 +270,7 @@ test("inject_billing_header xxhash64-body uses 00000 placeholder", () => {
     {
       kind: "inject_billing_header",
       entrypoint: "cli",
-      versionFormat: "omniroute-daystamp",
+      versionFormat: "birouter-daystamp",
       cchAlgo: "xxhash64-body",
     },
   ]);

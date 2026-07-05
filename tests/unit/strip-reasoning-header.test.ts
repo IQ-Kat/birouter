@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Port of decolua/9router#517: per-request opt-in via the
-// `x-omniroute-strip-reasoning` header to unconditionally strip
+// `x-birouter-strip-reasoning` header to unconditionally strip
 // `reasoning_content` from non-streaming JSON responses. Some clients
 // (Firecrawl AI SDK) have JSON parsers that break on this non-standard
 // extension even when there is no visible content, so the default
@@ -14,7 +14,7 @@ const { sanitizeOpenAIResponse } = await import("../../open-sse/handlers/respons
 test("isStripReasoningRequested is true for truthy header values", () => {
   for (const v of ["true", "1", "yes", "TRUE", "Yes", " true "]) {
     assert.equal(
-      isStripReasoningRequested({ "x-omniroute-strip-reasoning": v }),
+      isStripReasoningRequested({ "x-birouter-strip-reasoning": v }),
       true,
       `expected true for ${JSON.stringify(v)}`
     );
@@ -22,12 +22,12 @@ test("isStripReasoningRequested is true for truthy header values", () => {
 });
 
 test("isStripReasoningRequested is case-insensitive on the header NAME", () => {
-  assert.equal(isStripReasoningRequested({ "X-OmniRoute-Strip-Reasoning": "true" }), true);
+  assert.equal(isStripReasoningRequested({ "X-Birouter-Strip-Reasoning": "true" }), true);
 });
 
 test("isStripReasoningRequested works with a Headers instance", () => {
   const h = new Headers();
-  h.set("x-omniroute-strip-reasoning", "1");
+  h.set("x-birouter-strip-reasoning", "1");
   assert.equal(isStripReasoningRequested(h), true);
 });
 
@@ -35,17 +35,17 @@ test("isStripReasoningRequested is false when absent / empty / falsy", () => {
   assert.equal(isStripReasoningRequested(null), false);
   assert.equal(isStripReasoningRequested(undefined), false);
   assert.equal(isStripReasoningRequested({}), false);
-  assert.equal(isStripReasoningRequested({ "x-omniroute-strip-reasoning": "" }), false);
-  assert.equal(isStripReasoningRequested({ "x-omniroute-strip-reasoning": "false" }), false);
-  assert.equal(isStripReasoningRequested({ "x-omniroute-strip-reasoning": "0" }), false);
-  assert.equal(isStripReasoningRequested({ "x-omniroute-strip-reasoning": "no" }), false);
+  assert.equal(isStripReasoningRequested({ "x-birouter-strip-reasoning": "" }), false);
+  assert.equal(isStripReasoningRequested({ "x-birouter-strip-reasoning": "false" }), false);
+  assert.equal(isStripReasoningRequested({ "x-birouter-strip-reasoning": "0" }), false);
+  assert.equal(isStripReasoningRequested({ "x-birouter-strip-reasoning": "no" }), false);
 });
 
 test("getHeaderValueCaseInsensitive still resolves the header (sanity)", () => {
   assert.equal(
     getHeaderValueCaseInsensitive(
-      { "x-omniroute-strip-reasoning": "true" },
-      "x-omniroute-strip-reasoning"
+      { "x-birouter-strip-reasoning": "true" },
+      "x-birouter-strip-reasoning"
     ),
     "true"
   );

@@ -49,7 +49,7 @@ export type SkillArea =
   | "cli-setup";
 
 export interface AgentSkill {
-  id: string; // canonical id (e.g. "omni-providers", "cli-serve")
+  id: string; // canonical id (e.g. "bi-providers", "cli-serve")
   name: string; // human-readable
   description: string; // 1-paragraph
   category: SkillCategory;

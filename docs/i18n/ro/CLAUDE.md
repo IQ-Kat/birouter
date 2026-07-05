@@ -39,7 +39,7 @@ Pentru matricea completă a testelor, consultați `CONTRIBUTING.md` → "Rularea
 
 ## Proiect pe scurt
 
-**OmniRoute** — proxy/router AI unificat. Un endpoint, 160+ furnizori LLM, fallback automat.
+**Birouter** — proxy/router AI unificat. Un endpoint, 160+ furnizori LLM, fallback automat.
 
 | Strat            | Locație                 | Scop                                                                          |
 | ---------------- | ----------------------- | ----------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Rutele API urmează un model consistent: `Ruta → CORS preflight → validare c
 
 ## Starea de Execuție a Rezilienței
 
-OmniRoute are trei mecanisme de eșec temporar, legate dar distincte. Mențineți domeniul lor separat atunci când depanați comportamentul rutării. Consultați diagrama [rezilienței cu 3 straturi](./docs/diagrams/exported/resilience-3layers.svg)
+Birouter are trei mecanisme de eșec temporar, legate dar distincte. Mențineți domeniul lor separat atunci când depanați comportamentul rutării. Consultați diagrama [rezilienței cu 3 straturi](./docs/diagrams/exported/resilience-3layers.svg)
 (sursa: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 pentru o hartă rapidă.
 
@@ -216,7 +216,7 @@ conexiuni să continue să servească alte modele.
 ### Stil de Cod
 
 - **2 spații**, puncte și virgule, ghilimele duble, lățime de 100 caractere, virgule de final es5 (impuse de lint-staged prin Prettier)
-- **Importuri**: externe → interne (`@/`, `@omniroute/open-sse`) → relative
+- **Importuri**: externe → interne (`@/`, `@birouter/open-sse`) → relative
 - **Nomenclatură**: fișiere=camelCase/kebab, componente=PascalCase, constante=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = eroare peste tot; `no-explicit-any` = avertizare în `open-sse/` și `tests/`
 - **TypeScript**: `strict: false`, țintă ES2022, modul esnext, rezolvare bundler. Preferă tipuri explicite.
@@ -384,9 +384,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Module ES
 - **TypeScript**: 5.9+, target ES2022, modul esnext, rezolvare bundler
-- **Aliasuri de cale**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Aliasuri de cale**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Port implicit**: 20128 (API + dashboard pe același port)
-- **Director de date**: `DATA_DIR` variabilă de mediu, implicit `~/.omniroute/`
+- **Director de date**: `DATA_DIR` variabilă de mediu, implicit `~/.birouter/`
 - **Variabile de mediu cheie**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Configurare: `cp .env.example .env` apoi generează `JWT_SECRET` (`openssl rand -base64 48`) și `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -409,4 +409,4 @@ git push -u origin feat/your-feature
 13. Nu interpolare niciodată string-uri externe sau valori de runtime în scripturi shell transmise la `exec()`/`spawn()` — treci prin opțiunea `env` în schimb. Referință: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Nu ignora niciodată un alert CodeQL / Secret-Scanning fără (a) să verifici mai întâi documentele de model de mai sus pentru a vedea dacă ajutorul se aplică, și (b) să înregistrezi justificarea tehnică în comentariul de respingere. Precedent: `js/stack-trace-exposure` ridicat pe callsites care deja rotează prin `sanitizeErrorMessage()` este o limitare cunoscută CodeQL (sanitizatori personalizați nerecunoscuți) — respinge ca `false positive` referindu-te la `docs/security/ERROR_SANITIZATION.md`.
 15. Nu expune niciodată rute care generează procese copil (`/api/mcp/`, `/api/cli-tools/runtime/`) fără clasificarea `isLocalOnlyPath()` în `src/server/authz/routeGuard.ts`. Aplicarea loopback-ului se întâmplă necondiționat înainte de orice verificare de autentificare — un JWT scurs prin tunel nu poate declanșa generarea procesului. Vezi `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Niciodată să nu includeți trailere `Co-Authored-By` care creditează un asistent AI, LLM sau cont de automatizare (de ex. nume conținând "Claude", "GPT", "Copilot", "Bot"; e-mailuri la `anthropic.com` / `openai.com` / adrese `noreply.github.com` deținute de boți). Astfel de trailere direcționează atribuirea commit-ului către contul botului pe GitHub, ascunzând autorul real (`diegosouzapw`) în istoricul PR. Colaboratorii umani — inclusiv autorii de PR-uri upstream și raportorii de issue portate în OmniRoute — POT și AR TREBUI să fie creditați cu trailere standard `Co-authored-by: Name <email>`; fluxurile de lucru upstream-port (`/port-upstream-features`, `/port-upstream-issues`) depind de aceasta.
+16. Niciodată să nu includeți trailere `Co-Authored-By` care creditează un asistent AI, LLM sau cont de automatizare (de ex. nume conținând "Claude", "GPT", "Copilot", "Bot"; e-mailuri la `anthropic.com` / `openai.com` / adrese `noreply.github.com` deținute de boți). Astfel de trailere direcționează atribuirea commit-ului către contul botului pe GitHub, ascunzând autorul real (`diegosouzapw`) în istoricul PR. Colaboratorii umani — inclusiv autorii de PR-uri upstream și raportorii de issue portate în Birouter — POT și AR TREBUI să fie creditați cu trailere standard `Co-authored-by: Name <email>`; fluxurile de lucru upstream-port (`/port-upstream-features`, `/port-upstream-issues`) depind de aceasta.

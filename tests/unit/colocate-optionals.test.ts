@@ -60,7 +60,7 @@ function buildRoot(rootDir: string): void {
 }
 
 test("computeDependencyClosure walks deps transitively and skips peers (transformers)", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-colocate-closure-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-colocate-closure-"));
   try {
     buildRoot(root);
     const closure = computeDependencyClosure(join(root, "node_modules"));
@@ -87,7 +87,7 @@ test("computeDependencyClosure walks deps transitively and skips peers (transfor
 });
 
 test("colocateLlmlinguaOptionals copies the closure into dist and never clobbers dist transformers", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-colocate-copy-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-colocate-copy-"));
   try {
     buildRoot(root);
     // dist already ships the PINNED transformers (3.5.2) — must survive untouched.
@@ -126,7 +126,7 @@ test("colocateLlmlinguaOptionals copies the closure into dist and never clobbers
 });
 
 test("colocateLlmlinguaOptionals is idempotent (second run is a no-op)", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-colocate-idem-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-colocate-idem-"));
   try {
     buildRoot(root);
     mkPkg(join(root, "dist", "node_modules"), "@huggingface/transformers", { version: "3.5.2" });
@@ -145,7 +145,7 @@ test("colocateLlmlinguaOptionals is idempotent (second run is a no-op)", () => {
 });
 
 test("colocateLlmlinguaOptionals skips when SLM optionals are not installed", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-colocate-noopt-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-colocate-noopt-"));
   try {
     // dist bundle exists, but the optional seeds were never installed at root.
     mkPkg(join(root, "dist", "node_modules"), "@huggingface/transformers", { version: "3.5.2" });
@@ -162,7 +162,7 @@ test("colocateLlmlinguaOptionals skips when SLM optionals are not installed", ()
 });
 
 test("colocateLlmlinguaOptionals skips when there is no standalone dist bundle", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-colocate-nodist-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-colocate-nodist-"));
   try {
     buildRoot(root); // optionals present, but no dist/node_modules
     const result = colocateLlmlinguaOptionals({ rootDir: root });

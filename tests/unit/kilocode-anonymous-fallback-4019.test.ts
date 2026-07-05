@@ -3,7 +3,7 @@
 // Kilo's gateway serves its free tier without signup: an OpenAI-compatible
 // request to https://api.kilo.ai/api/openrouter/chat/completions authenticated
 // with the literal API key `anonymous` (Authorization: Bearer anonymous) plus an
-// X-KILOCODE-EDITORNAME header returns free models. OmniRoute now exposes this by
+// X-KILOCODE-EDITORNAME header returns free models. Birouter now exposes this by
 // (1) flagging the kilocode provider `anonymousFallback: true` so a request with
 // no connected account synthesizes a noauth credential, and (2) having the
 // DefaultExecutor send the registry `anonymousApiKey` as the bearer token when no
@@ -30,7 +30,7 @@ test("kilocode buildHeaders sends `Bearer anonymous` + editor header when no cre
   );
   assert.equal(
     headers["X-KILOCODE-EDITORNAME"],
-    "OmniRoute",
+    "Birouter",
     "Kilo's gateway requires the editor-name header"
   );
 });

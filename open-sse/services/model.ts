@@ -34,7 +34,7 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 
 // Manual aliases for external compatibility not covered by PROVIDER_ID_TO_ALIAS.
-// OpenCode's Zen provider now uses the "opencode" slug, but OmniRoute registers
+// OpenCode's Zen provider now uses the "opencode" slug, but Birouter registers
 // it as "opencode-zen". This alias ensures `opencode/<model>` resolves correctly.
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // xiaomi/ is the user-visible prefix for MiMo models; register it so
@@ -317,7 +317,7 @@ async function getPreferClaudeCodeForUnprefixedClaudeModels() {
     // Standalone open-sse usage may not have the app DB layer available.
   }
 
-  return isTruthyEnv(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
+  return isTruthyEnv(process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
 }
 
 function shouldPreferClaudeCodeForUnprefixedClaudeModel(

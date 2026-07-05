@@ -37,10 +37,10 @@ function buildHeartbeatPayload(
       return 'data: {"type":"response.in_progress"}\n\n';
     case HEARTBEAT_SHAPES.OPENAI_CHUNK: {
       const payload = {
-        id: opts.chunkId ?? "omniroute-keepalive",
+        id: opts.chunkId ?? "birouter-keepalive",
         object: "chat.completion.chunk",
         created: Math.floor(Date.now() / 1000),
-        model: opts.chunkModel ?? "omniroute",
+        model: opts.chunkModel ?? "birouter",
         choices: [{ index: 0, delta: {}, finish_reason: null }],
       };
       return `data: ${JSON.stringify(payload)}\n\n`;

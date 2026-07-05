@@ -39,7 +39,7 @@ A teljes tesztmátrixért lásd a `CONTRIBUTING.md` → "Tesztek futtatása" ré
 
 ## Projekt áttekintése
 
-**OmniRoute** — egységes AI proxy/router. Egy végpont, 160+ LLM szolgáltató, automatikus visszaesés.
+**Birouter** — egységes AI proxy/router. Egy végpont, 160+ LLM szolgáltató, automatikus visszaesés.
 
 | Réteg          | Helyszín                | Cél                                                                   |
 | -------------- | ----------------------- | --------------------------------------------------------------------- |
@@ -80,7 +80,7 @@ Az API útvonalak következetes mintát követnek: `Útvonal → CORS előzetes 
 
 ## Ellenállás Futási Állapot
 
-Az OmniRoute három kapcsolódó, de különálló ideiglenes hiba mechanizmust tartalmaz. Tartsd a hatókörüket külön, amikor a routing viselkedést hibakeresed. Lásd a
+Az Birouter három kapcsolódó, de különálló ideiglenes hiba mechanizmust tartalmaz. Tartsd a hatókörüket külön, amikor a routing viselkedést hibakeresed. Lásd a
 [3-rétegű ellenállás diagramot](./docs/diagrams/exported/resilience-3layers.svg)
 (forrás: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 egy pillantásra való térképhez.
@@ -215,7 +215,7 @@ kapcsolat továbbra is kiszolgálja a többi modellt.
 ### Kód Stílus
 
 - **2 szóköz**, pontosvesszők, dupla idézőjelek, 100 karakter szélesség, es5 végső vesszők (lint-staged által a Prettier-en keresztül érvényesítve)
-- **Importok**: külső → belső (`@/`, `@omniroute/open-sse`) → relatív
+- **Importok**: külső → belső (`@/`, `@birouter/open-sse`) → relatív
 - **Elnevezés**: fájlok=camelCase/kebab, komponensek=PascalCase, konstansok=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = hiba mindenhol; `no-explicit-any` = figyelmeztetés az `open-sse/` és `tests/` mappákban
 - **TypeScript**: `strict: false`, cél ES2022, modul esnext, felbontás bundler. Előnyben részesítjük a kifejezett típusokat.
@@ -381,9 +381,9 @@ git push -u origin feat/your-feature
 
 - **Futtatás**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, cél ES2022, modul esnext, felbontás bundler
-- **Útvonal aliasok**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Útvonal aliasok**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Alapértelmezett port**: 20128 (API + dashboard ugyanazon a porton)
-- **Adatkönyvtár**: `DATA_DIR` környezeti változó, alapértelmezett: `~/.omniroute/`
+- **Adatkönyvtár**: `DATA_DIR` környezeti változó, alapértelmezett: `~/.birouter/`
 - **Kulcs környezeti változók**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Beállítás: `cp .env.example .env`, majd generálj `JWT_SECRET`-et (`openssl rand -base64 48`) és `API_KEY_SECRET`-et (`openssl rand -hex 32`)
 
@@ -406,4 +406,4 @@ git push -u origin feat/your-feature
 13. Soha ne interpolálj külső útvonalakat vagy futási értékeket shell szkriptekbe, amelyeket az `exec()`/`spawn()`-nak adsz át — inkább az `env` opcióval add át. Hivatkozás: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Soha ne utasíts el egy CodeQL / Secret-Scanning riasztást anélkül, hogy (a) először ellenőriznéd a fenti mintázat dokumentációját, hogy lássad, alkalmazható-e a segédprogram, és (b) rögzítenéd a technikai indoklást az elutasító megjegyzésben. Precedens: `js/stack-trace-exposure` emelt a hívási helyeken, amelyek már a `sanitizeErrorMessage()`-en keresztül haladnak, egy ismert CodeQL korlátozás (egyedi szűrők nem ismertek) — utasítsd el `false positive`-ként, hivatkozva a `docs/security/ERROR_SANITIZATION.md`-ra.
 15. Soha ne tedd közzé azokat az útvonalakat, amelyek gyermek folyamatokat indítanak (`/api/mcp/`, `/api/cli-tools/runtime/`) anélkül, hogy a `isLocalOnlyPath()` osztályozás szerepelne a `src/server/authz/routeGuard.ts`-ben. A hurok visszahatása feltétel nélkül megtörténik bármilyen hitelesítési ellenőrzés előtt — a csatornán keresztül kiszivárgott JWT nem indíthat folyamatot. Lásd: `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Soha ne tartalmazz `Co-Authored-By` trailer-eket, amelyek AI-asszisztenst, LLM-et vagy automatizálási fiókot ismernek el (pl. "Claude", "GPT", "Copilot", "Bot" tartalmú nevek; `anthropic.com` / `openai.com` / bot tulajdonú `noreply.github.com` címeken lévő e-mailek). Az ilyen trailer-ek a commit-attribúciót a bot fiókhoz irányítják a GitHubon, elrejtve a valódi szerzőt (`diegosouzapw`) a PR-történetben. Az emberi közreműködők — beleértve az upstream PR-szerzőket és az OmniRoute-ba portolt issue-bejelentőket — szabványos `Co-authored-by: Name <email>` trailer-ekkel jóváírhatók és JÓVÁ KELL ÍRNI; az upstream-port munkafolyamatok (`/port-upstream-features`, `/port-upstream-issues`) ettől függenek.
+16. Soha ne tartalmazz `Co-Authored-By` trailer-eket, amelyek AI-asszisztenst, LLM-et vagy automatizálási fiókot ismernek el (pl. "Claude", "GPT", "Copilot", "Bot" tartalmú nevek; `anthropic.com` / `openai.com` / bot tulajdonú `noreply.github.com` címeken lévő e-mailek). Az ilyen trailer-ek a commit-attribúciót a bot fiókhoz irányítják a GitHubon, elrejtve a valódi szerzőt (`diegosouzapw`) a PR-történetben. Az emberi közreműködők — beleértve az upstream PR-szerzőket és az Birouter-ba portolt issue-bejelentőket — szabványos `Co-authored-by: Name <email>` trailer-ekkel jóváírhatók és JÓVÁ KELL ÍRNI; az upstream-port munkafolyamatok (`/port-upstream-features`, `/port-upstream-issues`) ettől függenek.

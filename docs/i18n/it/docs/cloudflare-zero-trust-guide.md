@@ -4,11 +4,11 @@
 
 ---
 
-Este guia documenta o padrão ouro de infraestrutura de rede para proteger o **OmniRoute** e expor sua aplicação de forma segura para a internet, **sem abrir nenhuma porta (Zero Inbound)**.
+Este guia documenta o padrão ouro de infraestrutura de rede para proteger o **Birouter** e expor sua aplicação de forma segura para a internet, **sem abrir nenhuma porta (Zero Inbound)**.
 
 ## O que foi feito na sua VM?
 
-Nós ativamos o OmniRoute em modo **Split-Port** através do PM2:
+Nós ativamos o Birouter em modo **Split-Port** através do PM2:
 
 - **Porta \`20128\`:** Roda **apenas a API** `/v1`.
 - **Porta \`20129\`:** Roda **apenas o Dashboard** Administrativo visual.
@@ -25,7 +25,7 @@ O utilitário \`cloudflared\` já está instalado na sua máquina. Siga os passo
 
 1. Acesse seu painel **Cloudflare Zero Trust** (One.dash.cloudflare.com).
 2. No menu à esquerda, vá em **Networks > Tunnels**.
-3. Clique em **Add a Tunnel**, escolha **Cloudflared** e dê o nome \`OmniRoute-VM\`.
+3. Clique em **Add a Tunnel**, escolha **Cloudflared** e dê o nome \`Birouter-VM\`.
 4. Ele vai gerar um comando na tela chamado "Install and run a connector". **Você só precisa copiar o Token (a string longa após `--token`)**.
 5. Logue via SSH na sua máquina virtual (ou Terminal do Proxmox) e execute:
    \`\`\`bash
@@ -48,7 +48,7 @@ Ainda na tela do Tunnel recém-criado, vá para a aba **Public Hostnames** e adi
 
 ### Rota 2: Painel Zero Trust (Fechado)
 
-- **Subdomain:** \`omniroute\` ou \`painel\`
+- **Subdomain:** \`birouter\` ou \`painel\`
 - **Domain:** \`seuglobal.com.br\`
 - **Service Type:** \`HTTP\`
 - **URL:** \`127.0.0.1:20129\` _(Porta interna do App/Visual)_
@@ -63,14 +63,14 @@ Nenhuma senha local protege melhor o seu painel do que remover totalmente o aces
 
 1. No painel Zero Trust, vá em **Access > Applications > Add an application**.
 2. Selecione **Self-hosted**.
-3. Em **Application name**, coloque \`Painel OmniRoute\`.
-4. Em **Application domain**, coloque \`omniroute.seuglobal.com.br\` (O mesmo que você fez na "Rota 2").
+3. Em **Application name**, coloque \`Painel Birouter\`.
+4. Em **Application domain**, coloque \`birouter.seuglobal.com.br\` (O mesmo que você fez na "Rota 2").
 5. Clique em **Next**.
 6. Em **Rule action**, escolha \`Allow\`. Em nome da Rule coloque \`Admin Apenas\`.
 7. Em **Include**, no seletor de "Selector" escolha \`Emails\` e digite o seu email, por exemplo \`admin@spgeo.com.br\`.
 8. Salve (`Add application`).
 
-> **O que isso fez:** Se você tentar abrir \`omniroute.seuglobal.com.br\`, não cai mais na sua aplicação OmniRoute! Cai numa tela elegante da Cloudflare pedindo para digitar seu email. Somente se você (ou o email que você botou) for digitado lá, ele recebe no Outlook/Gmail um código de 6 dígitos temporário que libera o túnel até a porta \`20129\`.
+> **O que isso fez:** Se você tentar abrir \`birouter.seuglobal.com.br\`, não cai mais na sua aplicação Birouter! Cai numa tela elegante da Cloudflare pedindo para digitar seu email. Somente se você (ou o email que você botou) for digitado lá, ele recebe no Outlook/Gmail um código de 6 dígitos temporário que libera o túnel até a porta \`20129\`.
 
 ---
 
@@ -81,7 +81,7 @@ O Dashboard do Zero Trust não se aplica à rota da API (\`api.seuglobal.com.br\
 1. Acesse o **Painel Normal** da Cloudflare (dash.cloudflare.com) e entre no seu Domínio.
 2. No menu esquerdo, vá em **Security > WAF > Rate limiting rules**.
 3. Clique em **Create rule**.
-4. **Name:** \`Anti-Abuso OmniRoute API\`
+4. **Name:** \`Anti-Abuso Birouter API\`
 5. **If incoming requests match...**
    - Escolha em Field: \`Hostname\`
    - Operator: \`equals\`
@@ -100,7 +100,7 @@ O Dashboard do Zero Trust não se aplica à rota da API (\`api.seuglobal.com.br\
 ## Finalização
 
 1. A sua VM **não possui nenhuma porta exposta** em `/etc/ufw`.
-2. O OmniRoute só conversa HTTPS saindo (\`cloudflared\`) e não recebendo TCP direto do mundo.
+2. O Birouter só conversa HTTPS saindo (\`cloudflared\`) e não recebendo TCP direto do mundo.
 3. Seus requets pro OpenAI são ofuscados porque configuramos eles globalmente pra passar em um Proxy SOCKS5 (A nuvem não liga pro SOCKS5 porque ela vem Inbound).
 4. Seu painel web tem 2-Factor com Email.
 5. Sua API está ratelimitada na borda pela Cloudflare e só trafega Bearer Tokens.

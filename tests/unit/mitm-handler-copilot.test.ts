@@ -16,6 +16,6 @@ test("copilot handler — rewrites model and forwards to /v1/chat/completions", 
   assert.equal(sent.model, "claude-3.5-sonnet");
   // AgentBridge correlation headers must be present.
   const headers = r.fetchHeaders as Record<string, string>;
-  assert.equal(headers["x-omniroute-source"], "agent-bridge");
-  assert.equal(headers["x-omniroute-agent"], "copilot");
+  assert.equal(headers["x-birouter-source"], "agent-bridge");
+  assert.equal(headers["x-birouter-agent"], "copilot");
 });

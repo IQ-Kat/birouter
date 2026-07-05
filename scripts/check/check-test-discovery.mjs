@@ -25,7 +25,7 @@
 // Limitações documentadas (v1):
 //  - `exclude` de arquivo individual em vitest configs não é modelado (1 caso hoje:
 //    providerDiversity.test.ts — coletado pelo include, deliberadamente excluído).
-//  - @omniroute/* ficam fora do walk (têm CI próprio: opencode-*-ci.yml).
+//  - @birouter/* ficam fora do walk (têm CI próprio: opencode-*-ci.yml).
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";

@@ -1,19 +1,19 @@
 import {
   ANTIGRAVITY_BASE_URLS,
   getAntigravityFetchAvailableModelsUrls,
-} from "@omniroute/open-sse/config/antigravityUpstream.ts";
+} from "@birouter/open-sse/config/antigravityUpstream.ts";
 import {
   ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
   ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   getAntigravityLoadCodeAssistClientMetadata,
-} from "@omniroute/open-sse/services/antigravityHeaders.ts";
+} from "@birouter/open-sse/services/antigravityHeaders.ts";
 import {
   GITHUB_COPILOT_API_VERSION,
   GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
-} from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
+} from "@birouter/open-sse/config/providerHeaderProfiles.ts";
+import { resolvePublicCred } from "@birouter/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**

@@ -19,13 +19,13 @@ export function registerToolSearchTool(
   withScopeEnforcement: ScopeEnforcedHandler
 ): void {
   server.registerTool(
-    "omniroute_tool_search",
+    "birouter_tool_search",
     {
       description:
         "Search MCP tools by keyword; returns compact one-line TS signatures for token-efficient discovery.",
       inputSchema: toolSearchInput,
     },
-    withScopeEnforcement("omniroute_tool_search", (args) => {
+    withScopeEnforcement("birouter_tool_search", (args) => {
       const parsed = toolSearchInput.parse(args ?? {});
       const result = handleToolSearch(parsed);
       return Promise.resolve({

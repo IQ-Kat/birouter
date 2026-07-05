@@ -7,7 +7,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 
 import { getModerationProvider, parseModerationModel } from "../config/moderationRegistry.ts";
 import { errorResponse } from "../utils/error.ts";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachBirouterMetaHeaders } from "@/domain/birouterResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
@@ -26,7 +26,7 @@ export async function handleModeration({ body, credentials }) {
   }
 
   // Default to latest moderation model
-  const model = body.model || "omni-moderation-latest";
+  const model = body.model || "bi-moderation-latest";
   const { provider: providerId, model: modelId } = parseModerationModel(model);
   const providerConfig = providerId ? getModerationProvider(providerId) : null;
 
@@ -68,7 +68,7 @@ export async function handleModeration({ body, credentials }) {
 
     const data = await res.json();
     const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
+    attachBirouterMetaHeaders(headers, {
       provider: providerId,
       model: modelId,
       costUsd: 0,

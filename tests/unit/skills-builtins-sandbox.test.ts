@@ -69,7 +69,7 @@ async function withSandboxModule(fakeSpawn, fn) {
 }
 
 test("builtin skill handlers validate required fields and perform real sandboxed work", async () => {
-  const dataDir = makeTempDir("omniroute-skills-builtins-");
+  const dataDir = makeTempDir("birouter-skills-builtins-");
   const context = { apiKeyId: "key-123", sessionId: "session-123" };
 
   try {

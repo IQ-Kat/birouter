@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — UI i18n key coverage gate.
+ * Birouter — UI i18n key coverage gate.
  *
  * Compares every `src/i18n/messages/<locale>.json` against `en.json` and
  * reports:

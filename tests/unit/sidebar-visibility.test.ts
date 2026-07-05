@@ -33,7 +33,7 @@ test("system sidebar items: monitoring has activity at top then logs/audit/syste
 });
 
 test("primary sidebar items place limits after cache", () => {
-  const items = sectionItems("omni-proxy");
+  const items = sectionItems("bi-proxy");
   assert.deepEqual(
     items.map((item) => item.id),
     [
@@ -72,9 +72,9 @@ test("primary sidebar items place limits after cache", () => {
 
 test("context sidebar section sits between primary and cli", () => {
   const sectionIds = sidebarVisibility.SIDEBAR_SECTIONS.map((section) => section.id);
-  assert.deepEqual(sectionIds.slice(0, 4), ["home", "omni-proxy", "analytics", "costs"]);
+  assert.deepEqual(sectionIds.slice(0, 4), ["home", "bi-proxy", "analytics", "costs"]);
 
-  const items = sectionItems("omni-proxy");
+  const items = sectionItems("bi-proxy");
   assert.deepEqual(
     items
       .filter((item) => item.id.startsWith("context-"))
@@ -127,7 +127,7 @@ test("help sidebar exposes changelog after docs and issues", () => {
       { id: "docs", href: "/docs", i18nKey: "docs" },
       {
         id: "issues",
-        href: "https://github.com/diegosouzapw/OmniRoute/issues",
+        href: "https://github.com/IQ-Kat/birouter/issues",
         i18nKey: "issues",
       },
       { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog" },

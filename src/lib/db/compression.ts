@@ -27,12 +27,12 @@ import {
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
-} from "@omniroute/open-sse/services/compression/types.ts";
+} from "@birouter/open-sse/services/compression/types.ts";
 import {
   isPreserveSystemPromptMode,
   normalizePreserveSystemPromptMode,
-} from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
-import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
+} from "@birouter/open-sse/services/compression/preserveSystemPromptMode.ts";
+import { maybePrewarmUltraSlmOnConfig } from "@birouter/open-sse/services/compression/ultra.ts";
 
 const NAMESPACE = "compression";
 const COMPRESSION_MODES = new Set<CompressionMode>([
@@ -654,8 +654,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         storedEngines = parseStoredEnginesMap(parsed);
         break;
       case "activeComboId":
-        config.activeComboId =
-          typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
+        config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
         break;
       case "ultraEngine":
         // Phase 4 (B): SLM tier selector. Only the two known values; anything else

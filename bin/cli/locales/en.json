@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "Error: {message}",
-    "serverOffline": "OmniRoute server is offline. Start it with: omniroute serve",
-    "authRequired": "Authentication required. Set OMNIROUTE_API_KEY or run: omniroute setup",
+    "serverOffline": "Birouter server is offline. Start it with: birouter serve",
+    "authRequired": "Authentication required. Set BIROUTER_API_KEY or run: birouter setup",
     "rateLimited": "Rate limit exceeded. Retry after {seconds}s.",
     "timeout": "Request timed out after {ms}ms.",
     "success": "Done.",
@@ -15,7 +15,7 @@
     "yesOpt": "Skip confirmation prompt"
   },
   "setup": {
-    "title": "OmniRoute Setup",
+    "title": "Birouter Setup",
     "passwordPrompt": "Admin password",
     "providerPrompt": "Default provider (leave blank to skip)",
     "done": "Setup complete",
@@ -27,22 +27,22 @@
     "loginEnabled": "Login: enabled (password updated)",
     "loginDisabled": "Login: disabled",
     "providerInfo": "Provider: {info}",
-    "opencode": "Install and configure the bundled @omniroute/opencode-plugin for OpenCode"
+    "opencode": "Install and configure the bundled @birouter/opencode-plugin for OpenCode"
   },
   "doctor": {
-    "title": "OmniRoute Doctor",
+    "title": "Birouter Doctor",
     "dbOk": "Database: OK ({path})",
-    "dbMissing": "Database: not initialized — run `omniroute setup`",
+    "dbMissing": "Database: not initialized — run `birouter setup`",
     "portOk": "Port {port}: available",
     "portConflict": "Port {port}: in use by another process",
     "encryptionOk": "Encryption key: configured",
-    "encryptionMissing": "Encryption key missing — run `omniroute setup`",
+    "encryptionMissing": "Encryption key missing — run `birouter setup`",
     "allGood": "All checks passed.",
     "warnings": "{count} warning(s) — see above."
   },
   "providers": {
     "title": "Providers",
-    "noProviders": "No providers configured. Run: omniroute setup",
+    "noProviders": "No providers configured. Run: birouter setup",
     "testing": "Testing {name}...",
     "available": "{count} provider(s) available",
     "connected": "Connected",
@@ -71,7 +71,7 @@
       "dryRunOpt": "Print what would change without writing",
       "confirmPrompt": "Replace API key for connection \"{name}\" ({id})? [y/N] ",
       "dryRunResult": "[dry-run] Would rotate key for \"{name}\" ({id}). No changes made.",
-      "oauthHint": "OAuth connection — run: omniroute oauth {provider}",
+      "oauthHint": "OAuth connection — run: birouter oauth {provider}",
       "envVarEmpty": "Environment variable {var} is not set or is empty.",
       "success": "Key rotated for \"{name}\". Run `providers test {id}` to verify.",
       "testPassed": "Post-rotation test passed.",
@@ -82,7 +82,7 @@
       "providerOpt": "Filter by provider name",
       "header": "ID         Provider       Name                     Expiry Status  Test Status  Cooldown Until",
       "noData": "No provider connection data available.",
-      "requiresServer": "providers status requires the OmniRoute server to be running."
+      "requiresServer": "providers status requires the Birouter server to be running."
     }
   },
   "keys": {
@@ -90,8 +90,8 @@
     "addDescription": "Add or update an API key for a provider",
     "listDescription": "List all configured API keys",
     "removeDescription": "Remove an API key for a provider",
-    "regenerateDescription": "Regenerate an OmniRoute API key",
-    "revokeDescription": "Revoke an OmniRoute API key",
+    "regenerateDescription": "Regenerate an Birouter API key",
+    "revokeDescription": "Revoke an Birouter API key",
     "revealDescription": "Reveal the unmasked API key value",
     "usageDescription": "Show recent usage for an API key",
     "usageLimitOpt": "Number of recent requests",
@@ -206,10 +206,10 @@
     "reasoning": "Reasoning effort level (low|medium|high)",
     "thinking": "Extended thinking token budget",
     "explain": "Print fallback tree and cost range to stderr",
-    "noCombo": "No matching combo found. Configure one with: omniroute combo create"
+    "noCombo": "No matching combo found. Configure one with: birouter combo create"
   },
   "chat": {
-    "description": "Send a one-shot chat prompt to OmniRoute",
+    "description": "Send a one-shot chat prompt to Birouter",
     "file": "Read prompt from file",
     "stdin": "Read prompt from stdin",
     "system": "System prompt",
@@ -222,14 +222,14 @@
     "combo": "Force a specific combo by name",
     "responses_api": "Use /v1/responses instead of /v1/chat/completions",
     "stream": "Stream response incrementally",
-    "no_history": "Do not save to ~/.omniroute/cli-history.jsonl",
+    "no_history": "Do not save to ~/.birouter/cli-history.jsonl",
     "error": {
       "empty_prompt": "Error: prompt is required (positional arg, --file, or --stdin)"
     }
   },
   "serve": {
-    "description": "Start the OmniRoute server (default action)",
-    "starting": "Starting OmniRoute server on port {port}...",
+    "description": "Start the Birouter server (default action)",
+    "starting": "Starting Birouter server on port {port}...",
     "ready": "Ready at http://localhost:{port}",
     "stopping": "Stopping server (PID {pid})...",
     "stopped": "Server stopped.",
@@ -242,12 +242,12 @@
     "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
     "tray": "Show system tray icon (desktop only, opt-in)",
     "no_tray": "Disable system tray icon",
-    "tls_cert": "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)",
-    "tls_key": "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
+    "tls_cert": "Path to a TLS certificate (PEM) to serve HTTPS (also BIROUTER_TLS_CERT)",
+    "tls_key": "Path to the TLS private key (PEM) to serve HTTPS (also BIROUTER_TLS_KEY)"
   },
   "backup": {
     "title": "Backup",
-    "description": "Create a backup of OmniRoute data",
+    "description": "Create a backup of Birouter data",
     "creating": "Creating backup...",
     "done": "Backup saved to {path}",
     "noFiles": "No files to backup (database not initialized)",
@@ -259,7 +259,7 @@
     "noBackups": "No backups found.",
     "notFound": "Backup not found: {name}",
     "confirmRestore": "Overwrite current data with backup from {ts}?",
-    "createDescription": "Create a backup of OmniRoute data",
+    "createDescription": "Create a backup of Birouter data",
     "nameOpt": "Custom backup name",
     "cloudOpt": "Upload backup to cloud storage",
     "encryptOpt": "Encrypt backup with AES-256-GCM",
@@ -277,14 +277,14 @@
       "statusDescription": "Show current backup schedule status",
       "cronOpt": "Cron expression for schedule (default: daily at 3am)",
       "enabled": "Automatic backup enabled (cron: {cron}).",
-      "hint": "  The schedule is read by omniroute serve on startup.",
+      "hint": "  The schedule is read by birouter serve on startup.",
       "disabled": "Automatic backup disabled.",
       "notConfigured": "No backup schedule configured."
     }
   },
   "health": {
     "description": "Check server health and component status",
-    "noServer": "Server not running. Start with: omniroute serve",
+    "noServer": "Server not running. Start with: birouter serve",
     "title": "Health",
     "status": "Status: {status}",
     "uptime": "Uptime: {uptime}",
@@ -293,21 +293,21 @@
   },
   "quota": {
     "description": "Show provider quota usage",
-    "noServer": "Server not running. Start with: omniroute serve",
+    "noServer": "Server not running. Start with: birouter serve",
     "noData": "No quota information available."
   },
   "cache": {
     "description": "Manage response cache",
-    "noServer": "Server not running. Start with: omniroute serve",
+    "noServer": "Server not running. Start with: birouter serve",
     "cleared": "Cache cleared.",
     "clearFailed": "Failed to clear cache."
   },
   "redis": {
-    "description": "Launch a 1-click local Redis container (Podman or Docker) for OmniRoute caching and quota tracking"
+    "description": "Launch a 1-click local Redis container (Podman or Docker) for Birouter caching and quota tracking"
   },
   "test": {
     "description": "Test a provider connection",
-    "noServer": "Server not running. Start with: omniroute serve",
+    "noServer": "Server not running. Start with: birouter serve",
     "testing": "Testing {provider} / {model}...",
     "passed": "Connection successful!",
     "failed": "Connection failed: {error}",
@@ -319,7 +319,7 @@
     "saved": "Results saved to {path}",
     "compareTitle": "Model Comparison",
     "compareMinTwo": "At least two models required for --compare (comma-separated)",
-    "noProviders": "No providers configured. Add one with: omniroute keys add"
+    "noProviders": "No providers configured. Add one with: birouter keys add"
   },
   "update": {
     "checking": "Checking for updates...",
@@ -391,7 +391,7 @@
     }
   },
   "policy": {
-    "description": "Manage OmniRoute authorization policies",
+    "description": "Manage Birouter authorization policies",
     "list": {
       "description": "List policies",
       "kind": "Filter by kind (allow|deny|rate-limit|cost-cap)",
@@ -428,7 +428,7 @@
     }
   },
   "compression": {
-    "description": "Configure and inspect the OmniRoute compression pipeline",
+    "description": "Configure and inspect the Birouter compression pipeline",
     "status": {
       "description": "Show current compression status and settings"
     },
@@ -482,18 +482,18 @@
     "confirmRotate": "Rotate tunnel {type}? (a new URL will be generated)"
   },
   "stop": {
-    "description": "Stop the OmniRoute server",
+    "description": "Stop the Birouter server",
     "stopping": "Stopping server (PID {pid})...",
     "stopped": "Server stopped.",
     "notRunning": "No server is running.",
     "portFallback": "No PID file found, attempting port-based stop..."
   },
   "restart": {
-    "description": "Restart the OmniRoute server",
-    "restarting": "Restarting OmniRoute server..."
+    "description": "Restart the Birouter server",
+    "restarting": "Restarting Birouter server..."
   },
   "dashboard": {
-    "description": "Open the OmniRoute dashboard in a browser",
+    "description": "Open the Birouter dashboard in a browser",
     "opening": "Opening dashboard at {url}",
     "urlOnly": "Print dashboard URL without opening browser",
     "tui": "Open interactive TUI dashboard (terminal UI, 7 tabs)"
@@ -501,7 +501,7 @@
   "models": {
     "description": "List available models (requires server)",
     "search": "Filter models by id, name, provider, or description",
-    "noServer": "Server not running. Start with: omniroute serve",
+    "noServer": "Server not running. Start with: birouter serve",
     "noModels": "No models found."
   },
   "audit": {
@@ -533,7 +533,7 @@
     }
   },
   "skills": {
-    "description": "Manage OmniRoute skills (sandbox, builtin, custom, hybrid, skillssh)",
+    "description": "Manage Birouter skills (sandbox, builtin, custom, hybrid, skillssh)",
     "list": {
       "description": "List installed skills",
       "type": "Filter by type (sandbox|custom|builtin|hybrid|skillssh)",
@@ -606,7 +606,7 @@
     }
   },
   "memory": {
-    "description": "Manage OmniRoute conversational memory (FTS5 + vector)",
+    "description": "Manage Birouter conversational memory (FTS5 + vector)",
     "search": {
       "description": "Search memory entries by semantic query",
       "type": "Filter by memory type (user|feedback|project|reference)",
@@ -764,7 +764,7 @@
     }
   },
   "webhooks": {
-    "description": "Manage OmniRoute webhooks",
+    "description": "Manage Birouter webhooks",
     "events": {
       "description": "List all available webhook event types"
     },
@@ -796,16 +796,16 @@
     }
   },
   "program": {
-    "description": "OmniRoute — Smart AI Router with Auto Fallback",
+    "description": "Birouter — Smart AI Router with Auto Fallback",
     "version": "Print version and exit",
     "output": "Output format (table, json, jsonl, csv)",
     "quiet": "Suppress non-essential output",
     "no_color": "Disable colored output",
     "timeout": "HTTP request timeout in milliseconds",
-    "api_key": "API key for OmniRoute server",
-    "base_url": "OmniRoute server base URL",
+    "api_key": "API key for Birouter server",
+    "base_url": "Birouter server base URL",
     "context": "Server context/profile to use for this command",
-    "lang": "Set CLI display language (overrides OMNIROUTE_LANG)"
+    "lang": "Set CLI display language (overrides BIROUTER_LANG)"
   },
   "files": {
     "description": "Manage files (upload, list, get, download, delete)",
@@ -1049,7 +1049,7 @@
     }
   },
   "openapi": {
-    "description": "Access and test the OmniRoute OpenAPI spec",
+    "description": "Access and test the Birouter OpenAPI spec",
     "dump": {
       "description": "Dump OpenAPI spec to stdout or file",
       "format": "Output format: yaml|json (default: yaml)",
@@ -1119,7 +1119,7 @@
     }
   },
   "open": {
-    "description": "Open a specific OmniRoute dashboard page in the browser",
+    "description": "Open a specific Birouter dashboard page in the browser",
     "url": "Print URL only, do not open browser"
   },
   "telemetry": {
@@ -1136,7 +1136,7 @@
     }
   },
   "sync": {
-    "description": "Sync configuration between OmniRoute instances",
+    "description": "Sync configuration between Birouter instances",
     "push": {
       "description": "Push config to cloud or remote instance",
       "target": "Target (cloud or context:name)",
@@ -1192,10 +1192,10 @@
       "listTitle": "Available Languages",
       "current": "Language: {code} ({name})",
       "saved": "Language set to {code} ({name}).",
-      "noCode": "Language code required. Run 'omniroute config lang list' to see available codes.",
-      "unknown": "Unknown language code: {code}. Run 'omniroute config lang list' to see available codes.",
+      "noCode": "Language code required. Run 'birouter config lang list' to see available codes.",
+      "unknown": "Unknown language code: {code}. Run 'birouter config lang list' to see available codes.",
       "alreadySet": "Language is already set to {code}.",
-      "envHint": "Tip: you can also set OMNIROUTE_LANG={code} in your environment."
+      "envHint": "Tip: you can also set BIROUTER_LANG={code} in your environment."
     }
   },
   "completion": {
@@ -1212,7 +1212,7 @@
     "filter": "Filter by level (error,warn,info) — comma-separated",
     "lines": "Number of lines to fetch",
     "timeout": "Connection timeout in ms",
-    "baseUrl": "OmniRoute API base URL",
+    "baseUrl": "Birouter API base URL",
     "requestId": "Filter by request ID",
     "apiKey": "Filter by API key",
     "combo": "Filter by combo name",
@@ -1228,10 +1228,10 @@
     "description": "Control the system tray icon",
     "show": "Show the tray icon (if server is running with --tray)",
     "hide": "Hide the tray icon",
-    "quit": "Quit OmniRoute via tray"
+    "quit": "Quit Birouter via tray"
   },
   "autostart": {
-    "description": "Manage OmniRoute autostart at boot (Linux: systemd user service)",
+    "description": "Manage Birouter autostart at boot (Linux: systemd user service)",
     "enable": "Enable autostart at boot",
     "disable": "Disable autostart at boot",
     "toggle": "Toggle autostart at boot",
@@ -1253,7 +1253,7 @@
     "resume": "Resume a saved session by name"
   },
   "plugin": {
-    "description": "Manage CLI plugins (omniroute-cmd-*)",
+    "description": "Manage CLI plugins (birouter-cmd-*)",
     "list": "List installed plugins",
     "install": "Install a plugin from npm or local path",
     "remove": "Remove an installed plugin",
@@ -1263,16 +1263,16 @@
     "scaffold": "Scaffold a new plugin boilerplate"
   },
   "launch": {
-    "description": "Launch Claude Code pointed at OmniRoute (local or remote, with --profile)",
+    "description": "Launch Claude Code pointed at Birouter (local or remote, with --profile)",
     "token": "Token the Claude client should send (ANTHROPIC_AUTH_TOKEN)",
-    "notRunning": "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.",
+    "notRunning": "Birouter is not reachable at {port}. Start it with 'birouter serve'.",
     "notFound": "The 'claude' CLI was not found in PATH."
   },
   "setupClaude": {
-    "description": "Generate ~/.claude/profiles Claude Code profiles from the OmniRoute model catalog"
+    "description": "Generate ~/.claude/profiles Claude Code profiles from the Birouter model catalog"
   },
   "connect": {
-    "description": "Connect to a remote OmniRoute server and enter remote mode"
+    "description": "Connect to a remote Birouter server and enter remote mode"
   },
   "tokens": {
     "description": "Manage scoped CLI access tokens (remote mode)"
@@ -1281,9 +1281,9 @@
     "description": "Pick a provider+model from the active server and write a local CLI config"
   },
   "launchCodex": {
-    "description": "Launch Codex CLI pointed at OmniRoute (local or remote VPS)"
+    "description": "Launch Codex CLI pointed at Birouter (local or remote VPS)"
   },
   "setupCodex": {
-    "description": "Generate ~/.codex profile files from OmniRoute live model catalog"
+    "description": "Generate ~/.codex profile files from Birouter live model catalog"
   }
 }

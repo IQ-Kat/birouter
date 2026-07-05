@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import {
-  VALID_VARIANTS,
-  type AutoVariant,
-} from "@omniroute/open-sse/services/autoCombo/autoPrefix";
+import { VALID_VARIANTS, type AutoVariant } from "@birouter/open-sse/services/autoCombo/autoPrefix";
 
 const ALL_VARIANTS: Array<{ variant: AutoVariant | undefined; name: string }> = [
   { variant: undefined, name: "Auto" },
@@ -20,7 +17,7 @@ export async function GET(request: Request) {
 
   try {
     const { createVirtualAutoCombo } =
-      await import("@omniroute/open-sse/services/autoCombo/virtualFactory");
+      await import("@birouter/open-sse/services/autoCombo/virtualFactory");
 
     const combos = [];
     for (const { variant, name } of ALL_VARIANTS) {

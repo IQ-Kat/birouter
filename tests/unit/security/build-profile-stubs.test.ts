@@ -1,5 +1,5 @@
 /**
- * Regression: when OMNIROUTE_BUILD_PROFILE=minimal is the resolved build
+ * Regression: when BIROUTER_BUILD_PROFILE=minimal is the resolved build
  * profile, the four stub modules throw FeatureDisabledError instead of
  * performing their privileged operations.
  * See docs/security/SOCKET_DEV_FINDINGS.md.
@@ -13,7 +13,7 @@ test("featureDisabledError carries the featureName", async () => {
   assert.equal(err.featureName, "my-feature");
   assert.match(err.message, /my-feature/);
   assert.match(err.message, /minimal/);
-  assert.equal("OMNIROUTE_BUILD_PROFILE" in mod, false);
+  assert.equal("BIROUTER_BUILD_PROFILE" in mod, false);
   assert.equal("IS_MINIMAL_BUILD" in mod, false);
 });
 

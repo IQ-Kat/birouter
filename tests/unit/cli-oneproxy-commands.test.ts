@@ -19,7 +19,7 @@ function makeCmd(output = "json") {
   return { optsWithGlobals: () => ({ output, quiet: output !== "table" }) };
 }
 
-test("oneproxy status chama omniroute_oneproxy_stats via MCP", async () => {
+test("oneproxy status chama birouter_oneproxy_stats via MCP", async () => {
   let capturedBody: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((_url: string, opts: any) => {
@@ -29,11 +29,11 @@ test("oneproxy status chama omniroute_oneproxy_stats via MCP", async () => {
 
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
-    body: JSON.stringify({ name: "omniroute_oneproxy_stats", arguments: {} }),
+    body: JSON.stringify({ name: "birouter_oneproxy_stats", arguments: {} }),
   });
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_oneproxy_stats");
+  assert.equal(capturedBody.name, "birouter_oneproxy_stats");
 });
 
 test("oneproxy stats passa provider e period para MCP", async () => {
@@ -47,7 +47,7 @@ test("oneproxy stats passa provider e period para MCP", async () => {
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_oneproxy_stats",
+      name: "birouter_oneproxy_stats",
       arguments: { provider: "openai", period: "24h" },
     }),
   });
@@ -57,7 +57,7 @@ test("oneproxy stats passa provider e period para MCP", async () => {
   assert.equal(capturedBody.arguments.period, "24h");
 });
 
-test("oneproxy fetch chama omniroute_oneproxy_fetch com count e type", async () => {
+test("oneproxy fetch chama birouter_oneproxy_fetch com count e type", async () => {
   let capturedBody: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((_url: string, opts: any) => {
@@ -68,18 +68,18 @@ test("oneproxy fetch chama omniroute_oneproxy_fetch com count e type", async () 
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_oneproxy_fetch",
+      name: "birouter_oneproxy_fetch",
       arguments: { count: 5, type: "http" },
     }),
   });
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_oneproxy_fetch");
+  assert.equal(capturedBody.name, "birouter_oneproxy_fetch");
   assert.equal(capturedBody.arguments.count, 5);
   assert.equal(capturedBody.arguments.type, "http");
 });
 
-test("oneproxy rotate chama omniroute_oneproxy_rotate com provider", async () => {
+test("oneproxy rotate chama birouter_oneproxy_rotate com provider", async () => {
   let capturedBody: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((_url: string, opts: any) => {
@@ -90,13 +90,13 @@ test("oneproxy rotate chama omniroute_oneproxy_rotate com provider", async () =>
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_oneproxy_rotate",
+      name: "birouter_oneproxy_rotate",
       arguments: { provider: "anthropic" },
     }),
   });
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_oneproxy_rotate");
+  assert.equal(capturedBody.name, "birouter_oneproxy_rotate");
   assert.equal(capturedBody.arguments.provider, "anthropic");
 });
 

@@ -4,7 +4,7 @@
  */
 
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
-import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels";
+import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@birouter/open-sse/config/providerModels";
 
 export interface VisionModelCandidate {
   modelId: string;
@@ -172,9 +172,7 @@ function selectBestModel(
  * Get the best vision model for image description.
  * Respects fixed model override if configured.
  */
-export function getBestVisionModel(
-  config: Partial<VisionBridgeRouterConfig> = {}
-): string {
+export function getBestVisionModel(config: Partial<VisionBridgeRouterConfig> = {}): string {
   const fullConfig = { ...DEFAULT_ROUTER_CONFIG, ...config };
 
   // If fixed model is configured, use it
@@ -184,9 +182,10 @@ export function getBestVisionModel(
 
   // Check selection cache — key includes excluded models to prevent cache pollution
   // across different configurations
-  const cacheKey = fullConfig.excludedModels.length > 0
-    ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
-    : "default";
+  const cacheKey =
+    fullConfig.excludedModels.length > 0
+      ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
+      : "default";
   const cached = selectionCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.modelId;
@@ -250,7 +249,10 @@ export function clearSelectionCache(): void {
 /**
  * Get latency statistics for debugging.
  */
-export function getLatencyStats(): Record<string, { avg: number; samples: number; successRate: number }> {
+export function getLatencyStats(): Record<
+  string,
+  { avg: number; samples: number; successRate: number }
+> {
   const stats: Record<string, { avg: number; samples: number; successRate: number }> = {};
 
   for (const [modelId, records] of latencyStore.entries()) {

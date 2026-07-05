@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { countAuditLog, getAuditLog } from "@/lib/compliance/index";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { AuditLogQuerySchema } from "@/shared/schemas/quota";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 

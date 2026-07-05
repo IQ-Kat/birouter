@@ -15,7 +15,7 @@ const GQL_URL = `${BASE_URL}/api/gql_POST`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-// Model name mapping: OmniRoute ID -> Poe bot name
+// Model name mapping: Birouter ID -> Poe bot name
 const MODEL_MAP: Record<string, string> = {
   "gpt-4o": "GPT-4o",
   "gpt-4-turbo": "GPT-4-Turbo",

@@ -39,7 +39,7 @@ For fuld testmatrix, se `CONTRIBUTING.md` → "Kørsel af Tests". For dyb arkite
 
 ## Projektet i Et Overblik
 
-**OmniRoute** — samlet AI proxy/router. Én endpoint, 160+ LLM udbydere, auto-fallback.
+**Birouter** — samlet AI proxy/router. Én endpoint, 160+ LLM udbydere, auto-fallback.
 
 | Lag            | Placering               | Formål                                                                               |
 | -------------- | ----------------------- | ------------------------------------------------------------------------------------ |
@@ -82,7 +82,7 @@ API-ruter følger et konsistent mønster: `Rute → CORS preflight → Zod body 
 
 ## Modstandsdygtighed Runtime Tilstand
 
-OmniRoute har tre relaterede, men distinkte mekanismer til midlertidige fejl. Hold deres
+Birouter har tre relaterede, men distinkte mekanismer til midlertidige fejl. Hold deres
 omfang adskilt, når du fejlfinder routing adfærd. Se
 [3-lags modstandsdygtighed diagram](./docs/diagrams/exported/resilience-3layers.svg)
 (kilde: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
@@ -220,7 +220,7 @@ forbindelse fortsætte med at betjene andre modeller.
 ### Kode Stil
 
 - **2 mellemrum**, semikolon, dobbelte citationstegn, 100 tegn bredde, es5 trailing commas (håndhævet af lint-staged via Prettier)
-- **Imports**: ekstern → intern (`@/`, `@omniroute/open-sse`) → relativ
+- **Imports**: ekstern → intern (`@/`, `@birouter/open-sse`) → relativ
 - **Navngivning**: filer=camelCase/kebab, komponenter=PascalCase, konstanter=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = fejl overalt; `no-explicit-any` = advarsel i `open-sse/` og `tests/`
 - **TypeScript**: `strict: false`, mål ES2022, modul esnext, opløsning bundler. Foretræk eksplicitte typer.
@@ -388,9 +388,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduler
 - **TypeScript**: 5.9+, mål ES2022, modul esnext, opløsning bundler
-- **Sti aliaser**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Sti aliaser**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Standardport**: 20128 (API + dashboard på samme port)
-- **Data katalog**: `DATA_DIR` miljøvariabel, standard til `~/.omniroute/`
+- **Data katalog**: `DATA_DIR` miljøvariabel, standard til `~/.birouter/`
 - **Nøgle miljøvariabler**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Opsætning: `cp .env.example .env` og generer derefter `JWT_SECRET` (`openssl rand -base64 48`) og `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -413,4 +413,4 @@ git push -u origin feat/your-feature
 13. Indsæt aldrig string-interpolerede eksterne stier eller runtime-værdier i shell-scripts, der sendes til `exec()`/`spawn()` — send i stedet via `env`-muligheden. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Afvis aldrig en CodeQL / Secret-Scanning advarsel uden (a) først at tjekke mønsterdokumentationen ovenfor for at se, om hjælperen gælder, og (b) optage den tekniske begrundelse i afvisningskommentaren. Præcedens: `js/stack-trace-exposure` rejst på callsites, der allerede ruter gennem `sanitizeErrorMessage()` er en kendt CodeQL begrænsning (tilpassede saniteringsmetoder ikke genkendt) — afvis som `false positive` med reference til `docs/security/ERROR_SANITIZATION.md`.
 15. Udsæt aldrig ruter, der starter børneprocesser (`/api/mcp/`, `/api/cli-tools/runtime/`) uden `isLocalOnlyPath()` klassifikation i `src/server/authz/routeGuard.ts`. Loopback håndhævelse sker ubetinget før enhver godkendelseskontrol — lækket JWT via tunnel kan ikke udløse processtart. Se `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Inkluder aldrig `Co-Authored-By` trailers, der krediterer en AI-assistent, LLM eller automatiseringskonto (f.eks. navne, der indeholder "Claude", "GPT", "Copilot", "Bot"; e-mails på `anthropic.com` / `openai.com` / bot-ejede `noreply.github.com` adresser). Sådanne trailers dirigerer commit-attribution til bot-kontoen på GitHub, hvilket skjuler den rigtige forfatter (`diegosouzapw`) i PR-historikken. Menneskelige bidragydere — herunder upstream PR-forfattere og issue-rapportører, der bliver porteret til OmniRoute — KAN og BØR krediteres med standard `Co-authored-by: Name <email>` trailers; upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`) afhænger af dette.
+16. Inkluder aldrig `Co-Authored-By` trailers, der krediterer en AI-assistent, LLM eller automatiseringskonto (f.eks. navne, der indeholder "Claude", "GPT", "Copilot", "Bot"; e-mails på `anthropic.com` / `openai.com` / bot-ejede `noreply.github.com` adresser). Sådanne trailers dirigerer commit-attribution til bot-kontoen på GitHub, hvilket skjuler den rigtige forfatter (`diegosouzapw`) i PR-historikken. Menneskelige bidragydere — herunder upstream PR-forfattere og issue-rapportører, der bliver porteret til Birouter — KAN og BØR krediteres med standard `Co-authored-by: Name <email>` trailers; upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`) afhænger af dette.

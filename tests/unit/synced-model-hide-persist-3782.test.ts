@@ -29,7 +29,7 @@ import fs from "node:fs";
 // into the shared dev/CI database and never clean it up, so the SECOND run
 // would see stale overrides and the first-sync precondition would fail. Point
 // DATA_DIR at a throwaway dir before any import that opens the SQLite handle.
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-synced-hide-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-test-synced-hide-"));
 process.env.DATA_DIR = tmpDir;
 
 const {

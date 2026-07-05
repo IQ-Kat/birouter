@@ -115,7 +115,7 @@ describe("Compression Settings API Schema Validation", () => {
 // Mirrors the mcp-accessibility-config test harness: allocate a temp DATA_DIR,
 // import route + DB modules, tear down in after().
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compression-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-compression-route-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

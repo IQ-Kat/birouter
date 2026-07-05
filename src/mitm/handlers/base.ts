@@ -6,7 +6,7 @@
  * The base handles the cross-cutting concerns shared by every IDE-agent handler:
  *   - request body capture + secret masking
  *   - source model extraction
- *   - forwarding to the OmniRoute router (Next.js API)
+ *   - forwarding to the Birouter router (Next.js API)
  *   - SSE piping
  *   - optional Traffic Inspector hook (F4 — loaded via dynamic import; no-op when
  *     `agentBridgeHook.ts` is not yet present in the build)
@@ -23,13 +23,13 @@ import type { InterceptedRequest } from "../inspector/types";
 
 /**
  * Best-effort error sanitizer.
- * Routes through `@omniroute/open-sse/utils/error.sanitizeErrorMessage` (Hard Rule #12)
+ * Routes through `@birouter/open-sse/utils/error.sanitizeErrorMessage` (Hard Rule #12)
  * when available; falls back to a safe `String(err)` if the module is not present
  * (e.g. unit tests that don't load the full open-sse barrel).
  */
 async function safeErrorMessage(err: unknown): Promise<string> {
   try {
-    const mod = (await import("@omniroute/open-sse/utils/error")) as {
+    const mod = (await import("@birouter/open-sse/utils/error")) as {
       sanitizeErrorMessage?: (m: unknown) => string;
     };
     if (typeof mod.sanitizeErrorMessage === "function") {
@@ -64,7 +64,7 @@ async function loadAgentBridgeHook(): Promise<{
       responseSize: number;
       proxyLatencyMs: number;
       upstreamLatencyMs: number;
-    },
+    }
   ) => void;
   recordRequestError?: (intercepted: InterceptedRequest, err: unknown) => void;
 } | null> {
@@ -84,7 +84,7 @@ export abstract class MitmHandlerBase {
    * Concrete handlers must:
    *   1. Optionally call `this.hookBufferStart(req, body, mappedModel)`.
    *   2. Build the upstream-bound payload (translate model, format, etc.).
-   *   3. Call `this.fetchRouter(...)` for the OmniRoute router round-trip.
+   *   3. Call `this.fetchRouter(...)` for the Birouter router round-trip.
    *   4. Pipe the response back via `this.pipeSSE(...)` for streaming
    *      or write the JSON body directly for non-streaming flows.
    *   5. Call `this.hookBufferUpdate(intercepted)` on completion / error.
@@ -93,7 +93,7 @@ export abstract class MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void>;
 
   /**
@@ -124,17 +124,17 @@ export abstract class MitmHandlerBase {
   }
 
   /**
-   * Forward the prepared body to the OmniRoute router (Next.js API).
-   * Adds AgentBridge correlation headers (`x-omniroute-source`, `x-omniroute-agent`)
+   * Forward the prepared body to the Birouter router (Next.js API).
+   * Adds AgentBridge correlation headers (`x-birouter-source`, `x-birouter-agent`)
    * and forwards a sanitized copy of the original request headers (secrets masked,
    * hop-by-hop stripped).
    */
   protected async fetchRouter(
     body: unknown,
     path: string,
-    headers: IncomingHttpHeaders,
+    headers: IncomingHttpHeaders
   ): Promise<Response> {
-    const base = process.env.OMNIROUTE_BASE_URL ?? "http://127.0.0.1:20128";
+    const base = process.env.BIROUTER_BASE_URL ?? "http://127.0.0.1:20128";
     const url = `${base.replace(/\/+$/, "")}${path}`;
     const apiKey = process.env.ROUTER_API_KEY ?? "";
 
@@ -143,8 +143,8 @@ export abstract class MitmHandlerBase {
       headers: {
         "Content-Type": "application/json",
         ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-        "x-omniroute-source": "agent-bridge",
-        "x-omniroute-agent": this.agentId,
+        "x-birouter-source": "agent-bridge",
+        "x-birouter-agent": this.agentId,
         ...sanitizeHeaders(headers),
       },
       body: typeof body === "string" ? body : JSON.stringify(body),
@@ -161,7 +161,7 @@ export abstract class MitmHandlerBase {
   protected async pipeSSE(
     upstream: Response,
     res: ServerResponse,
-    onChunk?: (c: Buffer) => void,
+    onChunk?: (c: Buffer) => void
   ): Promise<void> {
     if (!upstream.body) {
       if (!res.headersSent) res.writeHead(upstream.status, { "Content-Type": "application/json" });
@@ -210,7 +210,7 @@ export abstract class MitmHandlerBase {
   protected async hookBufferStart(
     req: IncomingMessage,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<InterceptedRequest> {
     const hook = await loadAgentBridgeHook();
     if (hook?.recordRequestStart) {
@@ -268,7 +268,7 @@ export abstract class MitmHandlerBase {
       responseSize: number;
       proxyLatencyMs: number;
       upstreamLatencyMs: number;
-    },
+    }
   ): void {
     const finalOpts = opts ?? {
       status: typeof intercepted.status === "number" ? intercepted.status : 0,
@@ -293,10 +293,7 @@ export abstract class MitmHandlerBase {
    * Report a failed request to the Traffic Inspector.
    * No-op when the inspector module is not present.
    */
-  protected async hookBufferError(
-    intercepted: InterceptedRequest,
-    err: unknown,
-  ): Promise<void> {
+  protected async hookBufferError(intercepted: InterceptedRequest, err: unknown): Promise<void> {
     const hook = await loadAgentBridgeHook();
     if (hook?.recordRequestError) {
       try {
@@ -311,11 +308,7 @@ export abstract class MitmHandlerBase {
    * Render a Hard-Rule-#12-compliant error JSON body and send via `res`.
    * Returns the sanitized error string so callers may also log it.
    */
-  protected async writeError(
-    res: ServerResponse,
-    err: unknown,
-    statusCode = 500,
-  ): Promise<string> {
+  protected async writeError(res: ServerResponse, err: unknown, statusCode = 500): Promise<string> {
     const safe = await safeErrorMessage(err);
     if (!res.headersSent) {
       res.writeHead(statusCode, { "Content-Type": "application/json" });

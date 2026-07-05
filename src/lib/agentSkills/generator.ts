@@ -86,7 +86,7 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
   lines.push("## Authentication\n");
   lines.push(
     "All requests require a valid Bearer token or session cookie. " +
-      "Obtain a token via `POST /api/auth/login` or configure `REQUIRE_API_KEY=false` for local development.",
+      "Obtain a token via `POST /api/auth/login` or configure `REQUIRE_API_KEY=false` for local development."
   );
   lines.push("");
 
@@ -108,10 +108,8 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
       // Minimal curl example
       const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
       lines.push("```bash");
-      lines.push(
-        `curl ${curlMethod}https://localhost:20128${op.path} \\`,
-      );
-      lines.push('  -H "Authorization: Bearer $OMNIROUTE_TOKEN"');
+      lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+      lines.push('  -H "Authorization: Bearer $BIROUTER_TOKEN"');
       if (["POST", "PUT", "PATCH"].includes(op.method)) {
         lines.push('  -H "Content-Type: application/json" \\');
         lines.push("  -d '{}'");
@@ -124,7 +122,7 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
   lines.push("## Payloads\n");
   lines.push(
     "See the full OpenAPI specification at `GET /api/openapi/spec` or " +
-      "`docs/openapi.yaml` for detailed request/response schemas.",
+      "`docs/openapi.yaml` for detailed request/response schemas."
   );
   lines.push("");
 
@@ -133,8 +131,7 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
 
 function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
   const familyMap = sources.cliRegistry.families;
-  const cmds =
-    familyMap.get(skill.area as Parameters<typeof familyMap.get>[0]) ?? [];
+  const cmds = familyMap.get(skill.area as Parameters<typeof familyMap.get>[0]) ?? [];
 
   const lines: string[] = [];
 
@@ -144,8 +141,8 @@ function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
 
   lines.push("## Quick install\n");
   lines.push("```bash");
-  lines.push("npm install -g omniroute   # or: npx omniroute");
-  lines.push("omniroute --version");
+  lines.push("npm install -g birouter   # or: npx birouter");
+  lines.push("birouter --version");
   lines.push("```");
   lines.push("");
 
@@ -172,7 +169,7 @@ function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
 
       lines.push("**Example:**\n");
       lines.push("```bash");
-      lines.push(`omniroute ${cmd.name}`);
+      lines.push(`birouter ${cmd.name}`);
       lines.push("```");
       lines.push("");
     }
@@ -192,7 +189,7 @@ function buildCliBody(skill: AgentSkill, sources: BuildSources): string {
 export function buildSkillMarkdown(
   skillId: string,
   sources: BuildSources,
-  existingContent?: string,
+  existingContent?: string
 ): { frontmatter: { name: string; description: string }; body: string } {
   const skill = getCatalog().find((s) => s.id === skillId);
   if (!skill) {
@@ -205,9 +202,7 @@ export function buildSkillMarkdown(
   };
 
   const bodyLines =
-    skill.category === "api"
-      ? buildApiBody(skill, sources)
-      : buildCliBody(skill, sources);
+    skill.category === "api" ? buildApiBody(skill, sources) : buildCliBody(skill, sources);
 
   // Re-inject custom block if present in existing content
   let customBlock = "";
@@ -218,11 +213,7 @@ export function buildSkillMarkdown(
     }
   }
 
-  const body =
-    GENERATED_COMMENT +
-    "\n\n" +
-    bodyLines +
-    customBlock;
+  const body = GENERATED_COMMENT + "\n\n" + bodyLines + customBlock;
 
   return { frontmatter: fm, body };
 }
@@ -254,9 +245,7 @@ export async function generateAgentSkills(opts: GeneratorOptions): Promise<Gener
   const catalogIds = new Set(catalog.map((s) => s.id));
 
   // Filter to onlyIds if provided
-  const skillsToProcess = onlyIds
-    ? catalog.filter((s) => onlyIds.includes(s.id))
-    : catalog;
+  const skillsToProcess = onlyIds ? catalog.filter((s) => onlyIds.includes(s.id)) : catalog;
 
   // Lazily parse sources (only once per generator run)
   let _openapi: ParsedOpenapi | null = null;

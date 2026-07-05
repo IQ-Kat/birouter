@@ -18,10 +18,10 @@ vi.mock("../audit.ts", () => ({
 
 describe("cache MCP tools", () => {
   it("should be registered in MCP_TOOLS and MCP_TOOL_MAP", () => {
-    expect(MCP_TOOLS.find((tool) => tool.name === "omniroute_cache_stats")).toBeDefined();
-    expect(MCP_TOOLS.find((tool) => tool.name === "omniroute_cache_flush")).toBeDefined();
-    expect(MCP_TOOL_MAP.omniroute_cache_stats).toBeDefined();
-    expect(MCP_TOOL_MAP.omniroute_cache_flush).toBeDefined();
+    expect(MCP_TOOLS.find((tool) => tool.name === "birouter_cache_stats")).toBeDefined();
+    expect(MCP_TOOLS.find((tool) => tool.name === "birouter_cache_flush")).toBeDefined();
+    expect(MCP_TOOL_MAP.birouter_cache_stats).toBeDefined();
+    expect(MCP_TOOL_MAP.birouter_cache_flush).toBeDefined();
   });
 
   it("should validate cache tool input schemas", () => {
@@ -55,8 +55,8 @@ describe("cache MCP tools registration", () => {
     const { tools } = await client.listTools();
     const names = tools.map((tool) => tool.name);
 
-    expect(names).toContain("omniroute_cache_stats");
-    expect(names).toContain("omniroute_cache_flush");
+    expect(names).toContain("birouter_cache_stats");
+    expect(names).toContain("birouter_cache_flush");
     expect(tools.length).toBeGreaterThanOrEqual(29);
   });
 });

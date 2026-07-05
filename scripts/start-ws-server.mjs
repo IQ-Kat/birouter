@@ -9,14 +9,14 @@
  * Environment variables:
  *   LIVE_WS_PORT       — WebSocket server port (default: 20129)
  *   LIVE_WS_HOST       — WebSocket server host (default: 127.0.0.1)
- *   OMNIROUTE_DISABLE_LIVE_WS — Set to "1" or "true" to disable
+ *   BIROUTER_DISABLE_LIVE_WS — Set to "1" or "true" to disable
  */
 
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
-const BOOTSTRAPPED_ENV = "OMNIROUTE_LIVE_WS_BOOTSTRAPPED";
+const BOOTSTRAPPED_ENV = "BIROUTER_LIVE_WS_BOOTSTRAPPED";
 
 /**
  * Package root for the launcher = the directory above `scripts/`, where
@@ -52,7 +52,7 @@ export function buildSidecarSpawn(scriptUrl, env = process.env) {
         [BOOTSTRAPPED_ENV]: "1",
         // Prevent liveServer.ts from auto-starting on import; this script owns
         // process startup so errors propagate to the supervisor/CLI caller.
-        OMNIROUTE_ENABLE_LIVE_WS: "0",
+        BIROUTER_ENABLE_LIVE_WS: "0",
       },
     },
   };
@@ -60,10 +60,10 @@ export function buildSidecarSpawn(scriptUrl, env = process.env) {
 
 async function main() {
   if (
-    process.env.OMNIROUTE_DISABLE_LIVE_WS === "1" ||
-    process.env.OMNIROUTE_DISABLE_LIVE_WS === "true"
+    process.env.BIROUTER_DISABLE_LIVE_WS === "1" ||
+    process.env.BIROUTER_DISABLE_LIVE_WS === "true"
   ) {
-    console.log("[LiveWS] Disabled via OMNIROUTE_DISABLE_LIVE_WS");
+    console.log("[LiveWS] Disabled via BIROUTER_DISABLE_LIVE_WS");
     process.exit(0);
   }
 

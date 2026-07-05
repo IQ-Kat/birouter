@@ -7,7 +7,7 @@ const ROOT = new URL("../..", import.meta.url).pathname;
 const { resolveMcpEntry } = await import("../../bin/mcp-server.mjs");
 
 describe("resolveMcpEntry (#MCP — dist/ path resolution)", () => {
-  const FAKE_ROOT = "/fake/omniroute";
+  const FAKE_ROOT = "/fake/birouter";
 
   it("returns dist/open-sse/mcp-server/server.js when it exists", () => {
     const distJs = join(FAKE_ROOT, "dist", "open-sse", "mcp-server", "server.js");

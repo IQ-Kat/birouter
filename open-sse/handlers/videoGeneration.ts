@@ -271,7 +271,7 @@ async function handleDashscopeVideoGeneration({
   }
 }
 
-// Map OmniRoute size/aspect_ratio → Alibaba DashScope "WxH" (1280*720).
+// Map Birouter size/aspect_ratio → Alibaba DashScope "WxH" (1280*720).
 // Accepts "1280*720", "1280x720", or a ratio "16:9". Returns undefined if unparseable
 // (then omitted from the payload so DashScope applies its own default).
 function normalizeDashscopeSize(size: unknown, aspectRatio: unknown): string | undefined {
@@ -428,7 +428,7 @@ async function handleComfyUIVideoGeneration({ model, provider, providerConfig, b
     "7": {
       class_type: "SaveAnimatedWEBP",
       inputs: {
-        filename_prefix: "omniroute_video",
+        filename_prefix: "birouter_video",
         fps: body.fps || 8,
         lossless: false,
         quality: 80,

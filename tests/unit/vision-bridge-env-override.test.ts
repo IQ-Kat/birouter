@@ -9,7 +9,7 @@
  *
  * The fix adds two new env vars:
  *   - VISION_BRIDGE_BASE_URL: alternate OpenAI-compatible base URL (e.g.
- *     OmniRoute self-loop, Google's Gemini OpenAI-compat endpoint).
+ *     Birouter self-loop, Google's Gemini OpenAI-compat endpoint).
  *   - VISION_BRIDGE_API_KEY: alternate API key for that endpoint.
  *
  * These tests cover the helpers in isolation; the integration with the
@@ -81,9 +81,9 @@ test("#2232 — whitespace-only VISION_BRIDGE_BASE_URL falls through to OPENAI_A
   assert.equal(resolveVisionBridgeBaseUrl(), "https://oai.example.com/v1");
 });
 
-test("#2232 — OmniRoute-internal providers default to self-loop when no env vars set", () => {
+test("#2232 — Birouter-internal providers default to self-loop when no env vars set", () => {
   clearEnv();
-  // Non-standard prefixes (kr/, if/, pol/, groq/) should use OmniRoute self-loop
+  // Non-standard prefixes (kr/, if/, pol/, groq/) should use Birouter self-loop
   assert.equal(resolveVisionBridgeBaseUrl("kr/claude-sonnet-4-5"), "http://localhost:20128/v1");
   assert.equal(resolveVisionBridgeBaseUrl("if/kimi-k2-thinking"), "http://localhost:20128/v1");
   assert.equal(resolveVisionBridgeBaseUrl("pol/gpt-5"), "http://localhost:20128/v1");

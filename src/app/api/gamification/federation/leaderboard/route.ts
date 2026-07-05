@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   const token = authHeader.slice(7);
   const tokenHash = crypto
-    .pbkdf2Sync(token, "omniroute-federation-salt", 120000, 32, "sha256")
+    .pbkdf2Sync(token, "birouter-federation-salt", 120000, 32, "sha256")
     .toString("hex");
   const server = getConnectedServerByKeyHash(tokenHash);
 

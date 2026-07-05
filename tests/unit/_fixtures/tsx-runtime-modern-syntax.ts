@@ -3,7 +3,7 @@
  * skips it). Exercised by `tests/unit/tsx-runtime-transform-5757.test.ts`.
  *
  * It concentrates the modern JS/TS syntax that the published CLI's runtime
- * `tsx/esm` loader (`bin/omniroute.mjs` → `await import("tsx/esm")`) must
+ * `tsx/esm` loader (`bin/birouter.mjs` → `await import("tsx/esm")`) must
  * transform through esbuild at startup: object/array destructuring + rest,
  * object/array spread, class + private fields, optional chaining, nullish
  * coalescing, logical assignment, async/await and top-level await.

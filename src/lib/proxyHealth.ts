@@ -2,7 +2,7 @@
  * T14: Proxy Fast-Fail — TCP health check with in-memory cache.
  *
  * When a configured HTTP/SOCKS5 proxy is unreachable, every request
- * through OmniRoute used to wait for the full PROXY_TIMEOUT_MS (30s)
+ * through Birouter used to wait for the full PROXY_TIMEOUT_MS (30s)
  * before failing. This module detects dead proxies in <2s via a quick
  * TCP connection check, caching the result to avoid overhead per request.
  *
@@ -10,7 +10,7 @@
  */
 
 import { createConnection } from "node:net";
-import { stripIpv6Brackets } from "@omniroute/open-sse/utils/proxyFamily";
+import { stripIpv6Brackets } from "@birouter/open-sse/utils/proxyFamily";
 
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);

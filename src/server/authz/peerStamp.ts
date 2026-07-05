@@ -45,7 +45,7 @@ export function resolveStampedPeer(
  * token, "0", junk — returns false (the safe default: assume no proxy hop).
  *
  * SECURITY: paired with `resolveStampedPeer()` to close the upstream
- * decolua/9router da667836 vulnerability — when OmniRoute itself runs behind
+ * decolua/9router da667836 vulnerability — when Birouter itself runs behind
  * an external reverse proxy (nginx / Caddy / Cloudflare Tunnel),
  * `req.socket.remoteAddress` is the proxy hop (usually 127.0.0.1), not the
  * end-user. Without this signal, `classifyHostLocality()` would return

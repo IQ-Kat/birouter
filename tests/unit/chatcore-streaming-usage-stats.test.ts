@@ -8,14 +8,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-stream-usage-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-stream-usage-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const { getUsageHistory } = await import("../../src/lib/usage/usageHistory.ts");
-const { recordStreamingUsageStats } = await import(
-  "../../open-sse/handlers/chatCore/streamingUsageStats.ts"
-);
+const { recordStreamingUsageStats } =
+  await import("../../open-sse/handlers/chatCore/streamingUsageStats.ts");
 
 function baseCtx(overrides: Record<string, unknown> = {}) {
   return {

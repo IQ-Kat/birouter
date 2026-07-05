@@ -2,7 +2,7 @@
   "name": "welcome-banner",
   "version": "1.0.0",
   "description": "Adds a welcome banner to API responses",
-  "author": "OmniRoute",
+  "author": "Birouter",
   "license": "MIT",
   "main": "index.mjs",
   "source": "local",
@@ -17,7 +17,7 @@
   "configSchema": {
     "bannerText": {
       "type": "string",
-      "default": "Welcome to OmniRoute!",
+      "default": "Welcome to Birouter!",
       "description": "Banner message to display"
     },
     "enabled": {

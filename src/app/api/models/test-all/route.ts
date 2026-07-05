@@ -15,7 +15,7 @@ import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { runSingleModelTest } from "@/lib/api/modelTestRunner";
 import { setModelIsHidden } from "@/lib/localDb";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import * as log from "@/sse/utils/logger";
 
 const PER_MODEL_TIMEOUT_MS = 20_000;

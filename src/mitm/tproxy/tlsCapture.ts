@@ -28,7 +28,7 @@ import https from "node:https";
 import net from "node:net";
 import tls from "node:tls";
 import { randomUUID } from "node:crypto";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { sanitizeHeaders } from "../sanitizeHeaders.ts";
 import { maskSecret } from "../maskSecrets.ts";
 import { MITM_IDLE_TIMEOUT_MS } from "../socketTimeouts.ts";

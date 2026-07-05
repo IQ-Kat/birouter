@@ -44,7 +44,7 @@ type FlowCanvasProps = {
  * count change; attribution hidden; read-only by default. Shared by the home
  * topology, the Combo/Routing Studio (Tela B) and the Compression Studio (Tela A).
  *
- * ## Stability fix (Bug #4 — plans/2026-06-23-omniroute-v3.8.34-deep-audit.md)
+ * ## Stability fix (Bug #4 — plans/2026-06-23-birouter-v3.8.34-deep-audit.md)
  *
  * Earlier revisions captured the ReactFlow instance in a plain `useRef` that
  * outlived remounts. When the parent re-rendered with a new `fitKey`, the

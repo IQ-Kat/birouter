@@ -8,7 +8,7 @@ import {
   normalizeMemorySettings,
   toMemorySettingsUpdates,
 } from "@/lib/memory/settings";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 export async function GET(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: { message: "Invalid JSON body", details: [] } },
-      { status: 400 },
+      { status: 400 }
     );
   }
 

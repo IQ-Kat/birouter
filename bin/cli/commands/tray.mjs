@@ -10,7 +10,7 @@ export function registerTray(program) {
     .description(t("tray.show") || "Show the tray icon (if server is running with --tray)")
     .action(() => {
       process.stderr.write(
-        "The tray is managed by `omniroute serve --tray`. Start the server with --tray to enable it.\n"
+        "The tray is managed by `birouter serve --tray`. Start the server with --tray to enable it.\n"
       );
     });
 
@@ -25,12 +25,12 @@ export function registerTray(program) {
 
   cmd
     .command("quit")
-    .description(t("tray.quit") || "Quit OmniRoute via tray")
+    .description(t("tray.quit") || "Quit Birouter via tray")
     .action(async () => {
       const { default: pidUtils } = await import("../utils/pid.mjs").catch(() => ({
         default: null,
       }));
-      process.stderr.write("Use `omniroute stop` to stop the server.\n");
+      process.stderr.write("Use `birouter stop` to stop the server.\n");
       process.exit(0);
     });
 }

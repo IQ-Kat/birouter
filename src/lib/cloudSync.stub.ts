@@ -1,6 +1,6 @@
 /**
  * Stub for `src/lib/cloudSync.ts` activated by
- * `OMNIROUTE_BUILD_PROFILE=minimal`. All Cloud Sync code paths
+ * `BIROUTER_BUILD_PROFILE=minimal`. All Cloud Sync code paths
  * (signature verification, remote-credential merge, fetch with timeout) are
  * physically absent from the built bundle. See SECURITY.md and
  * docs/security/SOCKET_DEV_FINDINGS.md.

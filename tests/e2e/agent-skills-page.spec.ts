@@ -27,15 +27,15 @@ function makeAgentSkills(): AgentSkill[] {
   const skills: AgentSkill[] = [];
   for (let i = 0; i < 22; i++) {
     skills.push({
-      id: `omni-skill-${i}`,
+      id: `bi-skill-${i}`,
       name: `API Skill ${i}`,
       description: `API skill description ${i}`,
       category: "api",
       area: `area-${i}`,
       icon: "api",
       endpoints: [`GET /api/skill-${i}`],
-      rawUrl: `https://raw.githubusercontent.com/example/OmniRoute/main/skills/omni-skill-${i}/SKILL.md`,
-      githubUrl: `https://github.com/example/OmniRoute/blob/main/skills/omni-skill-${i}/SKILL.md`,
+      rawUrl: `https://raw.githubusercontent.com/example/Birouter/main/skills/bi-skill-${i}/SKILL.md`,
+      githubUrl: `https://github.com/example/Birouter/blob/main/skills/bi-skill-${i}/SKILL.md`,
     });
   }
   for (let i = 0; i < 20; i++) {
@@ -47,8 +47,8 @@ function makeAgentSkills(): AgentSkill[] {
       area: `cli-area-${i}`,
       icon: "terminal",
       cliCommands: [`skill${i} run`],
-      rawUrl: `https://raw.githubusercontent.com/example/OmniRoute/main/skills/cli-skill-${i}/SKILL.md`,
-      githubUrl: `https://github.com/example/OmniRoute/blob/main/skills/cli-skill-${i}/SKILL.md`,
+      rawUrl: `https://raw.githubusercontent.com/example/Birouter/main/skills/cli-skill-${i}/SKILL.md`,
+      githubUrl: `https://github.com/example/Birouter/blob/main/skills/cli-skill-${i}/SKILL.md`,
     });
   }
   return skills;
@@ -80,9 +80,7 @@ async function fulfillText(route: Route, body: string, status = 200) {
 test.describe("Agent Skills page", () => {
   test.setTimeout(600_000);
 
-  test("renders SkillsConceptCard with data-testid skills-concept-card-agent", async ({
-    page,
-  }) => {
+  test("renders SkillsConceptCard with data-testid skills-concept-card-agent", async ({ page }) => {
     const skills = makeAgentSkills();
 
     await page.route(/\/api\/agent-skills(?:\?.*)?$/, async (route) => {
@@ -125,9 +123,7 @@ test.describe("Agent Skills page", () => {
     await expect(cards).toHaveCount(42, { timeout: 15_000 });
   });
 
-  test("clicking omni-skill-0 card renders markdown in preview pane", async ({
-    page,
-  }) => {
+  test("clicking bi-skill-0 card renders markdown in preview pane", async ({ page }) => {
     const skills = makeAgentSkills();
     const mockMarkdown = "# API Skill 0\n\nThis skill manages connections.";
 
@@ -139,7 +135,7 @@ test.describe("Agent Skills page", () => {
       }
     });
 
-    await page.route(/\/api\/agent-skills\/omni-skill-0\/raw/, async (route) => {
+    await page.route(/\/api\/agent-skills\/bi-skill-0\/raw/, async (route) => {
       await fulfillText(route, mockMarkdown);
     });
 
@@ -148,7 +144,7 @@ test.describe("Agent Skills page", () => {
     });
 
     // Wait for cards to render and click first card
-    const firstCard = page.locator("[data-testid='skill-card-omni-skill-0']");
+    const firstCard = page.locator("[data-testid='skill-card-bi-skill-0']");
     await expect(firstCard).toBeVisible({ timeout: 15_000 });
     await firstCard.click();
 
@@ -159,7 +155,7 @@ test.describe("Agent Skills page", () => {
     expect(previewText?.trim().length).toBeGreaterThan(0);
   });
 
-  test("cross-link 'Understand the difference' navigates to /dashboard/omni-skills", async ({
+  test("cross-link 'Understand the difference' navigates to /dashboard/bi-skills", async ({
     page,
   }) => {
     const skills = makeAgentSkills();
@@ -184,22 +180,22 @@ test.describe("Agent Skills page", () => {
     await expect(crossLink).toBeVisible({ timeout: 5_000 });
 
     await crossLink.click();
-    await page.waitForURL(/\/dashboard\/omni-skills/, { timeout: 15_000 });
-    expect(page.url()).toContain("/dashboard/omni-skills");
+    await page.waitForURL(/\/dashboard\/bi-skills/, { timeout: 15_000 });
+    expect(page.url()).toContain("/dashboard/bi-skills");
   });
 
-  test("/dashboard/skills redirects to /dashboard/omni-skills", async ({ page }) => {
+  test("/dashboard/skills redirects to /dashboard/bi-skills", async ({ page }) => {
     await page.goto("/dashboard/skills", { waitUntil: "commit", timeout: NAVIGATION_TIMEOUT_MS });
-    // Next.js redirects /dashboard/skills → /dashboard/omni-skills (next.config.mjs).
+    // Next.js redirects /dashboard/skills → /dashboard/bi-skills (next.config.mjs).
     // If auth is required the app then client-redirects to /login (bare path, no /dashboard/ prefix).
-    await page.waitForURL(/\/(login|onboarding|dashboard\/(omni-skills|onboarding))/, {
+    await page.waitForURL(/\/(login|onboarding|dashboard\/(bi-skills|onboarding))/, {
       timeout: 15_000,
     });
     const finalUrl = page.url();
     expect(
-      finalUrl.includes("/dashboard/omni-skills") ||
+      finalUrl.includes("/dashboard/bi-skills") ||
         finalUrl.includes("/login") ||
-        finalUrl.includes("/onboarding"),
+        finalUrl.includes("/onboarding")
     ).toBe(true);
   });
 });

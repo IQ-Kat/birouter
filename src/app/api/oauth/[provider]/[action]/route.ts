@@ -24,7 +24,7 @@ import {
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
-import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContextOrDirect } from "@birouter/open-sse/utils/proxyFetch.ts";
 import {
   jsonObjectSchema,
   oauthDeviceCompleteSchema,
@@ -34,7 +34,7 @@ import {
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
@@ -86,7 +86,7 @@ function safeEqual(a: string | null | undefined, b: string | null | undefined): 
  * link points at the host the operator actually serves (not an internal origin).
  */
 function resolvePublicBaseUrl(request: Request): string {
-  const env = process.env.NEXT_PUBLIC_BASE_URL || process.env.OMNIROUTE_PUBLIC_BASE_URL;
+  const env = process.env.NEXT_PUBLIC_BASE_URL || process.env.BIROUTER_PUBLIC_BASE_URL;
   if (env && env.trim()) return env.trim().replace(/\/+$/, "");
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
   const proto = request.headers.get("x-forwarded-proto") || "https";

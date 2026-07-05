@@ -11,7 +11,7 @@ export function createPrompt() {
   // the await stays pending and Node warns about an "unsettled top-level await" at
   // exit. Resolving on the readline `close` event (which fires on stdin EOF)
   // returns the default/empty instead of hanging. A genuinely piped line still
-  // arrives via the question callback first, so `echo value | omniroute …` keeps
+  // arrives via the question callback first, so `echo value | birouter …` keeps
   // working — only the no-input EOF case falls back.
   function ask(question, defaultValue = "") {
     const suffix = defaultValue ? ` (${defaultValue})` : "";

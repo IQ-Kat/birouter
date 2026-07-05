@@ -939,7 +939,7 @@ jobs:
         run: |
           mkdir -p .artifacts
           {
-            echo "<!-- omniroute-coverage-report -->"
+            echo "<!-- birouter-coverage-report -->"
             echo "## CI Coverage Report"
             echo ""
             echo "- Coverage job: \`${COVERAGE_RESULT}\`"
@@ -961,7 +961,7 @@ jobs:
         with:
           script: |
             const fs = require("fs");
-            const marker = "<!-- omniroute-coverage-report -->";
+            const marker = "<!-- birouter-coverage-report -->";
             const body = fs.readFileSync(".artifacts/pr-coverage-comment.md", "utf8");
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
@@ -1008,7 +1008,7 @@ jobs:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
-      OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
+      BIROUTER_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
       - uses: actions/checkout@v7
         with:
@@ -1049,7 +1049,7 @@ jobs:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
       INITIAL_PASSWORD: ci-test-password-for-integration
-      DATA_DIR: /tmp/omniroute-ci-${{ matrix.shard }}
+      DATA_DIR: /tmp/birouter-ci-${{ matrix.shard }}
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
       - uses: actions/checkout@v7

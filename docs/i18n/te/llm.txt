@@ -1,18 +1,18 @@
-# OmniRoute (తెలుగు)
+# Birouter (తెలుగు)
 
 🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇧🇩 [bn](../bn/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇮🇷 [fa](../fa/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇮🇳 [gu](../gu/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇮🇳 [in](../in/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇮🇳 [mr](../mr/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇰🇪 [sw](../sw/llm.txt) · 🇮🇳 [ta](../ta/llm.txt) · 🇮🇳 [te](../te/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇹🇷 [tr](../tr/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇵🇰 [ur](../ur/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt)
 
 ---
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 177 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (37 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex-cloud, devin, jules), Guardrails framework, and an Electron desktop app.
+> Birouter is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 177 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (37 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex-cloud, devin, jules), Guardrails framework, and an Electron desktop app.
 
 ## Overview
 
-OmniRoute solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
+Birouter solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
 
 **Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 3.8.8
+**Current version:** 3.8.43
 
 ## Tech Stack
 
@@ -28,7 +28,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
 - **i18n:** next-intl with 40+ languages
 - **Desktop:** Electron (cross-platform: Windows, macOS, Linux)
-- **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
+- **Package:** Published on npm (`birouter`) and Docker Hub (`IQ-Kat/birouter`)
 
 ## Project Structure
 
@@ -277,7 +277,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── VM_DEPLOYMENT_GUIDE.md    # VPS deployment guide
 │   ├── openapi.yaml              # OpenAPI specification
 │   └── screenshots/              # Dashboard screenshots
-├── bin/                          # CLI entry points (omniroute, reset-password)
+├── bin/                          # CLI entry points (birouter, reset-password)
 ├── scripts/                      # Build and utility scripts
 └── .env.example                  # Environment variable template
 ```
@@ -310,7 +310,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection, SSRF, incomplete URLs)
 - **Web Crypto session IDs**: `generateSessionId` uses `crypto.getRandomValues()` instead of `Math.random()`
 - **Route validation**: All API routes validated with Zod v4 schemas + `validateBody()`
-- **omniModel tag sanitization**: Internal `<omniModel>` tags never leak to clients in SSE streams
+- **biModel tag sanitization**: Internal `<biModel>` tags never leak to clients in SSE streams
 - **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint to reduce bot detection
 - **CLI Fingerprint Matching** — Per-provider request signature matching
 - **Prompt injection guard** — Request middleware detection
@@ -379,7 +379,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ## Key Architectural Decisions
 
-1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format. This makes OmniRoute a drop-in replacement for any tool that supports custom OpenAI endpoints.
+1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format. This makes Birouter a drop-in replacement for any tool that supports custom OpenAI endpoints.
 
 2. **Provider abstraction via format translators:** Each AI provider has a translator in `open-sse/translator/` that converts between OpenAI format and the provider's native format transparently.
 
@@ -417,7 +417,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 7. CLI fingerprint matching (if enabled for provider)
 8. Upstream request with circuit breaker and rate limiting
 9. Response translation: provider → OpenAI format
-10. omniModel tag sanitization (strip internal tags)
+10. biModel tag sanitization (strip internal tags)
 11. SSE streaming back to client
 12. Memory extraction (if memory system enabled)
 13. Usage logging and cost calculation
@@ -469,7 +469,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 19. **Cloud Agents** in `src/lib/cloudAgent/` — three external autonomous coding agents (Codex Cloud, Devin, Jules) with task lifecycle endpoints under `/api/v1/agents/tasks/`. Require management auth, not client auth.
 
-20. **Guardrails framework** in `src/lib/guardrails/` — hot-reloadable registry. Built-ins (priority-ordered): `vision-bridge` (5) → `pii-masker` (10) → `prompt-injection` (20). Fail-open model: exceptions never block traffic. Per-request opt-out via `x-omniroute-disabled-guardrails` header.
+20. **Guardrails framework** in `src/lib/guardrails/` — hot-reloadable registry. Built-ins (priority-ordered): `vision-bridge` (5) → `pii-masker` (10) → `prompt-injection` (20). Fail-open model: exceptions never block traffic. Per-request opt-out via `x-birouter-disabled-guardrails` header.
 
 21. **Authz pipeline** (`src/server/authz/`): every request is classified as `PUBLIC`, `CLIENT_API`, or `MANAGEMENT`, then run through policy + enforce stages. See `docs/architecture/AUTHZ_GUIDE.md`.
 
@@ -496,10 +496,10 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ## Links
 
-- Repository: https://github.com/diegosouzapw/OmniRoute
-- Website: https://omniroute.online
-- npm: https://www.npmjs.com/package/omniroute
-- Docker Hub: https://hub.docker.com/r/diegosouzapw/omniroute
+- Repository: https://github.com/IQ-Kat/birouter
+- Website: https://Birouter.online
+- npm: https://www.npmjs.com/package/Birouter
+- Docker Hub: https://hub.docker.com/r/IQ-Kat/birouter
 - Documentation: See `/docs/` directory
 
 ### Documentation Index

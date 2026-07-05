@@ -13,7 +13,13 @@ import { buildNodeHeapArgs } from "../../../scripts/build/runtime-env.mjs";
 const CRASH_LOG_LINES = 50;
 
 export class ServerSupervisor {
-  constructor({ serverPath, env, maxRestarts = DEFAULT_MAX_RESTARTS, memoryLimit = 512, onCrashCallback }) {
+  constructor({
+    serverPath,
+    env,
+    maxRestarts = DEFAULT_MAX_RESTARTS,
+    memoryLimit = 512,
+    onCrashCallback,
+  }) {
     this.serverPath = serverPath;
     this.env = env;
     this.maxRestarts = maxRestarts;
@@ -30,7 +36,7 @@ export class ServerSupervisor {
     this.startedAt = Date.now();
     this.crashLog = [];
 
-    const showLog = process.env.OMNIROUTE_SHOW_LOG === "1";
+    const showLog = process.env.BIROUTER_SHOW_LOG === "1";
     // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
     // heap via NODE_OPTIONS (a CLI arg would shadow/override their value). The
     // calibrated heap is already carried by env.NODE_OPTIONS either way.

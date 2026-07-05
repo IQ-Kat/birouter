@@ -19,7 +19,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-embed-dim-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-embed-dim-"));
 
 const { createCombo, getComboByName } = await import("../../src/lib/db/combos.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");

@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/cloudAgent/` and `src/app/api/v1/agents/tasks/`
 > **Last updated:** 2026-06-28 — v3.8.40 (frontmatter refresh; 4 agents incl. cursor-cloud)
 
-OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Cursor,
+Birouter orchestrates third-party cloud-hosted coding agents (Codex Cloud, Cursor,
 Devin, Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so
 clients can submit a prompt + repo URL and receive results without dealing with
 provider-specific APIs.

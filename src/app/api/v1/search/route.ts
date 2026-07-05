@@ -1,4 +1,4 @@
-import { handleSearch } from "@omniroute/open-sse/handlers/search.ts";
+import { handleSearch } from "@birouter/open-sse/handlers/search.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import {
   getAllSearchProviders,
@@ -7,9 +7,9 @@ import {
   supportsSearchType,
   SEARCH_PROVIDERS,
   SEARCH_CREDENTIAL_FALLBACKS,
-} from "@omniroute/open-sse/config/searchRegistry.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+} from "@birouter/open-sse/config/searchRegistry.ts";
+import { errorResponse } from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -20,7 +20,7 @@ import {
   computeCacheKey,
   getOrCoalesce,
   SEARCH_CACHE_DEFAULT_TTL_MS,
-} from "@omniroute/open-sse/services/searchCache.ts";
+} from "@birouter/open-sse/services/searchCache.ts";
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
@@ -180,7 +180,9 @@ async function postHandler(request: Request, context: unknown) {
       // Sort by cost to find cheapest with credentials (fallback-only providers
       // are reached via the last-resort step below, never the primary pick).
       const sortedIds = Object.values(SEARCH_PROVIDERS)
-        .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type))
+        .filter(
+          (provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type)
+        )
         .sort((a, b) => a.costPerQuery - b.costPerQuery)
         .map((p) => p.id);
 
@@ -216,7 +218,9 @@ async function postHandler(request: Request, context: unknown) {
     // Find alternate for failover — must bind credentials to the matched provider.
     // Exclude fallback-only providers; they are only used by the last-resort step.
     const otherIds = Object.values(SEARCH_PROVIDERS)
-      .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type))
+      .filter(
+        (provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type)
+      )
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((p) => p.id)
       .filter((id) => id !== providerConfig.id);

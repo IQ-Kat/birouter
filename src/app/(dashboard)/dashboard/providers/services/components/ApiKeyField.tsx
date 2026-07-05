@@ -84,7 +84,7 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
           <div>
             <h3 className="font-medium text-sm">API Key</h3>
             <p className="text-xs text-text-muted">
-              Key used by OmniRoute to authenticate with {label}
+              Key used by Birouter to authenticate with {label}
             </p>
           </div>
         </div>

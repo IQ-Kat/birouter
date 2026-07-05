@@ -77,8 +77,8 @@ export function getNodeRuntimeWarning(version = process.versions.node) {
   }
 
   if (support.reason === "unreleased-major") {
-    return `Node.js ${support.nodeVersion} is outside the supported LTS lines. OmniRoute currently supports Node.js 22.x, 24.x, 25.x, and 26.x.`;
+    return `Node.js ${support.nodeVersion} is outside the supported LTS lines. Birouter currently supports Node.js 22.x, 24.x, 25.x, and 26.x.`;
   }
 
-  return `Node.js ${support.nodeVersion} is outside OmniRoute's approved secure runtime policy.`;
+  return `Node.js ${support.nodeVersion} is outside Birouter's approved secure runtime policy.`;
 }

@@ -1,4 +1,4 @@
-// Regression coverage for #4605 — `omniroute server --tray` showed no tray on
+// Regression coverage for #4605 — `birouter server --tray` showed no tray on
 // macOS/Linux with no error printed.
 //
 // Root cause (regressed in v3.8.34): the wired Unix tray path
@@ -8,7 +8,7 @@
 // `ReferenceError: require is not defined`, which a bare `catch {}` swallowed →
 // `loadSystray2()` returned null → no tray, no diagnostic. Even had it loaded,
 // systray2 is not in node_modules (it is lazily installed into
-// ~/.omniroute/runtime by trayRuntime.ts), the icon was read from a
+// ~/.birouter/runtime by trayRuntime.ts), the icon was read from a
 // non-existent "icons/icon.png" path, and `isTemplateIcon` was true on darwin
 // (full-color icon → white square).
 //
@@ -69,7 +69,7 @@ test("initSystrayUnix loads the injected SysTray ctor and builds the menu (#4605
     `the "Show Logs" item must be preserved, got: ${titles.join(", ")}`
   );
   assert.ok(
-    titles.includes("Quit OmniRoute"),
+    titles.includes("Quit Birouter"),
     `the Quit item must be present, got: ${titles.join(", ")}`
   );
 });

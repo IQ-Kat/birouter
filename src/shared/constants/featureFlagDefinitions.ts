@@ -141,11 +141,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK",
+    key: "BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK",
     label: "Control-Plane Proxy Direct Fallback",
     description:
       "Allow OAuth and provider validation flows to bypass a pinned proxy and connect directly when proxy reachability pre-checks fail. Off by default because this can change account egress IP.",
-    descriptionI18nKey: "featureFlagOmnirouteControlPlaneProxyDirectFallbackDescription",
+    descriptionI18nKey: "featureFlagBirouterControlPlaneProxyDirectFallbackDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -164,10 +164,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "danger",
   },
   {
-    key: "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS",
+    key: "BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS",
     label: "Allow Private Provider URLs",
     description: "Allow provider URLs pointing to private/internal networks",
-    descriptionI18nKey: "featureFlagOmnirouteAllowPrivateProviderUrlsDescription",
+    descriptionI18nKey: "featureFlagBirouterAllowPrivateProviderUrlsDescription",
     category: "network",
     defaultValue: "false",
     type: "boolean",
@@ -175,11 +175,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS",
+    key: "BIROUTER_ALLOW_LOCAL_PROVIDER_URLS",
     label: "Allow Local Provider URLs",
     description:
-      "Allow adding and validating providers on local/private addresses (127.0.0.1, localhost, LAN, private IP ranges) — needed for local OpenAI-compatible models. Enabled by default (OmniRoute is local-first); turn it OFF to enforce strict public-only blocking if you only use public providers. Cloud-metadata endpoints (e.g. 169.254.169.254) stay blocked either way.",
-    descriptionI18nKey: "featureFlagOmnirouteAllowLocalProviderUrlsDescription",
+      "Allow adding and validating providers on local/private addresses (127.0.0.1, localhost, LAN, private IP ranges) — needed for local OpenAI-compatible models. Enabled by default (Birouter is local-first); turn it OFF to enforce strict public-only blocking if you only use public providers. Cloud-metadata endpoints (e.g. 169.254.169.254) stay blocked either way.",
+    descriptionI18nKey: "featureFlagBirouterAllowLocalProviderUrlsDescription",
     category: "network",
     defaultValue: "true",
     type: "boolean",
@@ -236,10 +236,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
 
   // ──────────────── Runtime (12) ────────────────
   {
-    key: "OMNIROUTE_MCP_ENFORCE_SCOPES",
+    key: "BIROUTER_MCP_ENFORCE_SCOPES",
     label: "MCP Enforce Scopes",
     description: "Enforce scope restrictions on MCP tool access",
-    descriptionI18nKey: "featureFlagOmnirouteMcpEnforceScopesDescription",
+    descriptionI18nKey: "featureFlagBirouterMcpEnforceScopesDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
@@ -247,10 +247,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS",
+    key: "BIROUTER_MCP_COMPRESS_DESCRIPTIONS",
     label: "MCP Compress Descriptions",
     description: "Compress MCP tool descriptions to reduce token usage",
-    descriptionI18nKey: "featureFlagOmnirouteMcpCompressDescriptionsDescription",
+    descriptionI18nKey: "featureFlagBirouterMcpCompressDescriptionsDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",
@@ -258,10 +258,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS",
+    key: "BIROUTER_ENABLE_RUNTIME_BACKGROUND_TASKS",
     label: "Runtime Background Tasks",
     description: "Enable background task processing at runtime",
-    descriptionI18nKey: "featureFlagOmnirouteEnableRuntimeBackgroundTasksDescription",
+    descriptionI18nKey: "featureFlagBirouterEnableRuntimeBackgroundTasksDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",
@@ -269,10 +269,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "OMNIROUTE_DISABLE_BACKGROUND_SERVICES",
+    key: "BIROUTER_DISABLE_BACKGROUND_SERVICES",
     label: "Disable Background Services",
     description: "Disable all background services (quota refresh, sync, etc)",
-    descriptionI18nKey: "featureFlagOmnirouteDisableBackgroundServicesDescription",
+    descriptionI18nKey: "featureFlagBirouterDisableBackgroundServicesDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",
@@ -280,10 +280,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OMNIROUTE_RTK_TRUST_PROJECT_FILTERS",
+    key: "BIROUTER_RTK_TRUST_PROJECT_FILTERS",
     label: "RTK Trust Project Filters",
     description: "Trust project-level filters from RTK without validation",
-    descriptionI18nKey: "featureFlagOmnirouteRtkTrustProjectFiltersDescription",
+    descriptionI18nKey: "featureFlagBirouterRtkTrustProjectFiltersDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",
@@ -291,11 +291,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OMNIROUTE_ENABLE_LIVE_WS",
+    key: "BIROUTER_ENABLE_LIVE_WS",
     label: "Live Dashboard WebSocket",
     description:
       "Start the real-time dashboard WebSocket server on import (port 20129, loopback-bound by default). Default: enabled. Set to '0' or 'false' to disable. LAN exposure requires LIVE_WS_HOST=0.0.0.0 + LIVE_WS_ALLOWED_ORIGINS.",
-    descriptionI18nKey: "featureFlagOmnirouteEnableLiveWsDescription",
+    descriptionI18nKey: "featureFlagBirouterEnableLiveWsDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
@@ -303,11 +303,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "OMNIROUTE_CODEX_WS_ENABLED",
+    key: "BIROUTER_CODEX_WS_ENABLED",
     label: "Codex Responses WebSocket",
     description:
       "Allow Codex to use the Responses-over-WebSocket transport (the codex CLI WS endpoint and codexTransport=websocket). When off, Codex falls back to HTTP Responses.",
-    descriptionI18nKey: "featureFlagOmnirouteCodexWsEnabledDescription",
+    descriptionI18nKey: "featureFlagBirouterCodexWsEnabledDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
@@ -315,10 +315,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "OMNIROUTE_EMERGENCY_FALLBACK",
+    key: "BIROUTER_EMERGENCY_FALLBACK",
     label: "Emergency Fallback",
     description: "Route budget-exhausted requests to the emergency free fallback provider/model.",
-    descriptionI18nKey: "featureFlagOmnirouteEmergencyFallbackDescription",
+    descriptionI18nKey: "featureFlagBirouterEmergencyFallbackDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
@@ -422,11 +422,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES",
+    key: "BIROUTER_AUTO_SYNC_CODEX_PROFILES",
     label: "Auto-Sync Codex Profiles",
     description:
       "After a provider model sync, automatically (re)write ~/.codex/*.config.toml profile files from the live catalog. Never changes the active/default Codex config. Off by default.",
-    descriptionI18nKey: "featureFlagOmnirouteAutoSyncCodexProfilesDescription",
+    descriptionI18nKey: "featureFlagBirouterAutoSyncCodexProfilesDescription",
     category: "cli",
     defaultValue: "false",
     type: "boolean",
@@ -434,11 +434,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
-    key: "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES",
+    key: "BIROUTER_AUTO_SYNC_CLAUDE_PROFILES",
     label: "Auto-Sync Claude Code Profiles",
     description:
       "After a provider model sync, automatically (re)write ~/.claude/profiles/<name>/settings.json Claude Code profiles from the live catalog. Never changes the active/default Claude config. Off by default.",
-    descriptionI18nKey: "featureFlagOmnirouteAutoSyncClaudeProfilesDescription",
+    descriptionI18nKey: "featureFlagBirouterAutoSyncClaudeProfilesDescription",
     category: "cli",
     defaultValue: "false",
     type: "boolean",
@@ -448,10 +448,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
 
   // ──────────────── Health (3) ────────────────
   {
-    key: "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK",
+    key: "BIROUTER_DISABLE_LOCAL_HEALTHCHECK",
     label: "Disable Local Health Check",
     description: "Disable the local instance health check endpoint",
-    descriptionI18nKey: "featureFlagOmnirouteDisableLocalHealthcheckDescription",
+    descriptionI18nKey: "featureFlagBirouterDisableLocalHealthcheckDescription",
     category: "health",
     defaultValue: "false",
     type: "boolean",
@@ -459,10 +459,10 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
   {
-    key: "OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK",
+    key: "BIROUTER_DISABLE_TOKEN_HEALTHCHECK",
     label: "Disable Token Health Check",
     description: "Disable the token validation health check",
-    descriptionI18nKey: "featureFlagOmnirouteDisableTokenHealthcheckDescription",
+    descriptionI18nKey: "featureFlagBirouterDisableTokenHealthcheckDescription",
     category: "health",
     defaultValue: "false",
     type: "boolean",

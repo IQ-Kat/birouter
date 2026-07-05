@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — Environment Sync
+ * Birouter — Environment Sync
  *
  * Ensures .env exists and contains the selected keys from .env.example.
  * Runs on installs and can be executed manually via `npm run env:sync`.
@@ -41,10 +41,10 @@ const CRYPTO_SECRETS = {
   JWT_SECRET: () => randomBytes(64).toString("hex"),
   API_KEY_SECRET: () => randomBytes(32).toString("hex"),
   // STORAGE_ENCRYPTION_KEY: Generated at server startup instead of postinstall.
-  // Generated in bin/omniroute.mjs:ensureStorageEncryptionKey() and persisted to
-  // ~/.omniroute/.env to survive across upgrades. This prevents credential loss
-  // when upgrading OmniRoute (issue #1622).
-  MACHINE_ID_SALT: () => `omniroute-${randomBytes(8).toString("hex")}`,
+  // Generated in bin/birouter.mjs:ensureStorageEncryptionKey() and persisted to
+  // ~/.birouter/.env to survive across upgrades. This prevents credential loss
+  // when upgrading Birouter (issue #1622).
+  MACHINE_ID_SALT: () => `birouter-${randomBytes(8).toString("hex")}`,
 };
 
 /**
@@ -52,9 +52,9 @@ const CRYPTO_SECRETS = {
  * Generating a new key would make all previously-encrypted credentials unrecoverable.
  *
  * Note: STORAGE_ENCRYPTION_KEY is no longer auto-generated in postinstall.
- * It's generated at server startup in bin/omniroute.mjs and persisted to
- * ~/.omniroute/.env to survive across upgrades.
- * @see https://github.com/diegosouzapw/OmniRoute/issues/1622
+ * It's generated at server startup in bin/birouter.mjs and persisted to
+ * ~/.birouter/.env to survive across upgrades.
+ * @see https://github.com/IQ-Kat/birouter/issues/1622
  */
 const ENCRYPTION_BOUND_KEYS = new Set([]);
 
@@ -65,13 +65,13 @@ function resolveDataDir(env = process.env) {
 
   if (process.platform === "win32") {
     const appData = env.APPDATA || join(homedir(), "AppData", "Roaming");
-    return join(appData, "omniroute");
+    return join(appData, "birouter");
   }
 
   const xdg = env.XDG_CONFIG_HOME?.trim();
-  if (xdg) return join(resolve(xdg), "omniroute");
+  if (xdg) return join(resolve(xdg), "birouter");
 
-  return join(homedir(), ".omniroute");
+  return join(homedir(), ".birouter");
 }
 
 /**
@@ -290,7 +290,7 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
         if (ENCRYPTION_BOUND_KEYS.has(key) && dbHasEncrypted) {
           log(
             `⚠️  ${key} NOT generated — encrypted credentials exist in DB. ` +
-              `Restore your previous key via ~/.omniroute/server.env, ~/.omniroute/.env, ` +
+              `Restore your previous key via ~/.birouter/server.env, ~/.birouter/.env, ` +
               `or the STORAGE_ENCRYPTION_KEY environment variable.`
           );
           continue;
@@ -337,7 +337,7 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
     if (entry.blocked) {
       log(
         `⚠️  ${entry.key} NOT generated — encrypted credentials exist in DB. ` +
-          `Restore your previous key via ~/.omniroute/server.env, ~/.omniroute/.env, ` +
+          `Restore your previous key via ~/.birouter/server.env, ~/.birouter/.env, ` +
           `or the STORAGE_ENCRYPTION_KEY environment variable.`
       );
       continue;

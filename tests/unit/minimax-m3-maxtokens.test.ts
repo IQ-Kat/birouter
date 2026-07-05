@@ -1,7 +1,7 @@
 /**
  * tests/unit/minimax-m3-maxtokens.test.ts
  *
- * Regression for issue #3141 — "Omniroute sets max_tokens = 8192 for
+ * Regression for issue #3141 — "Birouter sets max_tokens = 8192 for
  * minimax/MiniMax-M3" (reporter @totaltube).
  *
  * minimax-coding / minimax route through the Claude translator, which calls
@@ -22,7 +22,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-minimax-m3-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-minimax-m3-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -38,10 +38,7 @@ const DEFAULT_CAP = 8192;
 
 test("#3141 MiniMax-M3 max_tokens is not capped to the 8192 default", () => {
   const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "MiniMax-M3" });
-  assert.ok(
-    cap > DEFAULT_CAP,
-    `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
-  );
+  assert.ok(cap > DEFAULT_CAP, `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`);
 });
 
 test("#3141 MiniMaxAI/MiniMax-M3 (prefixed id) resolves above the 8192 default", () => {

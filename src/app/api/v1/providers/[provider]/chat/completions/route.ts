@@ -1,8 +1,8 @@
 import { buildClientRawRequest, handleChat } from "@/sse/handlers/chat";
-import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { initTranslators } from "@birouter/open-sse/translator/index.ts";
+import { errorResponse } from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
+import { getRegistryEntry } from "@birouter/open-sse/config/providerRegistry.ts";
 import { providerChatCompletionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 

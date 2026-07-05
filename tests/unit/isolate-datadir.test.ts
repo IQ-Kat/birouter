@@ -35,11 +35,11 @@ test("isolateDataDir assigns a unique temp DATA_DIR when none is set", () => {
   const b = dataDirFromChild(undefined);
 
   assert.ok(a.startsWith(os.tmpdir()), `expected a temp dir under ${os.tmpdir()}, got ${a}`);
-  assert.match(a, /omniroute-test-/, `expected the omniroute-test- prefix, got ${a}`);
+  assert.match(a, /birouter-test-/, `expected the birouter-test- prefix, got ${a}`);
   assert.notEqual(a, b, "two processes must each get their own DATA_DIR");
 });
 
 test("isolateDataDir respects an explicitly set DATA_DIR", () => {
-  const explicit = "/tmp/omniroute-explicit-fixture";
+  const explicit = "/tmp/birouter-explicit-fixture";
   assert.equal(dataDirFromChild(explicit), explicit);
 });

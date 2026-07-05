@@ -13,7 +13,7 @@ import { mcpAccessibilityConfigSchema } from "../../../src/shared/validation/com
 // callers. This proves the new schema + dedicated sub-route + DB round-trip make the config
 // settable end to end, with clampMcpAccessibilityConfig owning the numeric floors.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mcpaccess-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mcpaccess-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

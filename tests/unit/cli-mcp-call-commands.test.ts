@@ -47,12 +47,12 @@ test("mcp call envia name e arguments no body", async () => {
   // Simula o que runMcpCall faz internamente
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
-    body: JSON.stringify({ name: "omniroute_get_health", arguments: {} }),
+    body: JSON.stringify({ name: "birouter_get_health", arguments: {} }),
   });
 
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("/api/mcp/tools/call"));
-  assert.equal(capturedBody.name, "omniroute_get_health");
+  assert.equal(capturedBody.name, "birouter_get_health");
   assert.deepEqual(capturedBody.arguments, {});
 });
 
@@ -66,7 +66,7 @@ test("mcp call com --args passa argumentos como JSON", async () => {
 
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
-    body: JSON.stringify({ name: "omniroute_check_quota", arguments: { provider: "openai" } }),
+    body: JSON.stringify({ name: "birouter_check_quota", arguments: { provider: "openai" } }),
   });
 
   globalThis.fetch = origFetch;
@@ -89,8 +89,8 @@ test("mcp scopes envia meta=scopes na query", async () => {
 
 test("mcp tools list busca /api/mcp/tools", async () => {
   const TOOLS = [
-    { name: "omniroute_get_health", scopes: ["read:health"], auditLevel: "low", phase: 1 },
-    { name: "omniroute_list_combos", scopes: ["read:combos"], auditLevel: "low", phase: 1 },
+    { name: "birouter_get_health", scopes: ["read:health"], auditLevel: "low", phase: 1 },
+    { name: "birouter_list_combos", scopes: ["read:combos"], auditLevel: "low", phase: 1 },
   ];
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((_url: string) => {

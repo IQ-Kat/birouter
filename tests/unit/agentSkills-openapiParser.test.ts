@@ -15,7 +15,7 @@ const { parseOpenapi, getEndpointsForArea } =
  * changes CWD to it, and returns a cleanup function.
  */
 function withFixtureOpenapi(yamlContent: string): { cleanup: () => void } {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-openapi-test-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-openapi-test-"));
   // openapiParser reads docs/openapi.yaml (consolidated location since #4781,
   // previously docs/reference/openapi.yaml) — the fixture must mirror that path.
   const docsDir = path.join(tmpDir, "docs");
@@ -38,7 +38,7 @@ function withFixtureOpenapi(yamlContent: string): { cleanup: () => void } {
 const FIXTURE_YAML = `
 openapi: 3.1.0
 info:
-  title: OmniRoute Test
+  title: Birouter Test
   version: 1.0.0
 paths:
   /api/providers:
@@ -180,7 +180,7 @@ test("parseOpenapi() OpenapiPath entries have required fields", () => {
 });
 
 test("parseOpenapi() throws if openapi.yaml is missing", () => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-openapi-missing-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-openapi-missing-"));
   const originalCwd = process.cwd();
   process.chdir(tmpDir);
   try {

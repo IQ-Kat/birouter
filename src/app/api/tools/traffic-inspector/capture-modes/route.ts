@@ -10,7 +10,7 @@
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts";
 import {
   getHttpProxyHandle,

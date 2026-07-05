@@ -8,13 +8,13 @@ import {
 } from "../../scripts/dev/smoke-electron-packaged.mjs";
 
 test("electron smoke discovers the default Linux executable name", () => {
-  assert.ok(LINUX_EXECUTABLE_NAMES.includes("omniroute-desktop"));
+  assert.ok(LINUX_EXECUTABLE_NAMES.includes("birouter-desktop"));
 });
 
 test("electron smoke env allowlists runtime variables and drops secrets", () => {
   const env = buildSmokeEnv({
     currentPlatform: "linux",
-    dataDir: "/tmp/omniroute-electron-smoke-test",
+    dataDir: "/tmp/birouter-electron-smoke-test",
     parentEnv: {
       DISPLAY: ":99",
       GITHUB_TOKEN: "should-not-leak",
@@ -23,11 +23,11 @@ test("electron smoke env allowlists runtime variables and drops secrets", () => 
     },
   });
 
-  assert.equal(env.DATA_DIR, "/tmp/omniroute-electron-smoke-test");
+  assert.equal(env.DATA_DIR, "/tmp/birouter-electron-smoke-test");
   assert.equal(env.DISPLAY, ":99");
   assert.equal(env.PATH, "/usr/bin");
-  assert.equal(env.HOME, "/tmp/omniroute-electron-smoke-test/home");
-  assert.equal(env.XDG_CONFIG_HOME, "/tmp/omniroute-electron-smoke-test/config");
+  assert.equal(env.HOME, "/tmp/birouter-electron-smoke-test/home");
+  assert.equal(env.XDG_CONFIG_HOME, "/tmp/birouter-electron-smoke-test/config");
   assert.equal(env.ELECTRON_ENABLE_LOGGING, "1");
   assert.equal(env.ELECTRON_ENABLE_STACK_DUMPING, "1");
   assert.equal(env.GITHUB_TOKEN, undefined);

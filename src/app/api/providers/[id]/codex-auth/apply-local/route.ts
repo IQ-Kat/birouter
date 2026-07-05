@@ -3,7 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { ensureCliConfigWriteAllowed } from "@/shared/services/cliRuntime";
 import { CodexAuthFileError, writeCodexAuthFileToLocalCli } from "@/lib/oauth/utils/codexAuthFile";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof CodexAuthFileError) {

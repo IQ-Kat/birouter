@@ -89,9 +89,9 @@ function isCommandCodeVisionModel(model?: string | null): boolean {
   if (!model) return false;
   // mimo-v2.5-pro is text-only — exclude before any positive check
   if (/(?:^|\/)mimo-v2\.5-pro$/i.test(model)) return false;
-  // Only mimo-v2.5 and mimo-v2-omni accept images per Xiaomi vendor docs
+  // Only mimo-v2.5 and mimo-v2-bi accept images per Xiaomi vendor docs
   if (/(?:^|\/)mimo-v2\.5$/i.test(model)) return true;
-  if (/(?:^|\/)mimo-v2-omni$/i.test(model)) return true;
+  if (/(?:^|\/)mimo-v2-bi$/i.test(model)) return true;
   // CC-specific patterns: Kimi K2, Qwen 3.x, Stepfun, Claude Fable,
   // GPT-5, Sakana Fugu — not covered by the shared heuristic
   if (CC_VISION_MODEL_PATTERNS.some((pattern) => pattern.test(model))) return true;

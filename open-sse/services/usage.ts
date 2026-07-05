@@ -59,7 +59,7 @@ import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./us
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
-const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
+const CROF_USAGE_URL = process.env.BIROUTER_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
 
 const NANOGPT_CONFIG = {
   usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
@@ -283,10 +283,10 @@ const XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT = 4_100_000_000;
  *
  * Xiaomi exposes plan usage only behind the console session cookie (the API key
  * cannot reach the `tokenPlan/usage` endpoint), so there is no upstream usage
- * API to call. Instead we count the tokens OmniRoute itself routed to this
+ * API to call. Instead we count the tokens Birouter itself routed to this
  * connection in the current UTC month (from `usage_history`) and compare them
  * to the known Token Plan monthly limit. This reflects only traffic that went
- * through OmniRoute, not the provider's own dashboard figure.
+ * through Birouter, not the provider's own dashboard figure.
  */
 async function getXiaomiMimoUsage(connectionId: string) {
   if (!connectionId) {
@@ -301,7 +301,7 @@ async function getXiaomiMimoUsage(connectionId: string) {
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
     ).toISOString();
     return {
-      plan: "Xiaomi MiMo Token Plan (OmniRoute-tracked)",
+      plan: "Xiaomi MiMo Token Plan (Birouter-tracked)",
       quotas: {
         monthly: createQuotaFromUsage(used, total, resetAt),
       },
@@ -796,7 +796,7 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
  *
  * Vertex AI exposes no usage/quota API for an API key or Service Account (billing/credit balance
  * lives behind the Cloud Billing API, which the proxy credential can't reach). Instead we report
- * the USD that OmniRoute has spent through this connection since the account was added — summed
+ * the USD that Birouter has spent through this connection since the account was added — summed
  * from `usage_history` and priced via the backend pricing table. Returns a `message` (with the $
  * figure) plus a `spend` quota entry so the limits cache persists it (a message-only result is
  * treated as a transient error and not cached).
@@ -820,7 +820,7 @@ async function getVertexUsage(connectionId: string, provider: string) {
     if (requests === 0) {
       return {
         plan: "Vertex AI",
-        message: "Vertex connected. No usage recorded through OmniRoute yet for this account.",
+        message: "Vertex connected. No usage recorded through Birouter yet for this account.",
         quotas: { spend },
       };
     }

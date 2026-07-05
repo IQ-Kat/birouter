@@ -193,12 +193,12 @@ jobs:
               [ -f "$file" ] && cp "$file" ../../release-assets/
             done
           fi
-          # Windows: also copy portable standalone exe as OmniRoute.exe
+          # Windows: also copy portable standalone exe as Birouter.exe
           if [ "${{ matrix.platform }}" = "windows" ]; then
             for file in *.exe; do
               # Skip the NSIS installer (contains "Setup")
               case "$file" in *Setup*) continue ;; esac
-              [ -f "$file" ] && cp "$file" "../../release-assets/OmniRoute.exe" && break
+              [ -f "$file" ] && cp "$file" "../../release-assets/Birouter.exe" && break
             done
           fi
 
@@ -236,12 +236,12 @@ jobs:
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
           # Create source code archives (excluding dev dependencies and build artifacts)
-          export TARBALL="OmniRoute-${VERSION}.source.tar.gz"
-          export ZIPBALL="OmniRoute-${VERSION}.source.zip"
+          export TARBALL="Birouter-${VERSION}.source.tar.gz"
+          export ZIPBALL="Birouter-${VERSION}.source.zip"
 
           # Use git archive for clean source export
-          git archive --format=tar.gz --prefix="OmniRoute-${VERSION}/" HEAD -o "release-assets/$TARBALL"
-          git archive --format=zip --prefix="OmniRoute-${VERSION}/" HEAD -o "release-assets/$ZIPBALL"
+          git archive --format=tar.gz --prefix="Birouter-${VERSION}/" HEAD -o "release-assets/$TARBALL"
+          git archive --format=zip --prefix="Birouter-${VERSION}/" HEAD -o "release-assets/$ZIPBALL"
 
           echo "✓ Created source archives:"
           ls -lh "release-assets/$TARBALL" "release-assets/$ZIPBALL"

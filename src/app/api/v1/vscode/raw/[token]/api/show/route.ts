@@ -65,7 +65,11 @@ function getCatalogModelId(model: OpenAiCatalogModel) {
 }
 
 function normalizeArchitectureKey(value: string) {
-  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
   return normalized || "model";
 }
 
@@ -86,7 +90,9 @@ function getRequestedModelName(payload: unknown): string | null {
 function getOllamaModelFamily(model: OpenAiCatalogModel, canonicalFamily?: string | null) {
   const rawModelId = getCatalogModelId(model).trim();
   const { baseModelId } = parseVscodeServiceTierVariantModelId(rawModelId);
-  const modelFamily = baseModelId.includes("/") ? baseModelId.split("/").slice(1).join("/") : baseModelId;
+  const modelFamily = baseModelId.includes("/")
+    ? baseModelId.split("/").slice(1).join("/")
+    : baseModelId;
 
   if (modelFamily) {
     return modelFamily;
@@ -98,7 +104,7 @@ function getOllamaModelFamily(model: OpenAiCatalogModel, canonicalFamily?: strin
 
   return typeof model.owned_by === "string" && model.owned_by.trim().length > 0
     ? model.owned_by.trim()
-    : "omniroute";
+    : "birouter";
 }
 
 function matchesRequestedModel(model: OpenAiCatalogModel, requestedName: string): boolean {
@@ -136,13 +142,14 @@ function buildShowPayload(model: OpenAiCatalogModel, responseModelId?: string) {
   });
   const family = getOllamaModelFamily(model, canonicalMetadata?.metadata.family || null);
   const modelId = responseModelId || actualModelId;
-  const architectureSource =
-    normalizeArchitectureSource(
-      canonicalMetadata?.providerAlias || canonicalMetadata?.provider || model.owned_by || family || "model"
-    );
-  const architecture = normalizeArchitectureKey(
-    architectureSource
+  const architectureSource = normalizeArchitectureSource(
+    canonicalMetadata?.providerAlias ||
+      canonicalMetadata?.provider ||
+      model.owned_by ||
+      family ||
+      "model"
   );
+  const architecture = normalizeArchitectureKey(architectureSource);
   const reasoningEffortValues = getReasoningEffortValues(model as VscodeCatalogModel);
   const selectedReasoningEffort = reasoningEffortValues
     ? inferSelectedReasoningEffort(model as VscodeCatalogModel, reasoningEffortValues) || "none"
@@ -302,7 +309,7 @@ export async function POST(
     : [];
 
   const model = Array.isArray(expandedModels)
-  ? expandedModels.find((entry) => matchesRequestedModel(entry, requestedName))
+    ? expandedModels.find((entry) => matchesRequestedModel(entry, requestedName))
     : undefined;
 
   if (!model) {

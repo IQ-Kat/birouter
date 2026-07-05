@@ -18,15 +18,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-ld-routes-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rtk-ld-routes-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 process.env.DATA_DIR = TEST_DATA_DIR;
 delete process.env.INITIAL_PASSWORD;
 
-const { maybePersistRtkRawOutput } = await import(
-  "../../../../open-sse/services/compression/engines/rtk/index.ts"
-);
+const { maybePersistRtkRawOutput } =
+  await import("../../../../open-sse/services/compression/engines/rtk/index.ts");
 const discoverRoute = await import("../../../../src/app/api/context/rtk/discover/route.ts");
 const learnRoute = await import("../../../../src/app/api/context/rtk/learn/route.ts");
 

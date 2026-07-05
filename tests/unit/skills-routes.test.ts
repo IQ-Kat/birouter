@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-route-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-skills-route-"));
 const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = tmpDir;
 

@@ -63,7 +63,7 @@ describe("detectNativeBinaryTarget", () => {
 
 describe("isNativeBinaryCompatible", () => {
   function withTempBinary(buffer, callback) {
-    const dir = mkdtempSync(join(tmpdir(), "omniroute-native-"));
+    const dir = mkdtempSync(join(tmpdir(), "birouter-native-"));
     const file = join(dir, "better_sqlite3.node");
     writeFileSync(file, buffer);
 

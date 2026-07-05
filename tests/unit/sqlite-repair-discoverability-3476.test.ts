@@ -10,12 +10,12 @@ import { createSqliteNativeError } from "../../bin/cli/sqlite.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BIN_CLI = join(__dirname, "..", "..", "bin", "cli");
 
-// ─── #3476: discoverability of `omniroute runtime repair` ──────────────────────
+// ─── #3476: discoverability of `birouter runtime repair` ──────────────────────
 //
-// When better-sqlite3's native binding mismatches the Node ABI, OmniRoute prints
+// When better-sqlite3's native binding mismatches the Node ABI, Birouter prints
 // an error/startup hint. Historically those hints only suggested
 // `npm rebuild better-sqlite3`, which fails for global / no-toolchain installs.
-// A self-heal command already exists (`omniroute runtime repair`); these tests
+// A self-heal command already exists (`birouter runtime repair`); these tests
 // guard that the hint text now points users to it.
 
 test("createSqliteNativeError message mentions `runtime repair` on ABI mismatch", () => {
@@ -52,7 +52,7 @@ test("serve.mjs ABI-mismatch hint source mentions `runtime repair`", () => {
   assert.match(
     src,
     /runtime repair/,
-    "serve.mjs should surface `omniroute runtime repair` as a recovery hint"
+    "serve.mjs should surface `birouter runtime repair` as a recovery hint"
   );
 });
 

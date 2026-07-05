@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildClaudeAuthFile, ClaudeAuthFileError } from "@/lib/oauth/utils/claudeAuthFile";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof ClaudeAuthFileError) {

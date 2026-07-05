@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import pino from "pino";
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { CLI_TOOLS } from "@/shared/constants/cliTools";
@@ -153,9 +153,7 @@ export async function GET(request: Request): Promise<Response> {
 
           // Try to extract endpoint from config file
           const configPath = getCliPrimaryConfigPath(toolId);
-          const endpoint = configPath
-            ? await extractEndpointFromConfig(toolId, configPath)
-            : null;
+          const endpoint = configPath ? await extractEndpointFromConfig(toolId, configPath) : null;
 
           const result: ToolBatchStatus = {
             detection: {
@@ -203,8 +201,11 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json(statuses);
   } catch (err) {
     logger.error({ err }, "Unexpected error in /api/cli-tools/all-statuses");
-    return NextResponse.json(buildErrorBody(500, err instanceof Error ? err.message : String(err)), {
-      status: 500,
-    });
+    return NextResponse.json(
+      buildErrorBody(500, err instanceof Error ? err.message : String(err)),
+      {
+        status: 500,
+      }
+    );
   }
 }

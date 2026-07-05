@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # open-sse Architecture
 
-> **TL;DR**: `open-sse/` is the core streaming engine that powers every LLM request in OmniRoute. It contains ~900 files implementing the request pipeline, executors, services, MCP server, and translation layer. This guide explains how the pieces fit together.
+> **TL;DR**: `open-sse/` is the core streaming engine that powers every LLM request in Birouter. It contains ~900 files implementing the request pipeline, executors, services, MCP server, and translation layer. This guide explains how the pieces fit together.
 
 **Source:** `open-sse/` (workspace package, ~900 files; 811 `.ts`)
 
@@ -14,10 +14,10 @@ lastUpdated: 2026-06-28
 
 ## Why a Separate Workspace Package?
 
-`open-sse/` is a **standalone workspace** in the OmniRoute monorepo for several reasons:
+`open-sse/` is a **standalone workspace** in the Birouter monorepo for several reasons:
 
-1. **Reusability** — `open-sse` is published as `@omniroute/open-sse` on npm, so other projects can use it independently
-2. **Clean boundaries** — the streaming engine is decoupled from the OmniRoute-specific UI/DB layer
+1. **Reusability** — `open-sse` is published as `@birouter/open-sse` on npm, so other projects can use it independently
+2. **Clean boundaries** — the streaming engine is decoupled from the Birouter-specific UI/DB layer
 3. **Performance** — the engine has no Next.js dependencies, enabling faster cold starts in CLI/serverless contexts
 4. **Versioning** — `open-sse` can release on its own cadence
 
@@ -34,7 +34,7 @@ lastUpdated: 2026-06-28
 open-sse/
 ├── index.ts              # Public entry point
 ├── types.d.ts            # Public type exports
-├── package.json          # @omniroute/open-sse
+├── package.json          # @birouter/open-sse
 ├── config/               # Provider configs, constants, registries
 ├── executors/            # Per-provider HTTP executors (67 + base.ts/index.ts)
 ├── handlers/             # Request handlers (chatCore, responses, etc.)
@@ -359,7 +359,7 @@ export default {
 `executors/index.ts` exports `getExecutor(providerId)`:
 
 ```ts
-import { getExecutor } from "@omniroute/open-sse/executors";
+import { getExecutor } from "@birouter/open-sse/executors";
 
 const executor = getExecutor("anthropic");
 const result = await executor.execute({
@@ -379,7 +379,7 @@ Translate between **3 formats**: OpenAI, Anthropic, Gemini, plus the new Respons
 ### When Translation Happens
 
 ```ts
-import { needsTranslation, translateRequest } from "@omniroute/open-sse/translator";
+import { needsTranslation, translateRequest } from "@birouter/open-sse/translator";
 
 if (needsTranslation(sourceFormat, targetFormat)) {
   body = translateRequest(body, sourceFormat, targetFormat);
@@ -418,7 +418,7 @@ Tools are registered as standalone files in `open-sse/mcp-server/tools/`, each e
 // open-sse/mcp-server/tools/getHealth.ts
 import { z } from "zod";
 export default {
-  name: "omniroute_get_health",
+  name: "birouter_get_health",
   description: "Get system health snapshot",
   scope: "read:health",
   inputSchema: z.object({}),
@@ -459,7 +459,7 @@ if (!hasScope(apiKey, "providers:read")) {
 
 ### Why a Separate Transformer?
 
-The Responses API is OpenAI's new format with **stateful conversations** (`previous_response_id`). When a client sends a Responses request, OmniRoute:
+The Responses API is OpenAI's new format with **stateful conversations** (`previous_response_id`). When a client sends a Responses request, Birouter:
 
 1. Converts Responses → Chat Completions internally
 2. Sends to provider (any provider that supports Chat Completions)

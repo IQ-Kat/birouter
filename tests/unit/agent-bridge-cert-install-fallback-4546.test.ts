@@ -8,9 +8,8 @@ import assert from "node:assert/strict";
 // user-canceled auth from an environment failure, plus a platform-specific
 // manual-install guide so the operator can trust the MITM root CA themselves.
 
-const { classifyCertInstallError, buildCertManualGuide, installCertResult } = await import(
-  "../../src/mitm/cert/install.ts"
-);
+const { classifyCertInstallError, buildCertManualGuide, installCertResult } =
+  await import("../../src/mitm/cert/install.ts");
 
 const DOWNLOAD_URL = "/api/tools/agent-bridge/cert/download";
 
@@ -21,8 +20,14 @@ test("classifyCertInstallError → 'canceled' only when the message says cancele
 
 test("classifyCertInstallError → 'environment' for trust-store / sudo failures", () => {
   assert.equal(classifyCertInstallError("Certificate install failed"), "environment");
-  assert.equal(classifyCertInstallError("sudo: no tty present and no askpass program specified"), "environment");
-  assert.equal(classifyCertInstallError("Certificate file not found: /x/server.crt"), "environment");
+  assert.equal(
+    classifyCertInstallError("sudo: no tty present and no askpass program specified"),
+    "environment"
+  );
+  assert.equal(
+    classifyCertInstallError("Certificate file not found: /x/server.crt"),
+    "environment"
+  );
 });
 
 test("buildCertManualGuide(linux) → update-ca-certificates steps + download url + cert path", () => {
@@ -52,7 +57,7 @@ test("installCertResult → environment skip (not a throw) when install is impos
   // A non-existent cert path makes installCert() throw before any privileged
   // command runs — deterministic, no sudo. The wrapper must convert that into a
   // structured skippable result with a manual guide, never a thrown error.
-  const result = await installCertResult("", "/nonexistent/omniroute-4546-server.crt");
+  const result = await installCertResult("", "/nonexistent/birouter-4546-server.crt");
   assert.equal(result.installed, false);
   assert.equal(result.skipped, true);
   assert.equal(result.reason, "environment");

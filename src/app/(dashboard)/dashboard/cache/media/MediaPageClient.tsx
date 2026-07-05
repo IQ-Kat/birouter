@@ -3,13 +3,13 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { IMAGE_PROVIDERS } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { VIDEO_PROVIDERS } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { MUSIC_PROVIDERS } from "@omniroute/open-sse/config/musicRegistry.ts";
+import { IMAGE_PROVIDERS } from "@birouter/open-sse/config/imageRegistry.ts";
+import { VIDEO_PROVIDERS } from "@birouter/open-sse/config/videoRegistry.ts";
+import { MUSIC_PROVIDERS } from "@birouter/open-sse/config/musicRegistry.ts";
 import {
   AUDIO_SPEECH_PROVIDERS,
   AUDIO_TRANSCRIPTION_PROVIDERS,
-} from "@omniroute/open-sse/config/audioRegistry.ts";
+} from "@birouter/open-sse/config/audioRegistry.ts";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 type Modality = "image" | "video" | "music" | "speech" | "transcription";
@@ -106,7 +106,7 @@ const MODALITY_CONFIG: Record<
     icon: "record_voice_over",
     endpoint: "/api/v1/audio/speech",
     label: "Text to Speech",
-    placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
+    placeholder: "Hello! Welcome to Birouter, your intelligent AI gateway...",
     color: "from-green-500 to-teal-500",
     textLabel: "Text",
     needsCredentials: SPEECH_PROVIDERS_REQUIRING_CREDENTIALS,

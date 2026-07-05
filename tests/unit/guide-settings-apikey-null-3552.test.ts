@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { guideSettingsSaveSchema } from "../../src/shared/validation/schemas.ts";
 
 // Regression for #3552: every CLI tool card (Default/Antigravity/Cline/Droid/Kilo/OpenClaw)
-// posts `apiKey: !cloudEnabled ? "sk_omniroute" : null` when saving the OpenCode/CLI config.
+// posts `apiKey: !cloudEnabled ? "sk_birouter" : null` when saving the OpenCode/CLI config.
 // `apiKey: z.string().optional()` rejects `null` (Zod: "expected string, received null"), so
 // the whole save 400'd in cloud mode. The real key is resolved server-side from keyId, so a
 // null/absent apiKey is legitimate — the schema must normalize null → undefined.

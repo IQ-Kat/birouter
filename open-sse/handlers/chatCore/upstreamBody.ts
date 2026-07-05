@@ -70,7 +70,7 @@ function backfillQwenOAuthUser(
     typeof credentials?.accessToken === "string" &&
     credentials.accessToken.trim().length > 0;
   if (isQwenOAuthRequest && !hasValidQwenUser) {
-    bodyToSend = { ...bodyToSend, user: "omniroute-qwen-oauth" };
+    bodyToSend = { ...bodyToSend, user: "birouter-qwen-oauth" };
     log?.debug?.("QWEN", "Injected fallback user for OAuth request");
   }
   return bodyToSend;

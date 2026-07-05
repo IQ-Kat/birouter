@@ -5,9 +5,9 @@
  *
  * Usage:
  *   node bin/reset-password.mjs
- *   npx omniroute reset-password
+ *   npx birouter reset-password
  *
- * Resets the admin password for OmniRoute.
+ * Resets the admin password for Birouter.
  * Prompts for a new password and updates the database directly.
  *
  * @module bin/reset-password
@@ -36,14 +36,14 @@ function exitWithError(message) {
   process.exit(1);
 }
 
-console.log("\n🔑 OmniRoute — Password Reset\n");
+console.log("\n🔑 Birouter — Password Reset\n");
 
 async function main() {
   // Check if database exists
   const passwordState = await readManagementPasswordState(DB_PATH);
   if (!passwordState.exists) {
     console.error(`❌ Database not found at: ${DB_PATH}`);
-    console.error(`   Make sure OmniRoute has been started at least once.`);
+    console.error(`   Make sure Birouter has been started at least once.`);
     console.error(`   Or set DATA_DIR env var to your data directory.\n`);
     process.exit(1);
   }
@@ -70,7 +70,7 @@ async function main() {
   rl.close();
 
   console.log("\n✅ Password reset successfully!");
-  console.log("   Restart OmniRoute for changes to take effect.\n");
+  console.log("   Restart Birouter for changes to take effect.\n");
 }
 
 main().catch((err) => {

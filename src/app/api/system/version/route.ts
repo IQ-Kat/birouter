@@ -18,7 +18,7 @@ import {
 } from "@/lib/system/autoUpdate";
 import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
 import { isNewer, resolveLatestVersion } from "@/lib/system/versionCheck";
-import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
+import { resolveGlobalBirouterPath } from "@/lib/system/globalPackagePath";
 // #5542 — On Windows npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd` without
 // a shell (nodejs/node#52554 → "spawn npm ENOENT"). buildNpmExecOptions enables the
 // shell on win32 only; SERVICE_VERSION_PATTERN keeps the shell-joined version safe.
@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
 
           send({ step: "restart", status: "running", message: "Restarting service..." });
           try {
-            await execFileAsync("pm2", ["restart", "omniroute", "--update-env"], {
+            await execFileAsync("pm2", ["restart", "birouter", "--update-env"], {
               timeout: 30_000,
               cwd: PROJECT_ROOT,
             });
@@ -300,13 +300,13 @@ export async function POST(req: NextRequest) {
           controller.close();
           return;
         }
-        send({ step: "install", status: "running", message: `Installing omniroute@${latest}...` });
-          await execFileAsync(
-            "npm",
-            ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
-            buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 300_000 })
-          );
-        send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
+        send({ step: "install", status: "running", message: `Installing birouter@${latest}...` });
+        await execFileAsync(
+          "npm",
+          ["install", "-g", `birouter@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
+          buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 300_000 })
+        );
+        send({ step: "install", status: "done", message: `Installed birouter@${latest}` });
 
         // Step 2: Rebuild native modules (critical for better-sqlite3)
         send({
@@ -314,30 +314,30 @@ export async function POST(req: NextRequest) {
           status: "running",
           message: "Rebuilding native modules (better-sqlite3)...",
         });
-        const omniPath = await resolveGlobalOmniroutePath();
+        const biPath = await resolveGlobalBirouterPath();
         await execFileAsync(
           "npm",
           ["rebuild", "better-sqlite3"],
-          buildNpmExecOptions(process.platform, { cwd: omniPath, timeoutMs: 120_000 })
+          buildNpmExecOptions(process.platform, { cwd: biPath, timeoutMs: 120_000 })
         );
         send({ step: "rebuild", status: "done", message: "Native modules rebuilt" });
 
         // Step 3: Restart PM2
         send({ step: "restart", status: "running", message: "Restarting service via PM2..." });
-          try {
-            await execFileAsync("pm2", ["restart", "omniroute", "--update-env"], {
-              timeout: 30000,
-              cwd: PROJECT_ROOT,
-            });
-            send({ step: "restart", status: "done", message: "Service restarted" });
-          } catch {
-            // PM2 may not be available (Docker/manual setups)
-            send({
-              step: "restart",
-              status: "skipped",
-              message: "PM2 not available — manual restart needed",
-            });
-          }
+        try {
+          await execFileAsync("pm2", ["restart", "birouter", "--update-env"], {
+            timeout: 30000,
+            cwd: PROJECT_ROOT,
+          });
+          send({ step: "restart", status: "done", message: "Service restarted" });
+        } catch {
+          // PM2 may not be available (Docker/manual setups)
+          send({
+            step: "restart",
+            status: "skipped",
+            message: "PM2 not available — manual restart needed",
+          });
+        }
 
         send({
           step: "complete",

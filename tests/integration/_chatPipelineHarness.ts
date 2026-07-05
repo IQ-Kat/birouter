@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 export async function createChatPipelineHarness(prefix) {
-  const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `omniroute-${prefix}-`));
+  const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `birouter-${prefix}-`));
   process.env.DATA_DIR = testDataDir;
   process.env.REQUIRE_API_KEY = "false";
   // Disable dashboard auth so direct route handler calls don't get 401

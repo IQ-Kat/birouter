@@ -2,7 +2,7 @@
 // inworld, kie, aws-polly, bailian-coding-plan, reka, maritalk, nlpcloud, runwayml, nous-research,
 // poe. Extracted from validation.ts (god-file decomposition) — top-level functions with no
 // dispatcher-state captures; behavior is byte-identical to the original inline defs.
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getRegistryEntry } from "@birouter/open-sse/config/providerRegistry.ts";
 import { normalizeBaseUrl } from "./urlHelpers";
 import {
   applyCustomUserAgent,
@@ -13,9 +13,16 @@ import {
 } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { validateDirectChatProvider } from "./directChatProbe";
-import { buildRunwayApiUrl, buildRunwayHeaders, normalizeRunwayBaseUrl } from "@omniroute/open-sse/config/runway.ts";
-import { buildMaritalkChatUrl, buildMaritalkModelsUrl } from "@omniroute/open-sse/config/maritalk.ts";
-import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
+import {
+  buildRunwayApiUrl,
+  buildRunwayHeaders,
+  normalizeRunwayBaseUrl,
+} from "@birouter/open-sse/config/runway.ts";
+import {
+  buildMaritalkChatUrl,
+  buildMaritalkModelsUrl,
+} from "@birouter/open-sse/config/maritalk.ts";
+import { signAwsRequest } from "@birouter/open-sse/utils/awsSigV4.ts";
 
 export async function validateDeepgramProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
@@ -227,7 +234,10 @@ export async function validateAwsPollyProvider({ apiKey, providerSpecificData = 
   }
 }
 
-export async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData = {} }: any) {
+export async function validateBailianCodingPlanProvider({
+  apiKey,
+  providerSpecificData = {},
+}: any) {
   try {
     const rawBaseUrl =
       normalizeBaseUrl(providerSpecificData.baseUrl) ||
@@ -579,4 +589,3 @@ export async function validatePoeProvider({ apiKey, providerSpecificData = {} }:
 
   return { valid: false, error: "Connection failed while testing Poe" };
 }
-

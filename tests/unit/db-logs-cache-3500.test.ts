@@ -13,7 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-db-logs-cache-3500-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-db-logs-cache-3500-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -41,9 +41,11 @@ function ensureUsageLogsTable() {
 
 function insertUsageLog(row: { model: string; provider: string }) {
   const db = core.getDbInstance();
-  db.prepare(
-    `INSERT INTO usage_logs (model, provider, timestamp) VALUES (?, ?, ?)`
-  ).run(row.model, row.provider, new Date().toISOString());
+  db.prepare(`INSERT INTO usage_logs (model, provider, timestamp) VALUES (?, ?, ?)`).run(
+    row.model,
+    row.provider,
+    new Date().toISOString()
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -70,7 +72,7 @@ function insertSemanticCache(row: {
     "hash_" + row.id,
     "{}",
     row.tokens_saved ?? 0,
-    row.hit_count ?? 0,
+    row.hit_count ?? 0
   );
 }
 
@@ -316,8 +318,16 @@ test("#3500 exportProxyLogsSince — returns rows with timestamp >= since", () =
   const base = new Date("2025-01-15T10:00:00.000Z");
   const old = new Date("2025-01-14T10:00:00.000Z");
 
-  insertProxyLog({ id: "pl-new-1", timestamp: new Date("2025-01-15T11:00:00.000Z").toISOString(), provider: "openai" });
-  insertProxyLog({ id: "pl-new-2", timestamp: new Date("2025-01-15T12:00:00.000Z").toISOString(), provider: "anthropic" });
+  insertProxyLog({
+    id: "pl-new-1",
+    timestamp: new Date("2025-01-15T11:00:00.000Z").toISOString(),
+    provider: "openai",
+  });
+  insertProxyLog({
+    id: "pl-new-2",
+    timestamp: new Date("2025-01-15T12:00:00.000Z").toISOString(),
+    provider: "anthropic",
+  });
   insertProxyLog({ id: "pl-old-1", timestamp: old.toISOString(), provider: "openai" }); // outside window
 
   const rows = proxyLogs.exportProxyLogsSince(base.toISOString());

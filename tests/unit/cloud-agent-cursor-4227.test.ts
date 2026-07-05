@@ -2,7 +2,7 @@
  * #4227 — Cursor Cloud Agent (REST adapter).
  *
  * Validates the adapter mapping between Cursor's Background/Cloud Agents REST API and
- * OmniRoute's CloudAgentBase contract (status mapping, request shape, result extraction)
+ * Birouter's CloudAgentBase contract (status mapping, request shape, result extraction)
  * with a mocked fetch. NOTE: this proves the adapter's internal mapping, NOT the live
  * Cursor API shapes — those need a live validation run with a real Cursor API key before
  * merge (Rule #18, external-API integration; see the PR description).
@@ -43,7 +43,10 @@ test("#4227 createTask posts the prompt+repo and maps CREATING → queued", asyn
     return Response.json({ id: "bc-abc123", status: "CREATING", name: "agent-1" });
   });
   try {
-    const task = await agent.createTask({ prompt: "fix the bug", source: SOURCE, options: OPTIONS }, CREDS);
+    const task = await agent.createTask(
+      { prompt: "fix the bug", source: SOURCE, options: OPTIONS },
+      CREDS
+    );
     assert.equal(task.providerId, "cursor-cloud");
     assert.equal(task.externalId, "bc-abc123");
     assert.equal(task.status, "queued");
@@ -81,7 +84,9 @@ test("#4227 getStatus maps FINISHED → completed and extracts the PR url + conv
       status: "FINISHED",
       target: { prUrl: "https://github.com/org/repo/pull/7", branchName: "cursor/fix" },
       summary: "Fixed it",
-      conversation: [{ type: "assistant_message", text: "done", createdAt: "2026-06-19T00:00:00Z" }],
+      conversation: [
+        { type: "assistant_message", text: "done", createdAt: "2026-06-19T00:00:00Z" },
+      ],
     })
   );
   try {

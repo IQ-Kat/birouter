@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OmniRoute — Co-locate the LLMLingua-2 optional dependency closure into the standalone bundle.
+ * Birouter — Co-locate the LLMLingua-2 optional dependency closure into the standalone bundle.
  *
  * The compression "ultra" SLM tier (PR #4257) runs `@atjsh/llmlingua-2` +
  * `@huggingface/transformers` + `@tensorflow/tfjs` + `js-tiktoken` inside a worker thread

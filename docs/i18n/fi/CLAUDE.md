@@ -39,7 +39,7 @@ Koko testimatriisin näkemiseksi katso `CONTRIBUTING.md` → "Testien suorittami
 
 ## Projekti lyhyesti
 
-**OmniRoute** — yhtenäinen AI-proxy/reititin. Yksi päätepiste, yli 160 LLM-toimittajaa, automaattinen varajärjestelmä.
+**Birouter** — yhtenäinen AI-proxy/reititin. Yksi päätepiste, yli 160 LLM-toimittajaa, automaattinen varajärjestelmä.
 
 | Kerros          | Sijainti                | Tarkoitus                                                                 |
 | --------------- | ----------------------- | ------------------------------------------------------------------------- |
@@ -80,7 +80,7 @@ API-reitit noudattavat johdonmukaista kaavaa: `Reitti → CORS-esivalmistelu →
 
 ## Resilienssin Suorituskykytila
 
-OmniRoute:lla on kolme liittyvää mutta erilaista tilapäisen epäonnistumisen mekanismia. Pidä niiden
+Birouter:lla on kolme liittyvää mutta erilaista tilapäisen epäonnistumisen mekanismia. Pidä niiden
 alueet erillään reitityskäyttäytymisen vianetsinnässä. Katso
 [3-kerroksinen resilienssikaavio](./docs/diagrams/exported/resilience-3layers.svg)
 (lähde: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
@@ -217,7 +217,7 @@ yhteyden jatkaa muiden mallien palvelemista.
 ### Koodityyli
 
 - **2 välilyöntiä**, puolipisteet, kaksoisviittaukset, 100 merkin leveys, es5 loppupisteet (pakotettu lint-stagedin kautta Prettierillä)
-- **Tuonnit**: ulkoiset → sisäiset (`@/`, `@omniroute/open-sse`) → suhteelliset
+- **Tuonnit**: ulkoiset → sisäiset (`@/`, `@birouter/open-sse`) → suhteelliset
 - **Nimeäminen**: tiedostot=camelCase/kebab, komponentit=PascalCase, vakioarvot=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = virhe kaikkialla; `no-explicit-any` = varoitus `open-sse/` ja `tests/`
 - **TypeScript**: `strict: false`, kohde ES2022, moduuli esnext, resoluutio bundler. Suosi eksplisiittisiä tyyppejä.
@@ -385,9 +385,9 @@ git push -u origin feat/your-feature
 
 - **Suoritusaika**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduulit
 - **TypeScript**: 5.9+, kohde ES2022, moduuli esnext, resoluutio bundler
-- **Polkualias**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Polkualias**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Oletusportti**: 20128 (API + dashboard samalla portilla)
-- **Tietohakemisto**: `DATA_DIR` ympäristömuuttuja, oletuksena `~/.omniroute/`
+- **Tietohakemisto**: `DATA_DIR` ympäristömuuttuja, oletuksena `~/.birouter/`
 - **Avain ympäristömuuttujat**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Asetus: `cp .env.example .env` ja sitten luo `JWT_SECRET` (`openssl rand -base64 48`) ja `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -410,4 +410,4 @@ git push -u origin feat/your-feature
 13. Älä koskaan merkkijonointerpoloi ulkoisia polkuja tai suoritusaikaisia arvoja shell-skripteihin, jotka annetaan `exec()`/`spawn()` — siirrä sen sijaan `env`-vaihtoehdon kautta. Viite: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Älä koskaan hylkää CodeQL / Secret-Scanning -ilmoitusta ilman (a) ensin tarkistamalla yllä olevat kaaviodokumentit nähdäksesi, soveltuuko apuri, ja (b) kirjaamalla tekninen perustelu hylkäyskommenttiin. Ennakkotapaus: `js/stack-trace-exposure`, joka nostettiin kutsupaikoissa, jotka jo ohjaavat `sanitizeErrorMessage()` kautta, on tunnettu CodeQL-rajoitus (räätälöityjä puhdistimia ei tunnisteta) — hylkää `false positive` viitaten `docs/security/ERROR_SANITIZATION.md`.
 15. Älä koskaan paljasta reittejä, jotka käynnistävät lapsiprosesseja (`/api/mcp/`, `/api/cli-tools/runtime/`) ilman `isLocalOnlyPath()` luokittelua `src/server/authz/routeGuard.ts`. Loopback-valvonta tapahtuu ehdottomasti ennen mitään todennustarkistusta — vuotanut JWT tunnelin kautta ei voi laukaista prosessin käynnistämistä. Katso `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Älä koskaan sisällytä `Co-Authored-By`-liitteitä, jotka antavat kunnian tekoälyavustajalle, LLM:lle tai automaatiotilille (esim. nimet, joissa esiintyy "Claude", "GPT", "Copilot", "Bot"; sähköpostit osoitteissa `anthropic.com` / `openai.com` / bottien omistamissa `noreply.github.com`-osoitteissa). Tällaiset liitteet ohjaavat commit-attribuution bottitilille GitHubissa, piilottaen oikean kirjoittajan (`diegosouzapw`) PR-historiassa. Inhimilliset avustajat — mukaan lukien upstream-PR:n kirjoittajat ja issue-raportoijat, joita portataan OmniRouteen — VOIVAT ja PITÄISI saada kunnian vakiomuotoisilla `Co-authored-by: Name <email>`-liitteillä; upstream-port-työnkulut (`/port-upstream-features`, `/port-upstream-issues`) riippuvat tästä.
+16. Älä koskaan sisällytä `Co-Authored-By`-liitteitä, jotka antavat kunnian tekoälyavustajalle, LLM:lle tai automaatiotilille (esim. nimet, joissa esiintyy "Claude", "GPT", "Copilot", "Bot"; sähköpostit osoitteissa `anthropic.com` / `openai.com` / bottien omistamissa `noreply.github.com`-osoitteissa). Tällaiset liitteet ohjaavat commit-attribuution bottitilille GitHubissa, piilottaen oikean kirjoittajan (`diegosouzapw`) PR-historiassa. Inhimilliset avustajat — mukaan lukien upstream-PR:n kirjoittajat ja issue-raportoijat, joita portataan Birouteren — VOIVAT ja PITÄISI saada kunnian vakiomuotoisilla `Co-authored-by: Name <email>`-liitteillä; upstream-port-työnkulut (`/port-upstream-features`, `/port-upstream-issues`) riippuvat tästä.

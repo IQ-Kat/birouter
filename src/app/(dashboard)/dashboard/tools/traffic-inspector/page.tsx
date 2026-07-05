@@ -1,7 +1,7 @@
 import { TrafficInspectorPageClient } from "./TrafficInspectorPageClient";
 
 export const metadata = {
-  title: "Traffic Inspector — OmniRoute",
+  title: "Traffic Inspector — Birouter",
   description: "Monitor LLM calls + debug any application's HTTPS traffic",
 };
 

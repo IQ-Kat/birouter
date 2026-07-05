@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-services-hardening-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-services-hardening-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -129,7 +129,7 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
     messages: [
       { role: "system", content: "old system" },
       { role: "user", content: "hello" },
-      { role: "assistant", content: "cached\n<omniModel>anthropic/claude-sonnet-4-6</omniModel>" },
+      { role: "assistant", content: "cached\n<biModel>anthropic/claude-sonnet-4-6</biModel>" },
     ],
     tools: originalTools,
   };
@@ -168,7 +168,7 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
     "openai/gpt-4o"
   );
 
-  // PR #3399: server-side session pinning replaced <omniModel> tag extraction;
+  // PR #3399: server-side session pinning replaced <biModel> tag extraction;
   // pinnedModel is now always null from applyComboAgentMiddleware.
   assert.equal(result.pinnedModel, null);
   assert.equal(result.body.model, "combo/default");

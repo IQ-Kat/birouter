@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   detectCommandType,
   processRtkText,
-} from "@omniroute/open-sse/services/compression/engines/rtk";
+} from "@birouter/open-sse/services/compression/engines/rtk";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { rtkConfigSchema } from "@/shared/validation/compressionConfigSchemas";

@@ -1,12 +1,12 @@
 /**
  * Anthropic Context Editing — delegated, server-side compression for Claude.
  *
- * Unlike OmniRoute's local compression engines (which rewrite the request body
+ * Unlike Birouter's local compression engines (which rewrite the request body
  * before it leaves the proxy), Context Editing asks the *provider* to clear
  * stale tool-use/tool-result blocks from the running context window. We only
  * attach a body param (`context_management.edits[]`); Claude does the clearing
  * against its own tokenizer. The beta is advertised via the `anthropic-beta:
- * context-management-2025-06-27` header, which OmniRoute already emits on Claude
+ * context-management-2025-06-27` header, which Birouter already emits on Claude
  * requests (see `anthropicHeaders.ts`).
  *
  * This is a Claude-only capability by nature — other providers would reject the

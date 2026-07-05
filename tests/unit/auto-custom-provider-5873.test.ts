@@ -11,7 +11,7 @@ import path from "node:path";
 // every custom provider from `auto/` routing. It must now fall back to the
 // connection's defaultModel instead.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-auto-custom-5873-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-auto-custom-5873-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 
 process.env.DATA_DIR = TEST_DATA_DIR;

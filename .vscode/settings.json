@@ -62,7 +62,7 @@
   //   "**/_references": true,
   //   "**/_mono_repo": true,
   //   "**/_tasks": true,
-  //   "**/omniroute-*.tgz": true
+  //   "**/birouter-*.tgz": true
   // },
   "files.watcherExclude": {
     "**/.git/objects/**": true,
@@ -92,7 +92,7 @@
     "**/logs/**": true,
     "**/*.tgz": true,
     "**/*.tsbuildinfo": true,
-    "**/OmniRoute-*/**": true,
+    "**/Birouter-*/**": true,
     "**/*-merge-*/**": true,
     "**/*-worktree-*/**": true,
     "**/*-issues-*/**": true,
@@ -125,7 +125,7 @@
     "**/*.tgz": true,
     "**/*.tsbuildinfo": true,
     "**/package-lock.json": true,
-    "**/OmniRoute-*": true,
+    "**/Birouter-*": true,
     "**/*-merge-*": true,
     "**/*-worktree-*": true,
     "**/*-issues-*": true,

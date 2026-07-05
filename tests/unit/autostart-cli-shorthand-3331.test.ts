@@ -1,8 +1,8 @@
 /**
  * Regression test for #3331 — autostart could only be toggled from the tray
- * (`serve --tray`) or the Electron Appearance tab; a plain `omniroute serve`
+ * (`serve --tray`) or the Electron Appearance tab; a plain `birouter serve`
  * user had no way to enable it. The `autostart` command now exposes the
- * shorthand the reporter asked for (`omniroute autostart on` / `... true`) via
+ * shorthand the reporter asked for (`birouter autostart on` / `... true`) via
  * aliases on the enable/disable subcommands, plus a `toggle` subcommand and a
  * default `status`. This guards that command wiring (introspected, no platform
  * side effects).
@@ -39,7 +39,7 @@ test("disable accepts the off/false shorthand aliases", () => {
   assert.ok(disable.aliases().includes("false"), "`autostart false` should disable");
 });
 
-test("status is the default action (bare `omniroute autostart` is a safe read-only)", () => {
+test("status is the default action (bare `birouter autostart` is a safe read-only)", () => {
   const status = buildAutostartCommand().commands.find((c) => c.name() === "status");
   // Commander marks the default subcommand with `_defaultCommandName`.
   assert.equal(buildAutostartCommand()._defaultCommandName, "status");

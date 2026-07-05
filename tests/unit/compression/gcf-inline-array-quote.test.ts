@@ -9,9 +9,9 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { needsQuote } from "@omniroute/open-sse/services/compression/engines/headroom/gcf/scalar.ts";
-import { encodeGeneric } from "@omniroute/open-sse/services/compression/engines/headroom/gcf/generic.ts";
-import { decodeGeneric } from "@omniroute/open-sse/services/compression/engines/headroom/gcf/decode_generic.ts";
+import { needsQuote } from "@birouter/open-sse/services/compression/engines/headroom/gcf/scalar.ts";
+import { encodeGeneric } from "@birouter/open-sse/services/compression/engines/headroom/gcf/generic.ts";
+import { decodeGeneric } from "@birouter/open-sse/services/compression/engines/headroom/gcf/decode_generic.ts";
 
 test("needsQuote flags the inline-array pattern [..]:  (SPEC §2.4)", () => {
   assert.equal(needsQuote("ERR[404]: Not Found"), true);

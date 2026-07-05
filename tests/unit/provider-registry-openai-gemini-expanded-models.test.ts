@@ -2,35 +2,23 @@
  * Inspired by upstream PR decolua/9router#398 — expand the static OpenAI and
  * Gemini model lists with current first-class variants.
  *
- * Scope (minimal): only models that OmniRoute already references throughout
+ * Scope (minimal): only models that Birouter already references throughout
  * its sibling subsystems (cost estimator, task fitness, free catalog, image
  * registry) but happens not to expose in the direct `openai` / `gemini`
- * provider registry. We do NOT restore models OmniRoute deliberately curated
+ * provider registry. We do NOT restore models Birouter deliberately curated
  * out (e.g. o1, gpt-4-turbo) nor re-add embedding/TTS/image entries that
- * OmniRoute deliberately keeps in their own typed registries
+ * Birouter deliberately keeps in their own typed registries
  * (`embeddingRegistry.ts`, `audioRegistry.ts`, `imageRegistry.ts`).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiProvider } = await import(
-  "../../open-sse/config/providers/registry/openai/index.ts"
-);
-const { geminiProvider } = await import(
-  "../../open-sse/config/providers/registry/gemini/index.ts"
-);
+const { openaiProvider } = await import("../../open-sse/config/providers/registry/openai/index.ts");
+const { geminiProvider } = await import("../../open-sse/config/providers/registry/gemini/index.ts");
 
-const OPENAI_ADDED_IDS = [
-  "gpt-4.1-mini",
-  "gpt-4.1-nano",
-  "o3-mini",
-  "o4-mini",
-] as const;
+const OPENAI_ADDED_IDS = ["gpt-4.1-mini", "gpt-4.1-nano", "o3-mini", "o4-mini"] as const;
 
-const GEMINI_ADDED_IDS = [
-  "gemini-3.1-flash-lite",
-  "gemini-2.5-flash-lite",
-] as const;
+const GEMINI_ADDED_IDS = ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"] as const;
 
 test("openai registry exposes gpt-4.1 mini/nano and o3-mini/o4-mini reasoning variants", () => {
   const ids = new Set(openaiProvider.models.map((m) => m.id));

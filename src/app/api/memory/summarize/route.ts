@@ -3,7 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { MemorySummarizeSchema } from "@/shared/schemas/memory";
 import { summarizeMemoriesOlderThan } from "@/lib/memory/summarization";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       { error: { message: "Invalid JSON body", details: [] } },
-      { status: 400 },
+      { status: 400 }
     );
   }
 

@@ -17,7 +17,7 @@ import path from "node:path";
  * (no entry) even though a persisted exhausted snapshot exists — this test
  * would fail on the pre-#5015 tip.
  */
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-quota-hydrate-5015-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-quota-hydrate-5015-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");

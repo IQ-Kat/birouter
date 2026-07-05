@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
  *
  * The PRODUCER is already covered (tests/unit/account-fallback-service.test.ts, the
  * "G-02" block): `checkFallbackError` returns `skipProviderBreaker: true` for a 503 +
- * `X-Omni-Fallback-Hint: connection_cooldown` (an embedded-service supervisor outage,
+ * `X-Bi-Fallback-Hint: connection_cooldown` (an embedded-service supervisor outage,
  * NOT an upstream AI-provider failure).
  *
  * What was UNVERIFIED is the CONSUMER gate in `open-sse/services/combo.ts` (~line 4350):
@@ -173,7 +173,7 @@ test("consumer (positive skip): 503 + connection_cooldown hint → breaker stays
     provider,
     status: 503,
     errorText: "9router is not running (state: stopped)",
-    headers: new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" }),
+    headers: new Headers({ "X-Bi-Fallback-Hint": "connection_cooldown" }),
   });
 
   // The producer set skipProviderBreaker:true, so the consumer must NOT record a failure.
@@ -194,7 +194,7 @@ test("consumer (positive skip): five consecutive cooldown-hint 503s keep the bre
       provider,
       status: 503,
       errorText: "9router is not running (state: stopped)",
-      headers: new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" }),
+      headers: new Headers({ "X-Bi-Fallback-Hint": "connection_cooldown" }),
     });
     assert.equal(recorded, false, `call ${i + 1} must skip recordProviderFailure`);
   }

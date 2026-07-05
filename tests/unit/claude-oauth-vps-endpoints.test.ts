@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert";
 import { CLAUDE_CONFIG } from "@/lib/oauth/constants/oauth.ts";
-import { OAUTH_ENDPOINTS } from "@omniroute/open-sse/config/constants.ts";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { OAUTH_ENDPOINTS } from "@birouter/open-sse/config/constants.ts";
+import { REGISTRY } from "@birouter/open-sse/config/providerRegistry.ts";
 
 // Exact-equality assertions (not substring `.includes`) so the host is pinned
 // precisely — a substring check would also pass for e.g. `api.anthropic.com.evil`

@@ -1,7 +1,7 @@
 [
   {
-    "name": "CLI entry (omniroute.mjs)",
-    "path": "bin/omniroute.mjs",
+    "name": "CLI entry (birouter.mjs)",
+    "path": "bin/birouter.mjs",
     "limit": "15 KB"
   },
   {

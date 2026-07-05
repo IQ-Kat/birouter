@@ -37,7 +37,7 @@ export default function CliproxyapiSettingsTab() {
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
   const [toolState, setToolState] = useState<VersionManagerEntry | null>(null);
   const [toolStateError, setToolStateError] = useState<string | null>(null);
-  // #1934: import CLIProxyAPI auth files (~/.cli-proxy-api/) as OmniRoute connections.
+  // #1934: import CLIProxyAPI auth files (~/.cli-proxy-api/) as Birouter connections.
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<string | null>(null);
 

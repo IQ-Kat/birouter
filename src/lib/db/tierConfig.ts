@@ -1,7 +1,7 @@
 import { getDbInstance } from "./core";
 import type { TierConfig } from "../../../open-sse/services/tierTypes";
 import { validateTierConfig, DEFAULT_TIER_CONFIG } from "../../../open-sse/services/tierConfig";
-import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
+import { defaultLogger as log } from "@birouter/open-sse/utils/logger";
 
 const TABLE = "tier_config";
 const CORRUPTED_VALUE_PREVIEW_LEN = 200;
@@ -53,8 +53,7 @@ function previewCorruptedValue(value: unknown): string {
 export function loadTierConfigFromDb(): TierConfig | null {
   const db = getDbInstance();
   const row = db.prepare(`SELECT value FROM ${TABLE} WHERE key = 'tier_config'`).get() as
-    | { value: string }
-    | undefined;
+    { value: string } | undefined;
   if (!row) return null;
 
   const raw = row.value;

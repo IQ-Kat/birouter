@@ -14,7 +14,7 @@ import {
   SEARCH_PROVIDERS,
   VIDEO_PROVIDER_IDS,
 } from "@/shared/constants/providers";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { REGISTRY } from "@birouter/open-sse/config/providerRegistry.ts";
 
 type ProviderConnectionLike = {
   id?: string;

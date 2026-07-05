@@ -118,10 +118,10 @@ test("cli skills have area matching CLI_SKILL_IDS derived IDs", () => {
 
 // ─── getSkillById ─────────────────────────────────────────────────────────────
 
-test("getSkillById('omni-providers') returns the omni-providers entry", () => {
-  const skill = getSkillById("omni-providers");
+test("getSkillById('bi-providers') returns the bi-providers entry", () => {
+  const skill = getSkillById("bi-providers");
   assert.ok(skill, "Expected skill to be found");
-  assert.equal(skill!.id, "omni-providers");
+  assert.equal(skill!.id, "bi-providers");
   assert.equal(skill!.category, "api");
   assert.equal(skill!.area, "providers");
 });
@@ -134,8 +134,8 @@ test("getSkillById('cli-serve') returns the cli-serve entry", () => {
   assert.equal(skill!.isEntry, true);
 });
 
-test("getSkillById('omni-auth') returns entry with isEntry=true", () => {
-  const skill = getSkillById("omni-auth");
+test("getSkillById('bi-auth') returns entry with isEntry=true", () => {
+  const skill = getSkillById("bi-auth");
   assert.ok(skill);
   assert.equal(skill!.isEntry, true);
 });
@@ -168,16 +168,16 @@ test("filterCatalog({ category: 'cli' }) returns 20 cli skills", () => {
   }
 });
 
-test("filterCatalog({ area: 'providers' }) returns exactly omni-providers", () => {
+test("filterCatalog({ area: 'providers' }) returns exactly bi-providers", () => {
   const skills = filterCatalog({ area: "providers" });
   assert.equal(skills.length, 1);
-  assert.equal(skills[0].id, "omni-providers");
+  assert.equal(skills[0].id, "bi-providers");
 });
 
-test("filterCatalog({ category: 'api', area: 'mcp' }) returns omni-mcp", () => {
+test("filterCatalog({ category: 'api', area: 'mcp' }) returns bi-mcp", () => {
   const skills = filterCatalog({ category: "api", area: "mcp" });
   assert.equal(skills.length, 1);
-  assert.equal(skills[0].id, "omni-mcp");
+  assert.equal(skills[0].id, "bi-mcp");
 });
 
 test("filterCatalog({ area: 'nonexistent' }) returns empty array", () => {
@@ -243,12 +243,12 @@ test("getCatalog() returns the same array reference on repeated calls (cached)",
 
 // ─── Canonical IDs check ─────────────────────────────────────────────────────
 
-test("API_SKILL_IDS first entry is omni-auth", () => {
-  assert.equal(API_SKILL_IDS[0], "omni-auth");
+test("API_SKILL_IDS first entry is bi-auth", () => {
+  assert.equal(API_SKILL_IDS[0], "bi-auth");
 });
 
-test("API_SKILL_IDS last entry is omni-inference", () => {
-  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "omni-inference");
+test("API_SKILL_IDS last entry is bi-inference", () => {
+  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "bi-inference");
 });
 
 test("CLI_SKILL_IDS first entry is cli-serve", () => {

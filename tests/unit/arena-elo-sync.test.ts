@@ -3,7 +3,7 @@
  *
  * Uses Node.js native test runner. All external fetch calls are mocked.
  * DB functions use a real in-memory SQLite instance via node:sqlite (DatabaseSync),
- * injected through the core module's globalThis.__omnirouteDb singleton.
+ * injected through the core module's globalThis.__birouterDb singleton.
  * backupDbFile is called during first sync but safely no-ops (no file on disk).
  */
 
@@ -13,7 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-arena-elo-test-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-arena-elo-test-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const MIGRATION_SQL = fs.readFileSync(
@@ -133,7 +133,7 @@ function getAllEntries(): Array<Record<string, unknown>> {
 beforeEach(() => {
   core.resetDbInstance();
   testAdapter = createTestAdapter();
-  globalThis.__omnirouteDb = testAdapter as never;
+  globalThis.__birouterDb = testAdapter as never;
   stopArenaEloSync();
   delete process.env.ARENA_ELO_SYNC_ENABLED;
 });
@@ -141,7 +141,7 @@ beforeEach(() => {
 afterEach(() => {
   restoreFetch();
   stopArenaEloSync();
-  delete globalThis.__omnirouteDb;
+  delete globalThis.__birouterDb;
   delete process.env.ARENA_ELO_SYNC_ENABLED;
 });
 

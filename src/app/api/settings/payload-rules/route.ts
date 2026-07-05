@@ -3,7 +3,7 @@ import { updateSettings } from "@/lib/localDb";
 import {
   getPayloadRulesConfig,
   normalizePayloadRulesConfig,
-} from "@omniroute/open-sse/services/payloadRules.ts";
+} from "@birouter/open-sse/services/payloadRules.ts";
 import { updatePayloadRulesSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";

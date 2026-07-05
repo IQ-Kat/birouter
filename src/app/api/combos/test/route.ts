@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
+import { resolveNestedComboTargets } from "@birouter/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
@@ -67,9 +67,9 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
           ...(internalApiKey ? { Authorization: `Bearer ${internalApiKey}` } : {}),
           "X-Internal-Test": "combo-health-check",
           // Force a fresh execution path so combo tests cannot be satisfied by
-          // OmniRoute's semantic cache or other request reuse layers.
-          "X-OmniRoute-No-Cache": "true",
-          ...(target.connectionId ? { "X-OmniRoute-Connection": target.connectionId } : {}),
+          // Birouter's semantic cache or other request reuse layers.
+          "X-Birouter-No-Cache": "true",
+          ...(target.connectionId ? { "X-Birouter-Connection": target.connectionId } : {}),
           "X-Request-Id": `combo-test-${randomUUID()}`,
         },
         body: JSON.stringify(testBody),

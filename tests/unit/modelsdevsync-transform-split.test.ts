@@ -2,7 +2,7 @@
  * Split-guard — modelsDevSync ↔ modelsDevSync/transform
  *
  * Guards the extraction of the pure transform layer (provider-id mapping +
- * raw→OmniRoute pricing/capability transforms) into the leaf
+ * raw→Birouter pricing/capability transforms) into the leaf
  * src/lib/modelsDevSync/transform.ts. Characterizes the provider map and the
  * two transform functions, and proves the host still re-exports them so its
  * public API is unchanged. DB-free by design — the transform layer is pure.
@@ -19,7 +19,7 @@ import {
 } from "../../src/lib/modelsDevSync/transform.ts";
 
 describe("modelsDevSync/transform split-guard", () => {
-  it("maps known models.dev provider ids to OmniRoute aliases", () => {
+  it("maps known models.dev provider ids to Birouter aliases", () => {
     assert.deepEqual(mapProviderId("openai"), ["openai", "cx"]);
     assert.deepEqual(mapProviderId("anthropic"), ["anthropic", "cc"]);
     assert.deepEqual(mapProviderId("zai"), ["zai", "glm"]);

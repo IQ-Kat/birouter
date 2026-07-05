@@ -6,7 +6,7 @@ import { getOpenAICompatibleType } from "../services/provider.ts";
  * A Responses-API-shaped request (`input` / `previous_response_id` /
  * `max_output_tokens` / `reasoning`) that carries MCP (`namespace`) or
  * `tool_search*` tools loses the Codex deferred tool-discovery mechanism when
- * OmniRoute downgrades it to `/chat/completions` — so the MCP namespaces never
+ * Birouter downgrades it to `/chat/completions` — so the MCP namespaces never
  * surface to the model and `apply_patch` is mis-handled (#5483). Detecting that
  * shape lets the executor pass it through natively instead of downgrading.
  */
@@ -26,7 +26,7 @@ export function shouldForceResponsesUpstream(
   if (!isRecord(body)) return false;
 
   const providerSpecificData = credentials?.providerSpecificData ?? null;
-  if (providerSpecificData?._omnirouteForceResponsesUpstream === true) return true;
+  if (providerSpecificData?._birouterForceResponsesUpstream === true) return true;
   if (getOpenAICompatibleType(provider, providerSpecificData) === "responses") return false;
 
   const hasResponsesShape =
@@ -54,7 +54,7 @@ export function withForcedResponsesUpstream<T extends CredentialsLike>(
     ...credentials,
     providerSpecificData: {
       ...credentials.providerSpecificData,
-      _omnirouteForceResponsesUpstream: true,
+      _birouterForceResponsesUpstream: true,
     },
   } as T;
 }

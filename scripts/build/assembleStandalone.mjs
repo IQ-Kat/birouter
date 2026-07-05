@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * assembleStandalone.mjs - Shared standalone bundle assembler for OmniRoute.
+ * assembleStandalone.mjs - Shared standalone bundle assembler for Birouter.
  *
  * Task 0.1 Inventory: Copy/sync operations across the three build scripts
  * -----------------------------------------------------------------------
@@ -33,7 +33,7 @@
  * --- npm-UNIQUE ---
  * MITM tsc compile -> app/src/mitm/                           -               Y           -    UNIQUE (prepublish)
  * MCP server esbuild -> dist/open-sse/mcp-server/server.js    -               Y           -    UNIQUE (prepublish)
- * CLI esbuild -> bin/omniroute.mjs                            -               Y           -    UNIQUE (prepublish)
+ * CLI esbuild -> bin/birouter.mjs                            -               Y           -    UNIQUE (prepublish)
  * sidecar/doc copies (.env.example, docs/, sync-env, etc.)    -               Y           -    UNIQUE (prepublish)
  * prune + validate (pack-artifact-policy)                      -               Y           -    UNIQUE (prepublish)
  * data/ dir creation                                           -               Y           -    UNIQUE (prepublish)

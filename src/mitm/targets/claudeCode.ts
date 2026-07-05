@@ -25,13 +25,12 @@ export const CLAUDE_CODE_TARGET: MitmTarget = {
   setupTutorial: {
     steps: [
       "Install Claude Code (Anthropic CLI)",
-      "Install OmniRoute's root certificate",
+      "Install Birouter's root certificate",
       "Enable DNS routing for Claude Code",
-      "Run `claude` — requests are now proxied via OmniRoute",
+      "Run `claude` — requests are now proxied via Birouter",
     ],
     detection: { command: "which claude", platform: "all" },
   },
-  handler: () =>
-    import("../handlers/claudeCode").then((m) => ({ default: m.ClaudeCodeHandler })),
+  handler: () => import("../handlers/claudeCode").then((m) => ({ default: m.ClaudeCodeHandler })),
   riskNoticeKey: "providers.riskNotice.oauth",
 };

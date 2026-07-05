@@ -6,7 +6,7 @@ import path from "node:path";
 
 const previousDataDir = process.env.DATA_DIR;
 const previousDisableSqliteAutoBackup = process.env.DISABLE_SQLITE_AUTO_BACKUP;
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-emergency-fallback-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-emergency-fallback-"));
 process.env.DATA_DIR = tmpDir;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
@@ -33,7 +33,7 @@ function resetTestState() {
   core.resetDbInstance();
   fs.rmSync(tmpDir, { recursive: true, force: true });
   fs.mkdirSync(tmpDir, { recursive: true });
-  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  delete process.env.BIROUTER_EMERGENCY_FALLBACK;
   resetEmergencyFallbackEnvCache();
   setEmergencyFallbackFeatureFlagResolverForTest(null);
 }
@@ -45,7 +45,7 @@ test.beforeEach(() => {
 test.afterEach(() => {
   resetEmergencyFallbackEnvCache();
   setEmergencyFallbackFeatureFlagResolverForTest(null);
-  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  delete process.env.BIROUTER_EMERGENCY_FALLBACK;
 });
 
 test.after(() => {
@@ -56,28 +56,28 @@ test.after(() => {
 });
 
 function withEnv(value: string | undefined, fn: () => void) {
-  const previous = process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  const previous = process.env.BIROUTER_EMERGENCY_FALLBACK;
   if (value === undefined) {
-    delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+    delete process.env.BIROUTER_EMERGENCY_FALLBACK;
   } else {
-    process.env.OMNIROUTE_EMERGENCY_FALLBACK = value;
+    process.env.BIROUTER_EMERGENCY_FALLBACK = value;
   }
   resetEmergencyFallbackEnvCache();
   try {
     fn();
   } finally {
-    restoreEnv("OMNIROUTE_EMERGENCY_FALLBACK", previous);
+    restoreEnv("BIROUTER_EMERGENCY_FALLBACK", previous);
     resetEmergencyFallbackEnvCache();
   }
 }
 
 function withFeatureFlagOverride(value: string, fn: () => void) {
   try {
-    setFeatureFlagOverride("OMNIROUTE_EMERGENCY_FALLBACK", value);
+    setFeatureFlagOverride("BIROUTER_EMERGENCY_FALLBACK", value);
     resetEmergencyFallbackEnvCache();
     fn();
   } finally {
-    removeFeatureFlagOverride("OMNIROUTE_EMERGENCY_FALLBACK");
+    removeFeatureFlagOverride("BIROUTER_EMERGENCY_FALLBACK");
     resetEmergencyFallbackEnvCache();
   }
 }
@@ -101,20 +101,20 @@ test("budget keywords trigger fallback when the env switch is unset", () => {
   });
 });
 
-test("OMNIROUTE_EMERGENCY_FALLBACK=false disables the 402 redirect", () => {
+test("BIROUTER_EMERGENCY_FALLBACK=false disables the 402 redirect", () => {
   withEnv("false", () => {
     assert.equal(isEmergencyFallbackEnvEnabled(), false);
     const decision = shouldUseFallback(402, "", false);
     assert.equal(decision.shouldFallback, false);
-    assert.match(decision.reason, /OMNIROUTE_EMERGENCY_FALLBACK/);
+    assert.match(decision.reason, /BIROUTER_EMERGENCY_FALLBACK/);
   });
 });
 
-test("OMNIROUTE_EMERGENCY_FALLBACK=0 disables the budget-keyword redirect", () => {
+test("BIROUTER_EMERGENCY_FALLBACK=0 disables the budget-keyword redirect", () => {
   withEnv("0", () => {
     const decision = shouldUseFallback(429, "quota exceeded for account", false);
     assert.equal(decision.shouldFallback, false);
-    assert.match(decision.reason, /OMNIROUTE_EMERGENCY_FALLBACK/);
+    assert.match(decision.reason, /BIROUTER_EMERGENCY_FALLBACK/);
   });
 });
 
@@ -124,7 +124,7 @@ test("DB feature flag override can disable an env-enabled fallback", () => {
       const decision = shouldUseFallback(402, "", false);
       assert.equal(isEmergencyFallbackEnvEnabled(), false);
       assert.equal(decision.shouldFallback, false);
-      assert.match(decision.reason, /OMNIROUTE_EMERGENCY_FALLBACK/);
+      assert.match(decision.reason, /BIROUTER_EMERGENCY_FALLBACK/);
     });
   });
 });
@@ -154,7 +154,7 @@ test("raw env fallback is used when feature flag resolution throws", () => {
       assert.equal(isEmergencyFallbackEnvEnabled(), false);
       const decision = shouldUseFallback(402, "", false);
       assert.equal(decision.shouldFallback, false);
-      assert.match(decision.reason, /OMNIROUTE_EMERGENCY_FALLBACK/);
+      assert.match(decision.reason, /BIROUTER_EMERGENCY_FALLBACK/);
       assert.equal(warnings.length, 1);
       assert.match(String(warnings[0]?.[0]), /Feature flag resolution failed/);
     } finally {

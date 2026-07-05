@@ -19,10 +19,9 @@ describe("memory-embedding-remote", () => {
     // Mock global fetch via createEmbeddingResponse by monkey-patching
     const origFetch = globalThis.fetch;
     globalThis.fetch = async () => {
-      return new Response(
-        JSON.stringify({ data: [{ embedding: mockEmbedding }] }),
-        { status: 200 }
-      );
+      return new Response(JSON.stringify({ data: [{ embedding: mockEmbedding }] }), {
+        status: 200,
+      });
     };
 
     try {
@@ -57,7 +56,7 @@ describe("memory-embedding-remote", () => {
 describe("memory-embedding-remote error paths (with stubs)", () => {
   it("network failure returns EmbeddingError{reason:request_failed}", async () => {
     // Create a test-specific inline implementation to test error handling logic
-    const { sanitizeErrorMessage } = await import("@omniroute/open-sse/utils/error.ts");
+    const { sanitizeErrorMessage } = await import("@birouter/open-sse/utils/error.ts");
 
     // Simulate what embedRemote does on network failure
     const networkError = new Error("ECONNREFUSED: connection refused");
@@ -71,13 +70,13 @@ describe("memory-embedding-remote error paths (with stubs)", () => {
 
   it("401 response maps to no_key reason", () => {
     const status = 401;
-    const reason = (status === 401 || status === 403) ? "no_key" : "request_failed";
+    const reason = status === 401 || status === 403 ? "no_key" : "request_failed";
     assert.strictEqual(reason, "no_key");
   });
 
   it("403 response maps to no_key reason", () => {
     const status = 403;
-    const reason = (status === 401 || status === 403) ? "no_key" : "request_failed";
+    const reason = status === 401 || status === 403 ? "no_key" : "request_failed";
     assert.strictEqual(reason, "no_key");
   });
 
@@ -89,9 +88,12 @@ describe("memory-embedding-remote error paths (with stubs)", () => {
 
   it("500 response maps to request_failed reason", () => {
     const status = 500;
-    const reason = (status === 401 || status === 403) ? "no_key"
-      : status === 429 ? "rate_limited"
-      : "request_failed";
+    const reason =
+      status === 401 || status === 403
+        ? "no_key"
+        : status === 429
+          ? "rate_limited"
+          : "request_failed";
     assert.strictEqual(reason, "request_failed");
   });
 
@@ -105,7 +107,7 @@ describe("memory-embedding-remote error paths (with stubs)", () => {
   });
 
   it("sanitizeErrorMessage strips stack traces from error messages", async () => {
-    const { sanitizeErrorMessage } = await import("@omniroute/open-sse/utils/error.ts");
+    const { sanitizeErrorMessage } = await import("@birouter/open-sse/utils/error.ts");
     const rawMsg = "Error at /home/user/project/src/index.ts:45:12";
     const sanitized = sanitizeErrorMessage(rawMsg);
     assert.ok(!sanitized.includes("/home/user"), "absolute path stripped");

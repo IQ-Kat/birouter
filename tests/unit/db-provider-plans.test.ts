@@ -15,7 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-provider-plans-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-provider-plans-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -54,12 +54,7 @@ test.after(async () => {
 // ---------------------------------------------------------------------------
 
 test("upsertPlan creates a plan row", () => {
-  plansDb.upsertPlan(
-    "conn-1",
-    "codex",
-    [{ unit: "percent", window: "5h", limit: 100 }],
-    "auto"
-  );
+  plansDb.upsertPlan("conn-1", "codex", [{ unit: "percent", window: "5h", limit: 100 }], "auto");
 
   const all = plansDb.listPlans();
   assert.equal(all.length, 1);
@@ -204,7 +199,12 @@ test("upserting one plan does not affect other connection plans", () => {
   );
 
   // Update conn-x
-  plansDb.upsertPlan("conn-x", "openai", [{ unit: "usd", window: "monthly", limit: 100 }], "manual");
+  plansDb.upsertPlan(
+    "conn-x",
+    "openai",
+    [{ unit: "usd", window: "monthly", limit: 100 }],
+    "manual"
+  );
 
   const planY = plansDb.getPlan("conn-y");
   assert.ok(planY, "conn-y should still exist");

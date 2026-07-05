@@ -5,7 +5,7 @@
  */
 import { detectAgent } from "@/mitm/detection/index";
 import type { AgentId } from "@/mitm/types";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 const VALID_IDS = new Set<AgentId>([

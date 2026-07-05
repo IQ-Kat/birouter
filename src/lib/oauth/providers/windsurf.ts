@@ -15,7 +15,7 @@ import { WINDSURF_CONFIG } from "../constants/oauth";
  *      a "Redirecting" page with no token — the IDE must initiate the flow
  *      (it adds a `?state=<xyz>` param) for the token to be displayed.
  *   2. Copies the displayed Windsurf API key (`sk-ws-...` style)
- *   3. Pastes it into OmniRoute via /api/oauth/windsurf/import-token
+ *   3. Pastes it into Birouter via /api/oauth/windsurf/import-token
  *
  * The pasted token is stored as `accessToken` and used directly by `WindsurfExecutor`
  * (open-sse/executors/windsurf.ts) as the `Authorization: Bearer ...` header against

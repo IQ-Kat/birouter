@@ -14,16 +14,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-vision-bridge-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-vision-bridge-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 // Prevent vision bridge from routing through a real API
 process.env.VISION_BRIDGE_ENABLED = "false";
 
-const { callVisionModel } = await import(
-  "../../../src/lib/guardrails/visionBridgeHelpers.ts"
-);
+const { callVisionModel } = await import("../../../src/lib/guardrails/visionBridgeHelpers.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -37,7 +33,8 @@ test.afterEach(() => {
 });
 
 // Helper: build a minimal OpenAI-compat image data URI
-const TINY_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+const TINY_PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 test("callVisionModel falls through to next model when primary fails", async () => {
   let fetchCallCount = 0;
@@ -65,16 +62,8 @@ test("callVisionModel falls through to next model when primary fails", async () 
     { fixedModel: "openai/gpt-4o-mini", maxFallbackAttempts: 2 }
   );
 
-  assert.equal(
-    fetchCallCount,
-    2,
-    "must have attempted exactly 2 models (primary + 1 fallback)"
-  );
-  assert.equal(
-    result,
-    "fallback model description",
-    "must return the fallback model's response"
-  );
+  assert.equal(fetchCallCount, 2, "must have attempted exactly 2 models (primary + 1 fallback)");
+  assert.equal(result, "fallback model description", "must return the fallback model's response");
 });
 
 test("callVisionModel throws when ALL models fail", async () => {

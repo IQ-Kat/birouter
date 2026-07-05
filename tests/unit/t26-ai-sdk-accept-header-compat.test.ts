@@ -27,12 +27,12 @@ test("T26: mixed Accept header prefers SSE only when text/event-stream is presen
 });
 
 test("T26: markdown code fence stripping unwraps Claude JSON blocks", () => {
-  const wrapped = '```json\n{"name":"omniroute"}\n```';
-  assert.equal(stripMarkdownCodeFence(wrapped), '{"name":"omniroute"}');
+  const wrapped = '```json\n{"name":"birouter"}\n```';
+  assert.equal(stripMarkdownCodeFence(wrapped), '{"name":"birouter"}');
 });
 
 test("T26: non-fenced content is returned unchanged", () => {
-  const plain = '{"name":"omniroute"}';
+  const plain = '{"name":"birouter"}';
   assert.equal(stripMarkdownCodeFence(plain), plain);
 });
 
@@ -51,7 +51,7 @@ test("T26: explicit stream:false always prevents streaming", () => {
 
 test("T26: sourceFormat=claude applies Anthropic Messages non-stream default (#2325)", () => {
   // Anthropic Messages API spec: stream defaults to false when body omits it,
-  // regardless of Accept header. Previously OmniRoute defaulted to stream=true
+  // regardless of Accept header. Previously Birouter defaulted to stream=true
   // for Accept: */* or undefined, causing STREAM_EARLY_EOF on /v1/messages.
 
   // Ambiguous cases must default to non-stream when sourceFormat is claude
@@ -123,7 +123,7 @@ test("T26: explicit stream aliases resolve true/false correctly", () => {
 
 test("T26: sourceFormat=openai-responses applies spec default (stream=false when omitted) (#3708)", () => {
   // OpenAI Responses API spec: omitting `stream` means non-streaming, same as claude.
-  // Previously OmniRoute fell through to the wildcard-Accept heuristic, treating
+  // Previously Birouter fell through to the wildcard-Accept heuristic, treating
   // Accept: */* as streaming intent → STREAM_EARLY_EOF / 502 on spec-compliant upstreams.
 
   // Wildcard and undefined Accept must default to non-stream

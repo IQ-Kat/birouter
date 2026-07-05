@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import type {
   CompressionEngineId,
   CompressionPipelineStep,
-} from "@omniroute/open-sse/services/compression/types.ts";
+} from "@birouter/open-sse/services/compression/types.ts";
 
 import { backupDbFile } from "./backup";
 import { getDbInstance, rowToCamel } from "./core";
@@ -92,8 +92,7 @@ function upgradeLegacySeededDefaultCompressionCombo(): void {
   const row = db
     .prepare("SELECT name, description, pipeline FROM compression_combos WHERE id = ?")
     .get(DEFAULT_COMPRESSION_COMBO_ID) as
-    | { name?: string; description?: string; pipeline?: string }
-    | undefined;
+    { name?: string; description?: string; pipeline?: string } | undefined;
 
   if (!row) return;
 

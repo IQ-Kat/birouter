@@ -9,7 +9,7 @@
  */
 
 import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
+import { REGISTRY } from "@birouter/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 
 export interface ProviderModelScore {

@@ -13,12 +13,12 @@ const REAL_VERSION = JSON.parse(
 ).version;
 
 // #3295 issue 1: getCurrentVersion() must resolve package.json relative to the
-// script, not process.cwd(). When OmniRoute is installed globally, the user's
+// script, not process.cwd(). When Birouter is installed globally, the user's
 // cwd is not the package root, so a cwd-relative lookup returns null →
 // "Could not determine current version".
 test("getCurrentVersion resolves the real version from a foreign cwd (#3295)", async () => {
   const originalCwd = process.cwd();
-  const foreignCwd = mkdtempSync(path.join(tmpdir(), "omniroute-cwd-"));
+  const foreignCwd = mkdtempSync(path.join(tmpdir(), "birouter-cwd-"));
   try {
     process.chdir(foreignCwd); // no package.json here → cwd-relative lookup would fail
     const version = await update.getCurrentVersion();
@@ -35,26 +35,23 @@ test("getCurrentVersion resolves the real version from a foreign cwd (#3295)", a
 test("createBackup resolves bin/ from a foreign cwd and copies cli/ recursively (#3295)", async () => {
   const originalCwd = process.cwd();
   const originalHome = process.env.HOME;
-  const foreignCwd = mkdtempSync(path.join(tmpdir(), "omniroute-cwd-"));
-  const fakeHome = mkdtempSync(path.join(tmpdir(), "omniroute-home-"));
+  const foreignCwd = mkdtempSync(path.join(tmpdir(), "birouter-cwd-"));
+  const fakeHome = mkdtempSync(path.join(tmpdir(), "birouter-home-"));
   try {
     process.chdir(foreignCwd); // no bin/ here → cwd-relative binPath would be missing
-    process.env.HOME = fakeHome; // redirect ~/.omniroute/backups
+    process.env.HOME = fakeHome; // redirect ~/.birouter/backups
     mkdirSync(fakeHome, { recursive: true });
 
     const backupDir = await update.createBackup();
 
     assert.ok(backupDir, "createBackup must return a path (not null)");
-    // omniroute.mjs is a real file in bin/ and must be copied
-    assert.ok(existsSync(path.join(backupDir, "omniroute.mjs")), "omniroute.mjs copied");
+    // birouter.mjs is a real file in bin/ and must be copied
+    assert.ok(existsSync(path.join(backupDir, "birouter.mjs")), "birouter.mjs copied");
     // "cli" is a directory — it must be copied recursively, not throw EISDIR
     const cliBackup = path.join(backupDir, "cli");
     assert.ok(existsSync(cliBackup), "cli/ directory copied");
     assert.ok(statSync(cliBackup).isDirectory(), "cli/ backup is a directory");
-    assert.ok(
-      existsSync(path.join(cliBackup, "commands")),
-      "cli/ contents copied recursively"
-    );
+    assert.ok(existsSync(path.join(cliBackup, "commands")), "cli/ contents copied recursively");
   } finally {
     process.chdir(originalCwd);
     if (originalHome === undefined) delete process.env.HOME;

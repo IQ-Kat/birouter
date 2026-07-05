@@ -1,7 +1,7 @@
 /**
  * Extract a human-readable message from an API error response body.
  *
- * OmniRoute's structured error envelope is `{ error: { code, message,
+ * Birouter's structured error envelope is `{ error: { code, message,
  * correlation_id } }`, but some routes return `{ error: "string" }`. Rendering
  * the raw `error` object in the dashboard yields "[object Object]" (or nothing),
  * which hid actionable messages such as `INVALID_ORIGIN` (#5340) — the operator

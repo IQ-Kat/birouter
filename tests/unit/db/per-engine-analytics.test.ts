@@ -12,7 +12,7 @@ import path from "node:path";
 
 // ─── isolated temp DB ─────────────────────────────────────────────────────────
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-per-engine-analytics-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-per-engine-analytics-"));
 const originalDataDir = process.env.DATA_DIR;
 
 process.env.DATA_DIR = TEST_DATA_DIR;

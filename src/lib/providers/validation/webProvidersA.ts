@@ -307,7 +307,7 @@ export async function validateGrokWebProvider({ apiKey, providerSpecificData = {
     // cf_clearance to JA3/JA4 + HTTP/2 SETTINGS, so plain Node fetch always
     // gets "Request rejected by anti-bot rules." regardless of cookies (#3180).
     const { tlsFetchGrok, TlsClientUnavailableError, isCloudflareChallenge } =
-      await import("@omniroute/open-sse/services/grokTlsClient.ts");
+      await import("@birouter/open-sse/services/grokTlsClient.ts");
 
     // Generate the same Cloudflare-bypass headers the GrokWebExecutor uses.
     const randomHex = (n: number) => {
@@ -490,7 +490,7 @@ export async function validateChatGptWebProvider({ apiKey, providerSpecificData 
     // cf_clearance to JA3/JA4 + HTTP/2 SETTINGS, so plain Node fetch always
     // gets cf-mitigated: challenge regardless of cookies.
     const { tlsFetchChatGpt, TlsClientUnavailableError } =
-      await import("@omniroute/open-sse/services/chatgptTlsClient.ts");
+      await import("@birouter/open-sse/services/chatgptTlsClient.ts");
 
     let response;
     try {
@@ -621,7 +621,7 @@ export async function validatePerplexityWebProvider({ apiKey, providerSpecificDa
     // VPS/datacenter IPs even with a valid cookie. Use the Firefox-fingerprinted
     // TLS client so the validator's verdict reflects the cookie, not the IP (issue #2459).
     const { tlsFetchPerplexity, isCloudflareChallenge, TlsClientUnavailableError } =
-      await import("@omniroute/open-sse/services/perplexityTlsClient.ts");
+      await import("@birouter/open-sse/services/perplexityTlsClient.ts");
 
     let response: { status: number; text: string | null };
     try {

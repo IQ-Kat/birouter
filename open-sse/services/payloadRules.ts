@@ -133,14 +133,14 @@ export function normalizePayloadRulesConfig(value: unknown): PayloadRulesConfig 
 
 function getPayloadRulesPath() {
   return (
-    process.env.OMNIROUTE_PAYLOAD_RULES_PATH ||
+    process.env.BIROUTER_PAYLOAD_RULES_PATH ||
     process.env.PAYLOAD_RULES_PATH ||
     path.join(/* turbopackIgnore: true */ process.cwd(), "config", "payloadRules.json")
   );
 }
 
 function getPayloadRulesReloadIntervalMs() {
-  const parsed = Number.parseInt(process.env.OMNIROUTE_PAYLOAD_RULES_RELOAD_MS || "", 10);
+  const parsed = Number.parseInt(process.env.BIROUTER_PAYLOAD_RULES_RELOAD_MS || "", 10);
   if (!Number.isFinite(parsed) || parsed < MIN_FILE_CHECK_INTERVAL_MS) {
     return DEFAULT_FILE_CHECK_INTERVAL_MS;
   }

@@ -1,7 +1,7 @@
 /**
  * #4165 — surface a clear error when the request-queue (Bottleneck) drops a job.
  *
- * OmniRoute schedules every rate-limited request through Bottleneck with
+ * Birouter schedules every rate-limited request through Bottleneck with
  * `{ expiration: requestQueue.maxWaitMs }` (open-sse/services/rateLimitManager.ts).
  * When a job exceeds that budget Bottleneck throws the raw message
  * `"This job timed out after <N> ms."` — which is indistinguishable from an
@@ -9,7 +9,7 @@
  * queue saturation as a provider outage because the 502 body / call-log
  * `last_error` carried that upstream-looking string across many providers.
  *
- * The fix rewrites that specific Bottleneck error into a clear, OmniRoute-owned
+ * The fix rewrites that specific Bottleneck error into a clear, Birouter-owned
  * message that names the knob (`resilienceSettings.requestQueue.maxWaitMs`) and
  * explicitly says it is NOT an upstream timeout, while preserving the original
  * error as `.cause` and tagging `.code = "RATE_LIMIT_QUEUE_TIMEOUT"` so callers
@@ -21,7 +21,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rl-queue-timeout-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rl-queue-timeout-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -60,7 +60,7 @@ async function triggerQueueTimeout() {
   });
 }
 
-test("#4165 queue-timeout surfaces a clear OmniRoute error, not the raw upstream-looking string", async () => {
+test("#4165 queue-timeout surfaces a clear Birouter error, not the raw upstream-looking string", async () => {
   let caught: (Error & { code?: string; cause?: { message?: string } }) | undefined;
   try {
     await triggerQueueTimeout();

@@ -4,12 +4,8 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const {
-  adaptLsPoolToApiSchema,
-  useLocalStoragePoolMigration,
-} = await import(
-  "../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/useLocalStoragePoolMigration"
-);
+const { adaptLsPoolToApiSchema, useLocalStoragePoolMigration } =
+  await import("../../../src/app/(dashboard)/dashboard/costs/quota-share/hooks/useLocalStoragePoolMigration");
 
 // ── Unit tests for adaptLsPoolToApiSchema ─────────────────────────────────
 
@@ -20,7 +16,10 @@ describe("adaptLsPoolToApiSchema", () => {
       connectionId: "conn_abc",
       accountLabel: "My Account",
       policy: "soft" as const,
-      allocations: [{ apiKeyId: "k1", percent: 70 }, { apiKeyId: "k2", percent: 30 }],
+      allocations: [
+        { apiKeyId: "k1", percent: 70 },
+        { apiKeyId: "k2", percent: 30 },
+      ],
     };
     const result = adaptLsPoolToApiSchema(lsPool);
     expect(result.connectionId).toBe("conn_abc");
@@ -49,7 +48,10 @@ describe("adaptLsPoolToApiSchema", () => {
   it("clamps weight to 0-100", () => {
     const lsPool = {
       connectionId: "c1",
-      allocations: [{ apiKeyId: "k1", percent: 150 }, { apiKeyId: "k2", percent: -10 }],
+      allocations: [
+        { apiKeyId: "k1", percent: 150 },
+        { apiKeyId: "k2", percent: -10 },
+      ],
     };
     const result = adaptLsPoolToApiSchema(lsPool);
     expect(result.allocations[0].weight).toBe(100);
@@ -65,15 +67,9 @@ describe("adaptLsPoolToApiSchema", () => {
 
 // ── Integration tests for useLocalStoragePoolMigration hook ───────────────
 
-const LS_KEY = "omniroute:quota-share:pools";
+const LS_KEY = "birouter:quota-share:pools";
 
-function HookWrapper({
-  pools,
-  mutate,
-}: {
-  pools: object[];
-  mutate: () => Promise<unknown>;
-}) {
+function HookWrapper({ pools, mutate }: { pools: object[]; mutate: () => Promise<unknown> }) {
   useLocalStoragePoolMigration({ pools: pools as never, mutate });
   return <div />;
 }
@@ -82,8 +78,9 @@ let container: HTMLDivElement | null = null;
 let root: ReturnType<typeof createRoot> | null = null;
 
 async function renderHook(props: Parameters<typeof HookWrapper>[0]) {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement("div");
   document.body.appendChild(container);
   await act(async () => {
@@ -132,7 +129,12 @@ describe("useLocalStoragePoolMigration", { timeout: 10000 }, () => {
 
   it("migrates LS pools to API when DB is empty", async () => {
     const lsPools = [
-      { connectionId: "c1", accountLabel: "Acme", policy: "hard", allocations: [{ apiKeyId: "k1", percent: 100 }] },
+      {
+        connectionId: "c1",
+        accountLabel: "Acme",
+        policy: "hard",
+        allocations: [{ apiKeyId: "k1", percent: 100 }],
+      },
     ];
     localStorage.setItem(LS_KEY, JSON.stringify(lsPools));
     await renderHook({ pools: [], mutate: mockMutate });

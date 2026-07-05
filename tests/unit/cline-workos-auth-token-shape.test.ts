@@ -36,10 +36,10 @@ test("buildClineHeaders emits the full cline client header set", () => {
   assert.equal(headers.Authorization, "Bearer workos:abc123");
   assert.equal(headers["HTTP-Referer"], "https://cline.bot");
   assert.equal(headers["X-Title"], "Cline");
-  assert.equal(headers["X-CLIENT-TYPE"], "omniroute");
+  assert.equal(headers["X-CLIENT-TYPE"], "birouter");
   assert.equal(headers["X-IS-MULTIROOT"], "false");
-  // Branding must be OmniRoute, never 9Router.
-  assert.ok(/^OmniRoute\//.test(headers["User-Agent"]));
+  // Branding must be Birouter, never 9Router.
+  assert.ok(/^Birouter\//.test(headers["User-Agent"]));
   assert.ok(!/9router/i.test(JSON.stringify(headers)));
 });
 
@@ -48,14 +48,14 @@ test("buildClineHeaders merges extra headers and omits Authorization with no tok
   assert.equal(headers.Accept, "application/json");
   assert.ok(!("Authorization" in headers));
   // Client-identification headers are still present even without a token.
-  assert.equal(headers["X-CLIENT-TYPE"], "omniroute");
+  assert.equal(headers["X-CLIENT-TYPE"], "birouter");
 });
 
 test("buildProviderHeaders uses the cline workos auth token shape", () => {
   const headers = buildProviderHeaders("cline", { apiKey: "tok-abc" }, true);
   assert.equal(headers.Authorization, "Bearer workos:tok-abc");
   assert.equal(headers["HTTP-Referer"], "https://cline.bot");
-  assert.equal(headers["X-CLIENT-TYPE"], "omniroute");
+  assert.equal(headers["X-CLIENT-TYPE"], "birouter");
 });
 
 test("buildProviderHeaders honors an accessToken for cline", () => {
@@ -68,6 +68,6 @@ test("DefaultExecutor.buildHeaders uses the cline workos auth token shape", () =
   const headers = executor.buildHeaders({ apiKey: "tok-abc" }, true);
   assert.equal(headers.Authorization, "Bearer workos:tok-abc");
   assert.equal(headers["HTTP-Referer"], "https://cline.bot");
-  assert.equal(headers["X-CLIENT-TYPE"], "omniroute");
+  assert.equal(headers["X-CLIENT-TYPE"], "birouter");
   assert.equal(headers["X-Title"], "Cline");
 });

@@ -25,7 +25,7 @@ export const toolSearchOutput = z.object({
 });
 
 export const toolSearchTool: McpToolDefinition<typeof toolSearchInput, typeof toolSearchOutput> = {
-  name: "omniroute_tool_search",
+  name: "birouter_tool_search",
   description:
     "Search the available MCP tools by keyword and return the most relevant ones as compact one-line TypeScript signatures (token-efficient discovery instead of loading every tool schema).",
   inputSchema: toolSearchInput,

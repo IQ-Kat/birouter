@@ -8,7 +8,7 @@ let tmpDir: string;
 let origDataDir: string | undefined;
 
 test.before(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "omniroute-ctx-test-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "birouter-ctx-test-"));
   origDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tmpDir;
 });
@@ -94,7 +94,7 @@ test("confirm() declines cleanly on non-interactive stdin (no hung await)", asyn
 });
 
 test("registerContexts registers the singular `context` alias", async () => {
-  // The connect output and older docs say `omniroute context current` (singular);
+  // The connect output and older docs say `birouter context current` (singular);
   // the command is `contexts`. An alias keeps the singular muscle-memory working.
   const { registerContexts } = await import("../../bin/cli/commands/contexts.mjs");
   let aliasName: string | undefined;

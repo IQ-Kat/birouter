@@ -11,7 +11,7 @@ const BIN = path.join(
   "..",
   "..",
   "bin",
-  "omniroute.mjs"
+  "birouter.mjs"
 );
 
 function runCli(dataDir: string): { code: number | null; stderr: string } {
@@ -19,9 +19,9 @@ function runCli(dataDir: string): { code: number | null; stderr: string } {
   delete cleanEnv.STORAGE_ENCRYPTION_KEY;
   // Isolate from the development repo's .env so local runs match CI where the
   // working tree has no .env at checkout time (gitignored). Without this,
-  // bin/omniroute.mjs picks up STORAGE_ENCRYPTION_KEY from the repo .env and
+  // bin/birouter.mjs picks up STORAGE_ENCRYPTION_KEY from the repo .env and
   // the bootstrap skips writing DATA_DIR/.env (the behaviour the test exercises).
-  const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-key-home-"));
+  const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-key-home-"));
   try {
     // Use a real (non-informational) command so the STORAGE_ENCRYPTION_KEY
     // bootstrap runs. `--version`/`--help` are intentionally skipped now (#3129),
@@ -34,7 +34,7 @@ function runCli(dataDir: string): { code: number | null; stderr: string } {
         DATA_DIR: dataDir,
         HOME: isolatedHome,
         NO_UPDATE_NOTIFIER: "1",
-        OMNIROUTE_CLI_SKIP_REPO_ENV: "1",
+        BIROUTER_CLI_SKIP_REPO_ENV: "1",
       },
       timeout: 60_000,
       encoding: "utf-8",
@@ -46,12 +46,12 @@ function runCli(dataDir: string): { code: number | null; stderr: string } {
 }
 
 // #1622 follow-up (reported by Daniel Nach; original persistence by @Chewji9875):
-// the CLI must persist the key into DATA_DIR (not just ~/.omniroute) so Docker/custom-DATA_DIR
+// the CLI must persist the key into DATA_DIR (not just ~/.birouter) so Docker/custom-DATA_DIR
 // users keep it across restarts, and must NEVER auto-generate a fresh key when a database
 // already exists (a new key can't decrypt prior data → user locked out).
 
 test("CLI generates STORAGE_ENCRYPTION_KEY into DATA_DIR on first run (#1622)", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-key-a-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-key-a-"));
   try {
     runCli(dir);
     const envPath = path.join(dir, ".env");
@@ -68,7 +68,7 @@ test("CLI generates STORAGE_ENCRYPTION_KEY into DATA_DIR on first run (#1622)", 
 });
 
 test("CLI refuses to auto-generate a key when a database already exists (#1622)", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-key-b-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-key-b-"));
   try {
     fs.writeFileSync(path.join(dir, "storage.sqlite"), "fake-db");
     const { stderr } = runCli(dir);

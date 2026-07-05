@@ -2,7 +2,7 @@
   "name": "welcome-banner",
   "version": "1.0.0",
   "description": "PoC plugin that injects a welcome banner into responses",
-  "author": "OmniRoute",
+  "author": "Birouter",
   "license": "MIT",
   "main": "index.mjs",
   "source": "local",

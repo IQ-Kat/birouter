@@ -2,7 +2,7 @@
  * Stream-recovery primitives — opt-in transparent retry of truncated upstream streams.
  *
  * Ported from free-claude-code's always-on recovery (`core/anthropic/stream_recovery.py`).
- * OmniRoute keeps the holdback OFF by default (see ResilienceSettings.streamRecovery)
+ * Birouter keeps the holdback OFF by default (see ResilienceSettings.streamRecovery)
  * because holding the opening SSE window adds up to STREAM_RECOVERY.HOLDBACK_MS of
  * time-to-first-token latency on every streaming request. When enabled, an upstream
  * truncation that happens *before* any byte reaches the client is retried invisibly.
@@ -146,7 +146,7 @@ export function isRetryableStreamError(error: unknown): boolean {
   return false;
 }
 
-// Terminal SSE markers OmniRoute emits across formats: OpenAI `data: [DONE]`,
+// Terminal SSE markers Birouter emits across formats: OpenAI `data: [DONE]`,
 // Anthropic `event: message_stop`. Presence means the stream ended cleanly.
 const OPENAI_DONE_MARKER = "[DONE]";
 const ANTHROPIC_STOP_MARKER = "message_stop";

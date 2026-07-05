@@ -52,7 +52,7 @@ export default function MemorySkillsTab() {
     enabled: false,
     host: "",
     port: 6333,
-    collection: "omniroute_memory",
+    collection: "birouter_memory",
     embeddingModel: "openai/text-embedding-3-small",
     hasApiKey: false,
     apiKeyMasked: null,
@@ -369,7 +369,10 @@ export default function MemorySkillsTab() {
             role="note"
             data-testid="memory-token-cost-warning"
           >
-            <span className="material-symbols-outlined text-[18px] leading-none mt-0.5" aria-hidden="true">
+            <span
+              className="material-symbols-outlined text-[18px] leading-none mt-0.5"
+              aria-hidden="true"
+            >
               info
             </span>
             <p className="text-xs leading-relaxed">
@@ -571,7 +574,7 @@ export default function MemorySkillsTab() {
             <input
               value={qdrant.collection}
               onChange={(e) => setQdrant((s) => ({ ...s, collection: e.target.value }))}
-              placeholder="omniroute_memory"
+              placeholder="birouter_memory"
               className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <p className="text-xs text-text-muted mt-2">{t("qdrantCollectionHint")}</p>

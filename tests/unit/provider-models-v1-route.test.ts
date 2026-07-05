@@ -11,14 +11,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-v1-provider-models-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-v1-provider-models-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
-const routeModule = await import(
-  "../../src/app/api/v1/providers/[provider]/models/route.ts"
-);
+const routeModule = await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
 
 function makeRequest(provider: string) {
   return new Request(`http://localhost/api/v1/providers/${encodeURIComponent(provider)}/models`);

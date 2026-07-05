@@ -32,11 +32,11 @@ function restoreEnv() {
 
 function cleanupGlobalDb() {
   try {
-    if ((globalThis as any).__omnirouteDb?.open) {
-      (globalThis as any).__omnirouteDb.close();
+    if ((globalThis as any).__birouterDb?.open) {
+      (globalThis as any).__birouterDb.close();
     }
   } catch {}
-  delete (globalThis as any).__omnirouteDb;
+  delete (globalThis as any).__birouterDb;
 }
 
 async function importFresh(modulePath: string) {
@@ -79,7 +79,7 @@ test("toSnakeCase converts camelCase to snake_case", () => {
 let core: any;
 
 test.before(async () => {
-  const dataDir = makeTempDir("omniroute-db-core-utils-");
+  const dataDir = makeTempDir("birouter-db-core-utils-");
   try {
     await withEnv({ DATA_DIR: dataDir }, async () => {
       core = await importFresh("src/lib/db/core.ts");

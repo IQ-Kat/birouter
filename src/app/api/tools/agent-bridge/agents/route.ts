@@ -5,7 +5,7 @@
  */
 import { ALL_TARGETS } from "@/mitm/targets/index";
 import { detectAgent } from "@/mitm/detection/index";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function GET(): Promise<Response> {

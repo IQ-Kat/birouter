@@ -8,7 +8,7 @@ import { useIsElectron } from "@/shared/hooks/useElectron";
  * Forgot Password Page — Phase 8.2
  *
  * Provides recovery methods:
- * - Web/CLI: CLI reset via omniroute-reset-password command + manual database reset
+ * - Web/CLI: CLI reset via birouter-reset-password command + manual database reset
  * - Electron: Data directory reset instructions
  */
 
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
                     Delete the settings file from the app data directory to reset your password:
                   </p>
                   <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>Quit the OmniRoute desktop app completely</li>
+                    <li>Quit the Birouter desktop app completely</li>
                     <li>
                       Navigate to the app data directory:
                       {dataDir ? (
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
                       <code className="bg-black/30 px-1 rounded text-text-main">settings.json</code>{" "}
                       ({t("orRemovePasswordHashField")})
                     </li>
-                    <li>Relaunch the OmniRoute desktop app — it will start fresh setup</li>
+                    <li>Relaunch the Birouter desktop app — it will start fresh setup</li>
                   </ol>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
                     Set a new initial password via the server environment file:
                   </p>
                   <ol className="text-sm text-text-muted space-y-2 list-decimal list-inside mb-3">
-                    <li>Quit the OmniRoute desktop app completely</li>
+                    <li>Quit the Birouter desktop app completely</li>
                     <li>
                       Open{" "}
                       <code className="bg-black/30 px-1 rounded text-text-main">server.env</code> in
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
                       <code className="bg-black/30 px-1 rounded text-text-main">settings.json</code>{" "}
                       from the data directory
                     </li>
-                    <li>Relaunch the OmniRoute desktop app</li>
+                    <li>Relaunch the Birouter desktop app</li>
                   </ol>
                 </div>
               </div>
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                   <h2 className="text-lg font-semibold mb-1">{t("methodCliTitle")}</h2>
                   <p className="text-sm text-text-muted mb-3">{t("methodCliDescription")}</p>
                   <div className="bg-black/30 rounded-lg p-3 mb-3 font-mono text-sm text-green-400 border border-white/5">
-                    <code>npx omniroute reset-password</code>
+                    <code>npx birouter reset-password</code>
                   </div>
                   <p className="text-xs text-text-muted">{t("methodCliHint")}</p>
                 </div>

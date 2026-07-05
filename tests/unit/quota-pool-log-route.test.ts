@@ -19,10 +19,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
-const ROUTE_PATH = join(
-  ROOT,
-  "src/app/api/quota/pools/[id]/log/route.ts"
-);
+const ROUTE_PATH = join(ROOT, "src/app/api/quota/pools/[id]/log/route.ts");
 
 const USAGE_LOG_CARD_PATH = join(
   ROOT,
@@ -34,10 +31,7 @@ const POOL_CARD_PATH = join(
   "src/app/(dashboard)/dashboard/costs/quota-share/components/PoolCard.tsx"
 );
 
-const CONSUMPTION_DB_PATH = join(
-  ROOT,
-  "src/lib/db/quotaConsumption.ts"
-);
+const CONSUMPTION_DB_PATH = join(ROOT, "src/lib/db/quotaConsumption.ts");
 
 const EN_PATH = join(ROOT, "src/i18n/messages/en.json");
 const PT_PATH = join(ROOT, "src/i18n/messages/pt-BR.json");
@@ -68,10 +62,7 @@ test("log route: calls requireManagementAuth before any data access", () => {
   const listIdx = handlerBody.indexOf("listConsumptionForPool(");
   assert.ok(authIdx >= 0, "requireManagementAuth call must be in GET handler");
   assert.ok(listIdx >= 0, "listConsumptionForPool call must be in GET handler");
-  assert.ok(
-    authIdx < listIdx,
-    "auth check must come before listConsumptionForPool call"
-  );
+  assert.ok(authIdx < listIdx, "auth check must come before listConsumptionForPool call");
 });
 
 test("log route: returns early when authError is truthy", () => {
@@ -89,24 +80,24 @@ test("log route: uses buildErrorBody from open-sse/utils/error", () => {
     "route must use buildErrorBody for error responses — Hard Rule #12"
   );
   assert.ok(
-    routeSrc.includes("open-sse/utils/error") || routeSrc.includes("@omniroute/open-sse/utils/error"),
+    routeSrc.includes("open-sse/utils/error") ||
+      routeSrc.includes("@birouter/open-sse/utils/error"),
     "route must import buildErrorBody from open-sse/utils/error"
   );
 });
 
 test("log route: does NOT put raw err.stack in response (stack trace guard)", () => {
   // Ensure err.stack is never used in the response body
-  assert.ok(
-    !routeSrc.includes("err.stack"),
-    "route must not leak err.stack in response"
-  );
+  assert.ok(!routeSrc.includes("err.stack"), "route must not leak err.stack in response");
 });
 
 // ── Route: response shape ─────────────────────────────────────────────────────
 
 test("log route: returns { events } shape", () => {
   assert.ok(
-    routeSrc.includes("{ events }") || routeSrc.includes("{events}") || routeSrc.includes("events:"),
+    routeSrc.includes("{ events }") ||
+      routeSrc.includes("{events}") ||
+      routeSrc.includes("events:"),
     "route must return { events } in the response body"
   );
 });
@@ -119,22 +110,17 @@ test("log route: calls listConsumptionForPool", () => {
 });
 
 test("log route: parses limit query param with default 50", () => {
-  assert.ok(
-    routeSrc.includes("50"),
-    "route must use 50 as the default limit"
-  );
+  assert.ok(routeSrc.includes("50"), "route must use 50 as the default limit");
 });
 
 test("log route: clamps limit to max 200", () => {
-  assert.ok(
-    routeSrc.includes("200"),
-    "route must clamp limit to a maximum of 200"
-  );
+  assert.ok(routeSrc.includes("200"), "route must clamp limit to a maximum of 200");
 });
 
 test("log route: has dynamic export (force-dynamic)", () => {
   assert.ok(
-    routeSrc.includes('dynamic = "force-dynamic"') || routeSrc.includes("dynamic = 'force-dynamic'"),
+    routeSrc.includes('dynamic = "force-dynamic"') ||
+      routeSrc.includes("dynamic = 'force-dynamic'"),
     "route must export dynamic = 'force-dynamic'"
   );
 });
@@ -174,23 +160,19 @@ test("UsageLogCard: fetches /api/quota/pools/${poolId}/log endpoint", () => {
 test("UsageLogCard: is collapsible (toggle state)", () => {
   assert.ok(
     usageLogCardSrc.includes("useState") &&
-      (usageLogCardSrc.includes("open") || usageLogCardSrc.includes("expanded") || usageLogCardSrc.includes("collapsed")),
+      (usageLogCardSrc.includes("open") ||
+        usageLogCardSrc.includes("expanded") ||
+        usageLogCardSrc.includes("collapsed")),
     "UsageLogCard must be collapsible with a toggle state"
   );
 });
 
 test("UsageLogCard: renders logTitle i18n key", () => {
-  assert.ok(
-    usageLogCardSrc.includes("logTitle"),
-    "UsageLogCard must render the t('logTitle') key"
-  );
+  assert.ok(usageLogCardSrc.includes("logTitle"), "UsageLogCard must render the t('logTitle') key");
 });
 
 test("UsageLogCard: renders logEmpty i18n key for empty state", () => {
-  assert.ok(
-    usageLogCardSrc.includes("logEmpty"),
-    "UsageLogCard must render the t('logEmpty') key"
-  );
+  assert.ok(usageLogCardSrc.includes("logEmpty"), "UsageLogCard must render the t('logEmpty') key");
 });
 
 test("UsageLogCard: fail-soft — guards events with ?? []", () => {
@@ -224,17 +206,11 @@ test("PoolCard: imports UsageLogCard", () => {
 });
 
 test("PoolCard: mounts <UsageLogCard in JSX", () => {
-  assert.ok(
-    poolCardSrc.includes("<UsageLogCard"),
-    "PoolCard.tsx must render <UsageLogCard .../>"
-  );
+  assert.ok(poolCardSrc.includes("<UsageLogCard"), "PoolCard.tsx must render <UsageLogCard .../>");
 });
 
 test("PoolCard: passes poolId prop to UsageLogCard", () => {
-  assert.ok(
-    poolCardSrc.includes("poolId="),
-    "PoolCard.tsx must pass poolId prop to UsageLogCard"
-  );
+  assert.ok(poolCardSrc.includes("poolId="), "PoolCard.tsx must pass poolId prop to UsageLogCard");
 });
 
 // ── i18n parity ───────────────────────────────────────────────────────────────
@@ -244,22 +220,14 @@ const LOG_KEYS = ["logTitle", "logEmpty"] as const;
 test("i18n: logTitle and logEmpty present in en.json", () => {
   const en = JSON.parse(readFileSync(EN_PATH, "utf8")) as Record<string, Record<string, string>>;
   for (const k of LOG_KEYS) {
-    assert.equal(
-      typeof en["quotaShare"]?.[k],
-      "string",
-      `en.json missing quotaShare.${k}`
-    );
+    assert.equal(typeof en["quotaShare"]?.[k], "string", `en.json missing quotaShare.${k}`);
   }
 });
 
 test("i18n: logTitle and logEmpty present in pt-BR.json", () => {
   const pt = JSON.parse(readFileSync(PT_PATH, "utf8")) as Record<string, Record<string, string>>;
   for (const k of LOG_KEYS) {
-    assert.equal(
-      typeof pt["quotaShare"]?.[k],
-      "string",
-      `pt-BR.json missing quotaShare.${k}`
-    );
+    assert.equal(typeof pt["quotaShare"]?.[k], "string", `pt-BR.json missing quotaShare.${k}`);
   }
 });
 

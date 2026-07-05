@@ -1,7 +1,7 @@
 import { exportCallLogsSince } from "@/lib/usage/callLogs";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { exportProxyLogsSince } from "@/lib/db/proxyLogs";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * GET /api/logs/export — export logs as JSON
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       rows = exportProxyLogsSince(since);
     }
 
-    const filename = `omniroute-${tableName}-${hours}h-${new Date().toISOString().slice(0, 10)}.json`;
+    const filename = `birouter-${tableName}-${hours}h-${new Date().toISOString().slice(0, 10)}.json`;
 
     return new Response(
       JSON.stringify({ logs: rows, count: rows.length, hours, type: logType }, null, 2),

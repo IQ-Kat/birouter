@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-opencode-models-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-opencode-models-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -73,7 +73,11 @@ test("models route fetches live models from modelsUrl for noAuth provider with m
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.provider, "opencode");
-    assert.equal(body.source, "upstream", "should report source as 'upstream' when live fetch succeeds");
+    assert.equal(
+      body.source,
+      "upstream",
+      "should report source as 'upstream' when live fetch succeeds"
+    );
     assert.ok(Array.isArray(body.models), "models should be an array");
     const ids = body.models.map((m: { id: string }) => m.id);
     assert.ok(ids.includes("live-model-alpha"), "should include live model alpha");
@@ -124,7 +128,11 @@ test("models route falls back to local_catalog when live modelsUrl fetch returns
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.provider, "opencode");
-    assert.equal(body.source, "local_catalog", "should fall back to local_catalog when upstream returns non-OK");
+    assert.equal(
+      body.source,
+      "local_catalog",
+      "should fall back to local_catalog when upstream returns non-OK"
+    );
     assert.ok(Array.isArray(body.models) && body.models.length > 0, "should have catalog models");
   } finally {
     globalThis.fetch = originalFetch;

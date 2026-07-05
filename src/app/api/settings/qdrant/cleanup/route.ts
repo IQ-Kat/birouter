@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { cleanupSemanticMemoryPoints } from "@/lib/memory/qdrant";
 import { getMemorySettings } from "@/lib/memory/settings";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 export async function POST(request: NextRequest) {
   if (!(await isAuthenticated(request))) {

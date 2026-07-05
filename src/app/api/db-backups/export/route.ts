@@ -4,7 +4,7 @@ import fs from "fs";
 import os from "os";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * GET /api/db-backups/export — Download the current database as a .sqlite file.
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const exportFilename = `omniroute-backup-${timestamp}.sqlite`;
+    const exportFilename = `birouter-backup-${timestamp}.sqlite`;
     const tmpDir = os.tmpdir();
     const tmpPath = path.join(tmpDir, exportFilename);
 

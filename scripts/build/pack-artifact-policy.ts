@@ -1,5 +1,5 @@
 /**
- * Shared policy for OmniRoute npm publish artifact hygiene.
+ * Shared policy for Birouter npm publish artifact hygiene.
  *
  * The package publishes the standalone runtime under dist/ (Layer 1: renamed from app/).
  * This policy keeps local backups, QA scratch files, and development-only
@@ -49,7 +49,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "server-ws.mjs",
   // #5452: dist/tls-options.mjs is copied by assembleStandalone (EXTRA_MODULE_ENTRIES)
   // and imported by dist/server-ws.mjs for opt-in native HTTPS/TLS (#5361). Without
-  // this bare entry the prepublish prune (Step 10.7) deletes it → `omniroute serve`
+  // this bare entry the prepublish prune (Step 10.7) deletes it → `birouter serve`
   // crashes with ERR_MODULE_NOT_FOUND (regressed in the published 3.8.41 tarball).
   "tls-options.mjs",
   "webdav-handler.mjs",
@@ -83,7 +83,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "README.md",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
-  "bin/omniroute.mjs",
+  "bin/birouter.mjs",
   "bin/reset-password.mjs",
   // Operator incident-recovery / cold-start shell tooling (rollback, snapshot,
   // restore, cold-start bench) shipped in bin/ for self-hosters — not imported by
@@ -102,7 +102,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/mcp-server/runtimeHeartbeat.ts",
   "open-sse/mcp-server/scopeEnforcement.ts",
   "open-sse/mcp-server/server.ts",
-  // Runtime polyfill eagerly imported by bin/omniroute.mjs (Node <22 compat);
+  // Runtime polyfill eagerly imported by bin/birouter.mjs (Node <22 compat);
   // shipped via package.json "files", so it must be allowed in the tarball.
   "open-sse/utils/setupPolyfill.ts",
   "package.json",
@@ -125,8 +125,8 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
-  "@omniroute/opencode-plugin/",
-  "@omniroute/opencode-provider/",
+  "@birouter/opencode-plugin/",
+  "@birouter/opencode-provider/",
   "bin/cli/",
   // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
   // to allow TypeScript-first imports from the published package.
@@ -156,7 +156,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "bin/cli/program.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
-  "bin/omniroute.mjs",
+  "bin/birouter.mjs",
   "package.json",
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",

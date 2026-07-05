@@ -2,13 +2,12 @@
 // extracted from handleChatCore's streaming success path (chatCore god-file decomposition, #3501).
 // buildStreamingResponseHeaders is injected so the merge of upstream headers + request-id + the
 // optional compression header is observable. Locks: zeroed latency/usage/cost at stream start, the
-// x-omniroute-request-id, and the compression header only when meta is present.
+// x-birouter-request-id, and the compression header only when meta is present.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { assembleStreamingResponseHeaders } = await import(
-  "../../open-sse/handlers/chatCore/streamingResponseHeaders.ts"
-);
+const { assembleStreamingResponseHeaders } =
+  await import("../../open-sse/handlers/chatCore/streamingResponseHeaders.ts");
 
 function makeBuild() {
   const calls: Array<{ headers: unknown; meta: Record<string, unknown> }> = [];
@@ -30,11 +29,11 @@ function baseArgs(overrides: Record<string, unknown> = {}) {
   } as Parameters<typeof assembleStreamingResponseHeaders>[0];
 }
 
-test("merges upstream headers and sets x-omniroute-request-id", () => {
+test("merges upstream headers and sets x-birouter-request-id", () => {
   const { build } = makeBuild();
   const h = assembleStreamingResponseHeaders(baseArgs(), build);
   assert.equal(h["x-upstream"], "kept");
-  assert.equal(h["x-omniroute-request-id"], "preq-1");
+  assert.equal(h["x-birouter-request-id"], "preq-1");
 });
 
 test("buildStreamingResponseHeaders receives zeroed latency/usage/cost and cacheHit false", () => {
@@ -51,7 +50,10 @@ test("buildStreamingResponseHeaders receives zeroed latency/usage/cost and cache
 
 test("no compression meta → no compression header", () => {
   const { build } = makeBuild();
-  const h = assembleStreamingResponseHeaders(baseArgs({ compressionResponseMeta: undefined }), build);
+  const h = assembleStreamingResponseHeaders(
+    baseArgs({ compressionResponseMeta: undefined }),
+    build
+  );
   assert.ok(!Object.values(h).includes("engine:z"));
 });
 

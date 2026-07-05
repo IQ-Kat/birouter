@@ -1,15 +1,15 @@
 ---
-title: "OmniRoute Plugin SDK"
+title: "Birouter Plugin SDK"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute Plugin SDK
+# Birouter Plugin SDK
 
 ## Quick Start
 
 ```ts
-import { definePlugin } from "omniroute/plugins/sdk";
+import { definePlugin } from "birouter/plugins/sdk";
 
 export default definePlugin({
   name: "my-plugin",
@@ -196,7 +196,7 @@ Config values are persisted in the database and accessible via the dashboard con
 ### Request Logger
 
 ```ts
-import { definePlugin } from "omniroute/plugins/sdk";
+import { definePlugin } from "birouter/plugins/sdk";
 
 export default definePlugin({
   name: "request-logger",
@@ -209,7 +209,7 @@ export default definePlugin({
 ### Rate Limiter
 
 ```ts
-import { definePlugin, blockRequest } from "omniroute/plugins/sdk";
+import { definePlugin, blockRequest } from "birouter/plugins/sdk";
 
 const requests = new Map<string, number[]>();
 
@@ -236,7 +236,7 @@ export default definePlugin({
 ### Response Transformer
 
 ```ts
-import { definePlugin } from "omniroute/plugins/sdk";
+import { definePlugin } from "birouter/plugins/sdk";
 
 export default definePlugin({
   name: "response-transformer",

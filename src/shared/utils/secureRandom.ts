@@ -1,7 +1,7 @@
 /**
  * Cryptographically-secure RNG helpers for load-balancing / routing selection.
  *
- * OmniRoute's combo target selection (weighted / random / power-of-two-choices), the
+ * Birouter's combo target selection (weighted / random / power-of-two-choices), the
  * credential-deck rotation, and shadow-routing sampling pick among upstream
  * providers/connections. CodeQL's `js/insecure-randomness` flags `Math.random()` in these
  * paths as "randomness in a security context" — a false positive (provider load-balancing

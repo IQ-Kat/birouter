@@ -32,7 +32,7 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   assert.equal(nextConfig.output, "standalone");
   assert.equal(nextConfig.images.unoptimized, true);
   assert.deepEqual(nextConfig.transpilePackages, [
-    "@omniroute/open-sse",
+    "@birouter/open-sse",
     "@lobehub/icons",
     "fumadocs-ui",
     "fumadocs-core",
@@ -167,7 +167,11 @@ test("manager.stub.ts exports every name statically imported from @/mitm/manager
   }
   for (const m of stubSrc.matchAll(/export\s*\{([^}]*)\}/g)) {
     for (const part of m[1].split(",")) {
-      const exported = part.trim().split(/\s+as\s+/).pop()?.trim(); // `x as y` exports y
+      const exported = part
+        .trim()
+        .split(/\s+as\s+/)
+        .pop()
+        ?.trim(); // `x as y` exports y
       if (exported) stubExports.add(exported);
     }
   }
@@ -240,8 +244,8 @@ test("next-intl webpack hook preserves caller config and filters known extractor
   );
 });
 
-test("optimizePackageImports excludes the internal @omniroute/open-sse workspace (build-OOM guard)", async () => {
-  // Regression guard: adding the internal `@omniroute/open-sse` workspace to
+test("optimizePackageImports excludes the internal @birouter/open-sse workspace (build-OOM guard)", async () => {
+  // Regression guard: adding the internal `@birouter/open-sse` workspace to
   // optimizePackageImports makes Next.js resolve its entire barrel at build
   // time, driving the webpack production pass into a heap runaway that OOM'd
   // even at 28 GB. optimizePackageImports is for EXTERNAL barrel libs only.
@@ -250,8 +254,8 @@ test("optimizePackageImports excludes the internal @omniroute/open-sse workspace
 
   assert.ok(Array.isArray(list), "optimizePackageImports should be an array");
   assert.ok(
-    !list.includes("@omniroute/open-sse"),
-    "do NOT add the internal @omniroute/open-sse workspace to optimizePackageImports — it OOMs the production build"
+    !list.includes("@birouter/open-sse"),
+    "do NOT add the internal @birouter/open-sse workspace to optimizePackageImports — it OOMs the production build"
   );
   // The intended external barrel libs must remain optimized.
   for (const lib of ["lucide-react", "date-fns", "next-intl"]) {

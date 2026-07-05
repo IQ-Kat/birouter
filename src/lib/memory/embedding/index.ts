@@ -2,7 +2,7 @@ import {
   EMBEDDING_PROVIDERS,
   buildDynamicEmbeddingProvider,
   type EmbeddingProviderNodeRow,
-} from "@omniroute/open-sse/config/embeddingRegistry.ts";
+} from "@birouter/open-sse/config/embeddingRegistry.ts";
 import { getProviderCredentials } from "@/sse/services/auth";
 import { getProviderNodes } from "@/lib/localDb";
 import type { MemorySettingsExtended } from "@/shared/schemas/memory";

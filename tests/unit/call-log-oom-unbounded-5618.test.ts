@@ -11,7 +11,7 @@ import path from "node:path";
 // binding. The two startup queries must page with LIMIT instead of loading the
 // whole table at once.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-calllogs-oom-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-calllogs-oom-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.CALL_LOG_RETENTION_DAYS = "3650";
 
@@ -58,9 +58,7 @@ function captureSql(run: () => void): string[] {
 }
 
 const unboundedSelectsOnCallLogs = (sqls: string[]) =>
-  sqls.filter(
-    (s) => /SELECT/i.test(s) && /\bFROM\s+call_logs\b/i.test(s) && !/LIMIT/i.test(s)
-  );
+  sqls.filter((s) => /SELECT/i.test(s) && /\bFROM\s+call_logs\b/i.test(s) && !/LIMIT/i.test(s));
 
 test.beforeEach(() => {
   core.resetDbInstance();

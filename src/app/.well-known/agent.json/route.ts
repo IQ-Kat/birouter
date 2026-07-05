@@ -1,7 +1,7 @@
 /**
  * Agent Card Endpoint — /.well-known/agent.json
  *
- * Serves the OmniRoute A2A Agent Card for discovery by other agents.
+ * Serves the Birouter A2A Agent Card for discovery by other agents.
  * Conforms to A2A Protocol v0.3.
  *
  * The Agent Card is dynamically generated to include the current version
@@ -11,17 +11,17 @@
 import { NextResponse } from "next/server";
 
 const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
-const BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_BASE_URL || "http://localhost:20128";
 
 /**
  * GET /.well-known/agent.json
  *
- * Returns the OmniRoute Agent Card that describes this gateway's
+ * Returns the Birouter Agent Card that describes this gateway's
  * capabilities as an A2A agent.
  */
 export async function GET() {
   const agentCard = {
-    name: "OmniRoute AI Gateway",
+    name: "Birouter AI Gateway",
     description:
       "Intelligent AI routing gateway with 36+ providers, smart fallback, " +
       "quota tracking, format translation, and auto-managed combos. " +
@@ -106,7 +106,7 @@ export async function GET() {
         id: "list-capabilities",
         name: "List Capabilities",
         description:
-          "Returns the full catalog of 42 OmniRoute agent skills (22 API + 20 CLI) " +
+          "Returns the full catalog of 42 Birouter agent skills (22 API + 20 CLI) " +
           "with raw URLs for the SKILL.md docs.",
         tags: ["discovery", "capabilities"],
         examples: ["What can you do?", "List your skills", "Show capabilities"],

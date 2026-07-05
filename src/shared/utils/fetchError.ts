@@ -1,7 +1,7 @@
 /**
  * Extract a human-readable message from a failed `fetch` Response body.
  *
- * Handles both response shapes OmniRoute routes emit:
+ * Handles both response shapes Birouter routes emit:
  * - OpenAI-style `{ error: { message, type, code } }` (from `buildErrorBody`)
  * - legacy `{ error: "..." }` string bodies
  *

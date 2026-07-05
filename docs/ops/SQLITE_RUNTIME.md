@@ -4,12 +4,12 @@ title: "SQLite Runtime Resolution"
 
 # SQLite Runtime Resolution
 
-OmniRoute resolves its SQLite driver at startup through a 5-step fallback chain:
+Birouter resolves its SQLite driver at startup through a 5-step fallback chain:
 
 1. **Bundled `better-sqlite3`** (via `dependencies` in `package.json`)
    — fastest, native binary, installed by `npm install` when build tools are present.
 
-2. **Runtime-installed `better-sqlite3`** (in `~/.omniroute/runtime/`)
+2. **Runtime-installed `better-sqlite3`** (in `~/.birouter/runtime/`)
    — installed lazily on first run **OR** by `scripts/build/postinstall.mjs → scripts/postinstall.mjs`.
    Validates native `.node` magic bytes (ELF / Mach-O / PE) before loading
    to guard against corrupt or wrong-platform binaries.
@@ -22,19 +22,19 @@ OmniRoute resolves its SQLite driver at startup through a 5-step fallback chain:
 
 ## Why this complexity?
 
-- **Windows EBUSY**: `npm install -g omniroute@latest` can fail if the previous
+- **Windows EBUSY**: `npm install -g birouter@latest` can fail if the previous
   version's `better_sqlite3.node` is locked by a running process. The runtime
-  install in `~/.omniroute/runtime/` sidesteps the global npm cache.
+  install in `~/.birouter/runtime/` sidesteps the global npm cache.
 - **No build tools**: Some environments (corporate Windows without VS Build
   Tools, minimal Docker images) cannot compile `better-sqlite3`. The runtime
   installer resolves a pre-built binary from the npm registry; the fallback
-  drivers ensure OmniRoute still boots even if that fails.
+  drivers ensure Birouter still boots even if that fails.
 - **Air-gapped systems**: If the npm registry is unreachable, `node:sqlite`
   or `sql.js` guarantee baseline functionality.
 
 ## Magic-byte validation
 
-Before loading a runtime-installed `.node` file, OmniRoute reads the first 8
+Before loading a runtime-installed `.node` file, Birouter reads the first 8
 bytes and matches against known platform magics:
 
 | Platform              | Bytes (hex)   | Label       |
@@ -61,14 +61,14 @@ const info = getDriverInfo();
 
 ```bash
 # Skip postinstall warm-up (for fast CI installs)
-OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute
+BIROUTER_SKIP_POSTINSTALL=1 npm install -g birouter
 
 # Force-reinstall runtime better-sqlite3
-rm -rf ~/.omniroute/runtime
-omniroute  # will reinstall on next start
+rm -rf ~/.birouter/runtime
+birouter  # will reinstall on next start
 
 # Check what driver is active
-omniroute config db-info  # (if CLI command exists)
+birouter config db-info  # (if CLI command exists)
 ```
 
 ## Reference

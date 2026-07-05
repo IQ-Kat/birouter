@@ -1,10 +1,10 @@
-# OmniRoute MCP Server
+# Birouter MCP Server
 
-> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **37 tools** for AI agents.
+> **Model Context Protocol server** that exposes Birouter's gateway intelligence as **37 tools** for AI agents.
 >
 > **Source of truth for the full tool catalog and REST surface:** [`docs/frameworks/MCP-SERVER.md`](../../docs/MCP-SERVER.md). This README focuses on architecture, configuration, and integration examples; the catalog below is a summary subset.
 
-The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, custom agents) to **monitor, control, and optimize** the OmniRoute AI gateway programmatically.
+The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, custom agents) to **monitor, control, and optimize** the Birouter AI gateway programmatically.
 
 ---
 
@@ -18,7 +18,7 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
                        │  MCP Protocol (stdio or HTTP)
                        ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│                      OmniRoute MCP Server                        │
+│                      Birouter MCP Server                        │
 │  ┌──────────────┐  ┌─────────────────┐  ┌────────────────────┐  │
 │  │ Scope        │  │  37 MCP Tools   │  │   Audit Logger     │  │
 │  │ Enforcement  │──│ (core + memory  │──│   (SHA-256/SQLite) │  │
@@ -28,7 +28,7 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
                               │  HTTP (internal)
                               ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│                    OmniRoute Gateway (port 20128)                 │
+│                    Birouter Gateway (port 20128)                 │
 │        /v1/chat/completions  /api/combos  /api/usage  ...        │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -40,15 +40,15 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
 ### 1. Environment Variables
 
 ```bash
-# Required: OmniRoute base URL
-export OMNIROUTE_BASE_URL="http://localhost:20128"
+# Required: Birouter base URL
+export BIROUTER_BASE_URL="http://localhost:20128"
 
 # Optional: API key for authenticated access
-export OMNIROUTE_API_KEY="your-api-key"
+export BIROUTER_API_KEY="your-api-key"
 
 # Optional: Scope enforcement (default: disabled)
-export OMNIROUTE_MCP_ENFORCE_SCOPES="true"
-export OMNIROUTE_MCP_SCOPES="read:health,read:combos,read:quota,read:usage,read:models,read:cache,read:compression,read:tools,execute:completions,write:combos,write:budget,write:resilience,write:cache,write:compression"
+export BIROUTER_MCP_ENFORCE_SCOPES="true"
+export BIROUTER_MCP_SCOPES="read:health,read:combos,read:quota,read:usage,read:models,read:cache,read:compression,read:tools,execute:completions,write:combos,write:budget,write:resilience,write:cache,write:compression"
 ```
 
 ### 2. stdio Transport (IDE Integration)
@@ -60,12 +60,12 @@ Add to your MCP client configuration:
 ```json
 {
   "mcpServers": {
-    "omniroute": {
+    "birouter": {
       "command": "node",
-      "args": ["path/to/omniroute/open-sse/mcp-server/server.ts"],
+      "args": ["path/to/birouter/open-sse/mcp-server/server.ts"],
       "env": {
-        "OMNIROUTE_BASE_URL": "http://localhost:20128",
-        "OMNIROUTE_API_KEY": "your-key"
+        "BIROUTER_BASE_URL": "http://localhost:20128",
+        "BIROUTER_API_KEY": "your-key"
       }
     }
   }
@@ -77,11 +77,11 @@ Add to your MCP client configuration:
 ```json
 {
   "mcpServers": {
-    "omniroute": {
+    "birouter": {
       "command": "npx",
       "args": ["tsx", "open-sse/mcp-server/server.ts"],
       "env": {
-        "OMNIROUTE_BASE_URL": "http://localhost:20128"
+        "BIROUTER_BASE_URL": "http://localhost:20128"
       }
     }
   }
@@ -94,11 +94,11 @@ Add to your MCP client configuration:
 {
   "mcp": {
     "servers": {
-      "omniroute": {
+      "birouter": {
         "command": "npx",
         "args": ["tsx", "open-sse/mcp-server/server.ts"],
         "env": {
-          "OMNIROUTE_BASE_URL": "http://localhost:20128"
+          "BIROUTER_BASE_URL": "http://localhost:20128"
         }
       }
     }
@@ -112,8 +112,8 @@ Add to your MCP client configuration:
 # Direct start (stdio)
 npx tsx open-sse/mcp-server/server.ts
 
-# Or via OmniRoute CLI
-omniroute --mcp
+# Or via Birouter CLI
+birouter --mcp
 ```
 
 ---
@@ -122,44 +122,44 @@ omniroute --mcp
 
 ### Phase 1: Essential Tools (8)
 
-| #   | Tool                            | Scopes                | Description                                                                |
-| --- | ------------------------------- | --------------------- | -------------------------------------------------------------------------- |
-| 1   | `omniroute_get_health`          | `read:health`         | Gateway health, uptime, memory, circuit breakers, rate limits, cache stats |
-| 2   | `omniroute_list_combos`         | `read:combos`         | List all combos (model chains) with strategies and optional metrics        |
-| 3   | `omniroute_get_combo_metrics`   | `read:combos`         | Performance metrics for a specific combo                                   |
-| 4   | `omniroute_switch_combo`        | `write:combos`        | Activate or deactivate a combo for routing                                 |
-| 5   | `omniroute_check_quota`         | `read:quota`          | Remaining API quota per provider with token health status                  |
-| 6   | `omniroute_route_request`       | `execute:completions` | Send a chat completion through intelligent routing                         |
-| 7   | `omniroute_cost_report`         | `read:usage`          | Cost report by period (session/day/week/month) with per-provider breakdown |
-| 8   | `omniroute_list_models_catalog` | `read:models`         | List all available models across providers with capabilities and pricing   |
+| #   | Tool                           | Scopes                | Description                                                                |
+| --- | ------------------------------ | --------------------- | -------------------------------------------------------------------------- |
+| 1   | `birouter_get_health`          | `read:health`         | Gateway health, uptime, memory, circuit breakers, rate limits, cache stats |
+| 2   | `birouter_list_combos`         | `read:combos`         | List all combos (model chains) with strategies and optional metrics        |
+| 3   | `birouter_get_combo_metrics`   | `read:combos`         | Performance metrics for a specific combo                                   |
+| 4   | `birouter_switch_combo`        | `write:combos`        | Activate or deactivate a combo for routing                                 |
+| 5   | `birouter_check_quota`         | `read:quota`          | Remaining API quota per provider with token health status                  |
+| 6   | `birouter_route_request`       | `execute:completions` | Send a chat completion through intelligent routing                         |
+| 7   | `birouter_cost_report`         | `read:usage`          | Cost report by period (session/day/week/month) with per-provider breakdown |
+| 8   | `birouter_list_models_catalog` | `read:models`         | List all available models across providers with capabilities and pricing   |
 
 ### Phase 2: Advanced Tools (8)
 
-| #   | Tool                               | Scopes                               | Description                                                                                    |
-| --- | ---------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| 9   | `omniroute_simulate_route`         | `read:health`, `read:combos`         | Dry-run routing simulation showing fallback tree and estimated costs                           |
-| 10  | `omniroute_set_budget_guard`       | `write:budget`                       | Set session budget with action on exceed: `degrade`, `block`, or `alert`                       |
-| 11  | `omniroute_set_resilience_profile` | `write:resilience`                   | Apply resilience profile: `aggressive`, `balanced`, or `conservative`                          |
-| 12  | `omniroute_test_combo`             | `execute:completions`, `read:combos` | Test each provider in a combo with a real prompt and a real upstream call, report latency/cost |
-| 13  | `omniroute_get_provider_metrics`   | `read:health`                        | Per-provider metrics with latency percentiles (p50/p95/p99), circuit breaker                   |
-| 14  | `omniroute_best_combo_for_task`    | `read:combos`, `read:health`         | AI-powered combo recommendation by task type with budget/latency constraints                   |
-| 15  | `omniroute_explain_route`          | `read:health`, `read:usage`          | Explain why a request was routed to a provider (scoring factors, fallbacks)                    |
-| 16  | `omniroute_get_session_snapshot`   | `read:usage`                         | Full session snapshot: cost, tokens, top models, errors, budget status                         |
+| #   | Tool                              | Scopes                               | Description                                                                                    |
+| --- | --------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| 9   | `birouter_simulate_route`         | `read:health`, `read:combos`         | Dry-run routing simulation showing fallback tree and estimated costs                           |
+| 10  | `birouter_set_budget_guard`       | `write:budget`                       | Set session budget with action on exceed: `degrade`, `block`, or `alert`                       |
+| 11  | `birouter_set_resilience_profile` | `write:resilience`                   | Apply resilience profile: `aggressive`, `balanced`, or `conservative`                          |
+| 12  | `birouter_test_combo`             | `execute:completions`, `read:combos` | Test each provider in a combo with a real prompt and a real upstream call, report latency/cost |
+| 13  | `birouter_get_provider_metrics`   | `read:health`                        | Per-provider metrics with latency percentiles (p50/p95/p99), circuit breaker                   |
+| 14  | `birouter_best_combo_for_task`    | `read:combos`, `read:health`         | AI-powered combo recommendation by task type with budget/latency constraints                   |
+| 15  | `birouter_explain_route`          | `read:health`, `read:usage`          | Explain why a request was routed to a provider (scoring factors, fallbacks)                    |
+| 16  | `birouter_get_session_snapshot`   | `read:usage`                         | Full session snapshot: cost, tokens, top models, errors, budget status                         |
 
 ### Cache and Compression Tools
 
-| #   | Tool                                | Scopes              | Description                                                                  |
-| --- | ----------------------------------- | ------------------- | ---------------------------------------------------------------------------- |
-| 21  | `omniroute_cache_stats`             | `read:cache`        | Semantic cache, prompt-cache, and idempotency statistics                     |
-| 22  | `omniroute_cache_flush`             | `write:cache`       | Flush cache entries globally or by signature/model                           |
-| 23  | `omniroute_compression_status`      | `read:compression`  | Compression settings, analytics summary, and provider-aware cache statistics |
-| 24  | `omniroute_compression_configure`   | `write:compression` | Configure compression mode and trigger thresholds at runtime                 |
-| 25  | `omniroute_set_compression_engine`  | `write:compression` | Set Caveman, RTK, or stacked compression mode and pipeline                   |
-| 26  | `omniroute_list_compression_combos` | `read:compression`  | List named compression combos and routing assignments                        |
-| 27  | `omniroute_compression_combo_stats` | `read:compression`  | Read analytics grouped by compression combo and engine                       |
+| #   | Tool                               | Scopes              | Description                                                                  |
+| --- | ---------------------------------- | ------------------- | ---------------------------------------------------------------------------- |
+| 21  | `birouter_cache_stats`             | `read:cache`        | Semantic cache, prompt-cache, and idempotency statistics                     |
+| 22  | `birouter_cache_flush`             | `write:cache`       | Flush cache entries globally or by signature/model                           |
+| 23  | `birouter_compression_status`      | `read:compression`  | Compression settings, analytics summary, and provider-aware cache statistics |
+| 24  | `birouter_compression_configure`   | `write:compression` | Configure compression mode and trigger thresholds at runtime                 |
+| 25  | `birouter_set_compression_engine`  | `write:compression` | Set Caveman, RTK, or stacked compression mode and pipeline                   |
+| 26  | `birouter_list_compression_combos` | `read:compression`  | List named compression combos and routing assignments                        |
+| 27  | `birouter_compression_combo_stats` | `read:compression`  | Read analytics grouped by compression combo and engine                       |
 
 MCP listable metadata descriptions are compressed at registration/list time when description
-compression is enabled. `omniroute_compression_status` exposes those savings separately as
+compression is enabled. `birouter_compression_status` exposes those savings separately as
 `analytics.mcpDescriptionCompression` with `source: "mcp_metadata_estimate"`, so clients do not
 mistake metadata shrink estimates for provider token receipts.
 
@@ -171,7 +171,7 @@ mistake metadata shrink estimates for provider token receipts.
 
 ```python
 """
-OmniRoute MCP Client — Python example using the mcp SDK.
+Birouter MCP Client — Python example using the mcp SDK.
 Install: pip install mcp
 """
 import asyncio
@@ -183,8 +183,8 @@ async def main():
         command="npx",
         args=["tsx", "open-sse/mcp-server/server.ts"],
         env={
-            "OMNIROUTE_BASE_URL": "http://localhost:20128",
-            "OMNIROUTE_API_KEY": "your-key",
+            "BIROUTER_BASE_URL": "http://localhost:20128",
+            "BIROUTER_API_KEY": "your-key",
         },
     )
 
@@ -193,17 +193,17 @@ async def main():
             await session.initialize()
 
             # 1. Check gateway health
-            health = await session.call_tool("omniroute_get_health", {})
+            health = await session.call_tool("birouter_get_health", {})
             print("Health:", health.content[0].text)
 
             # 2. List available combos with metrics
-            combos = await session.call_tool("omniroute_list_combos", {
+            combos = await session.call_tool("birouter_list_combos", {
                 "includeMetrics": True
             })
             print("Combos:", combos.content[0].text)
 
             # 3. Find the best combo for a coding task
-            best = await session.call_tool("omniroute_best_combo_for_task", {
+            best = await session.call_tool("birouter_best_combo_for_task", {
                 "taskType": "coding",
                 "budgetConstraint": 0.50,
                 "latencyConstraint": 5000,
@@ -211,7 +211,7 @@ async def main():
             print("Best combo:", best.content[0].text)
 
             # 4. Set a session budget guard
-            budget = await session.call_tool("omniroute_set_budget_guard", {
+            budget = await session.call_tool("birouter_set_budget_guard", {
                 "maxCost": 1.00,
                 "action": "degrade",
                 "degradeToTier": "cheap",
@@ -219,7 +219,7 @@ async def main():
             print("Budget guard:", budget.content[0].text)
 
             # 5. Route a request through intelligent pipeline
-            response = await session.call_tool("omniroute_route_request", {
+            response = await session.call_tool("birouter_route_request", {
                 "model": "claude-sonnet-4",
                 "messages": [
                     {"role": "user", "content": "Write a Python hello world"}
@@ -229,7 +229,7 @@ async def main():
             print("Response:", response.content[0].text)
 
             # 6. Get the session snapshot
-            snapshot = await session.call_tool("omniroute_get_session_snapshot", {})
+            snapshot = await session.call_tool("birouter_get_session_snapshot", {})
             print("Session:", snapshot.content[0].text)
 
 asyncio.run(main())
@@ -246,8 +246,8 @@ async function main() {
     command: "npx",
     args: ["tsx", "open-sse/mcp-server/server.ts"],
     env: {
-      OMNIROUTE_BASE_URL: "http://localhost:20128",
-      OMNIROUTE_API_KEY: "your-key",
+      BIROUTER_BASE_URL: "http://localhost:20128",
+      BIROUTER_API_KEY: "your-key",
     },
   });
 
@@ -256,14 +256,14 @@ async function main() {
 
   // Check quota before deciding which model to use
   const quota = await client.callTool({
-    name: "omniroute_check_quota",
+    name: "birouter_check_quota",
     arguments: { provider: "claude" },
   });
   console.log("Claude quota:", quota.content);
 
   // Simulate the route before actually calling
   const simulation = await client.callTool({
-    name: "omniroute_simulate_route",
+    name: "birouter_simulate_route",
     arguments: {
       model: "claude-sonnet-4",
       promptTokenEstimate: 2000,
@@ -273,7 +273,7 @@ async function main() {
 
   // Send the actual request
   const result = await client.callTool({
-    name: "omniroute_route_request",
+    name: "birouter_route_request",
     arguments: {
       model: "claude-sonnet-4",
       messages: [{ role: "user", content: "Explain async/await" }],
@@ -283,7 +283,7 @@ async function main() {
 
   // Cost report
   const costs = await client.callTool({
-    name: "omniroute_cost_report",
+    name: "birouter_cost_report",
     arguments: { period: "session" },
   });
   console.log("Costs:", costs.content);
@@ -307,11 +307,11 @@ import (
     "net/http"
 )
 
-// Simplified direct-API approach (bypass MCP, hit OmniRoute APIs directly)
+// Simplified direct-API approach (bypass MCP, hit Birouter APIs directly)
 // Useful if you don't need MCP protocol framing.
 
 func callTool(baseURL, tool string, args map[string]any) (string, error) {
-    // MCP tools map to OmniRoute APIs:
+    // MCP tools map to Birouter APIs:
     endpoints := map[string]string{
         "health": "/api/monitoring/health",
         "combos": "/api/combos",
@@ -369,14 +369,14 @@ func main() {
 
 ### 🔄 Use Case 1: Auto-Healing Agent
 
-An agent that monitors OmniRoute health and auto-switches combos when providers degrade.
+An agent that monitors Birouter health and auto-switches combos when providers degrade.
 
 ```python
 async def auto_healing_loop(session):
     """Monitor health and react to provider issues."""
     while True:
         # Check health
-        health = await session.call_tool("omniroute_get_health", {})
+        health = await session.call_tool("birouter_get_health", {})
         data = json.loads(health.content[0].text)
 
         # Find providers with open circuit breakers
@@ -387,19 +387,19 @@ async def auto_healing_loop(session):
 
         if broken:
             # Switch to a different resilience profile
-            await session.call_tool("omniroute_set_resilience_profile", {
+            await session.call_tool("birouter_set_resilience_profile", {
                 "profile": "conservative"
             })
 
             # Find best alternative combo
-            best = await session.call_tool("omniroute_best_combo_for_task", {
+            best = await session.call_tool("birouter_best_combo_for_task", {
                 "taskType": "coding"
             })
             best_data = json.loads(best.content[0].text)
             combo_id = best_data["recommendedCombo"]["id"]
 
             # Activate it
-            await session.call_tool("omniroute_switch_combo", {
+            await session.call_tool("birouter_switch_combo", {
                 "comboId": combo_id, "active": True
             })
             print(f"⚠️ Auto-healed: switched to {combo_id}")
@@ -415,14 +415,14 @@ An agent that monitors costs in real-time and degrades to cheaper models when ne
 async def budget_aware_coding(session, task: str, max_budget: float):
     """Complete a coding task within a budget."""
     # Set budget guard
-    await session.call_tool("omniroute_set_budget_guard", {
+    await session.call_tool("birouter_set_budget_guard", {
         "maxCost": max_budget,
         "action": "degrade",
         "degradeToTier": "cheap",
     })
 
     # Simulate first to estimate cost
-    sim = await session.call_tool("omniroute_simulate_route", {
+    sim = await session.call_tool("birouter_simulate_route", {
         "model": "claude-sonnet-4",
         "promptTokenEstimate": len(task.split()) * 2,
     })
@@ -431,14 +431,14 @@ async def budget_aware_coding(session, task: str, max_budget: float):
     print(f"Estimated cost: ${estimated_cost:.4f}")
 
     # Send request
-    result = await session.call_tool("omniroute_route_request", {
+    result = await session.call_tool("birouter_route_request", {
         "model": "claude-sonnet-4",
         "messages": [{"role": "user", "content": task}],
         "role": "coding",
     })
 
     # Check remaining budget
-    snapshot = await session.call_tool("omniroute_get_session_snapshot", {})
+    snapshot = await session.call_tool("birouter_get_session_snapshot", {})
     snap_data = json.loads(snapshot.content[0].text)
     print(f"Session cost: ${snap_data['costTotal']:.4f}")
     if snap_data.get("budgetGuard"):
@@ -454,7 +454,7 @@ An agent that periodically benchmarks all combos and reports the fastest/cheapes
 ```python
 async def benchmark_combos(session):
     """Benchmark all enabled combos and rank them."""
-    combos = await session.call_tool("omniroute_list_combos", {
+    combos = await session.call_tool("birouter_list_combos", {
         "includeMetrics": True,
     })
     combo_list = json.loads(combos.content[0].text)["combos"]
@@ -464,7 +464,7 @@ async def benchmark_combos(session):
         if not combo["enabled"]:
             continue
 
-        test = await session.call_tool("omniroute_test_combo", {
+        test = await session.call_tool("birouter_test_combo", {
             "comboId": combo["id"],
             "testPrompt": "Return the number 42.",
         })
@@ -489,7 +489,7 @@ An agent that explains why a request was routed to a specific provider.
 async function debugRouting(client: Client, requestId: string) {
   // Explain the routing decision
   const explanation = await client.callTool({
-    name: "omniroute_explain_route",
+    name: "birouter_explain_route",
     arguments: { requestId },
   });
   const data = JSON.parse(explanation.content[0].text);
@@ -518,7 +518,7 @@ An agent that discovers the cheapest models for a given capability.
 ```python
 async def find_cheapest_models(session, capability="chat"):
     """Find the cheapest available models for a capability."""
-    catalog = await session.call_tool("omniroute_list_models_catalog", {
+    catalog = await session.call_tool("birouter_list_models_catalog", {
         "capability": capability,
     })
     models = json.loads(catalog.content[0].text)["models"]
@@ -608,4 +608,4 @@ mcp-server/
 
 ## License
 
-Part of [OmniRoute](https://github.com/diegosouzapw/OmniRoute) — MIT License.
+Part of [Birouter](https://github.com/IQ-Kat/birouter) — MIT License.

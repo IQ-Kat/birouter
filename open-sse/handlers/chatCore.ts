@@ -119,7 +119,7 @@ import { reportMalformed200, detectMalformedNonStream } from "../utils/diagnosti
 import {
   checkTokenLimits,
   recordTokenUsage,
-} from "@omniroute/open-sse/services/tokenLimitCounter.ts";
+} from "@birouter/open-sse/services/tokenLimitCounter.ts";
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
@@ -142,7 +142,7 @@ import {
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
-import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import { wasRefreshTokenRotated } from "@birouter/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
@@ -296,7 +296,7 @@ import {
 import { generateRequestId } from "@/shared/utils/requestId";
 import { extractFacts } from "@/lib/memory/extraction";
 import { handleToolCallExecution } from "@/lib/skills/interception";
-import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import { BIROUTER_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   buildClaudeCodeCompatibleRequest,
@@ -404,7 +404,7 @@ export async function handleChatCore({
       comboName: comboName || undefined,
     });
   });
-  const traceEnabled = process.env.OMNIROUTE_TRACE === "true" || process.env.DEBUG === "true";
+  const traceEnabled = process.env.BIROUTER_TRACE === "true" || process.env.DEBUG === "true";
   // Stage trace extracted to chatCore/stageTrace.ts (#3501); bind the per-request inputs once so the
   // call sites stay byte-identical.
   const trace = (label: string, extra?: Record<string, unknown>) =>
@@ -695,7 +695,7 @@ export async function handleChatCore({
     body = bodyWithWebSearchFallback as typeof body;
     log?.info?.(
       "TOOLS",
-      `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniRoute fallback for ${provider}`
+      `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to Birouter fallback for ${provider}`
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
@@ -735,10 +735,10 @@ export async function handleChatCore({
     });
   const pipelineSessionId =
     (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
-      ? clientRawRequest.headers.get("x-omniroute-session-id")
+      ? clientRawRequest.headers.get("x-birouter-session-id")
       : getHeaderValueCaseInsensitive(
           clientRawRequest?.headers ?? null,
-          "x-omniroute-session-id"
+          "x-birouter-session-id"
         )) || skillRequestId;
   // persistAttemptLogs extracted to chatCore/attemptLogging.ts (#3501); bind the per-request context
   // once so the 16 call sites keep passing only the per-attempt args (byte-identical).
@@ -804,7 +804,7 @@ export async function handleChatCore({
     .join(" ");
 
   // Explicit per-request opt-in/out for the `</think>` close marker
-  // (#5312 / #5245): `x-omniroute-thinking-marker: off` suppresses it for
+  // (#5312 / #5245): `x-birouter-thinking-marker: off` suppresses it for
   // reasoning_content-native clients (e.g. Cursor's OpenAI path) that the UA
   // allowlist does not cover; absent the header, the UA policy applies.
   const thinkingMarkerHeader = getHeaderValueCaseInsensitive(
@@ -815,7 +815,7 @@ export async function handleChatCore({
   const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
   // Remove non-standard non-stream aliases before provider translation/execution.
-  // They are accepted for compatibility at the OmniRoute API boundary only.
+  // They are accepted for compatibility at the Birouter API boundary only.
   if (body && typeof body === "object") {
     const b = body as Record<string, unknown>;
     if (explicitStreamAlias !== undefined) {
@@ -834,7 +834,7 @@ export async function handleChatCore({
   // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
   // clients send Accept: */* without an explicit stream flag.
   // providerRequiresStreaming: providers with forceStream:true reject stream:false
-  // upstream (HTTP 400); keep streaming so OmniRoute can convert the stream to JSON
+  // upstream (HTTP 400); keep streaming so Birouter can convert the stream to JSON
   // for the client via handleForcedSSEToJson. (#2081)
   const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
   const stream =
@@ -902,7 +902,7 @@ export async function handleChatCore({
 
   body = sanitizeChatRequestBody(body, sourceFormat, targetFormat);
   // Per-request opt-out: clients that manage their own context send
-  // `x-omniroute-no-memory: true` to skip memory+skills injection (a null owner
+  // `x-birouter-no-memory: true` to skip memory+skills injection (a null owner
   // disables both branches in injectMemoryAndSkills). See PRD-2026-06-19-no-memory-header.
   const memoryOwnerId = isNoMemoryRequested(clientRawRequest?.headers ?? null)
     ? null
@@ -1107,7 +1107,7 @@ export async function handleChatCore({
       // Phase 3: per-request override. Unknown values fall through in the resolver (never error).
       const compressionHeader = resolveCompressionHeader(clientRawRequest?.headers ?? null);
       if (compressionHeader) {
-        log?.debug?.("COMPRESSION", `x-omniroute-compression header: ${compressionHeader}`);
+        log?.debug?.("COMPRESSION", `x-birouter-compression header: ${compressionHeader}`);
       }
       const modeBeforeOutputTransform = selectCompressionStrategy(
         config,
@@ -1946,7 +1946,7 @@ export async function handleChatCore({
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
-  // rejects unknown/extra params with a strict "400 Param Incorrect". Map OmniRoute's
+  // rejects unknown/extra params with a strict "400 Param Incorrect". Map Birouter's
   // OpenAI reasoning signals onto that native shape: reduce any thinking object to
   // `{type}` and drop `reasoning_effort`/`reasoning`. See services/mimoThinking.ts.
   if (provider === "xiaomi-mimo") {
@@ -3705,7 +3705,7 @@ export async function handleChatCore({
     if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
       translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
     } else if (clientResponseFormat === FORMATS.OPENAI) {
-      // Port of decolua/9router#517: opt-in `x-omniroute-strip-reasoning` header
+      // Port of decolua/9router#517: opt-in `x-birouter-strip-reasoning` header
       // unconditionally drops `reasoning_content` from the final non-streaming
       // JSON for clients (e.g. Firecrawl AI SDK) whose JSON parsers break on
       // that non-standard field. Reasoning replay cache is captured above this
@@ -4252,7 +4252,7 @@ export async function handleChatCore({
       handleStreamFailure,
       copilotCompatibleReasoning,
       // Suppress the `</think>` close marker for clients that render it verbatim
-      // (e.g. OpenCode by UA; any client via `x-omniroute-thinking-marker: off`);
+      // (e.g. OpenCode by UA; any client via `x-birouter-thinking-marker: off`);
       // preserved for Claude Code / Cursor and unknown clients by default (#5245 /
       // #5312). The header wins over the UA allowlist.
       resolveSuppressThinkClose({

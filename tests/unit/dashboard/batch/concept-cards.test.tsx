@@ -22,12 +22,10 @@ vi.mock("next-intl", () => ({
 
 // ── Import components after mocks ─────────────────────────────────────────────
 
-const { default: BatchConceptCard } = await import(
-  "../../../../src/app/(dashboard)/dashboard/batch/components/BatchConceptCard"
-);
-const { default: FilesConceptCard } = await import(
-  "../../../../src/app/(dashboard)/dashboard/batch/components/FilesConceptCard"
-);
+const { default: BatchConceptCard } =
+  await import("../../../../src/app/(dashboard)/dashboard/batch/components/BatchConceptCard");
+const { default: FilesConceptCard } =
+  await import("../../../../src/app/(dashboard)/dashboard/batch/components/FilesConceptCard");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -115,7 +113,7 @@ describe("BatchConceptCard", () => {
       toggleBtn!.click();
     });
 
-    expect(localStorage.getItem("omniroute:concept-batch-collapsed")).toBe("true");
+    expect(localStorage.getItem("birouter:concept-batch-collapsed")).toBe("true");
   });
 
   it("expands again when toggled twice", async () => {
@@ -131,12 +129,12 @@ describe("BatchConceptCard", () => {
     });
 
     expect(el.textContent).toContain("batchConceptBenefit50pct");
-    expect(localStorage.getItem("omniroute:concept-batch-collapsed")).toBe("false");
+    expect(localStorage.getItem("birouter:concept-batch-collapsed")).toBe("false");
   });
 
   it("hydrates collapsed state from localStorage (shows collapsed on mount)", async () => {
     // Pre-set collapsed=true in localStorage
-    localStorage.setItem("omniroute:concept-batch-collapsed", "true");
+    localStorage.setItem("birouter:concept-batch-collapsed", "true");
 
     const el = document.createElement("div");
     document.body.appendChild(el);
@@ -217,11 +215,11 @@ describe("FilesConceptCard", () => {
       toggleBtn!.click();
     });
 
-    expect(localStorage.getItem("omniroute:concept-files-collapsed")).toBe("true");
+    expect(localStorage.getItem("birouter:concept-files-collapsed")).toBe("true");
   });
 
   it("hydrates from localStorage — collapsed=true persists across remounts", async () => {
-    localStorage.setItem("omniroute:concept-files-collapsed", "true");
+    localStorage.setItem("birouter:concept-files-collapsed", "true");
 
     const el = document.createElement("div");
     document.body.appendChild(el);

@@ -324,8 +324,8 @@ test("sanitizeResponsesApiResponse converts chat completions tool calls into Res
               id: "call_web_search",
               type: "function",
               function: {
-                name: "omniroute_web_search",
-                arguments: '{"query":"omniroute"}',
+                name: "birouter_web_search",
+                arguments: '{"query":"birouter"}',
               },
             },
           ],
@@ -345,7 +345,7 @@ test("sanitizeResponsesApiResponse converts chat completions tool calls into Res
   assert.equal((sanitized as any).output[0].type, "reasoning");
   (assert as any).equal((sanitized as any).output[1].type, "function_call");
   (assert as any).equal((sanitized as any).output[1].call_id, "call_web_search");
-  (assert as any).equal((sanitized as any).output[1].name, "omniroute_web_search");
+  (assert as any).equal((sanitized as any).output[1].name, "birouter_web_search");
   assert.equal((sanitized as any).usage.input_tokens, 12);
   assert.equal(((sanitized as any).usage as any).output_tokens, 5);
   assert.equal((sanitized as any).usage.input_tokens_details.cached_tokens, 3);
@@ -562,7 +562,7 @@ test("sanitizeStreamingChunk marks internal Responses output_item events for omi
     },
   });
 
-  assert.equal((sanitized as any).__omniroute_omit_streaming_chunk, true);
+  assert.equal((sanitized as any).__birouter_omit_streaming_chunk, true);
   assert.equal("item" in (sanitized as any), false);
 });
 

@@ -36,7 +36,7 @@ export async function runResetEncryptedColumns(argv) {
   Database: ${dbPath}
 
   \x1b[1mTo confirm, run:\x1b[0m
-    omniroute reset-encrypted-columns --force
+    birouter reset-encrypted-columns --force
     `);
     return 0;
   }

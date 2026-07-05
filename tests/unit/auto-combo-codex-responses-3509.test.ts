@@ -1,7 +1,7 @@
 /**
  * #3509 — the "auto" combo is broken on Codex (/v1/responses).
  *
- * Setting the Codex model to "auto" (OmniRoute's zero-config auto-routing keyword) returned
+ * Setting the Codex model to "auto" (Birouter's zero-config auto-routing keyword) returned
  * `[400] {"detail":"The 'auto' model is not supported when using Codex with a ChatGPT account."}`.
  * `resolveResponsesApiModel` only treated DB-stored combo NAMES as pass-through; the bare "auto"
  * keyword (handled by the isAutoRouting path in chat.ts, not a DB combo) fell through and was

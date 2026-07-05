@@ -5,20 +5,20 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolate the DB to a temp dir BEFORE importing any module that opens it.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-embed-telemetry-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-embed-telemetry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const { createEmbeddingResponse } = await import("../../src/lib/embeddings/service.ts");
-const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
+const { BIROUTER_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("createEmbeddingResponse emits X-OmniRoute-* cost telemetry headers on success", async () => {
+test("createEmbeddingResponse emits X-Birouter-* cost telemetry headers on success", async () => {
   // Seed a credentialed apikey connection so getProviderCredentials resolves and
   // the success path runs (no real upstream is hit — fetch is mocked below).
   await providersDb.createProviderConnection({
@@ -47,24 +47,24 @@ test("createEmbeddingResponse emits X-OmniRoute-* cost telemetry headers on succ
 
     assert.equal(res.status, 200, "embedding success path should return 200");
 
-    const cost = res.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost);
-    assert.ok(cost, "X-OmniRoute-Response-Cost header must be present");
+    const cost = res.headers.get(BIROUTER_RESPONSE_HEADERS.responseCost);
+    assert.ok(cost, "X-Birouter-Response-Cost header must be present");
     assert.match(
       cost,
       /^\d+\.\d{10}$/,
-      `X-OmniRoute-Response-Cost must be a 10-decimal cost string, got "${cost}"`
+      `X-Birouter-Response-Cost must be a 10-decimal cost string, got "${cost}"`
     );
 
     assert.equal(
-      res.headers.get(OMNIROUTE_RESPONSE_HEADERS.tokensIn),
+      res.headers.get(BIROUTER_RESPONSE_HEADERS.tokensIn),
       String(PROMPT_TOKENS),
-      "X-OmniRoute-Tokens-In must equal the upstream prompt_tokens"
+      "X-Birouter-Tokens-In must equal the upstream prompt_tokens"
     );
 
-    const version = res.headers.get(OMNIROUTE_RESPONSE_HEADERS.version);
+    const version = res.headers.get(BIROUTER_RESPONSE_HEADERS.version);
     assert.ok(
       version && version.length > 0,
-      "X-OmniRoute-Version header must be present and non-empty"
+      "X-Birouter-Version header must be present and non-empty"
     );
 
     // Sanity: the body is still the embeddings payload, unchanged.

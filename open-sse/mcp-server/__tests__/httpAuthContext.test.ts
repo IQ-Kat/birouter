@@ -93,7 +93,7 @@ describe("MCP HTTP auth context", () => {
         headers: { Authorization: "Bearer manage-key" },
       });
       await withMcpHttpAuthContext(request, () =>
-        client.callTool({ name: "omniroute_list_combos", arguments: {} })
+        client.callTool({ name: "birouter_list_combos", arguments: {} })
       );
 
       expect(fetchMock).toHaveBeenCalledWith(
@@ -108,13 +108,13 @@ describe("MCP HTTP auth context", () => {
     }
   });
 
-  it("forwarded caller auth wins over the OMNIROUTE_API_KEY env fallback (#5819)", async () => {
+  it("forwarded caller auth wins over the BIROUTER_API_KEY env fallback (#5819)", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ combos: [] }),
     });
     vi.stubGlobal("fetch", fetchMock);
-    vi.stubEnv("OMNIROUTE_API_KEY", "env-fallback-key");
+    vi.stubEnv("BIROUTER_API_KEY", "env-fallback-key");
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createMcpServer();
@@ -127,7 +127,7 @@ describe("MCP HTTP auth context", () => {
         headers: { Authorization: "Bearer manage-key" },
       });
       await withMcpHttpAuthContext(request, () =>
-        client.callTool({ name: "omniroute_list_combos", arguments: {} })
+        client.callTool({ name: "birouter_list_combos", arguments: {} })
       );
 
       // The per-caller forwarded identity must win over the static env fallback.
@@ -164,7 +164,7 @@ describe("MCP HTTP auth context", () => {
         headers: { Authorization: "Bearer manage-key" },
       });
       await withMcpHttpAuthContext(request, () =>
-        client.callTool({ name: "omniroute_cache_stats", arguments: {} })
+        client.callTool({ name: "birouter_cache_stats", arguments: {} })
       );
 
       expect(fetchMock).toHaveBeenCalledWith(

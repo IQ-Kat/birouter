@@ -88,7 +88,7 @@ function removeStignore(vaultPath: string): void {
     const stignorePath = path.join(vaultPath, ".stignore");
     if (fs.existsSync(stignorePath)) {
       const content = fs.readFileSync(stignorePath, "utf-8");
-      const marker = "# Managed by OmniRoute";
+      const marker = "# Managed by Birouter";
       if (content.includes(marker)) {
         fs.unlinkSync(stignorePath);
       }

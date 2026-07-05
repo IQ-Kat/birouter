@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { getLegacyCliTokenSync, getMachineTokenSync } from "@/lib/machineToken";
 import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
 
-const HEADER_NAME = "x-omniroute-cli-token";
+const HEADER_NAME = "x-birouter-cli-token";
 
 type RequestWithPeer = Request & {
   ip?: string;
@@ -68,11 +68,11 @@ async function isLocalCliRequest(request: RequestWithPeer): Promise<boolean> {
 }
 
 /**
- * Validates the CLI machine-id token sent by the local omniroute CLI.
- * Only accepted from loopback IPs. Disabled via OMNIROUTE_DISABLE_CLI_TOKEN=true.
+ * Validates the CLI machine-id token sent by the local birouter CLI.
+ * Only accepted from loopback IPs. Disabled via BIROUTER_DISABLE_CLI_TOKEN=true.
  */
 export async function isCliTokenAuthValid(request: Request): Promise<boolean> {
-  if (process.env.OMNIROUTE_DISABLE_CLI_TOKEN === "true") return false;
+  if (process.env.BIROUTER_DISABLE_CLI_TOKEN === "true") return false;
 
   const token = await readHeader(request, HEADER_NAME);
   if (!token) return false;

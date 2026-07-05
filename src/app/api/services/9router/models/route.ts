@@ -17,7 +17,7 @@ import { syncServiceModels } from "@/lib/services/modelSync";
 import { getSupervisor } from "@/lib/services/registry";
 import { getOrCreateApiKey } from "@/lib/services/apiKey";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const TOOL = "9router";
 const DEFAULT_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);

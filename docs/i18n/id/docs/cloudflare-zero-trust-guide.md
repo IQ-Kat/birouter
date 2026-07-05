@@ -4,11 +4,11 @@
 
 ---
 
-Panduan ini mendokumentasikan standar infrastruktur jaringan terbaik untuk mengamankan **OmniRoute** dan mengekspos aplikasi Anda ke internet secara aman, **tanpa membuka satu pun port (Zero Inbound)**.
+Panduan ini mendokumentasikan standar infrastruktur jaringan terbaik untuk mengamankan **Birouter** dan mengekspos aplikasi Anda ke internet secara aman, **tanpa membuka satu pun port (Zero Inbound)**.
 
 ## Apa yang Telah Dilakukan pada VM Anda?
 
-Kami mengaktifkan OmniRoute dalam mode **Split-Port** melalui PM2:
+Kami mengaktifkan Birouter dalam mode **Split-Port** melalui PM2:
 
 - **Port \`20128\`:** Menjalankan **hanya API** `/v1`.
 - **Port \`20129\`:** Menjalankan **hanya Dashboard** Administratif visual.
@@ -25,7 +25,7 @@ Utilitas `cloudflared` sudah terpasang di mesin Anda. Ikuti langkah-langkah beri
 
 1. Akses panel **Cloudflare Zero Trust** Anda (One.dash.cloudflare.com).
 2. Di menu sebelah kiri, pergi ke **Networks > Tunnels**.
-3. Klik **Add a Tunnel**, pilih **Cloudflared**, dan beri nama `OmniRoute-VM`.
+3. Klik **Add a Tunnel**, pilih **Cloudflared**, dan beri nama `Birouter-VM`.
 4. Sistem akan menghasilkan perintah di layar bernama "Install and run a connector". **Anda hanya perlu menyalin Token (string panjang setelah `--token`)**.
 5. Masuk melalui SSH ke mesin virtual Anda (atau Terminal Proxmox) dan jalankan:
    \`\`\`bash
@@ -48,7 +48,7 @@ Masih di layar Tunnel yang baru dibuat, buka tab **Public Hostnames** dan tambah
 
 ### Rute 2: Panel Zero Trust (Tertutup)
 
-- **Subdomain:** `omniroute` atau `panel`
+- **Subdomain:** `birouter` atau `panel`
 - **Domain:** `domainanda.com`
 - **Service Type:** `HTTP`
 - **URL:** `127.0.0.1:20129` _(Port internal App/Visual)_
@@ -63,14 +63,14 @@ Tidak ada kata sandi lokal yang lebih baik dalam melindungi panel Anda selain me
 
 1. Di panel Zero Trust, buka **Access > Applications > Add an application**.
 2. Pilih **Self-hosted**.
-3. Di **Application name**, masukkan `Panel OmniRoute`.
-4. Di **Application domain**, masukkan `omniroute.domainanda.com` (sama dengan yang Anda buat di "Rute 2").
+3. Di **Application name**, masukkan `Panel Birouter`.
+4. Di **Application domain**, masukkan `birouter.domainanda.com` (sama dengan yang Anda buat di "Rute 2").
 5. Klik **Next**.
 6. Di **Rule action**, pilih `Allow`. Beri nama Rule `Admin Saja`.
 7. Di **Include**, pada selektor "Selector" pilih `Emails` dan masukkan email Anda, misalnya `admin@domainanda.com`.
 8. Simpan (`Add application`).
 
-> **Apa yang terjadi:** Jika Anda mencoba membuka `omniroute.domainanda.com`, Anda tidak akan langsung masuk ke aplikasi OmniRoute! Anda akan disambut halaman Cloudflare yang meminta Anda memasukkan email. Hanya jika email yang Anda masukkan cocok, Anda akan menerima kode sementara 6 digit melalui Outlook/Gmail yang membuka akses ke terowongan menuju port `20129`.
+> **Apa yang terjadi:** Jika Anda mencoba membuka `birouter.domainanda.com`, Anda tidak akan langsung masuk ke aplikasi Birouter! Anda akan disambut halaman Cloudflare yang meminta Anda memasukkan email. Hanya jika email yang Anda masukkan cocok, Anda akan menerima kode sementara 6 digit melalui Outlook/Gmail yang membuka akses ke terowongan menuju port `20129`.
 
 ---
 
@@ -81,7 +81,7 @@ Dashboard Zero Trust tidak berlaku untuk rute API (`api.domainanda.com`), karena
 1. Akses **Panel Normal** Cloudflare (dash.cloudflare.com) dan masuk ke Domain Anda.
 2. Di menu sebelah kiri, buka **Security > WAF > Rate limiting rules**.
 3. Klik **Create rule**.
-4. **Name:** `Anti-Penyalahgunaan OmniRoute API`
+4. **Name:** `Anti-Penyalahgunaan Birouter API`
 5. **If incoming requests match...**
    - Pilih di Field: `Hostname`
    - Operator: `equals`
@@ -100,7 +100,7 @@ Dashboard Zero Trust tidak berlaku untuk rute API (`api.domainanda.com`), karena
 ## Penutup
 
 1. VM Anda **tidak memiliki port yang terbuka** di `/etc/ufw`.
-2. OmniRoute hanya berkomunikasi melalui HTTPS keluar (`cloudflared`) dan tidak menerima koneksi TCP langsung dari internet.
+2. Birouter hanya berkomunikasi melalui HTTPS keluar (`cloudflared`) dan tidak menerima koneksi TCP langsung dari internet.
 3. Permintaan Anda ke OpenAI disamarkan karena dikonfigurasi secara global untuk melewati Proxy SOCKS5 (cloud tidak peduli dengan SOCKS5 karena trafik datang secara Inbound).
 4. Panel web Anda memiliki autentikasi 2 faktor melalui Email.
 5. API Anda dibatasi lajunya di tepi jaringan oleh Cloudflare dan hanya menerima lalu lintas Bearer Token.

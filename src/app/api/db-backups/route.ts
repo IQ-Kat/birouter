@@ -12,7 +12,7 @@ import {
 import { dbBackupCleanupSchema, dbBackupRestoreSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 async function readOptionalJsonBody(request: NextRequest | Request): Promise<unknown> {
   try {

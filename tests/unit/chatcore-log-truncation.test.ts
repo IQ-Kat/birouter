@@ -80,7 +80,7 @@ test("cloneBoundedChatLogPayload tail-truncates long arrays with a marker entry"
   // marker prepended + the retained tail items
   assert.equal(cloned.length, maxTail + 1);
   const marker = cloned[0] as Record<string, unknown>;
-  assert.equal(marker._omniroute_truncated_array, true);
+  assert.equal(marker._birouter_truncated_array, true);
   assert.equal(marker.originalLength, n);
   assert.equal(marker.retainedTailItems, maxTail);
 });
@@ -95,8 +95,8 @@ test("cloneBoundedChatLogPayload caps object keys and records the dropped count"
   const obj: Record<string, number> = {};
   for (let i = 0; i < maxKeys + 5; i += 1) obj[`k${i}`] = i;
   const cloned = cloneBoundedChatLogPayload(obj) as Record<string, unknown>;
-  // first maxKeys keys retained + the synthetic _omniroute_truncated_keys field
-  assert.equal(cloned._omniroute_truncated_keys, 5);
+  // first maxKeys keys retained + the synthetic _birouter_truncated_keys field
+  assert.equal(cloned._birouter_truncated_keys, 5);
   assert.equal(cloned.k0, 0);
   assert.equal(cloned[`k${maxKeys - 1}`], maxKeys - 1);
   // a key beyond the cap is dropped
@@ -198,14 +198,8 @@ test("truncateForLog keeps a bounded `tools` field alive when the request is sum
   assert.ok(summary.tools, "expected the summary to retain a `tools` field");
   const clonedTools = summary.tools as Array<Record<string, unknown>>;
   assert.equal(clonedTools.length, tools.length);
-  assert.equal(
-    (clonedTools[0].function as Record<string, unknown>).name,
-    "get_weather"
-  );
-  assert.equal(
-    (clonedTools[1].function as Record<string, unknown>).name,
-    "search_web"
-  );
+  assert.equal((clonedTools[0].function as Record<string, unknown>).name, "get_weather");
+  assert.equal((clonedTools[1].function as Record<string, unknown>).name, "search_web");
 });
 
 test("truncateForLog bounds an oversized `tools` array to the configured tail-item cap", () => {
@@ -227,7 +221,7 @@ test("truncateForLog bounds an oversized `tools` array to the configured tail-it
   // marker entry + retained tail items — never the full (unbounded) list
   assert.equal(clonedTools.length, maxTailItems + 1);
   const marker = clonedTools[0] as Record<string, unknown>;
-  assert.equal(marker._omniroute_truncated_array, true);
+  assert.equal(marker._birouter_truncated_array, true);
   assert.equal(marker.originalLength, manyTools.length);
   assert.equal(marker.retainedTailItems, maxTailItems);
 });

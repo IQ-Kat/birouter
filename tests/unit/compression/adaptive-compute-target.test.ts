@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeTarget } from "@omniroute/open-sse/services/compression/adaptiveCompression/computeTarget.ts";
-import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
+import { computeTarget } from "@birouter/open-sse/services/compression/adaptiveCompression/computeTarget.ts";
+import { DEFAULT_CONTEXT_BUDGET } from "@birouter/open-sse/services/compression/adaptiveCompression/types.ts";
 
 const base = { ...DEFAULT_CONTEXT_BUDGET, outputReserve: 4096, safetyMargin: 1024 };
 

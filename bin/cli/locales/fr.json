@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "Erreur : {message}",
-    "serverOffline": "Le serveur OmniRoute est hors ligne. Démarrez avec : omniroute serve",
-    "authRequired": "Authentification requise. Définissez OMNIROUTE_API_KEY ou exécutez : omniroute setup",
+    "serverOffline": "Le serveur Birouter est hors ligne. Démarrez avec : birouter serve",
+    "authRequired": "Authentification requise. Définissez BIROUTER_API_KEY ou exécutez : birouter setup",
     "rateLimited": "Limite de requêtes atteinte. Réessayez dans {seconds}s.",
     "timeout": "La requête a expiré après {ms}ms.",
     "success": "Terminé.",
@@ -15,18 +15,18 @@
     "yesOpt": "Ignorer la confirmation"
   },
   "program": {
-    "description": "OmniRoute — Routeur IA intelligent avec basculement automatique",
+    "description": "Birouter — Routeur IA intelligent avec basculement automatique",
     "version": "Afficher la version et quitter",
     "output": "Format de sortie (table, json, jsonl, csv)",
     "quiet": "Supprimer les sorties non essentielles",
     "no_color": "Désactiver la sortie en couleur",
     "timeout": "Délai d'expiration des requêtes HTTP en millisecondes",
-    "api_key": "Clé API pour le serveur OmniRoute",
-    "base_url": "URL de base du serveur OmniRoute",
+    "api_key": "Clé API pour le serveur Birouter",
+    "base_url": "URL de base du serveur Birouter",
     "context": "Contexte/profil du serveur pour cette commande",
-    "lang": "Définir la langue d'affichage du CLI (remplace OMNIROUTE_LANG)"
+    "lang": "Définir la langue d'affichage du CLI (remplace BIROUTER_LANG)"
   },
   "redis": {
-    "description": "Lancer un conteneur Redis local en un clic (Podman ou Docker) pour la mise en cache et le suivi des quotas OmniRoute"
+    "description": "Lancer un conteneur Redis local en un clic (Podman ou Docker) pour la mise en cache et le suivi des quotas Birouter"
   }
 }

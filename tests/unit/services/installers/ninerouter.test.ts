@@ -5,8 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-installer-"));
-const FAKE_BIN_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fake-bin-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-installer-"));
+const FAKE_BIN_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-fake-bin-"));
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
@@ -85,7 +85,7 @@ test("install creates package.json structure", async () => {
     name: string;
     private: boolean;
   };
-  assert.equal(parsedHost.name, "omniroute-9router-host");
+  assert.equal(parsedHost.name, "birouter-9router-host");
   assert.ok(parsedHost.private);
 
   assert.equal(result.installedVersion, "0.4.59");

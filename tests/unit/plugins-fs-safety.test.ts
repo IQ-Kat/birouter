@@ -22,7 +22,7 @@ import { readFileSync } from "node:fs";
 import { resolve as pathResolve } from "node:path";
 
 // ── Temp DB — must be set BEFORE any DB-touching import ──────────────────────
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-plugins-fs-safety-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-plugins-fs-safety-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/plugins/../db/core.ts");
@@ -34,10 +34,7 @@ const managerSource = readFileSync(
   pathResolve(process.cwd(), "src/lib/plugins/manager.ts"),
   "utf-8"
 );
-const loaderSource = readFileSync(
-  pathResolve(process.cwd(), "src/lib/plugins/loader.ts"),
-  "utf-8"
-);
+const loaderSource = readFileSync(pathResolve(process.cwd(), "src/lib/plugins/loader.ts"), "utf-8");
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
@@ -74,7 +71,8 @@ function writePluginWithMain(opts: {
   );
 
   // Write the main file only for safe relative paths
-  const shouldWrite = opts.writeMainFile !== false && !opts.main.startsWith("..") && !path.isAbsolute(opts.main);
+  const shouldWrite =
+    opts.writeMainFile !== false && !opts.main.startsWith("..") && !path.isAbsolute(opts.main);
   if (shouldWrite) {
     const mainAbs = path.join(sourceDir, opts.main);
     fs.mkdirSync(path.dirname(mainAbs), { recursive: true });
@@ -86,11 +84,11 @@ function writePluginWithMain(opts: {
 
 const activeDirs: string[] = [];
 
-// The manager writes installed plugins to getDefaultPluginDir() = ~/.omniroute/plugins/.
+// The manager writes installed plugins to getDefaultPluginDir() = ~/.birouter/plugins/.
 // We must clean those dirs between tests to avoid ENOTEMPTY / stale state.
 const DEFAULT_PLUGIN_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || "/tmp",
-  ".omniroute",
+  ".birouter",
   "plugins"
 );
 
@@ -306,7 +304,8 @@ test("source: assertWithinPluginDir is called before rm in uninstall", () => {
   // Get the slice from uninstall through the next method
   const afterUninstall = managerSource.slice(uninstallIdx);
   const nextMethodIdx = afterUninstall.indexOf("\n  async ", 10);
-  const uninstallBody = nextMethodIdx !== -1 ? afterUninstall.slice(0, nextMethodIdx) : afterUninstall;
+  const uninstallBody =
+    nextMethodIdx !== -1 ? afterUninstall.slice(0, nextMethodIdx) : afterUninstall;
 
   const guardIdx = uninstallBody.indexOf("assertWithinPluginDir");
   const rmIdx = uninstallBody.indexOf("await rm(");
@@ -342,7 +341,9 @@ test("source: assertWithinPluginDir throws for path outside pluginDir", () => {
   // resolve("/tmp/evil") is not fine when root is "/plugins".
   // Since we can't easily import the unexported helper, verify it uses resolve + sep.
   assert.ok(
-    managerSource.includes('resolve(pluginRoot)') || managerSource.includes('resolve(this_pluginDir)') || managerSource.includes('resolve('),
+    managerSource.includes("resolve(pluginRoot)") ||
+      managerSource.includes("resolve(this_pluginDir)") ||
+      managerSource.includes("resolve("),
     "assertWithinPluginDir must call resolve()"
   );
   assert.ok(

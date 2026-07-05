@@ -145,7 +145,7 @@ function isPendingRequestClearedError(error: unknown): boolean {
 /**
  * A client disconnect — the caller aborted the request or closed the SSE
  * connection — is NOT a provider failure. It surfaces either as an
- * AbortError/ResponseAborted, or, when OmniRoute then tries to enqueue another
+ * AbortError/ResponseAborted, or, when Birouter then tries to enqueue another
  * chunk into the now-closed response stream, as a "Controller is already closed"
  * TypeError. Treating any of these as an upstream error wrongly cools down the
  * account/connection, so the stream error path uses this to skip the provider

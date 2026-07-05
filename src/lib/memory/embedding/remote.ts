@@ -1,4 +1,4 @@
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { createEmbeddingResponse } from "@/lib/embeddings/service";
 import type { EmbeddingResult, EmbeddingError } from "./types";
 
@@ -71,7 +71,9 @@ export async function embedRemote(
         source: "remote",
         model,
         reason: "request_failed",
-        message: sanitizeErrorMessage("Unexpected embedding response shape: missing data[0].embedding"),
+        message: sanitizeErrorMessage(
+          "Unexpected embedding response shape: missing data[0].embedding"
+        ),
       };
     }
     const rawVec = data[0].embedding as number[];

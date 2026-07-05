@@ -8,15 +8,12 @@
  */
 import { NextResponse } from "next/server";
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import { getSkillById } from "@/lib/agentSkills/catalog";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 

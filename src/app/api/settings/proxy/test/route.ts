@@ -5,14 +5,14 @@ import {
   isSocks5ProxyEnabled,
   proxyConfigToUrl,
   proxyUrlForLogs,
-} from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+} from "@birouter/open-sse/utils/proxyDispatcher.ts";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { getProxyById } from "@/lib/localDb";
 import { extractRelayAuth } from "@/lib/db/proxies";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { buildRelayTestResult } from "./relayTestResult";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);

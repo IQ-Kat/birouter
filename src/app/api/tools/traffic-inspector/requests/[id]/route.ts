@@ -4,7 +4,7 @@
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
 
 interface Params {

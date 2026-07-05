@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-context-relay-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-context-relay-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
@@ -49,7 +49,7 @@ function providerBreakerOpenResponse() {
       status: 503,
       headers: {
         "content-type": "application/json",
-        "x-omniroute-provider-breaker": "open",
+        "x-birouter-provider-breaker": "open",
       },
     }
   );
@@ -239,7 +239,7 @@ test("handleComboChat context-relay persists a handoff when codex quota reaches 
       config: { maxRetries: 0, handoffThreshold: 0.85, handoffProviders: ["codex"] },
     },
     handleSingleModel: async (body) => {
-      if (body._omnirouteInternalRequest === "context-handoff") {
+      if (body._birouterInternalRequest === "context-handoff") {
         summaryCalls += 1;
         return okResponse({
           choices: [
@@ -313,7 +313,7 @@ test("handleComboChat context-relay respects handoffProviders and skips generati
       config: { maxRetries: 0, handoffProviders: ["openai"] },
     },
     handleSingleModel: async (body) => {
-      if (body._omnirouteInternalRequest === "context-handoff") {
+      if (body._birouterInternalRequest === "context-handoff") {
         summaryCalls += 1;
       }
       return okResponse();
@@ -497,7 +497,7 @@ test("handleComboChat universal handoff detects model switch before recording cu
       universalHandoff: { enabled: true },
     },
     handleSingleModel: async (body) => {
-      if (body._omnirouteInternalRequest === "universal-handoff") {
+      if (body._birouterInternalRequest === "universal-handoff") {
         summaryCalls += 1;
         return okResponse({
           choices: [
@@ -535,14 +535,19 @@ test("handleComboChat universal handoff detects model switch before recording cu
 // ── Rule #18 gate — PR #3399: server-side context cache pinning ─────────────
 // Proves that when context_cache_protection=true and session_model_history has
 // a prior model, handleComboChat overrides body.model with the pinned model
-// (no client-side <omniModel> tag injection required).
+// (no client-side <biModel> tag injection required).
 
 test("context_cache_protection: pins body.model to last session model when history exists", async () => {
   const sessionId = "sess-cache-pin-active";
   const comboName = "cache-pin-combo";
 
   // Pre-record a prior model usage for this session/combo
-  handoffDb.recordSessionModelUsage(sessionId, comboName, "anthropic/claude-3-5-sonnet", "anthropic");
+  handoffDb.recordSessionModelUsage(
+    sessionId,
+    comboName,
+    "anthropic/claude-3-5-sonnet",
+    "anthropic"
+  );
 
   const capturedModels: string[] = [];
 
@@ -609,5 +614,9 @@ test("context_cache_protection: does NOT pin when no session history exists (fir
 
   assert.equal(result.ok, true);
   // No pinning on first request — should use the combo's first model
-  assert.equal(capturedModels[0], "openai/gpt-4o", "first request must use combo model (no pinning)");
+  assert.equal(
+    capturedModels[0],
+    "openai/gpt-4o",
+    "first request must use combo model (no pinning)"
+  );
 });

@@ -1,4 +1,4 @@
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getRegistryEntry } from "@birouter/open-sse/config/providerRegistry.ts";
 
 /**
  * Derive a models-discovery config from the provider's registry `modelsUrl`

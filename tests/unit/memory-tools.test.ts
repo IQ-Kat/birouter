@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-memory-tools-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-memory-tools-"));
 const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = tmpDir;
 
@@ -24,7 +24,7 @@ function resetStorage() {
 test.beforeEach(async () => {
   resetStorage();
   // PRD-2026-06-19: memory is OFF by default now. The memory MCP tools operate
-  // within the memory subsystem (omniroute_memory_search → retrieveMemories, which
+  // within the memory subsystem (birouter_memory_search → retrieveMemories, which
   // returns nothing while memory is disabled), so enable memory explicitly — the
   // realistic precondition for a client using the memory tools.
   await settingsDb.updateSettings({ memoryEnabled: true });
@@ -38,7 +38,7 @@ test.after(() => {
 });
 
 test("memory add stores entries with default session and metadata", async () => {
-  const result = await memoryTools.omniroute_memory_add.handler({
+  const result = await memoryTools.birouter_memory_add.handler({
     apiKeyId: "key-add",
     type: "factual",
     key: "pref:language",
@@ -57,7 +57,7 @@ test("memory add stores entries with default session and metadata", async () => 
 });
 
 test("memory search filters by type, enforces limit, and reports token totals", async () => {
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: "key-search",
     sessionId: "search",
     type: "factual",
@@ -65,7 +65,7 @@ test("memory search filters by type, enforces limit, and reports token totals", 
     content: "TypeScript and Node.js are used for backend work.",
     metadata: { source: "user" },
   });
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: "key-search",
     sessionId: "search",
     type: "semantic",
@@ -73,7 +73,7 @@ test("memory search filters by type, enforces limit, and reports token totals", 
     content: "Gardening is a weekend hobby.",
     metadata: { source: "user" },
   });
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: "key-search",
     sessionId: "search",
     type: "factual",
@@ -82,7 +82,7 @@ test("memory search filters by type, enforces limit, and reports token totals", 
     metadata: { source: "user" },
   });
 
-  const result = await memoryTools.omniroute_memory_search.handler({
+  const result = await memoryTools.birouter_memory_search.handler({
     apiKeyId: "key-search",
     query: "typescript backend",
     type: "factual",
@@ -101,14 +101,14 @@ test("memory search respects a configured zero token budget", async () => {
   await settingsDb.updateSettings({ memoryEnabled: true, memoryMaxTokens: 0 });
   invalidateMemorySettingsCache();
 
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: "key-zero-budget",
     type: "factual",
     key: "pref:stack",
     content: "TypeScript and Node.js are used for backend work.",
   });
 
-  const result = await memoryTools.omniroute_memory_search.handler({
+  const result = await memoryTools.birouter_memory_search.handler({
     apiKeyId: "key-zero-budget",
     query: "typescript",
   });
@@ -123,14 +123,14 @@ test("memory search runs explicitly even when global memory injection is disable
   await settingsDb.updateSettings({ memoryEnabled: false, memoryMaxTokens: 2000 });
   invalidateMemorySettingsCache();
 
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: "key-disabled-memory",
     type: "factual",
     key: "pref:stack",
     content: "TypeScript and Node.js are used for backend work.",
   });
 
-  const result = await memoryTools.omniroute_memory_search.handler({
+  const result = await memoryTools.birouter_memory_search.handler({
     apiKeyId: "key-disabled-memory",
     query: "typescript",
     maxTokens: 500,
@@ -174,7 +174,7 @@ test("memory clear deletes only older filtered entries and reports the deleted c
     newer.id
   );
 
-  const result = await memoryTools.omniroute_memory_clear.handler({
+  const result = await memoryTools.birouter_memory_clear.handler({
     apiKeyId: "key-clear",
     type: "factual",
     olderThan: cutoff.toISOString(),

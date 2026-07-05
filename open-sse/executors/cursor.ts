@@ -38,11 +38,7 @@ import {
   type McpToolDefinition,
   type OpenAITool,
 } from "../utils/cursorAgentProtobuf.ts";
-import {
-  resolveCursorImages,
-  extractImageUrls,
-  CursorImageError,
-} from "../utils/cursorImages.ts";
+import { resolveCursorImages, extractImageUrls, CursorImageError } from "../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
@@ -84,7 +80,7 @@ const TOOL_COMMIT_DIRECTIVE = [
 ].join("\n");
 
 // NOTE: composer-api primes the model into "agent mode" with a fabricated
-// prior switch_mode exchange (AGENT_MODE_PRIMER). On OmniRoute's native-tool
+// prior switch_mode exchange (AGENT_MODE_PRIMER). On Birouter's native-tool
 // agent endpoint that primer is counterproductive — it references a
 // non-existent switch_mode tool and measurably LOWERED the tool-call rate in
 // live A/B (56% vs 69%), so it is intentionally not ported.
@@ -147,7 +143,9 @@ function buildCursorOutputConstraints(body: {
   const fmt = body.response_format;
   if (isRecordLike(fmt)) {
     if (fmt.type === "json_object") {
-      constraints.push("Return a single valid JSON object and no surrounding prose or code fences.");
+      constraints.push(
+        "Return a single valid JSON object and no surrounding prose or code fences."
+      );
     } else if (fmt.type === "json_schema") {
       const js = isRecordLike(fmt.json_schema) ? fmt.json_schema.schema : fmt.schema;
       constraints.push(
@@ -319,7 +317,7 @@ function tryParseJsonError(payload: Buffer): { message: string; status: number }
 // user-facing reply; the prefix must stay hidden.
 //
 // Ported from decolua/9router#1310 by Noé Rivera. Same algorithm, adapted
-// to OmniRoute's StreamCtx-based pipeline so streaming + non-streaming
+// to Birouter's StreamCtx-based pipeline so streaming + non-streaming
 // share the accumulation path.
 
 const COMPOSER_THINK_END = "</think>";
@@ -347,10 +345,7 @@ export function visibleComposerContentFromThinking(thinking: string): string {
   let visible = thinking.slice(endIdx + COMPOSER_THINK_END.length).trimStart();
   if (COMPOSER_OPEN_MARKER.test(visible)) {
     visible = visible.replace(COMPOSER_OPEN_MARKER, "");
-  } else if (
-    COMPOSER_PARTIAL_OPEN.test(visible) ||
-    COMPOSER_PARTIAL_OPEN_PIPE.test(visible)
-  ) {
+  } else if (COMPOSER_PARTIAL_OPEN.test(visible) || COMPOSER_PARTIAL_OPEN_PIPE.test(visible)) {
     // A streamed chunk delivered only a partial opening marker (e.g. `<` or
     // `<｜fin`). Hold back everything until more data arrives so the marker
     // fragment never leaks as content.
@@ -676,11 +671,19 @@ export function processFrame(
               ctx.totalText += parseOut.safeDelta;
               emitChunk(ctx, { content: parseOut.safeDelta });
             }
-            if (parseOut.ready && parseOut.toolCalls.length > 0 && !ctx.composerInlineToolCallsEmitted) {
+            if (
+              parseOut.ready &&
+              parseOut.toolCalls.length > 0 &&
+              !ctx.composerInlineToolCallsEmitted
+            ) {
               ctx.composerInlineToolCallsEmitted = true;
               for (const tc of parseOut.toolCalls) {
                 const toolCallIndex = ctx.emittedToolCallIndex++;
-                ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
+                ctx.toolCalls.push({
+                  id: tc.id,
+                  name: tc.function.name,
+                  argumentsJson: tc.function.arguments,
+                });
                 emitChunk(ctx, {
                   tool_calls: [
                     {
@@ -1202,7 +1205,7 @@ export class CursorExecutor extends BaseExecutor {
       return {
         response: buildErrorResponse(
           501,
-          "Cursor provider requires Node.js http2, which is unavailable in this runtime (Edge / Cloudflare Workers / similar). Run OmniRoute on a Node.js runtime to use cursor.",
+          "Cursor provider requires Node.js http2, which is unavailable in this runtime (Edge / Cloudflare Workers / similar). Run Birouter on a Node.js runtime to use cursor.",
           "unsupported_runtime"
         ),
         url,
@@ -1435,11 +1438,7 @@ export class CursorExecutor extends BaseExecutor {
     // parser state never reached "ready"), try a full non-streaming parse on
     // the accumulated visible content so we still emit structured tool_calls
     // and don't leak the markers as plain text.
-    if (
-      isComposerModel(ctx.model) &&
-      !ctx.composerInlineToolCallsEmitted &&
-      ctx.totalText
-    ) {
+    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
       const parsed = parseComposerToolCalls(ctx.totalText);
       if (parsed.toolCalls.length > 0) {
         ctx.composerInlineToolCallsEmitted = true;
@@ -1447,7 +1446,11 @@ export class CursorExecutor extends BaseExecutor {
         ctx.totalText = parsed.content;
         for (const tc of parsed.toolCalls) {
           const toolCallIndex = ctx.emittedToolCallIndex++;
-          ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
+          ctx.toolCalls.push({
+            id: tc.id,
+            name: tc.function.name,
+            argumentsJson: tc.function.arguments,
+          });
           emitChunk(ctx, {
             tool_calls: [
               {
@@ -1501,17 +1504,17 @@ export class CursorExecutor extends BaseExecutor {
     // Composer DeepSeek inline tool-call fallback (decolua/9router#1335): for
     // non-streaming requests, the streaming parser never runs — parse the
     // accumulated visible content once here instead.
-    if (
-      isComposerModel(ctx.model) &&
-      !ctx.composerInlineToolCallsEmitted &&
-      ctx.totalText
-    ) {
+    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
       const parsed = parseComposerToolCalls(ctx.totalText);
       if (parsed.toolCalls.length > 0) {
         ctx.composerInlineToolCallsEmitted = true;
         ctx.totalText = parsed.content;
         for (const tc of parsed.toolCalls) {
-          ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
+          ctx.toolCalls.push({
+            id: tc.id,
+            name: tc.function.name,
+            argumentsJson: tc.function.arguments,
+          });
         }
       }
     }

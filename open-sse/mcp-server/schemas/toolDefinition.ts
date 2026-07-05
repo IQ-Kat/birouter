@@ -26,6 +26,6 @@ export interface McpToolDefinition<TInput extends z.ZodTypeAny, TOutput extends 
   auditLevel: AuditLevel;
   /** Phase: 1 = essential, 2 = advanced */
   phase: 1 | 2;
-  /** Source endpoints on OmniRoute that this tool wraps */
+  /** Source endpoints on Birouter that this tool wraps */
   sourceEndpoints: readonly string[];
 }

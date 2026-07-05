@@ -43,7 +43,7 @@ test("antigravity with default public credentials keeps loopback redirect URI", 
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: DEFAULT_ANTIGRAVITY_CLIENT_ID,
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "GOCSPX-SomeDefaultSecret",
     }
@@ -58,7 +58,7 @@ test("antigravity with default public credentials keeps loopback redirect URI", 
 
 test("agy provider with default antigravity credentials keeps loopback redirect URI", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: DEFAULT_ANTIGRAVITY_CLIENT_ID,
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "GOCSPX-SomeDefaultSecret",
   });
@@ -79,23 +79,23 @@ test("antigravity with custom credentials switches loopback to public base URL",
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
   );
 
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+  assert.equal(redirectUri, "https://birouter.example.com/callback");
 });
 
 test("agy with custom credentials switches loopback to public base URL", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-agy.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-agy-secret",
   });
 
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+  assert.equal(redirectUri, "https://birouter.example.com/callback");
 });
 
 // ---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ test("antigravity with only client ID (no secret) keeps loopback", () => {
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       // No secret
     }
@@ -125,7 +125,7 @@ test("antigravity with blank/whitespace client ID keeps loopback", () => {
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "   ",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "   ",
     }
@@ -153,7 +153,7 @@ test("no public base URL configured keeps loopback even with custom credentials"
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      // No NEXT_PUBLIC_BASE_URL or OMNIROUTE_PUBLIC_BASE_URL
+      // No NEXT_PUBLIC_BASE_URL or BIROUTER_PUBLIC_BASE_URL
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
@@ -172,7 +172,7 @@ test("no public base URL configured keeps loopback even with custom credentials"
 
 test("non-Google provider returns redirect URI unchanged regardless of env", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri("claude", "http://localhost:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
   });
@@ -185,7 +185,7 @@ test("unknown provider returns redirect URI unchanged", () => {
     "some-unknown-provider",
     "http://localhost:20128/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     }
   );
 
@@ -201,7 +201,7 @@ test("already-remote redirect URI is not overridden even with custom credentials
     "antigravity",
     "https://my-deployment.example.com/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
@@ -220,12 +220,12 @@ test("already-remote redirect URI is not overridden even with custom credentials
 
 test("custom credentials override IPv6 loopback [::1] for antigravity", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
   });
 
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+  assert.equal(redirectUri, "https://birouter.example.com/callback");
 });
 
 // ---------------------------------------------------------------------------
@@ -237,13 +237,13 @@ test("custom callback path is preserved when overriding loopback", () => {
     "antigravity",
     "http://127.0.0.1:20128/auth/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
   );
 
-  assert.equal(redirectUri, "https://omniroute.example.com/auth/callback");
+  assert.equal(redirectUri, "https://birouter.example.com/auth/callback");
 });
 
 test("query string is preserved when overriding loopback", () => {
@@ -251,23 +251,23 @@ test("query string is preserved when overriding loopback", () => {
     "antigravity",
     "http://127.0.0.1:20128/callback?source=popup&nonce=abc",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
   );
 
-  assert.equal(redirectUri, "https://omniroute.example.com/callback?source=popup&nonce=abc");
+  assert.equal(redirectUri, "https://birouter.example.com/callback?source=popup&nonce=abc");
 });
 
 test("root path defaults to /callback when overriding loopback", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:20128/", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
   });
 
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+  assert.equal(redirectUri, "https://birouter.example.com/callback");
 });
 
 // ---------------------------------------------------------------------------
@@ -279,7 +279,7 @@ test("trailing slash on NEXT_PUBLIC_BASE_URL is stripped", () => {
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
+      NEXT_PUBLIC_BASE_URL: "https://birouter.example.com/",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }
@@ -287,17 +287,17 @@ test("trailing slash on NEXT_PUBLIC_BASE_URL is stripped", () => {
 
   assert.equal(
     redirectUri,
-    "https://omniroute.example.com/callback",
+    "https://birouter.example.com/callback",
     "no double slash between base URL and path"
   );
 });
 
-test("OMNIROUTE_PUBLIC_BASE_URL is used as fallback when NEXT_PUBLIC_BASE_URL is absent", () => {
+test("BIROUTER_PUBLIC_BASE_URL is used as fallback when NEXT_PUBLIC_BASE_URL is absent", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
     "http://127.0.0.1:20128/callback",
     {
-      OMNIROUTE_PUBLIC_BASE_URL: "https://fallback.example.com",
+      BIROUTER_PUBLIC_BASE_URL: "https://fallback.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
       ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
     }

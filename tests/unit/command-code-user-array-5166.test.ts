@@ -16,9 +16,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-cmd-code-user-array-5166-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cmd-code-user-array-5166-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
@@ -48,7 +46,11 @@ type FetchCall = { url: string; init: Record<string, unknown>; body: Record<stri
 function captureFetch(response: Response) {
   const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init: RequestInit = {}) => {
-    calls.push({ url: String(url), init: init as Record<string, unknown>, body: JSON.parse(String(init.body)) });
+    calls.push({
+      url: String(url),
+      init: init as Record<string, unknown>,
+      body: JSON.parse(String(init.body)),
+    });
     return response;
   };
   return calls;
@@ -56,140 +58,128 @@ function captureFetch(response: Response) {
 
 // ── failing tests (before fix, user content is the raw array) ──────────────
 
-test(
-  "#5166 user message with multi-part array content is flattened to a string (#5166)",
-  async () => {
-    const calls = captureFetch(
-      commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-    );
+test("#5166 user message with multi-part array content is flattened to a string (#5166)", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
 
-    await getExecutor("command-code").execute({
-      model: "deepseek/deepseek-v4-pro",
-      stream: false,
-      credentials: { apiKey: "cc_test_key" },
-      body: {
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Hello" },
-              { type: "text", text: "World" },
-            ],
-          },
-        ],
-      },
-    });
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Hello" },
+            { type: "text", text: "World" },
+          ],
+        },
+      ],
+    },
+  });
 
-    const posted = calls[0].body;
-    const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
-      string,
-      unknown
-    >;
+  const posted = calls[0].body;
+  const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
+    string,
+    unknown
+  >;
 
-    // Must be a string — never an array — otherwise Command Code's upstream returns 400.
-    assert.equal(
-      typeof userMsg.content,
-      "string",
-      `user message content must be a string, got ${typeof userMsg.content}`
-    );
-    // Joined text parts with "\n"
-    assert.equal(userMsg.content, "Hello\nWorld");
-  }
-);
+  // Must be a string — never an array — otherwise Command Code's upstream returns 400.
+  assert.equal(
+    typeof userMsg.content,
+    "string",
+    `user message content must be a string, got ${typeof userMsg.content}`
+  );
+  // Joined text parts with "\n"
+  assert.equal(userMsg.content, "Hello\nWorld");
+});
 
-test(
-  "#5166 user message with single text-part array is flattened to a plain string",
-  async () => {
-    const calls = captureFetch(
-      commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-    );
+test("#5166 user message with single text-part array is flattened to a plain string", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
 
-    await getExecutor("command-code").execute({
-      model: "deepseek/deepseek-v4-pro",
-      stream: false,
-      credentials: { apiKey: "cc_test_key" },
-      body: {
-        messages: [
-          {
-            role: "user",
-            content: [{ type: "text", text: "Hi there" }],
-          },
-        ],
-      },
-    });
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: "Hi there" }],
+        },
+      ],
+    },
+  });
 
-    const posted = calls[0].body;
-    const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
-      string,
-      unknown
-    >;
-    assert.equal(typeof userMsg.content, "string");
-    assert.equal(userMsg.content, "Hi there");
-  }
-);
+  const posted = calls[0].body;
+  const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
+    string,
+    unknown
+  >;
+  assert.equal(typeof userMsg.content, "string");
+  assert.equal(userMsg.content, "Hi there");
+});
 
-test(
-  "#5166 user message with plain string content passes through unchanged (no regression)",
-  async () => {
-    const calls = captureFetch(
-      commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-    );
+test("#5166 user message with plain string content passes through unchanged (no regression)", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
 
-    await getExecutor("command-code").execute({
-      model: "deepseek/deepseek-v4-pro",
-      stream: false,
-      credentials: { apiKey: "cc_test_key" },
-      body: {
-        messages: [
-          {
-            role: "user",
-            content: "Plain string message",
-          },
-        ],
-      },
-    });
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: "Plain string message",
+        },
+      ],
+    },
+  });
 
-    const posted = calls[0].body;
-    const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
-      string,
-      unknown
-    >;
-    assert.equal(typeof userMsg.content, "string");
-    assert.equal(userMsg.content, "Plain string message");
-  }
-);
+  const posted = calls[0].body;
+  const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
+    string,
+    unknown
+  >;
+  assert.equal(typeof userMsg.content, "string");
+  assert.equal(userMsg.content, "Plain string message");
+});
 
-test(
-  "#5166 user message with mixed parts (text + image_url) keeps only text parts",
-  async () => {
-    const calls = captureFetch(
-      commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
-    );
+test("#5166 user message with mixed parts (text + image_url) keeps only text parts", async () => {
+  const calls = captureFetch(
+    commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
+  );
 
-    await getExecutor("command-code").execute({
-      model: "deepseek/deepseek-v4-pro",
-      stream: false,
-      credentials: { apiKey: "cc_test_key" },
-      body: {
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Describe this:" },
-              { type: "image_url", image_url: { url: "https://example.com/img.png" } },
-            ],
-          },
-        ],
-      },
-    });
+  await getExecutor("command-code").execute({
+    model: "deepseek/deepseek-v4-pro",
+    stream: false,
+    credentials: { apiKey: "cc_test_key" },
+    body: {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this:" },
+            { type: "image_url", image_url: { url: "https://example.com/img.png" } },
+          ],
+        },
+      ],
+    },
+  });
 
-    const posted = calls[0].body;
-    const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
-      string,
-      unknown
-    >;
-    assert.equal(typeof userMsg.content, "string");
-    // Only text parts extracted; image_url part is dropped (not a "text" type)
-    assert.equal(userMsg.content, "Describe this:");
-  }
-);
+  const posted = calls[0].body;
+  const userMsg = (posted.params as Record<string, unknown[]>).messages[0] as Record<
+    string,
+    unknown
+  >;
+  assert.equal(typeof userMsg.content, "string");
+  // Only text parts extracted; image_url part is dropped (not a "text" type)
+  assert.equal(userMsg.content, "Describe this:");
+});

@@ -35,7 +35,7 @@ function DashboardApp({ port, baseUrl, apiKey, onExit }) {
     <Box flexDirection="column">
       <Box borderStyle="round" borderColor="cyan" paddingX={1} gap={1}>
         <Text bold color="cyan">
-          OmniRoute
+          Birouter
         </Text>
         <Text dimColor>|</Text>
         {TABS.map((tab, i) => (

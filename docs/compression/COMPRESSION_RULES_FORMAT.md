@@ -170,7 +170,7 @@ Project trust file:
 }
 ```
 
-The environment override `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS=1` trusts project filters without a
+The environment override `BIROUTER_RTK_TRUST_PROJECT_FILTERS=1` trusts project filters without a
 hash and should be limited to controlled local development.
 
 ## Safety Rules

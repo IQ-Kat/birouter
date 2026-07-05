@@ -6,7 +6,7 @@ import {
   CLIPROXY_DEFAULT_PORT,
 } from "@/lib/services/installers/cliproxy";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const TOOL = "cliproxy";
 

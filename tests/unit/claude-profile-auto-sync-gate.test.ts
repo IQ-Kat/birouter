@@ -5,11 +5,11 @@ import { autoSyncClaudeProfilesFromLiveCatalog } from "@/lib/cli-helper/claudePr
 
 // Claude Code profile auto-sync writes files into the operator's ~/.claude/profiles, so it
 // MUST be opt-in (default OFF) and short-circuit before any catalog fetch / file write when
-// either gate is closed. These tests pin the two gates (the OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES
+// either gate is closed. These tests pin the two gates (the BIROUTER_AUTO_SYNC_CLAUDE_PROFILES
 // feature flag, read env-first here with no DB override, + the CLI_ALLOW_CONFIG_WRITES
 // write-guard) so a future change can't silently turn it back on.
 
-const GATE_ENV = ["OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES", "CLI_ALLOW_CONFIG_WRITES"] as const;
+const GATE_ENV = ["BIROUTER_AUTO_SYNC_CLAUDE_PROFILES", "CLI_ALLOW_CONFIG_WRITES"] as const;
 
 function snapshotEnv(): Record<string, string | undefined> {
   const snap: Record<string, string | undefined> = {};
@@ -31,7 +31,7 @@ function mockSyncRequest(): Request {
 test("Claude auto-sync is OFF by default (flag unset) — returns disabled, never fetches or writes", async () => {
   const snap = snapshotEnv();
   try {
-    delete process.env.OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES;
+    delete process.env.BIROUTER_AUTO_SYNC_CLAUDE_PROFILES;
     const result = await autoSyncClaudeProfilesFromLiveCatalog(
       mockSyncRequest(),
       "test:default-off"
@@ -43,10 +43,10 @@ test("Claude auto-sync is OFF by default (flag unset) — returns disabled, neve
   }
 });
 
-test("explicit OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=false stays disabled", async () => {
+test("explicit BIROUTER_AUTO_SYNC_CLAUDE_PROFILES=false stays disabled", async () => {
   const snap = snapshotEnv();
   try {
-    process.env.OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES = "false";
+    process.env.BIROUTER_AUTO_SYNC_CLAUDE_PROFILES = "false";
     const result = await autoSyncClaudeProfilesFromLiveCatalog(
       mockSyncRequest(),
       "test:explicit-false"
@@ -62,7 +62,7 @@ test("non-truthy flag values stay disabled", async () => {
   const snap = snapshotEnv();
   try {
     for (const v of ["0", "no", "off", "maybe", ""]) {
-      process.env.OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES = v;
+      process.env.BIROUTER_AUTO_SYNC_CLAUDE_PROFILES = v;
       const result = await autoSyncClaudeProfilesFromLiveCatalog(mockSyncRequest(), `test:${v}`);
       assert.equal(result.ok, false, `value '${v}' must not enable auto-sync`);
       assert.equal(result.reason, "disabled", `value '${v}' must report disabled`);
@@ -75,7 +75,7 @@ test("non-truthy flag values stay disabled", async () => {
 test("enabled flag but CLI_ALLOW_CONFIG_WRITES=false is blocked by the write-guard (no write)", async () => {
   const snap = snapshotEnv();
   try {
-    process.env.OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES = "true";
+    process.env.BIROUTER_AUTO_SYNC_CLAUDE_PROFILES = "true";
     process.env.CLI_ALLOW_CONFIG_WRITES = "false";
     const result = await autoSyncClaudeProfilesFromLiveCatalog(
       mockSyncRequest(),

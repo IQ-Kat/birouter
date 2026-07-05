@@ -12,9 +12,9 @@ test("createProgram returns a Command instance", () => {
   assert.equal(typeof program.commands, "object", "has commands array");
 });
 
-test("program name is 'omniroute'", () => {
+test("program name is 'birouter'", () => {
   const program = createProgram();
-  assert.equal(program.name(), "omniroute");
+  assert.equal(program.name(), "birouter");
 });
 
 test("program description is non-empty", () => {
@@ -55,14 +55,14 @@ test("program has --api-key option bound to env", () => {
   const program = createProgram();
   const opt = program.options.find((o) => o.long === "--api-key");
   assert.ok(opt, "--api-key option exists");
-  assert.equal(opt.envVar, "OMNIROUTE_API_KEY");
+  assert.equal(opt.envVar, "BIROUTER_API_KEY");
 });
 
 test("program has --base-url option bound to env", () => {
   const program = createProgram();
   const opt = program.options.find((o) => o.long === "--base-url");
   assert.ok(opt, "--base-url option exists");
-  assert.equal(opt.envVar, "OMNIROUTE_BASE_URL");
+  assert.equal(opt.envVar, "BIROUTER_BASE_URL");
 });
 
 // ─── registered commands ──────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ test("program registers 'update' command", () => {
 test("--help throws CommanderError with exit code 0", async () => {
   const program = createProgram();
   try {
-    await program.parseAsync(["node", "omniroute", "--help"]);
+    await program.parseAsync(["node", "birouter", "--help"]);
     assert.fail("expected error to be thrown");
   } catch (err: any) {
     assert.equal(err.exitCode, 0, `expected exitCode 0, got: ${err.exitCode}`);
@@ -140,7 +140,7 @@ test("--help throws CommanderError with exit code 0", async () => {
 test("--version throws CommanderError with exit code 0", async () => {
   const program = createProgram();
   try {
-    await program.parseAsync(["node", "omniroute", "--version"]);
+    await program.parseAsync(["node", "birouter", "--version"]);
     assert.fail("expected error to be thrown");
   } catch (err: any) {
     assert.equal(err.exitCode, 0, `expected exitCode 0, got: ${err.exitCode}`);
@@ -150,7 +150,7 @@ test("--version throws CommanderError with exit code 0", async () => {
 test("unknown global flag throws CommanderError with exit code 1", async () => {
   const program = createProgram();
   try {
-    await program.parseAsync(["node", "omniroute", "--definitely-not-a-flag"]);
+    await program.parseAsync(["node", "birouter", "--definitely-not-a-flag"]);
     assert.fail("expected error to be thrown");
   } catch (err: any) {
     assert.ok(err.exitCode !== undefined, "error has exitCode");

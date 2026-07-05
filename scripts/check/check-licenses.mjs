@@ -2,7 +2,7 @@
 // scripts/check/check-licenses.mjs
 // Gate de license compliance — PLANO-QUALITY-GATES-FASE7.md, Task 20.
 //
-// Política: OmniRoute é MIT. Dependências de PRODUÇÃO com licença fora da allowlist SPDX
+// Política: Birouter é MIT. Dependências de PRODUÇÃO com licença fora da allowlist SPDX
 // e sem exceção registrada em .license-allowlist.json => FALHA (policy violation).
 // devDependencies com licença não-padrão => advisory (impressas, não falham).
 //

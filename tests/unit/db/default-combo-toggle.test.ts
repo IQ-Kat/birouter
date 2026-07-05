@@ -12,7 +12,7 @@ import path from "node:path";
 
 // ─── isolated temp DB ─────────────────────────────────────────────────────────
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-default-combo-toggle-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-default-combo-toggle-"));
 const originalDataDir = process.env.DATA_DIR;
 
 process.env.DATA_DIR = TEST_DATA_DIR;

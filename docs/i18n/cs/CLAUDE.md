@@ -39,7 +39,7 @@ Pro plnou testovací matici viz `CONTRIBUTING.md` → "Spouštění testů". Pro
 
 ## Projekt na první pohled
 
-**OmniRoute** — jednotný AI proxy/router. Jeden koncový bod, 160+ poskytovatelů LLM, automatické zálohování.
+**Birouter** — jednotný AI proxy/router. Jeden koncový bod, 160+ poskytovatelů LLM, automatické zálohování.
 
 | Vrstva        | Umístění                | Účel                                                                            |
 | ------------- | ----------------------- | ------------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ API trasy následují konzistentní vzor: `Route → CORS preflight → Zod vali
 
 ## Stav běhu odolnosti
 
-OmniRoute má tři související, ale odlišné mechanismy dočasného selhání. Udržujte jejich rozsah oddělený při ladění chování routování. Viz
+Birouter má tři související, ale odlišné mechanismy dočasného selhání. Udržujte jejich rozsah oddělený při ladění chování routování. Viz
 [diagram odolnosti ve 3 vrstvách](./docs/diagrams/exported/resilience-3layers.svg)
 (zdroj: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 pro rychlý přehled.
@@ -217,7 +217,7 @@ připojení pokračovat v obsluze dalších modelů.
 ### Styl kódu
 
 - **2 mezery**, středníky, dvojité uvozovky, šířka 100 znaků, es5 koncové čárky (vynuceno lint-staged pomocí Prettier)
-- **Importy**: externí → interní (`@/`, `@omniroute/open-sse`) → relativní
+- **Importy**: externí → interní (`@/`, `@birouter/open-sse`) → relativní
 - **Pojmenování**: soubory=camelCase/kebab, komponenty=PascalCase, konstanty=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = chyba všude; `no-explicit-any` = varování v `open-sse/` a `tests/`
 - **TypeScript**: `strict: false`, cíl ES2022, modul esnext, rozlišení bundler. Preferujte explicitní typy.
@@ -383,9 +383,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES moduly
 - **TypeScript**: 5.9+, cíl ES2022, modul esnext, rozlišení bundler
-- **Cestovní aliasy**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Cestovní aliasy**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Výchozí port**: 20128 (API + dashboard na stejném portu)
-- **Adresář dat**: `DATA_DIR` env var, výchozí hodnota `~/.omniroute/`
+- **Adresář dat**: `DATA_DIR` env var, výchozí hodnota `~/.birouter/`
 - **Klíčové env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Nastavení: `cp .env.example .env` poté vygenerujte `JWT_SECRET` (`openssl rand -base64 48`) a `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -408,4 +408,4 @@ git push -u origin feat/your-feature
 13. Nikdy neprovádějte interpolaci řetězců externích cest nebo runtime hodnot do shell skriptů předávaných do `exec()`/`spawn()` — předávejte je místo toho přes možnost `env`. Odkaz: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Nikdy neignorujte upozornění CodeQL / Secret-Scanning bez (a) nejprve zkontrolování dokumentace vzoru výše, abyste zjistili, zda se pomocník vztahuje, a (b) zaznamenání technického odůvodnění do komentáře o zamítnutí. Precedent: `js/stack-trace-exposure` vznesený na místech volání, která již procházejí přes `sanitizeErrorMessage()`, je známé omezení CodeQL (vlastní sanitizátory nejsou rozpoznány) — zamítněte jako `false positive` s odkazem na `docs/security/ERROR_SANITIZATION.md`.
 15. Nikdy nezveřejňujte trasy, které spouštějí podřízené procesy (`/api/mcp/`, `/api/cli-tools/runtime/`) bez klasifikace `isLocalOnlyPath()` v `src/server/authz/routeGuard.ts`. Vynucení loopbacku probíhá bezpodmínečně před jakýmkoli ověřením — uniklý JWT přes tunel nemůže spustit proces. Viz `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Nikdy nezahrnujte `Co-Authored-By` přílohy, které připisují AI asistenta, LLM nebo automatizovaný účet (např. jména obsahující "Claude", "GPT", "Copilot", "Bot"; e-maily na `anthropic.com` / `openai.com` / adresách `noreply.github.com` vlastněných boty). Takové přílohy směrují přiřazení commitů na účet bota na GitHubu, čímž skrývají skutečného autora (`diegosouzapw`) v historii PR. Lidští spolupracovníci — včetně autorů upstream PR a hlasatelů issues přenášených do OmniRoute — MOHOU a MĚLI BY být uvedeni standardními přílohami `Co-authored-by: Name <email>`; upstream-port pracovní postupy (`/port-upstream-features`, `/port-upstream-issues`) na tom závisí.
+16. Nikdy nezahrnujte `Co-Authored-By` přílohy, které připisují AI asistenta, LLM nebo automatizovaný účet (např. jména obsahující "Claude", "GPT", "Copilot", "Bot"; e-maily na `anthropic.com` / `openai.com` / adresách `noreply.github.com` vlastněných boty). Takové přílohy směrují přiřazení commitů na účet bota na GitHubu, čímž skrývají skutečného autora (`diegosouzapw`) v historii PR. Lidští spolupracovníci — včetně autorů upstream PR a hlasatelů issues přenášených do Birouter — MOHOU a MĚLI BY být uvedeni standardními přílohami `Co-authored-by: Name <email>`; upstream-port pracovní postupy (`/port-upstream-features`, `/port-upstream-issues`) na tom závisí.

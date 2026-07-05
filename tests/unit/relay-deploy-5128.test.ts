@@ -18,7 +18,7 @@ import path from "node:path";
 //   D) the proxy-registry schema enum lacked "deno"/"cloudflare", so editing a
 //      deployed relay in the UI failed Zod validation with a silent 400.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-5128-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-5128-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -104,7 +104,7 @@ test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", a
         body: JSON.stringify({
           accountId: "abcdef0123456789",
           apiToken: "cf-token-aaaaaaaaaaaaaaaaaaaaaa",
-          projectName: "omniroute-relay",
+          projectName: "birouter-relay",
         }),
       })
     );

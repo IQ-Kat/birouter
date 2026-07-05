@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-routing-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-routing-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -76,7 +76,7 @@ function providerBreakerOpenResponse() {
       status: 503,
       headers: {
         "content-type": "application/json",
-        "x-omniroute-provider-breaker": "open",
+        "x-birouter-provider-breaker": "open",
       },
     }
   );
@@ -316,7 +316,7 @@ test("handleComboChat runs shadow targets without changing the primary response 
       if (target?.trafficType === "shadow") {
         shadowRequests.push({
           executionKey: target.executionKey,
-          hasBodyMarker: body._omnirouteShadowRouting === true,
+          hasBodyMarker: body._birouterShadowRouting === true,
         });
       }
       if (target?.trafficType === "shadow") return errorResponse(503, "shadow failed");
@@ -2440,9 +2440,9 @@ test("handleComboChat auto strategy can route by SLA targets", async () => {
 });
 
 test("handleComboChat context cache protection pins the model and tags tool-call responses", async () => {
-  // PR #3399: <omniModel> tag extraction replaced by server-side session pinning.
+  // PR #3399: <biModel> tag extraction replaced by server-side session pinning.
   // combo uses priority order; the tag in the input message is stripped but no
-  // longer drives routing. No <omniModel> tag is injected in responses.
+  // longer drives routing. No <biModel> tag is injected in responses.
   const calls: any[] = [];
   const result = await handleComboChat({
     body: {
@@ -2450,7 +2450,7 @@ test("handleComboChat context cache protection pins the model and tags tool-call
       messages: [
         {
           role: "assistant",
-          content: "cached\n<omniModel>claude/claude-sonnet-4-6</omniModel>",
+          content: "cached\n<biModel>claude/claude-sonnet-4-6</biModel>",
         },
       ],
     },
@@ -2488,14 +2488,14 @@ test("handleComboChat context cache protection pins the model and tags tool-call
 
   const payload = (await result.json()) as any;
   assert.equal(result.ok, true);
-  // Server-side pinning: routes via priority order, not the <omniModel> tag.
+  // Server-side pinning: routes via priority order, not the <biModel> tag.
   assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
-  // No <omniModel> tag injected into response content (replaced by session store).
+  // No <biModel> tag injected into response content (replaced by session store).
   assert.ok(!payload.choices[0].message.content);
 });
 
-test("handleComboChat context cache protection does not inject omniModel tag in streamed output", async () => {
-  // PR #3399: <omniModel> tag injection in stream output removed (server-side session pinning).
+test("handleComboChat context cache protection does not inject biModel tag in streamed output", async () => {
+  // PR #3399: <biModel> tag injection in stream output removed (server-side session pinning).
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "stream it" }] },
     combo: {
@@ -2520,11 +2520,11 @@ test("handleComboChat context cache protection does not inject omniModel tag in 
   const text = await result.text();
   assert.equal(result.ok, true);
   assert.match(text, /hello world/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.doesNotMatch(text, /<biModel>/);
 });
 
 test("handleComboChat context cache protection does not inject tag for tool-call-only streams", async () => {
-  // PR #3399: <omniModel> tag injection removed; tool-call streams pass through unmodified.
+  // PR #3399: <biModel> tag injection removed; tool-call streams pass through unmodified.
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "tool only" }] },
     combo: {
@@ -2549,11 +2549,11 @@ test("handleComboChat context cache protection does not inject tag for tool-call
   const text = await result.text();
   assert.equal(result.ok, true);
   assert.match(text, /"finish_reason":"tool_calls"/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.doesNotMatch(text, /<biModel>/);
 });
 
 test("handleComboChat context cache protection flushes cleanly when a stream ends without content", async () => {
-  // PR #3399: no <omniModel> tag injected; empty stream passes through [DONE] unchanged.
+  // PR #3399: no <biModel> tag injected; empty stream passes through [DONE] unchanged.
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "empty stream" }] },
     combo: {
@@ -2573,7 +2573,7 @@ test("handleComboChat context cache protection flushes cleanly when a stream end
   const text = await result.text();
   assert.equal(result.ok, true);
   assert.match(text, /data: \[DONE\]/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.doesNotMatch(text, /<biModel>/);
 });
 
 test("handleComboChat round-robin resolves nested combos and returns inactive when every target is skipped", async () => {

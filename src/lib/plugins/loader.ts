@@ -110,7 +110,7 @@ export async function loadPlugin(
   {
     // .mjs extension forces ESM execution regardless of package.json type field
     const tryWrite = async (id: string): Promise<string> => {
-      const p = join(tmpdir(), `omniroute-plugin-host-${id}.mjs`);
+      const p = join(tmpdir(), `birouter-plugin-host-${id}.mjs`);
       await writeFile(p, PLUGIN_HOST_SCRIPT, { encoding: "utf-8", mode: 0o600, flag: "wx" });
       return p;
     };

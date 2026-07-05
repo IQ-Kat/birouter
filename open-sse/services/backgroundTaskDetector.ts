@@ -72,7 +72,7 @@ const DEFAULT_DEGRADATION_MAP: Record<string, string> = {
 // is duplicated per graph, so the operator's opt-in (`enabled:true`) applied at boot
 // never reaches the request path — the degradation silently never fires (the
 // #5312-class module-graph bug). Mirrors systemPrompt.ts (#2470) and thinkingBudget.ts.
-const GLOBAL_KEY = "__omniroute_backgroundDegradation_config__";
+const GLOBAL_KEY = "__birouter_backgroundDegradation_config__";
 const _store = globalThis as unknown as Record<string, DegradationConfig | undefined>;
 
 function getConfig(): DegradationConfig {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — internal documentation link checker.
+ * Birouter — internal documentation link checker.
  *
  * Scans every Markdown file under `docs/` (excluding mirrored translations,
  * screenshots, exported diagrams, and superpowers plans) for relative or

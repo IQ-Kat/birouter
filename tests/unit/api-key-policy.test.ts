@@ -21,7 +21,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-key-policy-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-api-key-policy-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-607-api-key-secret";
 
@@ -504,7 +504,7 @@ test("enforceApiKeyPolicy returns Anthropic error envelope for /v1/messages mode
     body.error.message,
     'Model "claude-fable-5" is not enabled or quota is insufficient. Choose another allowed model.'
   );
-  assert.doesNotMatch(body.error.message, /login|authenticate|api key|credential|omniroute/i);
+  assert.doesNotMatch(body.error.message, /login|authenticate|api key|credential|birouter/i);
   assert.equal(body.error.code, undefined);
 });
 

@@ -78,7 +78,7 @@ function OAuthFlowApp({ provider, url, deviceCode, onCancel, onDone, onFail }) {
     <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={2} paddingY={1}>
       <Box marginBottom={1}>
         <Text bold color="cyan">
-          OmniRoute OAuth — {provider}
+          Birouter OAuth — {provider}
         </Text>
       </Box>
 

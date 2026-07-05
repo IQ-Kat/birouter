@@ -10,7 +10,7 @@ import {
   clearAllFeatureFlagOverrides,
 } from "@/lib/db/featureFlags";
 import { resolveAllFeatureFlags } from "@/shared/utils/featureFlags";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const ACTIVE_VALUES = new Set(["true", "1", "yes"]);
 

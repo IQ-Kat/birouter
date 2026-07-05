@@ -1,16 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  normalizeThinkingForModel,
-  getModelSpec,
-} from "../../src/shared/constants/modelSpecs.ts";
+import { normalizeThinkingForModel, getModelSpec } from "../../src/shared/constants/modelSpecs.ts";
 
 // Regression for #3554: a combo can substitute the upstream model AFTER the client
 // already chose its `thinking` value. Claude Code sends `thinking:{type:"disabled"}` for
 // internal title/name-generation calls. That value is valid for claude-opus-4-8 and
 // claude-sonnet-4-6, but claude-fable-5 defaults to adaptive thinking and REJECTS
 // `thinking.type:"disabled"` with an upstream 400. When the substituted target rejects
-// `disabled`, OmniRoute must strip the now-invalid value instead of forwarding it.
+// `disabled`, Birouter must strip the now-invalid value instead of forwarding it.
 
 test("#3554 claude-fable-5 is flagged as rejecting thinking.type:disabled", () => {
   assert.equal(getModelSpec("claude-fable-5")?.rejectsThinkingDisabled, true);

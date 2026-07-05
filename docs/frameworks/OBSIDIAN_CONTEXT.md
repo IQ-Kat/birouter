@@ -15,7 +15,7 @@ lastUpdated: 2026-06-28
 
 ## What it is
 
-OmniRoute connects to an **Obsidian** vault as a **context source** — a local Markdown
+Birouter connects to an **Obsidian** vault as a **context source** — a local Markdown
 knowledge base that agents read and write through the built-in MCP server. The
 integration talks to the **Obsidian Local REST API** community plugin running inside the
 desktop app, so agents can search notes, read/write/patch files, list the vault, work
@@ -77,7 +77,7 @@ and validates the token by calling the Local REST API status endpoint before per
 ### WebDAV vault sync
 
 `src/app/api/settings/obsidian/webdav/route.ts` manages an optional WebDAV-backed
-vault sync (driven by `src/lib/obsidianSync.ts`). Enabling it points OmniRoute at a
+vault sync (driven by `src/lib/obsidianSync.ts`). Enabling it points Birouter at a
 local vault directory and mints a random WebDAV username/password pair:
 
 ```bash
@@ -103,9 +103,9 @@ key id, `getObsidianConfigForApiKey()` prefers that key's own token/base-URL/vau
 ## MCP tools (22)
 
 Defined in `open-sse/mcp-server/tools/obsidianTools.ts`. The token/base-URL are resolved
-per call (per-API-key first, then global). Tools that hit the OmniRoute **sync server**
+per call (per-API-key first, then global). Tools that hit the Birouter **sync server**
 (the four `obsidian_sync_*` tools) additionally require the sync auth token configured
-in OmniRoute settings.
+in Birouter settings.
 
 ### Read tools (`read:obsidian`)
 
@@ -122,7 +122,7 @@ in OmniRoute settings.
 | `obsidian_get_periodic_note` | Get the daily/weekly/monthly periodic note for a date (today if omitted).            |
 | `obsidian_get_tags`          | List all vault tags with their frequencies.                                          |
 | `obsidian_list_commands`     | List available Obsidian command IDs (use with `obsidian_execute_command`).           |
-| `obsidian_sync_status`       | OmniRoute sync server status: running, vault name, port, uptime, last sync.          |
+| `obsidian_sync_status`       | Birouter sync server status: running, vault name, port, uptime, last sync.           |
 | `obsidian_sync_conflicts`    | List unresolved sync conflicts (path, conflict path, detected-at).                   |
 
 ### Write tools (`write:obsidian`)
@@ -149,8 +149,8 @@ in OmniRoute settings.
 
 Read tools require `read:obsidian`; write tools require `write:obsidian`. Enforcement
 is identical to Notion — handled by `withScopeEnforcement()` in
-`open-sse/mcp-server/server.ts`, gated on `OMNIROUTE_MCP_ENFORCE_SCOPES=true`, with
-allowed scopes sourced from `OMNIROUTE_MCP_SCOPES` or the API key's scope context. See
+`open-sse/mcp-server/server.ts`, gated on `BIROUTER_MCP_ENFORCE_SCOPES=true`, with
+allowed scopes sourced from `BIROUTER_MCP_SCOPES` or the API key's scope context. See
 [MCP-SERVER.md](./MCP-SERVER.md).
 
 ## Endpoints

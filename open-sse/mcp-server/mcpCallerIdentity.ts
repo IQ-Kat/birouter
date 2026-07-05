@@ -7,7 +7,7 @@
  * resolve the SAME id or the block is not found. On the MCP HTTP transports
  * (SSE / Streamable HTTP) the raw key lives in `httpAuthContext`'s
  * AsyncLocalStorage (set by `withMcpHttpAuthContext`), NOT in the tool handler's
- * `extra.authInfo` (OmniRoute authenticates with API keys, not OAuth client ids —
+ * `extra.authInfo` (Birouter authenticates with API keys, not OAuth client ids —
  * so `extra.authInfo.clientId` is never populated and the caller resolved to
  * "anonymous", producing a cross-principal store-key miss).
  *

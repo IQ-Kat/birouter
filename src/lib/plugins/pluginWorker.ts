@@ -48,7 +48,7 @@ type WorkerMessage = LoadMessage | CallMessage | CleanupMessage;
  * prototype-chain escapes are possible). Plugin execution is safe only because:
  *   1. /api/plugins/ is classified LOCAL_ONLY in routeGuard — loopback enforced
  *      before any auth check (Hard Rules #15/#17).
- *   2. The `exec` permission additionally requires OMNIROUTE_PLUGINS_ALLOW_EXEC=1
+ *   2. The `exec` permission additionally requires BIROUTER_PLUGINS_ALLOW_EXEC=1
  *      (opt-in, default OFF) — child_process is never wired silently.
  * Treat plugins as local-operator-trusted code, not sandboxed untrusted code.
  */
@@ -61,10 +61,24 @@ function createSandbox(permissions: string[], pluginDir: string): Record<string,
       warn: (...args: unknown[]) => port.postMessage({ type: "log", level: "warn", args }),
       error: (...args: unknown[]) => port.postMessage({ type: "log", level: "error", args }),
     },
-    setTimeout: (fn: (...args: unknown[]) => void, ms?: number) => { const t = setTimeout(fn, ms); activeTimers.add(t); return t; },
-    clearTimeout: (t: unknown) => { activeTimers.delete(t as ReturnType<typeof setTimeout>); clearTimeout(t as ReturnType<typeof setTimeout>); },
-    setInterval: (fn: (...args: unknown[]) => void, ms?: number) => { const t = setInterval(fn, ms); activeTimers.add(t); return t; },
-    clearInterval: (t: unknown) => { activeTimers.delete(t as ReturnType<typeof setInterval>); clearInterval(t as ReturnType<typeof setInterval>); },
+    setTimeout: (fn: (...args: unknown[]) => void, ms?: number) => {
+      const t = setTimeout(fn, ms);
+      activeTimers.add(t);
+      return t;
+    },
+    clearTimeout: (t: unknown) => {
+      activeTimers.delete(t as ReturnType<typeof setTimeout>);
+      clearTimeout(t as ReturnType<typeof setTimeout>);
+    },
+    setInterval: (fn: (...args: unknown[]) => void, ms?: number) => {
+      const t = setInterval(fn, ms);
+      activeTimers.add(t);
+      return t;
+    },
+    clearInterval: (t: unknown) => {
+      activeTimers.delete(t as ReturnType<typeof setInterval>);
+      clearInterval(t as ReturnType<typeof setInterval>);
+    },
     Promise,
     JSON,
     Math,
@@ -114,7 +128,7 @@ function createSandbox(permissions: string[], pluginDir: string): Record<string,
   }
 
   if (permissions.includes("file-write")) {
-    const fs = sandbox.fs as Record<string, unknown> || {};
+    const fs = (sandbox.fs as Record<string, unknown>) || {};
     fs.writeFile = (p: string, data: string) => writeFile(resolve(pluginDir, p), data);
     fs.mkdir = (p: string) => mkdir(resolve(pluginDir, p), { recursive: true });
     fs.rm = (p: string) => rm(resolve(pluginDir, p), { recursive: true, force: true });
@@ -122,17 +136,22 @@ function createSandbox(permissions: string[], pluginDir: string): Record<string,
   }
 
   if (permissions.includes("env")) {
-    sandbox.process = { env: new Proxy({}, {
-      get: (_t, key) => typeof key === "string" ? process.env[key] : undefined,
-      set: () => false,
-      has: (_t, key) => typeof key === "string" ? key in process.env : false,
-    }) };
+    sandbox.process = {
+      env: new Proxy(
+        {},
+        {
+          get: (_t, key) => (typeof key === "string" ? process.env[key] : undefined),
+          set: () => false,
+          has: (_t, key) => (typeof key === "string" ? key in process.env : false),
+        }
+      ),
+    };
   }
 
   if (permissions.includes("exec")) {
-    if (process.env.OMNIROUTE_PLUGINS_ALLOW_EXEC !== "1") {
+    if (process.env.BIROUTER_PLUGINS_ALLOW_EXEC !== "1") {
       throw new Error(
-        `Plugin '${name}' requested the 'exec' permission, which is disabled. Set OMNIROUTE_PLUGINS_ALLOW_EXEC=1 to enable (local operator only).`
+        `Plugin '${name}' requested the 'exec' permission, which is disabled. Set BIROUTER_PLUGINS_ALLOW_EXEC=1 to enable (local operator only).`
       );
     }
     sandbox.child_process = {
@@ -149,7 +168,11 @@ let context: vm.Context | null = null;
 let pluginExports: Record<string, unknown> | null = null;
 let activeTimers: Set<ReturnType<typeof setTimeout>> | null = null;
 
-async function loadPlugin(entryPoint: string, permissions: string[], name: string): Promise<string[]> {
+async function loadPlugin(
+  entryPoint: string,
+  permissions: string[],
+  name: string
+): Promise<string[]> {
   const pluginDir = resolve(entryPoint, "..");
   const sandbox = createSandbox(permissions, pluginDir);
   context = vm.createContext(sandbox);
@@ -179,15 +202,21 @@ async function loadPlugin(entryPoint: string, permissions: string[], name: strin
   }
 
   for (const src of sources) {
-    if (typeof src.onRequest === "function" && !hooks.includes("onRequest")) hooks.push("onRequest");
-    if (typeof src.onResponse === "function" && !hooks.includes("onResponse")) hooks.push("onResponse");
+    if (typeof src.onRequest === "function" && !hooks.includes("onRequest"))
+      hooks.push("onRequest");
+    if (typeof src.onResponse === "function" && !hooks.includes("onResponse"))
+      hooks.push("onResponse");
     if (typeof src.onError === "function" && !hooks.includes("onError")) hooks.push("onError");
   }
 
   return hooks;
 }
 
-function callHook(hook: string, payload: unknown, extra?: { response?: unknown; error?: string }): unknown {
+function callHook(
+  hook: string,
+  payload: unknown,
+  extra?: { response?: unknown; error?: string }
+): unknown {
   if (!context || !pluginExports) throw new Error("Plugin not loaded");
 
   const sources = [pluginExports];
@@ -230,7 +259,10 @@ port.on("message", async (msg: WorkerMessage) => {
       const hooks = await loadPlugin(msg.entryPoint, msg.permissions, msg.name);
       port.postMessage({ type: "loaded", hooks });
     } else if (msg.type === "call") {
-      const result = callHook(msg.hook, msg.payload, { response: (msg as CallMessage).response, error: (msg as CallMessage).error });
+      const result = callHook(msg.hook, msg.payload, {
+        response: (msg as CallMessage).response,
+        error: (msg as CallMessage).error,
+      });
       port.postMessage({ type: "result", value: result });
     } else if (msg.type === "cleanup" || msg.type === "exit" || msg.type === "terminate") {
       cleanup();

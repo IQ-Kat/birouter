@@ -29,10 +29,14 @@ vi.mock("next-intl", () => ({
       "endpoint.showInternal": "Show internal",
       "endpoint.hideInternal": "Hide internal",
       "endpoint.vscodeAliasTitle": "VS Code Token Alias",
-      "endpoint.vscodeAliasDescriptionReady": "Ready-to-paste compatibility URLs using the /api/v1/vscode/{token}/... endpoint.",
-      "endpoint.vscodeAliasDescriptionError": "Showing placeholder URLs because CLI keys could not be loaded in this session.",
-      "endpoint.vscodeAliasDescriptionLoading": "Loading CLI keys. Placeholder URLs are shown until a key is available.",
-      "endpoint.vscodeAliasDescriptionPlaceholder": "Showing placeholder URLs. Create or activate an API key in CLI Tools to replace {token}.",
+      "endpoint.vscodeAliasDescriptionReady":
+        "Ready-to-paste compatibility URLs using the /api/v1/vscode/{token}/... endpoint.",
+      "endpoint.vscodeAliasDescriptionError":
+        "Showing placeholder URLs because CLI keys could not be loaded in this session.",
+      "endpoint.vscodeAliasDescriptionLoading":
+        "Loading CLI keys. Placeholder URLs are shown until a key is available.",
+      "endpoint.vscodeAliasDescriptionPlaceholder":
+        "Showing placeholder URLs. Create or activate an API key in CLI Tools to replace {token}.",
       "endpoint.vscodeAliasManage": "CLI Tools",
       "endpoint.vscodeAliasBaseLabel": "VS Code base",
       "endpoint.vscodeAliasModelsLabel": "VS Code models",
@@ -144,7 +148,7 @@ describe("ApiEndpointsTab", () => {
       }
 
       return jsonResponse({
-        info: { title: "OmniRoute API", version: "3.7.6" },
+        info: { title: "Birouter API", version: "3.7.6" },
         servers: [],
         tags: [{ name: "Chat" }],
         endpoints: [
@@ -167,7 +171,7 @@ describe("ApiEndpointsTab", () => {
     renderApiEndpointsTab();
 
     await waitForText("VS Code Token Alias");
-    await waitForText("OmniRoute API");
+    await waitForText("Birouter API");
     expect(document.body.textContent).toContain("1 endpoints across 1 categories");
     expect(document.body.textContent).toContain("/api/v1/vscode/sk-live-123/models");
     expect(document.body.textContent).toContain("/api/v1/chat/completions");
@@ -180,7 +184,7 @@ describe("ApiEndpointsTab", () => {
       }
 
       return jsonResponse({
-        info: { title: "OmniRoute API", version: "3.7.6" },
+        info: { title: "Birouter API", version: "3.7.6" },
         servers: [],
         tags: [{ name: "Chat" }],
         endpoints: [
@@ -202,7 +206,7 @@ describe("ApiEndpointsTab", () => {
 
     renderApiEndpointsTab();
 
-    await waitForText("OmniRoute API");
+    await waitForText("Birouter API");
 
     // Expand the endpoint to reveal the curl example
     const endpointRow = Array.from(document.body.querySelectorAll("code")).find((node) =>

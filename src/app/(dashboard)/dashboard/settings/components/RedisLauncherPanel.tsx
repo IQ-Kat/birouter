@@ -36,7 +36,7 @@ async function apiCall(endpoint: string, options: RequestInit = {}) {
 
 /**
  * Compact 1-click Redis control. Sits inside the resilience settings tab and
- * shells out to the same logic exposed via the `omniroute redis` CLI command.
+ * shells out to the same logic exposed via the `birouter redis` CLI command.
  * The actual container management is delegated to the server-side endpoint
  * at /api/local/redis/* so the browser never executes podman/docker directly.
  */
@@ -146,22 +146,14 @@ export default function RedisLauncherPanel() {
       <p className="mt-3 text-xs text-text-muted">
         {t(
           "redisLauncherHint",
-          "Equivalent to running `omniroute redis up`. The container is named `omniroute-redis` and listens on 127.0.0.1:6379."
+          "Equivalent to running `birouter redis up`. The container is named `birouter-redis` and listens on 127.0.0.1:6379."
         )}
       </p>
     </div>
   );
 }
 
-function Stat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: "ok" | "warn";
-}) {
+function Stat({ label, value, tone }: { label: string; value: string; tone: "ok" | "warn" }) {
   const color = tone === "ok" ? "text-emerald-400" : "text-amber-400";
   return (
     <div className="rounded-lg border border-border bg-bg-subtle p-3">

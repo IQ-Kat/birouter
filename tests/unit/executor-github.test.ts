@@ -479,7 +479,7 @@ test("GithubExecutor.execute preserves complete SSE responses including terminal
 test("GithubExecutor.transformRequest strips temperature for gpt-5.4 (port from 9router#612 / closes upstream #536)", () => {
   // GitHub Copilot's gpt-5.4 family rejects requests carrying `temperature` with HTTP 400:
   //   "Unsupported parameter: 'temperature' is not supported with this model."
-  // OmniRoute's existing `stripGpt5SamplingWhenReasoning` guard only fires for
+  // Birouter's existing `stripGpt5SamplingWhenReasoning` guard only fires for
   // provider==="openai" (raw api.openai.com Chat Completions) — Copilot requests run
   // through GithubExecutor and never hit that guard. Strip temperature here so the
   // 400 cannot reach the user. Other GitHub Copilot models keep temperature intact.

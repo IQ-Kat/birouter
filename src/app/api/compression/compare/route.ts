@@ -5,8 +5,8 @@ import {
   benchmarkEngines,
   compareReports,
   DEFAULT_BENCHMARK_ENGINES,
-} from "@omniroute/open-sse/services/compression/harness/benchmark";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+} from "@birouter/open-sse/services/compression/harness/benchmark";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,9 @@ const CompareRequestSchema = z.object({
 
 function messagesToText(messages: Array<{ role: string; content: unknown }>): string {
   return messages
-    .map((m) => `${m.role}: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`)
+    .map(
+      (m) => `${m.role}: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`
+    )
     .join("\n");
 }
 
@@ -34,7 +36,10 @@ export async function POST(req: Request) {
   }
   const parsed = CompareRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request", details: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request", details: parsed.error.issues },
+      { status: 400 }
+    );
   }
   const { messages, engineIds } = parsed.data;
   const text = messagesToText(messages);
@@ -46,6 +51,9 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[/api/compression/compare]", msg);
-    return NextResponse.json({ error: "Compare failed", details: sanitizeErrorMessage(msg) }, { status: 500 });
+    return NextResponse.json(
+      { error: "Compare failed", details: sanitizeErrorMessage(msg) },
+      { status: 500 }
+    );
   }
 }

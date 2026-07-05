@@ -2,7 +2,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import type { EngineConfigField } from "@omniroute/open-sse/services/compression/engines/types";
+import type { EngineConfigField } from "@birouter/open-sse/services/compression/engines/types";
 
 const containers: HTMLElement[] = [];
 const roots: Array<{ unmount: () => void }> = [];

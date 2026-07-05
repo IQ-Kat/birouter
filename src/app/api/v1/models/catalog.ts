@@ -10,22 +10,22 @@ import {
   getModelAliases,
 } from "@/lib/localDb";
 import { extractAliasBackedModels } from "./aliasBackedModels";
-import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
-import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
-import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
-import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
-import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
-import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
-import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
+import { appendNoThinkingVariants } from "@birouter/open-sse/utils/noThinkingAlias";
+import { getAllEmbeddingModels } from "@birouter/open-sse/config/embeddingRegistry";
+import { getAllImageModels } from "@birouter/open-sse/config/imageRegistry";
+import { getAllRerankModels } from "@birouter/open-sse/config/rerankRegistry";
+import { getAllAudioModels } from "@birouter/open-sse/config/audioRegistry";
+import { getAllModerationModels } from "@birouter/open-sse/config/moderationRegistry";
+import { getAllVideoModels } from "@birouter/open-sse/config/videoRegistry";
+import { getAllMusicModels } from "@birouter/open-sse/config/musicRegistry";
+import { REGISTRY } from "@birouter/open-sse/config/providerRegistry";
+import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@birouter/open-sse/services/model";
+import { resolveNestedComboTargets } from "@birouter/open-sse/services/combo";
 import {
   AUTO_TEMPLATE_VARIANTS,
   AUTO_SUFFIX_VARIANTS,
   createBuiltinAutoCombo,
-} from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
+} from "@birouter/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
@@ -50,8 +50,8 @@ import {
   isNoAuthRawProviderPrefix,
   normalizeBlockedProviderSet,
 } from "@/shared/utils/noAuthProviders";
-import { parseModel } from "@omniroute/open-sse/services/model";
-import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import { parseModel } from "@birouter/open-sse/services/model";
+import { getTokenLimit } from "@birouter/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
 import type { ComboModelStep } from "@/lib/combos/steps";
 import {
@@ -219,7 +219,7 @@ export async function getUnifiedModelsResponse(
     };
 
     const prefixRoutesToProvider = (prefix: string, providerId: string) => {
-      const parsed = parseModel(`${prefix}/__omniroute_probe__`);
+      const parsed = parseModel(`${prefix}/__birouter_probe__`);
       return parsed.provider === providerId;
     };
 

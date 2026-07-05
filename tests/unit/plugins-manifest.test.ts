@@ -13,7 +13,7 @@ const validFull = {
   main: "handler.js",
   source: "local" as const,
   tags: ["test", "demo"],
-  requires: { omniroute: ">=3.0.0", permissions: ["network", "file-read"] as const },
+  requires: { birouter: ">=3.0.0", permissions: ["network", "file-read"] as const },
   hooks: { onRequest: true, onResponse: true, onError: false },
   skills: [{ name: "my-skill", description: "does things", input: { q: "string" } }],
   enabledByDefault: true,
@@ -48,7 +48,9 @@ describe("PluginManifestSchema", () => {
 
   it("rejects description > 500 chars", () => {
     const result = mod.PluginManifestSchema.safeParse({
-      name: "ok", version: "1.0.0", description: "x".repeat(501),
+      name: "ok",
+      version: "1.0.0",
+      description: "x".repeat(501),
     });
     assert.equal(result.success, false);
   });
@@ -115,7 +117,10 @@ describe("ConfigFieldSchema", () => {
   });
 
   it("accepts number with min/max", () => {
-    assert.equal(mod.ConfigFieldSchema.safeParse({ type: "number", min: 0, max: 100 }).success, true);
+    assert.equal(
+      mod.ConfigFieldSchema.safeParse({ type: "number", min: 0, max: 100 }).success,
+      true
+    );
   });
 
   it("accepts boolean type", () => {
@@ -123,7 +128,10 @@ describe("ConfigFieldSchema", () => {
   });
 
   it("accepts select with enum", () => {
-    assert.equal(mod.ConfigFieldSchema.safeParse({ type: "select", enum: ["a", "b"] }).success, true);
+    assert.equal(
+      mod.ConfigFieldSchema.safeParse({ type: "select", enum: ["a", "b"] }).success,
+      true
+    );
   });
 
   it("rejects invalid type", () => {
@@ -133,7 +141,10 @@ describe("ConfigFieldSchema", () => {
 
 describe("HooksSchema", () => {
   it("accepts all boolean flags", () => {
-    assert.equal(mod.HooksSchema.safeParse({ onRequest: true, onResponse: false, onError: true }).success, true);
+    assert.equal(
+      mod.HooksSchema.safeParse({ onRequest: true, onResponse: false, onError: true }).success,
+      true
+    );
   });
 
   it("accepts empty hooks", () => {
@@ -151,9 +162,15 @@ describe("ManifestSkillSchema", () => {
   });
 
   it("accepts full skill", () => {
-    assert.equal(mod.ManifestSkillSchema.safeParse({
-      name: "test", description: "desc", input: { q: "string" }, output: { result: "string" },
-    }).success, true);
+    assert.equal(
+      mod.ManifestSkillSchema.safeParse({
+        name: "test",
+        description: "desc",
+        input: { q: "string" },
+        output: { result: "string" },
+      }).success,
+      true
+    );
   });
 
   it("rejects empty name", () => {

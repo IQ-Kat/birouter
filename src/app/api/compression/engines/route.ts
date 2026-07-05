@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { registerBuiltinCompressionEngines } from "@omniroute/open-sse/services/compression/engines/index.ts";
-import { listCompressionEngines } from "@omniroute/open-sse/services/compression/engines/registry.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
+import { registerBuiltinCompressionEngines } from "@birouter/open-sse/services/compression/engines/index.ts";
+import { listCompressionEngines } from "@birouter/open-sse/services/compression/engines/registry.ts";
 
 export async function GET(req: Request) {
   const authError = await requireManagementAuth(req);

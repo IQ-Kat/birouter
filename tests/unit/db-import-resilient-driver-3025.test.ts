@@ -50,7 +50,10 @@ test("no API route statically imports better-sqlite3 (must use the resilient dri
 });
 
 test("openDatabaseAsync validates a real sqlite file with the integrity_check shape the route expects", async () => {
-  const tmp = path.join(os.tmpdir(), `omniroute-3025-${process.pid}-${process.hrtime.bigint()}.sqlite`);
+  const tmp = path.join(
+    os.tmpdir(),
+    `birouter-3025-${process.pid}-${process.hrtime.bigint()}.sqlite`
+  );
   // Seed a valid sqlite file through the same resilient adapter the route will now use.
   const seed = await openDatabaseAsync(tmp);
   seed.exec("CREATE TABLE api_keys (id INTEGER PRIMARY KEY)");
@@ -60,9 +63,11 @@ test("openDatabaseAsync validates a real sqlite file with the integrity_check sh
   try {
     const result = db.pragma("integrity_check") as Array<{ integrity_check?: string }>;
     assert.equal(result[0]?.integrity_check, "ok");
-    const tables = (db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{
-      name: string;
-    }>).map((r) => r.name);
+    const tables = (
+      db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as Array<{
+        name: string;
+      }>
+    ).map((r) => r.name);
     assert.ok(tables.includes("api_keys"));
   } finally {
     db.close();

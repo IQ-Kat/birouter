@@ -51,7 +51,7 @@ export const DEFAULT_ERROR_MESSAGES: Record<number, string> = {
 };
 
 // Exponential backoff config for rate limits.
-// Preserve OmniRoute's existing 2-minute cap to avoid changing runtime behavior.
+// Preserve Birouter's existing 2-minute cap to avoid changing runtime behavior.
 export const BACKOFF_CONFIG = {
   base: 1000,
   max: 2 * 60 * 1000,

@@ -48,7 +48,7 @@ async function deliverRaw(
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "User-Agent": "OmniRoute-Webhook/1.0" },
+        headers: { "Content-Type": "application/json", "User-Agent": "Birouter-Webhook/1.0" },
         body: JSON.stringify(body),
         signal: controller.signal,
       });
@@ -82,7 +82,7 @@ export async function deliverWebhook(
   const body = JSON.stringify(payload);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "User-Agent": "OmniRoute-Webhook/1.0",
+    "User-Agent": "Birouter-Webhook/1.0",
     "X-Webhook-Event": payload.event,
     "X-Webhook-Timestamp": payload.timestamp,
   };

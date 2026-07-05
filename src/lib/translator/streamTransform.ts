@@ -1,4 +1,4 @@
-import { createResponsesApiTransformStream } from "@omniroute/open-sse/transformer/responsesTransformer.ts";
+import { createResponsesApiTransformStream } from "@birouter/open-sse/transformer/responsesTransformer.ts";
 
 export async function transformChatCompletionSseToResponses(rawSse: string): Promise<string> {
   const encoder = new TextEncoder();

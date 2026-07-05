@@ -1,5 +1,5 @@
 /**
- * omniroute setup-qwen — configure Qwen Code (QwenLM/qwen-code) for OmniRoute.
+ * birouter setup-qwen — configure Qwen Code (QwenLM/qwen-code) for Birouter.
  *
  * Qwen Code is a terminal AI agent with a file-based config at
  * ~/.qwen/settings.json. For a custom OpenAI-compatible endpoint it uses a
@@ -25,7 +25,7 @@ export function resolveQwenTarget(opts = {}) {
   if (opts.remote) root = String(opts.remote).replace(/\/+$/, "");
   else {
     try {
-      root = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl;
+      root = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT)?.baseUrl;
     } catch {
       /* none */
     }
@@ -34,32 +34,32 @@ export function resolveQwenTarget(opts = {}) {
   let apiKey = opts.apiKey ?? opts["api-key"];
   if (!apiKey) {
     try {
-      const c = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      const c = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT);
       apiKey = c?.accessToken || c?.apiKey;
     } catch {
       /* none */
     }
   }
-  if (!apiKey) apiKey = process.env.OMNIROUTE_API_KEY || "";
+  if (!apiKey) apiKey = process.env.BIROUTER_API_KEY || "";
   return { baseUrl: ensureV1(root), apiKey };
 }
 
-/** Merge the OmniRoute modelProvider into Qwen's settings.json (preserve rest). */
+/** Merge the Birouter modelProvider into Qwen's settings.json (preserve rest). */
 export function buildQwenSettings(existing, { baseUrl, model }) {
   const s = existing && typeof existing === "object" ? { ...existing } : {};
   const providers = Array.isArray(s.modelProviders)
-    ? s.modelProviders.filter((p) => p?.id !== "omniroute")
+    ? s.modelProviders.filter((p) => p?.id !== "birouter")
     : [];
   providers.push({
-    id: "omniroute",
-    name: "OmniRoute",
+    id: "birouter",
+    name: "Birouter",
     authType: "openai",
     baseUrl,
-    envKey: "OMNIROUTE_API_KEY",
+    envKey: "BIROUTER_API_KEY",
   });
   s.modelProviders = providers;
   if (model) {
-    s.selectedProvider = "omniroute";
+    s.selectedProvider = "birouter";
     s.model = model;
   }
   return s;
@@ -97,7 +97,7 @@ export async function runSetupQwenCommand(opts = {}) {
   const configPath =
     opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".qwen", "settings.json");
 
-  printHeading("OmniRoute → Qwen Code (openai-compatible)");
+  printHeading("Birouter → Qwen Code (openai-compatible)");
   printInfo(`baseUrl: ${baseUrl}`);
 
   let model = opts.model;
@@ -130,7 +130,7 @@ export async function runSetupQwenCommand(opts = {}) {
     printSuccess(`Wrote ${configPath}`);
   }
   printInfo(
-    "\nProvide the key (settings reference OMNIROUTE_API_KEY):  export OMNIROUTE_API_KEY=..."
+    "\nProvide the key (settings reference BIROUTER_API_KEY):  export BIROUTER_API_KEY=..."
   );
   printInfo('Then run:  qwen        (or headless: qwen -p "reply OK")');
   return 0;
@@ -140,11 +140,11 @@ export function registerSetupQwen(program) {
   program
     .command("setup-qwen")
     .description(
-      "Configure Qwen Code for OmniRoute: write ~/.qwen/settings.json (openai modelProvider)"
+      "Configure Qwen Code for Birouter: write ~/.qwen/settings.json (openai modelProvider)"
     )
-    .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote OmniRoute URL, e.g. http://192.168.0.15:20128")
-    .option("--api-key <key>", "OmniRoute API key (defaults to OMNIROUTE_API_KEY env var)")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
+    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:20128")
+    .option("--api-key <key>", "Birouter API key (defaults to BIROUTER_API_KEY env var)")
     .option("--model <id>", "Model id for Qwen (required unless picked interactively)")
     .option("--config-path <path>", "settings.json path (default: ~/.qwen/settings.json)")
     .option("--yes", "Non-interactive: do not prompt (requires --model)")

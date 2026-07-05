@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-detailed-logs-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-db-detailed-logs-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const ORIGINAL_PII_ENABLED = process.env.PII_RESPONSE_SANITIZATION;
@@ -128,7 +128,7 @@ test("saveRequestDetailLog persists protected payloads and compacted stream summ
   assert.deepEqual(row.translated_request, { message: "hello" });
   assert.equal((row.provider_response as any).id, "resp_123");
   assert.equal((row as any).provider_response.output_text, "Hello world");
-  assert.deepEqual((row as any).provider_response._omniroute_stream, {
+  assert.deepEqual((row as any).provider_response._birouter_stream, {
     format: "sse-json",
     stage: "provider-response",
     eventCount: 1,

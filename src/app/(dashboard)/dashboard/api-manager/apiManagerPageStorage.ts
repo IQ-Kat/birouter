@@ -1,4 +1,4 @@
-export const ACTIVE_ONLY_STORAGE_KEY = "omniroute-api-manager-active-only";
+export const ACTIVE_ONLY_STORAGE_KEY = "birouter-api-manager-active-only";
 
 interface StorageReader {
   getItem(key: string): string | null;

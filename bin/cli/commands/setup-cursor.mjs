@@ -1,5 +1,5 @@
 /**
- * omniroute setup-cursor — guide Cursor to use OmniRoute.
+ * birouter setup-cursor — guide Cursor to use Birouter.
  *
  * Cursor stores its OpenAI key + "Override OpenAI Base URL" in an opaque SQLite
  * DB (state.vscdb) with no documented stable schema — NOT safe to file-write.
@@ -22,7 +22,7 @@ export function resolveCursorTarget(opts = {}) {
   if (opts.remote) root = String(opts.remote).replace(/\/+$/, "");
   else {
     try {
-      root = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl;
+      root = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT)?.baseUrl;
     } catch {
       /* none */
     }
@@ -31,13 +31,13 @@ export function resolveCursorTarget(opts = {}) {
   let apiKey = opts.apiKey ?? opts["api-key"];
   if (!apiKey) {
     try {
-      const c = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      const c = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT);
       apiKey = c?.accessToken || c?.apiKey;
     } catch {
       /* none */
     }
   }
-  if (!apiKey) apiKey = process.env.OMNIROUTE_API_KEY || "";
+  if (!apiKey) apiKey = process.env.BIROUTER_API_KEY || "";
   return { apiBase: ensureV1(root), apiKey };
 }
 
@@ -49,7 +49,7 @@ export function buildCursorInstructions({ apiBase, models }) {
     "  1. Cursor → Settings (Cmd/Ctrl + ,) → Models",
     "  2. Enable “Override OpenAI Base URL” and set it to:",
     `       ${apiBase}        (the /v1 suffix is required)`,
-    "  3. Set the OpenAI API Key to your OmniRoute key (OMNIROUTE_API_KEY)",
+    "  3. Set the OpenAI API Key to your Birouter key (BIROUTER_API_KEY)",
     "  4. Add the model name(s) you want under “Models” (Cursor has no auto-discovery):",
   ];
   const sample = (models && models.length ? models : ["glm/glm-5.2", "kmc/kimi-k2.7"]).slice(0, 8);
@@ -71,7 +71,7 @@ async function fetchModelIds(apiBase, apiKey) {
     });
     if (!res.ok) return [];
     const body = await res.json();
-    const list = Array.isArray(body) ? body : body.data ?? body.models ?? [];
+    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
     return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
   } catch {
     return [];
@@ -80,11 +80,16 @@ async function fetchModelIds(apiBase, apiKey) {
 
 export async function runSetupCursorCommand(opts = {}) {
   const { apiBase, apiKey } = resolveCursorTarget(opts);
-  printHeading("OmniRoute → Cursor");
+  printHeading("Birouter → Cursor");
   printInfo(`Server: ${apiBase}`);
 
   let models = [];
-  const only = opts.only ? opts.only.split(",").map((s) => s.trim()).filter(Boolean) : null;
+  const only = opts.only
+    ? opts.only
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
   const ids = await fetchModelIds(apiBase, apiKey);
   models = only ? ids.filter((id) => only.some((f) => id.includes(f))) : ids;
 
@@ -96,10 +101,12 @@ export async function runSetupCursorCommand(opts = {}) {
 export function registerSetupCursor(program) {
   program
     .command("setup-cursor")
-    .description("Print the steps to point Cursor at OmniRoute (chat panel; Cursor config is not file-writable)")
-    .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote OmniRoute URL, e.g. http://192.168.0.15:20128")
-    .option("--api-key <key>", "OmniRoute API key (defaults to OMNIROUTE_API_KEY env var)")
+    .description(
+      "Print the steps to point Cursor at Birouter (chat panel; Cursor config is not file-writable)"
+    )
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
+    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:20128")
+    .option("--api-key <key>", "Birouter API key (defaults to BIROUTER_API_KEY env var)")
     .option("--only <patterns>", "Comma-separated substrings — suggest only matching model IDs")
     .action(async (opts) => {
       const code = await runSetupCursorCommand(opts);

@@ -10,7 +10,7 @@ import { mergeOpenCodeConfigText } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey, getOrCreateApiKey } from "@/shared/services/apiKeyResolver";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -64,7 +64,7 @@ export async function POST(request, { params }) {
         return await saveContinueConfig({ baseUrl, apiKey, model });
       case "opencode":
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
-        // OpenCode reads ~/.config/opencode/opencode.json — write the OmniRoute settings there.
+        // OpenCode reads ~/.config/opencode/opencode.json — write the Birouter settings there.
         return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
       case "qwen":
         return await saveQwenConfig({ baseUrl, apiKey, model });
@@ -106,7 +106,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
     // No existing config or invalid JSON — start fresh
   }
 
-  // Build the OmniRoute model entry
+  // Build the Birouter model entry
   const normalizedBaseUrl = String(baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
@@ -115,8 +115,8 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
     title: model,
     model: model,
     provider: "openai",
-    apiKey: apiKey || "sk_omniroute",
-    omnirouteManaged: true,
+    apiKey: apiKey || "sk_birouter",
+    birouterManaged: true,
   };
 
   // Merge into existing models array
@@ -129,19 +129,19 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
       .toLowerCase();
   }
 
-  // Check if OmniRoute entry already exists and update it, or add new
+  // Check if Birouter entry already exists and update it, or add new
   const existingIdx = models.findIndex(
     (m) =>
       m &&
-      (m.omnirouteManaged === true ||
+      (m.birouterManaged === true ||
         normalizeApiBase(m.apiBase) === normalizedBaseUrl.toLowerCase() ||
-        normalizeApiBase(m.apiBase).includes("omniroute") ||
+        normalizeApiBase(m.apiBase).includes("birouter") ||
         normalizeApiBase(m.apiBase).includes(`localhost:${apiPort}`) ||
         normalizeApiBase(m.apiBase).includes(`127.0.0.1:${apiPort}`) ||
         // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
         String(m.apiKey || "")
           .toLowerCase()
-          .includes("sk_omniroute"))
+          .includes("sk_birouter"))
   );
 
   if (existingIdx >= 0) {
@@ -221,7 +221,7 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
   const normalizedBaseUrl = String(baseUrl || "")
     .trim()
     .replace(/\/+$/, "");
-  const resolvedApiKey = apiKey || "sk_omniroute";
+  const resolvedApiKey = apiKey || "sk_birouter";
   const resolvedModel = model || "qwen/qwen3-coder-plus";
 
   // Read existing config to preserve other settings (permissions, mcpServers, etc.)
@@ -263,7 +263,7 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
  * Save Hermes config to ~/.hermes/config.yaml
  *
  * Hermes stores its primary routing settings in YAML. Preserve any existing
- * keys, but make sure the OmniRoute provider entry is present and selected.
+ * keys, but make sure the Birouter provider entry is present and selected.
  */
 async function saveHermesConfig({ baseUrl, apiKey, model }) {
   const configPath =
@@ -300,19 +300,19 @@ async function saveHermesConfig({ baseUrl, apiKey, model }) {
     model: {
       ...(existingConfig.model || {}),
       default: selectedModel,
-      provider: "omniroute",
+      provider: "birouter",
       base_url: providerBaseUrl,
     },
     providers: {
       ...(existingConfig.providers || {}),
-      omniroute: {
-        ...((existingConfig.providers && existingConfig.providers.omniroute) || {}),
+      birouter: {
+        ...((existingConfig.providers && existingConfig.providers.birouter) || {}),
         base_url: providerBaseUrl,
         api_key:
           apiKey ||
           (existingConfig.providers &&
-            existingConfig.providers.omniroute &&
-            existingConfig.providers.omniroute.api_key) ||
+            existingConfig.providers.birouter &&
+            existingConfig.providers.birouter.api_key) ||
           "",
       },
     },

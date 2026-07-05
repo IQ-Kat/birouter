@@ -87,8 +87,8 @@ app/vscode-extension/
 
 # Subprojects
 clipr/
-omnirouteCloud/
-omnirouteSite/
+birouterCloud/
+birouterSite/
 vscode-extension/
 
 # Root-level underscore-prefixed directories (private/draft — never publish)
@@ -103,7 +103,7 @@ app/tests/
 .idea/
 .config/
 .data/
-.omnivscodeagent/
+.bivscodeagent/
 .omc/
 *.sqlite-*
 *.tsbuildinfo
@@ -121,4 +121,4 @@ test-results/
 playwright-report/
 blob-report/
 coverage/
-@omniroute/
+@birouter/

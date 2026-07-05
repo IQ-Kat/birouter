@@ -11,7 +11,7 @@
  *
  * 3. **Context Caching Protection** (#401): If the combo enables
  *    `context_cache_protection`, the proxy:
- *    a. On response: injects `<omniModel>provider/model</omniModel>` tag into
+ *    a. On response: injects `<biModel>provider/model</biModel>` tag into
  *       the first assistant message content string.
  *    b. On request: scans the message history for the tag, and if found,
  *       overrides the requested model with the pinned one.
@@ -41,18 +41,18 @@ interface Message {
 // many newlines (polynomial ReDoS — CodeQL js/polynomial-redos, #3870). Non-global
 // so `.exec()` / `.test()` stay stateless (a global regex carries lastIndex between
 // calls and would skip matches).
-const CACHE_TAG_PATTERN = /<omniModel>([^<]+)<\/omniModel>/;
+const CACHE_TAG_PATTERN = /<biModel>([^<]+)<\/biModel>/;
 
 // Global variant for `.replace()` callers that must strip EVERY tag (a non-global
 // regex only removes the first match, so a message carrying more than one
-// <omniModel> tag — e.g. an Open WebUI follow-up/title request that inlines the
+// <biModel> tag — e.g. an Open WebUI follow-up/title request that inlines the
 // whole chat history — leaked the remaining tags to the provider, defeating the
 // cache-session protection stripModelTags enforces, #454). This variant still
 // consumes the newline run wrapping the tag (combo.ts streaming, #531) so removal
 // leaves no blank line, but the runs are BOUNDED ({0,16}) to keep the regex linear
 // (no polynomial backtracking, #3870); 16 is far beyond any real streaming wrap.
 const CACHE_TAG_PATTERN_GLOBAL =
-  /(?:\\n|\n|\r){0,16}<omniModel>([^<]+)<\/omniModel>(?:\\n|\n|\r){0,16}/g;
+  /(?:\\n|\n|\r){0,16}<biModel>([^<]+)<\/biModel>(?:\\n|\n|\r){0,16}/g;
 
 /**
  * Inject the model tag into the last assistant message (or append a new one).
@@ -74,7 +74,7 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
   // #474: If no assistant message exists yet (first turn), append a synthetic one
   // so the tag is present when the client sends the next request with the response.
   if (lastAssistantIdx === -1) {
-    return [...cleaned, { role: "assistant", content: `<omniModel>${providerModel}</omniModel>` }];
+    return [...cleaned, { role: "assistant", content: `<biModel>${providerModel}</biModel>` }];
   }
 
   const msg = cleaned[lastAssistantIdx];
@@ -84,13 +84,13 @@ export function injectModelTag(messages: Message[], providerModel: string): Mess
   if (typeof msg.content !== "string") {
     // If the message has tool_calls but no string content, append a new assistant
     // message with the tag rather than silently failing.
-    return [...cleaned, { role: "assistant", content: `<omniModel>${providerModel}</omniModel>` }];
+    return [...cleaned, { role: "assistant", content: `<biModel>${providerModel}</biModel>` }];
   }
 
   const tagged = [...cleaned];
   tagged[lastAssistantIdx] = {
     ...msg,
-    content: `${msg.content}<omniModel>${providerModel}</omniModel>`,
+    content: `${msg.content}<biModel>${providerModel}</biModel>`,
   };
   return tagged;
 }
@@ -154,8 +154,8 @@ export function applyToolFilter(
 }
 
 /**
- * Strip all <omniModel> tags from message content before forwarding to the provider.
- * The tag is an internal OmniRoute marker; providers must never see it or their
+ * Strip all <biModel> tags from message content before forwarding to the provider.
+ * The tag is an internal Birouter marker; providers must never see it or their
  * cache will treat every tagged request as a new session (#454).
  */
 export function stripModelTags(messages: Message[]): Message[] {
@@ -184,7 +184,7 @@ export function applyComboAgentMiddleware(
   let pinnedModel: string | null = null;
 
   // Context cache pinning is handled server-side in combo.ts via
-  // session_model_history. No client-side <omniModel> tag extraction needed.
+  // session_model_history. No client-side <biModel> tag extraction needed.
   pinnedModel = null;
 
   // 2. System message override
@@ -198,8 +198,8 @@ export function applyComboAgentMiddleware(
     comboConfig.tool_filter_regex
   );
 
-  // 4. Strip internal <omniModel> tags before forwarding to provider (#454)
-  //    These tags are OmniRoute-internal markers and must never reach the provider
+  // 4. Strip internal <biModel> tags before forwarding to provider (#454)
+  //    These tags are Birouter-internal markers and must never reach the provider
   //    since providers would treat each tagged request as a new cache session.
   messages = stripModelTags(messages);
 

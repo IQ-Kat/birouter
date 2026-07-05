@@ -32,7 +32,7 @@ The `sanitizeErrorMessage` helper in `open-sse/utils/error.ts` strips both class
 Use `buildErrorBody()` — sanitization is built-in:
 
 ```ts
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 
 export async function POST(req: Request) {
   try {
@@ -56,7 +56,7 @@ import {
   unavailableResponse, // adds Retry-After
   providerCircuitOpenResponse,
   modelCooldownResponse,
-} from "@omniroute/open-sse/utils/error.ts";
+} from "@birouter/open-sse/utils/error.ts";
 ```
 
 All of these route through `buildErrorBody` and therefore through `sanitizeErrorMessage`. **You never need to call `sanitizeErrorMessage` manually** when using these helpers.
@@ -66,7 +66,7 @@ All of these route through `buildErrorBody` and therefore through `sanitizeError
 When you can't use the helpers above (e.g. the response shape is dictated by an upstream protocol like Connect-RPC), import `sanitizeErrorMessage` directly:
 
 ```ts
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 const body = JSON.stringify({
   error: {
@@ -147,7 +147,7 @@ Sanitization rules applied to `upstreamDetails`:
 4. Arrays are capped at 32 elements.
 
 Only the seven upstream-error `createErrorResult` call sites in `chatCore.ts` pass
-`upstreamErrorBody`. Internal OmniRoute errors (SSE parse failures, empty content,
+`upstreamErrorBody`. Internal Birouter errors (SSE parse failures, empty content,
 guardrail blocks) do not include `upstream_details`.
 
 Do NOT pass raw `err.stack`, `err.message`, or any string from a runtime exception to

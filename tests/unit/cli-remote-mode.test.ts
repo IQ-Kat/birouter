@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 // context (canonical `contexts`/`currentContext` schema, with legacy
 // `profiles`/`activeProfile` fallback). Before this work, getBaseUrl read only
 // the legacy `profiles` schema and buildHeaders never read the context's
-// credential at all — so `omniroute contexts use <remote>` silently failed to
+// credential at all — so `birouter contexts use <remote>` silently failed to
 // route auth to the remote server.
 
 let tmpDir: string;
@@ -23,26 +23,26 @@ function writeConfig(cfg: unknown): void {
 }
 
 test.before(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "omniroute-remote-test-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "birouter-remote-test-"));
   origDataDir = process.env.DATA_DIR;
-  origBaseUrl = process.env.OMNIROUTE_BASE_URL;
-  origApiKey = process.env.OMNIROUTE_API_KEY;
-  origContext = process.env.OMNIROUTE_CONTEXT;
+  origBaseUrl = process.env.BIROUTER_BASE_URL;
+  origApiKey = process.env.BIROUTER_API_KEY;
+  origContext = process.env.BIROUTER_CONTEXT;
   process.env.DATA_DIR = tmpDir;
-  delete process.env.OMNIROUTE_BASE_URL;
-  delete process.env.OMNIROUTE_API_KEY;
-  delete process.env.OMNIROUTE_CONTEXT;
+  delete process.env.BIROUTER_BASE_URL;
+  delete process.env.BIROUTER_API_KEY;
+  delete process.env.BIROUTER_CONTEXT;
 });
 
 test.after(() => {
   if (origDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = origDataDir;
-  if (origBaseUrl === undefined) delete process.env.OMNIROUTE_BASE_URL;
-  else process.env.OMNIROUTE_BASE_URL = origBaseUrl;
-  if (origApiKey === undefined) delete process.env.OMNIROUTE_API_KEY;
-  else process.env.OMNIROUTE_API_KEY = origApiKey;
-  if (origContext === undefined) delete process.env.OMNIROUTE_CONTEXT;
-  else process.env.OMNIROUTE_CONTEXT = origContext;
+  if (origBaseUrl === undefined) delete process.env.BIROUTER_BASE_URL;
+  else process.env.BIROUTER_BASE_URL = origBaseUrl;
+  if (origApiKey === undefined) delete process.env.BIROUTER_API_KEY;
+  else process.env.BIROUTER_API_KEY = origApiKey;
+  if (origContext === undefined) delete process.env.BIROUTER_CONTEXT;
+  else process.env.BIROUTER_CONTEXT = origContext;
   try {
     rmSync(tmpDir, { recursive: true, force: true });
   } catch {}
@@ -145,10 +145,10 @@ test("buildHeaders: explicit opts.apiKey wins over the context credential", asyn
 });
 
 test("buildHeaders: active-context token wins over an opts.apiKey echoing the ambient env", async () => {
-  // Regression: users keep OMNIROUTE_API_KEY (their inference key) in the shell.
+  // Regression: users keep BIROUTER_API_KEY (their inference key) in the shell.
   // The global --api-key option is bound to that env var, so commands that spread
   // optsWithGlobals() into apiFetch carry opts.apiKey === the env value. After
-  // `omniroute connect <remote>` the active context holds the scoped token; an
+  // `birouter connect <remote>` the active context holds the scoped token; an
   // opts.apiKey that merely mirrors the ambient env must NOT outrank it, or every
   // remote management command sends the local inference key ("Invalid management
   // token"). This reproduces the exact failing shape: opts.apiKey === env value.
@@ -157,16 +157,16 @@ test("buildHeaders: active-context token wins over an opts.apiKey echoing the am
     currentContext: "vps",
     contexts: { vps: { baseUrl: "https://vps.example.com", accessToken: "oma_live_scoped" } },
   });
-  const prev = process.env.OMNIROUTE_API_KEY;
-  process.env.OMNIROUTE_API_KEY = "sk-ambient-inference-key";
+  const prev = process.env.BIROUTER_API_KEY;
+  process.env.BIROUTER_API_KEY = "sk-ambient-inference-key";
   try {
     const { buildHeaders } = await import("../../bin/cli/api.mjs");
     // opts.apiKey mirrors the ambient env (commander's .env binding + spread).
     const headers = await buildHeaders({ cliToken: "", apiKey: "sk-ambient-inference-key" });
     assert.equal(headers.get("authorization"), "Bearer oma_live_scoped");
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_API_KEY;
-    else process.env.OMNIROUTE_API_KEY = prev;
+    if (prev === undefined) delete process.env.BIROUTER_API_KEY;
+    else process.env.BIROUTER_API_KEY = prev;
   }
 });
 
@@ -178,34 +178,34 @@ test("buildHeaders: a DISTINCT explicit key still wins over the context even whe
     currentContext: "vps",
     contexts: { vps: { baseUrl: "https://vps.example.com", accessToken: "oma_live_scoped" } },
   });
-  const prev = process.env.OMNIROUTE_API_KEY;
-  process.env.OMNIROUTE_API_KEY = "sk-ambient-inference-key";
+  const prev = process.env.BIROUTER_API_KEY;
+  process.env.BIROUTER_API_KEY = "sk-ambient-inference-key";
   try {
     const { buildHeaders } = await import("../../bin/cli/api.mjs");
     const headers = await buildHeaders({ cliToken: "", apiKey: "oma_explicit_token" });
     assert.equal(headers.get("authorization"), "Bearer oma_explicit_token");
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_API_KEY;
-    else process.env.OMNIROUTE_API_KEY = prev;
+    if (prev === undefined) delete process.env.BIROUTER_API_KEY;
+    else process.env.BIROUTER_API_KEY = prev;
   }
 });
 
-test("buildHeaders: ambient OMNIROUTE_API_KEY is the fallback when no context credential", async () => {
+test("buildHeaders: ambient BIROUTER_API_KEY is the fallback when no context credential", async () => {
   // Local/default usage with no stored context credential still works off the env.
   writeConfig({
     version: 1,
     currentContext: "default",
     contexts: { default: { baseUrl: "http://localhost:20128", apiKey: null } },
   });
-  const prev = process.env.OMNIROUTE_API_KEY;
-  process.env.OMNIROUTE_API_KEY = "sk-ambient-inference-key";
+  const prev = process.env.BIROUTER_API_KEY;
+  process.env.BIROUTER_API_KEY = "sk-ambient-inference-key";
   try {
     const { buildHeaders } = await import("../../bin/cli/api.mjs");
     const headers = await buildHeaders({ cliToken: "", apiKey: "sk-ambient-inference-key" });
     assert.equal(headers.get("authorization"), "Bearer sk-ambient-inference-key");
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_API_KEY;
-    else process.env.OMNIROUTE_API_KEY = prev;
+    if (prev === undefined) delete process.env.BIROUTER_API_KEY;
+    else process.env.BIROUTER_API_KEY = prev;
   }
 });
 
@@ -247,8 +247,8 @@ test("commands/contexts.mjs registers a `current` subcommand", async () => {
 
 test("createProgram wires the remote-mode commands into the real CLI program", async () => {
   // Regression: contexts.mjs existed and was unit-tested in isolation, but its
-  // registerContexts() was never called by registry.mjs — so `omniroute contexts`
-  // fell through to `serve`, and `connect`'s own advice ("omniroute contexts use
+  // registerContexts() was never called by registry.mjs — so `birouter contexts`
+  // fell through to `serve`, and `connect`'s own advice ("birouter contexts use
   // default") was a dead command. Build the REAL program and assert the wiring.
   const { createProgram } = await import("../../bin/cli/program.mjs");
   const program = createProgram();

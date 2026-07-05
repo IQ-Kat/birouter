@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("omniroute.mjs pode ser importado sem erro", async () => {
+test("birouter.mjs pode ser importado sem erro", async () => {
   // Ensure the entry point module is syntactically valid by importing the submodule
   // it uses (update-notifier) rather than executing the full CLI entrypoint.
   const mod = await import("update-notifier");
@@ -11,7 +11,7 @@ test("omniroute.mjs pode ser importado sem erro", async () => {
 test("update-notifier aceita pkg shape válido", async () => {
   const updateNotifier = (await import("update-notifier")).default;
   const notifier = updateNotifier({
-    pkg: { name: "omniroute", version: "0.0.1" },
+    pkg: { name: "birouter", version: "0.0.1" },
     updateCheckInterval: 0,
   });
   assert.ok(notifier !== null && typeof notifier === "object");

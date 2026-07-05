@@ -11,7 +11,7 @@ interface ParsedCodexToml {
  * Migrate the deprecated Codex `[features].codex_hooks` flag to `[features].hooks`.
  *
  * Codex renamed the feature flag; recent Codex CLI versions ignore the old key and
- * print a deprecation notice. When OmniRoute rewrites an existing `config.toml` it
+ * print a deprecation notice. When Birouter rewrites an existing `config.toml` it
  * should carry the user's intent forward by renaming the key (preserving its value)
  * and dropping the deprecated one. A no-op when `[features]` or `codex_hooks` is
  * absent, and it never clobbers an already-present `hooks` value. (#1327)

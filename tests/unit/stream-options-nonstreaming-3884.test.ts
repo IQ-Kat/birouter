@@ -1,5 +1,5 @@
 /**
- * TDD regression for #3884: OmniRoute leaked `stream_options` onto NON-streaming
+ * TDD regression for #3884: Birouter leaked `stream_options` onto NON-streaming
  * requests. NVIDIA NIM (and the OpenAI spec) reject it with
  * `400 "Stream options can only be defined when stream=True"`.
  *

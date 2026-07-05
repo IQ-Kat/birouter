@@ -25,7 +25,7 @@ export async function connectServer(
 ): Promise<ServerConnection> {
   const id = crypto.randomUUID();
   const apiKeyHash = crypto
-    .pbkdf2Sync(apiKey, "omniroute-federation-salt", 120000, 32, "sha256")
+    .pbkdf2Sync(apiKey, "birouter-federation-salt", 120000, 32, "sha256")
     .toString("hex");
 
   const { connectServer: dbConnect } = await import("../db/gamification");
@@ -162,8 +162,7 @@ export async function healthCheck(
   const db = (await import("../db/core")).getDbInstance();
 
   const server = db.prepare("SELECT url FROM community_servers WHERE id = ?").get(serverId) as
-    | { url: string }
-    | undefined;
+    { url: string } | undefined;
 
   if (!server) return { healthy: false, latencyMs: 0 };
 

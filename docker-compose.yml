@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────────────────────────
-#  OmniRoute — Docker Compose
+#  Birouter — Docker Compose
 # ──────────────────────────────────────────────────────────────────────
 #
 #  Profiles:
@@ -51,7 +51,7 @@ services:
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
     image: docker.io/library/redis:7-alpine
-    container_name: omniroute-redis
+    container_name: birouter-redis
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
@@ -65,13 +65,13 @@ services:
       retries: 3
 
   # ── Profile: base (minimal, no CLI tools) ──────────────────────────
-  omniroute-base:
+  birouter-base:
     <<: *common
-    container_name: omniroute
+    container_name: birouter
     build:
       context: .
       target: runner-base
-    image: omniroute:base
+    image: birouter:base
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
@@ -82,13 +82,13 @@ services:
   # Required for web-cookie providers (gemini-web, claude-web, claude-turnstile).
   # The default `base` image ships without Chromium, so those providers fail
   # with "Executable doesn't exist at .../ms-playwright/chromium..." (#2832).
-  omniroute-web:
+  birouter-web:
     <<: *common
-    container_name: omniroute
+    container_name: birouter
     build:
       context: .
       target: runner-web
-    image: omniroute:web
+    image: birouter:web
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
@@ -96,13 +96,13 @@ services:
       - web
 
   # ── Profile: cli (CLIs installed inside container) ─────────────────
-  omniroute-cli:
+  birouter-cli:
     <<: *common
-    container_name: omniroute
+    container_name: birouter
     build:
       context: .
       target: runner-cli
-    image: omniroute:cli
+    image: birouter:cli
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
@@ -110,18 +110,18 @@ services:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
-      - ${AUTO_UPDATE_HOST_REPO_DIR:-.}:/workspace/omniroute:rw
+      - ${AUTO_UPDATE_HOST_REPO_DIR:-.}:/workspace/birouter:rw
     profiles:
       - cli
 
   # ── Profile: host (host-mounted CLI binaries, Linux-first) ────────
-  omniroute-host:
+  birouter-host:
     <<: *common
-    container_name: omniroute
+    container_name: birouter
     build:
       context: .
       target: runner-base
-    image: omniroute:base
+    image: birouter:base
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
@@ -165,7 +165,7 @@ services:
   # for the workload analysis behind this profile.
   qdrant:
     image: docker.io/qdrant/qdrant:v1.12.4
-    container_name: omniroute-qdrant
+    container_name: birouter-qdrant
     restart: unless-stopped
     ports:
       - "${QDRANT_PORT:-6333}:6333"
@@ -186,14 +186,14 @@ services:
   # ── Profile: bifrost (Bifrost Go LLM-router sidecar) ─────────────
   # Off by default. Bifrost is the Tier-1 LLM router (per ADR-031 and
   # open-sse/executors/bifrost.ts). When BIFROST_ENABLED=true is set in
-  # .env, OmniRoute delegates /v1/chat/completions, /v1/responses, and
+  # .env, Birouter delegates /v1/chat/completions, /v1/responses, and
   # /v1/embeddings to this sidecar instead of handling them in chatCore.
   # The kill switch is the BIFROST_ENABLED env var — flip to false to
   # fall back to the chatCore path with zero code changes. See
   # docs/architecture/cluster-decisions.md for the activation plan.
   bifrost:
     image: ghcr.io/maximhq/bifrost:1.5.21
-    container_name: omniroute-bifrost
+    container_name: birouter-bifrost
     restart: unless-stopped
     ports:
       - "${BIFROST_PORT:-8080}:8080"
@@ -236,8 +236,8 @@ volumes:
   cliproxyapi-data:
     name: cliproxyapi-data
   redis-data:
-    name: omniroute-redis-data
+    name: birouter-redis-data
   qdrant-data:
-    name: omniroute-qdrant-data
+    name: birouter-qdrant-data
   bifrost-data:
-    name: omniroute-bifrost-data
+    name: birouter-bifrost-data

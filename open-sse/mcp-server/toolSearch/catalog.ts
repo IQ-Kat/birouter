@@ -76,7 +76,7 @@ export function getAllToolDefinitions(): ToolCatalogEntry[] {
     pluginTools,
     notionTools,
     obsidianTools,
-    // compressionTools holds omniroute_ccr_retrieve, which is NOT in MCP_TOOLS — without it
+    // compressionTools holds birouter_ccr_retrieve, which is NOT in MCP_TOOLS — without it
     // a `tool_search("compression")` would miss that tool. The other 5 overlap MCP_TOOLS and
     // are resolved by the dedup-by-name below (first wins).
     compressionTools,

@@ -8,7 +8,7 @@ let tempDir: string;
 let originalDataDir: string | undefined;
 
 function setupDb() {
-  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-stream-test-"));
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-stream-test-"));
   originalDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tempDir;
 }

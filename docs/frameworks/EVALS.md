@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/evals/`, `src/lib/db/evals.ts`, `src/app/api/evals/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute ships a generic evaluation framework you can use to benchmark routing
+Birouter ships a generic evaluation framework you can use to benchmark routing
 configurations, single providers/models, or the bundled "golden set" suites.
 Use it to verify routing changes, validate new providers, and gate releases
 before promoting them to production traffic.

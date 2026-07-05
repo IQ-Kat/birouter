@@ -10,7 +10,7 @@ import {
 import { updateResilienceSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resetAllCircuitBreakers } from "@/shared/utils/circuitBreaker";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -112,7 +112,7 @@ function normalizeLegacyPatch(body: JsonRecord): ResilienceSettingsPatch {
 
 async function syncRuntimeSettings(resilienceSettings: ResilienceSettings) {
   const { applyRequestQueueSettings } =
-    await import("@omniroute/open-sse/services/rateLimitManager");
+    await import("@birouter/open-sse/services/rateLimitManager");
   await applyRequestQueueSettings(resilienceSettings.requestQueue);
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OmniRoute — Prepublish Build Script
+ * Birouter — Prepublish Build Script
  *
  * Consumes the .build/next/standalone artifact produced by `npm run build`
  * (build-next-isolated.mjs) and assembles the npm staging `dist/` directory.
@@ -109,7 +109,7 @@ function removeEmptyDirectories(dir: string): boolean {
   return hasFiles;
 }
 
-console.log("🔨 OmniRoute — Building for npm publish...\n");
+console.log("🔨 Birouter — Building for npm publish...\n");
 
 // ── Step 1: Clean previous dist/ directory ─────────────────
 if (existsSync(DIST_DIR)) {
@@ -303,8 +303,8 @@ if (existsSync(llmWorkerSrc)) {
 }
 
 // ── Step 8.7: Bundle CLI Entrypoint ──────────────────────────
-const cliSrcFile = join(ROOT, "bin", "omniroute.ts");
-const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
+const cliSrcFile = join(ROOT, "bin", "birouter.ts");
+const cliDestFile = join(ROOT, "bin", "birouter.mjs");
 
 if (existsSync(cliSrcFile)) {
   console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
@@ -313,36 +313,36 @@ if (existsSync(cliSrcFile)) {
       NPX_BIN,
       [
         "esbuild",
-        "bin/omniroute.ts",
+        "bin/birouter.ts",
         "--bundle",
         "--platform=node",
         "--packages=external",
         "--format=esm",
-        "--outfile=bin/omniroute.mjs",
+        "--outfile=bin/birouter.mjs",
       ],
       { cwd: ROOT, stdio: "inherit" }
     );
     chmodSync(cliDestFile, 0o755);
-    console.log("  ✅ CLI Entrypoint bundled to bin/omniroute.mjs");
+    console.log("  ✅ CLI Entrypoint bundled to bin/birouter.mjs");
   } catch (err: any) {
     console.warn("  ⚠️  CLI bundle error:", err.message);
   }
 }
 
-// ── Step 8.8: Build @omniroute/opencode-plugin ──────────────
-// The plugin ships bundled inside the omniroute npm package (see root
-// package.json "files": ["@omniroute/", ...]). Its built `dist/` MUST be
-// present in the publish tarball so `omniroute setup opencode` can copy it
+// ── Step 8.8: Build @birouter/opencode-plugin ──────────────
+// The plugin ships bundled inside the birouter npm package (see root
+// package.json "files": ["@birouter/", ...]). Its built `dist/` MUST be
+// present in the publish tarball so `birouter setup opencode` can copy it
 // into the user's OpenCode plugin dir. If the build fails we surface the
 // error — shipping without the plugin's dist breaks the documented install
 // flow for every downstream user.
-const opencodePluginSrc = join(ROOT, "@omniroute", "opencode-plugin");
+const opencodePluginSrc = join(ROOT, "@birouter", "opencode-plugin");
 const opencodePluginDist = join(opencodePluginSrc, "dist", "index.js");
 const opencodePluginCjs = join(opencodePluginSrc, "dist", "index.cjs");
 if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package.json"))) {
   const pluginAlreadyBuilt = existsSync(opencodePluginDist) && existsSync(opencodePluginCjs);
   if (!pluginAlreadyBuilt) {
-    console.log("\n  🔨 Building @omniroute/opencode-plugin (tsup)...");
+    console.log("\n  🔨 Building @birouter/opencode-plugin (tsup)...");
     try {
       // The plugin is a standalone package (not an npm workspace), so the root
       // install never populates its node_modules — and tsup with `dts: true`
@@ -360,17 +360,17 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
         stdio: "inherit",
         env: { ...process.env, NODE_ENV: "production" },
       });
-      console.log("  ✅ @omniroute/opencode-plugin bundled to @omniroute/opencode-plugin/dist/");
+      console.log("  ✅ @birouter/opencode-plugin bundled to @birouter/opencode-plugin/dist/");
     } catch (err: any) {
-      console.error("  ❌ Failed to build @omniroute/opencode-plugin:", err.message);
+      console.error("  ❌ Failed to build @birouter/opencode-plugin:", err.message);
       console.error("     The published package would be missing the plugin dist.");
       console.error(
-        "     Run `cd @omniroute/opencode-plugin && npm install && npm run build` to debug."
+        "     Run `cd @birouter/opencode-plugin && npm install && npm run build` to debug."
       );
       process.exit(1);
     }
   } else {
-    console.log("  ✅ @omniroute/opencode-plugin dist/ already present (skipping rebuild)");
+    console.log("  ✅ @birouter/opencode-plugin dist/ already present (skipping rebuild)");
   }
   // Remove plugin node_modules after build — hard links created by npm install on Linux
   // (CI runner) end up in the tarball as LINK entries, which npm registry rejects with
@@ -379,10 +379,10 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
   const pluginNodeModules = join(opencodePluginSrc, "node_modules");
   if (existsSync(pluginNodeModules)) {
     rmSync(pluginNodeModules, { recursive: true, force: true });
-    console.log("  🧹 Removed @omniroute/opencode-plugin/node_modules (hard link guard)");
+    console.log("  🧹 Removed @birouter/opencode-plugin/node_modules (hard link guard)");
   }
 } else {
-  console.log("  ⏭️  @omniroute/opencode-plugin not found in workspace (skipping build)");
+  console.log("  ⏭️  @birouter/opencode-plugin not found in workspace (skipping build)");
 }
 
 // ── Step 9: Copy shared utilities needed at runtime ────────

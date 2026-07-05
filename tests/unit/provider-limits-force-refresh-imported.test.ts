@@ -16,7 +16,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-force-refresh-imported-"));
+process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-force-refresh-imported-"));
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { refreshAndUpdateCredentials } = await import("../../src/lib/usage/providerLimits.ts");

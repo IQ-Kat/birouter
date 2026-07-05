@@ -36,7 +36,7 @@ test("runtime env helpers normalize runtime ports and conflicting color flags", 
     ),
     {
       NODE_ENV: "test",
-      OMNIROUTE_PORT: "20128",
+      BIROUTER_PORT: "20128",
       PORT: "22128",
       DASHBOARD_PORT: "22128",
       API_PORT: "21128",

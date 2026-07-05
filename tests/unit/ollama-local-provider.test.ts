@@ -6,9 +6,9 @@ import {
   isLocalProvider,
   isSelfHostedChatProvider,
 } from "@/shared/constants/providers";
-import { DefaultExecutor } from "@omniroute/open-sse/executors/default.ts";
+import { DefaultExecutor } from "@birouter/open-sse/executors/default.ts";
 
-// #5578: Ollama is the most popular local runtime, yet OmniRoute only shipped
+// #5578: Ollama is the most popular local runtime, yet Birouter only shipped
 // `ollama-cloud` (api-key, cloud) and `ollama-search` (web search). There was no
 // first-class card for the local Ollama runtime (localhost:11434). This adds
 // `ollama-local` to the local catalog so users get a dedicated card instead of

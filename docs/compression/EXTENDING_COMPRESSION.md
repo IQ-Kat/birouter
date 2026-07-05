@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Extending the Compression Pipeline
 
-> **TL;DR**: OmniRoute's compression engine is **pluggable** — you can register custom engines, ship language packs for new languages, and compose stacked pipelines. This guide shows how.
+> **TL;DR**: Birouter's compression engine is **pluggable** — you can register custom engines, ship language packs for new languages, and compose stacked pipelines. This guide shows how.
 
 **Related guides:**
 
@@ -85,8 +85,8 @@ interface CompressionEngine {
 The simplest possible engine — strip extra whitespace from messages.
 
 ````ts
-import type { CompressionEngine } from "omniroute/compression/engines/types";
-import { registerCompressionEngine } from "omniroute/compression/engines/registry";
+import type { CompressionEngine } from "birouter/compression/engines/types";
+import { registerCompressionEngine } from "birouter/compression/engines/registry";
 
 function preserveCodeBlocks(text: string): string {
   // Split by code block markers and preserve whitespace inside them
@@ -197,7 +197,7 @@ registerCompressionEngine(whitespaceEngine);
 ### Where to Place Custom Engines
 
 ```
-~/.omniroute/compression/engines/my-engine.ts    # User-level
+~/.birouter/compression/engines/my-engine.ts    # User-level
 <project>/compression-engines/my-engine.ts        # Project-level (loaded on startup)
 ```
 
@@ -208,7 +208,7 @@ Or load programmatically from a plugin:
 import {
   registerCompressionEngine,
   unregisterCompressionEngine,
-} from "@omniroute/open-sse/services/compression/engines/registry";
+} from "@birouter/open-sse/services/compression/engines/registry";
 import { myEngine } from "./engines/my-engine";
 
 export default definePlugin({
@@ -234,7 +234,7 @@ in the strategy selector via its `id`. Test integration by composing it in a sta
 
 ## Creating Language Packs
 
-Caveman-style compression uses **language-specific rule packs** to handle fillers, hedging, and verbose patterns in each natural language. OmniRoute ships with **6 language packs**: `en`, `es`, `fr`, `de`, `ja`, `pt-BR`.
+Caveman-style compression uses **language-specific rule packs** to handle fillers, hedging, and verbose patterns in each natural language. Birouter ships with **6 language packs**: `en`, `es`, `fr`, `de`, `ja`, `pt-BR`.
 
 ### Pack Structure
 
@@ -329,7 +329,7 @@ exercise the compression path) and watch the logs.
 ### Loading a Custom Language Pack
 
 ```ts
-import { loadRulePack } from "omniroute/compression/ruleLoader";
+import { loadRulePack } from "birouter/compression/ruleLoader";
 
 await loadRulePack("./my-custom-rules/hi/filler.json");
 ```
@@ -337,7 +337,7 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 Or place in a recognized location:
 
 ```
-~/.omniroute/compression/rules/hi/filler.json  # User-level
+~/.birouter/compression/rules/hi/filler.json  # User-level
 <project>/.compression/rules/hi/filler.json   # Project-level
 ```
 
@@ -394,7 +394,7 @@ The output of engine N becomes the input of engine N+1.
 
 ### Compression Modes
 
-OmniRoute selects **ONE mode per request** based on configuration, auto-trigger thresholds, and combo overrides.
+Birouter selects **ONE mode per request** based on configuration, auto-trigger thresholds, and combo overrides.
 The available modes are defined in `open-sse/services/compression/types.ts` (type `CompressionMode`):
 
 | Mode         | Engines              | Use case                                                                                                                                                                                            |
@@ -482,10 +482,10 @@ Stacking isn't always better:
 
 There is no named-pipeline registry. A stacked pipeline is just an **inline array
 of steps** passed to `applyStackedCompression()` (exported from
-`@omniroute/open-sse/services/compression/strategySelector`):
+`@birouter/open-sse/services/compression/strategySelector`):
 
 ```ts
-import { applyStackedCompression } from "@omniroute/open-sse/services/compression/strategySelector";
+import { applyStackedCompression } from "@birouter/open-sse/services/compression/strategySelector";
 
 const result = applyStackedCompression(body, [
   { engine: "rtk", intensity: "aggressive" },

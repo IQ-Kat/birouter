@@ -1,15 +1,14 @@
-# OmniRoute — Galeri Fitur Dashboard (Bahasa Indonesia)
+# Birouter — Galeri Fitur Dashboard (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/FEATURES.md) · 🇸🇦 [ar](../../ar/docs/FEATURES.md) · 🇧🇬 [bg](../../bg/docs/FEATURES.md) · 🇧🇩 [bn](../../bn/docs/FEATURES.md) · 🇨🇿 [cs](../../cs/docs/FEATURES.md) · 🇩🇰 [da](../../da/docs/FEATURES.md) · 🇩🇪 [de](../../de/docs/FEATURES.md) · 🇪🇸 [es](../../es/docs/FEATURES.md) · 🇮🇷 [fa](../../fa/docs/FEATURES.md) · 🇫🇮 [fi](../../fi/docs/FEATURES.md) · 🇫🇷 [fr](../../fr/docs/FEATURES.md) · 🇮🇳 [gu](../../gu/docs/FEATURES.md) · 🇮🇱 [he](../../he/docs/FEATURES.md) · 🇮🇳 [hi](../../hi/docs/FEATURES.md) · 🇭🇺 [hu](../../hu/docs/FEATURES.md) · 🇮🇩 [id](../../id/docs/FEATURES.md) · 🇮🇹 [it](../../it/docs/FEATURES.md) · 🇯🇵 [ja](../../ja/docs/FEATURES.md) · 🇰🇷 [ko](../../ko/docs/FEATURES.md) · 🇮🇳 [mr](../../mr/docs/FEATURES.md) · 🇲🇾 [ms](../../ms/docs/FEATURES.md) · 🇳🇱 [nl](../../nl/docs/FEATURES.md) · 🇳🇴 [no](../../no/docs/FEATURES.md) · 🇵🇭 [phi](../../phi/docs/FEATURES.md) · 🇵🇱 [pl](../../pl/docs/FEATURES.md) · 🇵🇹 [pt](../../pt/docs/FEATURES.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FEATURES.md) · 🇷🇴 [ro](../../ro/docs/FEATURES.md) · 🇷🇺 [ru](../../ru/docs/FEATURES.md) · 🇸🇰 [sk](../../sk/docs/FEATURES.md) · 🇸🇪 [sv](../../sv/docs/FEATURES.md) · 🇰🇪 [sw](../../sw/docs/FEATURES.md) · 🇮🇳 [ta](../../ta/docs/FEATURES.md) · 🇮🇳 [te](../../te/docs/FEATURES.md) · 🇹🇭 [th](../../th/docs/FEATURES.md) · 🇹🇷 [tr](../../tr/docs/FEATURES.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FEATURES.md) · 🇵🇰 [ur](../../ur/docs/FEATURES.md) · 🇻🇳 [vi](../../vi/docs/FEATURES.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FEATURES.md)
 
 ---
 
-Panduan visual untuk setiap bagian dashboard OmniRoute.
+Panduan visual untuk setiap bagian dashboard Birouter.
 
 ---
 
 ## 🔌 Penyedia
-
 
 ![Providers Dashboard](screenshots/01-providers.png)
 
@@ -83,13 +82,11 @@ Panel pengaturan komprehensif dengan tab:
 
 ## 🔧 Alat CLI
 
-
 ![CLI Tools Dashboard](screenshots/07-cli-tools.png)
 
 ---
 
 ## 🤖 Agen CLI _(v2.0.11+)_
-
 
 - **Status instalasi** — Terpasang / Tidak Ditemukan dengan deteksi versi
 - **Lencana protokol** — stdio, HTTP, dll.
@@ -100,7 +97,7 @@ Panel pengaturan komprehensif dengan tab:
 
 ## 🔗 Context Relay _(v3.5.5+)_
 
-Strategi combo yang mempertahankan kesinambungan sesi saat rotasi akun terjadi di tengah percakapan. Sebelum akun aktif habis, OmniRoute menghasilkan ringkasan handoff terstruktur di latar belakang. Setelah permintaan berikutnya diarahkan ke akun berbeda, ringkasan disuntikkan sebagai pesan sistem sehingga akun baru melanjutkan dengan konteks penuh.
+Strategi combo yang mempertahankan kesinambungan sesi saat rotasi akun terjadi di tengah percakapan. Sebelum akun aktif habis, Birouter menghasilkan ringkasan handoff terstruktur di latar belakang. Setelah permintaan berikutnya diarahkan ke akun berbeda, ringkasan disuntikkan sebagai pesan sistem sehingga akun baru melanjutkan dengan konteks penuh.
 
 Dapat dikonfigurasi melalui pengaturan level combo atau global:
 
@@ -155,7 +152,7 @@ Skrip penghapusan bersih untuk semua metode instalasi:
 
 | Perintah                 | Tindakan                                                                                      |
 | ------------------------ | --------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **mempertahankan DB dan konfigurasi Anda** di `~/.omniroute`. |
+| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **mempertahankan DB dan konfigurasi Anda** di `~/.birouter`. |
 | `npm run uninstall:full` | Menghapus aplikasi DAN secara permanen **menghapus semua konfigurasi, kunci, dan database**.  |
 
 ---
@@ -196,7 +193,7 @@ Pelacakan tindakan administratif dengan pemfilteran berdasarkan jenis tindakan, 
 
 ## 🖥️ Aplikasi Desktop
 
-Aplikasi desktop Electron asli untuk Windows, macOS, dan Linux. Jalankan OmniRoute sebagai aplikasi mandiri dengan integrasi system tray, dukungan offline, pembaruan otomatis, dan instalasi satu klik.
+Aplikasi desktop Electron asli untuk Windows, macOS, dan Linux. Jalankan Birouter sebagai aplikasi mandiri dengan integrasi system tray, dukungan offline, pembaruan otomatis, dan instalasi satu klik.
 
 Fitur utama:
 
@@ -215,7 +212,7 @@ Fitur utama:
 
 ## 🌐 Jembatan WebSocket V1 _(v3.6.6+)_
 
-OmniRoute kini mendukung **klien WebSocket yang kompatibel dengan OpenAI** melalui endpoint upgrade `/v1/ws`. Server `scripts/v1-ws-bridge.mjs` kustom membungkus Next.js dan mengupgrade koneksi WS menjadi sesi streaming dua arah penuh. Autentikasi menggunakan kunci API atau cookie sesi yang sama seperti permintaan HTTP.
+Birouter kini mendukung **klien WebSocket yang kompatibel dengan OpenAI** melalui endpoint upgrade `/v1/ws`. Server `scripts/v1-ws-bridge.mjs` kustom membungkus Next.js dan mengupgrade koneksi WS menjadi sesi streaming dua arah penuh. Autentikasi menggunakan kunci API atau cookie sesi yang sama seperti permintaan HTTP.
 
 Perilaku utama:
 
@@ -241,7 +238,7 @@ Bundel konfigurasi dibuat oleh `src/lib/sync/bundle.ts`. Konsumen membandingkan 
 
 **GLM Thinking (`glmt`)** kini merupakan penyedia kelas pertama yang terdaftar: 65 536 token output maksimum, anggaran thinking 24 576, timeout default 900 detik, format API yang kompatibel dengan Claude, dan sinkronisasi penggunaan bersama dengan keluarga GLM.
 
-**Penghitungan token hibrida** juga hadir di v3.6.6: ketika penyedia yang kompatibel dengan Claude mengekspos `/messages/count_tokens`, OmniRoute memanggilnya sebelum permintaan besar dengan fallback estimasi yang baik.
+**Penghitungan token hibrida** juga hadir di v3.6.6: ketika penyedia yang kompatibel dengan Claude mengekspos `/messages/count_tokens`, Birouter memanggilnya sebelum permintaan besar dengan fallback estimasi yang baik.
 
 ---
 

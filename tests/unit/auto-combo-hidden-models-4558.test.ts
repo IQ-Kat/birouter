@@ -24,12 +24,11 @@ import fs from "node:fs";
 // key_value namespace. Without an isolated DATA_DIR it would leak that state
 // into the shared dev/CI database. Point DATA_DIR at a throwaway dir before any
 // import that opens the SQLite handle (CLAUDE.md "Database Handles in Tests").
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-hidden-4558-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-test-hidden-4558-"));
 process.env.DATA_DIR = tmpDir;
 
-const { mergeModelCompatOverride, getHiddenModelsByProvider, getModelIsHidden } = await import(
-  "../../src/lib/localDb.ts"
-);
+const { mergeModelCompatOverride, getHiddenModelsByProvider, getModelIsHidden } =
+  await import("../../src/lib/localDb.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {

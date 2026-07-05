@@ -2,7 +2,7 @@
  * Port: add GPT-4 to the GitHub Copilot (`github`/alias `gh`) provider.
  *
  * Copilot still serves the original `gpt-4` chat model via its chat/completions
- * endpoint, alongside `gpt-4o` and the GPT-5.x family. The OmniRoute registry
+ * endpoint, alongside `gpt-4o` and the GPT-5.x family. The Birouter registry
  * shipped GPT-4o + GPT-5.x but not plain `gpt-4`, so apps that explicitly request
  * `gpt-4` against the `gh` alias got an "unknown model" error. Adding the entry
  * restores parity with the upstream Copilot catalog without disturbing the
@@ -14,9 +14,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
-const { getModelsByProviderId, getProviderModel, isValidModel } = await import(
-  "../../open-sse/config/providerModels.ts"
-);
+const { getModelsByProviderId, getProviderModel, isValidModel } =
+  await import("../../open-sse/config/providerModels.ts");
 
 type ModelEntry = { id: string; name?: string; targetFormat?: string; [k: string]: unknown };
 

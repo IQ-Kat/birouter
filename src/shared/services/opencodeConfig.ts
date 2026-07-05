@@ -66,10 +66,10 @@ export const buildOpenCodeProviderConfig = ({
 
   return {
     npm: "@ai-sdk/openai-compatible",
-    name: "OmniRoute",
+    name: "Birouter",
     options: {
       baseURL: normalizedBaseUrl,
-      apiKey: apiKey || "sk_omniroute",
+      apiKey: apiKey || "sk_birouter",
     },
     models: modelsRecord,
   };
@@ -78,7 +78,7 @@ export const buildOpenCodeProviderConfig = ({
 export const buildOpenCodeConfigDocument = (input: OpenCodeConfigInput) => ({
   $schema: "https://opencode.ai/config.json",
   provider: {
-    omniroute: buildOpenCodeProviderConfig(input),
+    birouter: buildOpenCodeProviderConfig(input),
   },
 });
 
@@ -96,7 +96,7 @@ export const mergeOpenCodeConfig = (
     $schema: safeConfig.$schema || "https://opencode.ai/config.json",
     provider: {
       ...((safeConfig as any).provider || {}),
-      omniroute: buildOpenCodeProviderConfig(input),
+      birouter: buildOpenCodeProviderConfig(input),
     },
   };
 };
@@ -132,7 +132,7 @@ export const mergeOpenCodeConfigText = (
   );
   nextText = applyEdits(nextText, schemaEdits);
 
-  const providerEdits = modify(nextText, ["provider", "omniroute"], providerConfig, {
+  const providerEdits = modify(nextText, ["provider", "birouter"], providerConfig, {
     formattingOptions: { insertSpaces: true, tabSize: 2 },
   });
 

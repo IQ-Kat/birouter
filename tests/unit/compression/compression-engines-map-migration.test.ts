@@ -4,14 +4,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compression-engines-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-compression-engines-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getDbInstance, resetDbInstance } = await import("../../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../../src/lib/db/compression.ts");
 
 function freshDir() {
   resetDbInstance();

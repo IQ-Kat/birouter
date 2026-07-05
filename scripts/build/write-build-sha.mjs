@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * write-build-sha.mjs — HEAD sentinel guard for OmniRoute release builds.
+ * write-build-sha.mjs — HEAD sentinel guard for Birouter release builds.
  *
- * Writes OMNIROUTE_BUILD_SHA (or git rev-parse --short HEAD) into:
+ * Writes BIROUTER_BUILD_SHA (or git rev-parse --short HEAD) into:
  *   - dist/BUILD_SHA
  *   - .build/next/standalone/BUILD_SHA  (present after `npm run build`)
  *
@@ -27,8 +27,8 @@ const ROOT = path.resolve(__dirname, "..", "..");
 // Resolve the build SHA: prefer the env var (set by build:release script), fall
 // back to running git rev-parse.
 function resolveBuildSha() {
-  if (process.env.OMNIROUTE_BUILD_SHA) {
-    return process.env.OMNIROUTE_BUILD_SHA.trim();
+  if (process.env.BIROUTER_BUILD_SHA) {
+    return process.env.BIROUTER_BUILD_SHA.trim();
   }
   try {
     return execFileSync("git", ["rev-parse", "--short", "HEAD"], {

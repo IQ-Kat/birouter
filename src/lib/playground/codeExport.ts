@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 /**
- * Endpoint suportado pelo Playground Studio. Reflete os 13 endpoints da API OmniRoute
+ * Endpoint suportado pelo Playground Studio. Reflete os 13 endpoints da API Birouter
  * consumíveis pelas tabs Chat/Compare/Build/Search/Scrape via Export Code.
  *
  * D4-rev2 (2026-05-28): contrato expandido de 10 → 13 incluindo `responses`, `video`,
@@ -118,7 +118,7 @@ export const PlaygroundStateSchema = z.object({
 });
 
 /** Constante: placeholder de API key — NUNCA embutir key real. */
-export const API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY";
+export const API_KEY_PLACEHOLDER = "$BIROUTER_API_KEY";
 
 /**
  * Resolve o path HTTP a partir do endpoint (ex.: "chat.completions" → "/v1/chat/completions").
@@ -302,7 +302,7 @@ function buildCurlSnippet(state: PlaygroundState): string {
   const bodyJson = JSON.stringify(body, null, 2);
 
   const lines: string[] = [
-    `# Set your API key: export OMNIROUTE_API_KEY="your-key-here"`,
+    `# Set your API key: export BIROUTER_API_KEY="your-key-here"`,
     `curl -s -X POST \\`,
     `  "${url}" \\`,
     `  -H "Authorization: Bearer ${API_KEY_PLACEHOLDER}" \\`,
@@ -332,7 +332,7 @@ function buildPythonSnippet(state: PlaygroundState): string {
     `import json`,
     `import requests`,
     ``,
-    `api_key = os.environ["OMNIROUTE_API_KEY"]`,
+    `api_key = os.environ["BIROUTER_API_KEY"]`,
     ``,
     `url = "${url}"`,
     `headers = {`,
@@ -362,7 +362,7 @@ function buildTypescriptSnippet(state: PlaygroundState): string {
 
   const lines: string[] = [
     `// Set your API key: export ${API_KEY_PLACEHOLDER}="your-key-here"`,
-    `const apiKey = process.env.OMNIROUTE_API_KEY ?? "";`,
+    `const apiKey = process.env.BIROUTER_API_KEY ?? "";`,
     ``,
     `const url = "${url}";`,
     `const body = ${bodyJson};`,

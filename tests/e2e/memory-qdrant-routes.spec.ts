@@ -45,7 +45,7 @@ function defaultQdrantSettings(): QdrantSettings {
     enabled: false,
     host: "",
     port: 6333,
-    collection: "omniroute_memory",
+    collection: "birouter_memory",
     embeddingModel: "openai/text-embedding-3-small",
     hasApiKey: false,
     apiKeyMasked: null,
@@ -84,7 +84,7 @@ async function setupQdrantRoutes(
     settingsPutCalls: number;
     searchCalls: number;
     cleanupCalls: number;
-  },
+  }
 ) {
   // /api/memory (GET) — empty list, needed by MemoriesTab which is the default
   await page.route(/\/api\/memory(\?.*)?$/, async (route) => {
@@ -214,7 +214,7 @@ async function setupQdrantRoutes(
           code: "QDRANT_UNAVAILABLE",
         },
       },
-      503,
+      503
     );
   });
 
@@ -229,7 +229,7 @@ async function setupQdrantRoutes(
           code: "QDRANT_UNAVAILABLE",
         },
       },
-      503,
+      503
     );
   });
 }
@@ -262,9 +262,7 @@ test.describe("Memory Qdrant routes — Engine tab integration", () => {
     // Qdrant section heading should be visible.
     // getByText(/qdrant/i) resolves to multiple elements (label, description, title, etc.),
     // causing a strict-mode violation. Use the unambiguous card heading instead.
-    await expect(
-      page.getByRole("heading", { name: /qdrant/i }),
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: /qdrant/i })).toBeVisible({ timeout: 20_000 });
 
     // Qdrant enabled switch should be visible
     const qdrantSwitch = page.getByTestId("qdrant-enabled-switch");
@@ -308,7 +306,7 @@ test.describe("Memory Qdrant routes — Engine tab integration", () => {
         bodyText.toLowerCase().includes("error") ||
           bodyText.toLowerCase().includes("refused") ||
           bodyText.toLowerCase().includes("failed") ||
-          bodyText.toLowerCase().includes("erro"),
+          bodyText.toLowerCase().includes("erro")
       ).toBe(true);
       // Must NOT contain a stack trace
       expect(bodyText).not.toMatch(/\sat\s\//);
@@ -351,7 +349,7 @@ test.describe("Memory Qdrant routes — Engine tab integration", () => {
         bodyText.toLowerCase().includes("error") ||
           bodyText.toLowerCase().includes("failed") ||
           bodyText.toLowerCase().includes("falh") ||
-          bodyText.toLowerCase().includes("cleanup"),
+          bodyText.toLowerCase().includes("cleanup")
       ).toBe(true);
       // Must NOT contain a stack trace
       expect(bodyText).not.toMatch(/\sat\s\//);

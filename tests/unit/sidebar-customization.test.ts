@@ -58,7 +58,7 @@ test("applySectionOrder appends sections not in order list at end", () => {
 // ─── applyItemOrder ───────────────────────────────────────────────────────────
 
 test("applyItemOrder returns original children when order is empty", () => {
-  const section = SIDEBAR_SECTIONS.find((s) => s.id === "omni-proxy")!;
+  const section = SIDEBAR_SECTIONS.find((s) => s.id === "bi-proxy")!;
   const children = [...section.children];
   const result = applyItemOrder(children, []);
   assert.deepEqual(result.length, children.length);

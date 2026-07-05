@@ -39,7 +39,7 @@ npm run test:all
 
 ## نظرة عامة على المشروع
 
-**OmniRoute** — وكيل/موجه AI موحد. نقطة نهاية واحدة، أكثر من 160 مزود LLM، تراجع تلقائي.
+**Birouter** — وكيل/موجه AI موحد. نقطة نهاية واحدة، أكثر من 160 مزود LLM، تراجع تلقائي.
 
 | الطبقة         | الموقع                  | الغرض                                                            |
 | -------------- | ----------------------- | ---------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Monorepo: `src/` (تطبيق Next.js 16)، `open-sse/` (مساحة عمل محر
 
 ## حالة وقت التشغيل للمرونة
 
-يمتلك OmniRoute ثلاث آليات فشل مؤقتة مرتبطة ولكن متميزة. حافظ على نطاقها منفصلًا عند تصحيح سلوك التوجيه. راجع
+يمتلك Birouter ثلاث آليات فشل مؤقتة مرتبطة ولكن متميزة. حافظ على نطاقها منفصلًا عند تصحيح سلوك التوجيه. راجع
 [مخطط المرونة ذو 3 طبقات](./docs/diagrams/exported/resilience-3layers.svg)
 (المصدر: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 لخريطة سريعة.
@@ -201,7 +201,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### نمط الكود
 
 - **مسافتان**، فاصلات منقوطة، علامات اقتباس مزدوجة، عرض 100 حرف، فاصلات متأخرة ES5 (تطبق بواسطة lint-staged عبر Prettier)
-- **الاستيرادات**: خارجي → داخلي (`@/`, `@omniroute/open-sse`) → نسبي
+- **الاستيرادات**: خارجي → داخلي (`@/`, `@birouter/open-sse`) → نسبي
 - **التسمية**: الملفات=camelCase/kebab، المكونات=PascalCase، الثوابت=UPPER_SNAKE
 - **ESLint**: `no-eval`، `no-implied-eval`، `no-new-func` = خطأ في كل مكان؛ `no-explicit-any` = تحذير في `open-sse/` و `tests/`
 - **TypeScript**: `strict: false`، الهدف ES2022، الوحدة esnext، دقة التجميع. يفضل الأنواع الصريحة.
@@ -367,9 +367,9 @@ git push -u origin feat/your-feature
 
 - **وقت التشغيل**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25، وحدات ES
 - **TypeScript**: 5.9+، الهدف ES2022، الوحدة esnext، دقة المجمع
-- **أسماء المسارات**: `@/*` → `src/`، `@omniroute/open-sse` → `open-sse/`، `@omniroute/open-sse/*` → `open-sse/*`
+- **أسماء المسارات**: `@/*` → `src/`، `@birouter/open-sse` → `open-sse/`، `@birouter/open-sse/*` → `open-sse/*`
 - **المنفذ الافتراضي**: 20128 (API + لوحة التحكم على نفس المنفذ)
-- **دليل البيانات**: متغير البيئة `DATA_DIR`، الافتراضي هو `~/.omniroute/`
+- **دليل البيانات**: متغير البيئة `DATA_DIR`، الافتراضي هو `~/.birouter/`
 - **المتغيرات البيئية الرئيسية**: `PORT`، `JWT_SECRET`، `API_KEY_SECRET`، `INITIAL_PASSWORD`، `REQUIRE_API_KEY`، `APP_LOG_LEVEL`
 - الإعداد: `cp .env.example .env` ثم توليد `JWT_SECRET` (`openssl rand -base64 48`) و `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -392,4 +392,4 @@ git push -u origin feat/your-feature
 13. لا تقم بإدراج مسارات خارجية أو قيم وقت التشغيل في سكربتات الشل المرسلة إلى `exec()`/`spawn()` — مرر عبر خيار `env` بدلاً من ذلك. المرجع: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. لا تتجاهل تنبيه CodeQL / Secret-Scanning بدون (أ) التحقق أولاً من وثائق النمط أعلاه لمعرفة ما إذا كان المساعد ينطبق، و (ب) تسجيل التبرير الفني في تعليق الإلغاء. سابقة: `js/stack-trace-exposure` التي تم رفعها على مواقع الاتصال التي تمر بالفعل عبر `sanitizeErrorMessage()` هي قيود معروفة لـ CodeQL (المعقمات المخصصة غير معترف بها) — تجاهل كـ `false positive` مع الإشارة إلى `docs/security/ERROR_SANITIZATION.md`.
 15. لا تعرض المسارات التي تولد عمليات فرعية (`/api/mcp/`، `/api/cli-tools/runtime/`) بدون تصنيف `isLocalOnlyPath()` في `src/server/authz/routeGuard.ts`. يتم تنفيذ التحقق من الحلقة بشكل غير مشروط قبل أي تحقق من المصادقة — لا يمكن أن يؤدي تسرب JWT عبر النفق إلى تشغيل العملية. انظر `docs/security/ROUTE_GUARD_TIERS.md`.
-16. لا تضمن أبدًا ملحقات `Co-Authored-By` التي تنسب لمساعد ذكاء اصطناعي أو LLM أو حساب آلي (مثل الأسماء التي تحتوي على "Claude" أو "GPT" أو "Copilot" أو "Bot"؛ والبريد الإلكتروني على `anthropic.com` / `openai.com` / عناوين `noreply.github.com` المملوكة للبوتات). تلك الملحقات توجه نسبة الالتزامات إلى حساب البوت على GitHub، مما يخفي المؤلف الحقيقي (`diegosouzapw`) في تاريخ PR. المساهمون البشريون — بما في ذلك مؤلفو PRs upstream ومُبلغو الـ issues الذين يتم نقلهم إلى OmniRoute — يجوز ويجب أن يُنسبوا باستخدام ملحقات `Co-authored-by: Name <email>` القياسية؛ تعتمد سير عمل النقل (`/port-upstream-features` و `/port-upstream-issues`) على ذلك.
+16. لا تضمن أبدًا ملحقات `Co-Authored-By` التي تنسب لمساعد ذكاء اصطناعي أو LLM أو حساب آلي (مثل الأسماء التي تحتوي على "Claude" أو "GPT" أو "Copilot" أو "Bot"؛ والبريد الإلكتروني على `anthropic.com` / `openai.com` / عناوين `noreply.github.com` المملوكة للبوتات). تلك الملحقات توجه نسبة الالتزامات إلى حساب البوت على GitHub، مما يخفي المؤلف الحقيقي (`diegosouzapw`) في تاريخ PR. المساهمون البشريون — بما في ذلك مؤلفو PRs upstream ومُبلغو الـ issues الذين يتم نقلهم إلى Birouter — يجوز ويجب أن يُنسبوا باستخدام ملحقات `Co-authored-by: Name <email>` القياسية؛ تعتمد سير عمل النقل (`/port-upstream-features` و `/port-upstream-issues`) على ذلك.

@@ -7,7 +7,7 @@ import path from "node:path";
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 
 async function withRecoveryEnv(fn: (dataDir: string) => Promise<void>) {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-recovery-"));
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-db-recovery-"));
   process.env.DATA_DIR = dataDir;
   try {
     await fn(dataDir);

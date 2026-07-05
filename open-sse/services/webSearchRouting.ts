@@ -4,7 +4,7 @@
  * Some providers expose an Anthropic-compatible (Claude-format) endpoint but do NOT
  * implement Anthropic's typed server tools, so forwarding `web_search_20250305` to them
  * makes the upstream 400 (e.g. MiniMax: `invalid params ... (2013)`). Layer 1
- * (`webSearchFallback.ts`) already converts the tool to OmniRoute's own `/v1/search`
+ * (`webSearchFallback.ts`) already converts the tool to Birouter's own `/v1/search`
  * fallback for such providers. Layer 2 is the alternative an operator can opt into:
  * route the WHOLE request to a model that natively runs web search, the way
  * claude-code-router's `Router.webSearch` does, while leaving every non-search request on

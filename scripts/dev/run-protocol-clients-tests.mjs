@@ -10,7 +10,7 @@ function parsePort(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
 }
 
-const explicitBaseUrl = process.env.OMNIROUTE_BASE_URL || "";
+const explicitBaseUrl = process.env.BIROUTER_BASE_URL || "";
 const isolatedPort = parsePort(
   process.env.DASHBOARD_PORT || process.env.PORT,
   23000 + (process.pid % 1000)
@@ -54,9 +54,9 @@ async function main() {
           PORT: String(port),
           DASHBOARD_PORT: String(port),
           API_PORT: String(port),
-          OMNIROUTE_BASE_URL: baseUrl,
+          BIROUTER_BASE_URL: baseUrl,
         }),
-    OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
+    BIROUTER_E2E_BOOTSTRAP_MODE: process.env.BIROUTER_E2E_BOOTSTRAP_MODE || "open",
   };
 
   if (!(await isServerReady())) {

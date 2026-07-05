@@ -79,8 +79,8 @@ function deviceIdFor(cookie: string): string {
   return id;
 }
 
-// OmniRoute model ID → ChatGPT internal slug. The public ChatGPT Web catalog
-// keeps OmniRoute's historical dot-form IDs (e.g. "gpt-5.5-pro"), while
+// Birouter model ID → ChatGPT internal slug. The public ChatGPT Web catalog
+// keeps Birouter's historical dot-form IDs (e.g. "gpt-5.5-pro"), while
 // ChatGPT's backend routes use dash-form slugs (e.g. "gpt-5-5-pro"). The slug
 // catalog comes from /backend-api/models on a logged-in account;
 // "gpt-5-4-t-mini" is ChatGPT's abbreviated slug for "GPT-5.4 Thinking Mini".
@@ -96,7 +96,7 @@ const MODEL_MAP: Record<string, string> = {
   "gpt-5-3": "gpt-5-3",
   "gpt-5-3-mini": "gpt-5-3-mini",
 
-  // Public OmniRoute dot-form ids exposed by the provider catalog.
+  // Public Birouter dot-form ids exposed by the provider catalog.
   "gpt-5.5-pro": "gpt-5-5-pro",
   "gpt-5.5-pro-extended": "gpt-5-5-pro",
   "gpt-5.5-thinking": "gpt-5-5-thinking",
@@ -477,7 +477,7 @@ const THINKING_EFFORT_CACHE_MAX = 400;
  * (the server accepts it but the routing-time read picks the wrong knob).
  *
  * Three branches because the input can arrive in three shapes:
- *   1. OmniRoute dot-form id (`gpt-5.4-thinking-mini`) — every thinking
+ *   1. Birouter dot-form id (`gpt-5.4-thinking-mini`) — every thinking
  *      variant carries the literal "thinking" substring here.
  *   2. Resolved chatgpt.com slug containing "thinking" (`gpt-5-5-thinking`).
  *   3. Resolved chatgpt.com slug that drops the substring under abbreviation
@@ -557,13 +557,13 @@ function resolveChatGptModel(
 }
 
 function configuredProPollTimeoutMs(): number {
-  const raw = Number(process.env.OMNIROUTE_CGPT_WEB_PRO_TIMEOUT_MS);
+  const raw = Number(process.env.BIROUTER_CGPT_WEB_PRO_TIMEOUT_MS);
   if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_PRO_POLL_TIMEOUT_MS;
   return Math.floor(raw);
 }
 
 function configuredProPollIntervalMs(): number {
-  const raw = Number(process.env.OMNIROUTE_CGPT_WEB_PRO_POLL_INTERVAL_MS);
+  const raw = Number(process.env.BIROUTER_CGPT_WEB_PRO_POLL_INTERVAL_MS);
   if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_PRO_POLL_INTERVAL_MS;
   return Math.floor(raw);
 }
@@ -1027,7 +1027,7 @@ interface ChatGptMessage {
  * Why a heuristic instead of always disabling Temporary Chat: when
  * `history_and_training_disabled: false`, every conversation gets saved to
  * the user's chatgpt.com history. For text-only chats that's noise — a
- * dozen "OmniRoute" entries clutter the sidebar and can interact with
+ * dozen "Birouter" entries clutter the sidebar and can interact with
  * ChatGPT's memory. We pay that cost only when the user actually wants an
  * image, since Temporary Chat refuses image_gen with the message
  * "I cannot generate images in this chat".
@@ -1399,8 +1399,7 @@ async function* extractContent(
     // on a tool-role message (handled below).
     if (event.type === "server_ste_metadata") {
       const meta = (event as Record<string, unknown>).metadata as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       if (meta && meta.turn_use_case === "image gen") {
         imageGenAsync = true;
       }
@@ -2219,7 +2218,7 @@ function deriveHeaderBaseUrl(clientHeaders?: Record<string, string> | null): str
   // Default to http for IPs, localhost, and explicit host:port values where
   // TLS is not a safe assumption. Reverse proxies can override via
   // x-forwarded-proto, and deployments can force the exact value with
-  // OMNIROUTE_PUBLIC_BASE_URL.
+  // BIROUTER_PUBLIC_BASE_URL.
   const isPlain =
     host.includes("localhost") ||
     /^\d+\.\d+\.\d+\.\d+(:\d+)?$/.test(host) ||
@@ -2233,22 +2232,22 @@ function deriveHeaderBaseUrl(clientHeaders?: Record<string, string> | null): str
  * Build the absolute base URL the client should use to fetch our cached
  * images at /v1/chatgpt-web/image/<id>. The most reliable value is an
  * explicit browser-facing origin because relay clients such as Open WebUI
- * often reach OmniRoute from a container while the user's browser needs a
+ * often reach Birouter from a container while the user's browser needs a
  * LAN, tunnel, or reverse-proxy URL.
  */
 function derivePublicBaseUrl(
   clientHeaders?: Record<string, string> | null,
   log?: { debug?: (tag: string, msg: string) => void }
 ): string {
-  const explicitPublicBase = normalizePublicBaseUrl(process.env.OMNIROUTE_PUBLIC_BASE_URL);
+  const explicitPublicBase = normalizePublicBaseUrl(process.env.BIROUTER_PUBLIC_BASE_URL);
   if (explicitPublicBase) {
-    log?.debug?.("CGPT-WEB", `derivePublicBaseUrl: using OMNIROUTE_PUBLIC_BASE_URL`);
+    log?.debug?.("CGPT-WEB", `derivePublicBaseUrl: using BIROUTER_PUBLIC_BASE_URL`);
     return explicitPublicBase;
   }
 
   const headerBase = deriveHeaderBaseUrl(clientHeaders);
   const configuredBase =
-    normalizePublicBaseUrl(process.env.OMNIROUTE_BASE_URL) ||
+    normalizePublicBaseUrl(process.env.BIROUTER_BASE_URL) ||
     normalizePublicBaseUrl(process.env.NEXT_PUBLIC_BASE_URL);
 
   log?.debug?.(
@@ -2329,13 +2328,13 @@ async function fetchDownloadUrl(endpoint: string, ctx: ResolverContext): Promise
 }
 
 /**
- * Download a chatgpt.com signed image URL and re-serve it from OmniRoute's
+ * Download a chatgpt.com signed image URL and re-serve it from Birouter's
  * short-lived image cache. The URLs returned by /files/<id>/download and
  * /conversation/<cid>/attachment/<fid>/download point at chatgpt.com's
  * estuary endpoint, which 403s for any request without the user's session
  * cookie. Downstream clients (Open WebUI, OpenAI-compatible apps) won't
  * have those cookies, so we download once via the authenticated TLS client
- * and return a browser-fetchable OmniRoute URL.
+ * and return a browser-fetchable Birouter URL.
  */
 const IMAGE_DOWNLOAD_MAX_BYTES = 8 * 1024 * 1024;
 
@@ -2641,7 +2640,7 @@ async function waitForImageViaWebSocket(
 const DEFAULT_ASYNC_IMAGE_TIMEOUT_MS = 180_000;
 
 function configuredAsyncImageTimeoutMs(): number {
-  const raw = Number(process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS);
+  const raw = Number(process.env.BIROUTER_CGPT_WEB_IMAGE_TIMEOUT_MS);
   if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_ASYNC_IMAGE_TIMEOUT_MS;
   return Math.floor(raw);
 }
@@ -2715,7 +2714,7 @@ function makeImageResolver(ctx: ResolverContext): ImageResolver {
       // user's current session — that URL 403s without the cookie, so
       // downstream clients can't fetch it directly. We download once via
       // the authenticated TLS client and expose the bytes through
-      // OmniRoute's short-lived image cache.
+      // Birouter's short-lived image cache.
       //
       // /files/{id}/download is the historical path. It works for
       // chat-uploaded files and the older image_gen output format
@@ -2740,7 +2739,7 @@ function makeImageResolver(ctx: ResolverContext): ImageResolver {
     let finalUrl: string | null = null;
     if (signedUrl) {
       // chatgpt.com signed URLs require the user's session cookie to fetch,
-      // so we materialize the bytes into our own cache and emit an OmniRoute
+      // so we materialize the bytes into our own cache and emit an Birouter
       // URL. If that fails (oversize, network error, etc.) we return null —
       // never the signed URL — because handing it back would emit broken
       // markdown that 403s for the client. Better to drop the image silently
@@ -2780,8 +2779,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
     clientHeaders,
   }: ExecuteInput) {
     const messages = (body as Record<string, unknown> | null)?.messages as
-      | Array<Record<string, unknown>>
-      | undefined;
+      Array<Record<string, unknown>> | undefined;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return {
         response: errorResponse(400, "Missing or empty messages array"),

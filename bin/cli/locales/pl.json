@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "Błąd: {message}",
-    "serverOffline": "Serwer OmniRoute jest offline. Uruchom: omniroute serve",
-    "authRequired": "Wymagane uwierzytelnienie. Ustaw OMNIROUTE_API_KEY lub uruchom: omniroute setup",
+    "serverOffline": "Serwer Birouter jest offline. Uruchom: birouter serve",
+    "authRequired": "Wymagane uwierzytelnienie. Ustaw BIROUTER_API_KEY lub uruchom: birouter setup",
     "rateLimited": "Przekroczono limit żądań. Spróbuj ponownie za {seconds}s.",
     "timeout": "Żądanie przekroczyło czas po {ms}ms.",
     "success": "Gotowe.",
@@ -15,18 +15,18 @@
     "yesOpt": "Pomiń potwierdzenie"
   },
   "program": {
-    "description": "OmniRoute — Inteligentny router AI z automatycznym fallbackiem",
+    "description": "Birouter — Inteligentny router AI z automatycznym fallbackiem",
     "version": "Wydrukuj wersję i wyjdź",
     "output": "Format wyjścia (table, json, jsonl, csv)",
     "quiet": "Pomiń nieistotne wyjście",
     "no_color": "Wyłącz kolorowe wyjście",
     "timeout": "Limit czasu żądania HTTP w milisekundach",
-    "api_key": "Klucz API dla serwera OmniRoute",
-    "base_url": "Bazowy URL serwera OmniRoute",
+    "api_key": "Klucz API dla serwera Birouter",
+    "base_url": "Bazowy URL serwera Birouter",
     "context": "Kontekst/profil serwera dla tego polecenia",
-    "lang": "Ustaw język wyświetlania CLI (nadpisuje OMNIROUTE_LANG)"
+    "lang": "Ustaw język wyświetlania CLI (nadpisuje BIROUTER_LANG)"
   },
   "redis": {
-    "description": "Uruchom lokalny kontener Redis jednym kliknięciem (Podman lub Docker) do buforowania i śledzenia limitów OmniRoute"
+    "description": "Uruchom lokalny kontener Redis jednym kliknięciem (Podman lub Docker) do buforowania i śledzenia limitów Birouter"
   }
 }

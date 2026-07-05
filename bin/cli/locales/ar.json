@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "خطأ: {message}",
-    "serverOffline": "خادم OmniRoute غير متصل. ابدأ بالأمر: omniroute serve",
-    "authRequired": "المصادقة مطلوبة. عيّن OMNIROUTE_API_KEY أو شغّل: omniroute setup",
+    "serverOffline": "خادم Birouter غير متصل. ابدأ بالأمر: birouter serve",
+    "authRequired": "المصادقة مطلوبة. عيّن BIROUTER_API_KEY أو شغّل: birouter setup",
     "rateLimited": "تم تجاوز حد الطلبات. أعد المحاولة بعد {seconds} ثانية.",
     "timeout": "انتهت مهلة الطلب بعد {ms}ms.",
     "success": "تم.",
@@ -15,18 +15,18 @@
     "yesOpt": "تخطي رسالة التأكيد"
   },
   "program": {
-    "description": "OmniRoute — جهاز توجيه الذكاء الاصطناعي مع التبديل التلقائي",
+    "description": "Birouter — جهاز توجيه الذكاء الاصطناعي مع التبديل التلقائي",
     "version": "عرض الإصدار والخروج",
     "output": "تنسيق الإخراج (table, json, jsonl, csv)",
     "quiet": "إخفاء المخرجات غير الأساسية",
     "no_color": "تعطيل الإخراج الملوّن",
     "timeout": "مهلة طلب HTTP بالميلي ثانية",
-    "api_key": "مفتاح API لخادم OmniRoute",
-    "base_url": "عنوان URL الأساسي لخادم OmniRoute",
+    "api_key": "مفتاح API لخادم Birouter",
+    "base_url": "عنوان URL الأساسي لخادم Birouter",
     "context": "سياق/ملف تعريف الخادم المستخدم في هذا الأمر",
-    "lang": "تعيين لغة عرض CLI (يتجاوز OMNIROUTE_LANG)"
+    "lang": "تعيين لغة عرض CLI (يتجاوز BIROUTER_LANG)"
   },
   "redis": {
-    "description": "تشغيل حاوية Redis محلية بضغطة واحدة (Podman أو Docker) لتخزين التخزين المؤقت وتتبع الحصة في OmniRoute"
+    "description": "تشغيل حاوية Redis محلية بضغطة واحدة (Podman أو Docker) لتخزين التخزين المؤقت وتتبع الحصة في Birouter"
   }
 }

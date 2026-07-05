@@ -7,14 +7,14 @@ function InterfaceMenuApp({ version, baseUrl, hasUpdate, latestVersion, onChoice
     <Box flexDirection="column" paddingX={2} paddingY={1}>
       <Box borderStyle="double" borderColor="cyan" paddingX={2} paddingY={1} flexDirection="column">
         <Text bold color="cyan">
-          ⚡ OmniRoute {version ? `v${version}` : ""}
+          ⚡ Birouter {version ? `v${version}` : ""}
         </Text>
         <Text dimColor>{baseUrl}</Text>
       </Box>
       {hasUpdate && (
         <Box marginTop={1}>
           <Text color="yellow">
-            ↑ Update available: v{latestVersion} (run `omniroute update --apply`)
+            ↑ Update available: v{latestVersion} (run `birouter update --apply`)
           </Text>
         </Box>
       )}

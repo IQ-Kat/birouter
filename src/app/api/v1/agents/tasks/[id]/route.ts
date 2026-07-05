@@ -14,7 +14,7 @@ import {
 } from "@/lib/cloudAgent/api";
 import { z } from "zod";
 import pino from "pino";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const logger = pino({ name: "cloud-agents-api" });
 

@@ -4,14 +4,14 @@ import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bu
 
 const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_SYNC_TIMEOUT_MS = Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
-const CLOUD_SYNC_SECRET = process.env.OMNIROUTE_CLOUD_SYNC_SECRET || "";
+const CLOUD_SYNC_SECRET = process.env.BIROUTER_CLOUD_SYNC_SECRET || "";
 
 // Opt-in: only when explicitly set to "true" will updateLocalTokens overwrite
 // accessToken/refreshToken/providerSpecificData from the Cloud response. Default
 // behaviour from v3.8.6 onward syncs only non-credential metadata (expiresAt,
 // status, lastError*, rateLimitedUntil, updatedAt) so a misconfigured or
 // hostile CLOUD_URL cannot silently swap user OAuth tokens.
-const CLOUD_SYNC_SECRETS_ENABLED = process.env.OMNIROUTE_CLOUD_SYNC_SECRETS === "true";
+const CLOUD_SYNC_SECRETS_ENABLED = process.env.BIROUTER_CLOUD_SYNC_SECRETS === "true";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -35,12 +35,12 @@ function toDateMs(value: unknown): number {
 // Closes the silent-credential-swap surface flagged by Socket.dev (finding for
 // `app/.next/server/app/api/keys/[id]/route.js`). Two-leg defence:
 //   1. The Cloud endpoint signs each response body with
-//      `HMAC-SHA256(OMNIROUTE_CLOUD_SYNC_SECRET, rawBody)` and returns the hex
+//      `HMAC-SHA256(BIROUTER_CLOUD_SYNC_SECRET, rawBody)` and returns the hex
 //      digest in `X-Cloud-Sig`.
 //   2. We verify the signature with `crypto.timingSafeEqual` before parsing the
 //      JSON, so a MITM on the CLOUD_URL channel — or a misconfigured CLOUD_URL
 //      pointing at an attacker — cannot inject providers/tokens.
-// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, signature validation is logged but
+// If `BIROUTER_CLOUD_SYNC_SECRET` is unset, signature validation is logged but
 // not enforced (back-compat for users on v3.8.x who haven't issued a shared
 // secret yet). The enforce-by-default switch will flip in v3.9.
 export function verifyCloudSignature(rawBody: string, sigHeader: string | null): boolean {
@@ -50,7 +50,7 @@ export function verifyCloudSignature(rawBody: string, sigHeader: string | null):
       return true;
     }
     console.warn(
-      "[cloudSync] OMNIROUTE_CLOUD_SYNC_SECRET is not set and the Cloud response carries no X-Cloud-Sig. " +
+      "[cloudSync] BIROUTER_CLOUD_SYNC_SECRET is not set and the Cloud response carries no X-Cloud-Sig. " +
         "Token sync runs in legacy unverified mode — set the secret to enforce HMAC verification."
     );
     return true;
@@ -160,7 +160,7 @@ export async function syncToCloud(machineId, createdKey = null) {
  * SECURITY-AUDITOR-NOTE: This function appears in Socket.dev finding for
  * `app/.next/server/app/api/keys/[id]/route.js`. From v3.8.6 onward,
  * `accessToken` / `refreshToken` / `providerSpecificData` are only synced when
- * `OMNIROUTE_CLOUD_SYNC_SECRETS=true`. The default mode syncs non-credential
+ * `BIROUTER_CLOUD_SYNC_SECRETS=true`. The default mode syncs non-credential
  * metadata only. Combined with `verifyCloudSignature()` above, this closes the
  * silent-credential-overwrite path. See docs/security/SOCKET_DEV_FINDINGS.md §5.
  */

@@ -6,7 +6,7 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { cursorImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContext } from "@birouter/open-sse/utils/proxyFetch.ts";
 
 async function requireOAuthImportAuth(request: Request) {
   if (!(await isAuthRequired(request))) return null;

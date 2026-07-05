@@ -14,7 +14,7 @@ import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 const TOOL_ID = "forge";
 
@@ -24,14 +24,14 @@ const getForgeConfigPath = (): string =>
 const getForgeDir = () => path.dirname(getForgeConfigPath());
 
 /**
- * Render the OmniRoute provider block in Forge TOML format.
+ * Render the Birouter provider block in Forge TOML format.
  * Forge uses a TOML config at ~/.forge/config.toml with an [openai] section.
  * Reference: https://github.com/antinomyhq/forge
  */
 function renderForgeConfig(baseUrl: string, apiKey: string, model: string): string {
   const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
   return [
-    "# Forge config — managed by OmniRoute (plan 14)",
+    "# Forge config — managed by Birouter (plan 14)",
     "",
     "[openai]",
     `api_key = "${apiKey}"`,
@@ -42,12 +42,12 @@ function renderForgeConfig(baseUrl: string, apiKey: string, model: string): stri
 }
 
 /**
- * Check if the config file contains OmniRoute settings.
- * Looks for the managed-by-OmniRoute marker comment.
+ * Check if the config file contains Birouter settings.
+ * Looks for the managed-by-Birouter marker comment.
  */
-const hasOmniRouteConfig = (content: string | null): boolean => {
+const hasBirouterConfig = (content: string | null): boolean => {
   if (!content) return false;
-  return content.includes("managed by OmniRoute");
+  return content.includes("managed by Birouter");
 };
 
 // Read current config.toml
@@ -94,18 +94,15 @@ export async function GET(request: Request) {
       runtimeMode: runtime.runtimeMode,
       reason: runtime.reason,
       config,
-      hasOmniRoute: hasOmniRouteConfig(config),
+      hasBirouter: hasBirouterConfig(config),
       configPath: getForgeConfigPath(),
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// POST — write OmniRoute settings to Forge config.toml
+// POST — write Birouter settings to Forge config.toml
 export async function POST(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -114,10 +111,7 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: { message: "Invalid JSON body" } },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
   try {
@@ -162,14 +156,11 @@ export async function POST(request: Request) {
       configPath,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// DELETE — remove Forge OmniRoute config
+// DELETE — remove Forge Birouter config
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -196,9 +187,6 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true, message: "Forge settings removed successfully" });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }

@@ -1,16 +1,14 @@
 // Regression: tool descriptions must always be strings for strict upstream
 // validation (e.g., NVIDIA NIM, Codex). Ports upstream PR decolua/9router#397
-// (Ibrahim Ryan), restricted to the gap that still exists in OmniRoute —
+// (Ibrahim Ryan), restricted to the gap that still exists in Birouter —
 // the two non-string-tolerant paths in openaiHelper.filterToOpenAIFormat
 // (Claude-style and Gemini-style tool normalization). The other locations
 // upstream-patched (claude-to-openai.ts, openai-responses.ts) already coerce
-// via String/toString in OmniRoute.
+// via String/toString in Birouter.
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const openaiHelper = await import(
-  "../../open-sse/translator/helpers/openaiHelper.ts"
-);
+const openaiHelper = await import("../../open-sse/translator/helpers/openaiHelper.ts");
 
 test("filterToOpenAIFormat coerces non-string Claude-tool description to string", () => {
   const result = openaiHelper.filterToOpenAIFormat({

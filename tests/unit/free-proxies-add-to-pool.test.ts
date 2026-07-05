@@ -6,11 +6,11 @@ import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-add-to-pool-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-add-to-pool-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
-delete process.env.OMNIROUTE_API_KEY;
+delete process.env.BIROUTER_API_KEY;
 
 const core = await import("../../src/lib/db/core.ts");
 const freeProxiesDb = await import("../../src/lib/db/freeProxies.ts");

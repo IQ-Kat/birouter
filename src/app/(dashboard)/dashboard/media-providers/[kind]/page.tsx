@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { resolveProviderServiceKinds } from "@omniroute/open-sse/config/mediaServiceKinds.ts";
+import { resolveProviderServiceKinds } from "@birouter/open-sse/config/mediaServiceKinds.ts";
 import type { MediaKind } from "../components/mediaKinds";
 import { MEDIA_KINDS } from "../components/mediaKinds";
 import MediaProviderKindNav from "../components/MediaProviderKindNav";

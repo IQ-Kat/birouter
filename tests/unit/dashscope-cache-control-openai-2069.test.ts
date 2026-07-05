@@ -88,7 +88,7 @@ describe("DashScope OpenAI-compat cache_control preservation (#2069)", () => {
     assert.equal(untagged?.cache_control, undefined);
   });
 
-  test("preserveCacheControl=false strips cache_control (OmniRoute manages caching)", () => {
+  test("preserveCacheControl=false strips cache_control (Birouter manages caching)", () => {
     const out = translateRequest(
       "claude",
       "openai",

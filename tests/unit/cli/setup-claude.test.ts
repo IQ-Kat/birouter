@@ -41,7 +41,7 @@ test("profile names match setup-codex (cross-CLI consistency)", () => {
 });
 
 test("syncClaudeProfilesFromModels writes directory-per-profile settings + threads baseUrl, skips non-ids", async () => {
-  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-profiles-"));
+  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-claude-profiles-"));
   try {
     const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }, { id: "" }], {
       claudeHome,
@@ -69,7 +69,7 @@ test("syncClaudeProfilesFromModels writes directory-per-profile settings + threa
 });
 
 test("syncClaudeProfilesFromModels dry-run writes nothing", async () => {
-  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-dry-"));
+  const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-claude-dry-"));
   try {
     const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }], {
       claudeHome,

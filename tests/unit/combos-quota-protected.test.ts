@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-quota-protected-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-quota-protected-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -90,7 +90,11 @@ test("PUT /api/combos/[id] returns 409 for a qtSd/* combo and does NOT mutate it
 
   // Verify the combo was NOT mutated
   const unchanged = await combosDb.getComboById(combo.id);
-  assert.equal(unchanged?.strategy, "priority", "Strategy must remain unchanged after rejected PUT");
+  assert.equal(
+    unchanged?.strategy,
+    "priority",
+    "Strategy must remain unchanged after rejected PUT"
+  );
 });
 
 // ---- non-quota combos still work ----
@@ -152,10 +156,7 @@ test("DELETE /api/combos/[id] returns 404 when combo does not exist", async () =
 
 test("combos page source filters isHidden from rendered list", async () => {
   const pageSource = fs.readFileSync(
-    new URL(
-      "../../src/app/(dashboard)/dashboard/combos/page.tsx",
-      import.meta.url
-    ).pathname,
+    new URL("../../src/app/(dashboard)/dashboard/combos/page.tsx", import.meta.url).pathname,
     "utf8"
   );
   assert.ok(

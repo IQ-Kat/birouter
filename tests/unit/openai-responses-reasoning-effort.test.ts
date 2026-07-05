@@ -7,7 +7,7 @@
  * to an OpenAI-native Chat Completions upstream).
  *
  * Ported from upstream PR https://github.com/decolua/9router/pull/1817 (ryanngit).
- * Adapted: OmniRoute previously promoted `reasoning.effort` only behind the
+ * Adapted: Birouter previously promoted `reasoning.effort` only behind the
  * Copilot-client gate (commit 75d9a83c25), which silently dropped the field for
  * every other Responses client (OpenCode, Cursor, raw OpenAI Responses, ...).
  * This test pins the unconditional promotion of effort while keeping the

@@ -1,4 +1,4 @@
-import { formatRetryAfter } from "@omniroute/open-sse/services/accountFallback.ts";
+import { formatRetryAfter } from "@birouter/open-sse/services/accountFallback.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
 
 const MAX_REQUEST_RETRY = 10;

@@ -8,7 +8,7 @@
  * nothing for the user to paste back. (The same flow works locally and over an SSH
  * tunnel because then the loopback IS reachable.)
  *
- * The workaround: a local helper (`omniroute login antigravity`) runs the OAuth on
+ * The workaround: a local helper (`birouter login antigravity`) runs the OAuth on
  * the user's own machine (loopback reachable → consent completes → tokens), then
  * encodes the raw token response into a single-line blob with this codec. The user
  * pastes the blob into the remote dashboard, which decodes it and persists the
@@ -21,7 +21,7 @@
  */
 
 /** Human-recognizable, copy-paste-safe prefix. The decoder requires it. */
-export const CREDENTIAL_BLOB_PREFIX = "omniroute-cred-v1.";
+export const CREDENTIAL_BLOB_PREFIX = "birouter-cred-v1.";
 
 /** Current blob schema version (embedded in the payload as `v`). */
 const CREDENTIAL_BLOB_VERSION = 1;

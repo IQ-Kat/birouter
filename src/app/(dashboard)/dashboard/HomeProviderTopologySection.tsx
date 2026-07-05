@@ -37,7 +37,7 @@ export function HomeProviderTopologySection({
         <div>
           <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
           <p className="text-xs text-text-muted">
-            Connected providers routing through OmniRoute in real time
+            Connected providers routing through Birouter in real time
           </p>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-text-muted">

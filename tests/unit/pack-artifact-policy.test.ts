@@ -80,7 +80,7 @@ test("dist/tls-options.mjs is a required tarball path (regression guard for #545
   );
 });
 
-test("setupPolyfill.ts is allowed in the tarball (bin/omniroute.mjs imports it at startup)", () => {
+test("setupPolyfill.ts is allowed in the tarball (bin/birouter.mjs imports it at startup)", () => {
   const unexpectedPaths = findUnexpectedArtifactPaths(["open-sse/utils/setupPolyfill.ts"], {
     exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
     prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
@@ -93,7 +93,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
   const missingPaths = findMissingArtifactPaths(
     [
       "dist/server.js",
-      "bin/omniroute.mjs",
+      "bin/birouter.mjs",
       "package.json",
       "scripts/build/postinstall.mjs",
       "scripts/build/postinstallSupport.mjs",
@@ -103,7 +103,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
 
   // findMissingArtifactPaths returns the missing required paths sorted
   // alphabetically (bin/ < dist/ < scripts/ < src/), minus the paths present
-  // above (dist/server.js, bin/omniroute.mjs, package.json, the postinstall scripts).
+  // above (dist/server.js, bin/birouter.mjs, package.json, the postinstall scripts).
   assert.deepEqual(missingPaths, [
     "bin/cli/program.mjs",
     "bin/mcp-server.mjs",

@@ -2,7 +2,7 @@
  * zodToTsSignature — converts a Zod v4 object schema into a compact one-line
  * TypeScript function signature string. Never throws.
  *
- * Example output: `omniroute_tool_search(args: { query: string; limit?: number })`
+ * Example output: `birouter_tool_search(args: { query: string; limit?: number })`
  */
 
 type ZodLike = { type?: string; _def?: Record<string, unknown>; shape?: Record<string, ZodLike> };
@@ -45,7 +45,9 @@ function zodTypeToTs(field: ZodLike, depth = 0): string {
   }
   if (t === "object" && depth < 2) {
     const shape =
-      core.shape ?? ((core._def as Record<string, unknown> | undefined)?.shape as Record<string, ZodLike> | undefined);
+      core.shape ??
+      ((core._def as Record<string, unknown> | undefined)?.shape as
+        Record<string, ZodLike> | undefined);
     if (shape && typeof shape === "object") {
       const fields = Object.entries(shape)
         .map(([k, v]) => {
@@ -73,7 +75,8 @@ export function zodToTsSignature(name: string, inputSchema?: unknown): string {
 
     const shape =
       schema.shape ??
-      ((schema._def as Record<string, unknown> | undefined)?.shape as Record<string, ZodLike> | undefined);
+      ((schema._def as Record<string, unknown> | undefined)?.shape as
+        Record<string, ZodLike> | undefined);
     if (!shape || typeof shape !== "object" || Object.keys(shape).length === 0) {
       return `${name}()`;
     }

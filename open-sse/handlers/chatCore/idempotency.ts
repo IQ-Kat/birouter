@@ -1,6 +1,6 @@
 import { getIdempotencyKey, checkIdempotency } from "@/lib/idempotencyLayer";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachBirouterMetaHeaders } from "@/domain/birouterResponseMeta";
 
 /**
  * Resolve the request's idempotency key once and check the idempotency store. Returns the
@@ -30,8 +30,7 @@ export async function checkIdempotencyCache({
     const idempotentUsage =
       cachedIdemp.response && typeof cachedIdemp.response === "object"
         ? ((cachedIdemp.response as Record<string, unknown>).usage as
-            | Record<string, unknown>
-            | undefined)
+            Record<string, unknown> | undefined)
         : undefined;
     const idempotentCost = idempotentUsage
       ? await calculateCost(provider, model, idempotentUsage as Record<string, number>, {
@@ -40,9 +39,9 @@ export async function checkIdempotencyCache({
       : 0;
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      "X-OmniRoute-Idempotent": "true",
+      "X-Birouter-Idempotent": "true",
     };
-    attachOmniRouteMetaHeaders(headers, {
+    attachBirouterMetaHeaders(headers, {
       provider,
       model,
       cacheHit: false,

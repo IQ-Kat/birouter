@@ -4,13 +4,13 @@ import { backupDbFile } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { runJsonMigration, type LegacyJsonData } from "@/lib/db/jsonMigration";
 import { getSettings } from "@/lib/db/settings";
-import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { setSystemPromptConfig } from "@birouter/open-sse/services/systemPrompt.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * POST /api/settings/import-json
  *
- * Imports a legacy OmniRoute JSON backup into the current SQLite
+ * Imports a legacy Birouter JSON backup into the current SQLite
  * database.  Accepts either multipart/form-data (file field) or a raw JSON body.
  *
  * 🔒 Auth-guarded.

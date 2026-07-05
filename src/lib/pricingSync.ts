@@ -97,7 +97,7 @@ const SYNC_SOURCES = (process.env.PRICING_SYNC_SOURCES || "litellm")
 const LITELLM_PRICING_URL =
   "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json";
 
-// ─── Provider mapping: LiteLLM provider → OmniRoute aliases ─────
+// ─── Provider mapping: LiteLLM provider → Birouter aliases ─────
 
 const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   openai: ["openai", "cx"],
@@ -149,15 +149,15 @@ export async function fetchLiteLLMPricing(): Promise<Record<string, LiteLLMModel
 }
 
 /**
- * Transform LiteLLM raw data → OmniRoute PricingByProvider format.
+ * Transform LiteLLM raw data → Birouter PricingByProvider format.
  *
- * Conversion: cost_per_token × 1_000_000 → $/1M tokens (OmniRoute format).
+ * Conversion: cost_per_token × 1_000_000 → $/1M tokens (Birouter format).
  * Ingests both chat (token) AND non-token modes (image / audio / rerank /
  * video / embedding). Token pricing is scaled to $/1M; non-token fields
  * (per-image, per-second, per-character, search-unit, …) are carried through
  * verbatim as absolute USD.
  */
-export function transformToOmniRoute(raw: Record<string, LiteLLMModelInfo>): PricingByProvider {
+export function transformToBirouter(raw: Record<string, LiteLLMModelInfo>): PricingByProvider {
   const result: PricingByProvider = {};
 
   for (const [modelKey, info] of Object.entries(raw)) {
@@ -207,12 +207,12 @@ export function transformToOmniRoute(raw: Record<string, LiteLLMModelInfo>): Pri
     const slashIdx = modelKey.indexOf("/");
     const modelName = slashIdx >= 0 ? modelKey.slice(slashIdx + 1) : modelKey;
 
-    // Map to OmniRoute providers
+    // Map to Birouter providers
     const litellmProvider = info.litellm_provider || "";
-    const omniRouteProviders = LITELLM_PROVIDER_MAP[litellmProvider];
+    const biRouteProviders = LITELLM_PROVIDER_MAP[litellmProvider];
 
-    if (omniRouteProviders) {
-      for (const provider of omniRouteProviders) {
+    if (biRouteProviders) {
+      for (const provider of biRouteProviders) {
         if (!result[provider]) result[provider] = {};
         result[provider][modelName] = entry;
       }
@@ -323,7 +323,7 @@ export async function syncPricingFromSources(opts?: {
     for (const source of validSources) {
       if (source === "litellm") {
         const raw = await fetchLiteLLMPricing();
-        const transformed = transformToOmniRoute(raw);
+        const transformed = transformToBirouter(raw);
         for (const [provider, models] of Object.entries(transformed)) {
           if (!aggregated[provider]) aggregated[provider] = {};
           Object.assign(aggregated[provider], models);

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const APP_NAME = "omniroute";
+const APP_NAME = "birouter";
 
 function normalizeConfiguredPath(value) {
   if (typeof value !== "string") return null;

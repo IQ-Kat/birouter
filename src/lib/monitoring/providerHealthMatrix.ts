@@ -2,8 +2,8 @@ import { getSyncedAvailableModelsByConnection } from "@/lib/db/models";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getDbInstance } from "@/lib/db/core";
 import { getAllCircuitBreakerStatuses } from "@/shared/utils/circuitBreaker";
-import { getAllModelLockouts } from "@omniroute/open-sse/services/accountFallback";
-import { getWebSessionPoolHealth } from "@omniroute/open-sse/services/webSessionPoolHealth";
+import { getAllModelLockouts } from "@birouter/open-sse/services/accountFallback";
+import { getWebSessionPoolHealth } from "@birouter/open-sse/services/webSessionPoolHealth";
 
 type JsonRecord = Record<string, unknown>;
 

@@ -34,7 +34,7 @@ The watchdog monitors three main components:
 
 When running Birouter as a desktop application, it integrates directly with the system tray (running in the OS background):
 
-- **Rebranded Interface**: Tooltips, menu labels, and notifications are customized as **Birouter** (instead of OmniRoute).
+- **Rebranded Interface**: Tooltips, menu labels, and notifications are customized as **Birouter** (instead of Birouter).
 - **Double-Click Actions**: Double-clicking the tray icon opens the main Birouter app interface.
 - **Port Swapping**: You can change the server port directly from the system tray menu. The desktop app handles server teardown, tree-kills any orphaned processes on Windows, and binds the Next.js server to the new port cleanly.
 - **Autostart Support**: On Windows and Linux, the desktop app supports launching minimized in the background.

@@ -24,7 +24,7 @@ import {
   batchUpdateProviderConnectionsSchema,
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { normalizeQoderPatProviderData } from "@omniroute/open-sse/services/qoderCli";
+import { normalizeQoderPatProviderData } from "@birouter/open-sse/services/qoderCli";
 import {
   normalizeProviderSpecificData,
   sanitizeProviderSpecificDataForResponse,

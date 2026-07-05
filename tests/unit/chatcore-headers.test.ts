@@ -1,7 +1,10 @@
 import test, { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { getHeaderValueCaseInsensitive, resolveCompressionHeader } from "../../open-sse/handlers/chatCore/headers.ts";
+import {
+  getHeaderValueCaseInsensitive,
+  resolveCompressionHeader,
+} from "../../open-sse/handlers/chatCore/headers.ts";
 
 test("getHeaderValueCaseInsensitive reads a Headers instance via .get()", () => {
   const h = new Headers({ "Content-Type": "text/event-stream" });
@@ -42,20 +45,26 @@ test("getHeaderValueCaseInsensitive returns null for null/undefined/non-object i
   assert.equal(getHeaderValueCaseInsensitive(undefined, "accept"), null);
   // a non-object (typeof !== "object") short-circuits to null
   assert.equal(
-    getHeaderValueCaseInsensitive("text/event-stream" as unknown as Record<string, unknown>, "accept"),
+    getHeaderValueCaseInsensitive(
+      "text/event-stream" as unknown as Record<string, unknown>,
+      "accept"
+    ),
     null
   );
 });
 
 describe("resolveCompressionHeader", () => {
   it("reads the raw value case-insensitively and trims it", () => {
-    assert.equal(resolveCompressionHeader({ "x-omniroute-compression": "  engine:rtk " }), "engine:rtk");
-    assert.equal(resolveCompressionHeader(new Headers({ "X-OmniRoute-Compression": "off" })), "off");
+    assert.equal(
+      resolveCompressionHeader({ "x-birouter-compression": "  engine:rtk " }),
+      "engine:rtk"
+    );
+    assert.equal(resolveCompressionHeader(new Headers({ "X-Birouter-Compression": "off" })), "off");
   });
 
   it("returns null when absent or blank", () => {
     assert.equal(resolveCompressionHeader({}), null);
-    assert.equal(resolveCompressionHeader({ "x-omniroute-compression": "   " }), null);
+    assert.equal(resolveCompressionHeader({ "x-birouter-compression": "   " }), null);
     assert.equal(resolveCompressionHeader(null), null);
   });
 });

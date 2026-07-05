@@ -1,15 +1,15 @@
 ---
-title: "OmniRoute Agent Skills Catalog"
+title: "Birouter Agent Skills Catalog"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute Agent Skills Catalog
+# Birouter Agent Skills Catalog
 
 > **Source of truth:** `src/lib/agentSkills/` (catalog, generator, parsers) + `skills/` directory (SKILL.md files)
 > **Last updated:** 2026-06-28 — v3.8.40
 
-Agent Skills are structured SKILL.md files that teach external agents, MCP clients, and A2A orchestrators how to use OmniRoute's REST API and CLI. Unlike [Omni Skills](./SKILLS.md) (which are LLM tool definitions executed inside OmniRoute), Agent Skills are a _documentation catalog_ — static markdown that can be fed directly into agent context.
+Agent Skills are structured SKILL.md files that teach external agents, MCP clients, and A2A orchestrators how to use Birouter's REST API and CLI. Unlike [Bi Skills](./SKILLS.md) (which are LLM tool definitions executed inside Birouter), Agent Skills are a _documentation catalog_ — static markdown that can be fed directly into agent context.
 
 ---
 
@@ -17,10 +17,10 @@ Agent Skills are structured SKILL.md files that teach external agents, MCP clien
 
 The catalog contains **42 canonical Agent Skills** (22 REST API + 20 CLI). Each skill has:
 
-- A **canonical ID** (`omni-auth`, `cli-serve`, etc.)
+- A **canonical ID** (`bi-auth`, `cli-serve`, etc.)
 - A **SKILL.md** file in `skills/{id}/SKILL.md` with YAML frontmatter (`name`, `description`) + rich markdown body
 - **REST endpoints** (API skills) or **CLI subcommands** (CLI skills) derived from the OpenAPI spec and CLI registry
-- A **GitHub raw URL** for live fetch: `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills/{id}/SKILL.md`
+- A **GitHub raw URL** for live fetch: `https://raw.githubusercontent.com/IQ-Kat/birouter/refs/heads/main/skills/{id}/SKILL.md`
 
 ---
 
@@ -55,7 +55,7 @@ src/lib/a2a/skills/listCapabilities.ts        — A2A skill: list-capabilities
 
 ```markdown
 ---
-name: omni-providers
+name: bi-providers
 description: "Manage provider connections: add, test, rotate, and remove credentials."
 ---
 
@@ -84,7 +84,7 @@ description: "Manage provider connections: add, test, rotate, and remove credent
 
 The generator preserves content between `<!-- skill:custom-start -->` and `<!-- skill:custom-end -->` on regeneration. Ten skills have curated custom blocks:
 
-`omni-mcp`, `omni-compression`, `cli-providers`, `cli-eval`, `omni-agents-a2a`, `omni-combos-routing`, `omni-auth`, `omni-resilience`, `omni-inference`, `cli-serve`.
+`bi-mcp`, `bi-compression`, `cli-providers`, `cli-eval`, `bi-agents-a2a`, `bi-combos-routing`, `bi-auth`, `bi-resilience`, `bi-inference`, `cli-serve`.
 
 ---
 
@@ -107,7 +107,7 @@ curl "http://localhost:20128/api/agent-skills?category=api"
 Example — fetch a single SKILL.md:
 
 ```bash
-curl -H "Accept: text/markdown" "http://localhost:20128/api/agent-skills/omni-providers/raw"
+curl -H "Accept: text/markdown" "http://localhost:20128/api/agent-skills/bi-providers/raw"
 ```
 
 ---
@@ -116,11 +116,11 @@ curl -H "Accept: text/markdown" "http://localhost:20128/api/agent-skills/omni-pr
 
 Three MCP tools are registered under scope `read:catalog`:
 
-| Tool                              | Description                                        |
-| :-------------------------------- | :------------------------------------------------- |
-| `omniroute_agent_skills_list`     | List skills (optional `category` / `area` filters) |
-| `omniroute_agent_skills_get`      | Get metadata + SKILL.md for one skill by `id`      |
-| `omniroute_agent_skills_coverage` | Coverage stats (API/CLI have/total)                |
+| Tool                             | Description                                        |
+| :------------------------------- | :------------------------------------------------- |
+| `birouter_agent_skills_list`     | List skills (optional `category` / `area` filters) |
+| `birouter_agent_skills_get`      | Get metadata + SKILL.md for one skill by `id`      |
+| `birouter_agent_skills_coverage` | Coverage stats (API/CLI have/total)                |
 
 See [MCP-SERVER.md](./MCP-SERVER.md) for scope wiring and authentication.
 
@@ -150,55 +150,55 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for protocol details.
 
 ### API Skills (22)
 
-| ID                     | Area            | Entry Point                         |
-| :--------------------- | :-------------- | :---------------------------------- |
-| `omni-auth`            | auth            | Auth + session management           |
-| `omni-providers`       | providers       | Provider connection management      |
-| `omni-models`          | models          | Model catalog and capabilities      |
-| `omni-combos-routing`  | combos-routing  | Combo routing strategies            |
-| `omni-api-keys`        | api-keys        | API key management                  |
-| `omni-usage-logs`      | usage-logs      | Usage and cost logs                 |
-| `omni-budget`          | budget          | Budget guards                       |
-| `omni-settings`        | settings        | Global settings                     |
-| `omni-proxies`         | proxies         | Proxy pool management               |
-| `omni-cache`           | cache           | Semantic + prompt cache             |
-| `omni-compression`     | compression     | Context compression engines         |
-| `omni-context-rtk`     | context-rtk     | RTK compression                     |
-| `omni-resilience`      | resilience      | Circuit breakers + cooldowns        |
-| `omni-cli-tools`       | cli-tools       | CLI tools REST proxy                |
-| `omni-tunnels`         | tunnels         | Tunnel management                   |
-| `omni-sync-cloud`      | sync-cloud      | Cloud sync                          |
-| `omni-db-backups`      | db-backups      | Database backups                    |
-| `omni-webhooks`        | webhooks        | Webhook event dispatcher            |
-| `omni-mcp`             | mcp             | MCP server (87 tools, 3 transports) |
-| `omni-agents-a2a`      | agents-a2a      | A2A agent protocol                  |
-| `omni-version-manager` | version-manager | Version and update management       |
-| `omni-inference`       | inference       | Direct inference / completions      |
+| ID                   | Area            | Entry Point                         |
+| :------------------- | :-------------- | :---------------------------------- |
+| `bi-auth`            | auth            | Auth + session management           |
+| `bi-providers`       | providers       | Provider connection management      |
+| `bi-models`          | models          | Model catalog and capabilities      |
+| `bi-combos-routing`  | combos-routing  | Combo routing strategies            |
+| `bi-api-keys`        | api-keys        | API key management                  |
+| `bi-usage-logs`      | usage-logs      | Usage and cost logs                 |
+| `bi-budget`          | budget          | Budget guards                       |
+| `bi-settings`        | settings        | Global settings                     |
+| `bi-proxies`         | proxies         | Proxy pool management               |
+| `bi-cache`           | cache           | Semantic + prompt cache             |
+| `bi-compression`     | compression     | Context compression engines         |
+| `bi-context-rtk`     | context-rtk     | RTK compression                     |
+| `bi-resilience`      | resilience      | Circuit breakers + cooldowns        |
+| `bi-cli-tools`       | cli-tools       | CLI tools REST proxy                |
+| `bi-tunnels`         | tunnels         | Tunnel management                   |
+| `bi-sync-cloud`      | sync-cloud      | Cloud sync                          |
+| `bi-db-backups`      | db-backups      | Database backups                    |
+| `bi-webhooks`        | webhooks        | Webhook event dispatcher            |
+| `bi-mcp`             | mcp             | MCP server (87 tools, 3 transports) |
+| `bi-agents-a2a`      | agents-a2a      | A2A agent protocol                  |
+| `bi-version-manager` | version-manager | Version and update management       |
+| `bi-inference`       | inference       | Direct inference / completions      |
 
 ### CLI Skills (20)
 
-| ID                   | Area               | CLI Command Root        |
-| :------------------- | :----------------- | :---------------------- |
-| `cli-serve`          | cli-serve          | `omniroute serve`       |
-| `cli-health`         | cli-health         | `omniroute health`      |
-| `cli-providers`      | cli-providers      | `omniroute providers`   |
-| `cli-keys`           | cli-keys           | `omniroute keys`        |
-| `cli-models`         | cli-models         | `omniroute models`      |
-| `cli-chat`           | cli-chat           | `omniroute chat`        |
-| `cli-routing`        | cli-routing        | `omniroute routing`     |
-| `cli-resilience`     | cli-resilience     | `omniroute resilience`  |
-| `cli-compression`    | cli-compression    | `omniroute compression` |
-| `cli-contexts`       | cli-contexts       | `omniroute contexts`    |
-| `cli-cost-usage`     | cli-cost-usage     | `omniroute cost`        |
-| `cli-mcp`            | cli-mcp            | `omniroute mcp`         |
-| `cli-a2a`            | cli-a2a            | `omniroute a2a`         |
-| `cli-tunnel`         | cli-tunnel         | `omniroute tunnel`      |
-| `cli-backup-sync`    | cli-backup-sync    | `omniroute backup`      |
-| `cli-policy-audit`   | cli-policy-audit   | `omniroute policy`      |
-| `cli-batches`        | cli-batches        | `omniroute batch`       |
-| `cli-eval`           | cli-eval           | `omniroute eval`        |
-| `cli-plugins-skills` | cli-plugins-skills | `omniroute plugins`     |
-| `cli-setup`          | cli-setup          | `omniroute setup`       |
+| ID                   | Area               | CLI Command Root       |
+| :------------------- | :----------------- | :--------------------- |
+| `cli-serve`          | cli-serve          | `birouter serve`       |
+| `cli-health`         | cli-health         | `birouter health`      |
+| `cli-providers`      | cli-providers      | `birouter providers`   |
+| `cli-keys`           | cli-keys           | `birouter keys`        |
+| `cli-models`         | cli-models         | `birouter models`      |
+| `cli-chat`           | cli-chat           | `birouter chat`        |
+| `cli-routing`        | cli-routing        | `birouter routing`     |
+| `cli-resilience`     | cli-resilience     | `birouter resilience`  |
+| `cli-compression`    | cli-compression    | `birouter compression` |
+| `cli-contexts`       | cli-contexts       | `birouter contexts`    |
+| `cli-cost-usage`     | cli-cost-usage     | `birouter cost`        |
+| `cli-mcp`            | cli-mcp            | `birouter mcp`         |
+| `cli-a2a`            | cli-a2a            | `birouter a2a`         |
+| `cli-tunnel`         | cli-tunnel         | `birouter tunnel`      |
+| `cli-backup-sync`    | cli-backup-sync    | `birouter backup`      |
+| `cli-policy-audit`   | cli-policy-audit   | `birouter policy`      |
+| `cli-batches`        | cli-batches        | `birouter batch`       |
+| `cli-eval`           | cli-eval           | `birouter eval`        |
+| `cli-plugins-skills` | cli-plugins-skills | `birouter plugins`     |
+| `cli-setup`          | cli-setup          | `birouter setup`       |
 
 ---
 
@@ -208,17 +208,17 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for protocol details.
 
 ```bash
 # Get the full catalog
-curl "http://your-omniroute/api/agent-skills" | jq '.skills[] | {id, name, category}'
+curl "http://your-birouter/api/agent-skills" | jq '.skills[] | {id, name, category}'
 
 # Get SKILL.md for context injection
-curl "http://your-omniroute/api/agent-skills/omni-providers/raw" > omni-providers.md
+curl "http://your-birouter/api/agent-skills/bi-providers/raw" > bi-providers.md
 ```
 
 ### 2. Discovery via MCP
 
 ```typescript
 // In a Claude Desktop / Cursor MCP client:
-const result = await client.callTool("omniroute_agent_skills_list", { category: "api" });
+const result = await client.callTool("birouter_agent_skills_list", { category: "api" });
 // result.skills → array of AgentSkill with rawUrl for each
 ```
 
@@ -227,7 +227,7 @@ const result = await client.callTool("omniroute_agent_skills_list", { category: 
 ```python
 import requests
 
-resp = requests.post("http://your-omniroute/a2a", json={
+resp = requests.post("http://your-birouter/a2a", json={
     "jsonrpc": "2.0", "id": "1",
     "method": "message/send",
     "params": {"skill": "list-capabilities", "messages": [{"role": "user", "content": "list"}]}
@@ -239,8 +239,8 @@ table = resp.json()["result"]["artifacts"][0]["content"]
 ### 4. Direct GitHub raw fetch (no server required)
 
 ```bash
-BASE="https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills"
-curl "${BASE}/omni-providers/SKILL.md"
+BASE="https://raw.githubusercontent.com/IQ-Kat/birouter/refs/heads/main/skills"
+curl "${BASE}/bi-providers/SKILL.md"
 ```
 
 ---
@@ -266,14 +266,14 @@ curl -X POST http://localhost:20128/api/agent-skills/generate \
 curl -X POST http://localhost:20128/api/agent-skills/generate \
   -H "Authorization: Bearer <admin-key>" \
   -H "Content-Type: application/json" \
-  -d '{"dryRun":false,"onlyIds":["omni-providers","cli-serve"]}'
+  -d '{"dryRun":false,"onlyIds":["bi-providers","cli-serve"]}'
 ```
 
 The generator response is a `GeneratorReport`:
 
 ```json
 {
-  "generated": ["omni-providers", "cli-serve"],
+  "generated": ["bi-providers", "cli-serve"],
   "unchanged": [],
   "pruned": [],
   "orphansDetected": [],
@@ -302,8 +302,8 @@ curl "http://localhost:20128/api/agent-skills/coverage"
 
 ## Related
 
-- [SKILLS.md](./SKILLS.md) — Omni Skills framework (LLM tool injection + marketplace)
-- [MCP-SERVER.md](./MCP-SERVER.md) — MCP tool catalog (`omniroute_agent_skills_*` tools)
+- [SKILLS.md](./SKILLS.md) — Bi Skills framework (LLM tool injection + marketplace)
+- [MCP-SERVER.md](./MCP-SERVER.md) — MCP tool catalog (`birouter_agent_skills_*` tools)
 - [A2A-SERVER.md](./A2A-SERVER.md) — A2A protocol (`list-capabilities` skill)
 - `src/lib/agentSkills/` — catalog, generator, parsers
 - `skills/` — generated SKILL.md files (42 entries)

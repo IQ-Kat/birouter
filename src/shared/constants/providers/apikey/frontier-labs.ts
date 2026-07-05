@@ -21,9 +21,9 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "RK",
     website: "https://docs.reka.ai/chat/overview",
     authHint:
-      "Use your Reka API key. OmniRoute supports the OpenAI-compatible base URL https://api.reka.ai/v1 and sends both Authorization and X-Api-Key headers for compatibility.",
+      "Use your Reka API key. Birouter supports the OpenAI-compatible base URL https://api.reka.ai/v1 and sends both Authorization and X-Api-Key headers for compatibility.",
     apiHint:
-      "Reka Chat is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions.",
+      "Reka Chat is OpenAI-compatible on /v1. Birouter probes /v1/models and routes chat traffic to /v1/chat/completions.",
     hasFree: true,
     freeNote: "$10/month recurring free API credits",
   },
@@ -217,7 +217,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     textIcon: "NO",
     website: "https://portal.nousresearch.com/help",
     authHint:
-      "Use your Nous Portal API key. OmniRoute targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1.",
+      "Use your Nous Portal API key. Birouter targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1.",
     apiHint:
       "Nous exposes an OpenAI-compatible /v1 surface with a large remote /models catalog. The /chat/completions endpoint requires a valid API key for programmatic inference.",
     hasFree: true,

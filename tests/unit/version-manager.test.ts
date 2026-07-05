@@ -9,7 +9,7 @@ import { createRequire, syncBuiltinESMExports } from "node:module";
 const require = createRequire(import.meta.url);
 const childProcess = require("node:child_process");
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-version-manager-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-version-manager-"));
 const TEST_CONFIG_DIR = path.join(TEST_DATA_DIR, "cliproxyapi-config");
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.CLIPROXYAPI_CONFIG_DIR = TEST_CONFIG_DIR;

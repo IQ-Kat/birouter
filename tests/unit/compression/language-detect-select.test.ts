@@ -11,8 +11,8 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { detectCompressionLanguage } from "@omniroute/open-sse/services/compression/languageDetector.ts";
-import { cavemanCompress } from "@omniroute/open-sse/services/compression/caveman.ts";
+import { detectCompressionLanguage } from "@birouter/open-sse/services/compression/languageDetector.ts";
+import { cavemanCompress } from "@birouter/open-sse/services/compression/caveman.ts";
 
 test("detector ignores single English-ambiguous keywords (configuration/error)", () => {
   assert.equal(
@@ -30,17 +30,17 @@ test("auto-detect uses the detected pt-BR pack, not the mangling English pack (B
   // pt-BR prose with an article the English `articles` rule would delete ("a configuração").
   const text =
     "Por favor, você poderia revisar a configuração do arquivo? Obrigado pela ajuda com isso.";
-  const res = cavemanCompress({ messages: [{ role: "user", content: text }] } as Record<
-    string,
-    unknown
-  >, {
-    enabled: true,
-    autoDetectLanguage: true,
-    enabledLanguagePacks: ["en"], // the production-default that used to force the English pack
-    intensity: "full",
-    compressRoles: ["user"],
-    minMessageLength: 0,
-  } as Record<string, unknown>);
+  const res = cavemanCompress(
+    { messages: [{ role: "user", content: text }] } as Record<string, unknown>,
+    {
+      enabled: true,
+      autoDetectLanguage: true,
+      enabledLanguagePacks: ["en"], // the production-default that used to force the English pack
+      intensity: "full",
+      compressRoles: ["user"],
+      minMessageLength: 0,
+    } as Record<string, unknown>
+  );
   const rules = res.stats?.rulesApplied ?? [];
   // A pt-BR rule must have run (proves the pt-BR pack was selected, not English).
   assert.ok(

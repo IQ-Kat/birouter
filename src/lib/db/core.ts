@@ -179,7 +179,7 @@ if (!isCloud && !fs.existsSync(DATA_DIR)) {
     console.warn(
       `[DB] Cannot create data directory '${DATA_DIR}': ${msg}\n` +
         `[DB] Set the DATA_DIR environment variable to a writable path, e.g.:\n` +
-        `[DB]   DATA_DIR=/path/to/writable/dir omniroute`
+        `[DB]   DATA_DIR=/path/to/writable/dir birouter`
     );
   }
 }
@@ -461,18 +461,18 @@ const SCHEMA_SQL = `
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  var __omnirouteDb: SqliteAdapter | undefined;
+  var __birouterDb: SqliteAdapter | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
-  return globalThis.__omnirouteDb ?? null;
+  return globalThis.__birouterDb ?? null;
 }
 
 function setDb(db: SqliteDatabase | null): void {
   if (db) {
-    globalThis.__omnirouteDb = db;
+    globalThis.__birouterDb = db;
   } else {
-    delete globalThis.__omnirouteDb;
+    delete globalThis.__birouterDb;
   }
 }
 
@@ -793,7 +793,7 @@ function isAutomatedTestProcess(): boolean {
 }
 
 function shouldRunStartupDbHealthCheck(): boolean {
-  if (process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK === "1") return true;
+  if (process.env.BIROUTER_FORCE_DB_HEALTHCHECK === "1") return true;
   return !isAutomatedTestProcess();
 }
 
@@ -877,7 +877,7 @@ function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
 let dbHealthCheckTimer: NodeJS.Timeout | null = null;
 
 function getDbHealthCheckIntervalMs(): number {
-  const rawValue = process.env.OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS;
+  const rawValue = process.env.BIROUTER_DB_HEALTHCHECK_INTERVAL_MS;
   if (typeof rawValue === "string" && rawValue.trim().length > 0) {
     const parsed = Number(rawValue);
     if (Number.isFinite(parsed) && parsed >= 0) {
@@ -906,7 +906,7 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
       if (!db.open) return;
       runDbHealthCheck(db, {
         autoRepair: true,
-        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
+        skipIntegrityCheck: process.env.BIROUTER_SKIP_DB_HEALTHCHECK === "1",
         expectedSchemaVersion: "1",
         createBackupBeforeRepair: () => createHealthCheckBackup(db),
       });
@@ -996,8 +996,7 @@ export function getDbInstance(): SqliteDatabase {
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            | { c: number }
-            | undefined;
+            { c: number } | undefined;
           hasData = Boolean(count && count.c > 0);
         } catch {
           // Table might not exist at all — truly incompatible
@@ -1098,12 +1097,12 @@ export function getDbInstance(): SqliteDatabase {
   // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)
   // then run any new migrations (002+)
   db.exec(`
-    CREATE TABLE IF NOT EXISTS _omniroute_migrations (
+    CREATE TABLE IF NOT EXISTS _birouter_migrations (
       version TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
-    INSERT OR IGNORE INTO _omniroute_migrations (version, name)
+    INSERT OR IGNORE INTO _birouter_migrations (version, name)
     VALUES ('001', 'initial_schema');
   `);
 
@@ -1148,9 +1147,9 @@ export function getDbInstance(): SqliteDatabase {
   );
   versionStmt.run();
   if (shouldRunStartupDbHealthCheck()) {
-    const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+    const skipIntegrityCheck = process.env.BIROUTER_SKIP_DB_HEALTHCHECK === "1";
     if (skipIntegrityCheck) {
-      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
+      console.log("[DB] Health check skipped (BIROUTER_SKIP_DB_HEALTHCHECK=1)");
     }
     runDbHealthCheck(db, {
       autoRepair: true,
@@ -1257,7 +1256,7 @@ export function getDriverInfo(): DbDriverInfo | null {
  *
  * Call this at process startup (before any call to getDbInstance()) so that
  * if the bundled better-sqlite3 binary is unavailable, the runtime installer
- * can place it in ~/.omniroute/runtime/ without blocking a synchronous caller.
+ * can place it in ~/.birouter/runtime/ without blocking a synchronous caller.
  *
  * Idempotent — safe to call multiple times.
  */

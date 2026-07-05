@@ -5,12 +5,12 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolated DATA_DIR before any module that may open the SQLite singleton.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-media-cost-h-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-media-cost-h-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "media-cost-h-test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
+const { BIROUTER_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 const { saveSyncedPricing } = await import("../../src/lib/pricingSync.ts");
 const rerankHandler = await import("../../open-sse/handlers/rerank.ts");
 const moderationHandler = await import("../../open-sse/handlers/moderations.ts");
@@ -34,14 +34,14 @@ test.after(() => {
 });
 
 // Shared assertions: every successful media Response must carry the
-// X-OmniRoute-* cost telemetry headers (parity with chat/embeddings).
-// Cost may legitimately be 0 (free / unpriced modality) — formatOmniRouteCost
+// X-Birouter-* cost telemetry headers (parity with chat/embeddings).
+// Cost may legitimately be 0 (free / unpriced modality) — formatBirouterCost
 // still emits a fixed-10-decimal string ("0.0000000000"), so the format check
 // holds regardless.
 function assertCostTelemetryHeaders(response: Response) {
   assert.equal(response.status, 200);
 
-  const cost = response.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost);
+  const cost = response.headers.get(BIROUTER_RESPONSE_HEADERS.responseCost);
   assert.ok(cost, "response cost header must be present");
   assert.match(
     cost as string,
@@ -49,10 +49,10 @@ function assertCostTelemetryHeaders(response: Response) {
     `cost header must be a fixed-10-decimal number, got: ${cost}`
   );
 
-  const version = response.headers.get(OMNIROUTE_RESPONSE_HEADERS.version);
+  const version = response.headers.get(BIROUTER_RESPONSE_HEADERS.version);
   assert.ok(version && version.trim().length > 0, "version header must be non-empty");
 
-  const provider = response.headers.get(OMNIROUTE_RESPONSE_HEADERS.provider);
+  const provider = response.headers.get(BIROUTER_RESPONSE_HEADERS.provider);
   assert.ok(provider && provider.trim().length > 0, "provider header must be present");
 }
 
@@ -84,7 +84,7 @@ test("rerank handler success Response carries cost telemetry headers", async () 
 
   assertCostTelemetryHeaders(response);
   assert.equal(
-    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.provider),
+    response.headers.get(BIROUTER_RESPONSE_HEADERS.provider),
     "cohere",
     "provider header must reflect the resolved rerank provider"
   );
@@ -136,14 +136,14 @@ test("rerank NVIDIA-format success Response reflects synthesized search unit in 
 
   assertCostTelemetryHeaders(response);
   assert.equal(
-    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.provider),
+    response.headers.get(BIROUTER_RESPONSE_HEADERS.provider),
     "nvidia",
     "provider header must reflect the resolved rerank provider"
   );
   // 1 synthesized search unit × $0.002 = $0.002. With the OLD `data?.meta…`
   // read this would be "0.0000000000" (raw NVIDIA data carries no meta).
   assert.equal(
-    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
+    response.headers.get(BIROUTER_RESPONSE_HEADERS.responseCost),
     "0.0020000000",
     "NVIDIA rerank cost must reflect the synthesized 1 search unit read from result"
   );
@@ -156,7 +156,7 @@ test("moderation handler success Response carries cost telemetry headers (cost 0
       return new Response(
         JSON.stringify({
           id: "modr-1",
-          model: "omni-moderation-latest",
+          model: "bi-moderation-latest",
           results: [{ flagged: false }],
         }),
         { status: 200, headers: { "content-type": "application/json" } }
@@ -166,13 +166,13 @@ test("moderation handler success Response carries cost telemetry headers (cost 0
   }) as typeof fetch;
 
   const response = (await moderationHandler.handleModeration({
-    body: { model: "omni-moderation-latest", input: "telemetry moderation" },
+    body: { model: "bi-moderation-latest", input: "telemetry moderation" },
     credentials: { apiKey: "test-key" },
   })) as Response;
 
   assertCostTelemetryHeaders(response);
   assert.equal(
-    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
+    response.headers.get(BIROUTER_RESPONSE_HEADERS.responseCost),
     "0.0000000000",
     "moderation is free → cost must be exactly 0"
   );
@@ -235,7 +235,7 @@ test("v1 audio transcription success Response carries cost telemetry headers (co
 
   assertCostTelemetryHeaders(response);
   assert.equal(
-    response.headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost),
+    response.headers.get(BIROUTER_RESPONSE_HEADERS.responseCost),
     "0.0000000000",
     "transcription duration unavailable → cost must be 0"
   );

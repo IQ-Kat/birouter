@@ -29,7 +29,9 @@ async function main(): Promise<void> {
   const judgeModel = flag("judge-model");
   const provider = flag("provider");
   if (!answerModel || !judgeModel || !provider) {
-    console.error("eval:compression requires --answer-model, --judge-model and --provider (no model is called without them).");
+    console.error(
+      "eval:compression requires --answer-model, --judge-model and --provider (no model is called without them)."
+    );
     process.exitCode = 2;
     return;
   }
@@ -40,10 +42,14 @@ async function main(): Promise<void> {
   // Credentials wiring is operator-supplied (env / connection store). Documented in Rule #18:
   // the adapter is validated against a real account; this CLI reads the credential the operator
   // exports for the chosen provider. Placeholder lookup left to the operator's environment.
-  const credentials = JSON.parse(process.env.OMNIROUTE_EVAL_CREDENTIALS ?? "{}");
+  const credentials = JSON.parse(process.env.BIROUTER_EVAL_CREDENTIALS ?? "{}");
   const client = createExecutorModelClient(provider, credentials);
 
-  const config: CompressionConfig = { ...getDefaultCompressionConfig(), enabled: true, defaultMode: mode };
+  const config: CompressionConfig = {
+    ...getDefaultCompressionConfig(),
+    enabled: true,
+    defaultMode: mode,
+  };
 
   const result = await runEval({
     corpus: SEED_CORPUS,

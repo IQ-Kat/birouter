@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
 import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
-import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
+import { resolveBirouterBaseUrl } from "@/shared/utils/resolveBirouterBaseUrl";
 
 let syncInitialized = false;
 let modelSyncInitialized = false;
@@ -20,7 +20,7 @@ export async function POST(request) {
 
     // (#488) Start model auto-sync scheduler (24h, configurable via MODEL_SYNC_INTERVAL_HOURS)
     if (!modelSyncInitialized) {
-      const origin = request.headers.get("origin") || resolveOmniRouteBaseUrl();
+      const origin = request.headers.get("origin") || resolveBirouterBaseUrl();
       startModelSyncScheduler(origin);
       modelSyncInitialized = true;
     }

@@ -1,4 +1,4 @@
-import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels.ts";
+import { getModelsByProviderId } from "@birouter/open-sse/config/providerModels.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 
 const GLM_QUOTA_ORDER: Record<string, number> = { session: 0, weekly: 1, mcp_monthly: 2 };

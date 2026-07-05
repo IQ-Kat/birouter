@@ -28,7 +28,7 @@ describe("normalizeQdrantConfig — defaults & disabled state", () => {
     expect(cfg.apiKey).toBeNull();
     // Defaults still applied for non-toggle fields:
     expect(cfg.port).toBe(6333);
-    expect(cfg.collection).toBe("omniroute_memory");
+    expect(cfg.collection).toBe("birouter_memory");
     expect(cfg.embeddingModel).toBe("openai/text-embedding-3-small");
     expect(cfg.vectorSize).toBe(1536);
     expect(cfg.hnswEfConstruct).toBe(128);
@@ -112,12 +112,7 @@ describe("Qdrant scalar quantization wiring (Q1 / F4.4)", () => {
 });
 
 describe("normalizeQdrantConfig — env-var fallbacks (cluster profile: --profile memory)", () => {
-  const KEYS = [
-    "QDRANT_HOST",
-    "QDRANT_PORT",
-    "QDRANT_API_KEY",
-    "QDRANT_COLLECTION",
-  ] as const;
+  const KEYS = ["QDRANT_HOST", "QDRANT_PORT", "QDRANT_API_KEY", "QDRANT_COLLECTION"] as const;
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeAll(() => {

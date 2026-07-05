@@ -100,7 +100,7 @@ export function collapseRepeated(
       const tailStart = findLastNSiblingStart(lines.slice(0, j), j, indent, role, keepTail);
       for (let k = i; k < headEnd; k++) out.push(lines[k]);
       out.push(
-        `${indent}... [${groupLen - keepHead - keepTail} similar "${role}" items omitted by OmniRoute MCP filter]`
+        `${indent}... [${groupLen - keepHead - keepTail} similar "${role}" items omitted by Birouter MCP filter]`
       );
       // BUG A invariant: the omitted middle siblings carry [ref=eNN] anchors the agent needs to
       // click. Extract every ref from the dropped lines and keep them alongside the notice so

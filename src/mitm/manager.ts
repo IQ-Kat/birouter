@@ -35,7 +35,7 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
     return `MITM server failed to start: permission denied for port ${port} (run with elevated privileges, or use a port ≥ 1024)`;
   }
   if (lower.includes("router_api_key")) {
-    return "MITM server failed to start: no API key was provided (ROUTER_API_KEY is required). Set a router API key in OmniRoute and retry.";
+    return "MITM server failed to start: no API key was provided (ROUTER_API_KEY is required). Set a router API key in Birouter and retry.";
   }
 
   // Surface the first "❌ <message>" diagnostic line verbatim (marker stripped),
@@ -192,7 +192,7 @@ function isProcessAlive(pid: number): boolean {
 }
 
 /**
- * Enumerate every hostname OmniRoute may have written to /etc/hosts during
+ * Enumerate every hostname Birouter may have written to /etc/hosts during
  * startMitm(): the full agent-target registry plus all custom hosts. Removal
  * via removeDNSEntries() is idempotent (absent entries are skipped), so this
  * set is intentionally over-inclusive — a host that was never spoofed costs
@@ -239,9 +239,7 @@ export function buildRepairPlan(): RepairPlan {
  */
 async function revertSystemProxyIfApplied(): Promise<boolean> {
   try {
-    const { getSystemProxyState, clearSystemProxy } = await import(
-      "@/lib/inspector/captureState"
-    );
+    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
     const state = getSystemProxyState();
     if (!state.applied || !state.previousState) return false;
     const { revert } = await import("./inspector/systemProxyConfig.ts");
@@ -450,7 +448,7 @@ export async function getMitmStatus(): Promise<{
 
 /**
  * Start MITM proxy
- * @param {string} apiKey - OmniRoute API key
+ * @param {string} apiKey - Birouter API key
  * @param {string} sudoPassword - Sudo password for DNS/cert operations
  */
 export async function startMitm(
@@ -571,15 +569,13 @@ export async function startMitm(
       : 443;
   // D4 — resolve the inspector ingest token so the spawned proxy can post
   // captured AgentBridge traffic to the local-only ingest endpoint. The token
-  // is shared with the OmniRoute process: getIngestTokenForBootstrap() returns
+  // is shared with the Birouter process: getIngestTokenForBootstrap() returns
   // the same value the ingest route validates against (env or auto-generated).
   // Best-effort — if it cannot be resolved, the proxy simply skips capture.
   let ingestToken = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
   if (!ingestToken) {
     try {
-      const ingestMod = await import(
-        "@/app/api/tools/traffic-inspector/internal/ingest/route"
-      );
+      const ingestMod = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");
       if (typeof ingestMod.getIngestTokenForBootstrap === "function") {
         ingestToken = ingestMod.getIngestTokenForBootstrap();
       }

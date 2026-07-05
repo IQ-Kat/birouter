@@ -11,7 +11,7 @@
  * Uses globalThis to share config across Turbopack module instances (#2470).
  */
 
-const GLOBAL_KEY = "__omniroute_systemPrompt_config__";
+const GLOBAL_KEY = "__birouter_systemPrompt_config__";
 
 interface SystemPromptConfig {
   enabled: boolean;

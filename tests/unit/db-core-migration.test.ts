@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-core-migration-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-db-core-migration-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const JSON_DB_FILE = path.join(TEST_DATA_DIR, "db.json");
@@ -76,7 +76,7 @@ test("Test 2: migrateFromJson migrates data to SQLite successfully", () => {
       {
         id: "test-key",
         name: "Key 1",
-        key: "sk-omniroute-test",
+        key: "sk-birouter-test",
         noLog: true,
       },
     ],

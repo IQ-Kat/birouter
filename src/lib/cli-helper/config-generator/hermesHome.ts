@@ -2,7 +2,7 @@
  * Shared Hermes home-directory resolver (#3628).
  *
  * The Hermes PowerShell installer (Windows) writes its default config under
- * `%LOCALAPPDATA%\hermes`, exposed as the `HERMES_HOME` env var.  OmniRoute
+ * `%LOCALAPPDATA%\hermes`, exposed as the `HERMES_HOME` env var.  Birouter
  * previously hard-coded `~/.hermes` everywhere, so the two config files never
  * met on Windows.
  *

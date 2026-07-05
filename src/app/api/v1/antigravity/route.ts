@@ -1,5 +1,5 @@
 import { handleChat } from "@/sse/handlers/chat";
-import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
+import { initTranslators } from "@birouter/open-sse/translator/index.ts";
 
 let initialized = false;
 

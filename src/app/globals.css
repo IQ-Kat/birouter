@@ -88,7 +88,7 @@
   --shadow-elevated: 0 12px 28px -4px rgba(20, 20, 40, 0.06);
 
   /* Graph-paper wallpaper grid — shared visual identity with the marketing site
-     (_mono_repo/omnirouteSite/css). Light theme values. Rendered by body::before.
+     (_mono_repo/birouterSite/css). Light theme values. Rendered by body::before.
      Opacity tuned up from the site's 0.045 so the wallpaper is actually visible on
      the dense dashboard (cards/chrome cover most of the viewport). */
   --grid-line: rgba(0, 0, 0, 0.07);

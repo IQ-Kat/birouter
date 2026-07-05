@@ -68,10 +68,9 @@ export function __setProxyFallbackTestHooks(hooks: ProxyFallbackTestHooks | null
  * Build a full proxy URL string from a proxy record's fields.
  */
 function proxyRecordToUrl(proxy: ProxyShape): string {
-  const auth =
-    proxy.username
-      ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
-      : "";
+  const auth = proxy.username
+    ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || "")}@`
+    : "";
   return `${proxy.type}://${auth}${proxy.host}:${proxy.port}`;
 }
 
@@ -242,7 +241,7 @@ export async function testSingleProxy(
       signal: controller.signal,
       dispatcher,
       headers: {
-        "User-Agent": "OmniRoute/1.0",
+        "User-Agent": "Birouter/1.0",
       },
     });
 
@@ -278,9 +277,7 @@ export async function testProxiesAgainstTarget(
   );
 
   return results.map((r) =>
-    r.status === "fulfilled"
-      ? r.value
-      : { proxyUrl: "unknown", ok: false, latencyMs: null }
+    r.status === "fulfilled" ? r.value : { proxyUrl: "unknown", ok: false, latencyMs: null }
   );
 }
 
@@ -337,9 +334,7 @@ export async function findWorkingProxy(
     })
   );
 
-  const working = results.find(
-    (r) => r.status === "fulfilled" && r.value.ok
-  );
+  const working = results.find((r) => r.status === "fulfilled" && r.value.ok);
 
   if (working && working.status === "fulfilled") {
     const proxyUrl = working.value.proxyUrl;
@@ -373,9 +368,7 @@ export async function findWorkingProxy(
  * @param _connectionId  Optional connection ID (reserved for future use).
  * @returns A proxy resolution result with level "autoSelect", or null.
  */
-export async function selectWorkingProxyFallback(
-  _connectionId?: string
-): Promise<{
+export async function selectWorkingProxyFallback(_connectionId?: string): Promise<{
   proxy: { type: string; host: string; port: number; username: string; password: string } | null;
   level: string;
   levelId: string | null;

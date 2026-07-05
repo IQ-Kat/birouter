@@ -1,11 +1,11 @@
 /**
  * Regression test for #3347 — Electron "Exit" leaves a process in memory that locks
- * omniroute.exe on Windows.
+ * birouter.exe on Windows.
  *
- * The embedded server is spawned via process.execPath (= omniroute.exe) with
+ * The embedded server is spawned via process.execPath (= birouter.exe) with
  * ELECTRON_RUN_AS_NODE=1. On Windows, ChildProcess.kill()/SIGTERM/SIGKILL terminate ONLY
  * the direct child — NOT its descendants — so server-spawned grandchildren (embedded
- * services, MITM proxy, tunnels, several also omniroute.exe-as-node) survive and keep the
+ * services, MITM proxy, tunnels, several also birouter.exe-as-node) survive and keep the
  * .exe locked, blocking updates. killProcessTree() must use `taskkill /PID <pid> /T /F`
  * (the /T flag walks the tree) on win32, and signal-based kill on POSIX (where signals
  * propagate). This test pins that platform branch, plus a static guard that main.js routes

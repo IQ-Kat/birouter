@@ -9,8 +9,8 @@ import { startReasoningCacheCleanupJob } from "./lib/jobs/reasoningCacheCleanupJ
 import { startCleanupScheduler } from "./lib/db/cleanup";
 import { getSettings } from "./lib/db/settings";
 import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
-import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
-import { hydrateThinkingBudgetConfig } from "@omniroute/open-sse/services/thinkingBudget.ts";
+import { setSystemPromptConfig } from "@birouter/open-sse/services/systemPrompt.ts";
+import { hydrateThinkingBudgetConfig } from "@birouter/open-sse/services/thinkingBudget.ts";
 import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
 import { startSpendBatchWriter } from "./lib/spend/batchWriter";
 import { registerDefaultGuardrails } from "./lib/guardrails";

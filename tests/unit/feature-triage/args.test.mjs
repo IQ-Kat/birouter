@@ -9,7 +9,7 @@ describe("parseArgs", () => {
   });
 
   it("applies defaults when args/env missing", () => {
-    const args = parseArgs(["--owner", "diegosouzapw", "--repo", "OmniRoute"], {});
+    const args = parseArgs(["--owner", "IQ-Kat", "--repo", "Birouter"], {});
     assert.equal(args.quarantineDays, 14);
     assert.equal(args.overrideThumbs, 5);
     assert.equal(args.overrideCommenters, 3);

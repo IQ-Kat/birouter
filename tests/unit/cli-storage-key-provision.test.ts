@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { shouldProvisionStorageKey } from "../../bin/cli/utils/storageKeyProvision.mjs";
 
 // argv shape is [node, script, ...args]
-const argv = (...args: string[]) => ["node", "omniroute", ...args];
+const argv = (...args: string[]) => ["node", "birouter", ...args];
 
 test("storage key: informational commands do NOT provision a key", () => {
   assert.equal(shouldProvisionStorageKey(argv("--version")), false);
@@ -14,7 +14,7 @@ test("storage key: informational commands do NOT provision a key", () => {
   assert.equal(shouldProvisionStorageKey(argv("completion")), false);
 });
 
-test("storage key: bare `omniroute` provisions (serve is the default command)", () => {
+test("storage key: bare `birouter` provisions (serve is the default command)", () => {
   // No args → Commander runs the isDefault `serve` command, which needs the key.
   assert.equal(shouldProvisionStorageKey(argv()), true);
 });

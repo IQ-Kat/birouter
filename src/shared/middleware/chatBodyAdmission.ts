@@ -38,24 +38,23 @@ function parseRatio(value: string | undefined, fallback: number): number {
  * Matches the route's existing large-body log threshold (256 KB).
  */
 export const CHAT_LARGE_BODY_BYTES = parsePositiveInt(
-  process.env.OMNIROUTE_CHAT_LARGE_BODY_BYTES,
+  process.env.BIROUTER_CHAT_LARGE_BODY_BYTES,
   256 * 1024
 );
 
 /** Pathological bodies above this are rejected (413) before any clone/parse. Generous by
  * default so real compacts are never rejected; only absurd payloads are. */
 export const CHAT_HARD_MAX_BODY_BYTES = parsePositiveInt(
-  process.env.OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES,
+  process.env.BIROUTER_CHAT_HARD_MAX_BODY_BYTES,
   50 * 1024 * 1024
 );
 
 /** Shed large bodies once heapUsed/heap_size_limit reaches this fraction. 0.75 leaves
  * headroom for the in-flight request to finish + GC. Healthy idle (~0.11) always admits. */
-export const CHAT_HEAP_SHED_RATIO = parseRatio(process.env.OMNIROUTE_CHAT_HEAP_SHED_RATIO, 0.75);
+export const CHAT_HEAP_SHED_RATIO = parseRatio(process.env.BIROUTER_CHAT_HEAP_SHED_RATIO, 0.75);
 
 export type ChatAdmissionDecision =
-  | { admit: true }
-  | { admit: false; status: 413 | 503; code: string; message: string };
+  { admit: true } | { admit: false; status: 413 | 503; code: string; message: string };
 
 /**
  * Pure admission decision — no I/O, fully unit-testable. The route wrapper feeds it live
@@ -131,10 +130,8 @@ export function checkChatAdmission(
     return null;
   }
 
-  const {
-    heapUsedBytes = process.memoryUsage().heapUsed,
-    heapLimitBytes = HEAP_LIMIT_BYTES,
-  } = heapOverride ?? {};
+  const { heapUsedBytes = process.memoryUsage().heapUsed, heapLimitBytes = HEAP_LIMIT_BYTES } =
+    heapOverride ?? {};
   const decision = evaluateChatBodyAdmission({ contentLength, heapUsedBytes, heapLimitBytes });
 
   if (decision.admit) return null;

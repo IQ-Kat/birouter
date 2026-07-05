@@ -108,7 +108,7 @@ test("getCliRuntimeStatus rejects unsafe env overrides and reports validated run
 });
 
 test("getCliRuntimeStatus reports not_executable for absolute env override files without execute permission", async () => {
-  const tempDir = createTempDir("omniroute-cli-notexec-");
+  const tempDir = createTempDir("birouter-cli-notexec-");
   const scriptName = process.platform === "win32" ? "codex.cmd" : "codex";
   const scriptPath = writeScript(
     tempDir,
@@ -135,7 +135,7 @@ test("getCliRuntimeStatus reports not_executable for absolute env override files
 });
 
 test("getCliRuntimeStatus reports healthcheck_failed when a binary exists but does not answer version probes", async () => {
-  const tempDir = createTempDir("omniroute-cli-healthcheck-");
+  const tempDir = createTempDir("birouter-cli-healthcheck-");
   const scriptName = process.platform === "win32" ? "qodercli.cmd" : "qodercli";
   const scriptPath = writeScript(
     tempDir,
@@ -159,7 +159,7 @@ test("getCliRuntimeStatus reports healthcheck_failed when a binary exists but do
 test("getCliRuntimeStatus healthchecks Windows .exe paths with spaces without shell", async () => {
   if (process.platform !== "win32") return;
 
-  const tempDir = path.join(createTempDir("omniroute-cli-space-"), "dir with space");
+  const tempDir = path.join(createTempDir("birouter-cli-space-"), "dir with space");
   const scriptPath = writeScript(
     tempDir,
     "claude.exe",
@@ -197,7 +197,7 @@ test("getCliRuntimeStatus healthchecks Windows .exe paths with spaces without sh
 test("getCliRuntimeStatus still healthchecks Windows .cmd wrappers through shell", async () => {
   if (process.platform !== "win32") return;
 
-  const tempDir = createTempDir("omniroute-cli-cmd-shell-");
+  const tempDir = createTempDir("birouter-cli-cmd-shell-");
   const scriptPath = writeScript(
     tempDir,
     "codex.cmd",
@@ -246,7 +246,7 @@ test("shouldUseShellForCommand never uses the shell on non-Windows platforms", a
 });
 
 test("getCliRuntimeStatus discovers binaries from CLI_EXTRA_PATHS during PATH lookup", async () => {
-  const tempDir = createTempDir("omniroute-cli-extra-path-");
+  const tempDir = createTempDir("birouter-cli-extra-path-");
   const scriptName = process.platform === "win32" ? "qodercli.cmd" : "qodercli";
   writeScript(
     tempDir,
@@ -272,7 +272,7 @@ test("getCliRuntimeStatus discovers binaries from CLI_EXTRA_PATHS during PATH lo
 });
 
 test("getCliRuntimeStatus resolves known binaries from npm global prefix discovered via npm config", async () => {
-  const prefixDir = createTempDir("omniroute-cli-prefix-");
+  const prefixDir = createTempDir("birouter-cli-prefix-");
   const scriptName = process.platform === "win32" ? "qodercli.cmd" : "qodercli";
   const scriptPath = writeScript(
     path.join(prefixDir, process.platform === "win32" ? "" : "bin"),
@@ -301,7 +301,7 @@ test("getCliRuntimeStatus resolves known binaries from npm global prefix discove
 });
 
 test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink escapes", async () => {
-  const prefixDir = createTempDir("omniroute-cli-suspicious-");
+  const prefixDir = createTempDir("birouter-cli-suspicious-");
   const binDir = path.join(prefixDir, process.platform === "win32" ? "" : "bin");
   const scriptName = process.platform === "win32" ? "qodercli.exe" : "qodercli";
   fs.mkdirSync(binDir, { recursive: true });
@@ -317,9 +317,9 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
   assert.equal(suspiciousStatus.reason, "suspicious_size");
 
   if (process.platform !== "win32") {
-    const escapePrefix = createTempDir("omniroute-cli-escape-");
+    const escapePrefix = createTempDir("birouter-cli-escape-");
     const escapeBinDir = path.join(escapePrefix, "bin");
-    const outsideDir = createTempDir("omniroute-cli-outside-");
+    const outsideDir = createTempDir("birouter-cli-outside-");
     const outsideTarget = writeScript(
       outsideDir,
       "qodercli",
@@ -339,7 +339,7 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
 });
 
 test("getCliRuntimeStatus tolerates spawn errors during healthcheck and marks the tool as not runnable", async () => {
-  const tempDir = createTempDir("omniroute-cli-spawn-error-");
+  const tempDir = createTempDir("birouter-cli-spawn-error-");
   const scriptName = process.platform === "win32" ? "cline.cmd" : "cline";
   const scriptPath = writeScript(
     tempDir,

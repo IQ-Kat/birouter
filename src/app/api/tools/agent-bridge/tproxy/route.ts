@@ -13,13 +13,9 @@
  * mandatory — a leaked JWT over a tunnel must not be able to reach it.
  */
 import { z } from "zod";
-import {
-  startCaptureMode,
-  stopCaptureMode,
-  getCaptureStatus,
-} from "@/mitm/tproxy/captureManager";
+import { startCaptureMode, stopCaptureMode, getCaptureStatus } from "@/mitm/tproxy/captureManager";
 import { installTproxyCa, uninstallTproxyCa } from "@/mitm/tproxy/caTrust";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 // Exported for unit testing. Next.js only treats GET/POST/DELETE as route

@@ -17,26 +17,26 @@ test("bin/cli/plugins.mjs exporta discoverPlugins, loadPlugins, buildPluginConte
 
 test("discoverPlugins retorna array vazio se nenhum plugin instalado (diretório não existe)", async () => {
   const { discoverPlugins } = await import("../../bin/cli/plugins.mjs");
-  const orig = process.env.OMNIROUTE_PLUGIN_PATH;
-  process.env.OMNIROUTE_PLUGIN_PATH = join(tmpdir(), `no-such-dir-${Date.now()}`);
+  const orig = process.env.BIROUTER_PLUGIN_PATH;
+  process.env.BIROUTER_PLUGIN_PATH = join(tmpdir(), `no-such-dir-${Date.now()}`);
   try {
     const plugins = await discoverPlugins();
     assert.ok(Array.isArray(plugins));
   } finally {
-    if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
-    else process.env.OMNIROUTE_PLUGIN_PATH = orig;
+    if (orig === undefined) delete process.env.BIROUTER_PLUGIN_PATH;
+    else process.env.BIROUTER_PLUGIN_PATH = orig;
   }
 });
 
 test("discoverPlugins descobre plugin com package.json válido", async () => {
   const { discoverPlugins } = await import("../../bin/cli/plugins.mjs");
-  const pluginDir = join(tmpdir(), `omniroute-plugins-test-${Date.now()}`);
-  const pkgDir = join(pluginDir, "omniroute-cmd-test-hello");
+  const pluginDir = join(tmpdir(), `birouter-plugins-test-${Date.now()}`);
+  const pkgDir = join(pluginDir, "birouter-cmd-test-hello");
   mkdirSync(pkgDir, { recursive: true });
   writeFileSync(
     join(pkgDir, "package.json"),
     JSON.stringify({
-      name: "omniroute-cmd-test-hello",
+      name: "birouter-cmd-test-hello",
       version: "1.0.0",
       type: "module",
       main: "index.mjs",
@@ -44,26 +44,26 @@ test("discoverPlugins descobre plugin com package.json válido", async () => {
   );
   writeFileSync(join(pkgDir, "index.mjs"), `export function register() {}`);
 
-  const orig = process.env.OMNIROUTE_PLUGIN_PATH;
-  process.env.OMNIROUTE_PLUGIN_PATH = pluginDir;
+  const orig = process.env.BIROUTER_PLUGIN_PATH;
+  process.env.BIROUTER_PLUGIN_PATH = pluginDir;
   try {
     const plugins = await discoverPlugins();
     assert.ok(
-      plugins.some((p) => p.name === "omniroute-cmd-test-hello"),
+      plugins.some((p) => p.name === "birouter-cmd-test-hello"),
       "deve encontrar o plugin"
     );
   } finally {
-    if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
-    else process.env.OMNIROUTE_PLUGIN_PATH = orig;
+    if (orig === undefined) delete process.env.BIROUTER_PLUGIN_PATH;
+    else process.env.BIROUTER_PLUGIN_PATH = orig;
     try {
       rmSync(pluginDir, { recursive: true });
     } catch {}
   }
 });
 
-test("discoverPlugins ignora pacotes sem prefixo omniroute-cmd-", async () => {
+test("discoverPlugins ignora pacotes sem prefixo birouter-cmd-", async () => {
   const { discoverPlugins } = await import("../../bin/cli/plugins.mjs");
-  const pluginDir = join(tmpdir(), `omniroute-plugins-test-${Date.now()}`);
+  const pluginDir = join(tmpdir(), `birouter-plugins-test-${Date.now()}`);
   const pkgDir = join(pluginDir, "some-unrelated-package");
   mkdirSync(pkgDir, { recursive: true });
   writeFileSync(
@@ -71,8 +71,8 @@ test("discoverPlugins ignora pacotes sem prefixo omniroute-cmd-", async () => {
     JSON.stringify({ name: "some-unrelated-package", version: "1.0.0" })
   );
 
-  const orig = process.env.OMNIROUTE_PLUGIN_PATH;
-  process.env.OMNIROUTE_PLUGIN_PATH = pluginDir;
+  const orig = process.env.BIROUTER_PLUGIN_PATH;
+  process.env.BIROUTER_PLUGIN_PATH = pluginDir;
   try {
     const plugins = await discoverPlugins();
     assert.ok(
@@ -80,8 +80,8 @@ test("discoverPlugins ignora pacotes sem prefixo omniroute-cmd-", async () => {
       "não deve descobrir pacotes sem prefixo"
     );
   } finally {
-    if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
-    else process.env.OMNIROUTE_PLUGIN_PATH = orig;
+    if (orig === undefined) delete process.env.BIROUTER_PLUGIN_PATH;
+    else process.env.BIROUTER_PLUGIN_PATH = orig;
     try {
       rmSync(pluginDir, { recursive: true });
     } catch {}
@@ -90,13 +90,13 @@ test("discoverPlugins ignora pacotes sem prefixo omniroute-cmd-", async () => {
 
 test("loadPlugins não quebra CLI quando plugin tem erro de load (try/catch)", async () => {
   const { loadPlugins } = await import("../../bin/cli/plugins.mjs");
-  const pluginDir = join(tmpdir(), `omniroute-plugins-test-${Date.now()}`);
-  const pkgDir = join(pluginDir, "omniroute-cmd-broken");
+  const pluginDir = join(tmpdir(), `birouter-plugins-test-${Date.now()}`);
+  const pkgDir = join(pluginDir, "birouter-cmd-broken");
   mkdirSync(pkgDir, { recursive: true });
   writeFileSync(
     join(pkgDir, "package.json"),
     JSON.stringify({
-      name: "omniroute-cmd-broken",
+      name: "birouter-cmd-broken",
       version: "1.0.0",
       type: "module",
       main: "broken.mjs",
@@ -104,16 +104,16 @@ test("loadPlugins não quebra CLI quando plugin tem erro de load (try/catch)", a
   );
   writeFileSync(join(pkgDir, "broken.mjs"), "throw new Error('intentional load error');");
 
-  const orig = process.env.OMNIROUTE_PLUGIN_PATH;
-  process.env.OMNIROUTE_PLUGIN_PATH = pluginDir;
+  const orig = process.env.BIROUTER_PLUGIN_PATH;
+  process.env.BIROUTER_PLUGIN_PATH = pluginDir;
   const { Command } = await import("commander");
   const prog = new Command();
   try {
     // Deve não lançar exceção
     await assert.doesNotReject(async () => loadPlugins(prog));
   } finally {
-    if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
-    else process.env.OMNIROUTE_PLUGIN_PATH = orig;
+    if (orig === undefined) delete process.env.BIROUTER_PLUGIN_PATH;
+    else process.env.BIROUTER_PLUGIN_PATH = orig;
     try {
       rmSync(pluginDir, { recursive: true });
     } catch {}
@@ -122,13 +122,13 @@ test("loadPlugins não quebra CLI quando plugin tem erro de load (try/catch)", a
 
 test("loadPlugins carrega plugin válido e chama register()", async () => {
   const { loadPlugins } = await import("../../bin/cli/plugins.mjs");
-  const pluginDir = join(tmpdir(), `omniroute-plugins-test-${Date.now()}`);
-  const pkgDir = join(pluginDir, "omniroute-cmd-valid");
+  const pluginDir = join(tmpdir(), `birouter-plugins-test-${Date.now()}`);
+  const pkgDir = join(pluginDir, "birouter-cmd-valid");
   mkdirSync(pkgDir, { recursive: true });
   writeFileSync(
     join(pkgDir, "package.json"),
     JSON.stringify({
-      name: "omniroute-cmd-valid",
+      name: "birouter-cmd-valid",
       version: "1.0.0",
       type: "module",
       main: "index.mjs",
@@ -140,8 +140,8 @@ test("loadPlugins carrega plugin válido e chama register()", async () => {
     `export function register(program) { program.command('testcmd-from-plugin'); }`
   );
 
-  const orig = process.env.OMNIROUTE_PLUGIN_PATH;
-  process.env.OMNIROUTE_PLUGIN_PATH = pluginDir;
+  const orig = process.env.BIROUTER_PLUGIN_PATH;
+  process.env.BIROUTER_PLUGIN_PATH = pluginDir;
   const { Command } = await import("commander");
   const prog = new Command();
   try {
@@ -152,8 +152,8 @@ test("loadPlugins carrega plugin válido e chama register()", async () => {
       "comando do plugin deve estar registrado"
     );
   } finally {
-    if (orig === undefined) delete process.env.OMNIROUTE_PLUGIN_PATH;
-    else process.env.OMNIROUTE_PLUGIN_PATH = orig;
+    if (orig === undefined) delete process.env.BIROUTER_PLUGIN_PATH;
+    else process.env.BIROUTER_PLUGIN_PATH = orig;
     try {
       rmSync(pluginDir, { recursive: true });
     } catch {}
@@ -178,8 +178,8 @@ test("registerPlugin registra subcomandos: list, install, remove, info, search, 
   }
 });
 
-test("exemplo omniroute-cmd-hello existe e tem register()", () => {
-  const examplePath = join(ROOT, "examples", "omniroute-cmd-hello", "index.mjs");
+test("exemplo birouter-cmd-hello existe e tem register()", () => {
+  const examplePath = join(ROOT, "examples", "birouter-cmd-hello", "index.mjs");
   assert.ok(existsSync(examplePath), "exemplo index.mjs deve existir");
   const src = readFileSync(examplePath, "utf8");
   assert.ok(src.includes("export function register"), "deve exportar register");
@@ -190,6 +190,6 @@ test("docs/frameworks/PLUGINS.md existe", () => {
   const docPath = join(ROOT, "docs", "frameworks", "PLUGINS.md");
   assert.ok(existsSync(docPath), "docs/frameworks/PLUGINS.md deve existir");
   const src = readFileSync(docPath, "utf8");
-  assert.ok(src.includes("omniroute-cmd"), "deve mencionar omniroute-cmd");
+  assert.ok(src.includes("birouter-cmd"), "deve mencionar birouter-cmd");
   assert.ok(src.includes("register(program, ctx)"), "deve documentar a API register");
 });

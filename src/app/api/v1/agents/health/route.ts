@@ -3,7 +3,7 @@ import { getAgent, getAvailableAgents } from "@/lib/cloudAgent/registry";
 import { getCloudAgentCredentialFromDb } from "@/lib/cloudAgent/credentials";
 import { getCloudAgentCorsHeaders, requireCloudAgentManagementAuth } from "@/lib/cloudAgent/api";
 import pino from "pino";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const logger = pino({ name: "cloud-agents-health-api" });
 

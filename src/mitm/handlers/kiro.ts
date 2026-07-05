@@ -2,7 +2,7 @@
  * Kiro IDE handler.
  *
  * Kiro uses the Anthropic Messages API (POST /v1/messages with `x-api-key`).
- * We translate the `model` field and forward to the OmniRoute router via
+ * We translate the `model` field and forward to the Birouter router via
  * `/v1/chat/completions` — the router's translator will adapt the request
  * shape back to whatever upstream provider the mapped model points to.
  *
@@ -19,7 +19,7 @@ export class KiroHandler extends MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void> {
     const startedAt = this.now();
     const intercepted = await this.hookBufferStart(req, body, mappedModel);
@@ -33,7 +33,7 @@ export class KiroHandler extends MitmHandlerBase {
 
       if (!upstream.ok) {
         const errText = await upstream.text().catch(() => "");
-        throw new Error(`OmniRoute ${upstream.status}: ${errText}`);
+        throw new Error(`Birouter ${upstream.status}: ${errText}`);
       }
 
       let collected = "";

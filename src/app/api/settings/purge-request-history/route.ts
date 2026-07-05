@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 import { purgeCallLogs, purgeDetailedLogs } from "@/lib/db/cleanup";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 

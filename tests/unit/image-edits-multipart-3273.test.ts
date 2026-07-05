@@ -13,7 +13,7 @@ import { fetch as undiciFetch } from "undici";
 // "[object FormData]" (text/plain), dropping every field including `model`.
 // This test reproduces that exact condition by routing through undici's fetch.
 
-process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-img-3273-"));
+process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-img-3273-"));
 
 const { handleOpenAIImageEdit } = await import("../../open-sse/handlers/imageGeneration.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
@@ -40,7 +40,10 @@ test("#3273 /v1/images/edits forwards model as real multipart (undici-patched fe
     await handleOpenAIImageEdit({
       model: "gpt-image-2",
       provider: "customopenai",
-      credentials: { apiKey: "sk-test", providerSpecificData: { baseUrl: `http://127.0.0.1:${port}` } },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: { baseUrl: `http://127.0.0.1:${port}` },
+      },
       prompt: "make it blue",
       imageBytes: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
       imageMime: "image/png",

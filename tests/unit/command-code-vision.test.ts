@@ -11,7 +11,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cmd-code-vision-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cmd-code-vision-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
@@ -194,13 +194,13 @@ test("vision model mimo-v2.5-pro is text-only (no image parts)", async () => {
   assert.equal(content, "Hi");
 });
 
-test("vision model mimo-v2-omni preserves image parts", async () => {
+test("vision model mimo-v2-bi preserves image parts", async () => {
   const calls = captureFetch(
     commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }])
   );
 
   await getExecutor("command-code").execute({
-    model: "mimo-v2-omni",
+    model: "mimo-v2-bi",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
     body: {

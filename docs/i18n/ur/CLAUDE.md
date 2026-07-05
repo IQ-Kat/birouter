@@ -39,7 +39,7 @@ npm run test:all
 
 ## پروجیکٹ کا ایک نظر میں جائزہ
 
-**OmniRoute** — متحد AI پروکسی/روٹر۔ ایک اینڈپوائنٹ، 160+ LLM فراہم کنندگان، خودکار فیل بیک۔
+**Birouter** — متحد AI پروکسی/روٹر۔ ایک اینڈپوائنٹ، 160+ LLM فراہم کنندگان، خودکار فیل بیک۔
 
 | پرت           | مقام                    | مقصد                                                                |
 | ------------- | ----------------------- | ------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ API راستے ایک مستقل پیٹرن کی پیروی کرتے ہیں: `Ro
 
 ## لچکدار رن ٹائم حالت
 
-OmniRoute کے پاس تین متعلقہ لیکن مختلف عارضی ناکامی کے طریقے ہیں۔ ان کی دائرہ کار کو راستے کے رویے کی خرابی کے دوران الگ رکھیں۔ دیکھیں
+Birouter کے پاس تین متعلقہ لیکن مختلف عارضی ناکامی کے طریقے ہیں۔ ان کی دائرہ کار کو راستے کے رویے کی خرابی کے دوران الگ رکھیں۔ دیکھیں
 [3-layer resilience diagram](./docs/diagrams/exported/resilience-3layers.svg)
 (ماخذ: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 ایک نظر میں نقشہ کے لیے۔
@@ -197,7 +197,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### کوڈ کا انداز
 
 - **2 جگہیں**, سیمی کالن, ڈبل کوٹس, 100 کردار کی چوڑائی, es5 ٹریلنگ کاماز (lint-staged کے ذریعے Prettier کے ذریعہ نافذ)
-- **درآمدات**: بیرونی → داخلی (`@/`, `@omniroute/open-sse`) → نسبتی
+- **درآمدات**: بیرونی → داخلی (`@/`, `@birouter/open-sse`) → نسبتی
 - **نامگذاری**: فائلیں=camelCase/kebab, کمپوننٹس=PascalCase, مستقل=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = ہر جگہ غلطی; `no-explicit-any` = `open-sse/` اور `tests/` میں انتباہ
 - **TypeScript**: `strict: false`, ہدف ES2022, ماڈیول esnext, ریزولوشن بنڈلر۔ واضح اقسام کو ترجیح دیں۔
@@ -367,9 +367,9 @@ git push -u origin feat/your-feature
 
 - **رن ٹائم**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25، ES ماڈیولز
 - **ٹائپ اسکرپٹ**: 5.9+، ہدف ES2022، ماڈیول esnext، ریزولوشن بنڈلر
-- **پاتھ ایلیاس**: `@/*` → `src/`، `@omniroute/open-sse` → `open-sse/`، `@omniroute/open-sse/*` → `open-sse/*`
+- **پاتھ ایلیاس**: `@/*` → `src/`، `@birouter/open-sse` → `open-sse/`، `@birouter/open-sse/*` → `open-sse/*`
 - **ڈیفالٹ پورٹ**: 20128 (API + ڈیش بورڈ ایک ہی پورٹ پر)
-- **ڈیٹا ڈائریکٹری**: `DATA_DIR` env var، ڈیفالٹ `~/.omniroute/`
+- **ڈیٹا ڈائریکٹری**: `DATA_DIR` env var، ڈیفالٹ `~/.birouter/`
 - **اہم env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - سیٹ اپ: `cp .env.example .env` پھر `JWT_SECRET` (`openssl rand -base64 48`) اور `API_KEY_SECRET` (`openssl rand -hex 32`) بنائیں
 
@@ -392,4 +392,4 @@ git push -u origin feat/your-feature
 13. کبھی بھی خارجی راستوں یا رن ٹائم کی قدروں کو `exec()`/`spawn()` کو منتقل کیے جانے والے شیل اسکرپٹس میں سٹرنگ انٹرپولیٹ نہ کریں — اس کے بجائے `env` آپشن کے ذریعے منتقل کریں۔ حوالہ: `src/mitm/cert/install.ts::updateNssDatabases`۔
 14. کبھی بھی CodeQL / Secret-Scanning الرٹ کو نظرانداز نہ کریں بغیر (a) پہلے اوپر پیٹرن کی دستاویزات کو چیک کیے کہ آیا مددگار لاگو ہوتا ہے، اور (b) نظرانداز کے تبصرے میں تکنیکی جواز کو ریکارڈ کیے بغیر۔ مثال: `js/stack-trace-exposure` جو کال سائٹس پر اٹھایا گیا ہے جو پہلے ہی `sanitizeErrorMessage()` کے ذریعے روٹ ہوتے ہیں، ایک جانا پہچانا CodeQL کی حد ہے (حسب ضرورت صفائی کرنے والے تسلیم نہیں کیے گئے) — `false positive` کے طور پر نظرانداز کریں جس میں `docs/security/ERROR_SANITIZATION.md` کا حوالہ دیا گیا ہو۔
 15. کبھی بھی ایسے راستے ظاہر نہ کریں جو بچے کے عمل کو پیدا کرتے ہیں (`/api/mcp/`, `/api/cli-tools/runtime/`) بغیر `isLocalOnlyPath()` کی درجہ بندی کے `src/server/authz/routeGuard.ts` میں۔ لوپ بیک کا نفاذ کسی بھی توثیق کی جانچ سے پہلے غیر مشروط طور پر ہوتا ہے — سرنگ کے ذریعے لیک ہونے والا JWT عمل پیدا کرنے کو متحرک نہیں کر سکتا۔ دیکھیں `docs/security/ROUTE_GUARD_TIERS.md`۔
-16. `Co-Authored-By` ٹریلرز جو AI اسسٹنٹ، LLM یا آٹومیشن اکاؤنٹ کو کریڈٹ دیتے ہیں انہیں کبھی شامل نہ کریں (مثلاً "Claude"، "GPT"، "Copilot"، "Bot" پر مشتمل نام؛ `anthropic.com` / `openai.com` / بوٹ کی ملکیت والے `noreply.github.com` پتوں پر ای میلز)۔ ایسے ٹریلرز GitHub پر بوٹ اکاؤنٹ کو commit attribution منتقل کرتے ہیں اور PR کی تاریخ میں اصلی مصنف (`diegosouzapw`) کو چھپا دیتے ہیں۔ انسانی تعاون کرنے والے — upstream PR کے مصنفین اور OmniRoute میں پورٹ کیے جانے والے issue رپورٹرز سمیت — معیاری `Co-authored-by: Name <email>` ٹریلرز کے ساتھ کریڈٹ پا سکتے ہیں اور دیے جانے چاہئیں؛ upstream-port ورک فلوز (`/port-upstream-features`، `/port-upstream-issues`) اس پر منحصر ہیں۔
+16. `Co-Authored-By` ٹریلرز جو AI اسسٹنٹ، LLM یا آٹومیشن اکاؤنٹ کو کریڈٹ دیتے ہیں انہیں کبھی شامل نہ کریں (مثلاً "Claude"، "GPT"، "Copilot"، "Bot" پر مشتمل نام؛ `anthropic.com` / `openai.com` / بوٹ کی ملکیت والے `noreply.github.com` پتوں پر ای میلز)۔ ایسے ٹریلرز GitHub پر بوٹ اکاؤنٹ کو commit attribution منتقل کرتے ہیں اور PR کی تاریخ میں اصلی مصنف (`diegosouzapw`) کو چھپا دیتے ہیں۔ انسانی تعاون کرنے والے — upstream PR کے مصنفین اور Birouter میں پورٹ کیے جانے والے issue رپورٹرز سمیت — معیاری `Co-authored-by: Name <email>` ٹریلرز کے ساتھ کریڈٹ پا سکتے ہیں اور دیے جانے چاہئیں؛ upstream-port ورک فلوز (`/port-upstream-features`، `/port-upstream-issues`) اس پر منحصر ہیں۔

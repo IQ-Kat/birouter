@@ -5,7 +5,7 @@ const DEFAULT_INTERVAL_MS = 30 * 60 * 1000;
 let timer: NodeJS.Timeout | null = null;
 
 function getIntervalMs() {
-  const raw = process.env.OMNIROUTE_REASONING_CACHE_CLEANUP_INTERVAL_MS;
+  const raw = process.env.BIROUTER_REASONING_CACHE_CLEANUP_INTERVAL_MS;
   const parsed = raw ? Number(raw) : Number.NaN;
   return Number.isFinite(parsed) && parsed >= 60_000 ? parsed : DEFAULT_INTERVAL_MS;
 }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildKiroUsageResult } from "@omniroute/open-sse/services/usage.ts";
+import { buildKiroUsageResult } from "@birouter/open-sse/services/usage.ts";
 
 type KiroQuotaResult = {
   plan: string;

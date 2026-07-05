@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPromptCache } from "@/lib/cacheLayer";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 export async function GET(req: NextRequest) {
   if (!(await isAuthenticated(req))) {

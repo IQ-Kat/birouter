@@ -8,7 +8,7 @@ interface PageAnalyticsProps {
   section: string;
 }
 
-const STORAGE_KEY = "omniroute_docs_analytics";
+const STORAGE_KEY = "birouter_docs_analytics";
 const MAX_EVENTS = 200;
 
 interface AnalyticsEvent {

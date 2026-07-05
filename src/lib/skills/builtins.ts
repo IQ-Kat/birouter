@@ -31,14 +31,7 @@ for (const image of [DEFAULT_COMMAND_IMAGE, DEFAULT_JS_IMAGE, DEFAULT_PYTHON_IMA
   ALLOWED_SANDBOX_IMAGES.add(image);
 }
 
-const FORBIDDEN_PATH_SEGMENTS = new Set([
-  ".env",
-  ".git",
-  ".ssh",
-  ".omniroute",
-  ".codex",
-  "secrets",
-]);
+const FORBIDDEN_PATH_SEGMENTS = new Set([".env", ".git", ".ssh", ".birouter", ".codex", "secrets"]);
 const ALLOWED_HTTP_METHODS = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]);
 const BLOCKED_REQUEST_HEADERS = new Set([
   "host",

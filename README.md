@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
+<img src="./docs/screenshots/MainBirouter.png" alt="Birouter Dashboard" width="820"/>
 
 <br/>
 
-# 🚀 OmniRoute — The Free AI Gateway
+# 🚀 Birouter — The Free AI Gateway
 
 ### Never stop coding. Connect every AI tool to **237 providers** — **90+ free** — through one endpoint.
 
@@ -15,16 +15,16 @@
 
 <br/>
 
-**~1.6B documented free tokens/month** — up to **~2.1B in your first month** with signup credits — aggregated across the free tiers, plus a long tail of permanently-free, no-cap providers, and the compression above stretches every one further. ([how we count →](docs/reference/FREE_TIERS.md#tldr--how-much-free-inference-does-omniroute-actually-aggregate))
+**~1.6B documented free tokens/month** — up to **~2.1B in your first month** with signup credits — aggregated across the free tiers, plus a long tail of permanently-free, no-cap providers, and the compression above stretches every one further. ([how we count →](docs/reference/FREE_TIERS.md#tldr--how-much-free-inference-does-birouter-actually-aggregate))
 
 <br/>
 
 <h3>
 
-⭐ Star the repo if OMNIROUTE helped you save money and make your work easier. [![Stars](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+⭐ Star the repo if BIROUTER helped you save money and make your work easier. [![Stars](https://img.shields.io/github/stars/IQ-Kat/birouter?style=social)](https://github.com/IQ-Kat/birouter)
 </h3>
 
-<a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+<a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FBirouter | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 [![237 AI Providers](https://img.shields.io/badge/237-AI_Providers-6C5CE7?style=for-the-badge)](#-237-ai-providers--90-free)
 [![90+ Free](https://img.shields.io/badge/90%2B-Free_Tiers-00B894?style=for-the-badge)](#-237-ai-providers--90-free)
@@ -38,27 +38,27 @@
 ### 💬 Join the community
 
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/EkzRkpzKYt)
-[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/omnirouteOficial)
+[![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/birouterOficial)
 [![WhatsApp Global](https://img.shields.io/badge/WhatsApp_Global-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 [![WhatsApp Brasil](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI)
-[![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![Website](https://img.shields.io/badge/Website-Birouter.online-blue?logo=google-chrome&logoColor=white)](https://Birouter.online)
 
-**Questions, provider tips, roadmap & support → [Discord](https://discord.gg/EkzRkpzKYt) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 Global](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) / [🇧🇷 Brasil](https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI)**
+**Questions, provider tips, roadmap & support → [Discord](https://discord.gg/EkzRkpzKYt) · [Telegram](https://t.me/birouterOficial) · WhatsApp [🌍 Global](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) / [🇧🇷 Brasil](https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI)**
 
 <br/>
 
 ### 🧩 Available
 
-[![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM Monthly](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
-[![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
+[![npm version](https://img.shields.io/npm/v/birouter?color=cb3837&logo=npm)](https://www.npmjs.com/package/Birouter)
+![NPM Monthly](https://img.shields.io/npm/dm/birouter?label=npm/month&color=cb3837&logo=npm)
+[![Docker Hub](https://img.shields.io/docker/v/IQ-Kat/birouter?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/IQ-Kat/birouter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Docker Pulls](https://img.shields.io/docker/pulls/IQ-Kat/birouter?label=docker%20pulls&logo=docker&color=2496ED)
+![Electron Downloads](https://img.shields.io/github/downloads/IQ-Kat/birouter/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-237-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-237-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://Birouter.online)
 
-[💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
+[💥 The Promise](#-the-promise) • [🤔 Why](#-why-birouter) • [🏆 What Sets Apart](#-what-sets-birouter-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-birouter-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-birouter-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
 
 </div>
 
@@ -125,7 +125,7 @@
 
 </div>
 
-> Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **40+ provider pools / 500+ models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
+> Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. Birouter aggregates the **documented** free tiers of **40+ provider pools / 500+ models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
 
 - **~1.6B free tokens / month** (steady) — and **up to ~2.1B in your first month** with signup credits.
 - **Pool-deduped, honest** — we count each shared free pool **once**, so the headline isn't inflated by rate-limit ceilings the way multi-billion competitor claims are. (Counting every rate limit 24/7 would read ~10B; we don't publish that.)
@@ -144,7 +144,7 @@
 
 </div>
 
-> One endpoint. **237 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
+> One endpoint. **237 providers.** Never stop building — and let Birouter pick the cheapest one that works.
 
 <table>
   <tr>
@@ -164,13 +164,13 @@
 
 <div align="center">
 
-# 🤔 Why OmniRoute?
+# 🤔 Why Birouter?
 
 </div>
 
 > Stop juggling 10 dashboards, dead API keys, and surprise bills.
 
-| ❌ The daily pain                                      | ✅ How OmniRoute fixes it                                                     |
+| ❌ The daily pain                                      | ✅ How Birouter fixes it                                                      |
 | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | 📉 Subscription quota expires unused every month       | **Maximize subscriptions** — track quota, use every token before reset        |
 | 🛑 Rate limits stop you mid-coding                     | **4-tier auto-fallback** — Subscription → API → Cheap → Free, in milliseconds |
@@ -188,7 +188,7 @@
                           │ http://localhost:20128/v1
                           ▼
 ┌──────────────────────────────────────────────────────────┐
-│                  OmniRoute — Smart Router                  │
+│                  Birouter — Smart Router                  │
 │  RTK + Caveman compression · 17 routing strategies         │
 │  Circuit breakers · TLS stealth · MCP · A2A · Guardrails   │
 └─────────────────────────┬──────────────────────────────────┘
@@ -210,11 +210,11 @@
 
 </div>
 
-> A **combo** is a chain of models OmniRoute routes across **automatically**. Quota runs out, a provider fails, or costs spike — the combo silently slides to the next model. **This is what makes OmniRoute unbreakable.** 🛡️
+> A **combo** is a chain of models Birouter routes across **automatically**. Quota runs out, a provider fails, or costs spike — the combo silently slides to the next model. **This is what makes Birouter unbreakable.** 🛡️
 
 ### ⚡ Zero-config — just use `auto`
 
-No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds a virtual combo from your connected providers, scored live:
+No combo to create. Set your model to `auto` (or a variant) and Birouter builds a virtual combo from your connected providers, scored live:
 
 | Model ID       | What it optimizes for                                          |
 | -------------- | -------------------------------------------------------------- |
@@ -275,7 +275,7 @@ Generous mode (<50% pool used) → idle shares are lent out
 Strict mode  (≥50% pool used)  → each key held to its fair share
 ```
 
-<sub>Enforced in the hot path **before** the request leaves OmniRoute, with per-(key, model) caps + session stickiness for prompt-cache integrity. 📖 [Quota Sharing Engine](docs/routing/QUOTA_SHARE.md)</sub>
+<sub>Enforced in the hot path **before** the request leaves Birouter, with per-(key, model) caps + session stickiness for prompt-cache integrity. 📖 [Quota Sharing Engine](docs/routing/QUOTA_SHARE.md)</sub>
 
 ##
 
@@ -302,11 +302,11 @@ Result: 4 layers of fallback = zero downtime
 
 <div align="center">
 
-# 🏆 What Sets OmniRoute Apart
+# 🏆 What Sets Birouter Apart
 
 </div>
 
-| Feature                                | OmniRoute                                                           | Other routers |
+| Feature                                | Birouter                                                            | Other routers |
 | -------------------------------------- | ------------------------------------------------------------------- | ------------- |
 | 🌐 Providers                           | **237**                                                             | 20–100        |
 | 🆓 Free providers                      | **90+ (11 free forever)**                                           | 1–5           |
@@ -321,7 +321,7 @@ Result: 4 layers of fallback = zero downtime
 | 🖥️ Multi-platform                      | **Web · Desktop · Termux · PWA**                                    | Web only      |
 | 🌍 i18n                                | **42 locales**                                                      | 0–4           |
 
-<sub>📊 Detailed comparison vs LiteLLM, OpenRouter & Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Detailed comparison vs LiteLLM, OpenRouter & Portkey → [`docs/comparison/BIROUTER_VS_ALTERNATIVES.md`](docs/comparison/BIROUTER_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -331,21 +331,21 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> Recent highlights from **v3.8.20 → v3.8.43**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+> Recent highlights from **v1.3.0 → v1.3.8**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
 - **🗜️ Compression hardening** — a default-on **inflation guard** (discard the stacked result and send the verbatim original whenever compression would _grow_ the prompt), completed **Caveman rule packs** for German / French / Japanese (dedup + ultra) plus a new **Chinese (文言 / wényán) input pack** with zh-vs-ja auto-detection, and **RTK filters for Gradle & .NET (`dotnet`)** build output. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **💸 Honest flat-rate cost** — subscription / coding-plan providers (ChatGPT Web, grok-web, the Minimax / Kimi / GLM / Alibaba Coding plans, Xiaomi MiMo…) now read **$0** in cost analytics instead of an inflated per-token estimate, while budget / quota / routing keep estimating unchanged. → [API Reference](docs/reference/API_REFERENCE.md)
 - **⚖️ Quota-Share routing** — a dedicated combo strategy that spreads load across accounts by _available quota_: Deficit-Round-Robin scheduling, per-connection `max_concurrent` with cooldown-wait queueing, multi-window usage buckets (5h / 7d / per-model), per-(key, model) caps, session stickiness for prompt-cache integrity, and proactive saturation from upstream token-usage headers. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through OmniRoute (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode); `omniroute launch` / `omniroute launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`), plus an `omniroute login antigravity` helper that runs Google "native/desktop" OAuth on your own machine and pastes a credential blob into a remote/VPS install (where the loopback redirect is unreachable). → [Remote Mode](docs/guides/REMOTE-MODE.md)
+- **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through Birouter (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode); `birouter launch` / `birouter launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Remote mode** — drive a remote Birouter from any machine with scoped access tokens (`birouter connect` / `birouter contexts` / `birouter tokens`), plus an `birouter login antigravity` helper that runs Google "native/desktop" OAuth on your own machine and pastes a credential blob into a remote/VPS install (where the loopback redirect is unreachable). → [Remote Mode](docs/guides/REMOTE-MODE.md)
 - **🧭 Smarter auto-routing** — OpenRouter-style `auto/<category>:<tier>` combos (e.g. `auto/coding:fast`, `auto/reasoning:pro`), a **Fusion** strategy (fan out to a panel of models in parallel, then synthesize via a judge), **task-aware routing** (best-fit connection per task type), per-request `X-Route-Model` override, live Arena-ELO + models.dev model intelligence, per-step account allowlists, provider-wildcard combo steps, nested combo-ref execution, sticky weighted selection, and `web_search`-aware routing. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Pluggable compression** — an async pipeline of **10 composable engines** with Compression Studios, an LLMLingua-2 ONNX engine and a heuristic/SLM two-tier **Ultra**, RTK, delegated Anthropic Context Editing, **Output Styles** (output-axis steering: terse-prose / less-code / terse-CJK), an **adaptive context-budget dial** (escalate only as far as needed to fit the context window), per-request `x-omniroute-compression` control, an opt-in offline eval harness, one-click **Headroom** proxy lifecycle management from the dashboard (Docker sidecar supported), a synthetic **compression playground** (Play lanes + A/B Compare with USD-capped fidelity verdicts), an opt-in **per-step fidelity gate** that rejects a lossy engine before it degrades the prompt, a **best-of-N candidate encoder** (GCF vs TOON — keep whichever is shorter, with an A/B bytes/token table in the studio), **CCR ranged/grep/stats retrieval** (pull an exact byte/line slice or summary of a stored block instead of re-expanding it), a unified panel with named profiles + an active-profile selector, an opt-in **per-engine pipeline circuit-breaker**, an opt-in **LLM-tier engine** (a model pass for higher-ratio semantic compression), a **read-lifecycle engine** that collapses superseded file reads, **usage-observed prefix freeze**, a graduated **CCR retrieval-feedback ramp**, a `preserveSystemPrompt` mode enum, and a **drag-reorder pipeline editor** in the studio. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🗜️ Pluggable compression** — an async pipeline of **10 composable engines** with Compression Studios, an LLMLingua-2 ONNX engine and a heuristic/SLM two-tier **Ultra**, RTK, delegated Anthropic Context Editing, **Output Styles** (output-axis steering: terse-prose / less-code / terse-CJK), an **adaptive context-budget dial** (escalate only as far as needed to fit the context window), per-request `x-birouter-compression` control, an opt-in offline eval harness, one-click **Headroom** proxy lifecycle management from the dashboard (Docker sidecar supported), a synthetic **compression playground** (Play lanes + A/B Compare with USD-capped fidelity verdicts), an opt-in **per-step fidelity gate** that rejects a lossy engine before it degrades the prompt, a **best-of-N candidate encoder** (GCF vs TOON — keep whichever is shorter, with an A/B bytes/token table in the studio), **CCR ranged/grep/stats retrieval** (pull an exact byte/line slice or summary of a stored block instead of re-expanding it), a unified panel with named profiles + an active-profile selector, an opt-in **per-engine pipeline circuit-breaker**, an opt-in **LLM-tier engine** (a model pass for higher-ratio semantic compression), a **read-lifecycle engine** that collapses superseded file reads, **usage-observed prefix freeze**, a graduated **CCR retrieval-feedback ramp**, a `preserveSystemPrompt` mode enum, and a **drag-reorder pipeline editor** in the studio. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **🕵️ Transparent MITM decrypt (TPROXY)** — capture & translate traffic from CLIs that ignore proxy env vars, with a per-SNI certificate authority and a trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-OmniRoute-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), opt-in **typed memory decay** (aged low-value memories fade on a per-type schedule), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
+- **💸 Cost telemetry everywhere** — `X-Birouter-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-Birouter-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
+- **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), opt-in **typed memory decay** (aged low-value memories fade on a per-type schedule), memory off by default, and a per-request `x-birouter-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
 - **🛡️ Security** — a prompt-injection guard across every LLM route (backed by a red-team suite), plus a free DuckDuckGo last-resort web search. → [Guardrails](docs/security/GUARDRAILS.md)
 - **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), CodeBuddy CN (`copilot.tencent.com`), a Google Flow video-generation provider, new gateways **DGrid** and **Pioneer AI** (Fastino Labs), inbound **xAI Grok** translators plus **Grok Build (xAI)** with an OAuth import-token flow, GPT-4 / GPT-4o-mini on the GitHub Copilot provider, multi-model **Factory Droid**, **ZenMux Free** (session-cookie free tier), **Alibaba DashScope** text-to-video (`wan2.7-t2v`), a refreshed 237-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), Vertex AI media generation (speech/transcription/music/video), a first-class **Ollama** local-provider card, the **SenseNova** free Token Plan (chat + text-to-image), and one-click account import from CLIProxyAPI (`~/.cli-proxy-api/`). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **⚡ Local performance & infra** — a one-click local Redis launcher (`omniroute redis up`, plus a dashboard Redis panel), one-click **Cloudflare Workers** and **Deno Deploy** relay deployers wired into the proxy pool, and an optional Bifrost Go sidecar that offloads the hottest relay path (`BIFROST_BASE_URL`, with automatic fallback to the TypeScript path on timeout) — now with a relay-backend selector (`OMNIROUTE_RELAY_BACKEND=ts|bifrost|auto`) so the `/v1/relay` endpoint stays the stable surface while choosing the fastest backend internally. → [Environment](docs/reference/ENVIRONMENT.md)
+- **⚡ Local performance & infra** — a one-click local Redis launcher (`birouter redis up`, plus a dashboard Redis panel), one-click **Cloudflare Workers** and **Deno Deploy** relay deployers wired into the proxy pool, and an optional Bifrost Go sidecar that offloads the hottest relay path (`BIFROST_BASE_URL`, with automatic fallback to the TypeScript path on timeout) — now with a relay-backend selector (`BIROUTER_RELAY_BACKEND=ts|bifrost|auto`) so the `/v1/relay` endpoint stays the stable surface while choosing the fastest backend internally. → [Environment](docs/reference/ENVIRONMENT.md)
 
 <br/>
 
@@ -379,7 +379,7 @@ Result: 4 layers of fallback = zero downtime
 <b>＋ also works with</b> · Cline · Antigravity · Windsurf · AMP · Hermes · Qwen CLI · Roo · Continue · <b>any OpenAI-compatible tool</b>
 </div>
 
-<sub>📖 Per-tool setup for all 24+ tools → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 OpenCode plugin → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
+<sub>📖 Per-tool setup for all 24+ tools → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 OpenCode plugin → [`@birouter/opencode-provider`](https://www.npmjs.com/package/@birouter/opencode-provider)</sub>
 
 </div>
 
@@ -451,22 +451,22 @@ Result: 4 layers of fallback = zero downtime
 
 <div align="center">
 
-# 🖥️ Where OmniRoute Runs — Anywhere
+# 🖥️ Where Birouter Runs — Anywhere
 
 </div>
 
 > Same app, your machine, your rules. From a global npm install to **your phone** via Termux.
 
-| Platform                  | Install                                  | Highlights                                                |
-| ------------------------- | ---------------------------------------- | --------------------------------------------------------- |
-| 📦 **npm (global)**       | `npm install -g omniroute`               | One command, any OS                                       |
-| 🐳 **Docker**             | `docker run … diegosouzapw/omniroute`    | Multi-arch **AMD64 + ARM64**                              |
-| 🖥️ **Desktop (Electron)** | `npm run electron:build`                 | Native window + system tray — **Windows / macOS / Linux** |
-| 💪 **ARM**                | native `arm64`                           | Raspberry Pi, ARM servers, Apple Silicon                  |
-| 📱 **Android (Termux)**   | `pkg install nodejs && npx -y omniroute` | Runs **on your phone**, 24/7, no root                     |
-| 📲 **PWA**                | "Add to Home Screen"                     | Fullscreen, offline, installable from browser             |
-| 🧩 **OpenCode plugin**    | `@omniroute/opencode-provider`           | Native OpenCode integration                               |
-| 🛠️ **From source**        | `npm install && npm run dev`             | Hack on it, contribute                                    |
+| Platform                  | Install                                 | Highlights                                                |
+| ------------------------- | --------------------------------------- | --------------------------------------------------------- |
+| 📦 **npm (global)**       | `npm install -g birouter`               | One command, any OS                                       |
+| 🐳 **Docker**             | `docker run … IQ-Kat/birouter`          | Multi-arch **AMD64 + ARM64**                              |
+| 🖥️ **Desktop (Electron)** | `npm run electron:build`                | Native window + system tray — **Windows / macOS / Linux** |
+| 💪 **ARM**                | native `arm64`                          | Raspberry Pi, ARM servers, Apple Silicon                  |
+| 📱 **Android (Termux)**   | `pkg install nodejs && npx -y birouter` | Runs **on your phone**, 24/7, no root                     |
+| 📲 **PWA**                | "Add to Home Screen"                    | Fullscreen, offline, installable from browser             |
+| 🧩 **OpenCode plugin**    | `@birouter/opencode-provider`           | Native OpenCode integration                               |
+| 🛠️ **From source**        | `npm install && npm run dev`            | Hack on it, contribute                                    |
 
 <sub>📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) · [Desktop](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
@@ -478,9 +478,9 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> Your keys, your machine, your data. OmniRoute is a **local proxy** — it never phones home.
+> Your keys, your machine, your data. Birouter is a **local proxy** — it never phones home.
 
-- 🏠 **Runs 100% on your hardware** — npm, Docker, desktop, or your phone. No OmniRoute cloud sits in the request path.
+- 🏠 **Runs 100% on your hardware** — npm, Docker, desktop, or your phone. No Birouter cloud sits in the request path.
 - 🔐 **Credentials encrypted at rest** — API keys & OAuth tokens sealed with **AES-256-GCM**.
 - 🚫 **Zero telemetry by default** — your prompts go only to the providers _you_ choose, nowhere else.
 - 🛡️ **Hardened gateway** — API-key scoping, IP filtering, rate limits, prompt-injection guard, loopback-only process routes.
@@ -496,28 +496,28 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> OmniRoute isn't just a server — it's a **full command-line cockpit** with **80+ commands**, plus open agent protocols so an AI agent can drive OmniRoute **by itself**.
+> Birouter isn't just a server — it's a **full command-line cockpit** with **80+ commands**, plus open agent protocols so an AI agent can drive Birouter **by itself**.
 
 ### ⌨️ A real CLI (not just `start`)
 
 ```bash
-omniroute               # serve gateway + dashboard (port 20128)
-omniroute chat          # interactive TUI chat client (slash: /model /combo /skill /memory)
-omniroute setup         # guided first-run wizard
-omniroute doctor        # diagnose providers, ports, native deps
+birouter               # serve gateway + dashboard (port 20128)
+birouter chat          # interactive TUI chat client (slash: /model /combo /skill /memory)
+birouter setup         # guided first-run wizard
+birouter doctor        # diagnose providers, ports, native deps
 ```
 
-### 🛰️ Remote mode — run the CLI here, OmniRoute on a VPS
+### 🛰️ Remote mode — run the CLI here, Birouter on a VPS
 
-OmniRoute on a server? Drive it from your laptop with the **same CLI**. Log in once
+Birouter on a server? Drive it from your laptop with the **same CLI**. Log in once
 with a scoped access token; every command then targets the remote.
 
 ```bash
-omniroute connect 192.168.0.15            # password → scoped token, saved as a context
-omniroute models list                     # ← runs against the REMOTE server
-omniroute configure codex                 # ← picks a remote model, writes a local Codex profile
-omniroute tokens create --name ci --scope read   # mint narrower tokens for other machines
-omniroute contexts use default            # ← switch back to the local server
+birouter connect 192.168.0.15            # password → scoped token, saved as a context
+birouter models list                     # ← runs against the REMOTE server
+birouter configure codex                 # ← picks a remote model, writes a local Codex profile
+birouter tokens create --name ci --scope read   # mint narrower tokens for other machines
+birouter contexts use default            # ← switch back to the local server
 ```
 
 Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopback-only.
@@ -529,20 +529,20 @@ Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopb
 
 </div>
 
-### 🤝 Connect an agent — and it controls OmniRoute itself
+### 🤝 Connect an agent — and it controls Birouter itself
 
-Expose OmniRoute over **MCP** or **A2A** and any capable agent gets the keys to the whole gateway — routing, providers, combos, cache, compression, memory — autonomously.
+Expose Birouter over **MCP** or **A2A** and any capable agent gets the keys to the whole gateway — routing, providers, combos, cache, compression, memory — autonomously.
 
 | Protocol           | Endpoint                                        | Use it for                                             |
 | ------------------ | ----------------------------------------------- | ------------------------------------------------------ |
-| 🧰 **MCP (stdio)** | `omniroute --mcp`                               | Plug into Claude Desktop, Cursor, any MCP client       |
+| 🧰 **MCP (stdio)** | `birouter --mcp`                                | Plug into Claude Desktop, Cursor, any MCP client       |
 | 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **95 tools**, 30 scopes, full audit trail |
 | 📡 **MCP (SSE)**   | `http://localhost:20128/api/mcp/sse`            | Streaming MCP transport                                |
 | 🤝 **A2A**         | `http://localhost:20128/.well-known/agent.json` | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills       |
 
 ```bash
-# Give Claude Code the full OmniRoute toolset over MCP:
-claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp/stream
+# Give Claude Code the full Birouter toolset over MCP:
+claude mcp add-server birouter --type http --url http://localhost:20128/api/mcp/stream
 ```
 
 <sub>📖 [MCP Server](docs/frameworks/MCP-SERVER.md) · [A2A Server](docs/frameworks/A2A-SERVER.md) · [Agent Protocols](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)</sub>
@@ -555,7 +555,7 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 </div>
 
-> **Why use many tokens when few tokens do the trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 10 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 78K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+> **Why use many tokens when few tokens do the trick?** Every request passes through Birouter's compression pipeline **transparently** — no client changes. It's now a **stack of 10 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 78K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
 ### 🧱 The 10-engine stack
 
@@ -606,7 +606,7 @@ Code blocks, URLs and structured data are **always preserved** byte-perfect. **O
 ### 📖 How it works — pipeline, architecture & savings math
 
 ```
-Client (10,000 tok) ──▶ OmniRoute Compression (10 engines) ──▶ Provider (~1,080 tok, up to 95% saved)
+Client (10,000 tok) ──▶ Birouter Compression (10 engines) ──▶ Provider (~1,080 tok, up to 95% saved)
 ```
 
 Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
@@ -628,7 +628,7 @@ The 10 engines above shrink what goes **in**. Three more layers shape **how**, *
   - **Less code** — "lazy senior dev" YAGNI: smallest working change, no unrequested scaffolding.
   - **Terse CJK (文言)** — classical-Chinese ultra-terse style (locale-gated to `zh`).
 - **🎯 Adaptive context-budget** _(the dial)_ — instead of one on/off token threshold, escalate the cheapest, most-lossless engines only as far as needed to **fit the model's context window**. Policy: `reserve-output` (default, model-aware) · `percentage` · `absolute`. Mode: `floor` (guarantee fit) · `replace-autotrigger` (your explicit choice wins) · `off` (legacy threshold).
-- **🎛️ Where compression is decided** _(precedence, high → low)_ — per-request `x-omniroute-compression` header › routing-combo override › active named profile › adaptive / auto-trigger › panel default › off. The applied plan echoes back in the `X-OmniRoute-Compression: <mode>; source=<source>` response header.
+- **🎛️ Where compression is decided** _(precedence, high → low)_ — per-request `x-birouter-compression` header › routing-combo override › active named profile › adaptive / auto-trigger › panel default › off. The applied plan echoes back in the `X-Birouter-Compression: <mode>; source=<source>` response header.
 
 Auto-trigger by token threshold, flip on the adaptive dial, pin a named profile, set a one-off per request, or assign a pipeline per routing combo — whichever fits the workload. An opt-in offline **eval harness** (`npm run eval:compression`) scores fidelity vs. savings on a pinned corpus before you promote a change.
 
@@ -645,8 +645,8 @@ Auto-trigger by token threshold, flip on the adaptive dial, pin a named profile,
 **1) Install & run**
 
 ```bash
-npm install -g omniroute
-omniroute
+npm install -g birouter
+birouter
 ```
 
 Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
@@ -669,9 +669,9 @@ Model:    auto            (zero-config smart routing — or any provider/model)
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-You should see your connected models listed. 🎉 That's it — start coding, and OmniRoute auto-routes & falls back for you.
+You should see your connected models listed. 🎉 That's it — start coding, and Birouter auto-routes & falls back for you.
 
-If your client cannot send custom headers, OmniRoute also exposes tokenized compatibility aliases:
+If your client cannot send custom headers, Birouter also exposes tokenized compatibility aliases:
 
 ```txt
 OpenAI catalog:   http://localhost:20128/vscode/YOUR_KEY/
@@ -691,8 +691,8 @@ Use these only for clients that cannot attach `Authorization: Bearer ...`. Heade
 **🐳 Docker**
 
 ```bash
-docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
-  -p 20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+docker run -d --name birouter --restart unless-stopped --stop-timeout 40 \
+  -p 20128:20128 -v birouter-data:/app/data IQ-Kat/birouter:latest
 ```
 
 **🛠️ From source**
@@ -705,13 +705,13 @@ PORT=20128 npm run dev
 **📦 pnpm**
 
 ```bash
-pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core && omniroute
+pnpm add -g birouter@latest --allow-build=better-sqlite3 --allow-build=@swc/core && birouter
 ```
 
 **🐧 Arch Linux (AUR)**
 
 ```bash
-yay -S omniroute-bin && systemctl --user enable --now omniroute.service
+yay -S birouter-bin && systemctl --user enable --now birouter.service
 ```
 
 **🔧 Nix (Flake)**
@@ -731,7 +731,7 @@ devbox run npm run dev
 
 ```bash
 # 1. Build the image
-podman build --target runner-base -t omniroute:base .
+podman build --target runner-base -t birouter:base .
 
 # 2. Fix data directory permissions for rootless Podman
 mkdir -p data && podman unshare chown 1000:1000 ./data
@@ -753,7 +753,7 @@ your platform/Node, and otherwise falls back transparently to a pure-JS engine
 To skip the post-install native warm-up entirely (CI, headless, or slow machines):
 
 ```bash
-OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 also skips it
+BIROUTER_SKIP_POSTINSTALL=1 npm install -g birouter   # CI=1 also skips it
 ```
 
 For the fastest installs prefer **pnpm** (content-addressed store + hard links — see above).
@@ -765,7 +765,7 @@ same process on one port, so there is no separate CLI-only package today.
 
 <div align="center">
 
-# 🎬 OmniRoute in Action
+# 🎬 Birouter in Action
 
 </div>
 
@@ -790,7 +790,7 @@ same process on one port, so there is no separate CLI-only package today.
 
 <div align="center">
 
-> 🎬 **Made a video about OmniRoute?** Open an [issue](https://github.com/diegosouzapw/OmniRoute/issues/new) or [discussion](https://github.com/diegosouzapw/OmniRoute/discussions) with the link — we'll feature it here.
+> 🎬 **Made a video about Birouter?** Open an [issue](https://github.com/IQ-Kat/birouter/issues/new) or [discussion](https://github.com/IQ-Kat/birouter/discussions) with the link — we'll feature it here.
 
 <br/>
 </div>
@@ -826,7 +826,7 @@ same process on one port, so there is no separate CLI-only package today.
 | **NVIDIA NIM**    | `nvidia/`   | 129 models                                      | ~40 RPM            |
 | **Cerebras**      | `cerebras/` | Qwen3 235B, GPT-OSS 120B                        | 1M tok/day         |
 
-> 💡 The dashboard "cost" is a **savings tracker**, not a bill — OmniRoute never charges you. A "$290 total cost" using free models means **$290 saved**.
+> 💡 The dashboard "cost" is a **savings tracker**, not a bill — Birouter never charges you. A "$290 total cost" using free models means **$290 saved**.
 
 📖 Complete free directory → [`docs/reference/FREE_TIERS.md`](docs/reference/FREE_TIERS.md) — 25+ providers, quotas, base URLs.
 
@@ -858,7 +858,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 <br/>
 
-🇷🇺 🇨🇳 🇮🇷 🇨🇺 🇹🇷 In a blocked region? OmniRoute's **3-level proxy** (Global / Per-Provider / Per-Connection) proxies API requests, OAuth flows, connection tests, token refresh & model sync.
+🇷🇺 🇨🇳 🇮🇷 🇨🇺 🇹🇷 In a blocked region? Birouter's **3-level proxy** (Global / Per-Provider / Per-Connection) proxies API requests, OAuth flows, connection tests, token refresh & model sync.
 
 - **Protocols:** HTTP/HTTPS, SOCKS5, authenticated proxies
 - **🆓 1proxy marketplace** — hundreds of free validated proxies, quality scores, auto-rotation
@@ -890,13 +890,13 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 <br/>
 
-| Env var           | Default        | Purpose                          |
-| ----------------- | -------------- | -------------------------------- |
-| `PORT`            | `20128`        | API + dashboard port             |
-| `REQUIRE_API_KEY` | `false`        | Require API key for all requests |
-| `DATA_DIR`        | `~/.omniroute` | Database & config storage        |
+| Env var           | Default       | Purpose                          |
+| ----------------- | ------------- | -------------------------------- |
+| `PORT`            | `20128`       | API + dashboard port             |
+| `REQUIRE_API_KEY` | `false`       | Require API key for all requests |
+| `DATA_DIR`        | `~/.birouter` | Database & config storage        |
 
-**Will I be charged by OmniRoute?** No — it's free, open-source software on your machine. You only pay paid providers directly. OmniRoute has no billing system.
+**Will I be charged by Birouter?** No — it's free, open-source software on your machine. You only pay paid providers directly. Birouter has no billing system.
 **Are FREE providers really unlimited?** Mostly — Qoder, Pollinations, LongCat, and Cloudflare are free with no per-account credit cap. Kiro is free too but capped at ~50 credits/month per account. Stack multiple free providers in a combo and auto-fallback keeps you serving for $0.
 **Will compression hurt quality?** No — it only compresses the **input**; code, URLs, JSON are always protected.
 **Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 237 providers.
@@ -945,9 +945,9 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 > 💬 **Chat with the community** — Discord, Telegram & WhatsApp (🌍 / 🇧🇷) links are at the [top of this README](#-join-the-community).
 
-- 🌍 **Website**: [omniroute.online](https://omniroute.online)
-- 🐙 **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- 🐛 **Issues**: [report a bug](https://github.com/diegosouzapw/OmniRoute/issues) (attach `npm run system-info` output)
+- 🌍 **Website**: [Birouter.online](https://Birouter.online)
+- 🐙 **GitHub**: [github.com/IQ-Kat/birouter](https://github.com/IQ-Kat/birouter)
+- 🐛 **Issues**: [report a bug](https://github.com/IQ-Kat/birouter/issues) (attach `npm run system-info` output)
 - 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md) or pick a `good first issue`
 
 </div>
@@ -972,9 +972,9 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 - **Testing**: Node.js test runner + Vitest (**21,000+ test cases** across 2,586 files — unit, integration, E2E, security, ecosystem)
 - **Platforms**: Desktop (Electron), Android (Termux), PWA (any browser)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
-- **Website**: [omniroute.online](https://omniroute.online)
-- **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
-- **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
+- **Website**: [Birouter.online](https://Birouter.online)
+- **Package**: [npmjs.com/package/Birouter](https://www.npmjs.com/package/Birouter)
+- **Docker**: [hub.docker.com/r/IQ-Kat/birouter](https://hub.docker.com/r/IQ-Kat/birouter)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
 
 <div align="center">
@@ -987,14 +987,14 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 ### 📘 Getting Started
 
-| Document                                                       | Description                                                                      |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                   |
-| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning           |
-| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot    |
-| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens     |
-| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles |
-| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                             |
+| Document                                                       | Description                                                                     |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                  |
+| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning          |
+| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot   |
+| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote Birouter (VPS) from your laptop CLI via scoped access tokens     |
+| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at Birouter (local/remote) with `launch` + per-model profiles |
+| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                            |
 
 ### 🔧 Operations & Deployment
 
@@ -1004,7 +1004,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | [Podman Guide](contrib/podman/README.md)                 | Quadlet systemd integration, podman-compose, SELinux           |
 | [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                  |
 | [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                       |
-| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run OmniRoute on Android via Termux                            |
+| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run Birouter on Android via Termux                             |
 | [PWA Guide](docs/guides/PWA_GUIDE.md)                    | Progressive Web App install, caching, architecture             |
 | [Uninstall Guide](docs/guides/UNINSTALL.md)              | Clean removal for all install methods                          |
 | [Environment Config](docs/reference/ENVIRONMENT.md)      | Complete `.env` variables and references                       |
@@ -1054,7 +1054,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 # ⭐ Top Contributors
 
-> OmniRoute is shaped by a passionate open-source community. These individuals have made exceptional contributions that directly impact the quality, stability, and reach of the project. **Thank you.**
+> Birouter is shaped by a passionate open-source community. These individuals have made exceptional contributions that directly impact the quality, stability, and reach of the project. **Thank you.**
 
 <table>
   <tr>
@@ -1109,7 +1109,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
   </tr>
 </table>
 
-> 🙏 These contributors' features, bug fixes, and infrastructure improvements are a **core part** of what makes OmniRoute reliable and feature-rich. Every pull request, every test case, and every i18n translation file matters. Open source is built by people like them.
+> 🙏 These contributors' features, bug fixes, and infrastructure improvements are a **core part** of what makes Birouter reliable and feature-rich. Every pull request, every test case, and every i18n translation file matters. Open source is built by people like them.
 
 </div>
 
@@ -1123,7 +1123,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 </div>
 
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=200&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=IQ-Kat/birouter&max=200&columns=20&anon=1)](https://github.com/IQ-Kat/birouter/graphs/contributors)
 
 ### How to Contribute
 
@@ -1148,11 +1148,11 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 ## 📊 Stars
 
-<a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=diegosouzapw%2Fbirouter&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=IQ-Kat/birouter&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=IQ-Kat/birouter&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=IQ-Kat/birouter&type=date&legend=top-left" />
  </picture>
 </a>
 </div>
@@ -1163,11 +1163,11 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 ## 🌍 StarMapper
 
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
+<a href="https://starmapper.bruniaux.com/IQ-Kat/birouter">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/IQ-Kat/birouter?theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/IQ-Kat/birouter?theme=light" />
+    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/IQ-Kat/birouter" />
   </picture>
 </a>
 </div>
@@ -1180,13 +1180,13 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 </div>
 
-OmniRoute stands on the shoulders of giants. It started as a fork of **[9router](https://github.com/decolua/9router)** and a TypeScript port of the Go project **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — and from there, every subsystem below was inspired by an open-source project that got there first. Each one shaped a concrete piece of OmniRoute. This is our thank-you to all of them. 🙏
+Birouter stands on the shoulders of giants. It started as a fork of **[9router](https://github.com/decolua/9router)** and a TypeScript port of the Go project **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — and from there, every subsystem below was inspired by an open-source project that got there first. Each one shaped a concrete piece of Birouter. This is our thank-you to all of them. 🙏
 
 > ⭐ star counts as of June 2026 — go give these projects a star.
 
 ### 🧬 Lineage & gateway
 
-| Project                                                                         |    ⭐ | How it inspired OmniRoute                                                                                                             |
+| Project                                                                         |    ⭐ | How it inspired Birouter                                                                                                              |
 | ------------------------------------------------------------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
 | **[9router](https://github.com/decolua/9router)** · decolua                     | 19.0k | The original project this fork is built on — extended here with multi-modal APIs and a full TypeScript rewrite.                       |
 | **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** · router-for-me | 38.8k | The Go implementation that inspired this JavaScript / TypeScript port.                                                                |
@@ -1194,7 +1194,7 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🗜️ Context & token compression — engines
 
-| Project                                                                       |    ⭐ | How it inspired OmniRoute                                                                                                                                                                                |
+| Project                                                                       |    ⭐ | How it inspired Birouter                                                                                                                                                                                 |
 | ----------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[Caveman](https://github.com/JuliusBrussee/caveman)** · JuliusBrussee       | 78.2k | The viral "why use many token when few token do trick" project — its caveman-speak philosophy powers our standard compression mode and 30+ filler/condensation rules.                                    |
 | **[RTK – Rust Token Killer](https://github.com/rtk-ai/rtk)** · rtk-ai         | 67.3k | High-performance command-output compression — inspired our RTK engine, JSON filter DSL, raw-output recovery and the stacked RTK → Caveman pipeline.                                                      |
@@ -1206,7 +1206,7 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🧩 Compact formats, token research & code-aware tooling
 
-| Project                                                                                        |    ⭐ | How it inspired OmniRoute                                                                                                                                                                                      |
+| Project                                                                                        |    ⭐ | How it inspired Birouter                                                                                                                                                                                       |
 | ---------------------------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[TOON](https://github.com/toon-format/toon)** · toon-format                                  | 24.7k | Token-Oriented Object Notation — its columnar, header-plus-rows model shaped our tabular compaction stage.                                                                                                     |
 | **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    14 | Schema-aware "JSON for LLMs" notation — co-inspired our lossless homogeneous-array compaction with `[N rows]` markers.                                                                                         |
@@ -1215,7 +1215,7 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | **[token-saver](https://github.com/ppgranger/token-saver)** · ppgranger                        |   110 | Content-aware, per-file-type output compression with failure-aware bail-out — validated our per-type dispatch and minimum-gain skip.                                                                           |
 | **[token-optimizer](https://github.com/alexgreensh/token-optimizer)** · alexgreensh            |  1.5k | "Find the ghost tokens" — its offload + recoverable-handle pattern informed our CCR offload thinking.                                                                                                          |
 | **[TokenMizer](https://github.com/Shweta-Mishra-ai/tokenmizer)** · Shweta-Mishra-ai            |     2 | A session-graph + cross-turn line-dedup blueprint that informed our session-dedup design.                                                                                                                      |
-| **[OmniCompress](https://github.com/jessefreitas/OmniCompress)** · jessefreitas                |     2 | Rust columnar-JSON + content-addressed retrieve + cross-message dedup — validated our `headroom`/`ccr`/`session-dedup` engine design and the cache-stable "compressed form is position-independent" invariant. |
+| **[BiCompress](https://github.com/jessefreitas/BiCompress)** · jessefreitas                    |     2 | Rust columnar-JSON + content-addressed retrieve + cross-message dedup — validated our `headroom`/`ccr`/`session-dedup` engine design and the cache-stable "compressed form is position-independent" invariant. |
 | **[mcp-compressor](https://github.com/atlassian-labs/mcp-compressor)** · Atlassian Labs        |    89 | MCP tool-schema/description compression — informed our MCP tool-manifest cardinality reduction.                                                                                                                |
 | **[RepoMapper](https://github.com/pdavis68/RepoMapper)** · pdavis68                            |   181 | Aider-style repo-map ranking — informed our repo-map / retrieval-ranking exploration.                                                                                                                          |
 | **[quiet-shell-mcp](https://github.com/mrsimpson/quiet-shell-mcp)** · mrsimpson                |     4 | Declarative shell-output reduction over MCP — validated our declarative bash-output compaction.                                                                                                                |
@@ -1223,7 +1223,7 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🧠 Memory & RAG
 
-| Project                                                            |    ⭐ | How it inspired OmniRoute                                                                                           |
+| Project                                                            |    ⭐ | How it inspired Birouter                                                                                            |
 | ------------------------------------------------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------- |
 | **[Mem0](https://github.com/mem0ai/mem0)** · mem0ai                | 59.8k | Universal memory layer — its proxy-as-write/read-boundary model shaped our memory architecture.                     |
 | **[Letta (MemGPT)](https://github.com/letta-ai/letta)** · letta-ai | 23.6k | Stateful agents with tiered memory — inspired our Context Control & Recovery (CCR) tiered model.                    |
@@ -1231,14 +1231,14 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🛰️ Traffic inspection, MITM & transparent proxy
 
-| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                        |
+| Project                                                                           |   ⭐ | How it inspired Birouter                                                                                                                                                         |
 | --------------------------------------------------------------------------------- | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** · chouzz         |   48 | MITM interception/analysis of coding-assistant ↔ LLM traffic — our Traffic Inspector ports its SSE merge, conversation normalization, host passthrough and secret masking (MIT). |
 | **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.3k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                             |
 
 ### 📚 Model data, observability & UI
 
-| Project                                                                    |    ⭐ | How it inspired OmniRoute                                                                                                  |
+| Project                                                                    |    ⭐ | How it inspired Birouter                                                                                                   |
 | -------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------- |
 | **[models.dev](https://github.com/anomalyco/models.dev)** · SST / OpenCode |  5.6k | Open database of AI model specs, pricing and capabilities — synced natively into our model catalog.                        |
 | **[React Flow / xyflow](https://github.com/xyflow/xyflow)** · xyflow       | 37.4k | The node-based graph library powering our real-time Compression Studio and Combo/Routing Studio.                           |
@@ -1249,17 +1249,17 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🛡️ Security
 
-| Project                                                                                     |  ⭐ | How it inspired OmniRoute                                                                                                                        |
+| Project                                                                                     |  ⭐ | How it inspired Birouter                                                                                                                         |
 | ------------------------------------------------------------------------------------------- | --: | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **[awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)** · tldrsec | 708 | A curated list of secure-by-default libraries that guides our security choices (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). |
 
 ## ❤️ Support
 
-OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
+Birouter is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
 
 - ⭐ **Star the repo** — it genuinely helps visibility
 - 💖 **[GitHub Sponsors](https://github.com/sponsors/diegosouzapw)** — fund ongoing maintenance and new providers
-- 🐛 **Report bugs and share feedback** in [Discussions](https://github.com/diegosouzapw/OmniRoute/discussions)
+- 🐛 **Report bugs and share feedback** in [Discussions](https://github.com/IQ-Kat/birouter/discussions)
 
 ## 📄 License
 
@@ -1269,9 +1269,9 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
+**[⬆ Back to top](#-birouter)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.43 · Node ≥22.0.0 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>Birouter v1.3.8 · Node ≥22.0.0 · MIT License · <a href="https://Birouter.online">Birouter.online</a></sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

@@ -122,13 +122,13 @@ test("resilience profile set chama MCP tool", async () => {
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_set_resilience_profile",
+      name: "birouter_set_resilience_profile",
       arguments: { profile: "balanced" },
     }),
   });
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_set_resilience_profile");
+  assert.equal(capturedBody.name, "birouter_set_resilience_profile");
   assert.equal(capturedBody.arguments.profile, "balanced");
 });
 

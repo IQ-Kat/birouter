@@ -21,11 +21,11 @@ test("getMachineTokenSync with empty string salt does not throw", () => {
   assert.doesNotThrow(() => getMachineTokenSync(""));
 });
 
-test("getMachineTokenSync respects OMNIROUTE_CLI_SALT env var", () => {
+test("getMachineTokenSync respects BIROUTER_CLI_SALT env var", () => {
   const before = getMachineTokenSync();
-  process.env.OMNIROUTE_CLI_SALT = "__test_salt__";
+  process.env.BIROUTER_CLI_SALT = "__test_salt__";
   const withEnv = getMachineTokenSync();
-  delete process.env.OMNIROUTE_CLI_SALT;
+  delete process.env.BIROUTER_CLI_SALT;
   assert.notEqual(before, withEnv, "env salt must produce a different token");
   assert.match(withEnv, /^[0-9a-f]{64}$/, "env-derived token must still be 64-char hex");
 });

@@ -12,7 +12,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-memory-reindex-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-memory-reindex-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
@@ -27,10 +27,12 @@ function insertTestMemory(
   content: string,
   key: string
 ): void {
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO memories (id, api_key_id, type, key, content, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-  `).run(id, "test-api-key", "factual", key, content);
+  `
+  ).run(id, "test-api-key", "factual", key, content);
 }
 
 async function resetStorage() {

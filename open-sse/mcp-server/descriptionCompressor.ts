@@ -50,8 +50,8 @@ function isDisabledEnvValue(value: string | undefined): boolean {
 export function isMcpDescriptionCompressionEnabled(
   options: DescriptionCompressionOptions = {}
 ): boolean {
-  if (isDisabledEnvValue(process.env.OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS)) return false;
-  if (isDisabledEnvValue(process.env.OMNIROUTE_MCP_DESCRIPTION_COMPRESSION)) return false;
+  if (isDisabledEnvValue(process.env.BIROUTER_MCP_COMPRESS_DESCRIPTIONS)) return false;
+  if (isDisabledEnvValue(process.env.BIROUTER_MCP_DESCRIPTION_COMPRESSION)) return false;
   return options.enabled !== false;
 }
 

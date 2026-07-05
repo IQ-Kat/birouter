@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-provider-nodes-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-provider-nodes-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -14,20 +14,20 @@ const providerNodesIdRoute = await import("../../src/app/api/provider-nodes/[id]
 const { OPENAI_COMPATIBLE_PREFIX, ANTHROPIC_COMPATIBLE_PREFIX, CLAUDE_CODE_COMPATIBLE_PREFIX } =
   await import("../../src/shared/constants/providers.ts");
 
-const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-const originalAllowLocalProviderUrls = process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+const originalAllowPrivateProviderUrls = process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+const originalAllowLocalProviderUrls = process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
 async function resetStorage() {
   delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
   if (originalAllowPrivateProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+    process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
   if (originalAllowLocalProviderUrls === undefined) {
-    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+    delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
   } else {
-    process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
+    process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
   }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -125,7 +125,7 @@ test("provider nodes route creates OpenAI-compatible nodes with normalized defau
 });
 
 test("provider nodes route allows local OpenAI-compatible base URLs by default", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
 
   const response = await providerNodesRoute.POST(
     makeRequest({
@@ -142,8 +142,8 @@ test("provider nodes route allows local OpenAI-compatible base URLs by default",
 });
 
 test("provider nodes route blocks local base URLs when local provider URLs are disabled", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = "false";
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS = "false";
 
   const response = await providerNodesRoute.POST(
     makeRequest({
@@ -164,8 +164,8 @@ test("provider nodes route blocks local base URLs when local provider URLs are d
 });
 
 test("provider nodes route blocks cloud metadata base URLs by default", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
   const response = await providerNodesRoute.POST(
     makeRequest({
@@ -268,7 +268,7 @@ test("provider nodes route creates CC-compatible nodes with CC-specific URL norm
 });
 
 test("provider nodes update route allows local base URLs by default", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
 
   const created = await providersDb.createProviderNode({
     id: "openai-compatible-chat-update-test",
@@ -301,8 +301,8 @@ test("provider nodes update route allows local base URLs by default", async () =
 });
 
 test("provider nodes update route blocks cloud metadata base URLs by default", async () => {
-  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
-  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.BIROUTER_ALLOW_LOCAL_PROVIDER_URLS;
 
   const created = await providersDb.createProviderNode({
     id: "openai-compatible-chat-update-test",

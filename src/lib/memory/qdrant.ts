@@ -72,7 +72,8 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? process.env.QDRANT_API_KEY.trim()
       : undefined;
   const envCollection =
-    typeof process.env.QDRANT_COLLECTION === "string" && process.env.QDRANT_COLLECTION.trim().length > 0
+    typeof process.env.QDRANT_COLLECTION === "string" &&
+    process.env.QDRANT_COLLECTION.trim().length > 0
       ? process.env.QDRANT_COLLECTION.trim()
       : undefined;
 
@@ -84,15 +85,19 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? Math.round(portRaw)
       : typeof portRaw === "string"
         ? Math.round(Number(portRaw) || 6333)
-        : envPort ?? 6333;
+        : (envPort ?? 6333);
   const apiKey =
     (typeof settings.qdrantApiKey === "string" && settings.qdrantApiKey.trim().length > 0
       ? settings.qdrantApiKey.trim()
-      : null) ?? envApiKey ?? null;
+      : null) ??
+    envApiKey ??
+    null;
   const collection =
     (typeof settings.qdrantCollection === "string" && settings.qdrantCollection.trim().length > 0
       ? settings.qdrantCollection.trim()
-      : null) ?? envCollection ?? "omniroute_memory";
+      : null) ??
+    envCollection ??
+    "birouter_memory";
   const embeddingModel =
     (typeof settings.qdrantEmbeddingModel === "string" &&
     settings.qdrantEmbeddingModel.trim().length > 0
@@ -295,7 +300,7 @@ export async function upsertSemanticMemoryPoint(input: {
       : null;
 
     const payload = {
-      kind: "omniroute_memory",
+      kind: "birouter_memory",
       memoryId: input.id,
       apiKeyId: input.apiKeyId || "",
       sessionId: input.sessionId || "",
@@ -369,7 +374,7 @@ export async function searchSemanticMemory(
           ...(searchParams ? { params: searchParams } : {}),
           filter: {
             must: [
-              { key: "kind", match: { value: "omniroute_memory" } },
+              { key: "kind", match: { value: "birouter_memory" } },
               ...(scope?.apiKeyId ? [{ key: "apiKeyId", match: { value: scope.apiKeyId } }] : []),
               ...(scope?.sessionId
                 ? [{ key: "sessionId", match: { value: String(scope.sessionId) } }]
@@ -454,7 +459,7 @@ export async function cleanupSemanticMemoryPoints(input: {
     const cutoffUnix = nowUnix - retentionDays * 24 * 60 * 60;
 
     const filter: Record<string, unknown> = {
-      must: [{ key: "kind", match: { value: "omniroute_memory" } }],
+      must: [{ key: "kind", match: { value: "birouter_memory" } }],
       should: [
         { key: "expiresAtUnix", range: { lt: nowUnix } },
         { key: "createdAtUnix", range: { lt: cutoffUnix } },

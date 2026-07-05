@@ -25,21 +25,38 @@ function resolveActiveDiff(batch: PreviewBatch | null, selectedLane: string | nu
   return run?.diff ?? batch?.combined?.diff ?? null;
 }
 
-function LaneList({ lanes, onSelect }: { lanes: Lane[]; onSelect: (e: string) => void }) {
+function LaneList({
+  lanes,
+  onSelect,
+  selectedLane,
+}: {
+  lanes: Lane[];
+  onSelect: (e: string) => void;
+  selectedLane: string | null;
+}) {
   return (
-    <>
-      {lanes.map((l) => (
-        <button
-          key={l.engine}
-          data-testid="play-lane"
-          onClick={() => onSelect(l.engine)}
-          className="flex w-full items-center justify-between border-b py-1 text-left font-mono text-xs"
-        >
-          <span>{l.engine}</span>
-          <span>{laneStatus(l)}</span>
-        </button>
-      ))}
-    </>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      {lanes.map((l) => {
+        const isSelected = l.engine === selectedLane;
+        return (
+          <button
+            key={l.engine}
+            data-testid="play-lane"
+            onClick={() => onSelect(l.engine)}
+            className={`flex items-center justify-between border p-2.5 rounded-lg text-left font-mono text-xs transition-all ${
+              isSelected
+                ? "bg-primary/10 border-primary/50 text-primary-light shadow-sm"
+                : "bg-surface border-border/40 hover:border-primary/20 hover:bg-surface-hover text-text-main"
+            }`}
+          >
+            <span className="font-semibold">{l.engine}</span>
+            <span className="text-text-muted text-[10px] font-sans font-medium">
+              {laneStatus(l)}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -95,38 +112,81 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
           onToggleHeatmap={toggleHeatmap}
         />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-auto">
+      <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-auto pl-1">
         {batch?.combined && (
-          <section data-testid="play-combined">
-            <header className="text-xs font-semibold">
-              Fluxo combinado — {active.join(" → ")}{" "}
+          <section
+            data-testid="play-combined"
+            className="border border-border/40 bg-surface/20 p-4 rounded-xl flex flex-col gap-3"
+          >
+            <header className="text-sm font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">
+                dynamic_feed
+              </span>
+              Combined Pipeline Flow —{" "}
+              <span className="font-mono text-xs font-normal text-text-muted">
+                {active.join(" → ")}
+              </span>
               <QuantumLockBadge stats={batch.combined.quantumLock} />
             </header>
             <WaterfallInspector run={batch.combined} />
             <RiskGateBadge stats={batch?.riskGate ?? null} />
           </section>
         )}
-        <section>
-          <header className="text-xs font-semibold">Cada camada sozinha</header>
-          <LaneList lanes={batch?.lanes ?? []} onSelect={setSelectedLane} />
+
+        <section className="border border-border/40 bg-surface/20 p-4 rounded-xl flex flex-col gap-3">
+          <header className="text-sm font-semibold text-text-main flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px] text-primary">layers</span>
+            Individual Layers (A/B Isolation)
+          </header>
+          <LaneList
+            lanes={batch?.lanes ?? []}
+            onSelect={setSelectedLane}
+            selectedLane={selectedLane}
+          />
         </section>
+
         {(() => {
           const cmp =
             batch?.lanes.find((l) => l.engine === "headroom")?.run?.encoderComparison ??
             batch?.combined?.encoderComparison ??
             null;
-          return cmp ? <EncoderComparisonTable comparison={cmp} /> : null;
+          return cmp ? (
+            <section className="border border-border/40 bg-surface/20 p-4 rounded-xl flex flex-col gap-3">
+              <header className="text-sm font-semibold text-text-main flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-primary">
+                  compare_arrows
+                </span>
+                Encoder Comparison
+              </header>
+              <EncoderComparisonTable comparison={cmp} />
+            </section>
+          ) : null;
         })()}
+
         {activeDiff && (
-          <section>
-            <header className="text-xs font-semibold">Diff — {selectedLane ?? "combinado"}</header>
+          <section className="border border-border/40 bg-surface/20 p-4 rounded-xl flex flex-col gap-3">
+            <header className="text-sm font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">difference</span>
+              Diff View —{" "}
+              <span className="font-mono text-xs font-normal text-text-muted">
+                {selectedLane ?? "Combined Pipeline"}
+              </span>
+            </header>
             <DiffPane segments={activeDiff} preservedBlocks={[]} />
           </section>
         )}
+
         {batch?.heatmap && (
-          <section data-testid="play-heatmap">
-            <header className="text-xs font-semibold">
-              Saliency heatmap — {batch.heatmap.mode}
+          <section
+            data-testid="play-heatmap"
+            className="border border-border/40 bg-surface/20 p-4 rounded-xl flex flex-col gap-3"
+          >
+            <header className="text-sm font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">insights</span>
+              Saliency Heatmap —{" "}
+              <span className="font-mono text-xs font-normal text-text-muted">
+                {batch.heatmap.mode}
+              </span>
             </header>
             <SaliencyHeatmap heatmap={batch.heatmap} />
           </section>
@@ -135,6 +195,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
     </div>
   );
 }
+
 function orderByStack(active: string[], order: readonly string[]): string[] {
   return order.filter((e) => active.includes(e));
 }

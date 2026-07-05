@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — feature-triage CLI.
+ * Birouter — feature-triage CLI.
  *
  * Classifies open feature-request issues into 8 buckets:
  *   absorb, dormant, already_delivered, skip_assigned, skip_has_pr,
@@ -10,7 +10,7 @@
  *
  * Usage:
  *   node scripts/features/feature-triage.mjs \
- *     --owner diegosouzapw --repo OmniRoute \
+ *     --owner IQ-Kat --repo Birouter \
  *     --output _ideia/_triage.json
  *
  * Exit codes:

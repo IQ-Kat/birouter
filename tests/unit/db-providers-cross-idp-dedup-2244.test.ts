@@ -13,7 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cross-idp-dedup-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cross-idp-dedup-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -92,7 +92,9 @@ test("#2244 cross-IdP dedup: same email + DIFFERENT username creates a separate 
     "two different IdP identities sharing an email must NOT be collapsed into one connection"
   );
   const usernames = conns
-    .map((c) => (c as { providerSpecificData?: { username?: string } }).providerSpecificData?.username)
+    .map(
+      (c) => (c as { providerSpecificData?: { username?: string } }).providerSpecificData?.username
+    )
     .sort();
   assert.deepEqual(usernames, ["alice-google", "alice-huggingface"]);
 });

@@ -21,14 +21,13 @@ export const OPEN_CODE_TARGET: MitmTarget = {
   setupTutorial: {
     steps: [
       "Install the OpenCode CLI/IDE",
-      "Install OmniRoute's root certificate",
+      "Install Birouter's root certificate",
       "Enable DNS routing for OpenCode",
       "Restart OpenCode",
-      "Done — OpenCode traffic now routes through OmniRoute",
+      "Done — OpenCode traffic now routes through Birouter",
     ],
     detection: { command: "which opencode", platform: "all" },
   },
-  handler: () =>
-    import("../handlers/openCode").then((m) => ({ default: m.OpenCodeHandler })),
+  handler: () => import("../handlers/openCode").then((m) => ({ default: m.OpenCodeHandler })),
   riskNoticeKey: "providers.riskNotice.oauth",
 };

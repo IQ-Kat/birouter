@@ -2,7 +2,7 @@ import { bulkAssignProxyToScope } from "@/lib/localDb";
 import { bulkProxyAssignmentSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { clearDispatcherCache } from "@birouter/open-sse/utils/proxyDispatcher";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function PUT(request: Request) {

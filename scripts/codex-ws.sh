@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-# codex-ws — roda a OpenAI Codex CLI contra um OmniRoute LOCAL usando o
+# codex-ws — roda a OpenAI Codex CLI contra um Birouter LOCAL usando o
 #            transporte Responses-over-WebSocket (em vez do HTTP da Cloud).
 #
 # POR QUE ESTE WRAPPER EXISTE
 # ---------------------------
-# O OmniRoute expõe um proxy WebSocket para a API de Responses do Codex em
+# O Birouter expõe um proxy WebSocket para a API de Responses do Codex em
 #   ws(s)://<host>/v1/responses
 # A Codex CLI sabe falar esse transporte quando o provider tem
 # `supports_websockets = true` + `wire_api = "responses"`. Mas há DOIS detalhes
@@ -13,7 +13,7 @@
 #
 #  1) A Codex CLI valida o NOME do modelo no cliente. Ids com prefixo de provider
 #     (ex.: "codex/gpt-5.5") são REJEITADOS ("model is not supported ... ChatGPT
-#     account"). É preciso mandar o id "puro" -> "gpt-5.5". (O OmniRoute, no
+#     account"). É preciso mandar o id "puro" -> "gpt-5.5". (O Birouter, no
 #     bridge WS, re-resolve "gpt-5.5" -> provider codex internamente.)
 #
 #  2) A Codex CLI v0.136 carrega TAMBÉM "$CWD/.codex/config.toml" como config
@@ -33,22 +33,22 @@
 #   codex-ws --help                  # repassa flags pra Codex CLI
 #
 # Variáveis de ambiente (todas com default; sobrescreva exportando antes):
-#   OMNIROUTE_WS_BASE   base URL do OmniRoute local   (default abaixo)
-#   OMNIROUTE_WS_MODEL  modelo codex (id puro)        (default "gpt-5.5")
-#   OMNIROUTE_LOCAL_KEY API key (qualquer valor se REQUIRE_API_KEY=false)
+#   BIROUTER_WS_BASE   base URL do Birouter local   (default abaixo)
+#   BIROUTER_WS_MODEL  modelo codex (id puro)        (default "gpt-5.5")
+#   BIROUTER_LOCAL_KEY API key (qualquer valor se REQUIRE_API_KEY=false)
 #   CODEX_WS_HOME       dir de config isolado da Codex (default ~/.codex-ws)
 # =============================================================================
 
 set -euo pipefail
 
 # ---- Configuração (com defaults seguros) ------------------------------------
-OMNIROUTE_WS_BASE="${OMNIROUTE_WS_BASE:-http://127.0.0.1:20128/v1}"  # base do OmniRoute local
-OMNIROUTE_WS_MODEL="${OMNIROUTE_WS_MODEL:-gpt-5.5}"                  # id PURO (sem "codex/")
+BIROUTER_WS_BASE="${BIROUTER_WS_BASE:-http://127.0.0.1:20128/v1}"  # base do Birouter local
+BIROUTER_WS_MODEL="${BIROUTER_WS_MODEL:-gpt-5.5}"                  # id PURO (sem "codex/")
 CODEX_WS_HOME="${CODEX_WS_HOME:-$HOME/.codex-ws}"                    # CODEX_HOME isolado da Cloud
 
 # A Codex CLI lê a key Bearer da env var nomeada em `env_key`. Mantemos um nome
 # próprio para não colidir com OPENAI_API_KEY da config da Cloud.
-export OMNIROUTE_LOCAL_KEY="${OMNIROUTE_LOCAL_KEY:-local}"
+export BIROUTER_LOCAL_KEY="${BIROUTER_LOCAL_KEY:-local}"
 
 # CODEX_HOME isolado: a Codex CLI usa ESTE diretório como config "user-level",
 # deixando a sua ~/.codex (Cloud) totalmente intacta.
@@ -60,16 +60,16 @@ export CODEX_HOME="$CODEX_WS_HOME"
 if [ ! -f "$CODEX_HOME/config.toml" ]; then
   mkdir -p "$CODEX_HOME"
   cat > "$CODEX_HOME/config.toml" <<EOF
-# Gerado por codex-ws.sh — config isolada para o WS local do OmniRoute.
-model = "$OMNIROUTE_WS_MODEL"
-model_provider = "omniroute-local"
+# Gerado por codex-ws.sh — config isolada para o WS local do Birouter.
+model = "$BIROUTER_WS_MODEL"
+model_provider = "birouter-local"
 
-[model_providers.omniroute-local]
-name = "OmniRoute Local (WS)"
-base_url = "$OMNIROUTE_WS_BASE"   # a URL WebSocket é derivada desta base pela CLI
+[model_providers.birouter-local]
+name = "Birouter Local (WS)"
+base_url = "$BIROUTER_WS_BASE"   # a URL WebSocket é derivada desta base pela CLI
 wire_api = "responses"            # único valor suportado desde fev/2026
 supports_websockets = true        # <- liga o transporte Responses-over-WebSocket
-env_key = "OMNIROUTE_LOCAL_KEY"   # a CLI lê a key Bearer desta env var
+env_key = "BIROUTER_LOCAL_KEY"   # a CLI lê a key Bearer desta env var
 
 # Marca o HOME como diretório confiável para o modo exec.
 [projects."$HOME"]
@@ -80,7 +80,7 @@ fi
 # ---- Overrides de precedência máxima ----------------------------------------
 # Vencem qualquer config de arquivo (inclusive a project-local da Cloud em
 # $CWD/.codex/config.toml). É o que garante o modelo certo no transporte certo.
-overrides=(-c model="$OMNIROUTE_WS_MODEL" -c model_provider="omniroute-local")
+overrides=(-c model="$BIROUTER_WS_MODEL" -c model_provider="birouter-local")
 
 # ---- Dispatch ---------------------------------------------------------------
 # No modo headless (`exec`) injeta --skip-git-repo-check (senão a CLI recusa

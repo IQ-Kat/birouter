@@ -26,7 +26,12 @@ describe("proxyDispatcher SOCKS5 host handling", () => {
 
 describe("proxyDispatcher family directive", () => {
   it("encodes family from a config object onto the URL", () => {
-    const url = proxyConfigToUrl({ type: "http", host: "proxy.example.com", port: 8080, family: "ipv6" });
+    const url = proxyConfigToUrl({
+      type: "http",
+      host: "proxy.example.com",
+      port: 8080,
+      family: "ipv6",
+    });
     assert.ok(url!.includes("family=ipv6"), url!);
   });
   it("derives 6 for an explicit ipv6 directive on a hostname proxy", () => {
@@ -38,7 +43,10 @@ describe("proxyDispatcher family directive", () => {
     assert.equal(__resolveDispatcherFamilyForTest("http://proxy.example.com:8080"), null);
   });
   it("throws (fail-closed) when family=ipv6 contradicts a v4 literal", () => {
-    assert.throws(() => __resolveDispatcherFamilyForTest("http://203.0.113.7:8080?family=ipv6"), /family/i);
+    assert.throws(
+      () => __resolveDispatcherFamilyForTest("http://203.0.113.7:8080?family=ipv6"),
+      /family/i
+    );
   });
 });
 
@@ -67,14 +75,14 @@ describe("proxyDispatcher connection pool", () => {
 
   it("allows operators to force a single proxy connection for diagnostics", () => {
     const options = __getProxyDispatcherOptionsForTest({
-      OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS: "1",
+      BIROUTER_PROXY_DISPATCHER_CONNECTIONS: "1",
     });
     assert.equal(options.connections, 1);
   });
 
   it("caps excessive proxy connection overrides", () => {
     const options = __getProxyDispatcherOptionsForTest({
-      OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS: "9999",
+      BIROUTER_PROXY_DISPATCHER_CONNECTIONS: "9999",
     });
     assert.equal(options.connections, 256);
   });

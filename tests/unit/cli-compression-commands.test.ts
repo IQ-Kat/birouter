@@ -34,7 +34,7 @@ function makeCmd(output = "json") {
   return { optsWithGlobals: () => ({ output, quiet: output !== "table" }) };
 }
 
-test("compression status chama omniroute_compression_status via mcp", async () => {
+test("compression status chama birouter_compression_status via mcp", async () => {
   let capturedBody: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((_url: string, opts: any) => {
@@ -46,7 +46,7 @@ test("compression status chama omniroute_compression_status via mcp", async () =
   await captureStdout(() => runCompressionStatus({}, makeCmd() as any));
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_compression_status");
+  assert.equal(capturedBody.name, "birouter_compression_status");
 });
 
 test("compression configure envia configuração via mcp", async () => {
@@ -63,12 +63,12 @@ test("compression configure envia configuração via mcp", async () => {
   );
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_compression_configure");
+  assert.equal(capturedBody.name, "birouter_compression_configure");
   assert.equal(capturedBody.arguments.engine, "caveman");
   assert.ok(capturedBody.arguments.caveman?.aggressiveness === 0.8);
 });
 
-test("compression engine set chama omniroute_set_compression_engine", async () => {
+test("compression engine set chama birouter_set_compression_engine", async () => {
   let capturedBody: any = null;
   const origFetch = globalThis.fetch;
   globalThis.fetch = ((_url: string, opts: any) => {
@@ -82,7 +82,7 @@ test("compression engine set chama omniroute_set_compression_engine", async () =
   });
 
   globalThis.fetch = origFetch;
-  assert.equal(capturedBody.name, "omniroute_set_compression_engine");
+  assert.equal(capturedBody.name, "birouter_set_compression_engine");
   assert.equal(capturedBody.arguments.engine, "rtk");
   assert.ok(out.includes("rtk"));
 });

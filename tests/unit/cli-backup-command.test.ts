@@ -7,7 +7,7 @@ import path from "node:path";
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 
 function createTempDataDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-backup-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-backup-"));
 }
 
 async function withBackupEnv(fn: (dataDir: string) => Promise<void>) {
@@ -47,7 +47,7 @@ test("backup creates backup-info.json when storage.sqlite exists", async () => {
 
     const backupDir = path.join(dataDir, "backups");
     assert.ok(fs.existsSync(backupDir));
-    const entries = fs.readdirSync(backupDir).filter((d) => d.startsWith("omniroute-backup-"));
+    const entries = fs.readdirSync(backupDir).filter((d) => d.startsWith("birouter-backup-"));
     assert.ok(entries.length > 0);
     const infoPath = path.join(backupDir, entries[0], "backup-info.json");
     assert.ok(fs.existsSync(infoPath));
@@ -68,7 +68,7 @@ test("encrypted backup removes temporary ciphertext files", async () => {
     assert.equal(result, 0);
 
     const backupDir = path.join(dataDir, "backups");
-    const entries = fs.readdirSync(backupDir).filter((d) => d.startsWith("omniroute-backup-"));
+    const entries = fs.readdirSync(backupDir).filter((d) => d.startsWith("birouter-backup-"));
     assert.ok(entries.length > 0);
     const backupPath = path.join(backupDir, entries[0]);
     assert.deepEqual(

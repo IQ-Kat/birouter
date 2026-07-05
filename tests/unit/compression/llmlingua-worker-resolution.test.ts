@@ -19,7 +19,7 @@ import {
   firstAncestorWith,
   resolveWorkerFile,
   depsAvailable,
-} from "@omniroute/open-sse/services/compression/engines/llmlingua/worker.ts";
+} from "@birouter/open-sse/services/compression/engines/llmlingua/worker.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const WORKER_SRC = path.resolve(

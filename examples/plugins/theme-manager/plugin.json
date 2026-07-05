@@ -2,7 +2,7 @@
   "name": "theme-manager",
   "version": "1.0.0",
   "description": "Dynamic UI theme management via CSS variable injection",
-  "author": "OmniRoute",
+  "author": "Birouter",
   "license": "MIT",
   "main": "index.mjs",
   "source": "local",

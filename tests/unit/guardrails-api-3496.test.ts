@@ -14,7 +14,7 @@ import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 // the pre-call hooks) — removes the fictional enable/disable/logs + shadow rows
 // from the docs, and drops them from KNOWN_STALE_DOC_REFS.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-guardrails-3496-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-guardrails-3496-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 if (!process.env.JWT_SECRET) process.env.JWT_SECRET = "test-guardrails-3496-jwt-secret";
 if (!process.env.API_KEY_SECRET) process.env.API_KEY_SECRET = "test-guardrails-3496-apikey-secret";
@@ -119,8 +119,6 @@ test("#3496 check-docs-symbols no longer freezes guardrails/shadow + API_REFEREN
   const src = fs.readFileSync(path.join(process.cwd(), apiRefRel), "utf8");
   const docPathsByFile = [{ file: apiRefRel, paths: extractDocApiPaths(src) }];
   const misses = findStaleDocApiRefs(docPathsByFile, routeFiles, KNOWN_STALE_DOC_REFS);
-  const ghosts = misses.filter(
-    (m) => m.includes("/api/guardrails") || m.includes("/api/shadow")
-  );
+  const ghosts = misses.filter((m) => m.includes("/api/guardrails") || m.includes("/api/shadow"));
   assert.deepEqual(ghosts, [], `stale guardrails/shadow refs remain: ${ghosts.join("; ")}`);
 });

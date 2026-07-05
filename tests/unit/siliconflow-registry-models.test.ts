@@ -14,7 +14,7 @@ test("siliconflow registry includes the synced net-new model IDs", () => {
   const ids = new Set(siliconflowProvider.models.map((m) => m.id));
 
   // Net-new IDs introduced by the upstream model-list sync — each was MISSING
-  // from OmniRoute's registry before the port (failing-before assertion).
+  // from Birouter's registry before the port (failing-before assertion).
   const expectedNewIds = [
     "zai-org/GLM-5.1",
     "zai-org/GLM-5",

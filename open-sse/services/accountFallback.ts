@@ -1298,15 +1298,15 @@ export function checkFallbackError(
   skipProviderBreaker?: boolean;
   quotaResetHintMs?: number;
 } {
-  // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
+  // G-02: detect embedded service supervisor failures (X-Bi-Fallback-Hint: connection_cooldown).
   // These are NOT upstream AI provider failures — they are local supervisor state changes.
   // Apply a short 5s connection cooldown without tripping the provider circuit breaker.
   if (status === 503 && headers) {
     const hintValue =
       typeof (headers as Headers).get === "function"
-        ? (headers as Headers).get("x-omni-fallback-hint")
-        : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
-          (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
+        ? (headers as Headers).get("x-bi-fallback-hint")
+        : (headers as Record<string, string>)["x-bi-fallback-hint"] ||
+          (headers as Record<string, string>)["X-Bi-Fallback-Hint"];
     if (typeof hintValue === "string" && hintValue.toLowerCase() === "connection_cooldown") {
       return {
         shouldFallback: true,

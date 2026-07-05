@@ -6,7 +6,7 @@ import {
 } from "@/lib/headroom/detect";
 import { startHeadroomProxy, HeadroomError } from "@/lib/headroom/process";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +19,11 @@ export async function POST(): Promise<Response> {
         : DEFAULT_HEADROOM_URL;
 
     // Pair commit 50ed79fe: refuse to spawn against a non-loopback URL.
-    // External Docker sidecars must be started outside OmniRoute.
+    // External Docker sidecars must be started outside Birouter.
     if (!isLoopbackHeadroomUrl(url)) {
       return createErrorResponse({
         status: 400,
-        message: "External Headroom proxies must be started outside OmniRoute",
+        message: "External Headroom proxies must be started outside Birouter",
         type: "invalid_request",
       });
     }

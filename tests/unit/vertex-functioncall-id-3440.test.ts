@@ -1,4 +1,4 @@
-// Regression test for #3440 — Vertex AI rejects tool calls because OmniRoute
+// Regression test for #3440 — Vertex AI rejects tool calls because Birouter
 // emits an `id` field inside `function_call` / `function_response` parts.
 //
 // Vertex AI (aiplatform.googleapis.com) follows an older Gemini REST schema whose
@@ -11,12 +11,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiToGeminiRequest } = await import(
-  "../../open-sse/translator/request/openai-to-gemini.ts"
-);
-const { claudeToGeminiRequest } = await import(
-  "../../open-sse/translator/request/claude-to-gemini.ts"
-);
+const { openaiToGeminiRequest } =
+  await import("../../open-sse/translator/request/openai-to-gemini.ts");
+const { claudeToGeminiRequest } =
+  await import("../../open-sse/translator/request/claude-to-gemini.ts");
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -129,7 +127,11 @@ test("#3440 Claude->Gemini: vertex provider omits id from functionCall and funct
   const result = claudeToGeminiRequest("gemini-2.5-pro", CLAUDE_TOOL_BODY, false, {
     _provider: "vertex",
   });
-  assert.equal(findFunctionCall(result)?.id, undefined, "functionCall.id must be omitted for Vertex");
+  assert.equal(
+    findFunctionCall(result)?.id,
+    undefined,
+    "functionCall.id must be omitted for Vertex"
+  );
   assert.equal(
     findFunctionResponse(result)?.id,
     undefined,

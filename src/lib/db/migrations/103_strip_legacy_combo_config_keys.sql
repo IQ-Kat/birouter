@@ -4,7 +4,7 @@
 -- combo created on ≤ v3.8.31 still carries the legacy keys in its persisted
 -- JSON; on the next edit+save the modal spreads the existing config back into
 -- the PUT body, and comboRuntimeConfigSchema.strict() rejects the unknown
--- keys with a 400. See diegosouzapw/OmniRoute#4382.
+-- keys with a 400. See diegosouzapw/Birouter#4382.
 --
 -- Belt-and-suspenders:
 --   - src/shared/validation/schemas/combo.ts now uses .passthrough() so the

@@ -14,16 +14,13 @@ import os from "node:os";
 import path from "node:path";
 import type { IncomingMessage } from "node:http";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ab-hook-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-ab-hook-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { resetDbInstance, getDbInstance } = await import("../../src/lib/db/core.ts");
-const { addCustomHost, toggleCustomHost } = await import(
-  "../../src/lib/db/inspectorCustomHosts.ts"
-);
-const { recordRequestStart } = await import(
-  "../../src/mitm/inspector/agentBridgeHook.ts"
-);
+const { addCustomHost, toggleCustomHost } =
+  await import("../../src/lib/db/inspectorCustomHosts.ts");
+const { recordRequestStart } = await import("../../src/mitm/inspector/agentBridgeHook.ts");
 
 async function resetStorage() {
   resetDbInstance();

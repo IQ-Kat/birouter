@@ -1,6 +1,6 @@
 // Unit tests for the server-side paste-credentials gate.
 //
-// The remote login helper (`omniroute login antigravity`) prints a credential
+// The remote login helper (`birouter login antigravity`) prints a credential
 // blob; the dashboard POSTs it to /api/oauth/<provider>/paste-credentials. Before
 // the server finalizes + persists the tokens it MUST validate that (a) the route
 // provider is on the paste-credentials allowlist (only Google native-loopback

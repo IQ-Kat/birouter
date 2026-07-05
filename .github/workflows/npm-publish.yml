@@ -118,17 +118,17 @@ jobs:
           #    `npm view` — it suppresses stdout and breaks the grep, which
           #    caused old releases (3.2.8) to be re-published and steal
           #    dist-tag `latest`. See incident notes in CHANGELOG.
-          PUBLISHED="$(npm view "omniroute@${VERSION}" version 2>/dev/null || true)"
+          PUBLISHED="$(npm view "birouter@${VERSION}" version 2>/dev/null || true)"
           SKIP="false"
           if [ "$PUBLISHED" = "$VERSION" ]; then
-            echo "⚠️ omniroute@${VERSION} is already on npm — skipping publish."
+            echo "⚠️ birouter@${VERSION} is already on npm — skipping publish."
             SKIP="true"
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
           echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
-          echo "📦 Resolved omniroute@$VERSION dist-tag=$TAG skip=$SKIP"
+          echo "📦 Resolved birouter@$VERSION dist-tag=$TAG skip=$SKIP"
 
       - name: Sync package.json version
         if: steps.resolve.outputs.skip != 'true'
@@ -178,7 +178,7 @@ jobs:
           # accidentally an older release, `npm publish --tag historic` will
           # NOT promote it to `@latest`.
           npm publish --provenance --access public --tag "$TAG"
-          echo "✅ Published omniroute@$VERSION (dist-tag=$TAG)"
+          echo "✅ Published birouter@$VERSION (dist-tag=$TAG)"
 
       - name: Publish to GitHub Packages
         if: steps.resolve.outputs.skip != 'true'
@@ -190,9 +190,9 @@ jobs:
           set -euo pipefail
           echo "Configuring for GitHub Packages..."
           echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc
-          npm pkg set name="@diegosouzapw/omniroute"
+          npm pkg set name="@diegosouzapw/birouter"
           npm publish --registry=https://npm.pkg.github.com --tag "$TAG" \
-            || echo "⚠️ omniroute@${VERSION} might already be published on GitHub Packages."
+            || echo "⚠️ birouter@${VERSION} might already be published on GitHub Packages."
           echo "✅ Action finished for GitHub Packages"
 
   publish-opencode-plugin:
@@ -216,7 +216,7 @@ jobs:
 
       - name: Auto-bump plugin version if plugin changed since last release
         id: bump
-        working-directory: "@omniroute/opencode-plugin"
+        working-directory: "@birouter/opencode-plugin"
         env:
           CURRENT_TAG: ${{ github.ref_name }}
         run: |
@@ -243,7 +243,7 @@ jobs:
           fi
 
           # 3) Check if plugin dir actually changed since that tag
-          if git diff --quiet "$PREV_TAG" -- "@omniroute/opencode-plugin/"; then
+          if git diff --quiet "$PREV_TAG" -- "@birouter/opencode-plugin/"; then
             echo "⏭️ No plugin changes since $PREV_TAG — nothing to publish."
             echo "bumped=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -256,19 +256,19 @@ jobs:
           echo "📦 Auto-bumped ${PKG_NAME} from ${PKG_VERSION} to ${NEW_VERSION}"
 
       - name: Install plugin dependencies
-        working-directory: "@omniroute/opencode-plugin"
+        working-directory: "@birouter/opencode-plugin"
         run: npm install --no-audit --no-fund
 
       - name: Build plugin
-        working-directory: "@omniroute/opencode-plugin"
+        working-directory: "@birouter/opencode-plugin"
         run: npm run clean && npm run build
 
       - name: Test plugin
-        working-directory: "@omniroute/opencode-plugin"
+        working-directory: "@birouter/opencode-plugin"
         run: npm test
 
-      - name: Publish @omniroute/opencode-plugin to npm
-        working-directory: "@omniroute/opencode-plugin"
+      - name: Publish @birouter/opencode-plugin to npm
+        working-directory: "@birouter/opencode-plugin"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |

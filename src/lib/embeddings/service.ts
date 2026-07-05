@@ -1,22 +1,22 @@
-import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
+import { handleEmbedding } from "@birouter/open-sse/handlers/embeddings.ts";
 import {
   parseEmbeddingModel,
   getEmbeddingProvider,
   buildDynamicEmbeddingProvider,
   type EmbeddingProviderNodeRow,
   type EmbeddingProvider,
-} from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+} from "@birouter/open-sse/config/embeddingRegistry.ts";
+import { errorResponse, unavailableResponse } from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
-import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
-import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
+import { handleComboChat } from "@birouter/open-sse/services/combo.ts";
+import { resolveBareModelToConnectionDefault } from "@birouter/open-sse/services/model.ts";
 import { findEmbeddingComboDimensionConflict } from "./familyGuard";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachBirouterMetaHeaders } from "@/domain/birouterResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
@@ -54,10 +54,7 @@ export async function createEmbeddingResponse(
         // different models are not comparable). The generic combo engine has no
         // notion of embedding families, so reject loudly here before dispatch.
         // See _tasks/features-v3.8.12/01-embeddings-combo-family-guard.plan.md.
-        const dimConflict = findEmbeddingComboDimensionConflict(
-          combo as any,
-          allCombos as any
-        );
+        const dimConflict = findEmbeddingComboDimensionConflict(combo as any, allCombos as any);
         if (dimConflict.conflict) {
           return errorResponse(
             HTTP_STATUS.BAD_REQUEST,
@@ -221,7 +218,8 @@ export async function createEmbeddingResponse(
   );
 
   const result = await handleEmbedding({
-    body: effectiveModel !== resolvedModel ? { ...body, model: `${provider}/${effectiveModel}` } : body,
+    body:
+      effectiveModel !== resolvedModel ? { ...body, model: `${provider}/${effectiveModel}` } : body,
     // getProviderCredentials returns a richer connection object; handleEmbedding
     // only reads apiKey/accessToken, both present at runtime. Bridge the wider
     // selection type to the handler's narrow credential shape.
@@ -242,7 +240,7 @@ export async function createEmbeddingResponse(
     responseHeaders.set("Content-Type", "application/json");
     const usage = (result.data as { usage?: Record<string, number> })?.usage ?? null;
     const costUsd = usage ? await calculateCost(provider, effectiveModel ?? "", usage) : 0;
-    attachOmniRouteMetaHeaders(responseHeaders, {
+    attachBirouterMetaHeaders(responseHeaders, {
       provider,
       model: effectiveModel,
       usage,

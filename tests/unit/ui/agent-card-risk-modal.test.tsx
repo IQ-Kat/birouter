@@ -41,7 +41,7 @@ globalThis.fetch = vi.fn().mockResolvedValue({
   json: () => Promise.resolve({ data: [] }),
 } as unknown as Response);
 
-const RISK_KEY_PREFIX = "omniroute-agentbridge-risk-dismissed-";
+const RISK_KEY_PREFIX = "birouter-agentbridge-risk-dismissed-";
 
 const cleanupCallbacks: Array<() => void> = [];
 
@@ -104,9 +104,8 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
   });
 
   it("first DNS activation opens risk modal (does NOT call onDnsToggle yet)", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const onDnsToggle = vi.fn().mockResolvedValue(undefined);
     const container = makeContainer();
@@ -149,9 +148,8 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
   }, 30000);
 
   it("accepting risk modal closes modal and calls onDnsToggle with true", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const onDnsToggle = vi.fn().mockResolvedValue(undefined);
     const container = makeContainer();
@@ -209,9 +207,8 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
   }, 30000);
 
   it("accepting risk writes localStorage exactly once (RiskNoticeModal is sole writer)", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
 
@@ -254,7 +251,7 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
       acceptBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    const riskKey = "omniroute-agentbridge-risk-dismissed-copilot";
+    const riskKey = "birouter-agentbridge-risk-dismissed-copilot";
     const riskWrites = setItemSpy.mock.calls.filter(([key]) => key === riskKey);
     // Must be exactly ONE write — RiskNoticeModal is the sole persistence owner (D16)
     expect(riskWrites).toHaveLength(1);
@@ -271,9 +268,8 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
       // ignore
     }
 
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const onDnsToggle = vi.fn().mockResolvedValue(undefined);
     const container = makeContainer();
@@ -314,9 +310,8 @@ describe("AgentCard RiskNoticeModal", { timeout: 30000 }, () => {
   }, 30000);
 
   it("cancelling risk modal keeps modal closed and does NOT call onDnsToggle", async () => {
-    const { AgentCard } = await import(
-      "../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard"
-    );
+    const { AgentCard } =
+      await import("../../../src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentCard");
 
     const onDnsToggle = vi.fn().mockResolvedValue(undefined);
     const container = makeContainer();

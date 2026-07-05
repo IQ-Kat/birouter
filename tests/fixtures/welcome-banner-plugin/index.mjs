@@ -11,7 +11,7 @@ export const plugin = {
 
   async onResponse(ctx, response) {
     if (response && typeof response === "object") {
-      const banner = "[Welcome to OmniRoute — powered by welcome-banner plugin]";
+      const banner = "[Welcome to Birouter — powered by welcome-banner plugin]";
       if (response.choices && Array.isArray(response.choices)) {
         for (const choice of response.choices) {
           if (choice.message && typeof choice.message.content === "string") {

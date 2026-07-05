@@ -10,8 +10,8 @@ rotates before the conversation is finished.
 The current runtime behaves like priority routing for model selection, then adds a
 handoff layer on top:
 
-- before the active account is exhausted, OmniRoute generates a compact structured summary
-- after authentication selects a different account for the same session, OmniRoute injects
+- before the active account is exhausted, Birouter generates a compact structured summary
+- after authentication selects a different account for the same session, Birouter injects
   that summary as a system message into the next request
 - once the handoff is consumed successfully, it is removed from storage
 
@@ -36,7 +36,7 @@ No handoff is generated. Requests behave like normal priority routing.
 
 ### 85% to 94% quota used
 
-If the active provider is enabled in `handoffProviders`, OmniRoute generates a structured
+If the active provider is enabled in `handoffProviders`, Birouter generates a structured
 handoff summary in the background before the account is fully exhausted.
 
 Important details:
@@ -54,7 +54,7 @@ the runtime avoids scheduling another summary request.
 ### After account rotation
 
 When the next request for the same session resolves to a different authenticated account,
-OmniRoute prepends the stored handoff as a system message. Injection happens only after the
+Birouter prepends the stored handoff as a system message. Injection happens only after the
 real account switch is known.
 
 ## Handoff Payload
@@ -85,7 +85,7 @@ The summary model is instructed to return a JSON object with this structure:
 }
 ```
 
-At injection time, OmniRoute converts that payload into a `<context_handoff>` system
+At injection time, Birouter converts that payload into a `<context_handoff>` system
 message so the next account can continue with the correct local context.
 
 ## कॉन्फ़िगरेशन

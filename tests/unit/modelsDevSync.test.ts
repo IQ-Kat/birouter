@@ -413,7 +413,7 @@ describe("modelsDevSync — mapProviderId", () => {
     assert.deepEqual(mapProviderId("moonshot"), ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"]);
   });
 
-  it("maps current models.dev provider IDs used by OmniRoute-compatible providers", () => {
+  it("maps current models.dev provider IDs used by Birouter-compatible providers", () => {
     assert.deepEqual(mapProviderId("github-copilot"), ["github", "gh"]);
     assert.deepEqual(mapProviderId("kilo"), ["kilocode", "kc", "kilo-gateway"]);
     assert.deepEqual(mapProviderId("kimi-for-coding"), [

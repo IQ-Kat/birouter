@@ -37,7 +37,7 @@ if (!existsSync(outDir)) {
 }
 
 // Puppeteer needs --no-sandbox on many Linux distros (Ubuntu 23.10+, WSL).
-const puppeteerConfigPath = join(tmpdir(), "omniroute-mmdc-puppeteer.json");
+const puppeteerConfigPath = join(tmpdir(), "birouter-mmdc-puppeteer.json");
 writeFileSync(
   puppeteerConfigPath,
   JSON.stringify({ args: ["--no-sandbox", "--disable-setuid-sandbox"] }, null, 2)

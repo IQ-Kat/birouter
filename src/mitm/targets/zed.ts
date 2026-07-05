@@ -20,10 +20,10 @@ export const ZED_TARGET: MitmTarget = {
   ],
   setupTutorial: {
     steps: [
-      "Install OmniRoute's root certificate",
+      "Install Birouter's root certificate",
       "Enable DNS routing for Zed",
       "Restart Zed",
-      "Done — Zed traffic now routes through OmniRoute",
+      "Done — Zed traffic now routes through Birouter",
     ],
     detection: { command: "which zed", platform: "all" },
   },

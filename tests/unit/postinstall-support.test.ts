@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { hasStandaloneAppBundle, isTermux } from "../../scripts/build/postinstallSupport.mjs";
 
 test("hasStandaloneAppBundle returns false for source checkout without standalone app", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-postinstall-src-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-postinstall-src-"));
 
   try {
     mkdirSync(join(root, "src", "app"), { recursive: true });
@@ -18,7 +18,7 @@ test("hasStandaloneAppBundle returns false for source checkout without standalon
 });
 
 test("hasStandaloneAppBundle returns true for published standalone app bundle", () => {
-  const root = mkdtempSync(join(tmpdir(), "omniroute-postinstall-standalone-"));
+  const root = mkdtempSync(join(tmpdir(), "birouter-postinstall-standalone-"));
 
   try {
     mkdirSync(join(root, "app"), { recursive: true });

@@ -12,7 +12,7 @@ test("normalizeBaseUrl: host with explicit port keeps it", () => {
 });
 
 test("normalizeBaseUrl: full https URL is preserved as origin", () => {
-  assert.equal(normalizeBaseUrl("https://omni.example.com", "20128"), "https://omni.example.com");
+  assert.equal(normalizeBaseUrl("https://bi.example.com", "20128"), "https://bi.example.com");
   assert.equal(normalizeBaseUrl("http://host:1234/path", "20128"), "http://host:1234");
 });
 
@@ -21,7 +21,7 @@ test("normalizeBaseUrl: empty input returns empty string", () => {
 });
 
 test("hostLabel strips scheme and port", () => {
-  assert.equal(hostLabel("https://omni.example.com:20128"), "omni.example.com");
+  assert.equal(hostLabel("https://bi.example.com:20128"), "bi.example.com");
   assert.equal(hostLabel("192.168.0.15:20128"), "192.168.0.15");
   assert.equal(hostLabel("http://10.0.0.1"), "10.0.0.1");
 });

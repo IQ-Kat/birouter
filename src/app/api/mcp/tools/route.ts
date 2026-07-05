@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MCP_TOOLS, MCP_TOOL_MAP } from "@omniroute/open-sse/mcp-server/schemas/tools";
+import { MCP_TOOLS, MCP_TOOL_MAP } from "@birouter/open-sse/mcp-server/schemas/tools";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {

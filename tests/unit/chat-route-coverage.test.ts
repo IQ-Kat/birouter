@@ -158,7 +158,7 @@ test("handleChat treats a pure Accept: text/event-stream as stream=true and retu
   const raw = await response.text();
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Content-Type"), "text/event-stream");
-  assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
+  assert.ok(response.headers.get("X-Birouter-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);
 });
@@ -378,7 +378,7 @@ test("handleChat returns 503 for cooled-down connections and 503 for open circui
   const breakerJson = (await breakerBlocked.json()) as any;
 
   assert.equal(breakerBlocked.status, 503);
-  assert.equal(breakerBlocked.headers.get("X-OmniRoute-Provider-Breaker"), "open");
+  assert.equal(breakerBlocked.headers.get("X-Birouter-Provider-Breaker"), "open");
   assert.equal(breakerJson.error.code, "provider_circuit_open");
   assert.match(breakerJson.error.message, /circuit breaker is open/i);
 });

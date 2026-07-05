@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { smartFilterText } from "@omniroute/open-sse/services/compression/engines/mcpAccessibility/index.ts";
-import { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "@omniroute/open-sse/services/compression/engines/mcpAccessibility/constants.ts";
+import { smartFilterText } from "@birouter/open-sse/services/compression/engines/mcpAccessibility/index.ts";
+import { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "@birouter/open-sse/services/compression/engines/mcpAccessibility/constants.ts";
 
 /** Regex-extract every [ref=eNN] anchor from a blob, as a sorted unique list. */
 function extractRefs(s: string): string[] {
@@ -39,7 +39,7 @@ test("collapse fires on interleaved tree AND no [ref=eXX] anchor is lost", () =>
   // BUG B: collapse must actually fire despite interleaved noise lines.
   assert.ok(out.length < input.length, "output shorter (compressed)");
   assert.ok(
-    out.includes('items omitted by OmniRoute MCP filter'),
+    out.includes("items omitted by Birouter MCP filter"),
     "collapse notice present (collapse fired)"
   );
 
@@ -48,7 +48,10 @@ test("collapse fires on interleaved tree AND no [ref=eXX] anchor is lost", () =>
   const outRefs = extractRefs(out);
   assert.equal(inRefs.length, 40, "sanity: 40 refs in input");
   for (const r of inRefs) {
-    assert.ok(outRefs.includes(r), `ref ${r} must survive collapse (extractRefs(input) ⊆ extractRefs(output))`);
+    assert.ok(
+      outRefs.includes(r),
+      `ref ${r} must survive collapse (extractRefs(input) ⊆ extractRefs(output))`
+    );
   }
 
   // It still compresses meaningfully.

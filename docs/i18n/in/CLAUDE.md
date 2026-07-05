@@ -39,7 +39,7 @@ Untuk matriks tes lengkap, lihat `CONTRIBUTING.md` → "Menjalankan Tes". Untuk 
 
 ## Proyek Sekilas
 
-**OmniRoute** — proxy/router AI terpadu. Satu endpoint, 160+ penyedia LLM, auto-fallback.
+**Birouter** — proxy/router AI terpadu. Satu endpoint, 160+ penyedia LLM, auto-fallback.
 
 | Lapisan       | Lokasi                  | Tujuan                                                                      |
 | ------------- | ----------------------- | --------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Rute API mengikuti pola yang konsisten: `Rute → CORS preflight → validasi bo
 
 ## Status Runtime Ketahanan
 
-OmniRoute memiliki tiga mekanisme kegagalan sementara yang terkait tetapi berbeda. Jaga agar ruang lingkup mereka terpisah saat melakukan debugging perilaku pengalihan. Lihat diagram
+Birouter memiliki tiga mekanisme kegagalan sementara yang terkait tetapi berbeda. Jaga agar ruang lingkup mereka terpisah saat melakukan debugging perilaku pengalihan. Lihat diagram
 [3-lapisan ketahanan](./docs/diagrams/exported/resilience-3layers.svg)
 (sumber: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 untuk peta sekilas.
@@ -214,7 +214,7 @@ terus melayani model lain.
 ### Gaya Kode
 
 - **2 spasi**, titik koma, tanda kutip ganda, lebar 100 karakter, koma trailing es5 (ditegakkan oleh lint-staged melalui Prettier)
-- **Impor**: eksternal → internal (`@/`, `@omniroute/open-sse`) → relatif
+- **Impor**: eksternal → internal (`@/`, `@birouter/open-sse`) → relatif
 - **Penamaan**: file=camelCase/kebab, komponen=PascalCase, konstanta=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = kesalahan di mana saja; `no-explicit-any` = peringatan di `open-sse/` dan `tests/`
 - **TypeScript**: `strict: false`, target ES2022, modul esnext, resolusi bundler. Utamakan tipe eksplisit.
@@ -382,9 +382,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
-- **Alias jalur**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Alias jalur**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Port default**: 20128 (API + dashboard di port yang sama)
-- **Direktori data**: variabel lingkungan `DATA_DIR`, default ke `~/.omniroute/`
+- **Direktori data**: variabel lingkungan `DATA_DIR`, default ke `~/.birouter/`
 - **Variabel lingkungan kunci**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Setup: `cp .env.example .env` lalu buat `JWT_SECRET` (`openssl rand -base64 48`) dan `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -407,4 +407,4 @@ git push -u origin feat/your-feature
 13. Jangan pernah melakukan interpolasi string jalur eksternal atau nilai runtime ke dalam skrip shell yang diteruskan ke `exec()`/`spawn()` — lewati melalui opsi `env` sebagai gantinya. Referensi: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Jangan pernah mengabaikan peringatan CodeQL / Secret-Scanning tanpa (a) terlebih dahulu memeriksa dokumen pola di atas untuk melihat apakah pembantu berlaku, dan (b) mencatat justifikasi teknis dalam komentar pengabaian. Preseden: `js/stack-trace-exposure` yang muncul di callsites yang sudah rute melalui `sanitizeErrorMessage()` adalah batasan CodeQL yang dikenal (pembersih kustom tidak dikenali) — abaikan sebagai `false positive` yang merujuk pada `docs/security/ERROR_SANITIZATION.md`.
 15. Jangan pernah mengekspos rute yang memunculkan proses anak (`/api/mcp/`, `/api/cli-tools/runtime/`) tanpa klasifikasi `isLocalOnlyPath()` di `src/server/authz/routeGuard.ts`. Penegakan loopback terjadi tanpa syarat sebelum pemeriksaan otentikasi — JWT yang bocor melalui terowongan tidak dapat memicu pemunculan proses. Lihat `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Jangan pernah menyertakan trailer `Co-Authored-By` yang memberi kredit kepada asisten AI, LLM, atau akun otomatisasi (mis. nama yang mengandung "Claude", "GPT", "Copilot", "Bot"; email di `anthropic.com` / `openai.com` / alamat `noreply.github.com` milik bot). Trailer semacam itu mengarahkan atribusi commit ke akun bot di GitHub, menyembunyikan penulis sebenarnya (`diegosouzapw`) dalam riwayat PR. Kolaborator manusia — termasuk penulis PR upstream dan pelapor issue yang di-port ke OmniRoute — DAPAT dan HARUS dikreditkan dengan trailer standar `Co-authored-by: Name <email>`; alur kerja upstream-port (`/port-upstream-features`, `/port-upstream-issues`) bergantung pada ini.
+16. Jangan pernah menyertakan trailer `Co-Authored-By` yang memberi kredit kepada asisten AI, LLM, atau akun otomatisasi (mis. nama yang mengandung "Claude", "GPT", "Copilot", "Bot"; email di `anthropic.com` / `openai.com` / alamat `noreply.github.com` milik bot). Trailer semacam itu mengarahkan atribusi commit ke akun bot di GitHub, menyembunyikan penulis sebenarnya (`diegosouzapw`) dalam riwayat PR. Kolaborator manusia — termasuk penulis PR upstream dan pelapor issue yang di-port ke Birouter — DAPAT dan HARUS dikreditkan dengan trailer standar `Co-authored-by: Name <email>`; alur kerja upstream-port (`/port-upstream-features`, `/port-upstream-issues`) bergantung pada ini.

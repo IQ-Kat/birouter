@@ -65,7 +65,7 @@ export function getQoderCliCommand(): string {
 
 export function getQoderCliWorkspace(): string {
   const explicit = String(
-    process.env.QODER_CLI_WORKSPACE || process.env.OMNIROUTE_QODER_WORKSPACE || ""
+    process.env.QODER_CLI_WORKSPACE || process.env.BIROUTER_QODER_WORKSPACE || ""
   ).trim();
   if (explicit) return explicit;
   const home = String(process.env.HOME || "").trim();
@@ -163,7 +163,7 @@ function formatMessage(message: unknown): string {
 export function buildQoderPrompt(body: unknown): string {
   const requestBody = asRecord(body);
   const lines = [
-    "You are answering an OmniRoute OpenAI-compatible request through the Qoder CLI transport.",
+    "You are answering an Birouter OpenAI-compatible request through the Qoder CLI transport.",
     "Respond as a plain language model only.",
     "Do not use your own tools, do not inspect files, and do not run commands.",
     "Do not mention the adapter unless the user explicitly asks.",
@@ -353,11 +353,11 @@ export function buildCosyHeadersForValidation(bodyStr: string, token: string) {
   const aesKeyStr = aesKeyBytes.toString("hex").slice(0, 16);
   const aesKeyBuf = Buffer.from(aesKeyStr, "utf8");
 
-  const uid = "omniroute.user@qoder.sh";
+  const uid = "birouter.user@qoder.sh";
   const userInfo = {
     uid: uid,
     security_oauth_token: token,
-    name: "omniroute",
+    name: "birouter",
     aid: "",
     email: uid,
   };
@@ -398,7 +398,7 @@ export function buildCosyHeadersForValidation(bodyStr: string, token: string) {
 // exchanges the PAT for a short-lived job token (`jt-*`) at
 // `openapi.qoder.sh/api/v1/jobToken/exchange`, then carries that `jt-*` in the Cosy
 // envelope for chat. Passing the raw `pt-*` makes Cosy return a generic 500, which
-// OmniRoute mis-surfaced as "PAT may not be valid for the chat API". We mirror the
+// Birouter mis-surfaced as "PAT may not be valid for the chat API". We mirror the
 // exchange here and cache the `jt-*` for its lifetime.
 const QODER_JOB_TOKEN_EXCHANGE_URL = "https://openapi.qoder.sh/api/v1/jobToken/exchange";
 // Refresh a little before the ~24h expiry to avoid using a just-expired token.

@@ -12,18 +12,18 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
-import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
-import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import { getAccessToken } from "@birouter/open-sse/services/tokenRefresh.ts";
+import { rotationGroupFor } from "@birouter/open-sse/services/refreshSerializer.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContext } from "@birouter/open-sse/utils/proxyFetch.ts";
 import {
   buildGitLabOAuthEndpoints,
   isGitLabDirectAccessDisabled,
   resolveGitLabOAuthBaseUrl,
 } from "@/lib/oauth/gitlab";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
-import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { removeConnectionHealth } from "@birouter/open-sse/services/apiKeyRotator.ts";
 
 // Bound the OAuth probe so a hung upstream can't block the connection-test queue
 // forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
@@ -86,7 +86,7 @@ const OAUTH_TEST_CONFIG = {
     method: "GET",
     authHeader: "Authorization",
     authPrefix: "Bearer ",
-    extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
+    extraHeaders: { "User-Agent": "Birouter", Accept: "application/vnd.github+json" },
   },
   "gitlab-duo": {
     getUrl: (connection: any) =>

@@ -68,13 +68,13 @@ export function onResponse(ctx, response) {
 
   const isHtml =
     response?.headers?.["content-type"]?.includes("text/html") ||
-    typeof response?.body === "string" &&
-      (response.body.includes("<!DOCTYPE html>") || response.body.includes("<html"));
+    (typeof response?.body === "string" &&
+      (response.body.includes("<!DOCTYPE html>") || response.body.includes("<html")));
 
   if (!isHtml || typeof response?.body !== "string") return response;
 
   const vars = buildCssVariables(mode, config);
-  const styleTag = `<style id="omniroute-theme">\n:root {\n${varsToCss(vars)}\n}\n</style>`;
+  const styleTag = `<style id="birouter-theme">\n:root {\n${varsToCss(vars)}\n}\n</style>`;
 
   const body = response.body.replace(/<head([^>]*)>/i, `<head$1>${styleTag}`);
 

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseNonStreamingResponseBody } from "@omniroute/open-sse/handlers/chatCore/nonStreamingResponseParse.ts";
+import { parseNonStreamingResponseBody } from "@birouter/open-sse/handlers/chatCore/nonStreamingResponseParse.ts";
 
 // Minimal Response stub: only the surface parseNonStreamingResponseBody touches
 // (headers.get + text()). upstreamStream is passed false so readNonStreamingResponseBody
@@ -9,8 +9,7 @@ import { parseNonStreamingResponseBody } from "@omniroute/open-sse/handlers/chat
 function makeResponse(body: string, contentType: string): Response {
   return {
     headers: {
-      get: (name: string) =>
-        name.toLowerCase() === "content-type" ? contentType : null,
+      get: (name: string) => (name.toLowerCase() === "content-type" ? contentType : null),
     },
     text: async () => body,
     body: null,

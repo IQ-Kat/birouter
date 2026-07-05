@@ -14,7 +14,7 @@ import os from "node:os";
 import path from "node:path";
 import { createManagementSessionHeaders } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-engine-status-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-engine-status-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-engine-status";
 
@@ -22,9 +22,7 @@ const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 
 // Import route AFTER setting DATA_DIR
-const engineStatusRoute = await import(
-  "../../src/app/api/memory/engine-status/route.ts"
-);
+const engineStatusRoute = await import("../../src/app/api/memory/engine-status/route.ts");
 const { GET } = engineStatusRoute;
 
 // ── Helpers ──
@@ -67,7 +65,11 @@ test("GET /api/memory/engine-status — 200 + valid MemoryEngineStatusSchema sha
   assert.strictEqual(body.keyword.backend, "FTS5", "keyword.backend should be FTS5");
 
   assert.ok(body.embedding, "should have embedding section");
-  assert.strictEqual(typeof body.embedding.available, "boolean", "embedding.available should be boolean");
+  assert.strictEqual(
+    typeof body.embedding.available,
+    "boolean",
+    "embedding.available should be boolean"
+  );
   assert.ok(typeof body.embedding.reason === "string", "embedding.reason should be a string");
   assert.ok(body.embedding.cacheStats, "should have cacheStats in embedding");
   assert.strictEqual(typeof body.embedding.cacheStats.hits, "number");
@@ -77,7 +79,7 @@ test("GET /api/memory/engine-status — 200 + valid MemoryEngineStatusSchema sha
   assert.ok(body.vectorStore, "should have vectorStore section");
   assert.ok(
     ["sqlite-vec", "qdrant", "none"].includes(body.vectorStore.backend),
-    `vectorStore.backend should be valid: ${body.vectorStore.backend}`,
+    `vectorStore.backend should be valid: ${body.vectorStore.backend}`
   );
   assert.strictEqual(typeof body.vectorStore.available, "boolean");
   assert.strictEqual(typeof body.vectorStore.rowCount, "number");

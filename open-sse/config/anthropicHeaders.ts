@@ -31,8 +31,8 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
 
 /**
  * Client-negotiated `anthropic-beta` values that are safe to forward to the
- * claude.ai backend on top of OmniRoute's own set. Kept to betas the backend
- * actually accepts and that OmniRoute does not otherwise emit — so a blind
+ * claude.ai backend on top of Birouter's own set. Kept to betas the backend
+ * actually accepts and that Birouter does not otherwise emit — so a blind
  * passthrough cannot reintroduce the over-sending fingerprint/rejection bugs
  * (#3415, #2454). Currently: deferred-tool negotiation (#3974).
  */

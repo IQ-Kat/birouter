@@ -3,7 +3,7 @@
  *
  * MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and rejects
  * extra/unknown request params with a strict "400 Param Incorrect". These tests pin the
- * normalization that maps OmniRoute's internal reasoning signals onto MiMo's native shape:
+ * normalization that maps Birouter's internal reasoning signals onto MiMo's native shape:
  * reduce any thinking object to `{type}`, and drop `reasoning_effort` / `reasoning`.
  */
 import test from "node:test";
@@ -37,8 +37,12 @@ test("reasoning_effort is removed (MiMo does not understand it) and no thinking 
   const body = { model: "mimo-v2-flash", messages: [], reasoning_effort: "high" };
   const result = normalizeMimoThinking(body) as Record<string, unknown>;
   assert.equal(result.reasoning_effort, undefined, "reasoning_effort must be dropped");
-  // Deliberately NOT synthesized — mimo-v2-omni is non-thinking; forcing it on could 400.
-  assert.equal(result.thinking, undefined, "no thinking object is invented from a bare effort hint");
+  // Deliberately NOT synthesized — mimo-v2-bi is non-thinking; forcing it on could 400.
+  assert.equal(
+    result.thinking,
+    undefined,
+    "no thinking object is invented from a bare effort hint"
+  );
 });
 
 test("nested `reasoning` object is removed", () => {

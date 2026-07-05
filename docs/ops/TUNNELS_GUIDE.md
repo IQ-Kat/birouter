@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/{cloudflaredTunnel,ngrokTunnel,tailscaleTunnel}.ts`, `src/app/api/tunnels/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute can expose its local server (`http://localhost:20128`) to the public
+Birouter can expose its local server (`http://localhost:20128`) to the public
 internet via three tunnel backends. This is useful for:
 
 - OAuth callbacks from cloud providers (Antigravity, Gemini, Cursor) that need a
@@ -17,7 +17,7 @@ internet via three tunnel backends. This is useful for:
 - Sharing your local instance with teammates without deploying a VM.
 - Mobile, remote, or cross-network testing.
 
-All three backends are managed in-process — OmniRoute starts/stops the underlying
+All three backends are managed in-process — Birouter starts/stops the underlying
 binary or SDK from the dashboard or REST API. No reverse-proxy or systemd setup
 is required.
 
@@ -42,14 +42,14 @@ http://localhost:<apiPort>` as a child process and parses the assigned
 
 Key behaviors:
 
-- **Auto-install.** On first use, OmniRoute downloads the latest `cloudflared`
+- **Auto-install.** On first use, Birouter downloads the latest `cloudflared`
   binary from the official GitHub releases (managed install lives under
   `DATA_DIR/cloudflared/`). SHA256 of the downloaded asset is verified against the
   release manifest before execution.
 - **Quick-tunnel only.** The current implementation runs only the
   `--url`-style quick tunnel. Named/persistent tunnels (`cloudflared tunnel
 login` + `cloudflared tunnel route dns ...`) are not orchestrated by
-  OmniRoute. URLs are ephemeral and will change every restart.
+  Birouter. URLs are ephemeral and will change every restart.
 - **Process supervision.** The cloudflared PID and resolved URL are persisted to
   `cloudflared-state.json` so the dashboard can resume status across reloads.
 
@@ -81,10 +81,10 @@ Or via dashboard: **Settings → Tunnels → Cloudflare**.
 
 ### Optional env vars
 
-| Variable                                             | Purpose                                                                               |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `CLOUDFLARED_BIN`                                    | Override the binary path. If set and valid, OmniRoute uses it instead of downloading. |
-| `CLOUDFLARED_PROTOCOL` / `TUNNEL_TRANSPORT_PROTOCOL` | Transport protocol (default `http2`).                                                 |
+| Variable                                             | Purpose                                                                              |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `CLOUDFLARED_BIN`                                    | Override the binary path. If set and valid, Birouter uses it instead of downloading. |
+| `CLOUDFLARED_PROTOCOL` / `TUNNEL_TRANSPORT_PROTOCOL` | Transport protocol (default `http2`).                                                |
 
 ## 2. ngrok
 
@@ -131,7 +131,7 @@ curl -X POST http://localhost:20128/api/tunnels/ngrok \
 
 The response includes the assigned `publicUrl` (e.g.
 `https://abcd-1234.ngrok-free.app`). Custom domains, regions, and policy rules
-must be configured in the ngrok dashboard — OmniRoute itself only forwards the
+must be configured in the ngrok dashboard — Birouter itself only forwards the
 local target URL to the SDK.
 
 ## 3. Tailscale Funnel
@@ -145,14 +145,14 @@ public URL has the shape `https://<machine>.<tailnet>.ts.net/`.
 
 ### Prerequisites
 
-1. Install Tailscale (or let OmniRoute do it — see `install` endpoint below).
-2. Sign in (`tailscale login` or via OmniRoute's `login` endpoint).
+1. Install Tailscale (or let Birouter do it — see `install` endpoint below).
+2. Sign in (`tailscale login` or via Birouter's `login` endpoint).
 3. Enable Funnel for your tailnet in the Tailscale admin console:
    <https://login.tailscale.com/admin/settings/features>.
 
 On Linux and macOS the daemon (`tailscaled`) requires `sudo` to control. The
 POST endpoints accept an optional `sudoPassword` field which is forwarded to
-OmniRoute's MITM password cache (`getCachedPassword` / `setCachedPassword`) for
+Birouter's MITM password cache (`getCachedPassword` / `setCachedPassword`) for
 the duration of the call. Windows uses the default service install at
 `C:\Program Files\Tailscale\tailscale.exe`.
 
@@ -213,7 +213,7 @@ independent.
 
 ## OAuth callback considerations
 
-When you expose OmniRoute through a tunnel, the dashboard and OAuth flows must
+When you expose Birouter through a tunnel, the dashboard and OAuth flows must
 build callback URLs against the **public** hostname, not `localhost`. Otherwise
 the OAuth provider redirects the user back to a URL its servers cannot reach,
 and the handshake fails.
@@ -229,7 +229,7 @@ Set:
 NEXT_PUBLIC_BASE_URL=https://<your-tunnel-host>
 ```
 
-and restart OmniRoute before initiating OAuth. For ephemeral Cloudflare Quick
+and restart Birouter before initiating OAuth. For ephemeral Cloudflare Quick
 Tunnels the URL changes after every restart, so prefer ngrok with a reserved
 domain or Tailscale Funnel for production OAuth use.
 
@@ -244,14 +244,14 @@ The dashboard surfaces tunnel state under **Settings → Tunnels**:
 - Last error message, if any.
 
 For programmatic monitoring poll the per-backend `GET` endpoints. Running more
-than one backend simultaneously is allowed; OmniRoute will track each
+than one backend simultaneously is allowed; Birouter will track each
 independently.
 
 ## Troubleshooting
 
 ### "cloudflared binary not found"
 
-OmniRoute attempts to auto-install on first use. If the install is blocked
+Birouter attempts to auto-install on first use. If the install is blocked
 (restricted network, no GitHub access), download `cloudflared` manually from
 <https://github.com/cloudflare/cloudflared/releases> and set
 `CLOUDFLARED_BIN=/path/to/cloudflared`.

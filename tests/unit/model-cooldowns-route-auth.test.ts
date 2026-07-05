@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cooldown-auth-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cooldown-auth-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
@@ -16,7 +16,7 @@ const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const route = await import("../../src/app/api/resilience/model-cooldowns/route.ts");
 const modelAvailability = await import("../../src/domain/modelAvailability.ts");
-const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
+const accountFallback = await import("@birouter/open-sse/services/accountFallback");
 
 const { getAvailabilityReport } = modelAvailability;
 const { clearModelLock, lockModel } = accountFallback;

@@ -16,7 +16,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Set temp DATA_DIR BEFORE importing any db module
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-gamif-fed-3500-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-gamif-fed-3500-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -28,11 +28,23 @@ function seedServers() {
   db.prepare(
     `INSERT OR REPLACE INTO community_servers (id, name, url, api_key_hash, status)
      VALUES (?, ?, ?, ?, ?)`
-  ).run("srv-connected", "Connected Server", "https://connected.example", "hash-connected", "connected");
+  ).run(
+    "srv-connected",
+    "Connected Server",
+    "https://connected.example",
+    "hash-connected",
+    "connected"
+  );
   db.prepare(
     `INSERT OR REPLACE INTO community_servers (id, name, url, api_key_hash, status)
      VALUES (?, ?, ?, ?, ?)`
-  ).run("srv-disconnected", "Disconnected Server", "https://disconnected.example", "hash-disconnected", "disconnected");
+  ).run(
+    "srv-disconnected",
+    "Disconnected Server",
+    "https://disconnected.example",
+    "hash-disconnected",
+    "disconnected"
+  );
 }
 
 test.after(async () => {
@@ -73,9 +85,5 @@ test("getConnectedServerByKeyHash returns undefined for an unknown hash", () => 
 test("getConnectedServerByKeyHash returns undefined for a disconnected server (status filter)", () => {
   seedServers();
   const result = gamifDb.getConnectedServerByKeyHash("hash-disconnected");
-  assert.equal(
-    result,
-    undefined,
-    "should not return a server whose status is not 'connected'"
-  );
+  assert.equal(result, undefined, "should not return a server whose status is not 'connected'");
 });

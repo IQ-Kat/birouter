@@ -16,7 +16,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const GLOBAL_KEY = "__omniroute_customAliases__";
+const GLOBAL_KEY = "__birouter_customAliases__";
 const g = globalThis as unknown as Record<string, Record<string, string> | undefined>;
 
 const modelDeprecation = await import("../../open-sse/services/modelDeprecation.ts");

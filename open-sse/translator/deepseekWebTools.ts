@@ -1,6 +1,6 @@
 // DeepSeek-web-specific tool-call translation.
 //
-// chat.deepseek.com has no native function calling, so OmniRoute serializes the OpenAI
+// chat.deepseek.com has no native function calling, so Birouter serializes the OpenAI
 // `tools[]` into a prompt contract and parses the model's text reply back into OpenAI
 // `tool_calls`. The canonical `webTools.ts` parser handles the well-behaved
 // `<tool>{json}</tool>` / bare-JSON shapes used by most web-cookie providers, and it MUST

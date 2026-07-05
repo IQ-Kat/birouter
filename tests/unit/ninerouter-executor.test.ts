@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 // ─── DB bootstrap (needed for getOrCreateApiKey) ──────────────────────────────
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ninerouter-exec-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-ninerouter-exec-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
@@ -276,7 +276,7 @@ describe("NineRouterExecutor", () => {
       assert.equal(body.error.code, "service_not_running");
     });
 
-    it("G-02: 503 service_not_running response includes X-Omni-Fallback-Hint: connection_cooldown", async () => {
+    it("G-02: 503 service_not_running response includes X-Bi-Fallback-Hint: connection_cooldown", async () => {
       // No supervisor → 503
       const exec = new NineRouterExecutor("http://127.0.0.1:20130");
       const result = await exec.execute({

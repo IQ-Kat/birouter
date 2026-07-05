@@ -39,7 +39,7 @@ npm run test:all
 
 ## פרויקט במבט חטוף
 
-**OmniRoute** — פרוקסי/נתב AI מאוחד. נקודת קצה אחת, 160+ ספקי LLM, חזרה אוטומטית.
+**Birouter** — פרוקסי/נתב AI מאוחד. נקודת קצה אחת, 160+ ספקי LLM, חזרה אוטומטית.
 
 | שכבה          | מיקום                   | מטרה                                                             |
 | ------------- | ----------------------- | ---------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Client → /v1/chat/completions (Next.js route)
 
 ## מצב ריצה של חוסן
 
-OmniRoute יש שלושה מנגנוני כישלון זמניים הקשורים אך שונים. שמור על התחום שלהם נפרד כאשר אתה מדבג התנהגות נתיב. ראה את
+Birouter יש שלושה מנגנוני כישלון זמניים הקשורים אך שונים. שמור על התחום שלהם נפרד כאשר אתה מדבג התנהגות נתיב. ראה את
 [דיאגרמת חוסן ב-3 שכבות](./docs/diagrams/exported/resilience-3layers.svg)
 (מקור: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 למפת מבט-על.
@@ -212,7 +212,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### סגנון קוד
 
 - **2 רווחים**, נקודותיים, ציטוטים כפולים, רוחב 100 תווים, פסיקים בסוף שורות ב-ES5 (מאוכפים על ידי lint-staged דרך Prettier)
-- **ייבוא**: חיצוני → פנימי (`@/`, `@omniroute/open-sse`) → יחסי
+- **ייבוא**: חיצוני → פנימי (`@/`, `@birouter/open-sse`) → יחסי
 - **שמות**: קבצים=camelCase/kebab, רכיבים=PascalCase, קבועים=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = שגיאה בכל מקום; `no-explicit-any` = אזהרה ב-`open-sse/` וב-`tests/`
 - **TypeScript**: `strict: false`, יעד ES2022, מודול esnext, פתרון bundler. העדיף סוגים מפורשים.
@@ -380,9 +380,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, מודולי ES
 - **TypeScript**: 5.9+, יעד ES2022, מודול esnext, פתרון bundler
-- **Alias נתיב**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Alias נתיב**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **פורט ברירת מחדל**: 20128 (API + לוח מחוונים באותו פורט)
-- **ספריית נתונים**: משתנה סביבה `DATA_DIR`, ברירת מחדל ל-`~/.omniroute/`
+- **ספריית נתונים**: משתנה סביבה `DATA_DIR`, ברירת מחדל ל-`~/.birouter/`
 - **משתני סביבה מרכזיים**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - הגדרה: `cp .env.example .env` ואז צור `JWT_SECRET` (`openssl rand -base64 48`) ו-`API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -405,4 +405,4 @@ git push -u origin feat/your-feature
 13. אל תבצע אינטרפולציה של מיתרים של נתיבים חיצוניים או ערכי ריצה לתוך סקריפטים של shell המועברים ל-`exec()`/`spawn()` — העבר דרך אפשרות `env` במקום זאת. הפניה: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. אל תדחה אזהרת CodeQL / סריקת סודות ללא (א) בדיקה ראשונה של מסמכי התבנית למעלה כדי לראות אם העוזר חל, ו-(ב) תיעוד ההצדקה הטכנית בהערת הדחייה. תקדים: `js/stack-trace-exposure` הועלה על אתרי קריאה שכבר נווטים דרך `sanitizeErrorMessage()` היא מגבלה ידועה של CodeQL (מסננים מותאמים אישית לא מוכרים) — דחה כ-`false positive` בהתייחסות ל-`docs/security/ERROR_SANITIZATION.md`.
 15. אל תחשוף נתיבים שמפעילים תהליכים ילדיים (`/api/mcp/`, `/api/cli-tools/runtime/`) ללא סיווג `isLocalOnlyPath()` ב-`src/server/authz/routeGuard.ts`. אכיפת לולאת חזרה מתבצעת ללא תנאים לפני כל בדיקת auth — JWT דלף דרך מנהרה לא יכול להפעיל תהליך. ראה `docs/security/ROUTE_GUARD_TIERS.md`.
-16. לעולם אל תכלול `Co-Authored-By` trailers שמיוחסים לעוזר AI, ל-LLM או לחשבון אוטומציה (למשל שמות המכילים "Claude", "GPT", "Copilot", "Bot"; אימיילים ב-`anthropic.com` / `openai.com` / כתובות `noreply.github.com` השייכות לבוטים). trailers כאלה מנתבים את הייחוס של ה-commit לחשבון הבוט ב-GitHub, ומסתירים את המחבר האמיתי (`diegosouzapw`) בהיסטוריית ה-PR. משתפי פעולה אנושיים — כולל מחברי PR upstream ומדווחי issues שמועתקים ל-OmniRoute — יכולים וחייבים לקבל קרדיט עם trailers סטנדרטיים `Co-authored-by: Name <email>`; תהליכי העבודה של upstream-port (`/port-upstream-features`, `/port-upstream-issues`) תלויים בזה.
+16. לעולם אל תכלול `Co-Authored-By` trailers שמיוחסים לעוזר AI, ל-LLM או לחשבון אוטומציה (למשל שמות המכילים "Claude", "GPT", "Copilot", "Bot"; אימיילים ב-`anthropic.com` / `openai.com` / כתובות `noreply.github.com` השייכות לבוטים). trailers כאלה מנתבים את הייחוס של ה-commit לחשבון הבוט ב-GitHub, ומסתירים את המחבר האמיתי (`diegosouzapw`) בהיסטוריית ה-PR. משתפי פעולה אנושיים — כולל מחברי PR upstream ומדווחי issues שמועתקים ל-Birouter — יכולים וחייבים לקבל קרדיט עם trailers סטנדרטיים `Co-authored-by: Name <email>`; תהליכי העבודה של upstream-port (`/port-upstream-features`, `/port-upstream-issues`) תלויים בזה.

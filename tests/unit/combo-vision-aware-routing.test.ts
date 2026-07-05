@@ -26,7 +26,7 @@ import path from "node:path";
 
 // Deterministic, isolated storage so capability resolution sees NO synced data
 // and exercises the registry/spec/heuristic path only.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-vision-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-vision-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

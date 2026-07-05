@@ -13,7 +13,7 @@
  * response body and headers to return a `FailureKind` the circuit
  * breaker can use to pick the right cooldown.
  *
- * Companion to OmniRoute issue #2100.
+ * Companion to Birouter issue #2100.
  *
  * @module shared/utils/classify429
  */

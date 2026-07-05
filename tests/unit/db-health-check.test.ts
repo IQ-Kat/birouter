@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-health-check-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-db-health-check-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-303-api-key-secret";
 
@@ -276,15 +276,15 @@ test("getDbInstance can auto-repair persisted broken rows when startup repair is
   insertBrokenRows(db);
   core.resetDbInstance();
 
-  const previousForce = process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK;
-  process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK = "1";
+  const previousForce = process.env.BIROUTER_FORCE_DB_HEALTHCHECK;
+  process.env.BIROUTER_FORCE_DB_HEALTHCHECK = "1";
   try {
     db = core.getDbInstance();
   } finally {
     if (previousForce === undefined) {
-      delete process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK;
+      delete process.env.BIROUTER_FORCE_DB_HEALTHCHECK;
     } else {
-      process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK = previousForce;
+      process.env.BIROUTER_FORCE_DB_HEALTHCHECK = previousForce;
     }
   }
 

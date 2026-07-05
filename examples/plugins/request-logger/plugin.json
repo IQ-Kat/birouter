@@ -2,7 +2,7 @@
   "name": "request-logger",
   "version": "1.0.0",
   "description": "Logs all API requests and responses with timing information",
-  "author": "OmniRoute",
+  "author": "Birouter",
   "license": "MIT",
   "main": "index.mjs",
   "source": "local",

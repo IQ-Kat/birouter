@@ -1,10 +1,10 @@
 ---
-title: "OmniRoute Auto-Combo Engine"
+title: "Birouter Auto-Combo Engine"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute Auto-Combo Engine
+# Birouter Auto-Combo Engine
 
 > **For Users**: Looking for a quick start? See the [Auto-Combo User Guide](../getting-started/AUTO-COMBO-GUIDE.md) for simple explanations and examples.
 
@@ -61,7 +61,7 @@ model: "auto/cheap"           # cheapest per token
 
 **What happens:**
 
-1. OmniRoute detects `auto/` prefix in `src/sse/handlers/chat.ts`
+1. Birouter detects `auto/` prefix in `src/sse/handlers/chat.ts`
 2. Queries all **active provider connections** from the database
 3. Filters to those with valid credentials (API key or OAuth token)
 4. Determines the model per connection (`connection.defaultModel` or provider's first model)
@@ -150,7 +150,7 @@ Notes:
 
 ## All Routing Strategies
 
-OmniRoute's combo engine supports **17 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
+Birouter's combo engine supports **17 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
 | Strategy            | Description                                                                                  |
 | :------------------ | :------------------------------------------------------------------------------------------- |
@@ -478,7 +478,7 @@ You can register your own `RouterStrategy` implementation via the public API:
 import {
   registerStrategy,
   type RouterStrategy,
-} from "@omniroute/open-sse/services/autoCombo/routerStrategy";
+} from "@birouter/open-sse/services/autoCombo/routerStrategy";
 
 class MyCustomStrategy implements RouterStrategy {
   readonly name = "my-custom";
@@ -592,11 +592,11 @@ This suite runs in CI (`test:integration` job) with `--test-concurrency=1` and
 
 ### Gated live smoke (NOT in CI — real providers)
 
-| Command                                | What it does                                                                   |
-| :------------------------------------- | :----------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | In-process real routing with `RUN_COMBO_LIVE=1`; snapshots a live OmniRoute DB |
-| `npm run test:combo:live:vps`          | HTTP calls against a live OmniRoute server (set `COMBO_LIVE_BASE_URL`)         |
-| `npm run test:combo:live:vps:failover` | Same, with deliberate failover scenarios                                       |
+| Command                                | What it does                                                                  |
+| :------------------------------------- | :---------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | In-process real routing with `RUN_COMBO_LIVE=1`; snapshots a live Birouter DB |
+| `npm run test:combo:live:vps`          | HTTP calls against a live Birouter server (set `COMBO_LIVE_BASE_URL`)         |
+| `npm run test:combo:live:vps:failover` | Same, with deliberate failover scenarios                                      |
 
 These smoke tests exercise the real wire path (combo → provider → completion). They are
 intentionally excluded from CI because they require live credentials and VPS access.

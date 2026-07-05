@@ -11,7 +11,7 @@ test.afterEach(() => {
 
 test("handleModeration requires input", async () => {
   const response = await handleModeration({
-    body: { model: "openai/omni-moderation-latest" },
+    body: { model: "openai/bi-moderation-latest" },
     credentials: { apiKey: "sk-test" },
   });
   const payload = (await response.json()) as any;
@@ -66,7 +66,7 @@ test("handleModeration proxies successful requests with default model and access
   assert.equal(captured.url, "https://api.openai.com/v1/moderations");
   assert.equal(captured.headers.Authorization, "Bearer oauth-token");
   assert.deepEqual(captured.body, {
-    model: "omni-moderation-latest",
+    model: "bi-moderation-latest",
     input: "all clear",
   });
   assert.equal(response.status, 200);

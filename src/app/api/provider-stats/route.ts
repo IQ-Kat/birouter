@@ -10,9 +10,7 @@ export async function GET() {
 
     let comboMetrics: Record<string, unknown> = {};
     try {
-      const { getAllComboMetrics } = await import(
-        "@omniroute/open-sse/services/comboMetrics.ts"
-      );
+      const { getAllComboMetrics } = await import("@birouter/open-sse/services/comboMetrics.ts");
       comboMetrics = getAllComboMetrics() as Record<string, unknown>;
     } catch {}
 
@@ -24,9 +22,8 @@ export async function GET() {
 
     let toolLatency: Record<string, unknown> = {};
     try {
-      const { getToolLatencyByProvider } = await import(
-        "@omniroute/open-sse/services/toolLatencyTracker"
-      );
+      const { getToolLatencyByProvider } =
+        await import("@birouter/open-sse/services/toolLatencyTracker");
       toolLatency = getToolLatencyByProvider() as Record<string, unknown>;
     } catch {}
 

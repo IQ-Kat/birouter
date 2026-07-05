@@ -1,4 +1,4 @@
-const CACHE_NAME = "omniroute-pwa-v2";
+const CACHE_NAME = "birouter-pwa-v2";
 const APP_SHELL = [
   "/",
   "/offline",
@@ -116,7 +116,9 @@ self.addEventListener("fetch", (event) => {
 });
 
 async function navigationFallback(request) {
-  return (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline"));
+  return (
+    (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline"))
+  );
 }
 
 // ── Push Notifications ───────────────────────────────────────────────────────
@@ -126,15 +128,15 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "OmniRoute", body: event.data?.text() || "New notification" };
+    data = { title: "Birouter", body: event.data?.text() || "New notification" };
   }
 
-  const title = data.title || "OmniRoute";
+  const title = data.title || "Birouter";
   const options = {
     body: data.body || "",
     icon: data.icon || "/icon-512.png",
     badge: data.badge || "/icon-192.png",
-    tag: data.tag || "omniroute-default",
+    tag: data.tag || "birouter-default",
     data: {
       url: data.url || "/dashboard",
       timestamp: Date.now(),

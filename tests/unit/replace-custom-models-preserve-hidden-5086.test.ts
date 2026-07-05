@@ -22,7 +22,7 @@ import fs from "node:fs";
 
 // Hermetic DB (see #3782 test): isolate DATA_DIR so override state never leaks
 // into the shared dev/CI database between runs.
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-replace-custom-hide-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-test-replace-custom-hide-"));
 process.env.DATA_DIR = tmpDir;
 
 const { replaceCustomModels, mergeModelCompatOverride, getModelIsHidden, getModelCompatOverrides } =

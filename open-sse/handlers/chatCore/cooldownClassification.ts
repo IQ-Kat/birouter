@@ -2,7 +2,7 @@ import { HTTP_STATUS } from "../../config/constants.ts";
 
 /**
  * Whether a failed single-model attempt is a *self-inflicted* upstream timeout — i.e.
- * OmniRoute's own deadline (fetch-start `TimeoutError`, body `BodyTimeoutError`, or the
+ * Birouter's own deadline (fetch-start `TimeoutError`, body `BodyTimeoutError`, or the
  * combo-per-model timeout) fired while the upstream was still processing the request,
  * surfaced as a 504 tagged `errorType: "upstream_timeout"`.
  *

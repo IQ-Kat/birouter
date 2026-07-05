@@ -4,7 +4,7 @@ title: "Kiro Setup Guide"
 
 # Kiro Setup Guide
 
-This guide covers adding Kiro (AWS-hosted AI coding assistant) accounts to OmniRoute,
+This guide covers adding Kiro (AWS-hosted AI coding assistant) accounts to Birouter,
 with a focus on running multiple accounts simultaneously without session conflicts.
 
 ---
@@ -22,10 +22,10 @@ first account's token.
 
 ---
 
-## How OmniRoute Solves This (v3.8.0+)
+## How Birouter Solves This (v3.8.0+)
 
-Starting with v3.8.0, OmniRoute calls `registerClient()` (AWS SSO OIDC) during every
-Kiro connection import. This gives each OmniRoute connection its own dedicated OIDC
+Starting with v3.8.0, Birouter calls `registerClient()` (AWS SSO OIDC) during every
+Kiro connection import. This gives each Birouter connection its own dedicated OIDC
 client registration. Because each client registration is independent, refreshing or
 re-authenticating one account does not affect any other account's refresh token.
 
@@ -57,7 +57,7 @@ receive their own client registration automatically.
 
 ### Prerequisites
 
-- OmniRoute v3.8.0 or later.
+- Birouter v3.8.0 or later.
 - A working Kiro account (email + password, Google, or GitHub login).
 - Optionally a second Kiro account.
 
@@ -67,9 +67,9 @@ receive their own client registration automatically.
 2. Choose one of:
    - **Import Token** — paste a refresh token starting with `aorAAAAAG`.
    - **Google / GitHub login** — complete the OAuth flow in the browser.
-   - **Auto-Import** — click the button; OmniRoute reads credentials from the
+   - **Auto-Import** — click the button; Birouter reads credentials from the
      local kiro-cli database or `~/.aws/sso/cache`.
-3. The connection is saved. OmniRoute automatically registers a dedicated OIDC client for it.
+3. The connection is saved. Birouter automatically registers a dedicated OIDC client for it.
 
 ### Step 2: Import the second account
 
@@ -115,7 +115,7 @@ The `region` field defaults to `us-east-1` when omitted.
 ## OIDC Client Expiry
 
 AWS SSO OIDC public clients typically expire after 90 days
-(`clientSecretExpiresAt`). OmniRoute stores this timestamp in `providerSpecificData`
+(`clientSecretExpiresAt`). Birouter stores this timestamp in `providerSpecificData`
 for observability. If a connection stops refreshing after ~90 days, re-import the
 connection to obtain a fresh OIDC client registration. Automatic re-registration on
 expiry is tracked as a future improvement.
@@ -133,7 +133,7 @@ expiry is tracked as a future improvement.
 ### Import fails with "Token validation failed"
 
 - Ensure the refresh token starts with `aorAAAAAG`.
-- Ensure OmniRoute can reach `https://oidc.us-east-1.amazonaws.com` (or the configured
+- Ensure Birouter can reach `https://oidc.us-east-1.amazonaws.com` (or the configured
   region). If you are behind a corporate proxy, set a provider-level proxy in
   **Dashboard → Settings → Proxies**.
 

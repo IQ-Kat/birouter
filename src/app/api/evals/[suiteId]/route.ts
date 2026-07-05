@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getSuite } from "@/lib/evals/evalRunner";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export async function GET(request: Request, { params }: { params: Promise<{ suiteId: string }> }) {
   const authError = await requireManagementAuth(request);

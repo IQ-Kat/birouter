@@ -1,20 +1,20 @@
 ---
-title: "CLI Tools — OmniRoute"
+title: "CLI Tools — Birouter"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# CLI Tools — OmniRoute
+# CLI Tools — Birouter
 
 Last updated: 2026-06-28
 
-OmniRoute integrates with three categories of CLI tools spread across three dedicated dashboard pages:
+Birouter integrates with three categories of CLI tools spread across three dedicated dashboard pages:
 
-| Page           | Route                   | Concept                                                                   | Count        |
-| -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 19           |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
+| Page           | Route                   | Concept                                                                 | Count        |
+| -------------- | ----------------------- | ----------------------------------------------------------------------- | ------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at Birouter (Client → CLI → Birouter → Provider) | 19           |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at Birouter (same flow, broader scope)      | 6            |
+| **ACP Agents** | `/dashboard/acp-agents` | CLIs that Birouter spawns as backend via stdio/ACP (reverse flow)       | see registry |
 
 Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
@@ -26,14 +26,14 @@ Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`
 CLI Code's / CLI Agents (consumption flow):
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose / ...
            │
-           ▼  (all point to OmniRoute)
+           ▼  (all point to Birouter)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute routes to the right provider)
+           ▼  (Birouter routes to the right provider)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 
 ACP Agents (reverse spawn flow):
-    Client request → OmniRoute → spawns CLI via stdio/ACP → response
+    Client request → Birouter → spawns CLI via stdio/ACP → response
 ```
 
 **Benefits:**
@@ -47,22 +47,22 @@ ACP Agents (reverse spawn flow):
 
 ## Auto-configure with `setup-*`
 
-You do not have to write each tool's config by hand. OmniRoute ships a `setup-*`
+You do not have to write each tool's config by hand. Birouter ships a `setup-*`
 command per supported CLI that reads the **live** model catalog from a running
-OmniRoute (local or remote) and writes the tool's own config on your machine:
+Birouter (local or remote) and writes the tool's own config on your machine:
 
 ```bash
-omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
-omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
-omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
-omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+birouter setup-codex        birouter setup-claude       birouter setup-opencode
+birouter setup-cline        birouter setup-kilo         birouter setup-continue
+birouter setup-cursor       birouter setup-roo          birouter setup-crush
+birouter setup-goose        birouter setup-qwen         birouter setup-aider
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
-remote OmniRoute), `--dry-run` (preview without writing), and `--port`. Tools
+remote Birouter), `--dry-run` (preview without writing), and `--port`. Tools
 without model auto-discovery (Cline, Kilo, Roo, Goose, Qwen, Aider, Gemini) take
 `--model <id>` (and `--yes` for non-interactive runs). The launchers
-`omniroute launch` (Claude Code) and `omniroute launch-codex` (Codex) spawn the CLI
+`birouter launch` (Claude Code) and `birouter launch-codex` (Codex) spawn the CLI
 with the right env injected and write no config at all.
 
 > **Full reference:** the master table — what each command writes, every flag,
@@ -94,26 +94,26 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 
 Tools that support custom base URL and appear in `/dashboard/cli-code`:
 
-| id | name | vendor | baseUrlSupport | configType | acpSpawnable |
-|----|------|--------|---------------|-----------|-------------|
-| claude | Claude Code | Anthropic | full | env | true |
-| codex | OpenAI Codex CLI | OpenAI | full | custom | true |
-| cline | Cline | OSS (ex-Claude Dev) | full | custom | true |
-| kilo | Kilo Code | Kilo-Org | full | custom | false |
-| roo | Roo Code | Roo (OSS) | full | guide | false |
-| continue | Continue | continue.dev | full | guide | false |
-| qwen | Qwen Code | Alibaba | full | guide | true |
-| aider | Aider | OSS (P. Gauthier) | full | guide | true |
-| forge | ForgeCode | Antinomy HQ | full | custom | true |
-| jcode | jcode | 1jehuang (OSS) | full | custom | false |
-| deepseek-tui | DeepSeek TUI | Hunter Bown (OSS) | full | custom | false |
-| opencode | OpenCode | Anomaly (ex-SST) | full | guide | true |
-| droid | Factory Droid | Factory AI | partial | guide | false |
-| copilot | GitHub Copilot CLI | GitHub/MS | full | custom | false |
-| cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
-| smelt | Smelt | leonardcser (OSS) | full | custom | false |
-| pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
-| custom | Custom CLI | — | full | custom-builder | false |
+| id           | name                 | vendor              | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | -------------------- | ------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code          | Anthropic           | full           | env            | true         |
+| codex        | OpenAI Codex CLI     | OpenAI              | full           | custom         | true         |
+| cline        | Cline                | OSS (ex-Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code            | Kilo-Org            | full           | custom         | false        |
+| roo          | Roo Code             | Roo (OSS)           | full           | guide          | false        |
+| continue     | Continue             | continue.dev        | full           | guide          | false        |
+| qwen         | Qwen Code            | Alibaba             | full           | guide          | true         |
+| aider        | Aider                | OSS (P. Gauthier)   | full           | guide          | true         |
+| forge        | ForgeCode            | Antinomy HQ         | full           | custom         | true         |
+| jcode        | jcode                | 1jehuang (OSS)      | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI         | Hunter Bown (OSS)   | full           | custom         | false        |
+| opencode     | OpenCode             | Anomaly (ex-SST)    | full           | guide          | true         |
+| droid        | Factory Droid        | Factory AI          | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI   | GitHub/MS           | full           | custom         | false        |
+| cursor-cli   | Cursor CLI           | Anysphere           | partial        | guide          | true         |
+| smelt        | Smelt                | leonardcser (OSS)   | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent) | M. Zechner (OSS)    | full           | custom         | false        |
+| custom       | Custom CLI           | —                   | full           | custom-builder | false        |
 
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
 
@@ -136,8 +136,7 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 
 ## 3. ACP Agents (/dashboard/acp-agents)
 
-This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
-
+This page (renamed from `/dashboard/agents`) shows CLIs that Birouter can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
 
 ---
 
@@ -261,7 +260,7 @@ Full PT-BR and EN translations are provided. 39 other locales fall back to EN au
 
 ## 9. Quick Start
 
-### Step 1 — Get an OmniRoute API Key
+### Step 1 — Get an Birouter API Key
 
 1. Open `/dashboard/api-manager` → **Create API Key**
 2. Give it a name (e.g. `cli-tools`) and select all permissions
@@ -322,13 +321,13 @@ cargo install smelt  # Rust-based
 ### Step 4 — Set Global Environment Variables
 
 ```bash
-# OmniRoute Universal Endpoint
+# Birouter Universal Endpoint
 export OPENAI_BASE_URL="http://localhost:20128/v1"
-export OPENAI_API_KEY="sk-your-omniroute-key"
+export OPENAI_API_KEY="sk-your-birouter-key"
 export ANTHROPIC_BASE_URL="http://localhost:20128"
-export ANTHROPIC_AUTH_TOKEN="sk-your-omniroute-key"
+export ANTHROPIC_AUTH_TOKEN="sk-your-birouter-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
-export GEMINI_API_KEY="sk-your-omniroute-key"
+export GEMINI_API_KEY="sk-your-birouter-key"
 ```
 
 > For a **remote server** replace `localhost:20128` with the server IP or domain,
@@ -346,7 +345,7 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "env": {
     "ANTHROPIC_BASE_URL": "http://localhost:20128",
-    "ANTHROPIC_AUTH_TOKEN": "sk-your-omniroute-key"
+    "ANTHROPIC_AUTH_TOKEN": "sk-your-birouter-key"
   }
 }
 EOF
@@ -363,7 +362,7 @@ Use the unified Anthropic gateway root for Claude Code. Do not append `/v1` here
 ```bash
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
-apiKey: sk-your-omniroute-key
+apiKey: sk-your-birouter-key
 apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
@@ -379,12 +378,12 @@ mkdir -p ~/.config/opencode && cat > ~/.config/opencode/opencode.json << EOF
 {
   "\$schema": "https://opencode.ai/config.json",
   "provider": {
-    "omniroute": {
+    "birouter": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "OmniRoute",
+      "name": "Birouter",
       "options": {
         "baseURL": "http://localhost:20128/v1",
-        "apiKey": "sk-your-omniroute-key"
+        "apiKey": "sk-your-birouter-key"
       },
       "models": {
         "claude-sonnet-4-5": { "name": "claude-sonnet-4-5" },
@@ -399,7 +398,7 @@ EOF
 
 **Test:** `opencode`
 
-> Use `opencode run "your prompt" --model omniroute/claude-sonnet-4-5-thinking --variant high`
+> Use `opencode run "your prompt" --model birouter/claude-sonnet-4-5-thinking --variant high`
 > to send thinking variants.
 
 ---
@@ -413,7 +412,7 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
   "openAiBaseUrl": "http://localhost:20128/v1",
-  "openAiApiKey": "sk-your-omniroute-key"
+  "openAiApiKey": "sk-your-birouter-key"
 }
 EOF
 ```
@@ -421,7 +420,7 @@ EOF
 **VS Code mode:**
 Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+Or use the Birouter dashboard → **CLI Tools → Cline → Apply Config**.
 
 ---
 
@@ -430,7 +429,7 @@ Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
 **CLI mode:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
+kilocode --api-base http://localhost:20128/v1 --api-key sk-your-birouter-key
 ```
 
 **VS Code settings:**
@@ -438,11 +437,11 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```json
 {
   "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
-  "kilo-code.apiKey": "sk-your-omniroute-key"
+  "kilo-code.apiKey": "sk-your-birouter-key"
 }
 ```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+Or use the Birouter dashboard → **CLI Tools → KiloCode → Apply Config**.
 
 ---
 
@@ -452,11 +451,11 @@ Edit `~/.continue/config.yaml`:
 
 ```yaml
 models:
-  - name: OmniRoute
+  - name: Birouter
     provider: openai
     model: auto
     apiBase: http://localhost:20128/v1
-    apiKey: sk-your-omniroute-key
+    apiKey: sk-your-birouter-key
     default: true
 ```
 
@@ -466,25 +465,25 @@ Restart VS Code after editing.
 
 #### VS Code Insiders (`chatLanguageModels.json`)
 
-Use this when VS Code Insiders is configured for custom endpoint models and you want OmniRoute to work without a custom header field.
+Use this when VS Code Insiders is configured for custom endpoint models and you want Birouter to work without a custom header field.
 
 **Recommended location:**
 
 - Linux: `~/.config/Code - Insiders/User/chatLanguageModels.json`
 - Windows: `%APPDATA%/Code - Insiders/User/chatLanguageModels.json`
 
-**Example using the tokenized OmniRoute alias:**
+**Example using the tokenized Birouter alias:**
 
 ```json
 [
   {
     "vendor": "customendpoint",
     "id": "auto",
-    "name": "OmniRoute Auto",
+    "name": "Birouter Auto",
     "family": "gpt-4",
     "version": "1.0.0",
-    "url": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/chat/completions",
-    "modelsUrl": "http://localhost:20128/api/v1/vscode/sk-your-omniroute-key/models",
+    "url": "http://localhost:20128/api/v1/vscode/sk-your-birouter-key/chat/completions",
+    "modelsUrl": "http://localhost:20128/api/v1/vscode/sk-your-birouter-key/models",
     "requestFormat": "openai-chat-completions",
     "contextWindow": 256000,
     "maxOutputTokens": 32768,
@@ -497,7 +496,7 @@ Use this when VS Code Insiders is configured for custom endpoint models and you 
 
 **Notes:**
 
-- Replace `sk-your-omniroute-key` with an API key created in OmniRoute.
+- Replace `sk-your-birouter-key` with an API key created in Birouter.
 - The `url` field should point to `/api/v1/vscode/{token}/chat/completions`.
 - The `modelsUrl` field should point to `/api/v1/vscode/{token}/models`.
 - Prefer the normal `/v1` + Bearer header flow when the client supports custom headers.
@@ -511,12 +510,12 @@ Use this when VS Code Insiders is configured for custom endpoint models and you 
 # Login to your AWS/Kiro account:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# The CLI uses its own auth — Birouter is not needed as backend for Kiro CLI itself.
+# Use kiro-cli alongside Birouter for other tools.
 kiro-cli status
 ```
 
-For the **Kiro IDE** desktop app, use the MITM endpoint exposed by OmniRoute
+For the **Kiro IDE** desktop app, use the MITM endpoint exposed by Birouter
 under `/dashboard/cli-tools → Kiro`.
 
 ---
@@ -525,7 +524,7 @@ under `/dashboard/cli-tools → Kiro`.
 
 Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
 
-> Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with
+> Qwen OAuth free tier was discontinued on 2026-04-15. Use Birouter with
 > `bailian-coding-plan` / `alibaba` / `alibaba-cn` / `openrouter` / `anthropic` /
 > `gemini` providers instead.
 
@@ -533,7 +532,7 @@ Qwen Code supports OpenAI-compatible API endpoints via environment variables or 
 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
-OPENAI_API_KEY="sk-your-omniroute-key"
+OPENAI_API_KEY="sk-your-birouter-key"
 OPENAI_BASE_URL="http://localhost:20128/v1"
 OPENAI_MODEL="auto"
 EOF
@@ -547,7 +546,7 @@ EOF
   "security": {
     "auth": {
       "selectedType": "openai",
-      "apiKey": "sk-your-omniroute-key",
+      "apiKey": "sk-your-birouter-key",
       "baseUrl": "http://localhost:20128/v1"
     }
   },
@@ -561,7 +560,7 @@ EOF
 
 ```bash
 OPENAI_BASE_URL="http://localhost:20128/v1" \
-OPENAI_API_KEY="sk-your-omniroute-key" \
+OPENAI_API_KEY="sk-your-birouter-key" \
 OPENAI_MODEL="auto" \
 qwen
 ```
@@ -570,30 +569,30 @@ qwen
 
 ---
 
-## 10. Internal OmniRoute CLI
+## 10. Internal Birouter CLI
 
-The `omniroute` binary provides commands for server lifecycle, setup, diagnostics, and provider management. Entry point: `bin/omniroute.mjs`.
+The `birouter` binary provides commands for server lifecycle, setup, diagnostics, and provider management. Entry point: `bin/birouter.mjs`.
 
 ```bash
-omniroute                              # Start server (default port 20128)
-omniroute setup                        # Interactive setup wizard
-omniroute doctor                       # Check config, DB, ports, runtime
-omniroute providers list               # Configured provider connections
-omniroute providers test-all           # Test every active connection
-omniroute reset-password               # Reset the admin password
-omniroute logs                         # Stream request logs
-omniroute health                       # Detailed health (breakers, cache, memory)
-omniroute --version                    # Print version
-omniroute --help                       # Show all commands
+birouter                              # Start server (default port 20128)
+birouter setup                        # Interactive setup wizard
+birouter doctor                       # Check config, DB, ports, runtime
+birouter providers list               # Configured provider connections
+birouter providers test-all           # Test every active connection
+birouter reset-password               # Reset the admin password
+birouter logs                         # Stream request logs
+birouter health                       # Detailed health (breakers, cache, memory)
+birouter --version                    # Print version
+birouter --help                       # Show all commands
 ```
 
 ### Setup & Initialization
 
 ```bash
-omniroute setup                        # Interactive setup wizard
-omniroute setup --non-interactive      # CI/automation mode (reads env vars + flags)
-omniroute setup --password '<value>'   # Set admin password directly
-omniroute setup --add-provider \
+birouter setup                        # Interactive setup wizard
+birouter setup --non-interactive      # CI/automation mode (reads env vars + flags)
+birouter setup --password '<value>'   # Set admin password directly
+birouter setup --add-provider \
   --provider openai \
   --api-key '<value>' \
   --test-provider                      # Add and test a provider in one shot
@@ -601,23 +600,23 @@ omniroute setup --add-provider \
 
 Recognized environment variables for non-interactive setup:
 
-| Var                 | Purpose                                                        |
-| ------------------- | -------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Provider API key (bound to `--api-key` via Commander `.env()`) |
-| `DATA_DIR`          | Override the OmniRoute data directory                          |
+| Var                | Purpose                                                        |
+| ------------------ | -------------------------------------------------------------- |
+| `BIROUTER_API_KEY` | Provider API key (bound to `--api-key` via Commander `.env()`) |
+| `DATA_DIR`         | Override the Birouter data directory                           |
 
 All other non-interactive inputs are passed as flags, not environment variables:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(see the `omniroute setup` options above).
+(see the `birouter setup` options above).
 
 ### Diagnostics
 
 ```bash
-omniroute doctor                       # Check config, DB, ports, runtime, memory, liveness
-omniroute doctor --json                # Machine-readable JSON
-omniroute doctor --no-liveness         # Skip the HTTP health probe
-omniroute doctor --host 0.0.0.0        # Override liveness host
-omniroute doctor --liveness-url <url>  # Full health endpoint URL override
+birouter doctor                       # Check config, DB, ports, runtime, memory, liveness
+birouter doctor --json                # Machine-readable JSON
+birouter doctor --no-liveness         # Skip the HTTP health probe
+birouter doctor --host 0.0.0.0        # Override liveness host
+birouter doctor --liveness-url <url>  # Full health endpoint URL override
 ```
 
 The doctor runs these checks: `Config`, `Database`, `Storage/encryption`,
@@ -627,62 +626,62 @@ The doctor runs these checks: `Config`, `Database`, `Storage/encryption`,
 ### Provider Management
 
 ```bash
-omniroute providers available                       # OmniRoute provider catalog
-omniroute providers available --search openai       # Filter catalog by id/name/alias/category
-omniroute providers available --category api-key    # Filter by category (api-key, oauth, free, ...)
-omniroute providers available --json                # Machine-readable JSON
+birouter providers available                       # Birouter provider catalog
+birouter providers available --search openai       # Filter catalog by id/name/alias/category
+birouter providers available --category api-key    # Filter by category (api-key, oauth, free, ...)
+birouter providers available --json                # Machine-readable JSON
 
-omniroute providers list                            # Configured provider connections
-omniroute providers list --json
+birouter providers list                            # Configured provider connections
+birouter providers list --json
 
-omniroute providers test <id|name>                  # Test one configured connection
-omniroute providers test-all                        # Test every active connection
-omniroute providers validate                        # Local-only structural validation
+birouter providers test <id|name>                  # Test one configured connection
+birouter providers test-all                        # Test every active connection
+birouter providers validate                        # Local-only structural validation
 ```
 
-> `providers available` reads the OmniRoute catalog; `providers list/test/test-all/validate`
+> `providers available` reads the Birouter catalog; `providers list/test/test-all/validate`
 > read the local SQLite database directly and do not require the server to be running.
 
 ### Recovery & Reset
 
 ```bash
-omniroute reset-password                # Reset the admin password (legacy alias still works)
-omniroute reset-encrypted-columns       # Show warning + dry-run for encrypted credential reset
-omniroute reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
+birouter reset-password                # Reset the admin password (legacy alias still works)
+birouter reset-encrypted-columns       # Show warning + dry-run for encrypted credential reset
+birouter reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
 ```
 
 ### Other subcommands
 
-These assume a running OmniRoute server, unless noted otherwise:
+These assume a running Birouter server, unless noted otherwise:
 
 ```bash
-omniroute status                       # Comprehensive runtime status
-omniroute logs                         # Stream request logs (--json, --search, --follow)
-omniroute config show                  # Display current configuration
+birouter status                       # Comprehensive runtime status
+birouter logs                         # Stream request logs (--json, --search, --follow)
+birouter config show                  # Display current configuration
 
-omniroute provider list                # List available providers (alias of providers list)
-omniroute provider add                 # Register OmniRoute as a provider on a tool
-omniroute keys add | list | remove     # Manage API keys
-omniroute models [provider]            # List models (--json, --search)
-omniroute combo list | switch | create | delete
+birouter provider list                # List available providers (alias of providers list)
+birouter provider add                 # Register Birouter as a provider on a tool
+birouter keys add | list | remove     # Manage API keys
+birouter models [provider]            # List models (--json, --search)
+birouter combo list | switch | create | delete
 
-omniroute backup                       # Snapshot config + DB
-omniroute restore                      # Restore from a previous snapshot
+birouter backup                       # Snapshot config + DB
+birouter restore                      # Restore from a previous snapshot
 
-omniroute health                       # Detailed health (breakers, cache, memory)
-omniroute quota                        # Provider quota usage
-omniroute cache                        # Cache status
-omniroute cache clear                  # Clear semantic + signature caches
+birouter health                       # Detailed health (breakers, cache, memory)
+birouter quota                        # Provider quota usage
+birouter cache                        # Cache status
+birouter cache clear                  # Clear semantic + signature caches
 
-omniroute mcp status | restart         # MCP server status / restart
-omniroute a2a status | card            # A2A server status / agent card
+birouter mcp status | restart         # MCP server status / restart
+birouter a2a status | card            # A2A server status / agent card
 
-omniroute tunnel list | create | stop  # Manage tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Inspect / set env vars (temporary)
+birouter tunnel list | create | stop  # Manage tunnels (cloudflare/tailscale/ngrok)
+birouter env show | get <k> | set <k> <v>  # Inspect / set env vars (temporary)
 
-omniroute test                         # Provider connectivity smoke test
-omniroute update                       # Check for updates
-omniroute completion                   # Generate shell completion
+birouter test                         # Provider connectivity smoke test
+birouter update                       # Check for updates
+birouter completion                   # Generate shell completion
 ```
 
 ### Common flags
@@ -711,7 +710,7 @@ omniroute completion                   # Generate shell completion
 | `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
 | `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
 
-Ready-to-paste examples with a tokenized OmniRoute URL:
+Ready-to-paste examples with a tokenized Birouter URL:
 
 ```txt
 Token example: sk-a3ab3c080beaee3a-69f4a4-070d71af
@@ -730,7 +729,7 @@ Ollama chat: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070
 
 | Error                                        | Cause                   | Fix                                              |
 | -------------------------------------------- | ----------------------- | ------------------------------------------------ |
-| `Connection refused`                         | OmniRoute not running   | `omniroute serve`                                |
+| `Connection refused`                         | Birouter not running    | `birouter serve`                                 |
 | `401 Unauthorized`                           | Wrong API key           | Check in `/dashboard/api-manager`                |
 | `No combo configured`                        | No active routing combo | Set up in `/dashboard/combos`                    |
 | CLI shows "not installed"                    | Binary not in PATH      | Check `which <command>`                          |

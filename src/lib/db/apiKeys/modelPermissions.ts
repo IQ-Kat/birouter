@@ -20,7 +20,7 @@ export async function preferClaudeCodeForUnprefixedClaudeModels(): Promise<boole
   } catch {
     // Standalone DB usage may not have the settings cache ready.
   }
-  return isTruthyEnvFlag(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
+  return isTruthyEnvFlag(process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
 }
 
 export function stripExtendedContextSuffix(modelId: string): string {

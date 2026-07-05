@@ -14,7 +14,7 @@ import {
   serializePayloadForStorage,
   parseStoredPayload,
 } from "../logPayloads";
-import { compactStructuredStreamPayload } from "@omniroute/open-sse/utils/streamPayloadCollector.ts";
+import { compactStructuredStreamPayload } from "@birouter/open-sse/utils/streamPayloadCollector.ts";
 
 export interface RequestDetailLog {
   id?: string;
@@ -120,8 +120,7 @@ export function getRequestDetailLogById(id: string): RequestDetailLog | null {
   if (!requestDetailLogsTableExists()) return null;
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM request_detail_logs WHERE id = ?").get(id) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   return row ? mapDetailedLogRow(row) : null;
 }
 

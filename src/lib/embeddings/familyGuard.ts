@@ -1,5 +1,5 @@
-import { resolveComboTargets } from "@omniroute/open-sse/services/combo.ts";
-import { detectEmbeddingDimensionConflict } from "@omniroute/open-sse/config/embeddingRegistry.ts";
+import { resolveComboTargets } from "@birouter/open-sse/services/combo.ts";
+import { detectEmbeddingDimensionConflict } from "@birouter/open-sse/config/embeddingRegistry.ts";
 
 /**
  * Embedding-combo family guard.

@@ -17,7 +17,7 @@
  */
 import { NextResponse } from "next/server";
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { GenerateBodySchema } from "@/lib/agentSkills/schemas";
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       buildErrorBody(400, parsed.error.issues[0]?.message ?? "Invalid request body"),
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -52,10 +52,9 @@ export async function POST(request: Request) {
     const mod = await import("@/lib/agentSkills/generator");
     generateAgentSkills = mod.generateAgentSkills;
   } catch {
-    return NextResponse.json(
-      buildErrorBody(503, "Generator module is not yet available"),
-      { status: 503 },
-    );
+    return NextResponse.json(buildErrorBody(503, "Generator module is not yet available"), {
+      status: 503,
+    });
   }
 
   try {

@@ -2,7 +2,7 @@
  * Gap 14 + Gap 15: structural loop guard + verbosity level, both living in the
  * testable `_internal/bypass.cjs` shim that server.cjs consumes.
  *
- * Gap 14 — the primary loop guard is the x-omniroute-source header; this is a
+ * Gap 14 — the primary loop guard is the x-birouter-source header; this is a
  * defense-in-depth backstop: if a forwarded request's resolved upstream is a
  * loopback address on the MITM's own listen port, dialing it re-enters this
  * server (infinite loop / fd storm). Detect and refuse.

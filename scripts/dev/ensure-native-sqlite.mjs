@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OmniRoute — Dev-startup native SQLite ABI guard.
+ * Birouter — Dev-startup native SQLite ABI guard.
  *
  * `better-sqlite3` is a native addon compiled for a specific Node.js ABI
  * (NODE_MODULE_VERSION). This project supports both Node 22 (ABI 127) and

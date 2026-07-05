@@ -39,7 +39,7 @@ Para sa buong test matrix, tingnan ang `CONTRIBUTING.md` → "Pagsasagawa ng Mga
 
 ## Proyekto sa Isang Sulyap
 
-**OmniRoute** — pinagsamang AI proxy/router. Isang endpoint, 160+ LLM providers, auto-fallback.
+**Birouter** — pinagsamang AI proxy/router. Isang endpoint, 160+ LLM providers, auto-fallback.
 
 | Layer         | Lokasyon                | Layunin                                                            |
 | ------------- | ----------------------- | ------------------------------------------------------------------ |
@@ -82,7 +82,7 @@ Ang mga API route ay sumusunod sa isang pare-parehong pattern: `Route → CORS p
 
 ## Resilience Runtime State
 
-Ang OmniRoute ay may tatlong kaugnay ngunit magkakaibang mekanismo ng pansamantalang pagkabigo. Panatilihing hiwalay ang kanilang saklaw kapag nag-debug ng pag-uugali ng routing. Tingnan ang
+Ang Birouter ay may tatlong kaugnay ngunit magkakaibang mekanismo ng pansamantalang pagkabigo. Panatilihing hiwalay ang kanilang saklaw kapag nag-debug ng pag-uugali ng routing. Tingnan ang
 [3-layer resilience diagram](./docs/diagrams/exported/resilience-3layers.svg)
 (source: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 para sa isang mabilis na mapa.
@@ -218,7 +218,7 @@ koneksyon na ipagpatuloy ang pagseserbisyo ng iba pang mga modelo.
 ### Estilo ng Code
 
 - **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas (ipinapatupad ng lint-staged sa pamamagitan ng Prettier)
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
+- **Imports**: external → internal (`@/`, `@birouter/open-sse`) → relative
 - **Pangalan**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = error sa lahat ng dako; `no-explicit-any` = warn sa `open-sse/` at `tests/`
 - **TypeScript**: `strict: false`, target ES2022, module esnext, resolution bundler. Mas gusto ang mga explicit types.
@@ -384,9 +384,9 @@ git push -u origin feat/your-feature
 
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Path aliases**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard sa parehong port)
-- **Data directory**: `DATA_DIR` env var, default sa `~/.omniroute/`
+- **Data directory**: `DATA_DIR` env var, default sa `~/.birouter/`
 - **Key env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Setup: `cp .env.example .env` pagkatapos ay bumuo ng `JWT_SECRET` (`openssl rand -base64 48`) at `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -409,4 +409,4 @@ git push -u origin feat/your-feature
 13. Huwag kailanman mag-string-interpolate ng mga panlabas na landas o runtime values sa mga shell scripts na ipinasa sa `exec()`/`spawn()` — ipasa sa pamamagitan ng `env` option sa halip. Sanggunian: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. Huwag kailanman balewalain ang isang CodeQL / Secret-Scanning alert nang walang (a) unang pag-check sa pattern docs sa itaas upang makita kung ang helper ay naaangkop, at (b) pag-record ng teknikal na dahilan sa dismissal comment. Precedent: `js/stack-trace-exposure` na itinaas sa callsites na dumaan na sa `sanitizeErrorMessage()` ay isang kilalang limitasyon ng CodeQL (hindi kinikilala ang mga custom sanitizers) — balewalain bilang `false positive` na tumutukoy sa `docs/security/ERROR_SANITIZATION.md`.
 15. Huwag kailanman ilantad ang mga ruta na nagbubukas ng mga child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) nang walang `isLocalOnlyPath()` classification sa `src/server/authz/routeGuard.ts`. Ang enforcement ng loopback ay nangyayari nang walang kondisyon bago ang anumang auth check — ang na-leak na JWT sa pamamagitan ng tunnel ay hindi maaaring mag-trigger ng process spawning. Tingnan ang `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Huwag kailanman isama ang `Co-Authored-By` trailers na nagbibigay ng kredito sa AI assistant, LLM, o automation account (hal. mga pangalan na naglalaman ng "Claude", "GPT", "Copilot", "Bot"; mga email sa `anthropic.com` / `openai.com` / `noreply.github.com` addresses na pag-aari ng bots). Ang ganitong trailers ay nagru-route ng commit attribution sa bot account sa GitHub, na nagtatago sa tunay na may-akda (`diegosouzapw`) sa PR history. Ang mga taong kolaborator — kabilang ang mga upstream PR authors at issue reporters na ini-port sa OmniRoute — ay MAAARI at DAPAT bigyan ng kredito gamit ang standard `Co-authored-by: Name <email>` trailers; umaasa rito ang upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`).
+16. Huwag kailanman isama ang `Co-Authored-By` trailers na nagbibigay ng kredito sa AI assistant, LLM, o automation account (hal. mga pangalan na naglalaman ng "Claude", "GPT", "Copilot", "Bot"; mga email sa `anthropic.com` / `openai.com` / `noreply.github.com` addresses na pag-aari ng bots). Ang ganitong trailers ay nagru-route ng commit attribution sa bot account sa GitHub, na nagtatago sa tunay na may-akda (`diegosouzapw`) sa PR history. Ang mga taong kolaborator — kabilang ang mga upstream PR authors at issue reporters na ini-port sa Birouter — ay MAAARI at DAPAT bigyan ng kredito gamit ang standard `Co-authored-by: Name <email>` trailers; umaasa rito ang upstream-port workflows (`/port-upstream-features`, `/port-upstream-issues`).

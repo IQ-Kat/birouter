@@ -84,7 +84,7 @@ test("Provider: gemini-web has correct models", async () => {
 //
 // #3516 superseded the original 500: a missing browser is a host/config problem,
 // not a transient upstream fault, so it now returns 503 with the
-// `X-Omni-Fallback-Hint: connection_cooldown` header (skips the provider circuit
+// `X-Bi-Fallback-Hint: connection_cooldown` header (skips the provider circuit
 // breaker, short non-exponential cooldown) and an actionable message — instead of a
 // retryable 500 that marked the account unavailable and looped.
 //
@@ -117,7 +117,7 @@ test("#2832/#3516: missing Playwright browser returns an actionable 503 with coo
     // #3516: missing browser → 503 + connection-cooldown hint (not a retryable 500 loop).
     assert.equal(result.response.status, 503, "missing browser should return HTTP 503");
     assert.equal(
-      result.response.headers.get("X-Omni-Fallback-Hint"),
+      result.response.headers.get("X-Bi-Fallback-Hint"),
       "connection_cooldown",
       "must signal connection cooldown so the provider breaker is skipped"
     );
@@ -126,7 +126,10 @@ test("#2832/#3516: missing Playwright browser returns an actionable 503 with coo
     assert.match(json.error, /playwright install|not installed/i, "message must be actionable");
     // No raw stack trace / source path leaks into the body.
     assert.ok(!json.error.includes("\n    at "), "must not contain multi-line stack trace");
-    assert.ok(!json.error.includes("node_modules/playwright-core"), "must not contain node_modules source path");
+    assert.ok(
+      !json.error.includes("node_modules/playwright-core"),
+      "must not contain node_modules source path"
+    );
   } finally {
     playwright.chromium.launch = originalLaunch;
   }

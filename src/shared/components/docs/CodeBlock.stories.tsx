@@ -19,7 +19,7 @@ export const Default: Story = {
 
 export const WithoutFilename: Story = {
   args: {
-    code: "npm install @omniroute/core",
+    code: "npm install @birouter/core",
     language: "bash",
   },
 };

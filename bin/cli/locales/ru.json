@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "Ошибка: {message}",
-    "serverOffline": "Сервер OmniRoute отключён. Запустите: omniroute serve",
-    "authRequired": "Требуется аутентификация. Установите OMNIROUTE_API_KEY или выполните: omniroute setup",
+    "serverOffline": "Сервер Birouter отключён. Запустите: birouter serve",
+    "authRequired": "Требуется аутентификация. Установите BIROUTER_API_KEY или выполните: birouter setup",
     "rateLimited": "Превышен лимит запросов. Повторите через {seconds}с.",
     "timeout": "Запрос истёк через {ms}мс.",
     "success": "Готово.",
@@ -15,18 +15,18 @@
     "yesOpt": "Пропустить подтверждение"
   },
   "program": {
-    "description": "OmniRoute — Умный AI-маршрутизатор с автоматическим переключением",
+    "description": "Birouter — Умный AI-маршрутизатор с автоматическим переключением",
     "version": "Вывести версию и выйти",
     "output": "Формат вывода (table, json, jsonl, csv)",
     "quiet": "Подавить несущественный вывод",
     "no_color": "Отключить цветной вывод",
     "timeout": "Таймаут HTTP-запросов в миллисекундах",
-    "api_key": "API-ключ для сервера OmniRoute",
-    "base_url": "Базовый URL сервера OmniRoute",
+    "api_key": "API-ключ для сервера Birouter",
+    "base_url": "Базовый URL сервера Birouter",
     "context": "Контекст/профиль сервера для этой команды",
-    "lang": "Установить язык отображения CLI (переопределяет OMNIROUTE_LANG)"
+    "lang": "Установить язык отображения CLI (переопределяет BIROUTER_LANG)"
   },
   "redis": {
-    "description": "Запустить локальный контейнер Redis одним нажатием (Podman или Docker) для кэширования и отслеживания квот OmniRoute"
+    "description": "Запустить локальный контейнер Redis одним нажатием (Podman или Docker) для кэширования и отслеживания квот Birouter"
   }
 }

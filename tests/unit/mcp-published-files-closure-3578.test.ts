@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
-// #3578 — `omniroute --mcp` crashed on npm installs with ERR_MODULE_NOT_FOUND for
+// #3578 — `birouter --mcp` crashed on npm installs with ERR_MODULE_NOT_FOUND for
 // src/lib/combos/steps.ts: the MCP server runs from raw TypeScript source and imports
 // across src/ + open-sse/, but the published `files` allowlist only shipped a few
 // cherry-picked paths. This gate computes the MCP server's transitive import closure
@@ -16,9 +16,9 @@ const ROOT = process.cwd();
 function resolveImport(fromFile: string, spec: string): string | null {
   let base: string;
   if (spec.startsWith("@/")) base = path.join("src", spec.slice(2));
-  else if (spec.startsWith("@omniroute/open-sse/"))
-    base = path.join("open-sse", spec.slice("@omniroute/open-sse/".length));
-  else if (spec === "@omniroute/open-sse") base = path.join("open-sse", "index");
+  else if (spec.startsWith("@birouter/open-sse/"))
+    base = path.join("open-sse", spec.slice("@birouter/open-sse/".length));
+  else if (spec === "@birouter/open-sse") base = path.join("open-sse", "index");
   else if (spec.startsWith("./") || spec.startsWith("../"))
     base = path.join(path.dirname(fromFile), spec);
   else return null; // bare package — not our source

@@ -3,10 +3,10 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { pathToFileURL } from "node:url";
 
-const PLUGIN_PREFIX_RE = /^(@[^/]+\/)?omniroute-cmd-/;
+const PLUGIN_PREFIX_RE = /^(@[^/]+\/)?birouter-cmd-/;
 
 function getPluginDirs() {
-  return [join(homedir(), ".omniroute", "plugins"), process.env.OMNIROUTE_PLUGIN_PATH].filter(
+  return [join(homedir(), ".birouter", "plugins"), process.env.BIROUTER_PLUGIN_PATH].filter(
     Boolean
   );
 }

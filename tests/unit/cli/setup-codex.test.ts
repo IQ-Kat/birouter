@@ -46,7 +46,7 @@ test("fallbackCodexProfile skips media and non-text models", () => {
 });
 
 test("syncCodexProfilesFromModels writes compatible profiles and skips media", async () => {
-  const codexHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-codex-profiles-"));
+  const codexHome = await fs.mkdtemp(path.join(os.tmpdir(), "birouter-codex-profiles-"));
   try {
     const result = await syncCodexProfilesFromModels(
       [

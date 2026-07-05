@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { judgeFidelityBatch } from "@omniroute/open-sse/services/compression/eval/fidelityCheck";
+import { judgeFidelityBatch } from "@birouter/open-sse/services/compression/eval/fidelityCheck";
 import { createPricedJudgeClient } from "@/lib/compression/judgeModelClient";
-import type { ProviderCredentials } from "@omniroute/open-sse/executors/base";
+import type { ProviderCredentials } from "@birouter/open-sse/executors/base";
 import { getProviderCredentials } from "@/sse/services/auth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 

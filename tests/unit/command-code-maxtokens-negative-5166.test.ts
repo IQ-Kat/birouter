@@ -10,7 +10,7 @@ import path from "node:path";
 // `reasoning_content:"The"` symptom). A non-positive limit must be OMITTED so
 // Command Code's upstream applies the model's own native default.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cc-maxtokens-5166-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cc-maxtokens-5166-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");

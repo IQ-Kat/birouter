@@ -4,7 +4,7 @@
  *
  * Pure helpers extracted from chatCore: coerce an unknown to a positive number, derive cache
  * read/creation token counts from a usage object (handling both top-level and prompt_tokens_details
- * shapes), and attach an `_omniroute` meta blob to a log payload. Side-effect-free; behaviour is
+ * shapes), and attach an `_birouter` meta blob to a log payload. Side-effect-free; behaviour is
  * byte-identical to the previous module-level functions.
  */
 
@@ -47,17 +47,15 @@ export function attachLogMeta(
   );
   if (Object.keys(compactMeta).length === 0) return payload;
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return { _omniroute: compactMeta, _payload: payload ?? null };
+    return { _birouter: compactMeta, _payload: payload ?? null };
   }
   const existing =
-    payload._omniroute &&
-    typeof payload._omniroute === "object" &&
-    !Array.isArray(payload._omniroute)
-      ? payload._omniroute
+    payload._birouter && typeof payload._birouter === "object" && !Array.isArray(payload._birouter)
+      ? payload._birouter
       : {};
   return {
     ...payload,
-    _omniroute: {
+    _birouter: {
       ...existing,
       ...compactMeta,
     },

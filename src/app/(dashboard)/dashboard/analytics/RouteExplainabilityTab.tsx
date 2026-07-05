@@ -603,7 +603,7 @@ export default function RouteExplainabilityTab({
             <span className="material-symbols-outlined text-[40px] text-text-muted/70">route</span>
             <div className="text-base font-medium text-text-main">No request logs available</div>
             <div className="max-w-md text-sm text-text-muted">
-              Send traffic through OmniRoute first. Route explanations are generated from persisted
+              Send traffic through Birouter first. Route explanations are generated from persisted
               structured call logs.
             </div>
           </div>

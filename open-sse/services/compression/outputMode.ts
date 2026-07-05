@@ -66,7 +66,7 @@ export const CAVEMAN_INSTRUCTION_BY_LANGUAGE = {
   },
 } as const;
 
-const CAVEMAN_OUTPUT_MARKER = "[OmniRoute Caveman Output Mode]";
+const CAVEMAN_OUTPUT_MARKER = "[Birouter Caveman Output Mode]";
 
 export function shouldBypassCavemanOutputMode(messages: ChatMessage[]): string | null {
   const text = messages

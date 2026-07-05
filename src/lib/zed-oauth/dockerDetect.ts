@@ -11,7 +11,7 @@ const defaultDeps: DockerDetectDeps = {
 };
 
 /**
- * Returns true when OmniRoute appears to be running inside a Docker container.
+ * Returns true when Birouter appears to be running inside a Docker container.
  * Uses two complementary heuristics that work on Linux-based Docker images:
  *   1. Presence of /.dockerenv (written by Docker at container startup).
  *   2. The string "docker" appearing in /proc/1/cgroup (Linux only).

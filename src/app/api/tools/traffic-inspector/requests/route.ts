@@ -5,7 +5,7 @@
  * LOCAL_ONLY enforced by routeGuard (no extra check needed here).
  */
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import { InspectorListQuerySchema } from "@/shared/schemas/inspector";
 import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
 import type { ListFilters } from "@/mitm/inspector/types";

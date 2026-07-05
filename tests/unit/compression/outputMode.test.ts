@@ -53,7 +53,7 @@ describe("Caveman output mode", () => {
     assert.equal(twice.applied, false);
     assert.equal(twice.skippedReason, "already_applied");
     const markerCount = String(twice.body.messages?.[0]?.content).match(
-      /OmniRoute Caveman Output Mode/g
+      /Birouter Caveman Output Mode/g
     )?.length;
     assert.equal(markerCount, 1);
   });

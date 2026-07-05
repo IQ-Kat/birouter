@@ -1,5 +1,5 @@
 /**
- * #5242 (Bug 1C) — opt-in native HTTPS/TLS serving for `omniroute serve`.
+ * #5242 (Bug 1C) — opt-in native HTTPS/TLS serving for `birouter serve`.
  *
  * `resolveTlsOptions` + `createServerListener` (scripts/dev/tls-options.mjs) are
  * the pure decision helpers the CLI (serve.mjs) and the standalone server
@@ -17,9 +17,8 @@ import assert from "node:assert/strict";
 import http from "node:http";
 import https from "node:https";
 
-const { resolveTlsOptions, createServerListener } = await import(
-  "../../scripts/dev/tls-options.mjs"
-);
+const { resolveTlsOptions, createServerListener } =
+  await import("../../scripts/dev/tls-options.mjs");
 
 function makeReader(map: Record<string, string>) {
   return (p: string) => {
@@ -33,8 +32,11 @@ function makeReader(map: Record<string, string>) {
 test("both cert+key provided and readable → returns TLS options", () => {
   const warnings: string[] = [];
   const opts = resolveTlsOptions(
-    { OMNIROUTE_TLS_CERT: "/c/server.crt", OMNIROUTE_TLS_KEY: "/c/server.key" },
-    { readFileSync: makeReader({ "/c/server.crt": "CERT", "/c/server.key": "KEY" }), warn: (m) => warnings.push(m) }
+    { BIROUTER_TLS_CERT: "/c/server.crt", BIROUTER_TLS_KEY: "/c/server.key" },
+    {
+      readFileSync: makeReader({ "/c/server.crt": "CERT", "/c/server.key": "KEY" }),
+      warn: (m) => warnings.push(m),
+    }
   );
   assert.ok(opts, "expected non-null TLS options");
   assert.equal(opts.cert.toString(), "CERT");
@@ -53,29 +55,29 @@ test("neither cert nor key → null, no warning (default HTTP path)", () => {
 test("only cert provided → null + warning (never half-enable TLS)", () => {
   const warnings: string[] = [];
   const opts = resolveTlsOptions(
-    { OMNIROUTE_TLS_CERT: "/c/server.crt" },
+    { BIROUTER_TLS_CERT: "/c/server.crt" },
     { warn: (m) => warnings.push(m) }
   );
   assert.equal(opts, null);
   assert.equal(warnings.length, 1);
-  assert.match(warnings[0], /both OMNIROUTE_TLS_CERT and OMNIROUTE_TLS_KEY/);
+  assert.match(warnings[0], /both BIROUTER_TLS_CERT and BIROUTER_TLS_KEY/);
 });
 
 test("only key provided → null + warning", () => {
   const warnings: string[] = [];
   const opts = resolveTlsOptions(
-    { OMNIROUTE_TLS_KEY: "/c/server.key" },
+    { BIROUTER_TLS_KEY: "/c/server.key" },
     { warn: (m) => warnings.push(m) }
   );
   assert.equal(opts, null);
   assert.equal(warnings.length, 1);
-  assert.match(warnings[0], /both OMNIROUTE_TLS_CERT and OMNIROUTE_TLS_KEY/);
+  assert.match(warnings[0], /both BIROUTER_TLS_CERT and BIROUTER_TLS_KEY/);
 });
 
 test("unreadable path → null + warning, falls back to HTTP (never crash)", () => {
   const warnings: string[] = [];
   const opts = resolveTlsOptions(
-    { OMNIROUTE_TLS_CERT: "/missing.crt", OMNIROUTE_TLS_KEY: "/missing.key" },
+    { BIROUTER_TLS_CERT: "/missing.crt", BIROUTER_TLS_KEY: "/missing.key" },
     { readFileSync: makeReader({}), warn: (m) => warnings.push(m) }
   );
   assert.equal(opts, null);
@@ -85,7 +87,7 @@ test("unreadable path → null + warning, falls back to HTTP (never crash)", () 
 
 test("whitespace-only env values are treated as absent", () => {
   const opts = resolveTlsOptions(
-    { OMNIROUTE_TLS_CERT: "   ", OMNIROUTE_TLS_KEY: "  " },
+    { BIROUTER_TLS_CERT: "   ", BIROUTER_TLS_KEY: "  " },
     { warn: () => {} }
   );
   assert.equal(opts, null);
@@ -113,33 +115,41 @@ test("createServerListener: null tlsOptions → http server (unchanged)", () => 
 test("createServerListener: tlsOptions → https server with merged cert/key + listener", () => {
   let httpCalled = false;
   const listener = () => {};
-  const result = createServerListener([listener], { cert: "CERT", key: "KEY" }, {
-    createHttp: () => {
-      httpCalled = true;
-      return "HTTP_SERVER";
-    },
-    createHttps: (opts: { cert: string; key: string }, fn: unknown) => {
-      assert.equal(opts.cert, "CERT");
-      assert.equal(opts.key, "KEY");
-      assert.equal(fn, listener);
-      return "HTTPS_SERVER";
-    },
-  });
+  const result = createServerListener(
+    [listener],
+    { cert: "CERT", key: "KEY" },
+    {
+      createHttp: () => {
+        httpCalled = true;
+        return "HTTP_SERVER";
+      },
+      createHttps: (opts: { cert: string; key: string }, fn: unknown) => {
+        assert.equal(opts.cert, "CERT");
+        assert.equal(opts.key, "KEY");
+        assert.equal(fn, listener);
+        return "HTTPS_SERVER";
+      },
+    }
+  );
   assert.equal(result, "HTTPS_SERVER");
   assert.ok(!httpCalled);
 });
 
 test("createServerListener: merges a leading options object with cert/key", () => {
   const listener = () => {};
-  createServerListener([{ keepAlive: true }, listener], { cert: "C", key: "K" }, {
-    createHttps: (opts: Record<string, unknown>, fn: unknown) => {
-      assert.equal(opts.keepAlive, true);
-      assert.equal(opts.cert, "C");
-      assert.equal(opts.key, "K");
-      assert.equal(fn, listener);
-      return "HTTPS_SERVER";
-    },
-  });
+  createServerListener(
+    [{ keepAlive: true }, listener],
+    { cert: "C", key: "K" },
+    {
+      createHttps: (opts: Record<string, unknown>, fn: unknown) => {
+        assert.equal(opts.keepAlive, true);
+        assert.equal(opts.cert, "C");
+        assert.equal(opts.key, "K");
+        assert.equal(fn, listener);
+        return "HTTPS_SERVER";
+      },
+    }
+  );
 });
 
 test("createServerListener: real default (no TLS) returns an http.Server", () => {

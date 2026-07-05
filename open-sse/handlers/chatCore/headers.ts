@@ -17,7 +17,7 @@ export function getHeaderValueCaseInsensitive(
 
 /**
  * Per-request opt-out of memory (and skills) injection via the
- * `x-omniroute-no-memory` header. Mirrors the existing `x-omniroute-no-cache`
+ * `x-birouter-no-memory` header. Mirrors the existing `x-birouter-no-cache`
  * convention. Truthy values: `true` / `1` / `yes` (case-insensitive). Clients that
  * manage their own context (RAG/memory) send this to avoid the gateway injecting
  * up to `memorySettings.maxTokens` (~2k) tokens — and being billed for them — on
@@ -26,28 +26,28 @@ export function getHeaderValueCaseInsensitive(
 export function isNoMemoryRequested(
   headers: Record<string, unknown> | Headers | null | undefined
 ): boolean {
-  const value = (getHeaderValueCaseInsensitive(headers, "x-omniroute-no-memory") || "")
+  const value = (getHeaderValueCaseInsensitive(headers, "x-birouter-no-memory") || "")
     .trim()
     .toLowerCase();
   return value === "true" || value === "1" || value === "yes";
 }
 
 /**
- * Per-request compression override via the `x-omniroute-compression` header. Mirrors the
- * `x-omniroute-no-memory` convention (#4290). Returns the raw trimmed value, or null when
+ * Per-request compression override via the `x-birouter-compression` header. Mirrors the
+ * `x-birouter-no-memory` convention (#4290). Returns the raw trimmed value, or null when
  * absent/blank. The resolver (planFromHeader) owns interpretation and casing rules; this
  * helper only reads the wire.
  */
 export function resolveCompressionHeader(
   headers: Record<string, unknown> | Headers | null | undefined
 ): string | null {
-  const value = (getHeaderValueCaseInsensitive(headers, "x-omniroute-compression") || "").trim();
+  const value = (getHeaderValueCaseInsensitive(headers, "x-birouter-compression") || "").trim();
   return value || null;
 }
 
 /**
  * Per-request opt-in to unconditionally strip `reasoning_content` from the
- * non-streaming JSON response via the `x-omniroute-strip-reasoning` header.
+ * non-streaming JSON response via the `x-birouter-strip-reasoning` header.
  * Some clients (e.g. Firecrawl AI SDK) have JSON parsers that break on this
  * non-standard OpenAI extension even though it's syntactically valid, and even
  * on reasoning-only messages that the default sanitizer keeps. Truthy values:
@@ -58,7 +58,7 @@ export function resolveCompressionHeader(
 export function isStripReasoningRequested(
   headers: Record<string, unknown> | Headers | null | undefined
 ): boolean {
-  const value = (getHeaderValueCaseInsensitive(headers, "x-omniroute-strip-reasoning") || "")
+  const value = (getHeaderValueCaseInsensitive(headers, "x-birouter-strip-reasoning") || "")
     .trim()
     .toLowerCase();
   return value === "true" || value === "1" || value === "yes";

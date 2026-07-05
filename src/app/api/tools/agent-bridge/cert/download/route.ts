@@ -14,7 +14,8 @@ export async function GET(): Promise<Response> {
   if (!fs.existsSync(crtPath)) {
     return createErrorResponse({
       status: 404,
-      message: "Certificate not found. Generate one first via POST /api/tools/agent-bridge/cert/regenerate",
+      message:
+        "Certificate not found. Generate one first via POST /api/tools/agent-bridge/cert/regenerate",
     });
   }
 
@@ -24,7 +25,7 @@ export async function GET(): Promise<Response> {
       status: 200,
       headers: {
         "Content-Type": "application/x-pem-file",
-        "Content-Disposition": 'attachment; filename="omniroute-mitm.crt"',
+        "Content-Disposition": 'attachment; filename="birouter-mitm.crt"',
         "Content-Length": String(pem.length),
       },
     });

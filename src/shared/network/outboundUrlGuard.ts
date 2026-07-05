@@ -5,12 +5,12 @@ const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 export const PROVIDER_URL_BLOCKED_MESSAGE = "Blocked private or local provider URL";
 export const CLOUD_METADATA_BLOCKED_MESSAGE = "Blocked cloud-metadata endpoint";
-export const PRIVATE_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS";
+export const PRIVATE_PROVIDER_URLS_ENV = "BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS";
 // #5066: scoped to provider validation/use. Allows local/private provider endpoints
 // (127.0.0.1, localhost, LAN) so local-first OpenAI-compatible providers validate, while
-// cloud-metadata endpoints stay blocked. Defaults ON (OmniRoute is local-first); operators
+// cloud-metadata endpoints stay blocked. Defaults ON (Birouter is local-first); operators
 // who only use public providers can disable it to restore strict SSRF blocking.
-export const LOCAL_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS";
+export const LOCAL_PROVIDER_URLS_ENV = "BIROUTER_ALLOW_LOCAL_PROVIDER_URLS";
 
 // "block-metadata": allow private/LAN hosts but still reject cloud-metadata / link-local
 // endpoints (the SSRF→IAM-credential pivot). Used by the provider-validation path under the
@@ -179,7 +179,7 @@ export function parseAndValidateNonMetadataUrl(input: string | URL) {
  * Webhook variant of {@link parseAndValidatePublicUrl}. Webhooks legitimately point at
  * internal services (n8n, Home Assistant, a LAN box) in Docker/self-hosted deployments,
  * so the private-host block is gated behind the same explicit opt-in used for private
- * provider URLs (`OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, default OFF). Protocol and
+ * provider URLs (`BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS`, default OFF). Protocol and
  * embedded-credential checks in {@link parseOutboundUrl} remain unconditional. (#3269)
  */
 export function parseAndValidateWebhookUrl(input: string | URL) {
@@ -246,8 +246,8 @@ export function getProviderOutboundGuard(): OutboundUrlGuardMode {
 
 /**
  * #5066: whether provider endpoints on local/private addresses are permitted. Defaults ON
- * (OmniRoute is local-first — local OpenAI-compatible providers should validate out of the
- * box). Disable via the `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` flag (DB toggle or env) to
+ * (Birouter is local-first — local OpenAI-compatible providers should validate out of the
+ * box). Disable via the `BIROUTER_ALLOW_LOCAL_PROVIDER_URLS` flag (DB toggle or env) to
  * restore strict public-only SSRF blocking. Cloud-metadata stays blocked regardless.
  */
 export function areLocalProviderUrlsAllowed(): boolean {

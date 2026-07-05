@@ -2,7 +2,7 @@
  * Regression guard (#3292 / v3.8.13 Electron release fragment).
  *
  * `@/*` maps to `src/*`, but the streaming engine lives in the `open-sse/`
- * workspace (alias `@omniroute/open-sse/*`). So an import of `@/open-sse/...`
+ * workspace (alias `@birouter/open-sse/*`). So an import of `@/open-sse/...`
  * resolves to the non-existent `src/open-sse/...` and throws
  * "Cannot find module '@/open-sse/...'" at runtime in the built standalone.
  *
@@ -33,7 +33,7 @@ function walk(dir: string): string[] {
   return out;
 }
 
-test("src/ never imports the open-sse workspace via the @/ alias (use @omniroute/open-sse)", () => {
+test("src/ never imports the open-sse workspace via the @/ alias (use @birouter/open-sse)", () => {
   const offenders: string[] = [];
   for (const file of walk(srcRoot)) {
     const src = readFileSync(file, "utf8");
@@ -46,6 +46,6 @@ test("src/ never imports the open-sse workspace via the @/ alias (use @omniroute
   assert.deepEqual(
     offenders,
     [],
-    `@/open-sse/* resolves to the non-existent src/open-sse/* and throws "Cannot find module" at runtime. Use @omniroute/open-sse/* instead. Offenders:\n${offenders.join("\n")}`
+    `@/open-sse/* resolves to the non-existent src/open-sse/* and throws "Cannot find module" at runtime. Use @birouter/open-sse/* instead. Offenders:\n${offenders.join("\n")}`
   );
 });

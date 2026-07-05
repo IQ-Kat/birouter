@@ -1,7 +1,7 @@
 /**
  * Centralized CORS origin allowlist.
  *
- * Source of truth for which browser origins may call OmniRoute over CORS.
+ * Source of truth for which browser origins may call Birouter over CORS.
  * No wildcard default. To allow any origin, opt in via `CORS_ALLOW_ALL=true`.
  *
  * Resolution order:
@@ -21,7 +21,7 @@ const ENV_ALLOWED = "CORS_ALLOWED_ORIGINS";
 const LEGACY_ENV_SINGLE = "CORS_ORIGIN";
 
 const STANDARD_ALLOW_HEADERS =
-  "Content-Type, Authorization, x-api-key, anthropic-version, x-omniroute-connection, x-internal-test, accept";
+  "Content-Type, Authorization, x-api-key, anthropic-version, x-birouter-connection, x-internal-test, accept";
 const STANDARD_ALLOW_METHODS = "GET, POST, PUT, DELETE, PATCH, OPTIONS";
 
 let runtimeAllowedOrigins: ReadonlySet<string> = new Set();

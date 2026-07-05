@@ -6,7 +6,7 @@ import { InstallError } from "@/lib/services/installers/utils";
 import { versionManagerInstallSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);

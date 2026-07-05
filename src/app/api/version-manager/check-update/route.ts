@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getInstalledVersion, getLatestVersion } from "@/lib/services/installers/cliproxy";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);

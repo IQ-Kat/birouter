@@ -14,8 +14,8 @@
  * Anything that does not match falls through unchanged, so existing built-in and
  * already-internal ids keep working.
  */
-import { parseImageModel } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { resolveComboTargets } from "@omniroute/open-sse/services/combo.ts";
+import { parseImageModel } from "@birouter/open-sse/config/imageRegistry.ts";
+import { resolveComboTargets } from "@birouter/open-sse/services/combo.ts";
 
 import { getComboByName, getCombos } from "@/lib/db/combos";
 import { getProviderNodes } from "@/lib/db/providers";

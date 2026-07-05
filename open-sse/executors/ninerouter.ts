@@ -15,7 +15,7 @@
  * and update (new port) can change them between calls.
  *
  * G-02: when the supervisor is not running, the executor returns a 503 with
- * header X-Omni-Fallback-Hint: connection_cooldown so accountFallback.ts
+ * header X-Bi-Fallback-Hint: connection_cooldown so accountFallback.ts
  * applies a short 5s cooldown without tripping the provider circuit breaker.
  */
 
@@ -37,7 +37,7 @@ const HEALTH_CHECK_TIMEOUT_MS = 3_000;
 
 /** Fallback hint header value that tells accountFallback.ts to use 5s cooldown, no breaker trip. */
 export const NINEROUTER_FALLBACK_HINT = "connection_cooldown";
-export const NINEROUTER_FALLBACK_HINT_HEADER = "X-Omni-Fallback-Hint";
+export const NINEROUTER_FALLBACK_HINT_HEADER = "X-Bi-Fallback-Hint";
 
 export function resolveNineRouterBaseUrl(): string {
   const host = process.env.NINEROUTER_HOST || DEFAULT_HOST;

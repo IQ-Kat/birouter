@@ -224,7 +224,7 @@ export function resolveClaudeCodeCompatibleSessionId(headers?: HeaderLike): stri
     getHeader(headers, "x-claude-code-session-id") ||
     getHeader(headers, "x-session-id") ||
     getHeader(headers, "x_session_id") ||
-    getHeader(headers, "x-omniroute-session") ||
+    getHeader(headers, "x-birouter-session") ||
     null;
 
   return (raw && raw.trim()) || randomUUID();

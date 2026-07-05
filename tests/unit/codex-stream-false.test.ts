@@ -4,9 +4,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { OMNIROUTE_RESPONSE_HEADERS } from "../../src/shared/constants/headers.ts";
+import { BIROUTER_RESPONSE_HEADERS } from "../../src/shared/constants/headers.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-stream-false-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-codex-stream-false-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -370,7 +370,7 @@ test("handleComboChat validates non-stream quality using the original client str
 
 test("non-stream chat success carries cost-telemetry meta headers (cost/version/tokens)", async () => {
   // Regression guard: the single non-stream success return in chatCore.ts routes
-  // through attachOmniRouteMetaHeaders, which must always emit the cost-telemetry
+  // through attachBirouterMetaHeaders, which must always emit the cost-telemetry
   // headers. A usage-bearing JSON upstream body proves real usage flowed through.
   const { result } = await invokeChatCore({
     body: {
@@ -400,16 +400,16 @@ test("non-stream chat success carries cost-telemetry meta headers (cost/version/
 
   const headers = result.response.headers;
 
-  const cost = headers.get(OMNIROUTE_RESPONSE_HEADERS.responseCost);
+  const cost = headers.get(BIROUTER_RESPONSE_HEADERS.responseCost);
   assert.equal(typeof cost, "string");
   // 10-decimal cost format; 0.0000000000 is valid when no pricing is available.
   assert.match(String(cost), /^\d+\.\d{10}$/);
 
-  const version = headers.get(OMNIROUTE_RESPONSE_HEADERS.version);
+  const version = headers.get(BIROUTER_RESPONSE_HEADERS.version);
   assert.equal(typeof version, "string");
   assert.ok(String(version).length > 0);
 
   // Real usage from the upstream body must surface as token-count headers.
-  assert.equal(headers.get(OMNIROUTE_RESPONSE_HEADERS.tokensIn), "10");
-  assert.equal(headers.get(OMNIROUTE_RESPONSE_HEADERS.tokensOut), "5");
+  assert.equal(headers.get(BIROUTER_RESPONSE_HEADERS.tokensIn), "10");
+  assert.equal(headers.get(BIROUTER_RESPONSE_HEADERS.tokensOut), "5");
 });

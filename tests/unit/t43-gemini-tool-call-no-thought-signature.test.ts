@@ -1,7 +1,7 @@
 /**
  * T43: Gemini tool call parts must NOT inject fake thoughtSignature.
  *
- * After the fix for issue #1410, OmniRoute no longer injects a hardcoded
+ * After the fix for issue #1410, Birouter no longer injects a hardcoded
  * DEFAULT_THINKING_GEMINI_SIGNATURE into tool call parts. The Gemini 3+ API
  * strictly validates thought signatures cryptographically, and injecting a
  * stale/fake one causes 400 errors.
@@ -11,8 +11,8 @@
  * 2. They are resolved from the geminiThoughtSignatureStore (persisted from
  *    a prior upstream response)
  *
- * Reproduces: https://github.com/diegosouzapw/OmniRoute/issues/1410
- * Supersedes: https://github.com/diegosouzapw/OmniRoute/issues/725
+ * Reproduces: https://github.com/IQ-Kat/birouter/issues/1410
+ * Supersedes: https://github.com/IQ-Kat/birouter/issues/725
  */
 
 import test from "node:test";

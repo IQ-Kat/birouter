@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const BIN = path.join(ROOT, "bin", "omniroute.mjs");
+const BIN = path.join(ROOT, "bin", "birouter.mjs");
 const DATA_DIR_MODULE = path.join(ROOT, "bin", "cli", "data-dir.mjs");
 
 async function withEnv<T>(
@@ -48,7 +48,7 @@ function readCliEnvShow(env: NodeJS.ProcessEnv, cwd: string): Record<string, str
   assert.equal(
     result.status,
     0,
-    `omniroute env show failed\nstdout=${result.stdout}\nstderr=${result.stderr}`
+    `birouter env show failed\nstdout=${result.stdout}\nstderr=${result.stderr}`
   );
 
   const stdout = result.stdout ?? "";
@@ -58,10 +58,10 @@ function readCliEnvShow(env: NodeJS.ProcessEnv, cwd: string): Record<string, str
   return parsed.current;
 }
 
-test("CLI data-dir resolver preserves an existing legacy ~/.omniroute before XDG/app data", async () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-data-dir-"));
+test("CLI data-dir resolver preserves an existing legacy ~/.birouter before XDG/app data", async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-data-dir-"));
   const home = path.join(tmp, "home");
-  const legacyDir = path.join(home, ".omniroute");
+  const legacyDir = path.join(home, ".birouter");
   const appData = path.join(tmp, "appdata");
   const xdgConfigHome = path.join(tmp, "xdg");
 
@@ -94,14 +94,14 @@ test("CLI data-dir resolver preserves an existing legacy ~/.omniroute before XDG
 });
 
 test("CLI startup loads later non-conflicting .env files without overriding earlier values", () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-env-layers-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-env-layers-"));
   const home = path.join(tmp, "home");
   const dataDir = path.join(tmp, "data");
   const cwd = path.join(tmp, "cwd");
   const appDataDir =
     process.platform === "win32"
-      ? path.join(tmp, "appdata", "omniroute")
-      : path.join(home, ".omniroute");
+      ? path.join(tmp, "appdata", "birouter")
+      : path.join(home, ".birouter");
 
   try {
     fs.mkdirSync(dataDir, { recursive: true });
@@ -110,26 +110,26 @@ test("CLI startup loads later non-conflicting .env files without overriding earl
 
     fs.writeFileSync(
       path.join(dataDir, ".env"),
-      "OMNIROUTE_BASE_URL=https://data.example/v1\n",
+      "BIROUTER_BASE_URL=https://data.example/v1\n",
       "utf-8"
     );
     fs.writeFileSync(
       path.join(appDataDir, ".env"),
-      ["OMNIROUTE_BASE_URL=https://appdata.example/v1", "OMNIROUTE_HTTP_TIMEOUT_MS=1234", ""].join(
+      ["BIROUTER_BASE_URL=https://appdata.example/v1", "BIROUTER_HTTP_TIMEOUT_MS=1234", ""].join(
         "\n"
       ),
       "utf-8"
     );
     fs.writeFileSync(
       path.join(cwd, ".env"),
-      ["OMNIROUTE_BASE_URL=https://cwd.example/v1", "PORT=34567", ""].join("\n"),
+      ["BIROUTER_BASE_URL=https://cwd.example/v1", "PORT=34567", ""].join("\n"),
       "utf-8"
     );
 
     const cleanEnv = { ...process.env };
     for (const key of [
-      "OMNIROUTE_BASE_URL",
-      "OMNIROUTE_HTTP_TIMEOUT_MS",
+      "BIROUTER_BASE_URL",
+      "BIROUTER_HTTP_TIMEOUT_MS",
       "PORT",
       "STORAGE_ENCRYPTION_KEY",
     ]) {
@@ -143,13 +143,13 @@ test("CLI startup loads later non-conflicting .env files without overriding earl
       USERPROFILE: home,
       APPDATA: path.join(tmp, "appdata"),
       CI: "1",
-      OMNIROUTE_CLI_SKIP_REPO_ENV: "1",
-      OMNIROUTE_NO_UPDATE_NOTIFIER: "1",
+      BIROUTER_CLI_SKIP_REPO_ENV: "1",
+      BIROUTER_NO_UPDATE_NOTIFIER: "1",
     };
 
     const current = readCliEnvShow(env, cwd);
-    assert.equal(current.OMNIROUTE_BASE_URL, "https://data.example/v1");
-    assert.equal(current.OMNIROUTE_HTTP_TIMEOUT_MS, "1234");
+    assert.equal(current.BIROUTER_BASE_URL, "https://data.example/v1");
+    assert.equal(current.BIROUTER_HTTP_TIMEOUT_MS, "1234");
     assert.equal(current.PORT, "34567");
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });

@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "Eroare: {message}",
-    "serverOffline": "Serverul OmniRoute este offline. Porniți cu: omniroute serve",
-    "authRequired": "Autentificare necesară. Setați OMNIROUTE_API_KEY sau rulați: omniroute setup",
+    "serverOffline": "Serverul Birouter este offline. Porniți cu: birouter serve",
+    "authRequired": "Autentificare necesară. Setați BIROUTER_API_KEY sau rulați: birouter setup",
     "rateLimited": "Limita de cereri depășită. Încercați din nou după {seconds}s.",
     "timeout": "Cererea a expirat după {ms}ms.",
     "success": "Gata.",
@@ -15,18 +15,18 @@
     "yesOpt": "Omite confirmarea"
   },
   "program": {
-    "description": "OmniRoute — Router AI inteligent cu fallback automat",
+    "description": "Birouter — Router AI inteligent cu fallback automat",
     "version": "Afișează versiunea și ieși",
     "output": "Format de ieșire (table, json, jsonl, csv)",
     "quiet": "Suprimă ieșirile neesențiale",
     "no_color": "Dezactivează ieșirea colorată",
     "timeout": "Timeout cereri HTTP în milisecunde",
-    "api_key": "Cheie API pentru serverul OmniRoute",
-    "base_url": "URL de bază al serverului OmniRoute",
+    "api_key": "Cheie API pentru serverul Birouter",
+    "base_url": "URL de bază al serverului Birouter",
     "context": "Contextul/profilul serverului pentru această comandă",
-    "lang": "Setează limba de afișare CLI (suprascrie OMNIROUTE_LANG)"
+    "lang": "Setează limba de afișare CLI (suprascrie BIROUTER_LANG)"
   },
   "redis": {
-    "description": "Lansează un container Redis local cu un singur clic (Podman sau Docker) pentru cache și urmărirea cotelor OmniRoute"
+    "description": "Lansează un container Redis local cu un singur clic (Podman sau Docker) pentru cache și urmărirea cotelor Birouter"
   }
 }

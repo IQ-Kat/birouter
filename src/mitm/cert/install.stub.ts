@@ -1,6 +1,6 @@
 /**
  * Stub for `src/mitm/cert/install.ts` activated by
- * `OMNIROUTE_BUILD_PROFILE=minimal`. Every function throws
+ * `BIROUTER_BUILD_PROFILE=minimal`. Every function throws
  * `FeatureDisabledError("mitm-cert-install")` at runtime so the privileged
  * code paths (root-CA install, NSS DB manipulation, sudo helpers) are
  * physically absent from the built bundle. See SECURITY.md and

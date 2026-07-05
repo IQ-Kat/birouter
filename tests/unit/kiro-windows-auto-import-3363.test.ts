@@ -14,7 +14,7 @@ import Database from "better-sqlite3";
 
 // Set DATA_DIR before importing any app modules so isAuthRequired() reads from
 // a fresh, empty settings DB (no password → requireLogin defaults to false).
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-kiro-3363-data-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-kiro-3363-data-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -30,7 +30,7 @@ const ORIGINAL_FETCH = globalThis.fetch;
 let tmpHome: string;
 
 test.beforeEach(() => {
-  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-kiro-3363-"));
+  tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-kiro-3363-"));
   // Reset DB instance so each test gets a clean settings DB (no requireLogin).
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -92,9 +92,7 @@ test("triedPaths does NOT include any Windows path when process.env.APPDATA is n
   const paths = body.triedPaths as string[];
 
   // No path should reference "kiro/storage.db" (the Windows IDE storage path).
-  const hasWindowsPath = paths.some(
-    (p) => p.includes("storage.db") && p.includes("kiro")
-  );
+  const hasWindowsPath = paths.some((p) => p.includes("storage.db") && p.includes("kiro"));
   assert.equal(
     hasWindowsPath,
     false,
@@ -141,10 +139,7 @@ test("GET extracts refresh_token from a Windows storage.db with ItemTable schema
     expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
     region: "us-east-1",
   });
-  db.prepare("INSERT INTO ItemTable (key, value) VALUES (?, ?)").run(
-    "kiro:auth:token",
-    tokenValue
-  );
+  db.prepare("INSERT INTO ItemTable (key, value) VALUES (?, ?)").run("kiro:auth:token", tokenValue);
   db.close();
 
   // Point APPDATA at tmpHome so tryKiroCliSqlite() resolves
@@ -178,11 +173,7 @@ test("GET extracts refresh_token from a Windows storage.db with ItemTable schema
 
   const { status, body } = await callGet();
 
-  assert.equal(
-    status,
-    200,
-    `expected HTTP 200, got ${status}: ${JSON.stringify(body)}`
-  );
+  assert.equal(status, 200, `expected HTTP 200, got ${status}: ${JSON.stringify(body)}`);
   assert.equal(
     body.found,
     true,

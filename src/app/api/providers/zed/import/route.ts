@@ -10,7 +10,7 @@
  * snapshot — so a tampered or replayed discover response cannot trick this
  * endpoint into saving an unrelated token.
  *
- * For backwards compatibility, when `OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP=true`
+ * For backwards compatibility, when `BIROUTER_ZED_IMPORT_LEGACY_ONE_STEP=true`
  * is set, the endpoint accepts an empty/missing `confirmedAccounts` and falls
  * back to the v3.8.5 one-step "import everything" behaviour. Default is off.
  *
@@ -34,7 +34,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createProviderConnection } from "@/lib/db/providers";
 import { isRunningInDocker } from "@/lib/zed-oauth/dockerDetect";
 
-const LEGACY_ONE_STEP_ENABLED = process.env.OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP === "true";
+const LEGACY_ONE_STEP_ENABLED = process.env.BIROUTER_ZED_IMPORT_LEGACY_ONE_STEP === "true";
 
 interface ImportResponse {
   success: boolean;
@@ -84,7 +84,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
         {
           success: false,
           error:
-            "OmniRoute is running inside Docker and cannot access the host keychain. " +
+            "Birouter is running inside Docker and cannot access the host keychain. " +
             "Use the Manual Token Import tab to paste your API key directly.",
           zedInstalled: false,
           zedDockerEnvironment: true,
@@ -121,7 +121,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
       toImport = filterCredentialsByConfirmation(importable, confirmed);
     } else if (LEGACY_ONE_STEP_ENABLED) {
       console.warn(
-        "[Zed Import] OMNIROUTE_ZED_IMPORT_LEGACY_ONE_STEP=true — importing all keychain credentials without per-account confirmation. This mode is deprecated and will be removed in v3.9."
+        "[Zed Import] BIROUTER_ZED_IMPORT_LEGACY_ONE_STEP=true — importing all keychain credentials without per-account confirmation. This mode is deprecated and will be removed in v3.9."
       );
     }
 

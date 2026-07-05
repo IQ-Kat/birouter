@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { KiroHandler } from "../../src/mitm/handlers/kiro.ts";
 import { runHandler } from "./_mitmHandlerHarness.ts";
 
-test("kiro handler — forwards Anthropic-style body to OmniRoute /v1/messages", async () => {
+test("kiro handler — forwards Anthropic-style body to Birouter /v1/messages", async () => {
   const r = await runHandler(
     new KiroHandler(),
     { model: "claude-3.5-sonnet", messages: [{ role: "user", content: "hi" }] },

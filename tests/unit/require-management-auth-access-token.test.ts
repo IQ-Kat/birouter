@@ -8,7 +8,7 @@ import path from "node:path";
 // (`oma_...`) and enforce the method+admin-allowlist scope policy. Other
 // credential paths (dashboard JWT, loopback CLI token, manage-scope API key)
 // are unaffected. Isolated DATA_DIR + DB handle closed in test.after.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mgmt-auth-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mgmt-auth-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 // Force isAuthRequired() === true deterministically (config'd password present).
@@ -61,7 +61,9 @@ test("admin token: allowed on admin route", async () => {
 });
 
 test("invalid/expired access token is rejected with 401", async () => {
-  const bad = await requireManagementAuth(req("GET", "/api/v1/models", "oma_live_not_a_real_token"));
+  const bad = await requireManagementAuth(
+    req("GET", "/api/v1/models", "oma_live_not_a_real_token")
+  );
   assert.equal(bad?.status, 401);
 
   const past = new Date(Date.now() - 60_000).toISOString();

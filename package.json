@@ -1,18 +1,16 @@
 {
-  "name": "omniroute",
+  "name": "birouter",
   "version": "3.8.43",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
-    "birouter": "bin/omniroute.mjs",
-    "birouter-reset-password": "bin/reset-password.mjs",
-    "omniroute": "bin/omniroute.mjs",
-    "omniroute-reset-password": "bin/reset-password.mjs"
+    "birouter": "bin/birouter.mjs",
+    "birouter-reset-password": "bin/reset-password.mjs"
   },
   "files": [
     "bin/",
     "dist/",
-    "@omniroute/",
+    "@birouter/",
     "open-sse/",
     "src/domain/",
     "src/lib/",
@@ -69,10 +67,10 @@
     "auto-fallback"
   ],
   "license": "MIT",
-  "author": "diegosouzapw",
+  "author": "IQ-Kat",
   "repository": {
     "type": "git",
-    "url": "https://github.com/diegosouzapw/OmniRoute"
+    "url": "https://github.com/IQ-Kat/birouter"
   },
   "homepage": "https://omniroute.online",
   "scripts": {
@@ -83,9 +81,9 @@
     "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
     "release:sync-changelog-i18n": "node scripts/release/sync-changelog-i18n.mjs",
     "build": "node scripts/build/build-next-isolated.mjs",
-    "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
+    "build:secure": "BIROUTER_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
     "build:cli": "node --import tsx scripts/build/prepublish.ts",
-    "build:release": "rm -rf .build dist && OMNIROUTE_BUILD_SHA=$(git rev-parse --short HEAD) npm run build && npm run build:cli && node scripts/build/write-build-sha.mjs",
+    "build:release": "rm -rf .build dist && BIROUTER_BUILD_SHA=$(git rev-parse --short HEAD) npm run build && npm run build:cli && node scripts/build/write-build-sha.mjs",
     "build:native:tproxy": "cd src/mitm/tproxy/native && npx --yes node-gyp rebuild",
     "start": "node scripts/dev/run-next.mjs start",
     "lint": "eslint .",
@@ -355,7 +353,7 @@
       "@swc/core",
       "better-sqlite3",
       "esbuild",
-      "omniroute",
+      "birouter",
       "sharp"
     ]
   },

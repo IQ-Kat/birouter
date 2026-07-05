@@ -6,7 +6,7 @@
  *
  * Namespaces:
  *   - cliToolLastConfig: ISO timestamp of last configuration
- *   - cliToolInitialConfig: JSON snapshot of pre-OmniRoute configuration
+ *   - cliToolInitialConfig: JSON snapshot of pre-Birouter configuration
  *
  * @module lib/db/cliToolState
  */
@@ -110,7 +110,7 @@ export function deleteCliToolLastConfigured(toolId: string): void {
 // ──────────────── Initial Config Snapshot ────────────────
 
 /**
- * Save the initial (pre-OmniRoute) config snapshot for a CLI tool.
+ * Save the initial (pre-Birouter) config snapshot for a CLI tool.
  * Only saves if no snapshot exists yet (first-time only).
  * @returns true if saved, false if snapshot already exists.
  */

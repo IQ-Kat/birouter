@@ -8,7 +8,7 @@ import { resolveTarget } from "@/mitm/targets/index";
 import { detectAgent } from "@/mitm/detection/index";
 import { getAgentBridgeState, upsertAgentBridgeState } from "@/lib/db/agentBridgeState";
 import type { AgentId } from "@/mitm/types";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 const PatchSchema = z.object({

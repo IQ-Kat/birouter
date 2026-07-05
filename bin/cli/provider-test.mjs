@@ -41,7 +41,7 @@ function providerEnvName(provider, suffix) {
   const normalizedProvider = String(provider || "")
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "_");
-  return `OMNIROUTE_PROVIDER_TEST_${normalizedProvider}_${suffix}`;
+  return `BIROUTER_PROVIDER_TEST_${normalizedProvider}_${suffix}`;
 }
 
 function resolveTestModel(input, config) {
@@ -49,7 +49,7 @@ function resolveTestModel(input, config) {
   return (
     input.defaultModel ||
     providerOverride ||
-    process.env.OMNIROUTE_PROVIDER_TEST_MODEL ||
+    process.env.BIROUTER_PROVIDER_TEST_MODEL ||
     config.model
   );
 }

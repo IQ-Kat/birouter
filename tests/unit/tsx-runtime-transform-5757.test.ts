@@ -2,8 +2,8 @@
  * #5757 — regression guard for the runtime `tsx/esm` → esbuild transform path.
  *
  * Background: `tsx` is a runtime `dependency` (not dev), and the published CLI
- * registers it at boot (`bin/omniroute.mjs` → `await import("tsx/esm")`) to load
- * OmniRoute's own `.ts` sources. A fresh `npm install omniroute` therefore pulls
+ * registers it at boot (`bin/birouter.mjs` → `await import("tsx/esm")`) to load
+ * Birouter's own `.ts` sources. A fresh `npm install birouter` therefore pulls
  * `esbuild` transitively via `tsx`. #5757 worried a broken esbuild could make a
  * fresh install "build-fragile", and proposed forcing `esbuild@0.27.4`.
  *
@@ -29,7 +29,7 @@ const REPO_ROOT = join(__dirname, "..", "..");
 const FIXTURE = join(__dirname, "_fixtures", "tsx-runtime-modern-syntax.ts");
 
 test("#5757: runtime tsx/esm loader transforms modern syntax (esbuild functional guard)", () => {
-  // Exactly the mechanism bin/omniroute.mjs uses. cwd = package root so `tsx`
+  // Exactly the mechanism bin/birouter.mjs uses. cwd = package root so `tsx`
   // resolves regardless of where the process is launched from (see #4055).
   const res = spawnSync(process.execPath, ["--import", "tsx/esm", FIXTURE], {
     cwd: REPO_ROOT,

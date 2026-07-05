@@ -17,8 +17,8 @@ test("normalizeOpenAiBaseUrl appends /v1 only when needed", () => {
 });
 
 test("buildAliasEnvVar sanitizes aliases for env variable export", () => {
-  assert.equal(buildAliasEnvVar("review"), "OMNIROUTE_MODEL_REVIEW");
-  assert.equal(buildAliasEnvVar("plan mode"), "OMNIROUTE_MODEL_PLAN_MODE");
+  assert.equal(buildAliasEnvVar("review"), "BIROUTER_MODEL_REVIEW");
+  assert.equal(buildAliasEnvVar("plan mode"), "BIROUTER_MODEL_PLAN_MODE");
   assert.equal(buildAliasEnvVar(""), null);
 });
 
@@ -27,7 +27,7 @@ test("custom CLI generators include default model and alias mappings", () => {
     cliName: "My Team CLI",
     baseUrl: "http://localhost:20128",
     apiKey: "sk_test_123",
-    defaultModel: "omniroute/fast",
+    defaultModel: "birouter/fast",
     aliasMappings: [
       { alias: "review", model: "cc/claude-sonnet-4-5-20250929" },
       { alias: "vision", model: "gemini/gemini-3-flash" },
@@ -35,8 +35,8 @@ test("custom CLI generators include default model and alias mappings", () => {
   });
 
   assert.match(envScript, /export OPENAI_BASE_URL="http:\/\/localhost:20128\/v1"/);
-  assert.match(envScript, /export OPENAI_MODEL="omniroute\/fast"/);
-  assert.match(envScript, /export OMNIROUTE_MODEL_REVIEW="cc\/claude-sonnet-4-5-20250929"/);
+  assert.match(envScript, /export OPENAI_MODEL="birouter\/fast"/);
+  assert.match(envScript, /export BIROUTER_MODEL_REVIEW="cc\/claude-sonnet-4-5-20250929"/);
   assert.match(envScript, /# http:\/\/localhost:20128\/v1\/chat\/completions/);
   assert.match(envScript, /my-team-cli --base-url "\$OPENAI_BASE_URL"/);
 
@@ -45,7 +45,7 @@ test("custom CLI generators include default model and alias mappings", () => {
       cliName: "My Team CLI",
       baseUrl: "http://localhost:20128",
       apiKey: "sk_test_123",
-      defaultModel: "omniroute/fast",
+      defaultModel: "birouter/fast",
       aliasMappings: [{ alias: "review", model: "cc/claude-sonnet-4-5-20250929" }],
     })
   );
@@ -56,7 +56,7 @@ test("custom CLI generators include default model and alias mappings", () => {
       type: "openai",
       baseURL: "http://localhost:20128/v1",
       apiKey: "sk_test_123",
-      model: "omniroute/fast",
+      model: "birouter/fast",
     },
     modelAliases: {
       review: "cc/claude-sonnet-4-5-20250929",

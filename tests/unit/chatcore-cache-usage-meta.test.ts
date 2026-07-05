@@ -2,7 +2,7 @@
 // Characterization of toPositiveNumber / buildCacheUsageLogMeta / attachLogMeta — cache-usage log
 // meta helpers extracted from handleChatCore (chatCore god-file decomposition, #3501). Locks: the
 // positive-number coercion, the cache-token derivation across top-level and prompt_tokens_details
-// shapes (null when no cache fields), and the _omniroute meta attachment/merge.
+// shapes (null when no cache fields), and the _birouter meta attachment/merge.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -47,12 +47,12 @@ test("attachLogMeta returns the payload untouched when meta is empty", () => {
   assert.equal(attachLogMeta(payload, { x: null, y: undefined }), payload);
 });
 
-test("attachLogMeta merges compact meta into _omniroute", () => {
-  const out = attachLogMeta({ a: 1, _omniroute: { keep: true } }, { added: 2, drop: null });
-  assert.deepEqual(out, { a: 1, _omniroute: { keep: true, added: 2 } });
+test("attachLogMeta merges compact meta into _birouter", () => {
+  const out = attachLogMeta({ a: 1, _birouter: { keep: true } }, { added: 2, drop: null });
+  assert.deepEqual(out, { a: 1, _birouter: { keep: true, added: 2 } });
 });
 
 test("attachLogMeta wraps non-object payloads", () => {
   const out = attachLogMeta(null, { added: 2 });
-  assert.deepEqual(out, { _omniroute: { added: 2 }, _payload: null });
+  assert.deepEqual(out, { _birouter: { added: 2 }, _payload: null });
 });

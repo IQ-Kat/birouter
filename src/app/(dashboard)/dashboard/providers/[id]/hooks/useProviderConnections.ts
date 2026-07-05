@@ -69,8 +69,7 @@ export interface UseProviderConnectionsReturn {
   setBatchTestResults: (r: BatchTestResults) => void;
   setConnections: (
     updater:
-      | ConnectionRowConnection[]
-      | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
+      ConnectionRowConnection[] | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
   ) => void;
   setProviderNode: (node: any) => void;
 
@@ -491,7 +490,7 @@ export function useProviderConnections(
       notify.success(
         enabled
           ? "Requests now route through CLIProxyAPI (deeper emulation)"
-          : "Requests now use native OmniRoute (direct)"
+          : "Requests now use native Birouter (direct)"
       );
     } catch {
       notify.error("Failed to update CLIProxyAPI routing");

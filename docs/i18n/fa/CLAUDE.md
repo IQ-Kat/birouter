@@ -39,7 +39,7 @@ npm run test:all
 
 ## پروژه در یک نگاه
 
-**OmniRoute** — پروکسی/روتر AI یکپارچه. یک نقطه انتهایی، بیش از 160 ارائه‌دهنده LLM، بازگشت خودکار.
+**Birouter** — پروکسی/روتر AI یکپارچه. یک نقطه انتهایی، بیش از 160 ارائه‌دهنده LLM، بازگشت خودکار.
 
 | لایه          | مکان                    | هدف                                                            |
 | ------------- | ----------------------- | -------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Client → /v1/chat/completions (مسیر Next.js)
 
 ## وضعیت زمان اجرای تاب‌آوری
 
-OmniRoute سه مکانیزم موقت شکست مرتبط اما متمایز دارد. دامنه آن‌ها را هنگام اشکال‌زدایی رفتار مسیریابی جدا نگه دارید. برای یک نمای کلی، به
+Birouter سه مکانیزم موقت شکست مرتبط اما متمایز دارد. دامنه آن‌ها را هنگام اشکال‌زدایی رفتار مسیریابی جدا نگه دارید. برای یک نمای کلی، به
 [نقشه تاب‌آوری 3 لایه](./docs/diagrams/exported/resilience-3layers.svg)
 (منبع: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
 مراجعه کنید.
@@ -197,7 +197,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### سبک کد
 
 - **۲ فاصله**، نقطه‌ویرگول‌ها، نقل‌قول‌های دوتایی، عرض ۱۰۰ کاراکتر، کاماهای انتهایی es5 (توسط lint-staged از طریق Prettier اعمال می‌شود)
-- **واردات**: خارجی → داخلی (`@/`, `@omniroute/open-sse`) → نسبی
+- **واردات**: خارجی → داخلی (`@/`, `@birouter/open-sse`) → نسبی
 - **نام‌گذاری**: فایل‌ها=camelCase/kebab، کامپوننت‌ها=PascalCase، ثابت‌ها=UPPER_SNAKE
 - **ESLint**: `no-eval`، `no-implied-eval`، `no-new-func` = خطا در همه جا؛ `no-explicit-any` = هشدار در `open-sse/` و `tests/`
 - **TypeScript**: `strict: false`، هدف ES2022، ماژول esnext، رزولوشن bundler. نوع‌های صریح را ترجیح دهید.
@@ -365,9 +365,9 @@ git push -u origin feat/your-feature
 
 - **زمان اجرا**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25، ماژول‌های ES
 - **TypeScript**: 5.9+، هدف ES2022، ماژول esnext، حل‌گر بسته
-- **آلیاس‌های مسیر**: `@/*` → `src/`، `@omniroute/open-sse` → `open-sse/`، `@omniroute/open-sse/*` → `open-sse/*`
+- **آلیاس‌های مسیر**: `@/*` → `src/`، `@birouter/open-sse` → `open-sse/`، `@birouter/open-sse/*` → `open-sse/*`
 - **پورت پیش‌فرض**: 20128 (API + داشبورد در همان پورت)
-- **دایرکتوری داده**: متغیر محیطی `DATA_DIR`، به طور پیش‌فرض به `~/.omniroute/`
+- **دایرکتوری داده**: متغیر محیطی `DATA_DIR`، به طور پیش‌فرض به `~/.birouter/`
 - **متغیرهای کلیدی محیط**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - راه‌اندازی: `cp .env.example .env` سپس `JWT_SECRET` (`openssl rand -base64 48`) و `API_KEY_SECRET` (`openssl rand -hex 32`) را تولید کنید.
 
@@ -390,4 +390,4 @@ git push -u origin feat/your-feature
 13. هرگز مسیرهای خارجی یا مقادیر زمان اجرا را به صورت رشته‌ای در اسکریپت‌های شل که به `exec()`/`spawn()` منتقل می‌شوند، جاسازی نکنید — به جای آن از گزینه `env` استفاده کنید. مرجع: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. هرگز یک هشدار CodeQL / Secret-Scanning را بدون (الف) بررسی الگوهای مستندات بالا برای دیدن اینکه آیا کمک‌کننده اعمال می‌شود و (ب) ثبت توجیه فنی در نظر dismissal نادیده نگیرید. سابقه: `js/stack-trace-exposure` که در callsites که قبلاً از `sanitizeErrorMessage()` عبور کرده‌اند، یک محدودیت شناخته شده CodeQL است (sanitizers سفارشی شناسایی نمی‌شوند) — به عنوان `false positive` با اشاره به `docs/security/ERROR_SANITIZATION.md` نادیده بگیرید.
 15. هرگز مسیرهایی که فرایندهای فرزند را ایجاد می‌کنند (`/api/mcp/`, `/api/cli-tools/runtime/`) را بدون طبقه‌بندی `isLocalOnlyPath()` در `src/server/authz/routeGuard.ts` افشا نکنید. اجرای loopback بدون قید و شرط قبل از هر بررسی احراز هویت انجام می‌شود — JWT نشت شده از طریق تونل نمی‌تواند فرایند را ایجاد کند. به `docs/security/ROUTE_GUARD_TIERS.md` مراجعه کنید.
-16. هرگز ملحقات `Co-Authored-By` که به دستیار هوش مصنوعی، LLM یا حساب خودکار اعتبار می‌دهد را اضافه نکنید (مثلاً نام‌های شامل "Claude"، "GPT"، "Copilot"، "Bot"؛ ایمیل‌های `anthropic.com` / `openai.com` / آدرس‌های `noreply.github.com` متعلق به بات‌ها). چنین ملحقاتی انتساب commit را به حساب بات در GitHub هدایت می‌کنند و نویسنده واقعی (`diegosouzapw`) را در تاریخچه PR پنهان می‌کنند. همکاران انسانی — از جمله نویسندگان PR upstream و گزارش‌دهندگان issue که به OmniRoute پورت می‌شوند — می‌توانند و باید با ملحقات استاندارد `Co-authored-by: Name <email>` اعتبار داده شوند؛ گردش‌کارهای upstream-port (`/port-upstream-features`، `/port-upstream-issues`) به این بستگی دارد.
+16. هرگز ملحقات `Co-Authored-By` که به دستیار هوش مصنوعی، LLM یا حساب خودکار اعتبار می‌دهد را اضافه نکنید (مثلاً نام‌های شامل "Claude"، "GPT"، "Copilot"، "Bot"؛ ایمیل‌های `anthropic.com` / `openai.com` / آدرس‌های `noreply.github.com` متعلق به بات‌ها). چنین ملحقاتی انتساب commit را به حساب بات در GitHub هدایت می‌کنند و نویسنده واقعی (`diegosouzapw`) را در تاریخچه PR پنهان می‌کنند. همکاران انسانی — از جمله نویسندگان PR upstream و گزارش‌دهندگان issue که به Birouter پورت می‌شوند — می‌توانند و باید با ملحقات استاندارد `Co-authored-by: Name <email>` اعتبار داده شوند؛ گردش‌کارهای upstream-port (`/port-upstream-features`، `/port-upstream-issues`) به این بستگی دارد.

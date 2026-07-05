@@ -52,7 +52,7 @@ jobs:
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
         run: npm run build:cli
-      - name: Start OmniRoute (background)
+      - name: Start Birouter (background)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           PORT: "20128"

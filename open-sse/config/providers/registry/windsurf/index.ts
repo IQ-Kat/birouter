@@ -14,7 +14,7 @@ export const windsurfProvider: RegistryEntry = {
   authPrefix: "Bearer ",
   defaultContextLength: 200000,
   // Model IDs verified against model_configs_v2.bin from Devin CLI binary (2026.5.x).
-  // dot-notation = OmniRoute ID; executor MODEL_ALIAS_MAP maps it to Windsurf modelUid.
+  // dot-notation = Birouter ID; executor MODEL_ALIAS_MAP maps it to Windsurf modelUid.
   models: [
     // ── Cognition / SWE ──────────────────────────────────────────────────
     { id: "swe-1.6-fast", name: "SWE-1.6 Fast" },

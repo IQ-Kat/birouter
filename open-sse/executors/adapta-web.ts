@@ -9,7 +9,7 @@ const ADAPTA_STREAM_URL = `${ADAPTA_APP_URL}/api/chat/stream/v1`;
 // Default model ID in Adapta's internal system (corresponds to "ONE" / auto-select)
 const DEFAULT_AI_MODEL_ID = 14;
 
-// Map from OmniRoute model IDs to Adapta internal model IDs.
+// Map from Birouter model IDs to Adapta internal model IDs.
 // 14 = "ONE" (auto), values confirmed via chat history inspection.
 // Additional IDs can be added as they are discovered.
 const MODEL_ID_MAP: Record<string, number> = {

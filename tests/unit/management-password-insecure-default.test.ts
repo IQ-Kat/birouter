@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mgmt-pwd-insecure-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mgmt-pwd-insecure-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -60,5 +60,9 @@ test("does not warn when bootstrapping with a strong password", async () => {
   });
 
   assert.equal(managementPassword.isBcryptHash(result.hash), true);
-  assert.equal(logger.warnings.length, 0, "did not expect any security warning for a strong password");
+  assert.equal(
+    logger.warnings.length,
+    0,
+    "did not expect any security warning for a strong password"
+  );
 });

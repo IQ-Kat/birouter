@@ -3,7 +3,7 @@ import { getServiceRow } from "@/lib/db/versionManager";
 import { getInstalledVersion, getLatestVersion } from "@/lib/services/installers/ninerouter";
 import { getOrCreateApiKey, maskApiKey } from "@/lib/services/apiKey";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { logAuditEvent } from "@/lib/compliance/index";
 
 const TOOL = "9router";

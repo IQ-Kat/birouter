@@ -111,7 +111,7 @@ test("successful responses extract facts and persist them as memories", async ()
   const response = await handleChat(
     buildRequest({
       authKey: apiKey.key,
-      headers: { "x-omniroute-session-id": "session-extract" },
+      headers: { "x-birouter-session-id": "session-extract" },
       body: {
         model: "openai/gpt-4o-mini",
         stream: false,
@@ -158,7 +158,7 @@ test("later requests inject retrieved memories into upstream messages", async ()
   const response = await handleChat(
     buildRequest({
       authKey: apiKey.key,
-      headers: { "x-omniroute-session-id": "session-inject" },
+      headers: { "x-birouter-session-id": "session-inject" },
       body: {
         model: "openai/gpt-4o-mini",
         stream: false,
@@ -177,7 +177,7 @@ test("memory search ranks query-relevant memories first", async () => {
   const apiKey = await seedApiKey();
   await enableMemory(400, "hybrid");
 
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: apiKey.id,
     sessionId: "search",
     type: "factual",
@@ -185,7 +185,7 @@ test("memory search ranks query-relevant memories first", async () => {
     content: "The user writes TypeScript services every day.",
     metadata: {},
   });
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: apiKey.id,
     sessionId: "search",
     type: "factual",
@@ -193,7 +193,7 @@ test("memory search ranks query-relevant memories first", async () => {
     content: "The user enjoys gardening on weekends.",
     metadata: {},
   });
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: apiKey.id,
     sessionId: "search",
     type: "factual",
@@ -202,7 +202,7 @@ test("memory search ranks query-relevant memories first", async () => {
     metadata: {},
   });
 
-  const result = await memoryTools.omniroute_memory_search.handler({
+  const result = await memoryTools.birouter_memory_search.handler({
     apiKeyId: apiKey.id,
     query: "typescript backend",
     limit: 2,
@@ -303,7 +303,7 @@ test("disabled memory skips both extraction and injection", async () => {
 test("memory clear removes all stored memories for an API key", async () => {
   const apiKey = await seedApiKey();
 
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: apiKey.id,
     sessionId: "clear",
     type: "factual",
@@ -311,7 +311,7 @@ test("memory clear removes all stored memories for an API key", async () => {
     content: "First memory",
     metadata: {},
   });
-  await memoryTools.omniroute_memory_add.handler({
+  await memoryTools.birouter_memory_add.handler({
     apiKeyId: apiKey.id,
     sessionId: "clear",
     type: "episodic",
@@ -320,7 +320,7 @@ test("memory clear removes all stored memories for an API key", async () => {
     metadata: {},
   });
 
-  const cleared = await memoryTools.omniroute_memory_clear.handler({
+  const cleared = await memoryTools.birouter_memory_clear.handler({
     apiKeyId: apiKey.id,
   });
   const remaining = await listMemories({ apiKeyId: apiKey.id });
@@ -340,7 +340,7 @@ test("extracted memories remain isolated by session id", async () => {
   await handleChat(
     buildRequest({
       authKey: apiKey.key,
-      headers: { "x-omniroute-session-id": "session-a" },
+      headers: { "x-birouter-session-id": "session-a" },
       body: {
         model: "openai/gpt-4o-mini",
         stream: false,
@@ -353,7 +353,7 @@ test("extracted memories remain isolated by session id", async () => {
   await handleChat(
     buildRequest({
       authKey: apiKey.key,
-      headers: { "x-omniroute-session-id": "session-b" },
+      headers: { "x-birouter-session-id": "session-b" },
       body: {
         model: "openai/gpt-4o-mini",
         stream: false,

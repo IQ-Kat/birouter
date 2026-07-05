@@ -14,7 +14,7 @@ const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 const blackbox = (REGISTRY as Record<string, Record<string, unknown>>).blackbox;
 
 // New model ids from upstream PR #2038 (upstreamModelId / thinkingConfig fields
-// are dropped — OmniRoute's RegistryModel only carries { id, name, ... })
+// are dropped — Birouter's RegistryModel only carries { id, name, ... })
 const NEW_MODEL_IDS = [
   "claude-fable-5",
   "claude-opus-4.8",

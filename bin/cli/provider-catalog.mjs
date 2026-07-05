@@ -122,7 +122,7 @@ function fallbackAvailableProviders() {
 }
 
 function resolveProviderCatalogPath(rootDir, options = {}) {
-  const configuredPath = options.catalogPath || process.env.OMNIROUTE_PROVIDER_CATALOG_PATH;
+  const configuredPath = options.catalogPath || process.env.BIROUTER_PROVIDER_CATALOG_PATH;
   if (configuredPath) {
     return isAbsolute(configuredPath) ? configuredPath : resolve(rootDir, configuredPath);
   }

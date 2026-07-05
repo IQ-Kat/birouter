@@ -9,7 +9,7 @@
  *
  * These tests pin the resolution-order contract:
  *   1. Per-call `options.proxyUrl` wins.
- *   2. OMNIROUTE_TLS_PROXY_URL env var (single-flag opt-in).
+ *   2. BIROUTER_TLS_PROXY_URL env var (single-flag opt-in).
  *   3. POSIX-standard HTTPS_PROXY / HTTP_PROXY / ALL_PROXY (and lowercase variants).
  *   4. Otherwise undefined (no proxy).
  *
@@ -24,7 +24,7 @@ import { describe, it, beforeEach, afterEach, expect } from "vitest";
 import { tlsFetchGrok, __setTlsFetchOverrideForTesting } from "../grokTlsClient.ts";
 
 const PROXY_ENV_KEYS = [
-  "OMNIROUTE_TLS_PROXY_URL",
+  "BIROUTER_TLS_PROXY_URL",
   "HTTPS_PROXY",
   "https_proxy",
   "HTTP_PROXY",
@@ -62,7 +62,7 @@ describe("grokTlsClient — proxy plumbing (#3180)", async () => {
   });
 
   it("per-call proxyUrl overrides everything", async () => {
-    process.env.OMNIROUTE_TLS_PROXY_URL = "http://env-omni:0/";
+    process.env.BIROUTER_TLS_PROXY_URL = "http://env-bi:0/";
     process.env.HTTPS_PROXY = "http://env-https:0/";
 
     let observedUrl: string | undefined;

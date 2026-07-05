@@ -28,7 +28,7 @@ export const codebuddy_cnProvider: RegistryEntry = {
     "x-codebuddy-request": "1",
   },
   models: [
-    // contextLength is the OmniRoute analogue of upstream's contextWindow;
+    // contextLength is the Birouter analogue of upstream's contextWindow;
     // supportsReasoning + supportsVision drive UI affordances and translator
     // decisions. Sourced from the gateway's model config.
     {

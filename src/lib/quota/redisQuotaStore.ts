@@ -2,7 +2,7 @@
  * redisQuotaStore.ts — Optional Redis-backed QuotaStore implementation.
  *
  * Counter keys follow the pattern:
- *   omniroute:quota:<apiKeyId>:<dimensionKey>:<bucketIndex>
+ *   birouter:quota:<apiKeyId>:<dimensionKey>:<bucketIndex>
  *
  * Sliding window is maintained identically to the SQLite driver:
  *   effective = prev × (1 − elapsed/window) + curr
@@ -16,10 +16,7 @@
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
  */
 
-import {
-  getPool,
-  listAllocationsForApiKey,
-} from "@/lib/localDb";
+import { getPool, listAllocationsForApiKey } from "@/lib/localDb";
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
@@ -72,7 +69,7 @@ export function resetRedisClient(): void {
 // Key helpers
 // ---------------------------------------------------------------------------
 
-const KEY_PREFIX = "omniroute:quota";
+const KEY_PREFIX = "birouter:quota";
 
 function bucketKey(apiKeyId: string, dimensionKey: string, bucketIndex: number): string {
   return `${KEY_PREFIX}:${apiKeyId}:${dimensionKey}:${bucketIndex}`;

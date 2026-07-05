@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `electron/` workspace
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute ships a cross-platform desktop app (Windows / macOS / Linux) built on
+Birouter ships a cross-platform desktop app (Windows / macOS / Linux) built on
 **Electron 41** + **electron-builder 26.10**. The desktop app spawns the Next.js
 standalone server as a child process, points a `BrowserWindow` at it, and adds a
 system tray, auto-updater, IPC bridge, and zero-config secret bootstrap.
@@ -39,15 +39,15 @@ system tray, auto-updater, IPC bridge, and zero-config secret bootstrap.
 
 Confirmed from `electron/package.json`:
 
-| Package            | Version                    |
-| ------------------ | -------------------------- |
-| `electron`         | `^41.5.1`                  |
-| `electron-builder` | `^26.10.0`                 |
-| `electron-updater` | `^6.8.5`                   |
-| `better-sqlite3`   | `^12.9.0`                  |
-| App version        | `3.8.0`                    |
-| App id             | `online.omniroute.desktop` |
-| Product name       | `OmniRoute`                |
+| Package            | Version                   |
+| ------------------ | ------------------------- |
+| `electron`         | `^41.5.1`                 |
+| `electron-builder` | `^26.10.0`                |
+| `electron-updater` | `^6.8.5`                  |
+| `better-sqlite3`   | `^12.9.0`                 |
+| App version        | `3.8.0`                   |
+| App id             | `online.birouter.desktop` |
+| Product name       | `Birouter`                |
 
 ## Scripts (root `package.json`)
 
@@ -159,28 +159,28 @@ On first launch, the main process auto-generates and persists missing secrets:
 
 Persisted to `<DATA_DIR>/server.env`. `DATA_DIR` resolves to:
 
-- Windows: `%APPDATA%\omniroute`
-- Linux: `$XDG_CONFIG_HOME/omniroute` or `~/.omniroute`
-- macOS: `~/.omniroute`
+- Windows: `%APPDATA%\birouter`
+- Linux: `$XDG_CONFIG_HOME/birouter` or `~/.birouter`
+- macOS: `~/.birouter`
 
 ## Window & Tray
 
 - `BrowserWindow`: 1400×900 (min 1024×700), `backgroundColor: "#0a0a0a"`.
 - macOS: `titleBarStyle: "hiddenInset"`, traffic-light at `{ x: 16, y: 16 }`.
 - Windows/Linux: native title bar.
-- Close button minimizes to tray; the tray menu has **Open OmniRoute**, **Open Dashboard** (external browser), **Server Port** submenu, **Check for Updates**, **Quit**.
+- Close button minimizes to tray; the tray menu has **Open Birouter**, **Open Dashboard** (external browser), **Server Port** submenu, **Check for Updates**, **Quit**.
 
 ## Content Security Policy
 
 Set via `session.defaultSession.webRequest.onHeadersReceived`. Notable directives:
 
 - `frame-ancestors 'none'`, `object-src 'none'`, `child-src 'none'`
-- `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.omniroute.online https://*.omniroute.dev`
+- `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.Birouter.online https://*.birouter.dev`
 - Dev mode adds `'unsafe-eval'` to `script-src` only
 
 ## Auto-update
 
-Uses `electron-updater` with the GitHub provider (`diegosouzapw/OmniRoute`).
+Uses `electron-updater` with the GitHub provider (`IQ-Kat/birouter`).
 
 - `autoDownload = false`, `autoInstallOnAppQuit = true`
 - Events forwarded to renderer via `update-status` IPC:
@@ -252,11 +252,11 @@ AppImage signing is optional — set `LINUX_GPG_KEY` if signing.
 
 Artifacts land in `electron/dist-electron/`:
 
-- `OmniRoute Setup X.Y.Z.exe`, `OmniRoute-X.Y.Z-portable.exe` (Windows)
-- `OmniRoute-X.Y.Z-mac.dmg`, `OmniRoute-X.Y.Z-arm64-mac.dmg` (macOS)
-- `OmniRoute-X.Y.Z.AppImage`, `omniroute-desktop_X.Y.Z_amd64.deb` (Linux)
+- `Birouter Setup X.Y.Z.exe`, `Birouter-X.Y.Z-portable.exe` (Windows)
+- `Birouter-X.Y.Z-mac.dmg`, `Birouter-X.Y.Z-arm64-mac.dmg` (macOS)
+- `Birouter-X.Y.Z.AppImage`, `birouter-desktop_X.Y.Z_amd64.deb` (Linux)
 
-Releases are published to GitHub Releases (`diegosouzapw/OmniRoute`), which is also where `electron-updater` checks for new versions.
+Releases are published to GitHub Releases (`IQ-Kat/birouter`), which is also where `electron-updater` checks for new versions.
 
 ## Troubleshooting
 

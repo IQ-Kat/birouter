@@ -11,7 +11,7 @@ import {
 } from "@/lib/oauth/utils/agyAuthImport";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getProviderAuditTarget } from "@/lib/compliance/providerAudit";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { applyLocalAgyAuthSchema } from "@/shared/validation/schemas";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { sanitizeProviderSpecificDataForResponse } from "@/lib/providers/requestDefaults";
@@ -117,7 +117,10 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof AgyAuthFileError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
     }
     return NextResponse.json(
       { error: sanitizeErrorMessage(error) || "Failed to import local Antigravity CLI login" },

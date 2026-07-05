@@ -66,10 +66,7 @@ test("buildCloudflareWorkerScript rejects requests without a valid x-relay-auth 
   // a 401 short-circuit when x-relay-auth does not match the embedded token.
   // We don't run the worker here — we check the source contains the guard.
   const src = buildCloudflareWorkerScript("the-secret");
-  assert.ok(
-    /x-relay-auth/.test(src),
-    "worker source must reference the x-relay-auth header"
-  );
+  assert.ok(/x-relay-auth/.test(src), "worker source must reference the x-relay-auth header");
   assert.ok(
     /401|Unauthorized/.test(src),
     "worker source must short-circuit unauthorised requests with 401"
@@ -102,7 +99,7 @@ test("buildCloudflareWorkerScript uses ESM default-export fetch handler (Workers
 
 const CLOUDFLARE_CTX = {
   type: "cloudflare" as const,
-  host: "omniroute-relay.acme.workers.dev",
+  host: "birouter-relay.acme.workers.dev",
   relayAuth: "live-cf-secret",
 };
 
@@ -119,7 +116,7 @@ test("proxyFetch routes a cloudflare-type context through the relay endpoint wit
   const call = relayCalls[0];
 
   // Rewritten to the workers.dev origin, NOT the upstream target.
-  assert.equal(call.input, "https://omniroute-relay.acme.workers.dev");
+  assert.equal(call.input, "https://birouter-relay.acme.workers.dev");
 
   const sentHeaders = new Headers(call.init.headers);
   assert.equal(sentHeaders.get("x-relay-target"), "https://api.anthropic.com");
@@ -160,9 +157,9 @@ test("the missing-relayAuth error message does not leak internal [ProxyFetch] di
 test("proxyConfigToUrl returns the cloudflare worker URL (no HTTP-proxy dispatcher needed)", () => {
   const url = proxyConfigToUrl({
     type: "cloudflare",
-    host: "omniroute-relay.acme.workers.dev",
+    host: "birouter-relay.acme.workers.dev",
   });
-  assert.equal(url, "https://omniroute-relay.acme.workers.dev");
+  assert.equal(url, "https://birouter-relay.acme.workers.dev");
 });
 
 // --------------------------------------------------------------------------
@@ -171,10 +168,7 @@ test("proxyConfigToUrl returns the cloudflare worker URL (no HTTP-proxy dispatch
 // --------------------------------------------------------------------------
 
 test("buildVercelRelayHeaders is the shared relay-header builder used for cloudflare too", () => {
-  const headers = buildVercelRelayHeaders(
-    "https://api.openai.com/v1/chat/completions",
-    "cf-tok"
-  );
+  const headers = buildVercelRelayHeaders("https://api.openai.com/v1/chat/completions", "cf-tok");
   assert.deepEqual(headers, {
     "x-relay-target": "https://api.openai.com",
     "x-relay-path": "/v1/chat/completions",

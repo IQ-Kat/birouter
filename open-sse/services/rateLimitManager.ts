@@ -582,7 +582,7 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
     // indistinguishable from an upstream gateway timeout, so it leaks into 502
     // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
-    // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
+    // (#4165). Rewrite it into a clear, Birouter-owned error (knob named,
     // upstream disclaimed, original kept as `cause`, `code` for classification).
     // Behavior is unchanged — the job is still dropped so combo can fall back.
     if (err?.message?.includes("This job timed out")) {
@@ -592,7 +592,7 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       );
       const queueErr = new Error(
         `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
-          `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +
+          `${model ? `${provider}/${model}` : provider} — this is Birouter's request queue ` +
           `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
           `Settings → Resilience if this is queue saturation rather than a slow provider.`,
         { cause: err }

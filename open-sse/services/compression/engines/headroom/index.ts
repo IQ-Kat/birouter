@@ -10,7 +10,7 @@
  * Algorithm:
  *   - Scans non-system message contents (string contents and ```json fenced blocks).
  *   - When content parses as a homogeneous array of objects (≥ minRows, default 8),
- *     replaces it with a compact columnar block (```omni-tabular ...```).
+ *     replaces it with a compact columnar block (```bi-tabular ...```).
  *   - The columnar block carries: [N rows] count marker, type hints, a header row,
  *     and value-only data rows.
  *   - LOSSLESS: decode(encode(arr)) deep-equals the original (proven by round-trip tests).
@@ -180,7 +180,7 @@ type MessageLike = {
 };
 
 /**
- * Reverse the headroom compaction: find every ```gcf-generic or ```omni-tabular
+ * Reverse the headroom compaction: find every ```gcf-generic or ```bi-tabular
  * block in message contents and decode it back to the original JSON string.
  *
  * No production caller by design — the compact form is sent to the provider as-is. This is
@@ -230,7 +230,7 @@ export function reconstructHeadroom(body: Record<string, unknown>): Record<strin
 }
 
 /**
- * Restore all GCF (```gcf-generic) and legacy (```omni-tabular) blocks
+ * Restore all GCF (```gcf-generic) and legacy (```bi-tabular) blocks
  * in a text string back to their original JSON.
  */
 /** Map a fence-open marker to its matching close tag. */
@@ -278,7 +278,7 @@ function restoreText(text: string): string {
     return text;
 
   let result = text;
-  // Process all fence types: GCF first (new format), then legacy omni-tabular, then TOON
+  // Process all fence types: GCF first (new format), then legacy bi-tabular, then TOON
   for (const fence of [GCF_FENCE_OPEN, TABULAR_FENCE_OPEN, TOON_FENCE_OPEN]) {
     result = decodeFenceOccurrences(result, fence, closeTagFor(fence));
   }

@@ -5,9 +5,9 @@ const autoUpdate = await import("../../src/lib/system/autoUpdate.ts");
 
 describe("getAutoUpdateConfig", () => {
   it("defaults to npm or source mode locally", () => {
-    const config = autoUpdate.getAutoUpdateConfig({ DATA_DIR: "/tmp/omniroute" });
+    const config = autoUpdate.getAutoUpdateConfig({ DATA_DIR: "/tmp/birouter" });
     assert.ok(config.mode === "npm" || config.mode === "source");
-    assert.equal(config.repoDir, "/workspace/omniroute");
+    assert.equal(config.repoDir, "/workspace/birouter");
     assert.equal(config.composeProfile, "cli");
   });
 
@@ -15,20 +15,20 @@ describe("getAutoUpdateConfig", () => {
     const config = autoUpdate.getAutoUpdateConfig({
       DATA_DIR: "/tmp/custom-data",
       AUTO_UPDATE_MODE: "docker-compose",
-      AUTO_UPDATE_REPO_DIR: "/srv/omniroute",
-      AUTO_UPDATE_COMPOSE_FILE: "/srv/omniroute/docker-compose.yml",
+      AUTO_UPDATE_REPO_DIR: "/srv/birouter",
+      AUTO_UPDATE_COMPOSE_FILE: "/srv/birouter/docker-compose.yml",
       AUTO_UPDATE_COMPOSE_PROFILE: "base",
-      AUTO_UPDATE_SERVICE: "omniroute-base",
+      AUTO_UPDATE_SERVICE: "birouter-base",
       AUTO_UPDATE_GIT_REMOTE: "upstream",
       AUTO_UPDATE_PATCH_COMMITS: "abc123 def456,ghi789",
       AUTO_UPDATE_LOG_PATH: "/tmp/update.log",
     });
 
     assert.equal(config.mode, "docker-compose");
-    assert.equal(config.repoDir, "/srv/omniroute");
-    assert.equal(config.composeFile, "/srv/omniroute/docker-compose.yml");
+    assert.equal(config.repoDir, "/srv/birouter");
+    assert.equal(config.composeFile, "/srv/birouter/docker-compose.yml");
     assert.equal(config.composeProfile, "base");
-    assert.equal(config.composeService, "omniroute-base");
+    assert.equal(config.composeService, "birouter-base");
     assert.equal(config.gitRemote, "upstream");
     assert.deepEqual(config.patchCommits, ["abc123", "def456", "ghi789"]);
     assert.equal(config.logPath, "/tmp/update.log");
@@ -105,7 +105,7 @@ describe("buildDockerComposeUpdateScript", () => {
       AUTO_UPDATE_REPO_DIR: "/repo",
       AUTO_UPDATE_COMPOSE_FILE: "/repo/docker-compose.yml",
       AUTO_UPDATE_COMPOSE_PROFILE: "cli",
-      AUTO_UPDATE_SERVICE: "omniroute-cli",
+      AUTO_UPDATE_SERVICE: "birouter-cli",
       AUTO_UPDATE_GIT_REMOTE: "origin",
       AUTO_UPDATE_PATCH_COMMITS: "1501a87 e569e1c",
     });
@@ -131,6 +131,6 @@ describe("buildSourceUpdateScript", () => {
     assert.match(script, /git fetch --tags 'upstream'/);
     assert.match(script, /git checkout "v3\.2\.6"/);
     assert.match(script, /node scripts\/dev\/sync-env\.mjs 2>\/dev\/null \|\| true/);
-    assert.match(script, /pm2 restart omniroute --update-env \|\| true/);
+    assert.match(script, /pm2 restart birouter --update-env \|\| true/);
   });
 });

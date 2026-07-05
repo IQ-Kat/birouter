@@ -11,7 +11,7 @@
 export const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
   "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, x-api-key, anthropic-version, x-omniroute-connection, x-internal-test, accept",
+    "Content-Type, Authorization, x-api-key, anthropic-version, x-birouter-connection, x-internal-test, accept",
 } as const;
 
 /**

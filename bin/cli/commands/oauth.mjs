@@ -168,7 +168,7 @@ export async function runOAuthStart(opts, cmd) {
   const def = PROVIDERS_WITH_OAUTH.find((p) => p.id === opts.provider);
   if (!def) {
     process.stderr.write(
-      `Unknown OAuth provider: ${opts.provider}\nRun: omniroute oauth providers\n`
+      `Unknown OAuth provider: ${opts.provider}\nRun: birouter oauth providers\n`
     );
     process.exit(2);
   }

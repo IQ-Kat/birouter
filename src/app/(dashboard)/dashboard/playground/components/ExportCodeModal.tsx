@@ -21,7 +21,7 @@ const LANGUAGE_TABS: Array<{ id: ExportLanguage; label: string }> = [
 /**
  * ExportCodeModal — shows curl / Python / TypeScript snippets for the current playground state.
  *
- * Security: always uses API_KEY_PLACEHOLDER ("$OMNIROUTE_API_KEY") — never a real key (D11 / Hard Rule #1).
+ * Security: always uses API_KEY_PLACEHOLDER ("$BIROUTER_API_KEY") — never a real key (D11 / Hard Rule #1).
  */
 export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps) {
   const t = useTranslations("playground");
@@ -123,8 +123,8 @@ export default function ExportCodeModal({ state, onClose }: ExportCodeModalProps
           {/* Placeholder hint */}
           <p className="text-[11px] text-text-muted mt-2">
             {t("placeholderHintPrefix")}{" "}
-            <code className="font-mono text-primary">{API_KEY_PLACEHOLDER}</code>
-            {" "}{t("placeholderHintSuffix")}
+            <code className="font-mono text-primary">{API_KEY_PLACEHOLDER}</code>{" "}
+            {t("placeholderHintSuffix")}
           </p>
         </div>
 

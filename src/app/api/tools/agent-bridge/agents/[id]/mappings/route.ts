@@ -5,7 +5,7 @@
  */
 import { AgentBridgeMappingPutSchema } from "@/shared/schemas/agentBridge";
 import { getMappingsForAgent, setMappings } from "@/lib/db/agentBridgeMappings";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 type Params = { params: { id: string } };

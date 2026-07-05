@@ -16,7 +16,7 @@ import { autoSyncCodexProfilesFromLiveCatalog } from "@/lib/cli-helper/codexProf
 import { autoSyncClaudeProfilesFromLiveCatalog } from "@/lib/cli-helper/claudeProfileAutoSync";
 import { GET as getProviderModels } from "../models/route";
 import { isDegradedLocalCatalog } from "./degradedLocalCatalog";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -191,7 +191,7 @@ export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): 
         // readiness — we only care that the dispatcher succeeds (no
         // ECONNREFUSED). Using a synthetic connection id so no real DB lookup
         // is needed; the 404 is sufficient proof the server is dispatching.
-        const probePort = process.env.OMNIROUTE_PORT || process.env.PORT || "20128";
+        const probePort = process.env.BIROUTER_PORT || process.env.PORT || "20128";
         const res = await f(
           `http://127.0.0.1:${probePort}/api/providers/__readiness_probe__/models`,
           {

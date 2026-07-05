@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 // ── Temp dirs ──
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-plugins-config-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-plugins-config-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 // ── Dynamic imports (after DATA_DIR set) ──
@@ -46,13 +46,19 @@ function validateConfig(
       return { valid: false, error: `Config key '${key}' must be a ${def.type}` };
     }
     if (def.enum && !(def.enum as unknown[]).includes(val)) {
-      return { valid: false, error: `Config key '${key}' must be one of: ${(def.enum as string[]).join(", ")}` };
+      return {
+        valid: false,
+        error: `Config key '${key}' must be one of: ${(def.enum as string[]).join(", ")}`,
+      };
     }
     if (def.min !== undefined) {
       const limit = def.min;
       const size = typeof val === "string" ? val.length : typeof val === "number" ? val : undefined;
       if (size !== undefined && size < limit) {
-        return { valid: false, error: `Config key '${key}' must be at least ${limit}${typeof val === "string" ? " characters" : ""}` };
+        return {
+          valid: false,
+          error: `Config key '${key}' must be at least ${limit}${typeof val === "string" ? " characters" : ""}`,
+        };
       }
     }
     if (def.max !== undefined && typeof val === "number" && val > def.max) {
@@ -72,7 +78,9 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }); } catch {}
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {}
 });
 
 // ── Test schema ──
@@ -126,7 +134,9 @@ test("PUT: updates config via updatePluginConfig", () => {
     configSchema: testSchema,
   });
 
-  const success = dbPlugins.updatePluginConfig("config-put-test", { apiUrl: "https://new.api.com" });
+  const success = dbPlugins.updatePluginConfig("config-put-test", {
+    apiUrl: "https://new.api.com",
+  });
   assert.ok(success);
 
   const plugin = dbPlugins.getPluginByName("config-put-test");

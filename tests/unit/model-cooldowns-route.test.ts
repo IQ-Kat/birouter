@@ -5,7 +5,7 @@ import {
   clearModelUnavailability,
   resetAllAvailability,
 } from "../../src/domain/modelAvailability.ts";
-import { lockModel, clearModelLock } from "@omniroute/open-sse/services/accountFallback";
+import { lockModel, clearModelLock } from "@birouter/open-sse/services/accountFallback";
 
 const TEST_CONN = "test-conn-001";
 

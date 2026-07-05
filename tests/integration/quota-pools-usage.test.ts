@@ -19,7 +19,7 @@ import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-quota-pools-usage-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-quota-pools-usage-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-quota-usage-secret";
 // Force SQLite store for deterministic tests
@@ -137,11 +137,7 @@ test("GET /api/quota/pools/[id]/usage → PoolUsageSnapshot shape with correct f
   // Even with no plan dimensions (empty plan for unknown provider), the response
   // is valid with an empty dimensions array — endpoint falls back to poolUsage()
   // which returns what's available from the store.
-  assert.doesNotMatch(
-    JSON.stringify(body),
-    /\s+at\s+\//,
-    "No stack trace in usage response"
-  );
+  assert.doesNotMatch(JSON.stringify(body), /\s+at\s+\//, "No stack trace in usage response");
 });
 
 test("GET /api/quota/pools/[id]/usage response has required PoolUsageSnapshot fields", async () => {

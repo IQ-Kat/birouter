@@ -119,8 +119,8 @@ vi.mock("@/shared/hooks/cli/useToolBatchStatuses", () => ({
 let mockFetchResponse: { connections?: unknown[] } = { connections: [{ isActive: true }] };
 let mockFeatureFlagsResponse = {
   flags: [
-    { key: "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES", effectiveValue: "false" },
-    { key: "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES", effectiveValue: "false" },
+    { key: "BIROUTER_AUTO_SYNC_CODEX_PROFILES", effectiveValue: "false" },
+    { key: "BIROUTER_AUTO_SYNC_CLAUDE_PROFILES", effectiveValue: "false" },
   ],
 };
 
@@ -199,8 +199,8 @@ beforeEach(() => {
   mockFetchResponse = { connections: [{ isActive: true }] };
   mockFeatureFlagsResponse = {
     flags: [
-      { key: "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES", effectiveValue: "false" },
-      { key: "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES", effectiveValue: "false" },
+      { key: "BIROUTER_AUTO_SYNC_CODEX_PROFILES", effectiveValue: "false" },
+      { key: "BIROUTER_AUTO_SYNC_CLAUDE_PROFILES", effectiveValue: "false" },
     ],
   };
 
@@ -258,8 +258,8 @@ describe("CliCodePageClient", () => {
   it("2b. renders CLI profile auto-sync toggles from feature flags", async () => {
     mockFeatureFlagsResponse = {
       flags: [
-        { key: "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES", effectiveValue: "true" },
-        { key: "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES", effectiveValue: "false" },
+        { key: "BIROUTER_AUTO_SYNC_CODEX_PROFILES", effectiveValue: "true" },
+        { key: "BIROUTER_AUTO_SYNC_CLAUDE_PROFILES", effectiveValue: "false" },
       ],
     };
 
@@ -299,7 +299,7 @@ describe("CliCodePageClient", () => {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        key: "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES",
+        key: "BIROUTER_AUTO_SYNC_CODEX_PROFILES",
         value: "true",
       }),
     });

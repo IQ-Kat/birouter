@@ -1,10 +1,10 @@
 {
-  "name": "omniroute-desktop",
+  "name": "birouter-desktop",
   "version": "3.8.43",
-  "description": "OmniRoute Desktop Application",
+  "description": "Birouter Desktop Application",
   "main": "main.js",
   "author": {
-    "name": "OmniRoute Team",
+    "name": "Birouter Team",
     "email": "support@omniroute.online"
   },
   "license": "MIT",
@@ -39,17 +39,17 @@
     "undici": "^7.28.0"
   },
   "build": {
-    "appId": "online.omniroute.desktop",
-    "productName": "OmniRoute",
-    "copyright": "Copyright © 2025 OmniRoute",
+    "appId": "online.birouter.desktop",
+    "productName": "Birouter",
+    "copyright": "Copyright © 2025 Birouter",
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"
     },
     "publish": {
       "provider": "github",
-      "owner": "diegosouzapw",
-      "repo": "OmniRoute"
+      "owner": "IQ-Kat",
+      "repo": "Birouter"
     },
     "files": [
       "main.js",

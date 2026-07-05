@@ -36,7 +36,7 @@ export interface DetectedTool {
     {
       model: string;
       provider?: string;
-      usingOmniRoute: boolean;
+      usingBirouter: boolean;
     }
   >;
 }
@@ -75,7 +75,7 @@ function isConfigured(content: string, baseUrl: string): boolean {
   return (
     content.includes(normalized) ||
     content.includes("localhost:20128") ||
-    content.includes("OMNIROUTE_BASE_URL")
+    content.includes("BIROUTER_BASE_URL")
   );
 }
 
@@ -135,15 +135,15 @@ export async function detectTool(id: string): Promise<DetectedTool | null> {
       const richRoles: Record<string, any> = {};
 
       Object.entries(roles).forEach(([role, info]) => {
-        const usingOmni =
-          info?.provider === "omniroute" ||
+        const usingBi =
+          info?.provider === "birouter" ||
           (info?.base_url || "").includes("20128") ||
           (info?.base_url || "").includes("localhost:20128");
 
         richRoles[role] = {
           model: info.model,
           provider: info.provider,
-          usingOmniRoute: usingOmni,
+          usingBirouter: usingBi,
         };
       });
 

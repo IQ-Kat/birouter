@@ -4,11 +4,11 @@ on:
   push:
     branches: [main, release/v3.8.0]
     paths:
-      - "@omniroute/opencode-provider/**"
+      - "@birouter/opencode-provider/**"
   pull_request:
     branches: [main, release/v3.8.0]
     paths:
-      - "@omniroute/opencode-provider/**"
+      - "@birouter/opencode-provider/**"
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
@@ -21,7 +21,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: "@omniroute/opencode-provider"
+    working-directory: "@birouter/opencode-provider"
 
 jobs:
   test:
@@ -39,7 +39,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-          cache-dependency-path: "@omniroute/opencode-provider/package-lock.json"
+          cache-dependency-path: "@birouter/opencode-provider/package-lock.json"
       - run: npm ci
       - run: npm test
 
@@ -55,11 +55,11 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: "@omniroute/opencode-provider/package-lock.json"
+          cache-dependency-path: "@birouter/opencode-provider/package-lock.json"
       - run: npm ci
       - run: npm run build
       - uses: actions/upload-artifact@v7
         with:
           name: opencode-provider-dist
-          path: "@omniroute/opencode-provider/dist"
+          path: "@birouter/opencode-provider/dist"
           retention-days: 7

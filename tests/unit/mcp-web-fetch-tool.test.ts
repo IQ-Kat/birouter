@@ -13,7 +13,7 @@ import { MCP_TOOL_SCOPES } from "../../src/shared/constants/mcpScopes.ts";
 // ── Tool definition shape ──
 
 test("webFetchTool has the required McpToolDefinition shape", () => {
-  assert.equal(webFetchTool.name, "omniroute_web_fetch");
+  assert.equal(webFetchTool.name, "birouter_web_fetch");
   assert.equal(typeof webFetchTool.description, "string");
   assert.ok(webFetchTool.description.length > 0);
   assert.ok(webFetchTool.inputSchema != null);
@@ -27,24 +27,18 @@ test("webFetchTool has the required McpToolDefinition shape", () => {
 
 test("webFetchTool is registered in MCP_TOOLS and MCP_TOOL_MAP", () => {
   const toolNames = MCP_TOOLS.map((t) => t.name);
-  assert.ok(
-    toolNames.includes("omniroute_web_fetch"),
-    "webFetchTool must be in MCP_TOOLS array"
-  );
-  assert.ok(
-    "omniroute_web_fetch" in MCP_TOOL_MAP,
-    "webFetchTool must be in MCP_TOOL_MAP"
-  );
+  assert.ok(toolNames.includes("birouter_web_fetch"), "webFetchTool must be in MCP_TOOLS array");
+  assert.ok("birouter_web_fetch" in MCP_TOOL_MAP, "webFetchTool must be in MCP_TOOL_MAP");
 });
 
 // ── Scope mapping ──
 
-test("omniroute_web_fetch is mapped in MCP_TOOL_SCOPES with execute:search", () => {
-  const scopes = MCP_TOOL_SCOPES["omniroute_web_fetch"];
-  assert.ok(scopes != null, "omniroute_web_fetch must have a scope mapping");
+test("birouter_web_fetch is mapped in MCP_TOOL_SCOPES with execute:search", () => {
+  const scopes = MCP_TOOL_SCOPES["birouter_web_fetch"];
+  assert.ok(scopes != null, "birouter_web_fetch must have a scope mapping");
   assert.ok(
     scopes.includes("execute:search"),
-    "omniroute_web_fetch must require execute:search scope"
+    "birouter_web_fetch must require execute:search scope"
   );
 });
 

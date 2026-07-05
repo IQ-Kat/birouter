@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/gamification/`, `src/lib/db/gamification.ts`, `src/app/api/gamification/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute includes a local-first gamification layer that rewards users for
+Birouter includes a local-first gamification layer that rewards users for
 engaging with the platform — making requests, switching providers, creating
 combos, sharing tokens, and contributing to the community. All state lives in
 SQLite; federation with community servers is opt-in and push-based.
@@ -38,7 +38,7 @@ sharing, invite rewards).
 | Leaderboards      | Global, weekly, monthly, token-sharing, and contribution scopes |
 | Token Sharing     | Transfer credits between users via double-entry ledger          |
 | Invite & Redeem   | Referral codes with SHA-256 hashed storage                      |
-| Community Servers | Federate with external OmniRoute instances                      |
+| Community Servers | Federate with external Birouter instances                       |
 | Anti-Cheat        | Server-side scoring, rate limiting, z-score anomaly detection   |
 
 ### Design Principles
@@ -116,7 +116,7 @@ src/app/api/gamification/
 
 ### Database Tables
 
-All tables live in the main OmniRoute SQLite database, created by migration
+All tables live in the main Birouter SQLite database, created by migration
 `060_create_gamification.sql`. WAL journaling is inherited from the singleton
 `getDbInstance()` in `src/lib/db/core.ts`.
 
@@ -175,7 +175,7 @@ All tables live in the main OmniRoute SQLite database, created by migration
 
 ### Domain Module: `src/lib/db/gamification.ts`
 
-Follows the standard OmniRoute pattern — imports `getDbInstance()` from
+Follows the standard Birouter pattern — imports `getDbInstance()` from
 `core.ts`, exports typed CRUD functions. No raw SQL in route handlers.
 
 Key functions:
@@ -362,7 +362,7 @@ keeps evaluation fast (< 5ms for most events).
 | Getting Warmed Up   | usage        | common    | 100 requests                 |
 | Power User          | usage        | uncommon  | 1,000 requests               |
 | Centurion           | usage        | rare      | 10,000 requests              |
-| OmniPower           | usage        | legendary | 100,000 requests             |
+| BiPower             | usage        | legendary | 100,000 requests             |
 | Provider Hopper     | contribution | common    | Use 5 different providers    |
 | Provider Master     | contribution | uncommon  | Use 20 different providers   |
 | Combo Architect     | contribution | uncommon  | Create 5 combos              |
@@ -588,7 +588,7 @@ export async function transferTokens(
 | `code`       | `A3K9X7M2` (unique, indexed) |
 | `token_hash` | SHA-256(raw_token)           |
 
-The raw token is returned to the user exactly once at creation time. OmniRoute
+The raw token is returned to the user exactly once at creation time. Birouter
 never stores or displays it again — only the hash persists.
 
 ### Self-Referral Prevention
@@ -722,7 +722,7 @@ Admins can query the full audit trail via `GET /api/gamification/anomalies`.
 
 ## API Routes
 
-All routes follow the standard OmniRoute pattern:
+All routes follow the standard Birouter pattern:
 
 ```
 Route → CORS preflight → Body validation (Zod) → Auth (extractApiKey)
@@ -812,16 +812,16 @@ Route → CORS preflight → Body validation (Zod) → Auth (extractApiKey)
 Registered in `open-sse/mcp-server/` alongside existing tools. Scoped under
 the `gamification` permission scope.
 
-| Tool                       | Description                           | Input Schema                 |
+| Tool | Description | Input Schema |
 | -------------------------- | ------------------------------------- | ---------------------------- | --------- |
-| `gamification_leaderboard` | Get leaderboard for a scope/period    | `{ scope, period?, limit? }` |
-| `gamification_rank`        | Get caller's rank and neighbors       | `{ scope }`                  |
-| `gamification_profile`     | Get XP, level, title, streak summary  | `{}`                         |
-| `gamification_badges`      | List earned badges or all definitions | `{ earned?: boolean }`       |
-| `gamification_transfer`    | Send tokens to another user           | `{ to, amount }`             |
-| `gamification_invite`      | Generate or list invite codes         | `{ action: "create"          | "list" }` |
-| `gamification_servers`     | List or connect community servers     | `{ action, token? }`         |
-| `gamification_anomalies`   | View anomaly reports (admin scope)    | `{ limit?, since? }`         |
+| `gamification_leaderboard` | Get leaderboard for a scope/period | `{ scope, period?, limit? }` |
+| `gamification_rank` | Get caller's rank and neighbors | `{ scope }` |
+| `gamification_profile` | Get XP, level, title, streak summary | `{}` |
+| `gamification_badges` | List earned badges or all definitions | `{ earned?: boolean }` |
+| `gamification_transfer` | Send tokens to another user | `{ to, amount }` |
+| `gamification_invite` | Generate or list invite codes | `{ action: "create"          | "list" }` |
+| `gamification_servers` | List or connect community servers | `{ action, token? }` |
+| `gamification_anomalies` | View anomaly reports (admin scope) | `{ limit?, since? }` |
 
 ---
 

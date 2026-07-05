@@ -65,13 +65,13 @@ function getDispatcherOptions() {
 export function getProxyDispatcherConnectionLimit(
   env: Record<string, string | undefined> = process.env
 ): number {
-  const raw = env.OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS;
+  const raw = env.BIROUTER_PROXY_DISPATCHER_CONNECTIONS;
   if (raw == null || raw.trim() === "") return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
 
   const parsed = Number(raw);
   if (!Number.isFinite(parsed) || parsed < 1) {
     console.warn(
-      `[ProxyDispatcher] Invalid OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_PROXY_DISPATCHER_CONNECTIONS}.`
+      `[ProxyDispatcher] Invalid BIROUTER_PROXY_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_PROXY_DISPATCHER_CONNECTIONS}.`
     );
     return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
   }
@@ -101,13 +101,13 @@ function getProxyDispatcherOptions(env: Record<string, string | undefined> = pro
 export function getDefaultDispatcherConnectionLimit(
   env: Record<string, string | undefined> = process.env
 ): number {
-  const raw = env.OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS;
+  const raw = env.BIROUTER_DIRECT_DISPATCHER_CONNECTIONS;
   if (raw == null || raw.trim() === "") return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
 
   const parsed = Number(raw);
   if (!Number.isFinite(parsed) || parsed < 1) {
     console.warn(
-      `[ProxyDispatcher] Invalid OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_PROXY_DISPATCHER_CONNECTIONS}.`
+      `[ProxyDispatcher] Invalid BIROUTER_DIRECT_DISPATCHER_CONNECTIONS="${raw}". Using default ${DEFAULT_PROXY_DISPATCHER_CONNECTIONS}.`
     );
     return DEFAULT_PROXY_DISPATCHER_CONNECTIONS;
   }

@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "错误：{message}",
-    "serverOffline": "OmniRoute 服务器已离线。请启动：omniroute serve",
-    "authRequired": "需要认证。请设置 OMNIROUTE_API_KEY 或运行：omniroute setup",
+    "serverOffline": "Birouter 服务器已离线。请启动：birouter serve",
+    "authRequired": "需要认证。请设置 BIROUTER_API_KEY 或运行：birouter setup",
     "rateLimited": "请求超出限制。请在 {seconds}s 后重试。",
     "timeout": "请求在 {ms}ms 后超时。",
     "success": "完成。",
@@ -15,19 +15,19 @@
     "yesOpt": "跳过确认"
   },
   "program": {
-    "description": "OmniRoute — 具有自动故障转移的智能 AI 路由器",
+    "description": "Birouter — 具有自动故障转移的智能 AI 路由器",
     "version": "打印版本并退出",
     "output": "输出格式（table, json, jsonl, csv）",
     "quiet": "禁止非必要输出",
     "no_color": "禁用彩色输出",
     "timeout": "HTTP 请求超时（毫秒）",
-    "api_key": "OmniRoute 服务器的 API 密钥",
-    "base_url": "OmniRoute 服务器的基础 URL",
+    "api_key": "Birouter 服务器的 API 密钥",
+    "base_url": "Birouter 服务器的基础 URL",
     "context": "此命令使用的服务器上下文/配置文件",
-    "lang": "设置 CLI 显示语言（覆盖 OMNIROUTE_LANG）"
+    "lang": "设置 CLI 显示语言（覆盖 BIROUTER_LANG）"
   },
   "setup": {
-    "title": "OmniRoute 设置",
+    "title": "Birouter 设置",
     "passwordPrompt": "管理员密码",
     "providerPrompt": "默认提供商（留空跳过）",
     "done": "设置完成",
@@ -41,19 +41,19 @@
     "providerInfo": "提供商：{info}"
   },
   "doctor": {
-    "title": "OmniRoute 诊断",
+    "title": "Birouter 诊断",
     "dbOk": "数据库：正常（{path}）",
-    "dbMissing": "数据库：未初始化 — 运行 omniroute setup",
+    "dbMissing": "数据库：未初始化 — 运行 birouter setup",
     "portOk": "端口 {port}：可用",
     "portConflict": "端口 {port}：已被其他进程占用",
     "encryptionOk": "加密密钥：已配置",
-    "encryptionMissing": "加密密钥缺失 — 运行 omniroute setup",
+    "encryptionMissing": "加密密钥缺失 — 运行 birouter setup",
     "allGood": "所有检查通过。",
     "warnings": "{count} 个警告 — 见上文。"
   },
   "providers": {
     "title": "提供商",
-    "noProviders": "未配置提供商。运行：omniroute setup",
+    "noProviders": "未配置提供商。运行：birouter setup",
     "testing": "正在测试 {name}...",
     "available": "{count} 个提供商可用",
     "connected": "已连接",
@@ -82,7 +82,7 @@
       "dryRunOpt": "预览将要更改的内容而不写入",
       "confirmPrompt": "替换连接 \"{name}\" ({id}) 的 API 密钥？[y/N] ",
       "dryRunResult": "【模拟】将轮换 \"{name}\" ({id}) 的密钥。未做任何更改。",
-      "oauthHint": "OAuth 连接 — 运行：omniroute oauth {provider}",
+      "oauthHint": "OAuth 连接 — 运行：birouter oauth {provider}",
       "envVarEmpty": "环境变量 {var} 未设置或为空。",
       "success": "已为 \"{name}\" 轮换密钥。运行 providers test {id} 验证。",
       "testPassed": "轮换后测试通过。",
@@ -93,7 +93,7 @@
       "providerOpt": "按提供商名称筛选",
       "header": "ID         提供商       名称                     过期状态  测试状态  冷却至",
       "noData": "没有可用的提供商连接数据。",
-      "requiresServer": "providers status 需要 OmniRoute 服务器正在运行。"
+      "requiresServer": "providers status 需要 Birouter 服务器正在运行。"
     }
   },
   "keys": {
@@ -101,8 +101,8 @@
     "addDescription": "为提供商添加或更新 API 密钥",
     "listDescription": "列出所有已配置的 API 密钥",
     "removeDescription": "移除提供商的 API 密钥",
-    "regenerateDescription": "重新生成 OmniRoute API 密钥",
-    "revokeDescription": "撤销 OmniRoute API 密钥",
+    "regenerateDescription": "重新生成 Birouter API 密钥",
+    "revokeDescription": "撤销 Birouter API 密钥",
     "revealDescription": "显示未掩码的 API 密钥值",
     "usageDescription": "显示 API 密钥的最近使用情况",
     "usageLimitOpt": "最近请求数",
@@ -217,10 +217,10 @@
     "reasoning": "推理努力级别（low|medium|high）",
     "thinking": "扩展思维令牌预算",
     "explain": "在 stderr 中打印回退树和成本范围",
-    "noCombo": "未找到匹配的组合。使用以下命令配置：omniroute combo create"
+    "noCombo": "未找到匹配的组合。使用以下命令配置：birouter combo create"
   },
   "chat": {
-    "description": "向 OmniRoute 发送一次性聊天提示",
+    "description": "向 Birouter 发送一次性聊天提示",
     "file": "从文件读取提示",
     "stdin": "从标准输入读取提示",
     "system": "系统提示",
@@ -233,14 +233,14 @@
     "combo": "强制指定组合名称",
     "responses_api": "使用 /v1/responses 而不是 /v1/chat/completions",
     "stream": "增量流式传输响应",
-    "no_history": "不保存到 ~/.omniroute/cli-history.jsonl",
+    "no_history": "不保存到 ~/.birouter/cli-history.jsonl",
     "error": {
       "empty_prompt": "错误：需要提供提示（位置参数、--file 或 --stdin）"
     }
   },
   "serve": {
-    "description": "启动 OmniRoute 服务器（默认操作）",
-    "starting": "正在启动 OmniRoute 服务器（端口 {port}）...",
+    "description": "启动 Birouter 服务器（默认操作）",
+    "starting": "正在启动 Birouter 服务器（端口 {port}）...",
     "ready": "就绪地址：http://localhost:{port}",
     "stopping": "正在停止服务器（PID {pid}）...",
     "stopped": "服务器已停止。",
@@ -256,7 +256,7 @@
   },
   "backup": {
     "title": "备份",
-    "description": "创建 OmniRoute 数据备份",
+    "description": "创建 Birouter 数据备份",
     "creating": "正在创建备份...",
     "done": "备份已保存至 {path}",
     "noFiles": "没有可备份的文件（数据库未初始化）",
@@ -268,7 +268,7 @@
     "noBackups": "未找到备份。",
     "notFound": "未找到备份：{name}",
     "confirmRestore": "用 {ts} 的备份覆盖当前数据？",
-    "createDescription": "创建 OmniRoute 数据备份",
+    "createDescription": "创建 Birouter 数据备份",
     "nameOpt": "自定义备份名称",
     "cloudOpt": "将备份上传到云存储",
     "encryptOpt": "使用 AES-256-GCM 加密备份",
@@ -286,14 +286,14 @@
       "statusDescription": "显示当前备份计划状态",
       "cronOpt": "计划 cron 表达式（默认：每天凌晨 3 点）",
       "enabled": "已启用自动备份（cron：{cron}）。",
-      "hint": "  计划由 omniroute serve 启动时读取。",
+      "hint": "  计划由 birouter serve 启动时读取。",
       "disabled": "已禁用自动备份。",
       "notConfigured": "未配置备份计划。"
     }
   },
   "health": {
     "description": "检查服务器健康状态和组件状态",
-    "noServer": "服务器未运行。启动：omniroute serve",
+    "noServer": "服务器未运行。启动：birouter serve",
     "title": "健康状态",
     "status": "状态：{status}",
     "uptime": "运行时间：{uptime}",
@@ -302,21 +302,21 @@
   },
   "quota": {
     "description": "显示提供商配额使用情况",
-    "noServer": "服务器未运行。启动：omniroute serve",
+    "noServer": "服务器未运行。启动：birouter serve",
     "noData": "没有可用的配额信息。"
   },
   "cache": {
     "description": "管理响应缓存",
-    "noServer": "服务器未运行。启动：omniroute serve",
+    "noServer": "服务器未运行。启动：birouter serve",
     "cleared": "缓存已清除。",
     "clearFailed": "清除缓存失败。"
   },
   "redis": {
-    "description": "一键启动本地 Redis 容器（Podman 或 Docker），用于 OmniRoute 缓存和配额跟踪"
+    "description": "一键启动本地 Redis 容器（Podman 或 Docker），用于 Birouter 缓存和配额跟踪"
   },
   "test": {
     "description": "测试提供商连接",
-    "noServer": "服务器未运行。启动：omniroute serve",
+    "noServer": "服务器未运行。启动：birouter serve",
     "testing": "正在测试 {provider} / {model}...",
     "passed": "连接成功！",
     "failed": "连接失败：{error}",
@@ -328,7 +328,7 @@
     "saved": "结果已保存至 {path}",
     "compareTitle": "模型比较",
     "compareMinTwo": "--compare 需要至少两个模型（逗号分隔）",
-    "noProviders": "未配置提供商。添加：omniroute keys add"
+    "noProviders": "未配置提供商。添加：birouter keys add"
   },
   "update": {
     "checking": "正在检查更新...",
@@ -400,7 +400,7 @@
     }
   },
   "policy": {
-    "description": "管理 OmniRoute 授权策略",
+    "description": "管理 Birouter 授权策略",
     "list": {
       "description": "列出策略",
       "kind": "按类型筛选（allow|deny|rate-limit|cost-cap）",
@@ -437,7 +437,7 @@
     }
   },
   "compression": {
-    "description": "配置和检查 OmniRoute 压缩管道",
+    "description": "配置和检查 Birouter 压缩管道",
     "status": {
       "description": "显示当前压缩状态和设置"
     },
@@ -491,18 +491,18 @@
     "confirmRotate": "轮换隧道 {type}？（将生成新 URL）"
   },
   "stop": {
-    "description": "停止 OmniRoute 服务器",
+    "description": "停止 Birouter 服务器",
     "stopping": "正在停止服务器（PID {pid}）...",
     "stopped": "服务器已停止。",
     "notRunning": "没有服务器在运行。",
     "portFallback": "未找到 PID 文件，尝试通过端口停止..."
   },
   "restart": {
-    "description": "重启 OmniRoute 服务器",
-    "restarting": "正在重启 OmniRoute 服务器..."
+    "description": "重启 Birouter 服务器",
+    "restarting": "正在重启 Birouter 服务器..."
   },
   "dashboard": {
-    "description": "在浏览器中打开 OmniRoute 仪表盘",
+    "description": "在浏览器中打开 Birouter 仪表盘",
     "opening": "正在打开仪表盘：{url}",
     "urlOnly": "仅打印仪表盘 URL，不打开浏览器",
     "tui": "打开交互式 TUI 仪表盘（终端 UI，7 个标签页）"
@@ -510,7 +510,7 @@
   "models": {
     "description": "列出可用模型（需要服务器）",
     "search": "按 ID、名称、提供商或描述筛选模型",
-    "noServer": "服务器未运行。启动：omniroute serve",
+    "noServer": "服务器未运行。启动：birouter serve",
     "noModels": "未找到模型。"
   },
   "audit": {
@@ -542,7 +542,7 @@
     }
   },
   "skills": {
-    "description": "管理 OmniRoute 技能（沙箱、内置、自定义、混合、skillssh）",
+    "description": "管理 Birouter 技能（沙箱、内置、自定义、混合、skillssh）",
     "list": {
       "description": "列出已安装的技能",
       "type": "按类型筛选（sandbox|custom|builtin|hybrid|skillssh）",
@@ -615,7 +615,7 @@
     }
   },
   "memory": {
-    "description": "管理 OmniRoute 对话记忆（FTS5 + 向量）",
+    "description": "管理 Birouter 对话记忆（FTS5 + 向量）",
     "search": {
       "description": "按语义查询搜索记忆条目",
       "type": "按记忆类型筛选（user|feedback|project|reference）",
@@ -773,7 +773,7 @@
     }
   },
   "webhooks": {
-    "description": "管理 OmniRoute Webhook",
+    "description": "管理 Birouter Webhook",
     "events": {
       "description": "列出所有可用的 Webhook 事件类型"
     },
@@ -1046,7 +1046,7 @@
     }
   },
   "openapi": {
-    "description": "访问和测试 OmniRoute OpenAPI 规范",
+    "description": "访问和测试 Birouter OpenAPI 规范",
     "dump": {
       "description": "将 OpenAPI 规范输出到 stdout 或文件",
       "format": "输出格式：yaml|json（默认：yaml）",
@@ -1116,7 +1116,7 @@
     }
   },
   "open": {
-    "description": "在浏览器中打开特定的 OmniRoute 仪表盘页面",
+    "description": "在浏览器中打开特定的 Birouter 仪表盘页面",
     "url": "仅打印 URL，不打开浏览器"
   },
   "telemetry": {
@@ -1133,7 +1133,7 @@
     }
   },
   "sync": {
-    "description": "在 OmniRoute 实例之间同步配置",
+    "description": "在 Birouter 实例之间同步配置",
     "push": {
       "description": "将配置推送到云或远程实例",
       "target": "目标（cloud 或 context:name）",
@@ -1189,10 +1189,10 @@
       "listTitle": "可用语言",
       "current": "语言：{code}（{name}）",
       "saved": "语言已设置为 {code}（{name}）。",
-      "noCode": "需要语言代码。运行 omniroute config lang list 查看可用代码。",
-      "unknown": "未知语言代码：{code}。运行 omniroute config lang list 查看可用代码。",
+      "noCode": "需要语言代码。运行 birouter config lang list 查看可用代码。",
+      "unknown": "未知语言代码：{code}。运行 birouter config lang list 查看可用代码。",
       "alreadySet": "语言已设置为 {code}。",
-      "envHint": "提示：您也可以在环境中设置 OMNIROUTE_LANG={code}。"
+      "envHint": "提示：您也可以在环境中设置 BIROUTER_LANG={code}。"
     }
   },
   "completion": {
@@ -1209,7 +1209,7 @@
     "filter": "按级别筛选（error,warn,info）— 逗号分隔",
     "lines": "要获取的行数",
     "timeout": "连接超时（毫秒）",
-    "baseUrl": "OmniRoute API 基础 URL",
+    "baseUrl": "Birouter API 基础 URL",
     "requestId": "按请求 ID 筛选",
     "apiKey": "按 API 密钥筛选",
     "combo": "按组合名称筛选",
@@ -1225,10 +1225,10 @@
     "description": "控制系统托盘图标",
     "show": "显示托盘图标（如果服务器使用 --tray 运行）",
     "hide": "隐藏托盘图标",
-    "quit": "通过托盘退出 OmniRoute"
+    "quit": "通过托盘退出 Birouter"
   },
   "autostart": {
-    "description": "管理 OmniRoute 开机自启（Linux：systemd 用户服务）",
+    "description": "管理 Birouter 开机自启（Linux：systemd 用户服务）",
     "enable": "启用开机自启",
     "disable": "禁用开机自启",
     "status": "显示自启状态",
@@ -1250,7 +1250,7 @@
     "resume": "按名称恢复保存的会话"
   },
   "plugin": {
-    "description": "管理 CLI 插件（omniroute-cmd-*）",
+    "description": "管理 CLI 插件（birouter-cmd-*）",
     "list": "列出已安装的插件",
     "install": "从 npm 或本地路径安装插件",
     "remove": "删除已安装的插件",

@@ -83,7 +83,9 @@ export default function AccessTokensTab() {
       setScope("read");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : L("accessTokensCreateError", "Could not create token."));
+      setError(
+        e instanceof Error ? e.message : L("accessTokensCreateError", "Could not create token.")
+      );
     } finally {
       setCreating(false);
     }
@@ -126,7 +128,7 @@ export default function AccessTokensTab() {
           <p className="mt-1 text-sm text-text-muted">
             {L(
               "accessTokensDescription",
-              "Scoped tokens that let the omniroute CLI manage this server remotely. Distinct from inference API keys. The secret is shown once."
+              "Scoped tokens that let the birouter CLI manage this server remotely. Distinct from inference API keys. The secret is shown once."
             )}
           </p>
         </div>
@@ -161,7 +163,9 @@ export default function AccessTokensTab() {
               onChange={(e) => setExpires(e.target.value)}
             />
             <Button onClick={createToken} disabled={creating || !name.trim()}>
-              {creating ? L("accessTokensCreating", "Creating…") : L("accessTokensCreate", "Create")}
+              {creating
+                ? L("accessTokensCreating", "Creating…")
+                : L("accessTokensCreate", "Create")}
             </Button>
           </div>
 
@@ -213,10 +217,18 @@ export default function AccessTokensTab() {
                   <tr className="border-b border-border text-left text-text-muted">
                     <th className="py-2 pr-4 font-medium">{L("accessTokensColName", "Name")}</th>
                     <th className="py-2 pr-4 font-medium">{L("accessTokensColScope", "Scope")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColPrefix", "Prefix")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColStatus", "Status")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColLastUsed", "Last used")}</th>
-                    <th className="py-2 pr-4 font-medium">{L("accessTokensColExpires", "Expires")}</th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColPrefix", "Prefix")}
+                    </th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColStatus", "Status")}
+                    </th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColLastUsed", "Last used")}
+                    </th>
+                    <th className="py-2 pr-4 font-medium">
+                      {L("accessTokensColExpires", "Expires")}
+                    </th>
                     <th className="py-2 font-medium" />
                   </tr>
                 </thead>

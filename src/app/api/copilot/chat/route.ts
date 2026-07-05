@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { processCopilotChat } from "@/lib/copilot/engine";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { sanitizeErrorMessage, buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage, buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 
 const copilotRequestSchema = z.object({
   messages: z
@@ -19,8 +19,8 @@ const copilotRequestSchema = z.object({
 /**
  * POST /api/copilot/chat
  *
- * OmniRoute Copilot chat endpoint.
- * Accepts user messages about OmniRoute configuration and returns
+ * Birouter Copilot chat endpoint.
+ * Accepts user messages about Birouter configuration and returns
  * tool-based responses + AI guidance.
  *
  * Body: { messages: [{ role: "user"|"assistant"|"system", content: string }] }

@@ -2,7 +2,7 @@
  * #1311: echo the client-requested model/alias name back in the response.
  *
  * When a request uses an alias or combo (e.g. `claude-sonnet-cx` → `cx/gpt-5.5`),
- * OmniRoute forwards the upstream model name (`gpt-5.5`) in the response `model`
+ * Birouter forwards the upstream model name (`gpt-5.5`) in the response `model`
  * field. Strict clients (e.g. Claude Desktop) validate that the response model
  * matches the request and reject the mismatch with a 401. This opt-in helper
  * rewrites the `model` field back to the name the client asked for.

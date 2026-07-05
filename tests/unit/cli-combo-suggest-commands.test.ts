@@ -19,7 +19,7 @@ function makeCmd(output = "json") {
   return { optsWithGlobals: () => ({ output, quiet: output !== "table" }) };
 }
 
-test("combo suggest chama omniroute_best_combo_for_task via MCP", async () => {
+test("combo suggest chama birouter_best_combo_for_task via MCP", async () => {
   let capturedBody: any = null;
   let capturedUrl = "";
   const origFetch = globalThis.fetch;
@@ -45,14 +45,14 @@ test("combo suggest chama omniroute_best_combo_for_task via MCP", async () => {
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_best_combo_for_task",
+      name: "birouter_best_combo_for_task",
       arguments: { task: "Real-time code completions", top: 5 },
     }),
   });
 
   globalThis.fetch = origFetch;
   assert.ok(capturedUrl.includes("/api/mcp/tools/call"));
-  assert.equal(capturedBody.name, "omniroute_best_combo_for_task");
+  assert.equal(capturedBody.name, "birouter_best_combo_for_task");
   assert.equal(capturedBody.arguments.task, "Real-time code completions");
 });
 
@@ -67,7 +67,7 @@ test("combo suggest --max-cost/--max-latency-ms passa constraints", async () => 
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_best_combo_for_task",
+      name: "birouter_best_combo_for_task",
       arguments: {
         task: "Summarize PDFs",
         constraints: { maxCostUsd: 0.001, maxLatencyMs: 500 },
@@ -93,7 +93,7 @@ test("combo suggest --weights passa pesos no body", async () => {
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
     body: JSON.stringify({
-      name: "omniroute_best_combo_for_task",
+      name: "birouter_best_combo_for_task",
       arguments: {
         task: "batch",
         weights: { latency: 0.7, cost: 0.3 },
@@ -119,7 +119,7 @@ test("combo suggest --switch chama /api/combos/switch com melhor combo", async (
 
   await (globalThis.fetch as any)("/api/mcp/tools/call", {
     method: "POST",
-    body: '{"name":"omniroute_best_combo_for_task","arguments":{"task":"x"}}',
+    body: '{"name":"birouter_best_combo_for_task","arguments":{"task":"x"}}',
   });
   await (globalThis.fetch as any)("/api/combos/switch", {
     method: "POST",

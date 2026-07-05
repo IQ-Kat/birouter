@@ -18,7 +18,7 @@ import path from "node:path";
 import type { NextRequest } from "next/server";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-obsidian-webdav-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-obsidian-webdav-route-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
@@ -92,7 +92,7 @@ test("GET with no config → webdavEnabled:false, all creds null", async () => {
 });
 
 test("POST with a valid temp dir → returns { username, password }, GET shows enabled", async () => {
-  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault-"));
+  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-vault-"));
   try {
     const req = makeRequest("http://localhost/api/settings/obsidian/webdav", {
       method: "POST",
@@ -103,8 +103,14 @@ test("POST with a valid temp dir → returns { username, password }, GET shows e
 
     assert.equal(res.status, 200);
     const body = (await res.json()) as Record<string, unknown>;
-    assert.ok(typeof body.username === "string" && (body.username as string).length > 0, "username non-empty");
-    assert.ok(typeof body.password === "string" && (body.password as string).length > 0, "password non-empty");
+    assert.ok(
+      typeof body.username === "string" && (body.username as string).length > 0,
+      "username non-empty"
+    );
+    assert.ok(
+      typeof body.password === "string" && (body.password as string).length > 0,
+      "password non-empty"
+    );
     assert.ok(typeof body.vaultPath === "string", "vaultPath returned");
 
     // GET should now reflect enabled state
@@ -113,15 +119,19 @@ test("POST with a valid temp dir → returns { username, password }, GET shows e
     assert.equal(getRes.status, 200);
     const getBody = (await getRes.json()) as Record<string, unknown>;
     assert.equal(getBody.webdavEnabled, true);
-    assert.ok(typeof getBody.webdavUsername === "string" && (getBody.webdavUsername as string).length > 0);
-    assert.ok(typeof getBody.webdavPassword === "string" && (getBody.webdavPassword as string).length > 0);
+    assert.ok(
+      typeof getBody.webdavUsername === "string" && (getBody.webdavUsername as string).length > 0
+    );
+    assert.ok(
+      typeof getBody.webdavPassword === "string" && (getBody.webdavPassword as string).length > 0
+    );
   } finally {
     fs.rmSync(vaultDir, { recursive: true, force: true });
   }
 });
 
 test("POST with a non-existent path → 400, body does NOT contain a stack trace", async () => {
-  const nonExistentPath = path.join(os.tmpdir(), "omni-nonexistent-vault-" + Date.now());
+  const nonExistentPath = path.join(os.tmpdir(), "bi-nonexistent-vault-" + Date.now());
   const req = makeRequest("http://localhost/api/settings/obsidian/webdav", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -131,7 +141,8 @@ test("POST with a non-existent path → 400, body does NOT contain a stack trace
 
   assert.equal(res.status, 400);
   const body = (await res.json()) as Record<string, unknown>;
-  const errorMsg = (body.error as Record<string, unknown> | undefined)?.message as string | undefined;
+  const errorMsg = (body.error as Record<string, unknown> | undefined)?.message as
+    string | undefined;
   // Must not leak stack trace
   assert.ok(
     !errorMsg || !errorMsg.includes("at /"),
@@ -150,7 +161,7 @@ test("POST with invalid body (missing vaultPath) → 400", async () => {
 });
 
 test("DELETE after enable → webdavEnabled:false, creds cleared in GET", async () => {
-  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault2-"));
+  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-vault2-"));
   try {
     // Enable first
     const enableReq = makeRequest("http://localhost/api/settings/obsidian/webdav", {
@@ -183,7 +194,7 @@ test("DELETE after enable → webdavEnabled:false, creds cleared in GET", async 
 });
 
 test("GET when disabled does not leak password even if stale data exists", async () => {
-  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault3-"));
+  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-vault3-"));
   try {
     // Enable, then disable
     const enableReq = makeRequest("http://localhost/api/settings/obsidian/webdav", {
@@ -220,7 +231,7 @@ test("Unauthenticated GET → 401 when auth is required", async () => {
 });
 
 test("Unauthenticated POST → 401 when auth is required", async () => {
-  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault4-"));
+  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-vault4-"));
   try {
     process.env.INITIAL_PASSWORD = "bootstrap-password";
     await settingsDb.updateSettings({ requireLogin: true, password: "" });
@@ -297,5 +308,9 @@ test("encryption graceful fallback: plaintext stored without key reads back corr
 
   // Must read back the same value
   const retrieved = obsidianDb.getWebdavPassword();
-  assert.equal(retrieved, plaintext, "Plaintext value must read back unchanged when no encryption key");
+  assert.equal(
+    retrieved,
+    plaintext,
+    "Plaintext value must read back unchanged when no encryption key"
+  );
 });

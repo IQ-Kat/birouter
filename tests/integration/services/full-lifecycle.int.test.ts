@@ -39,7 +39,7 @@ function maybeSkip(t: { skip: (reason?: string) => void }): boolean {
   return false;
 }
 
-const BASE_URL = process.env.OMNIROUTE_TEST_URL ?? "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_TEST_URL ?? "http://localhost:20128";
 
 async function apiPost(path: string, body?: unknown): Promise<{ status: number; body: unknown }> {
   const res = await fetch(`${BASE_URL}${path}`, {

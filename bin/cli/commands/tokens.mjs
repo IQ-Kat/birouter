@@ -4,7 +4,7 @@ import { printSuccess, printError, printInfo } from "../io.mjs";
 import { t } from "../i18n.mjs";
 
 /**
- * `omniroute tokens` — manage scoped CLI access tokens on the active (usually
+ * `birouter tokens` — manage scoped CLI access tokens on the active (usually
  * remote) server. Requires an `admin` credential — the commands hit
  * /api/cli/tokens which is admin-only. Uses the active context's auth via
  * apiFetch automatically.

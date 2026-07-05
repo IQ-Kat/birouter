@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import * as yaml from "js-yaml";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
 const OPENAPI_SPEC_CANDIDATES = [

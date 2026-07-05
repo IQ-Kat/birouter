@@ -51,7 +51,7 @@ const BX_UMIDTOKEN_FALLBACK = "T2gA0000000000000000000000000000000000000000";
 const QWEN_SPA_VERSION = "0.2.66";
 
 const MODEL_ALIASES: Record<string, string> = {
-  // Legacy OmniRoute ids → current upstream catalog (GET /api/models).
+  // Legacy Birouter ids → current upstream catalog (GET /api/models).
   "qwen-plus": "qwen3.7-plus",
   "qwen-max": "qwen3.7-max",
   "qwen-turbo": "qwen3.6-plus",

@@ -129,13 +129,13 @@ test("proxy fetch uses TLS fingerprint transport when enabled and available", as
     async () => {
       setTlsAvailable(true);
       tlsClient.fetch = async (url, options = {}) => {
-        assert.equal(url, "https://omniroute.example.test/hello");
+        assert.equal(url, "https://birouter.example.test/hello");
         assert.equal(options.method, "POST");
         return Response.json({ via: "tls-client" });
       };
 
       const tracked = await runWithTlsTracking(() =>
-        proxyFetch("https://omniroute.example.test/hello", {
+        proxyFetch("https://birouter.example.test/hello", {
           method: "POST",
           headers: { "x-test": "1" },
         })
@@ -176,7 +176,7 @@ test("runWithProxyContext throws PROXY_UNREACHABLE for an unreachable proxy by d
 });
 
 test("runWithProxyContext degrades to a direct connection when directFallbackOnUnreachable is set", async () => {
-  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
+  await withEnv({ BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
     let ran = false;
     const result = await runWithProxyContext(
       { type: "http", host: "127.0.0.1", port: "9" },
@@ -193,7 +193,7 @@ test("runWithProxyContext degrades to a direct connection when directFallbackOnU
 });
 
 test("runWithProxyContext keeps strict pinning when the direct fallback feature flag is off", async () => {
-  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "false" }, async () => {
+  await withEnv({ BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "false" }, async () => {
     await assert.rejects(
       runWithProxyContext(
         { type: "http", host: "127.0.0.1", port: "9" },
@@ -206,7 +206,7 @@ test("runWithProxyContext keeps strict pinning when the direct fallback feature 
 });
 
 test("runWithProxyContextOrDirect runs the callback directly when the proxy is unreachable", async () => {
-  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
+  await withEnv({ BIROUTER_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
     let ran = false;
     const result = await runWithProxyContextOrDirect(
       { type: "http", host: "127.0.0.1", port: "9" },

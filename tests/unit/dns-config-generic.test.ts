@@ -125,7 +125,7 @@ test("addDNSEntries: skips hosts already in /etc/hosts (idempotency)", async () 
 
 test("removeDNSEntries: skips hosts NOT in /etc/hosts (idempotency)", async () => {
   // A host that almost certainly does not exist in /etc/hosts.
-  const fakeHost = `omniroute-test-nonexistent-${Date.now()}.invalid`;
+  const fakeHost = `birouter-test-nonexistent-${Date.now()}.invalid`;
   await assert.doesNotReject(
     removeDNSEntries([fakeHost], "fake-sudo-password"),
     "removeDNSEntries must not throw when host is not present"

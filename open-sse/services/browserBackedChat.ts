@@ -6,7 +6,7 @@
  * upstream SSE/JSON response body as a Node Response.
  *
  * Used by duckduckgo-web and claude-web executors when
- * OMNIROUTE_BROWSER_POOL=on (or WEB_COOKIE_USE_BROWSER=1) is set and
+ * BIROUTER_BROWSER_POOL=on (or WEB_COOKIE_USE_BROWSER=1) is set and
  * the user wants guaranteed live working from this environment, even at
  * the cost of 5-15s of browser navigation overhead per request.
  *
@@ -692,7 +692,7 @@ async function startBrowserWarmup(
   req: BrowserBackedChatRequest
 ): Promise<import("./browserPool.ts").PooledContext | null> {
   if (!req.cookieDomain || httpOverride !== null) return null;
-  const flag = process.env.OMNIROUTE_BROWSER_POOL;
+  const flag = process.env.BIROUTER_BROWSER_POOL;
   if (flag === "off" || flag === "0" || flag === "false") return null;
   try {
     const { key } = await settlePoolKey(req.poolKey, true);
@@ -752,7 +752,7 @@ function isChallengeResponse(status: number): boolean {
  *   5. browserBackedChat (slow, ~10-25s) — Full chat through browser
  *
  * Returns the first successful (2xx) response, or the last error.
- * Skips browser steps when OMNIROUTE_BROWSER_POOL=off.
+ * Skips browser steps when BIROUTER_BROWSER_POOL=off.
  */
 export async function tryBackedChat(
   req: BrowserBackedChatRequest

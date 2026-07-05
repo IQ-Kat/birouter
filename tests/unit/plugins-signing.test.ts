@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-signing-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-signing-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -29,7 +29,9 @@ function writePlugin(dir: string, name: string, source: string, integrity?: stri
 const activeDirs: string[] = [];
 function cleanupDirs() {
   for (const d of activeDirs) {
-    try { fs.rmSync(d, { recursive: true, force: true }); } catch {}
+    try {
+      fs.rmSync(d, { recursive: true, force: true });
+    } catch {}
   }
   activeDirs.length = 0;
 }
@@ -44,7 +46,9 @@ test.beforeEach(() => {
 test.after(() => {
   core.resetDbInstance();
   cleanupDirs();
-  try { fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true }); } catch {}
+  try {
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  } catch {}
 });
 
 test("computeIntegrity returns correct format", async () => {

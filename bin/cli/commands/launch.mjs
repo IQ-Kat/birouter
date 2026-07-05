@@ -12,7 +12,7 @@ function stripTrailingSlash(value) {
 }
 
 /**
- * Build a clean child env for Claude Code pointed at OmniRoute.
+ * Build a clean child env for Claude Code pointed at Birouter.
  *
  * Strips inherited ANTHROPIC_* (avoids a stale shell token leaking through), then
  * injects the base URL, gateway model discovery, and auto-compact window.
@@ -40,10 +40,10 @@ export function buildClaudeEnv(baseEnv, baseUrlOrPort, authToken, opts = {}) {
 
   env.ANTHROPIC_BASE_URL = baseUrl;
   // Always set a token: when none is resolved, a sentinel keeps newer Claude Code
-  // from stopping at its local login gate before it ever contacts OmniRoute (an
+  // from stopping at its local login gate before it ever contacts Birouter (an
   // open backend ignores the value). Mirrors free-claude-code. ANTHROPIC_API_KEY
   // stays stripped (above) so it can't shadow the Bearer token.
-  env.ANTHROPIC_AUTH_TOKEN = (authToken && String(authToken).trim()) || "omniroute-no-auth";
+  env.ANTHROPIC_AUTH_TOKEN = (authToken && String(authToken).trim()) || "birouter-no-auth";
   env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1";
   env.CLAUDE_CODE_AUTO_COMPACT_WINDOW = "190000";
   // Profile isolation (Claude Code has no native profiles — CLAUDE_CONFIG_DIR is
@@ -54,7 +54,7 @@ export function buildClaudeEnv(baseEnv, baseUrlOrPort, authToken, opts = {}) {
 }
 
 /**
- * Resolve the OmniRoute base URL + auth for launch, honouring (in order):
+ * Resolve the Birouter base URL + auth for launch, honouring (in order):
  * explicit flags → the active context (remote mode) → localhost:<port>.
  * @param {{port?:string, remote?:string, baseUrl?:string, token?:string, apiKey?:string, context?:string}} opts
  * @returns {{ baseUrl:string, authToken:string|undefined }}
@@ -67,7 +67,7 @@ export function resolveLaunchTarget(opts = {}) {
   } else {
     let fromCtx;
     try {
-      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      const ctx = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT);
       fromCtx = ctx?.baseUrl;
     } catch {
       /* no context */
@@ -80,13 +80,13 @@ export function resolveLaunchTarget(opts = {}) {
   let authToken = opts.token ?? opts.apiKey ?? opts["api-key"];
   if (!authToken) {
     try {
-      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      const ctx = resolveActiveContext(opts.context ?? process.env.BIROUTER_CONTEXT);
       authToken = ctx?.accessToken || ctx?.apiKey || undefined;
     } catch {
       /* no context auth */
     }
   }
-  if (!authToken) authToken = process.env.ANTHROPIC_AUTH_TOKEN ?? process.env.OMNIROUTE_API_KEY;
+  if (!authToken) authToken = process.env.ANTHROPIC_AUTH_TOKEN ?? process.env.BIROUTER_API_KEY;
   return { baseUrl, authToken };
 }
 
@@ -106,10 +106,10 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
     if (!res.ok) throw new Error(`status ${res.status}`);
   } catch {
     console.error(
-      (t("launch.notRunning") || "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.").replace(
-        "{port}",
-        baseUrl
-      )
+      (
+        t("launch.notRunning") ||
+        "Birouter is not reachable at {port}. Start it with 'birouter serve'."
+      ).replace("{port}", baseUrl)
     );
     return 1;
   }
@@ -138,13 +138,16 @@ export function registerLaunch(program) {
   program
     .command("launch")
     .description(
-      t("launch.description") || "Launch Claude Code pointed at OmniRoute (local or remote)"
+      t("launch.description") || "Launch Claude Code pointed at Birouter (local or remote)"
     )
     .option("--port <port>", t("serve.port") || "Proxy port", "20128")
-    .option("--remote <url>", "Remote OmniRoute base URL (overrides --port and the active context)")
-    .option("--profile <name>", "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)")
+    .option("--remote <url>", "Remote Birouter base URL (overrides --port and the active context)")
+    .option(
+      "--profile <name>",
+      "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)"
+    )
     .option("--token <token>", t("launch.token") || "Token Claude sends (ANTHROPIC_AUTH_TOKEN)")
-    .option("--api-key <key>", "Alias for --token (OmniRoute access token / API key)")
+    .option("--api-key <key>", "Alias for --token (Birouter access token / API key)")
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .argument("[claudeArgs...]", "arguments passed through to the claude binary")

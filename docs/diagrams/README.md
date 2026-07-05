@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Diagrams
 
-Mermaid sources (`.mmd`) and exported SVGs for OmniRoute v3.8.0 architecture flows.
+Mermaid sources (`.mmd`) and exported SVGs for Birouter v3.8.0 architecture flows.
 
 ## Canonical diagrams
 

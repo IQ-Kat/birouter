@@ -6,7 +6,7 @@ const MANAGEMENT_PASSWORD_SALT_ROUNDS = 12;
 
 // Well-known placeholder shipped in `.env.example` (INITIAL_PASSWORD=CHANGEME). Bootstrapping
 // with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
-const INSECURE_DEFAULT_PASSWORDS = new Set(["CHANGEME"]);
+const INSECURE_DEFAULT_PASSWORDS = new Set(["CHANGEME", "2468"]);
 
 type JsonRecord = Record<string, unknown>;
 
@@ -76,7 +76,7 @@ export async function ensurePersistentManagementPasswordHash(
   if (bootstrapPassword && INSECURE_DEFAULT_PASSWORDS.has(bootstrapPassword)) {
     const warn = options.logger?.warn?.bind(options.logger) ?? console.warn;
     warn(
-      '[AUTH][SECURITY] Management password is set to the well-known default "CHANGEME" ' +
+      '[AUTH][SECURITY] Management password is set to the well-known default "2468" ' +
         "(INITIAL_PASSWORD in .env.example). Anyone can sign in to the dashboard with it — " +
         "change it immediately via the dashboard or a strong INITIAL_PASSWORD."
     );

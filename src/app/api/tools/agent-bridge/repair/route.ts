@@ -10,7 +10,7 @@
  */
 import { z } from "zod";
 import { repairMitm, getCachedPassword } from "@/mitm/manager";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 // Exported for unit testing. Next.js only treats GET/POST/etc. as route

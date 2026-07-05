@@ -19,7 +19,7 @@ export function isRoot(): boolean {
 /**
  * Probe whether `sudo` is discoverable on PATH.
  *
- * Slim Docker images (e.g. `node:24-trixie-slim` used by OmniRoute's runtime
+ * Slim Docker images (e.g. `node:24-trixie-slim` used by Birouter's runtime
  * stage) do not ship `sudo`. When the container runs as a non-root user
  * (`USER node`, UID 1000), `spawn("sudo", ...)` fails with ENOENT and breaks
  * any MITM operation triggered from inside the container. `execFileWithPassword`
@@ -94,7 +94,8 @@ export function execFileWithPassword(
     // `spawn` is used (not `exec`) so each arg is a separate argv entry and
     // shell metacharacters do not expand. See docs/security/SOCKET_DEV_FINDINGS.md §3.
     // nosemgrep
-    const child = spawn(finalCommand, finalArgs, { // nosemgrep
+    const child = spawn(finalCommand, finalArgs, {
+      // nosemgrep
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
@@ -193,8 +194,8 @@ export function buildElevatedScriptWrapper(scriptPath: string): string {
 //     local dashboard at /dashboard/cli-tools/mitm.
 // See docs/security/SOCKET_DEV_FINDINGS.md §3 for the full attestation.
 export async function runElevatedPowerShell(script: string): Promise<string> {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-elevate-"));
-  const scriptName = `omniroute-elevate-${crypto.randomUUID()}.ps1`;
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-elevate-"));
+  const scriptName = `birouter-elevate-${crypto.randomUUID()}.ps1`;
   const scriptPath = path.join(tempDir, scriptName);
   fs.writeFileSync(scriptPath, script, { encoding: "utf8", mode: 0o600 });
   try {
@@ -218,8 +219,8 @@ export async function _runElevatedPowerShellForTest(
   script: string,
   runner: (wrapper: string, scriptPath: string) => Promise<string>
 ): Promise<string> {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-elevate-"));
-  const scriptName = `omniroute-elevate-${crypto.randomUUID()}.ps1`;
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-elevate-"));
+  const scriptName = `birouter-elevate-${crypto.randomUUID()}.ps1`;
   const scriptPath = path.join(tempDir, scriptName);
   fs.writeFileSync(scriptPath, script, { encoding: "utf8", mode: 0o600 });
   try {

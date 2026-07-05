@@ -21,11 +21,10 @@ describe("config-generator", () => {
   });
 
   describe("assertSafeCatalogUrl (SSRF guard, CodeQL #326)", () => {
-    it("allows the loopback OmniRoute target (the legitimate default) and returns a URL", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
-      // The catalog source IS the user's own OmniRoute — localhost must stay allowed.
+    it("allows the loopback Birouter target (the legitimate default) and returns a URL", async () => {
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
+      // The catalog source IS the user's own Birouter — localhost must stay allowed.
       assert.doesNotThrow(() => assertSafeCatalogUrl("http://localhost:20128/v1/models"));
       assert.doesNotThrow(() => assertSafeCatalogUrl("http://127.0.0.1:20128/v1/models"));
       // Returns the validated, re-parsed URL (taint-severed value the caller fetches).
@@ -34,27 +33,22 @@ describe("config-generator", () => {
       assert.equal(safe.href, "http://localhost:20128/v1/models");
     });
 
-    it("allows a public OmniRoute Cloud target", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+    it("allows a public Birouter Cloud target", async () => {
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       assert.doesNotThrow(() => assertSafeCatalogUrl("https://api.omniroute.online/v1/models"));
     });
 
     it("blocks the cloud-metadata SSRF→IAM pivot (169.254.169.254)", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       assert.throws(() => assertSafeCatalogUrl("http://169.254.169.254/v1/models"));
-      assert.throws(() =>
-        assertSafeCatalogUrl("http://metadata.google.internal/v1/models")
-      );
+      assert.throws(() => assertSafeCatalogUrl("http://metadata.google.internal/v1/models"));
     });
 
     it("blocks non-http(s) protocols and embedded credentials", async () => {
-      const { assertSafeCatalogUrl } = await import(
-        "../../../src/lib/cli-helper/config-generator/opencode.ts"
-      );
+      const { assertSafeCatalogUrl } =
+        await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       assert.throws(() => assertSafeCatalogUrl("file:///etc/passwd"));
       assert.throws(() => assertSafeCatalogUrl("http://user:pass@example.com/v1/models"));
     });
@@ -99,7 +93,7 @@ describe("config-generator", () => {
       assert.strictEqual(result.success, true);
       assert.ok(result.configPath.endsWith(".hermes/config.yaml"));
       assert.ok(String(result.content || "").includes("providers:"));
-      assert.ok(String(result.content || "").includes("omniroute"));
+      assert.ok(String(result.content || "").includes("birouter"));
     });
 
     it("returns error for unknown tool", async () => {
@@ -147,7 +141,7 @@ describe("config-generator", () => {
         await import("../../../src/lib/cli-helper/config-generator/hermes-agent.ts");
       const result = await hermesAgent.generateHermesAgentConfig({
         baseUrl: "http://localhost:20128",
-        apiKey: "sk-test-omniroute",
+        apiKey: "sk-test-birouter",
         selections: [
           { role: "default", model: "gpt-4o" },
           { role: "delegation", model: "claude-3-5-sonnet" },
@@ -158,7 +152,7 @@ describe("config-generator", () => {
       assert.ok(!result.error);
       assert.ok(typeof result.yaml === "string");
       assert.ok(result.yaml.length > 50);
-      assert.ok(result.yaml.includes("provider: omniroute"));
+      assert.ok(result.yaml.includes("provider: birouter"));
     });
 
     it("generateHermesAgentConfig includes auxiliary section for non-default roles", async () => {
@@ -236,10 +230,20 @@ describe("config-generator", () => {
     }
 
     const SAMPLE_CATALOG: unknown[] = [
-      { id: "ds/deepseek-v4-flash", owned_by: "deepseek", context_length: 1_000_000, max_input_tokens: 1_000_000 },
+      {
+        id: "ds/deepseek-v4-flash",
+        owned_by: "deepseek",
+        context_length: 1_000_000,
+        max_input_tokens: 1_000_000,
+      },
       { id: "llama3", owned_by: "llama", max_context_window_tokens: 8192 },
       { id: "MASTER", owned_by: "combo", context_length: 131072, max_input_tokens: 131072 },
-      { id: "Opencode FREE Omni", owned_by: "combo", context_length: 200000, max_input_tokens: 160000 },
+      {
+        id: "Opencode FREE Bi",
+        owned_by: "combo",
+        context_length: 200000,
+        max_input_tokens: 160000,
+      },
       // Combo whose targets have no known context — generator must NOT
       // fabricate a default. The model is emitted without limit.context.
       { id: "NO_CTX_COMBO", owned_by: "combo" },
@@ -267,20 +271,19 @@ describe("config-generator", () => {
     it("emits limit.context from the catalog (no hardcoded fallback)", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
-        const models = cfg.provider.omniroute.models;
+        const models = cfg.provider.birouter.models;
         assert.strictEqual(models["ds/deepseek-v4-flash"].limit.context, 1_000_000);
         assert.strictEqual(models["MASTER"].limit.context, 131072);
         // Combo with min-of-targets 200K: must reflect the catalog's value,
         // not a hardcoded 128K.
-        assert.strictEqual(models["Opencode FREE Omni"].limit.context, 200000);
+        assert.strictEqual(models["Opencode FREE Bi"].limit.context, 200000);
       } finally {
         stub.restore();
       }
@@ -289,9 +292,8 @@ describe("config-generator", () => {
     it("does NOT fabricate a default context when the catalog has no entry", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
@@ -301,7 +303,7 @@ describe("config-generator", () => {
         // must NOT default to 128K (or any other value). The entry is
         // emitted without limit.context so OpenCode's own heuristic
         // applies and the user can fix the upstream.
-        const noCtx = cfg.provider.omniroute.models["NO_CTX_COMBO"];
+        const noCtx = cfg.provider.birouter.models["NO_CTX_COMBO"];
         assert.strictEqual(
           noCtx.limit?.context,
           undefined,
@@ -315,15 +317,14 @@ describe("config-generator", () => {
     it("prefers max_context_window_tokens when context_length is absent", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
-        assert.strictEqual(cfg.provider.omniroute.models.llama3.limit.context, 8192);
+        assert.strictEqual(cfg.provider.birouter.models.llama3.limit.context, 8192);
       } finally {
         stub.restore();
       }
@@ -340,9 +341,8 @@ describe("config-generator", () => {
         throw new Error("ECONNREFUSED");
       }) as typeof fetch;
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         let threw = false;
         try {
           await generateOpencodeConfig({
@@ -365,39 +365,37 @@ describe("config-generator", () => {
     it("writes a top-level model prefixed with provider id when options.model is supplied", async () => {
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
           model: "MASTER",
         });
         const cfg = JSON.parse(out);
-        assert.strictEqual(cfg.model, "omniroute/MASTER");
+        assert.strictEqual(cfg.model, "birouter/MASTER");
       } finally {
         stub.restore();
       }
     });
 
-    it("auto-pulls the Opencode FREE Omni combo context (the user-reported case)", async () => {
+    it("auto-pulls the Opencode FREE Bi combo context (the user-reported case)", async () => {
       // Regression guard: the catalog's min-of-targets for combos must be
       // reflected verbatim. No hardcoded 128K, no fallback that overrides
       // the catalog's actual value.
       const stub = stubFetchOnce(makeCatalogResponse(SAMPLE_CATALOG));
       try {
-        const { generateOpencodeConfig } = await import(
-          "../../../src/lib/cli-helper/config-generator/opencode.ts"
-        );
+        const { generateOpencodeConfig } =
+          await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
           baseUrl: "http://localhost:20128",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
         assert.strictEqual(
-          cfg.provider.omniroute.models["Opencode FREE Omni"].limit.context,
+          cfg.provider.birouter.models["Opencode FREE Bi"].limit.context,
           200000,
-          "Opencode FREE Omni must have context=200000 from the catalog, not 128000"
+          "Opencode FREE Bi must have context=200000 from the catalog, not 128000"
         );
       } finally {
         stub.restore();

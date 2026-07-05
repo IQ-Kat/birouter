@@ -1,15 +1,14 @@
 /**
  * Regression test for #3980 — Kiro (Responses API) streaming tool calls:
- * OmniRoute changed `finish_reason` from `tool_calls` to `stop`, breaking
+ * Birouter changed `finish_reason` from `tool_calls` to `stop`, breaking
  * agent workflows (Hermes). The terminal `messageStopEvent` hardcoded
  * `finish_reason: "stop"` even when the stream contained tool calls.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { convertKiroToOpenAI } = await import(
-  "../../open-sse/translator/response/kiro-to-openai.ts"
-);
+const { convertKiroToOpenAI } =
+  await import("../../open-sse/translator/response/kiro-to-openai.ts");
 
 test("#3980 streaming tool call → terminal finish_reason is 'tool_calls'", () => {
   const state: Record<string, unknown> = {};

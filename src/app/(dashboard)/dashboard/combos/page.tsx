@@ -361,7 +361,7 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
   },
 };
 
-const COMBO_USAGE_GUIDE_STORAGE_KEY = "omniroute:combos:hide-usage-guide";
+const COMBO_USAGE_GUIDE_STORAGE_KEY = "birouter:combos:hide-usage-guide";
 const COMBO_FORM_STAGE_META = [
   {
     id: "basics",
@@ -3985,7 +3985,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           help={getI18nOrFallback(
                             t,
                             "contextRelayHandoffThresholdHelp",
-                            "When quota usage reaches this threshold, OmniRoute generates a structured handoff summary before the account is exhausted."
+                            "When quota usage reaches this threshold, Birouter generates a structured handoff summary before the account is exhausted."
                           )}
                           showHelp={!isExpertMode}
                         />
@@ -4118,7 +4118,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                       <div>
                         <FieldLabelWithHelp
-                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
+                          label={getI18nOrFallback(
+                            t,
+                            "fusionStragglerGraceMs",
+                            "Straggler grace (ms)"
+                          )}
                           help={getI18nOrFallback(
                             t,
                             "fusionStragglerGraceMsHelp",
@@ -4133,7 +4137,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           value={config.fusionTuning?.stragglerGraceMs ?? ""}
                           placeholder="8000"
                           onChange={(e) =>
-                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
+                            setConfig(
+                              updateFusionTuning(config, "stragglerGraceMs", e.target.value)
+                            )
                           }
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                         />

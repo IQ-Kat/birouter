@@ -8,7 +8,7 @@ let tmpDir: string;
 let origHome: string | undefined;
 
 test.before(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), "omniroute-tray-test-"));
+  tmpDir = mkdtempSync(join(tmpdir(), "birouter-tray-test-"));
   origHome = process.env.HOME;
   // Redirecionar HOME para tmpDir para isolar testes de autostart
   process.env.HOME = tmpDir;

@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { unlinkSync, existsSync } from "node:fs";
 
 // Point DB at a temp file
-const TEST_DB = "/tmp/omniroute-test-modelsdev.sqlite";
+const TEST_DB = "/tmp/birouter-test-modelsdev.sqlite";
 
 before(() => {
   if (existsSync(TEST_DB)) unlinkSync(TEST_DB);

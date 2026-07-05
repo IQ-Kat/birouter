@@ -1,4 +1,4 @@
-# bin/_ops-common.sh — shared helpers for the OmniRoute ops runbook scripts.
+# bin/_ops-common.sh — shared helpers for the Birouter ops runbook scripts.
 #
 # Sourced (not executed) by rollback.sh / snapshot-data.sh / restore-data.sh /
 # restore-policies.sh / cold-start-bench.sh — the self-hoster incident-recovery
@@ -12,11 +12,11 @@
 # Recompute the data-dir-derived paths. Called once on source, and again by
 # scripts that accept a --data-dir override.
 ops_set_data_dir() {
-  OMNIROUTE_DATA_DIR="$1"
-  OMNIROUTE_SQLITE="${OMNIROUTE_DATA_DIR}/storage.sqlite"
-  OMNIROUTE_BACKUPS_DIR="${DB_BACKUPS_DIR:-${OMNIROUTE_DATA_DIR}/db_backups}"
+  BIROUTER_DATA_DIR="$1"
+  BIROUTER_SQLITE="${BIROUTER_DATA_DIR}/storage.sqlite"
+  BIROUTER_BACKUPS_DIR="${DB_BACKUPS_DIR:-${BIROUTER_DATA_DIR}/db_backups}"
 }
-ops_set_data_dir "${DATA_DIR:-$HOME/.omniroute}"
+ops_set_data_dir "${DATA_DIR:-$HOME/.birouter}"
 
 ops_log() { printf '[%s] %s\n' "${SCRIPT_NAME:-ops}" "$*" >&2; }
 ops_die() {
@@ -53,18 +53,18 @@ ops_find_snapshot() {
   for cand in \
     "$id" \
     "$id/" \
-    "$OMNIROUTE_BACKUPS_DIR/$id" \
-    "$OMNIROUTE_BACKUPS_DIR/snapshot_$id"; do
+    "$BIROUTER_BACKUPS_DIR/$id" \
+    "$BIROUTER_BACKUPS_DIR/snapshot_$id"; do
     if [ -f "${cand%/}/storage.sqlite" ]; then
       printf '%s\n' "${cand%/}"
       return 0
     fi
   done
   # Fall back to a prefix match against snapshot_* dirs (e.g. a short sha/date).
-  if [ -d "$OMNIROUTE_BACKUPS_DIR" ]; then
-    for cand in "$OMNIROUTE_BACKUPS_DIR"/snapshot_*"$id"*; do
+  if [ -d "$BIROUTER_BACKUPS_DIR" ]; then
+    for cand in "$BIROUTER_BACKUPS_DIR"/snapshot_*"$id"*; do
       [ -f "$cand/storage.sqlite" ] && { printf '%s\n' "$cand"; return 0; }
     done
   fi
-  ops_die "no snapshot matching '$id' under $OMNIROUTE_BACKUPS_DIR (run bin/snapshot-data.sh first)"
+  ops_die "no snapshot matching '$id' under $BIROUTER_BACKUPS_DIR (run bin/snapshot-data.sh first)"
 }

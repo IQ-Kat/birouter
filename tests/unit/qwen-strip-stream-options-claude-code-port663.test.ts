@@ -2,7 +2,7 @@
  * Port of upstream decolua/9router#663 (closes upstream #557).
  *
  * Scenario: Claude Code (or any caller) hits a Qwen model with an OpenAI body
- * that carries `stream: false`. OmniRoute, however, sets the executor-level
+ * that carries `stream: false`. Birouter, however, sets the executor-level
  * `stream` flag to `true` for Claude-Code-compatible providers via
  * `upstreamStream = stream || isClaudeCodeCompatible`
  * (`open-sse/handlers/chatCore.ts`). DefaultExecutor.transformRequest then runs
@@ -47,12 +47,10 @@ test("port#663 qwen: body.thinking truthy → no stream_options injection", () =
     messages: [{ role: "user", content: "hi" }],
     thinking: { type: "enabled" },
   };
-  const result = executor.transformRequest(
-    "qwen3-coder-plus",
-    body,
-    true,
-    {}
-  ) as Record<string, unknown>;
+  const result = executor.transformRequest("qwen3-coder-plus", body, true, {}) as Record<
+    string,
+    unknown
+  >;
   assert.equal(
     result.stream_options,
     undefined,
@@ -67,12 +65,10 @@ test("port#663 qwen: body.enable_thinking truthy → no stream_options injection
     messages: [{ role: "user", content: "hi" }],
     enable_thinking: true,
   };
-  const result = executor.transformRequest(
-    "qwen3-coder-plus",
-    body,
-    true,
-    {}
-  ) as Record<string, unknown>;
+  const result = executor.transformRequest("qwen3-coder-plus", body, true, {}) as Record<
+    string,
+    unknown
+  >;
   assert.equal(
     result.stream_options,
     undefined,
@@ -86,12 +82,10 @@ test("port#663 qwen: normal streaming request still injects stream_options.inclu
     model: "qwen3-coder-plus",
     messages: [{ role: "user", content: "hi" }],
   };
-  const result = executor.transformRequest(
-    "qwen3-coder-plus",
-    body,
-    true,
-    {}
-  ) as Record<string, unknown>;
+  const result = executor.transformRequest("qwen3-coder-plus", body, true, {}) as Record<
+    string,
+    unknown
+  >;
   assert.deepEqual(
     result.stream_options,
     { include_usage: true },

@@ -77,7 +77,7 @@ describe("ops runbook scripts (bin/*.sh)", () => {
   });
 
   it("snapshot → restore-data round-trips, and the TTY guard blocks unattended restores", async () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-ops-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-ops-"));
     try {
       const Database = (await import("better-sqlite3")).default;
       const dbPath = path.join(dataDir, "storage.sqlite");
@@ -134,7 +134,7 @@ describe("ops runbook scripts (bin/*.sh)", () => {
     "restore-policies replaces only api_key* tables, preserving other tables",
     { skip: hasSqlite3 ? false : "sqlite3 CLI not installed" },
     async () => {
-      const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-pol-"));
+      const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-pol-"));
       try {
         const Database = (await import("better-sqlite3")).default;
         const dbPath = path.join(dataDir, "storage.sqlite");

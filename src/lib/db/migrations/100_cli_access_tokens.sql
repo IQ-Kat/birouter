@@ -1,5 +1,5 @@
 -- CLI access tokens — scoped credentials for remote-mode management commands.
--- Distinct from `api_keys` (inference traffic): these authorize the `omniroute`
+-- Distinct from `api_keys` (inference traffic): these authorize the `birouter`
 -- CLI / dashboard to run management operations against a (possibly remote) server.
 -- Only the SHA-256 hash of the secret is stored; the plaintext is shown once at
 -- creation. Scope is one of: 'read' | 'write' | 'admin' (admin ⊃ write ⊃ read).

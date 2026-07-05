@@ -1,7 +1,7 @@
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { INTERNAL_PROXY_ERROR, getCatalogDiagnosticsHeaders } from "@/lib/modelMetadataRegistry";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * GET /api/models/catalog

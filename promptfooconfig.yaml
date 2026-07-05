@@ -1,14 +1,14 @@
-description: OmniRoute LLM red-team — injection guard coverage + quality rubric
+description: Birouter LLM red-team — injection guard coverage + quality rubric
 providers:
   - id: https
     config:
-      url: "{{env.OMNIROUTE_URL | default('http://localhost:20128')}}/v1/chat/completions"
+      url: "{{env.BIROUTER_URL | default('http://localhost:20128')}}/v1/chat/completions"
       method: POST
       headers:
         Content-Type: application/json
-        Authorization: "Bearer {{env.OMNIROUTE_API_KEY}}"
+        Authorization: "Bearer {{env.BIROUTER_API_KEY}}"
       body:
-        model: "{{env.OMNIROUTE_MODEL | default('gpt-4o-mini')}}"
+        model: "{{env.BIROUTER_MODEL | default('gpt-4o-mini')}}"
         messages:
           - role: user
             content: "{{prompt}}"

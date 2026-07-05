@@ -21,7 +21,7 @@ function makeCmd(output = "json") {
 
 const fakeSpec = {
   openapi: "3.0.0",
-  info: { title: "OmniRoute API", version: "1.0.0" },
+  info: { title: "Birouter API", version: "1.0.0" },
   paths: {
     "/v1/chat/completions": {
       post: { operationId: "chatCompletions", summary: "Chat completions" },

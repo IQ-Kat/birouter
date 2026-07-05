@@ -9,7 +9,7 @@ import { AgentBridgeDnsActionSchema } from "@/shared/schemas/agentBridge";
 import { addDNSEntry, removeDNSEntry } from "@/mitm/dns/dnsConfig";
 import { upsertAgentBridgeState } from "@/lib/db/agentBridgeState";
 import { getCachedPassword } from "@/mitm/manager";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 type Params = { params: { id: string } };

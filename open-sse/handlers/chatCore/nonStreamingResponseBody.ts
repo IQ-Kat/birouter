@@ -40,10 +40,10 @@ const DEFAULT_MAX_NONSTREAMING_RESPONSE_BYTES = 64 * 1024 * 1024; // 64 MB
 /**
  * Hard cap for a non-streaming response buffered fully into memory. Generous by default so
  * legitimate large completions pass; bounds only pathological/runaway upstream bodies.
- * Override with `OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES`.
+ * Override with `BIROUTER_MAX_NONSTREAMING_RESPONSE_BYTES`.
  */
 export const MAX_NONSTREAMING_RESPONSE_BYTES = (() => {
-  const parsed = Number.parseInt(String(process.env.OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES), 10);
+  const parsed = Number.parseInt(String(process.env.BIROUTER_MAX_NONSTREAMING_RESPONSE_BYTES), 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_NONSTREAMING_RESPONSE_BYTES;
 })();
 

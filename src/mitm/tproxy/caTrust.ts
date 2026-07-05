@@ -3,8 +3,8 @@
  *
  * The decrypt capture mode issues per-SNI leaves from a dynamic CA (#4173); the
  * intercepted clients must trust that CA. This installs the CA cert into the OS
- * trust store under a DEDICATED slot (`omniroute-tproxy-ca.crt`), separate from
- * the static MITM cert (`omniroute-mitm.crt` in `cert/install.ts`), so the two
+ * trust store under a DEDICATED slot (`birouter-tproxy-ca.crt`), separate from
+ * the static MITM cert (`birouter-mitm.crt` in `cert/install.ts`), so the two
  * never clobber each other.
  *
  * Linux-only (TPROXY is Linux-only). Privileged commands run via the controlled
@@ -19,7 +19,7 @@ import path from "node:path";
 import { execFileWithPassword } from "../systemCommands.ts";
 
 /** Dedicated trust-store filename — distinct from the static MITM cert's slot. */
-export const TPROXY_CA_CERT_NAME = "omniroute-tproxy-ca.crt";
+export const TPROXY_CA_CERT_NAME = "birouter-tproxy-ca.crt";
 
 /** Trust-store anchor dirs + refresh command, in detection order (Debian first). */
 const LINUX_CERT_PATHS: ReadonlyArray<{ dir: string; cmd: string }> = [

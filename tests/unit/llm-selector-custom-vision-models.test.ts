@@ -4,7 +4,7 @@
  * models in LLM selector and model list").
  *
  * Upstream stored an `imageToText` kind on user-added custom models and the
- * selector hid them from the default LLM list. OmniRoute already keeps custom
+ * selector hid them from the default LLM list. Birouter already keeps custom
  * chat models in the LLM list, but the equivalent gap is the `supportsVision`
  * flag on a custom model: the catalog used to only set `capabilities.vision`
  * when the model id matched the conservative `isVisionModelId` heuristic
@@ -13,7 +13,7 @@
  * still saw no `capabilities.vision` in `/v1/models`, so the LLM selector and
  * downstream routing treated it as text-only.
  *
- * This file pins the OmniRoute-flavoured behaviour:
+ * This file pins the Birouter-flavoured behaviour:
  *   • a custom chat model with `supportsVision: true` MUST surface
  *     `capabilities: { vision: true }` via the catalog helper, regardless of
  *     whether the model id matches the static vision heuristic.

@@ -62,7 +62,7 @@ test("DGrid accepts the free router and the 200+ live catalog via passthrough mo
   assert.equal(isValidModel("dgrid", "anthropic/claude-sonnet-4"), true);
 });
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-dgrid-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-dgrid-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
+import { resolveBareModelToConnectionDefault } from "@birouter/open-sse/services/model.ts";
 
 // #474 — When a bare model name (no "/") reaches the upstream call and the
 // selected connection declares a defaultModel, the bare name must resolve to
@@ -15,11 +15,7 @@ test("bare model name resolves to the connection defaultModel", () => {
 });
 
 test('"/"-qualified model name is left untouched even when a defaultModel exists', () => {
-  const effective = resolveBareModelToConnectionDefault(
-    "openai/gpt-4o",
-    "gpt-4o",
-    "gpt-4o-mini"
-  );
+  const effective = resolveBareModelToConnectionDefault("openai/gpt-4o", "gpt-4o", "gpt-4o-mini");
   assert.equal(effective, "gpt-4o");
 });
 

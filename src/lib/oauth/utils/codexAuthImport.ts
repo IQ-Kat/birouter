@@ -76,7 +76,7 @@ export interface CreateConnectionOptions {
 export function parseAndValidateCodexAuth(raw: unknown): ParsedCodexAuth {
   const doc = toRecord(raw);
 
-  // Codex CLI no longer writes auth_mode in auth.json (only OmniRoute's own export
+  // Codex CLI no longer writes auth_mode in auth.json (only Birouter's own export
   // includes it). Accept both formats as long as the required tokens are present.
   if (doc.auth_mode !== undefined && doc.auth_mode !== null && doc.auth_mode !== "chatgpt") {
     throw new CodexAuthFileError(

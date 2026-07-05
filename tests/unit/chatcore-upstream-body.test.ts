@@ -9,7 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-upstream-body-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-upstream-body-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
@@ -89,7 +89,7 @@ test("backfills the Qwen OAuth user when missing", async () => {
     targetFormat: "claude",
     credentials: { accessToken: "tok-123" },
   });
-  assert.equal(out.user, "omniroute-qwen-oauth");
+  assert.equal(out.user, "birouter-qwen-oauth");
 });
 
 test("does not backfill the Qwen user when an apiKey is present (API-key mode)", async () => {

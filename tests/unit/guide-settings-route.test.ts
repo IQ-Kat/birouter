@@ -9,7 +9,7 @@ import * as yaml from "js-yaml";
 const guideSettingsRoute =
   await import("../../src/app/api/cli-tools/guide-settings/[toolId]/route.ts");
 
-const DUMMY_HOME = path.join(os.tmpdir(), "omniroute-qwen-test-" + Date.now());
+const DUMMY_HOME = path.join(os.tmpdir(), "birouter-qwen-test-" + Date.now());
 const QWEN_CONFIG_PATH = path.join(DUMMY_HOME, ".qwen", "settings.json");
 const QWEN_ENV_PATH = path.join(DUMMY_HOME, ".qwen", ".env");
 const OPENCODE_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "opencode", "opencode.json");
@@ -72,7 +72,7 @@ test.afterEach(async () => {
 
 test("guide-settings POST creates new qwen settings.json if it doesn't exist", async () => {
   const req = await buildRequest({
-    baseUrl: "http://my-omni",
+    baseUrl: "http://my-bi",
     apiKey: "sk-123",
     model: "qwen/qwen3-coder-plus",
   });
@@ -86,13 +86,13 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   // Uses security.auth format (not modelProviders)
   assert.equal(content.security?.auth?.selectedType, "openai");
   assert.ok(content.security?.auth?.apiKey.startsWith("sk-"));
-  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.security?.auth?.baseUrl, "http://my-bi");
   assert.equal(content.model?.name, "qwen/qwen3-coder-plus");
 });
 
 test("guide-settings POST creates new hermes config.yaml if it doesn't exist", async () => {
   const req = await buildRequest({
-    baseUrl: "http://my-omni",
+    baseUrl: "http://my-bi",
     apiKey: "sk-hermes",
     model: "gpt-5.4-mini",
   });
@@ -106,10 +106,10 @@ test("guide-settings POST creates new hermes config.yaml if it doesn't exist", a
 
   const content = yaml.load(await fs.readFile(HERMES_CONFIG_PATH, "utf-8")) as any;
   assert.equal(content.model?.default, "gpt-5.4-mini");
-  assert.equal(content.model?.provider, "omniroute");
-  assert.equal(content.model?.base_url, "http://my-omni/v1");
-  assert.equal(content.providers?.omniroute?.base_url, "http://my-omni/v1");
-  assert.ok(String(content.providers?.omniroute?.api_key || "").startsWith("sk-"));
+  assert.equal(content.model?.provider, "birouter");
+  assert.equal(content.model?.base_url, "http://my-bi/v1");
+  assert.equal(content.providers?.birouter?.base_url, "http://my-bi/v1");
+  assert.ok(String(content.providers?.birouter?.api_key || "").startsWith("sk-"));
 });
 
 test("guide-settings POST merges into existing qwen settings.json", async () => {
@@ -123,7 +123,7 @@ test("guide-settings POST merges into existing qwen settings.json", async () => 
   );
 
   const req = await buildRequest({
-    baseUrl: "http://my-omni",
+    baseUrl: "http://my-bi",
     apiKey: "sk-456",
     model: "claude-sonnet-4-6",
   });
@@ -134,7 +134,7 @@ test("guide-settings POST merges into existing qwen settings.json", async () => 
   // security.auth format
   assert.equal(content.security?.auth?.selectedType, "openai");
   assert.ok(content.security?.auth?.apiKey.startsWith("sk-"));
-  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.security?.auth?.baseUrl, "http://my-bi");
   assert.equal(content.model?.name, "claude-sonnet-4-6");
   // Preserves other settings
   assert.deepEqual(content.permissions?.allow, ["Bash(*)"]);
@@ -160,7 +160,7 @@ test("guide-settings POST writes OpenCode config with current schema and multi-m
     method: "POST",
     headers: { "Content-Type": "application/json", cookie },
     body: JSON.stringify({
-      baseUrl: "http://my-omni/v1",
+      baseUrl: "http://my-bi/v1",
       apiKey: "sk-123",
       models: ["cc/claude-sonnet-4-20250514", "gg/gemini-2.5-pro"],
     }),
@@ -174,17 +174,17 @@ test("guide-settings POST writes OpenCode config with current schema and multi-m
   const content = parse(await fs.readFile(OPENCODE_CONFIG_PATH, "utf-8"));
   assert.equal(content.$schema, "https://opencode.ai/config.json");
   assert.ok(content.provider.custom);
-  assert.equal(content.provider.omniroute.npm, "@ai-sdk/openai-compatible");
-  assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
-  assert.ok(content.provider.omniroute.options.apiKey.startsWith("sk-"));
-  assert.deepEqual(Object.keys(content.provider.omniroute.models), [
+  assert.equal(content.provider.birouter.npm, "@ai-sdk/openai-compatible");
+  assert.equal(content.provider.birouter.options.baseURL, "http://my-bi/v1");
+  assert.ok(content.provider.birouter.options.apiKey.startsWith("sk-"));
+  assert.deepEqual(Object.keys(content.provider.birouter.models), [
     "cc/claude-sonnet-4-20250514",
     "gg/gemini-2.5-pro",
   ]);
   assert.equal(content.providers, undefined);
 });
 
-test("guide-settings POST preserves existing OpenCode config fields while only updating provider.omniroute", async () => {
+test("guide-settings POST preserves existing OpenCode config fields while only updating provider.birouter", async () => {
   await fs.mkdir(path.dirname(OPENCODE_CONFIG_PATH), { recursive: true });
   await fs.writeFile(
     OPENCODE_CONFIG_PATH,
@@ -195,9 +195,9 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
     "custom": {
       "name": "Custom Provider"
     },
-    "omniroute": {
+    "birouter": {
       "npm": "old-package",
-      "name": "Old OmniRoute",
+      "name": "Old Birouter",
       "options": {
         "baseURL": "http://old-host/v1",
         "apiKey": "old-key"
@@ -222,7 +222,7 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
     method: "POST",
     headers: { "Content-Type": "application/json", cookie },
     body: JSON.stringify({
-      baseUrl: "http://my-omni/v1",
+      baseUrl: "http://my-bi/v1",
       apiKey: "sk-123",
       models: ["cx/gpt-5.4", "opencode-go/kimi-k2.6"],
       modelLabels: {
@@ -248,10 +248,10 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
   assert.deepEqual(content.provider.custom, {
     name: "Custom Provider",
   });
-  assert.equal(content.provider.omniroute.npm, "@ai-sdk/openai-compatible");
-  assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
-  assert.ok(content.provider.omniroute.options.apiKey.startsWith("sk-"));
-  assert.deepEqual(content.provider.omniroute.models, {
+  assert.equal(content.provider.birouter.npm, "@ai-sdk/openai-compatible");
+  assert.equal(content.provider.birouter.options.baseURL, "http://my-bi/v1");
+  assert.ok(content.provider.birouter.options.apiKey.startsWith("sk-"));
+  assert.deepEqual(content.provider.birouter.models, {
     "cx/gpt-5.4": { name: "GPT-5.4" },
     "opencode-go/kimi-k2.6": { name: "Kimi K2.6" },
   });

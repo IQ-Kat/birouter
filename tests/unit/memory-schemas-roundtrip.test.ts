@@ -338,7 +338,7 @@ test("QdrantSettingsSchema: accepts valid settings with defaults applied", () =>
   assert.equal(result.success, true, "Should accept minimal settings with defaults");
   if (result.success) {
     assert.equal(result.data.port, 6333, "Default port should be 6333");
-    assert.equal(result.data.collection, "omniroute_memory", "Default collection");
+    assert.equal(result.data.collection, "birouter_memory", "Default collection");
     assert.equal(result.data.quantization, "none", "Default quantization should be none");
     assert.equal(result.data.hasApiKey, false, "Default hasApiKey should be false");
     assert.equal(result.data.apiKeyMasked, null, "Default apiKeyMasked should be null");

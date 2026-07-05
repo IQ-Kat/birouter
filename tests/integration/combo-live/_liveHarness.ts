@@ -46,18 +46,18 @@ const IN_SCOPE_PROVIDERS = new Set([
 
 // Provider → sensible default model (fallback when default_model is null).
 const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
-  "claude": "claude-3-5-haiku-20241022",
-  "glm": "glm-4-flash",
-  "minimax": "minimax-text-01",
+  claude: "claude-3-5-haiku-20241022",
+  glm: "glm-4-flash",
+  minimax: "minimax-text-01",
   "kimi-coding-apikey": "moonshot-v1-8k",
   "ollama-cloud": "llama3.2:3b",
   "opencode-go": "gpt-4o-mini",
-  "gemini": "gemini-2.0-flash-lite",
-  "deepseek": "deepseek-chat",
-  "groq": "llama-3.1-8b-instant",
-  "cerebras": "llama-3.1-8b",
-  "openrouter": "openai/gpt-4o-mini",
-  "together": "meta-llama/Llama-3-8b-chat-hf",
+  gemini: "gemini-2.0-flash-lite",
+  deepseek: "deepseek-chat",
+  groq: "llama-3.1-8b-instant",
+  cerebras: "llama-3.1-8b",
+  openrouter: "openai/gpt-4o-mini",
+  together: "meta-llama/Llama-3-8b-chat-hf",
 };
 
 // ---------------------------------------------------------------------------
@@ -79,9 +79,11 @@ export type ComboModelEntry = {
   connectionId: string;
 };
 
-export type LiveHarness = {
-  LIVE_ENABLED: false;
-} | LiveHarnessEnabled;
+export type LiveHarness =
+  | {
+      LIVE_ENABLED: false;
+    }
+  | LiveHarnessEnabled;
 
 export type LiveHarnessEnabled = {
   LIVE_ENABLED: true;
@@ -118,7 +120,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
   // -------------------------------------------------------------------------
   // 1. Create a temp dir to hold the snapshot (treat as sensitive).
   // -------------------------------------------------------------------------
-  const snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), `omniroute-live-${prefix}-`));
+  const snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), `birouter-live-${prefix}-`));
 
   // -------------------------------------------------------------------------
   // 2. Fetch VPS secrets (read-only: one grep over .env).
@@ -130,10 +132,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
   try {
     const output = execFileSync(
       "ssh",
-      [
-        "root@192.168.0.15",
-        'grep -E "^(STORAGE_ENCRYPTION_KEY|API_KEY_SECRET)=" ~/.omniroute/.env',
-      ],
+      ["root@192.168.0.15", 'grep -E "^(STORAGE_ENCRYPTION_KEY|API_KEY_SECRET)=" ~/.birouter/.env'],
       { encoding: "utf8", timeout: 15_000 }
     );
 
@@ -176,11 +175,9 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
   const snapshotDbPath = path.join(snapshotDir, "storage.sqlite");
 
   try {
-    execFileSync(
-      "scp",
-      ["root@192.168.0.15:/root/.omniroute/storage.sqlite", snapshotDbPath],
-      { timeout: 60_000 }
-    );
+    execFileSync("scp", ["root@192.168.0.15:/root/.birouter/storage.sqlite", snapshotDbPath], {
+      timeout: 60_000,
+    });
   } catch (err: any) {
     fs.rmSync(snapshotDir, { recursive: true, force: true });
     throw new Error(`[liveHarness] Failed to scp production DB: ${err.message}`);
@@ -262,7 +259,10 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     });
   }
 
-  function liveBody(model: string, overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  function liveBody(
+    model: string,
+    overrides: Record<string, unknown> = {}
+  ): Record<string, unknown> {
     return {
       model,
       stream: false,
@@ -302,7 +302,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
    *
    * ## Signal source
    * `withSelectedConnectionHeader` in `src/sse/handlers/chatHelpers.ts` sets
-   * `X-OmniRoute-Selected-Connection-Id` on the response, but only on the
+   * `X-Birouter-Selected-Connection-Id` on the response, but only on the
    * **non-success return paths** in `src/sse/handlers/chat.ts` (error recovery,
    * fallback, timeout paths). On a clean first-attempt 200 success the handler
    * returns `result.response` directly at line 1239 without calling
@@ -321,7 +321,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
    * OpenAI-shape response body as an additional signal.
    */
   function servedProvider(response: Response): string | undefined {
-    const connectionId = response.headers.get("X-OmniRoute-Selected-Connection-Id");
+    const connectionId = response.headers.get("X-Birouter-Selected-Connection-Id");
     if (!connectionId) return undefined;
     // Sync read from the already-built map (populated eagerly at harness init).
     if (!_connMap) return undefined;
@@ -333,7 +333,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
    * Use this when you want a resolved value after the first listLiveConnections call.
    */
   async function servedProviderAsync(response: Response): Promise<string | undefined> {
-    const connectionId = response.headers.get("X-OmniRoute-Selected-Connection-Id");
+    const connectionId = response.headers.get("X-Birouter-Selected-Connection-Id");
     if (!connectionId) return undefined;
     const map = await _getConnMap();
     return map.get(connectionId);
@@ -399,7 +399,7 @@ export async function createLiveHarness(prefix: string): Promise<LiveHarness> {
     clearIdempotency();
     resetAllCircuitBreakers();
     core.resetDbInstance();
-    // Destroy the snapshot — targets only the temp dir, NEVER /root/.omniroute.
+    // Destroy the snapshot — targets only the temp dir, NEVER /root/.birouter.
     fs.rmSync(snapshotDir, { recursive: true, force: true });
   }
 

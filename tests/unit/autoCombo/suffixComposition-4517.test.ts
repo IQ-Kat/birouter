@@ -29,7 +29,7 @@ describe("suffixComposition :free tier (#4517)", () => {
   });
 
   beforeEach(() => {
-    // Reset env to a known state so OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL
+    // Reset env to a known state so BIROUTER_AUTO_FREE_FALLBACK_TO_FULL_POOL
     // doesn't leak between cases.
     process.env = { ...ORIGINAL_ENV };
   });

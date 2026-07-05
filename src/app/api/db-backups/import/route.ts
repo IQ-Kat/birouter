@@ -13,8 +13,8 @@ import {
 } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSettings } from "@/lib/db/settings";
-import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { setSystemPromptConfig } from "@birouter/open-sse/services/systemPrompt.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const DEFAULT_MAX_UPLOAD_MB = 100;
 // Hard ceiling so a misconfigured/hostile value can't ask the route to buffer an
@@ -26,13 +26,11 @@ const MAX_UPLOAD_MB_CEILING = 4096;
  *
  * Real databases bloat well past the historical 100 MB cap (#4719 — a 156 MB file that
  * VACUUMs down to 5 MB still can't be re-imported), so the limit is now operator-tunable
- * via `OMNIROUTE_DB_IMPORT_MAX_MB`. Invalid / out-of-range values fall back to the 100 MB
+ * via `BIROUTER_DB_IMPORT_MAX_MB`. Invalid / out-of-range values fall back to the 100 MB
  * default and are clamped to a 4 GB ceiling.
  */
-export function resolveMaxUploadSizeBytes(
-  env: NodeJS.ProcessEnv = process.env
-): number {
-  const raw = env.OMNIROUTE_DB_IMPORT_MAX_MB;
+export function resolveMaxUploadSizeBytes(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = env.BIROUTER_DB_IMPORT_MAX_MB;
   const parsed = raw === undefined ? NaN : Number(raw);
   const mb =
     Number.isFinite(parsed) && parsed >= 1
@@ -41,7 +39,7 @@ export function resolveMaxUploadSizeBytes(
   return mb * 1024 * 1024;
 }
 
-// Required tables that must exist in a valid OmniRoute database
+// Required tables that must exist in a valid Birouter database
 const REQUIRED_TABLES = ["provider_connections", "provider_nodes", "combos", "api_keys"];
 
 /**
@@ -103,7 +101,7 @@ export async function POST(request: Request) {
         {
           error:
             `File too large. Maximum allowed size is ${maxUploadSize / (1024 * 1024)} MB. ` +
-            `Set OMNIROUTE_DB_IMPORT_MAX_MB to raise it, or VACUUM the database before exporting.`,
+            `Set BIROUTER_DB_IMPORT_MAX_MB to raise it, or VACUUM the database before exporting.`,
         },
         { status: 400 }
       );
@@ -117,7 +115,7 @@ export async function POST(request: Request) {
     }
 
     // Write uploaded file to temp location
-    tmpPath = path.join(os.tmpdir(), `omniroute-import-${Date.now()}.sqlite`);
+    tmpPath = path.join(os.tmpdir(), `birouter-import-${Date.now()}.sqlite`);
     fs.writeFileSync(tmpPath, fileBuffer!);
 
     // Validate SQLite integrity.
@@ -143,7 +141,7 @@ export async function POST(request: Request) {
       if (missingTables.length > 0) {
         return NextResponse.json(
           {
-            error: `Invalid OmniRoute database. Missing tables: ${missingTables.join(", ")}`,
+            error: `Invalid Birouter database. Missing tables: ${missingTables.join(", ")}`,
           },
           { status: 400 }
         );

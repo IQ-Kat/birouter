@@ -5,17 +5,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-pool-sync-4878-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-pool-sync-4878-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
-delete process.env.OMNIROUTE_API_KEY;
+delete process.env.BIROUTER_API_KEY;
 
 const core = await import("../../src/lib/db/core.ts");
 const freeProxiesDb = await import("../../src/lib/db/freeProxies.ts");
-const addToPoolRoute = await import(
-  "../../src/app/api/settings/free-proxies/[id]/add-to-pool/route.ts"
-);
+const addToPoolRoute =
+  await import("../../src/app/api/settings/free-proxies/[id]/add-to-pool/route.ts");
 const syncRoute = await import("../../src/app/api/settings/free-proxies/sync/route.ts");
 const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
 

@@ -1,7 +1,7 @@
 /**
  * E2E — Traffic Inspector page smoke tests
  *
- * These tests require the OmniRoute server to be running at the configured base URL.
+ * These tests require the Birouter server to be running at the configured base URL.
  * The WebSocket tests use a mock event source rather than a live MITM capture to
  * avoid needing port 443 privileges.
  *
@@ -51,9 +51,9 @@ test.describe("Traffic Inspector page", () => {
       test.skip();
       return;
     }
-    const toolbar = page.locator(
-      "[data-testid='capture-sources-toolbar'], [data-testid='capture-toolbar']"
-    ).first();
+    const toolbar = page
+      .locator("[data-testid='capture-sources-toolbar'], [data-testid='capture-toolbar']")
+      .first();
     await expect(toolbar).toBeVisible({ timeout: 5000 });
   });
 
@@ -64,15 +64,17 @@ test.describe("Traffic Inspector page", () => {
       return;
     }
     // Profile selector
-    const profileSelector = page.locator(
-      "[data-testid='profile-selector'], [aria-label*='profile'], text=LLM only"
-    ).first();
+    const profileSelector = page
+      .locator("[data-testid='profile-selector'], [aria-label*='profile'], text=LLM only")
+      .first();
     await expect(profileSelector).toBeVisible({ timeout: 5000 });
 
     // Pause or Clear button should exist
-    const pauseOrClear = page.locator(
-      "button:has-text('Pause'), button:has-text('Clear'), [data-testid='pause-btn'], [data-testid='clear-btn']"
-    ).first();
+    const pauseOrClear = page
+      .locator(
+        "button:has-text('Pause'), button:has-text('Clear'), [data-testid='pause-btn'], [data-testid='clear-btn']"
+      )
+      .first();
     await expect(pauseOrClear).toBeVisible();
   });
 
@@ -83,9 +85,9 @@ test.describe("Traffic Inspector page", () => {
       return;
     }
     // Left panel should be present (virtualized list container)
-    const requestList = page.locator(
-      "[data-testid='request-list'], [data-testid='streaming-list']"
-    ).first();
+    const requestList = page
+      .locator("[data-testid='request-list'], [data-testid='streaming-list']")
+      .first();
     await expect(requestList).toBeVisible({ timeout: 5000 });
   });
 
@@ -95,20 +97,20 @@ test.describe("Traffic Inspector page", () => {
       test.skip();
       return;
     }
-    const detailPane = page.locator(
-      "[data-testid='detail-pane'], [data-testid='details-panel']"
-    ).first();
+    const detailPane = page
+      .locator("[data-testid='detail-pane'], [data-testid='details-panel']")
+      .first();
     await expect(detailPane).toBeVisible({ timeout: 5000 });
 
     // At least Headers and Request tabs should exist
-    const headersTab = page.locator(
-      "button[role='tab']:has-text('Headers'), [data-testid='tab-headers']"
-    ).first();
+    const headersTab = page
+      .locator("button[role='tab']:has-text('Headers'), [data-testid='tab-headers']")
+      .first();
     await expect(headersTab).toBeVisible();
 
-    const requestTab = page.locator(
-      "button[role='tab']:has-text('Request'), [data-testid='tab-request']"
-    ).first();
+    const requestTab = page
+      .locator("button[role='tab']:has-text('Request'), [data-testid='tab-request']")
+      .first();
     await expect(requestTab).toBeVisible();
   });
 
@@ -119,9 +121,9 @@ test.describe("Traffic Inspector page", () => {
       return;
     }
     // Wait for any rows to appear (up to 5s)
-    const firstRow = page.locator(
-      "[data-testid='request-row'], [data-testid='request-list'] > *"
-    ).first();
+    const firstRow = page
+      .locator("[data-testid='request-row'], [data-testid='request-list'] > *")
+      .first();
     const hasRows = await firstRow.isVisible({ timeout: 5000 }).catch(() => false);
     if (!hasRows) {
       // Empty buffer — skip row interaction test
@@ -130,7 +132,9 @@ test.describe("Traffic Inspector page", () => {
     }
     await firstRow.click();
     // Detail pane should now show non-empty content
-    const detailPane = page.locator("[data-testid='detail-pane'], [data-testid='details-panel']").first();
+    const detailPane = page
+      .locator("[data-testid='detail-pane'], [data-testid='details-panel']")
+      .first();
     await expect(detailPane).not.toBeEmpty();
   });
 
@@ -140,9 +144,9 @@ test.describe("Traffic Inspector page", () => {
       test.skip();
       return;
     }
-    const recBtn = page.locator(
-      "button:has-text('Record session'), button:has-text('REC'), [data-testid='rec-btn']"
-    ).first();
+    const recBtn = page
+      .locator("button:has-text('Record session'), button:has-text('REC'), [data-testid='rec-btn']")
+      .first();
     const isVisible = await recBtn.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip();
@@ -150,15 +154,13 @@ test.describe("Traffic Inspector page", () => {
     }
     await recBtn.click();
     // Should show recording indicator
-    const recIndicator = page.locator(
-      "[data-testid='rec-indicator'], text=REC, [data-testid='session-recorder-bar']"
-    ).first();
+    const recIndicator = page
+      .locator("[data-testid='rec-indicator'], text=REC, [data-testid='session-recorder-bar']")
+      .first();
     await expect(recIndicator).toBeVisible({ timeout: 3000 });
 
     // Stop recording
-    const stopBtn = page.locator(
-      "button:has-text('Stop'), [data-testid='stop-rec-btn']"
-    ).first();
+    const stopBtn = page.locator("button:has-text('Stop'), [data-testid='stop-rec-btn']").first();
     if (await stopBtn.isVisible().catch(() => false)) {
       await stopBtn.click();
     }
@@ -170,9 +172,9 @@ test.describe("Traffic Inspector page", () => {
       test.skip();
       return;
     }
-    const exportBtn = page.locator(
-      "button:has-text('.har'), button:has-text('Export'), [data-testid='export-har-btn']"
-    ).first();
+    const exportBtn = page
+      .locator("button:has-text('.har'), button:has-text('Export'), [data-testid='export-har-btn']")
+      .first();
     await expect(exportBtn).toBeVisible({ timeout: 5000 });
   });
 
@@ -183,9 +185,11 @@ test.describe("Traffic Inspector page", () => {
       return;
     }
     // Either a green "live" dot or a "disconnected" message should be visible
-    const liveIndicator = page.locator(
-      "[data-testid='ws-status'], text=live, text=Disconnected, [data-testid='live-indicator']"
-    ).first();
+    const liveIndicator = page
+      .locator(
+        "[data-testid='ws-status'], text=live, text=Disconnected, [data-testid='live-indicator']"
+      )
+      .first();
     await expect(liveIndicator).toBeVisible({ timeout: 8000 });
   });
 
@@ -195,18 +199,14 @@ test.describe("Traffic Inspector page", () => {
       test.skip();
       return;
     }
-    const firstRow = page.locator(
-      "[data-testid='request-row']"
-    ).first();
+    const firstRow = page.locator("[data-testid='request-row']").first();
     const hasRows = await firstRow.isVisible({ timeout: 5000 }).catch(() => false);
     if (!hasRows) {
       test.skip();
       return;
     }
     await firstRow.click();
-    const replayBtn = page.locator(
-      "button:has-text('Replay'), [data-testid='replay-btn']"
-    ).first();
+    const replayBtn = page.locator("button:has-text('Replay'), [data-testid='replay-btn']").first();
     await expect(replayBtn).toBeVisible({ timeout: 3000 });
   });
 });

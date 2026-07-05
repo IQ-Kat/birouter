@@ -13,7 +13,7 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 let sqliteWatcher: fs.FSWatcher | null = null;
 
 function getPollIntervalMs() {
-  const parsed = Number.parseInt(process.env.OMNIROUTE_CONFIG_HOT_RELOAD_MS || "", 10);
+  const parsed = Number.parseInt(process.env.BIROUTER_CONFIG_HOT_RELOAD_MS || "", 10);
   if (!Number.isFinite(parsed) || parsed < MIN_POLL_INTERVAL_MS) {
     return DEFAULT_POLL_INTERVAL_MS;
   }

@@ -2,10 +2,8 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
-const REPO = "diegosouzapw/OmniRoute";
-const artifactsDir =
-  process.env.ARTIFACTS_DIR ||
-  path.join(process.cwd(), "artifacts");
+const REPO = "IQ-Kat/birouter";
+const artifactsDir = process.env.ARTIFACTS_DIR || path.join(process.cwd(), "artifacts");
 
 async function main() {
   try {

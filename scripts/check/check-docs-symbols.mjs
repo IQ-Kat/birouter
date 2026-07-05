@@ -25,7 +25,7 @@ const ROOT = process.cwd();
 const DOCS = path.join(ROOT, "docs");
 const API = path.join(ROOT, "src/app/api");
 
-// Padrões que NÃO são rotas internas do OmniRoute (ruído estrutural, não drift).
+// Padrões que NÃO são rotas internas do Birouter (ruído estrutural, não drift).
 // Adicione aqui (com justificativa) em vez da allowlist quando uma categoria gera
 // falsos positivos — a allowlist é só para endpoints stale REAIS.
 const IGNORE = [
@@ -62,7 +62,7 @@ export const KNOWN_STALE_DOC_REFS = new Set([
   // — gitignored, fora do escopo deste gate. As 4 entradas /api/discovery/* viraram
   // obsoletas e foram removidas para satisfazer o stale-enforcement da allowlist.)
   // docs/reference/ENVIRONMENT.md — endpoint UPSTREAM do provedor Blackbox Web,
-  // citado na descrição de env var (não é rota do OmniRoute):
+  // citado na descrição de env var (não é rota do Birouter):
   "/api/chat",
   // docs/ops/TUNNELS_GUIDE.md — a doc afirma EXPLICITAMENTE que este endpoint NÃO
   // existe ("There is no central /api/settings/tunnels endpoint"); menção pedagógica:

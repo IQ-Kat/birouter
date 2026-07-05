@@ -21,7 +21,7 @@ import {
   createManagementSessionHeaders,
 } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-qdrant-routes-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-qdrant-routes-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret-qdrant-routes";
 
@@ -31,18 +31,11 @@ const memorySettings = await import("../../src/lib/memory/settings.ts");
 
 // ── Route imports ──
 const qdrantSettingsRoute = await import("../../src/app/api/settings/qdrant/route.ts");
-const qdrantHealthRoute = await import(
-  "../../src/app/api/settings/qdrant/health/route.ts"
-);
-const qdrantSearchRoute = await import(
-  "../../src/app/api/settings/qdrant/search/route.ts"
-);
-const qdrantCleanupRoute = await import(
-  "../../src/app/api/settings/qdrant/cleanup/route.ts"
-);
-const qdrantEmbeddingModelsRoute = await import(
-  "../../src/app/api/settings/qdrant/embedding-models/route.ts"
-);
+const qdrantHealthRoute = await import("../../src/app/api/settings/qdrant/health/route.ts");
+const qdrantSearchRoute = await import("../../src/app/api/settings/qdrant/search/route.ts");
+const qdrantCleanupRoute = await import("../../src/app/api/settings/qdrant/cleanup/route.ts");
+const qdrantEmbeddingModelsRoute =
+  await import("../../src/app/api/settings/qdrant/embedding-models/route.ts");
 
 // ── Helpers ──
 
@@ -55,11 +48,7 @@ async function resetStorage() {
   memorySettings.invalidateMemorySettingsCache();
 }
 
-async function makeAuthRequest(
-  method: "GET" | "POST" | "PUT",
-  url: string,
-  body?: unknown
-) {
+async function makeAuthRequest(method: "GET" | "POST" | "PUT", url: string, body?: unknown) {
   return makeManagementSessionRequest(url, { method, body });
 }
 
@@ -88,7 +77,7 @@ test.beforeEach(async () => {
     qdrantEnabled: false,
     qdrantHost: "",
     qdrantPort: 6333,
-    qdrantCollection: "omniroute_memory",
+    qdrantCollection: "birouter_memory",
     qdrantEmbeddingModel: "openai/text-embedding-3-small",
   });
 });

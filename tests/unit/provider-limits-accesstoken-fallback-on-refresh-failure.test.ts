@@ -18,9 +18,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-process.env.DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-accesstoken-fallback-")
-);
+process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-accesstoken-fallback-"));
 
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { refreshAndUpdateCredentials } = await import("../../src/lib/usage/providerLimits.ts");

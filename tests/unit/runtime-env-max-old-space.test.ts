@@ -1,12 +1,12 @@
 /**
  * Issue #2939 — random OOM in Docker. The standalone launcher
  * (`scripts/dev/run-standalone.mjs`, the Docker CMD) must honor
- * OMNIROUTE_MEMORY_MB instead of relying only on the image-level NODE_OPTIONS
+ * BIROUTER_MEMORY_MB instead of relying only on the image-level NODE_OPTIONS
  * fallback, so Docker users can raise the server heap under load / large
  * SQLite DBs.
  *
  * `resolveMaxOldSpaceMb` is the shared heap-ceiling resolver the launcher now
- * uses (mirroring `omniroute serve`): OMNIROUTE_MEMORY_MB clamped to [64, 16384],
+ * uses (mirroring `birouter serve`): BIROUTER_MEMORY_MB clamped to [64, 16384],
  * default 512.
  */
 import test from "node:test";
@@ -21,7 +21,7 @@ test("#2939 default is 512 when unset/invalid", () => {
   assert.equal(resolveMaxOldSpaceMb("abc"), 512);
 });
 
-test("#2939 honors a valid OMNIROUTE_MEMORY_MB (string or number)", () => {
+test("#2939 honors a valid BIROUTER_MEMORY_MB (string or number)", () => {
   assert.equal(resolveMaxOldSpaceMb("1024"), 1024);
   assert.equal(resolveMaxOldSpaceMb(2048), 2048);
   assert.equal(resolveMaxOldSpaceMb("256"), 256);

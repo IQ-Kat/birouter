@@ -10,7 +10,7 @@ function asRecord(value: unknown): JsonRecord | null {
  * MiMo controls thinking ONLY via a top-level `thinking: { type: "enabled" | "disabled" }`
  * object (mimo.mi.com .../usage-guide/text-generation/deep-thinking). It does NOT
  * understand OpenAI's `reasoning_effort` / `reasoning`, and its request validator is
- * strict ("400 Param Incorrect"). OmniRoute's OpenAI path otherwise carries reasoning
+ * strict ("400 Param Incorrect"). Birouter's OpenAI path otherwise carries reasoning
  * intent as `reasoning_effort`, and the claude→openai translator may leave a
  * Claude-shaped `thinking:{type, budget_tokens}` — forwarding either verbatim means the
  * client's on/off choice is silently dropped AND unknown keys (`budget_tokens`,
@@ -23,7 +23,7 @@ function asRecord(value: unknown): JsonRecord | null {
  *   - `reasoning_effort` / `reasoning` → removed (MiMo's unknown params).
  *
  * It deliberately does NOT synthesize `thinking:{type:"enabled"}` from a bare
- * `reasoning_effort`: `mimo-v2-omni` is documented as non-thinking, so forcing thinking
+ * `reasoning_effort`: `mimo-v2-bi` is documented as non-thinking, so forcing thinking
  * on from an effort hint could turn a silently-ignored param into a hard error. Clients
  * enable thinking by sending MiMo's `thinking:{type:"enabled"}` (or relying on the
  * per-model default) and disable it with `thinking:{type:"disabled"}` — both now reach

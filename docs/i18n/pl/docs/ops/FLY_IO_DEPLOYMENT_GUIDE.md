@@ -1,16 +1,16 @@
-# OmniRoute Fly.io 部署指南 (Polski)
+# Birouter Fly.io 部署指南 (Polski)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../ar/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../bg/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../bn/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../cs/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../da/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../de/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../es/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../fa/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../fi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../fr/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../gu/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../he/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../hi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../hu/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../id/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../it/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../ja/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../ko/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../mr/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../ms/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../nl/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../no/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../phi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../pl/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../pt/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../ro/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../ru/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../sk/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../sv/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../sw/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../ta/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../te/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../th/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../tr/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../ur/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../vi/docs/FLY_IO_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/FLY_IO_DEPLOYMENT_GUIDE.md)
 
 ---
 
-本文档记录 OmniRoute 在 Fly.io 上的实际部署方法，适用于两类场景：
+本文档记录 Birouter 在 Fly.io 上的实际部署方法，适用于两类场景：
 
 - 首次把当前项目部署到 Fly.io
 - 后续代码更新后继续发布
 - 新项目参考同样流程部署
 
-本文基于当前项目已经验证通过的配置整理，应用名为 `omniroute`。
+本文基于当前项目已经验证通过的配置整理，应用名为 `birouter`。
 
 ---
 
@@ -20,7 +20,7 @@
 - 部署方式：本地 `flyctl` 直接发布
 - 运行方式：使用仓库内现有 `Dockerfile` 和 `fly.toml`
 - 数据持久化：Fly Volume 挂载到 `/data`
-- 访问地址：`https://omniroute.fly.dev/`
+- 访问地址：`https://birouter.fly.dev/`
 
 ---
 
@@ -29,7 +29,7 @@
 当前仓库中的 `fly.toml` 已确认包含以下关键项：
 
 ```toml
-app = 'omniroute'
+app = 'birouter'
 primary_region = 'sin'
 
 [[mounts]]
@@ -51,7 +51,7 @@ primary_region = 'sin'
 
 说明：
 
-- `app = 'omniroute'` 决定实际部署到哪个 Fly 应用
+- `app = 'birouter'` 决定实际部署到哪个 Fly 应用
 - `destination = '/data'` 决定持久卷挂载目录
 - 本项目必须让 `DATA_DIR=/data`，否则数据库和密钥会写到容器临时目录
 
@@ -89,8 +89,8 @@ flyctl version
 ### 4.1 获取代码并进入目录
 
 ```powershell
-git clone https://github.com/diegosouzapw/OmniRoute.git
-cd OmniRoute
+git clone https://github.com/IQ-Kat/birouter.git
+cd Birouter
 ```
 
 ### 4.2 确认应用名
@@ -98,29 +98,29 @@ cd OmniRoute
 打开 `fly.toml`，重点看这一行：
 
 ```toml
-app = 'omniroute'
+app = 'birouter'
 ```
 
 如果你准备部署到自己的新应用，可改成全局唯一名称，例如：
 
 ```toml
-app = 'omniroute-yourname'
+app = 'birouter-yourname'
 ```
 
 注意：
 
 - 控制台里要看的是与 `fly.toml` 里 `app` 一致的应用
-- 以前如果用过别的名字，例如 `oroute`，不要和 `omniroute` 混淆
+- 以前如果用过别的名字，例如 `oroute`，不要和 `birouter` 混淆
 
 ### 4.3 创建应用
 
 如果该应用尚不存在：
 
 ```powershell
-flyctl apps create omniroute
+flyctl apps create birouter
 ```
 
-如果你已经改成别的应用名，把 `omniroute` 替换成你的名字。
+如果你已经改成别的应用名，把 `birouter` 替换成你的名字。
 
 ### 4.4 首次部署
 
@@ -136,7 +136,7 @@ flyctl deploy
 
 ### 5.1 已验证使用的参数
 
-这些参数已经在当前 `omniroute` 应用上实际部署：
+这些参数已经在当前 `birouter` 应用上实际部署：
 
 - `API_KEY_SECRET`
 - `DATA_DIR`
@@ -177,10 +177,10 @@ flyctl deploy
 
 ### 6.2 当前项目推荐值
 
-| 变量名                 | 推荐值                      |
-| ---------------------- | --------------------------- |
-| `DATA_DIR`             | `/data`                     |
-| `NEXT_PUBLIC_BASE_URL` | `https://omniroute.fly.dev` |
+| 变量名                 | 推荐值                     |
+| ---------------------- | -------------------------- |
+| `DATA_DIR`             | `/data`                    |
+| `NEXT_PUBLIC_BASE_URL` | `https://birouter.fly.dev` |
 
 说明：
 
@@ -196,7 +196,7 @@ flyctl deploy
 说明：
 
 - 不包含 `INITIAL_PASSWORD`
-- 适用于当前项目 `omniroute`
+- 适用于当前项目 `birouter`
 
 ```powershell
 $apiKeySecret = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
@@ -210,14 +210,14 @@ flyctl secrets set `
   MACHINE_ID_SALT=$machineIdSalt `
   STORAGE_ENCRYPTION_KEY=$storageKey `
   DATA_DIR=/data `
-  NEXT_PUBLIC_BASE_URL=https://omniroute.fly.dev `
-  -a omniroute
+  NEXT_PUBLIC_BASE_URL=https://birouter.fly.dev `
+  -a birouter
 ```
 
 如果你还要加初始密码：
 
 ```powershell
-flyctl secrets set INITIAL_PASSWORD=你的强密码 -a omniroute
+flyctl secrets set INITIAL_PASSWORD=你的强密码 -a birouter
 ```
 
 ---
@@ -225,12 +225,12 @@ flyctl secrets set INITIAL_PASSWORD=你的强密码 -a omniroute
 ## 8. 查看当前参数
 
 ```powershell
-flyctl secrets list -a omniroute
+flyctl secrets list -a birouter
 ```
 
 如果控制台 `Secrets` 页面没有显示你期待的变量，先检查：
 
-- 看的应用是不是 `omniroute`
+- 看的应用是不是 `birouter`
 - `fly.toml` 的 `app` 是否和控制台应用一致
 
 ---
@@ -247,14 +247,14 @@ flyctl deploy
 如果只更新参数，不改代码：
 
 ```powershell
-flyctl secrets set KEY=value -a omniroute
+flyctl secrets set KEY=value -a birouter
 ```
 
 Fly 会自动滚动更新机器。
 
 ### 9.1 跟踪原仓库更新并保留 fork 的 `fly.toml`
 
-如果当前仓库是 fork，并且你要同步上游 `https://github.com/diegosouzapw/OmniRoute` 的更新，推荐按下面流程执行。
+如果当前仓库是 fork，并且你要同步上游 `https://github.com/IQ-Kat/birouter` 的更新，推荐按下面流程执行。
 
 先确认远程：
 
@@ -270,7 +270,7 @@ git remote -v
 如果没有 `upstream`，先添加：
 
 ```powershell
-git remote add upstream https://github.com/diegosouzapw/OmniRoute.git
+git remote add upstream https://github.com/IQ-Kat/birouter.git
 ```
 
 同步上游前，先抓取最新提交和标签：
@@ -320,8 +320,8 @@ git merge-base --is-ancestor v3.4.7 upstream/main
 3. 恢复 fork 的 `fly.toml`
 4. `git push origin main`
 5. `flyctl deploy`
-6. `flyctl status -a omniroute`
-7. `flyctl logs --no-tail -a omniroute`
+6. `flyctl status -a birouter`
+7. `flyctl logs --no-tail -a birouter`
 
 这就是当前项目升级到 `v3.4.7` 时使用的实际流程。
 
@@ -332,20 +332,20 @@ git merge-base --is-ancestor v3.4.7 upstream/main
 ### 10.1 查看应用状态
 
 ```powershell
-flyctl status -a omniroute
+flyctl status -a birouter
 ```
 
 ### 10.2 查看启动日志
 
 ```powershell
-flyctl logs --no-tail -a omniroute
+flyctl logs --no-tail -a birouter
 ```
 
 ### 10.3 检查网站可访问
 
 ```powershell
 try {
-  (Invoke-WebRequest -Uri "https://omniroute.fly.dev" -MaximumRedirection 5 -UseBasicParsing).StatusCode
+  (Invoke-WebRequest -Uri "https://birouter.fly.dev" -MaximumRedirection 5 -UseBasicParsing).StatusCode
 } catch {
   if ($_.Exception.Response) {
     $_.Exception.Response.StatusCode.value__
@@ -384,14 +384,14 @@ try {
 通常有两种原因：
 
 - 你还没执行 `flyctl secrets set`
-- 你打开的是另一个应用，例如 `oroute`，不是 `omniroute`
+- 你打开的是另一个应用，例如 `oroute`，不是 `birouter`
 
 ### 12.2 `flyctl deploy` 报 `app not found`
 
 先创建应用：
 
 ```powershell
-flyctl apps create omniroute
+flyctl apps create birouter
 ```
 
 ### 12.3 `fly.toml` 解析失败
@@ -434,10 +434,10 @@ flyctl apps create omniroute
 
 ```powershell
 flyctl auth whoami
-flyctl status -a omniroute
-flyctl secrets list -a omniroute
+flyctl status -a birouter
+flyctl secrets list -a birouter
 flyctl deploy
-flyctl logs --no-tail -a omniroute
+flyctl logs --no-tail -a birouter
 ```
 
 如果只是正常发版，核心就是：
@@ -449,7 +449,7 @@ flyctl deploy
 如果是新环境首次部署，核心就是：
 
 1. `flyctl auth login`
-2. `flyctl apps create omniroute`
-3. `flyctl secrets set ... -a omniroute`
+2. `flyctl apps create birouter`
+3. `flyctl secrets set ... -a birouter`
 4. `flyctl deploy`
-5. `flyctl logs --no-tail -a omniroute`
+5. `flyctl logs --no-tail -a birouter`

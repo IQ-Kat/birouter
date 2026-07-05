@@ -239,7 +239,7 @@ test("management routes sanitize error.message before returning it to clients", 
   //   (b) import createErrorResponse from @/lib/api/errorResponse (which already wraps
   //       message through structured envelope).
   const sanitizerHints = [
-    'from "@omniroute/open-sse/utils/error"',
+    'from "@birouter/open-sse/utils/error"',
     'from "@/lib/api/errorResponse"',
     "sanitizeErrorMessage(",
     "buildErrorBody(",

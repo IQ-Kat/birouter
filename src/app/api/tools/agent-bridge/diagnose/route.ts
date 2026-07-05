@@ -12,7 +12,7 @@
 import net from "node:net";
 import path from "node:path";
 import fs from "node:fs";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { getMitmStatus } from "@/mitm/manager";
 import { checkCertInstalled } from "@/mitm/cert/install";

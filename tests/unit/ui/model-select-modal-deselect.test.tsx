@@ -6,7 +6,7 @@
 // Upstream UX: clicking an already-added (highlighted) model in ModelSelectModal
 // should TOGGLE — invoke onDeselect instead of onSelect — and the modal must stay
 // open when keepOpenOnSelect so the user can add/remove several models in one
-// session. OmniRoute already had the visual highlight (addedModelValues) but no
+// session. Birouter already had the visual highlight (addedModelValues) but no
 // deselect callback nor an opt-out for the auto-close — added here.
 import React from "react";
 import { act } from "react";

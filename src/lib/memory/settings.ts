@@ -22,7 +22,7 @@ export const DEFAULT_MEMORY_SETTINGS: MemorySettings = {
   // context into every chat request, which is billed — a surprising cost for new
   // installs and for clients that manage their own context. Opt in explicitly via
   // Settings → Memory (the UI warns about the token cost). Per-request opt-out is
-  // also available via the `x-omniroute-no-memory` header. See
+  // also available via the `x-birouter-no-memory` header. See
   // _tasks/PRD-2026-06-19-no-memory-header.md.
   enabled: false,
   maxTokens: 2000,
@@ -100,8 +100,14 @@ export function normalizeMemorySettings(rawSettings: Record<string, unknown> = {
       rawSettings.memoryTransformersEnabled,
       DEFAULT_MEMORY_SETTINGS.transformersEnabled
     ),
-    staticEnabled: toBoolean(rawSettings.memoryStaticEnabled, DEFAULT_MEMORY_SETTINGS.staticEnabled),
-    rerankEnabled: toBoolean(rawSettings.memoryRerankEnabled, DEFAULT_MEMORY_SETTINGS.rerankEnabled),
+    staticEnabled: toBoolean(
+      rawSettings.memoryStaticEnabled,
+      DEFAULT_MEMORY_SETTINGS.staticEnabled
+    ),
+    rerankEnabled: toBoolean(
+      rawSettings.memoryRerankEnabled,
+      DEFAULT_MEMORY_SETTINGS.rerankEnabled
+    ),
     rerankProviderModel: normalizeNullableString(
       rawSettings.memoryRerankProviderModel,
       DEFAULT_MEMORY_SETTINGS.rerankProviderModel

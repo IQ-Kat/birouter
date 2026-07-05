@@ -8,7 +8,7 @@
  * providers (no `cache_control` markers) the guard was skipped. With compression active
  * and `preserveSystemPrompt: false` (or a prefix-compressing mode) this rewrote the
  * system prompt / earliest messages and guaranteed a cache miss — higher token spend
- * through OmniRoute than going direct.
+ * through Birouter than going direct.
  *
  * Fix: `isCachingProvider` ALONE is sufficient to protect the prefix (skipSystemPrompt),
  * independent of explicit `cache_control`. A non-caching provider is unaffected.
@@ -93,7 +93,9 @@ describe("#3955 automatic-cache prefix protection (no explicit cache_control)", 
   });
 
   it("leaves a NON-caching provider unaffected (no prefix protection without cache_control)", () => {
-    const ctx = detectCachingContext(autoCacheBody("google/gemini-2.5-pro"), { provider: "google" });
+    const ctx = detectCachingContext(autoCacheBody("google/gemini-2.5-pro"), {
+      provider: "google",
+    });
     assert.equal(ctx.isCachingProvider, false);
     const result = getCacheAwareStrategy("aggressive", ctx);
     assert.equal(result.skipSystemPrompt, false);

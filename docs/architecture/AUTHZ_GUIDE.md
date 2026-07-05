@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/server/authz/`, `src/shared/constants/publicApiRoutes.ts`, `src/lib/api/requireManagementAuth.ts`, `src/shared/utils/apiAuth.ts`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute has a route-aware authorization pipeline that gates every API request. Classification is **deterministic** and **fail-closed** — anything that cannot be classified ends up as `MANAGEMENT` and demands a session or management-grade token. This page explains the model for engineers maintaining routes or designing new endpoints.
+Birouter has a route-aware authorization pipeline that gates every API request. Classification is **deterministic** and **fail-closed** — anything that cannot be classified ends up as `MANAGEMENT` and demands a session or management-grade token. This page explains the model for engineers maintaining routes or designing new endpoints.
 
 ![AuthZ pipeline (3 route classes + policy evaluation)](../diagrams/exported/authz-pipeline.svg)
 
@@ -25,7 +25,7 @@ Used for the OpenAI/Anthropic/Gemini-compatible client APIs and a few management
 Authorization: Bearer <api-key>
 ```
 
-Validated by `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` and re-exported through `src/shared/utils/apiAuth.ts`. The validator also accepts the `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env vars as persistent passthrough keys (issue #1350).
+Validated by `isValidApiKey()` / `extractApiKey()` in `src/sse/services/auth.ts` and re-exported through `src/shared/utils/apiAuth.ts`. The validator also accepts the `BIROUTER_API_KEY` / `ROUTER_API_KEY` env vars as persistent passthrough keys (issue #1350).
 
 ### 2. Dashboard Session (auth_token cookie)
 
@@ -54,7 +54,7 @@ Some management routes accept **either** mode: cookie OR `Bearer <key>` when the
 ```
 Incoming request → src/proxy.ts
   → runAuthzPipeline() in src/server/authz/pipeline.ts
-    1. Strip trusted internal headers (x-omniroute-auth-*, x-omniroute-route-class)
+    1. Strip trusted internal headers (x-birouter-auth-*, x-birouter-route-class)
     2. Generate request id, classify route via classifyRoute()
     3. If pathname == "/" → redirect /dashboard
     4. If draining (graceful shutdown) and /api/* → 503
@@ -62,11 +62,11 @@ Incoming request → src/proxy.ts
     6. If OPTIONS → CORS preflight 204
     7. If options.enforce == false → pass-through with route-class headers
     8. Otherwise: POLICIES[routeClass].evaluate(ctx)
-       - allow  → stamp x-omniroute-auth-{kind,id,label,scopes} → NextResponse.next()
+       - allow  → stamp x-birouter-auth-{kind,id,label,scopes} → NextResponse.next()
        - reject → JSON error w/ correlation_id (dashboard pages → 302 /login)
 ```
 
-Trusted internal headers (defined in `src/server/authz/headers.ts`) are **stripped from incoming requests** before classification — clients cannot pre-populate `x-omniroute-auth-*` to impersonate a subject.
+Trusted internal headers (defined in `src/server/authz/headers.ts`) are **stripped from incoming requests** before classification — clients cannot pre-populate `x-birouter-auth-*` to impersonate a subject.
 
 ### Policy contracts
 
@@ -165,7 +165,7 @@ read:compression, write:compression, read:proxies
 
 Scope enforcement in `open-sse/mcp-server/server.ts` passes each tool's scope list into
 `evaluateToolScopes()` after `resolveCallerScopeContext()` resolves scopes from MCP auth info,
-request metadata, or `OMNIROUTE_MCP_SCOPES`.
+request metadata, or `BIROUTER_MCP_SCOPES`.
 
 ## Auth Required Toggle
 
@@ -197,16 +197,16 @@ The pipeline always stamps responses with:
 
 ```
 x-request-id:               <correlation id, echoed in error bodies>
-x-omniroute-route-class:    PUBLIC | CLIENT_API | MANAGEMENT
+x-birouter-route-class:    PUBLIC | CLIENT_API | MANAGEMENT
 ```
 
 For authenticated requests the upstream (handler-side) request headers also include:
 
 ```
-x-omniroute-auth-kind:      client_api_key | dashboard_session | management_key | anonymous
-x-omniroute-auth-id:        key_<last-4> | "dashboard" | "anonymous"
-x-omniroute-auth-label:     (optional)
-x-omniroute-auth-scopes:    comma-separated list
+x-birouter-auth-kind:      client_api_key | dashboard_session | management_key | anonymous
+x-birouter-auth-id:        key_<last-4> | "dashboard" | "anonymous"
+x-birouter-auth-label:     (optional)
+x-birouter-auth-scopes:    comma-separated list
 ```
 
 Use `assertAuth(req, expectedClass)` inside handlers — it throws `AuthzAssertionError` with code `AUTHZ_NOT_INITIALIZED` if the middleware was bypassed (helpful for catching configuration regressions in tests).

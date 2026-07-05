@@ -2,7 +2,7 @@
  * Progress Tracker — Phase 9.3
  *
  * Emits SSE `event: progress` events during long streaming responses.
- * Opt-in via X-OmniRoute-Progress: true header.
+ * Opt-in via X-Birouter-Progress: true header.
  *
  * Progress events contain:
  *   { tokens_generated, elapsed_ms }
@@ -108,5 +108,5 @@ export function createProgressTransform({
 export function wantsProgress(headers) {
   if (!headers) return false;
   const get = typeof headers.get === "function" ? (k) => headers.get(k) : (k) => headers[k];
-  return get("x-omniroute-progress") === "true";
+  return get("x-birouter-progress") === "true";
 }

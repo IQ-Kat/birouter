@@ -5,7 +5,11 @@ import { Button, Card } from "@/shared/components";
 
 type ZedImportCardProps = {
   fetchConnections: () => Promise<void>;
-  notify: { success: (msg: string) => void; error: (msg: string) => void; info: (msg: string) => void };
+  notify: {
+    success: (msg: string) => void;
+    error: (msg: string) => void;
+    info: (msg: string) => void;
+  };
 };
 
 export default function ZedImportCard({ fetchConnections, notify }: ZedImportCardProps) {
@@ -82,8 +86,8 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
               Import from Zed Keychain
             </h2>
             <p className="text-sm text-text-muted mt-1">
-              Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that
-              Zed IDE stored in the OS keychain and import them as connections. Requires Zed IDE
+              Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that Zed
+              IDE stored in the OS keychain and import them as connections. Requires Zed IDE
               installed on this machine.
             </p>
           </div>
@@ -115,10 +119,10 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
           {showZedManual && (
             <div className="flex flex-col gap-3 mt-1">
               <p className="text-sm text-text-muted">
-                Use this when OmniRoute runs in Docker or the keychain is unavailable. Paste the
-                API key that Zed stored under{" "}
-                <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy
-                it from the Zed AI settings panel.
+                Use this when Birouter runs in Docker or the keychain is unavailable. Paste the API
+                key that Zed stored under{" "}
+                <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy it
+                from the Zed AI settings panel.
               </p>
               <div className="flex gap-2 flex-col sm:flex-row">
                 <select

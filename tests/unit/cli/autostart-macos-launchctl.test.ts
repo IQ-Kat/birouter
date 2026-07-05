@@ -16,9 +16,9 @@ import {
 
 test("parseAgentSelfFromLaunchctl returns true when PID matches", () => {
   const output = `{
-\t"StandardOutPath" = "/tmp/omniroute.out.log";
+\t"StandardOutPath" = "/tmp/birouter.out.log";
 \t"PID" = 4242;
-\t"Label" = "com.omniroute.autostart";
+\t"Label" = "com.birouter.autostart";
 }`;
   assert.equal(parseAgentSelfFromLaunchctl(output, 4242), true);
 });
@@ -26,7 +26,7 @@ test("parseAgentSelfFromLaunchctl returns true when PID matches", () => {
 test("parseAgentSelfFromLaunchctl returns false when PID differs", () => {
   const output = `{
 \t"PID" = 9999;
-\t"Label" = "com.omniroute.autostart";
+\t"Label" = "com.birouter.autostart";
 }`;
   assert.equal(parseAgentSelfFromLaunchctl(output, 4242), false);
 });
@@ -34,7 +34,7 @@ test("parseAgentSelfFromLaunchctl returns false when PID differs", () => {
 test("parseAgentSelfFromLaunchctl returns false when no PID present", () => {
   // Loaded-but-not-running agent: launchctl omits the PID key.
   const output = `{
-\t"Label" = "com.omniroute.autostart";
+\t"Label" = "com.birouter.autostart";
 \t"LastExitStatus" = 0;
 }`;
   assert.equal(parseAgentSelfFromLaunchctl(output, 4242), false);

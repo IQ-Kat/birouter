@@ -23,12 +23,11 @@ describe("sidebarVisibility — embedded-services", () => {
   it("embedded-services has the correct href", async () => {
     const { SIDEBAR_SECTIONS } =
       await import("../../../../../src/shared/constants/sidebarVisibility.ts");
-    const omniProxy = SIDEBAR_SECTIONS.find((s) => s.id === "omni-proxy");
-    const flat = (omniProxy?.children ?? []).filter((c) => !("type" in c));
+    const biProxy = SIDEBAR_SECTIONS.find((s) => s.id === "bi-proxy");
+    const flat = (biProxy?.children ?? []).filter((c) => !("type" in c));
     const item = flat.find((c) => (c as { id: string }).id === "embedded-services") as
-      | { id: string; href: string }
-      | undefined;
-    assert.ok(item, "embedded-services item should exist in omni-proxy section");
+      { id: string; href: string } | undefined;
+    assert.ok(item, "embedded-services item should exist in bi-proxy section");
     assert.equal(item.href, "/dashboard/providers/services");
   });
 });

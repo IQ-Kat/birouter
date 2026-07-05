@@ -7,7 +7,7 @@
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { InspectorCaptureModeActionSchema } from "@/shared/schemas/inspector";
 import { startHttpProxyServer } from "@/mitm/inspector/httpProxyServer";
 import { getHttpProxyHandle, setHttpProxyHandle } from "@/lib/inspector/captureState";
@@ -79,9 +79,9 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
     const msg = sanitizeErrorMessage(err);
-    return new Response(
-      JSON.stringify(buildErrorBody(500, msg || "Failed to start HTTP proxy")),
-      { status: 500, headers: { "content-type": "application/json" } }
-    );
+    return new Response(JSON.stringify(buildErrorBody(500, msg || "Failed to start HTTP proxy")), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
   }
 }

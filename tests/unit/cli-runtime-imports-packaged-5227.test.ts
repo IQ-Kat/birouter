@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
  * The published npm package only ships the paths listed in package.json's
  * `files` whitelist. If a CLI entrypoint under `bin/` imports a module under
  * `scripts/` at runtime, that script MUST be covered by the whitelist —
- * otherwise a global install (`npm install -g omniroute`) fails at startup with
+ * otherwise a global install (`npm install -g birouter`) fails at startup with
  * "Cannot find module .../scripts/build/runtime-env.mjs".
  *
  * #5227: `bin/cli/commands/serve.mjs` started importing

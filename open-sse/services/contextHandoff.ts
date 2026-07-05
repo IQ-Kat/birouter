@@ -19,7 +19,7 @@ const MAX_TASK_PROGRESS_LENGTH = 1200;
 const MAX_DECISIONS = 8;
 const MAX_ENTITIES = 10;
 const DEFAULT_TTL_MS = 5 * 60 * 60 * 1000;
-const OMNI_MODEL_TAG_PATTERN = /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g;
+const BI_MODEL_TAG_PATTERN = /(?:\\n|\n|\r)*<biModel>[^<]+<\/biModel>(?:\\n|\n|\r)*/g;
 const inflightHandoffGenerations = new Set<string>();
 
 const HANDOFF_PROMPT_TEMPLATE = `You are a context summarizer. Analyze the conversation below and generate a structured handoff summary.
@@ -77,7 +77,7 @@ export const DEFAULT_UNIVERSAL_HANDOFF_CONFIG: UniversalHandoffConfig = {
   preserveSystemPrompt: true,
 };
 
-export const SKIP_UNIVERSAL_HANDOFF_FLAG = "_omnirouteSkipUniversalHandoff";
+export const SKIP_UNIVERSAL_HANDOFF_FLAG = "_birouterSkipUniversalHandoff";
 
 export function resolveUniversalHandoffConfig(
   comboConfig: Record<string, unknown> | null | undefined,
@@ -230,7 +230,10 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
     .join("\n\n");
 }
 
-export function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
+export function selectMessagesForSummary(
+  messages: MessageLike[],
+  maxMessages: number
+): MessageLike[] {
   const validMessages = messages.filter((m) => m && typeof m === "object");
   const system = validMessages.filter(
     (m) => typeof m.role === "string" && (m.role === "system" || m.role === "developer")
@@ -275,7 +278,7 @@ function normalizeStringArray(value: unknown, maxItems: number, maxLength = 240)
 }
 
 function sanitizeJsonCandidate(content: string): string {
-  return content.replace(OMNI_MODEL_TAG_PATTERN, "").trim();
+  return content.replace(BI_MODEL_TAG_PATTERN, "").trim();
 }
 
 function extractJsonCandidate(content: string): string {
@@ -395,8 +398,8 @@ async function generateHandoffAsync(options: {
     stream: false,
     max_tokens: DEFAULT_SUMMARY_RESPONSE_TOKENS,
     temperature: 0.1,
-    _omnirouteSkipContextRelay: true,
-    _omnirouteInternalRequest: "context-handoff",
+    _birouterSkipContextRelay: true,
+    _birouterInternalRequest: "context-handoff",
   };
 
   const response = await options.handleSingleModel(summaryBody, summaryModel);
@@ -632,8 +635,8 @@ async function generateUniversalHandoffAsync(options: {
     stream: false,
     max_tokens: DEFAULT_SUMMARY_RESPONSE_TOKENS,
     temperature: 0.1,
-    _omnirouteSkipContextRelay: true,
-    _omnirouteInternalRequest: "universal-handoff",
+    _birouterSkipContextRelay: true,
+    _birouterInternalRequest: "universal-handoff",
   };
 
   const response = await options.handleSingleModel(summaryBody, summaryModel);

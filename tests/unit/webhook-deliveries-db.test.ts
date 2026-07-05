@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-deliveries-"));
+const TEST_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-deliveries-"));
 process.env.DATA_DIR = TEST_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");

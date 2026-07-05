@@ -124,7 +124,7 @@ export class GithubExecutor extends BaseExecutor {
 
     // GitHub Copilot's gpt-5.4 family rejects requests carrying `temperature` with HTTP 400:
     //   "Unsupported parameter: 'temperature' is not supported with this model."
-    // OmniRoute's existing `stripGpt5SamplingWhenReasoning` guard only fires for
+    // Birouter's existing `stripGpt5SamplingWhenReasoning` guard only fires for
     // provider==="openai" (raw api.openai.com Chat Completions), so GitHub Copilot routes
     // never hit it. Strip temperature here unconditionally for gpt-5.4 so the 400 cannot
     // reach the user. Port from 9router#612 (closes upstream #536).

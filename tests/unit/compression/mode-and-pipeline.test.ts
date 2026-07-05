@@ -12,7 +12,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector.ts";
+import { applyCompression } from "@birouter/open-sse/services/compression/strategySelector.ts";
 import { normalizeStackedPipeline } from "../../../src/lib/db/compression.ts";
 
 test("standard mode compresses even when cavemanConfig.enabled is false (B-MODE-ENGINE-DECOUPLE)", () => {
@@ -28,7 +28,12 @@ test("standard mode compresses even when cavemanConfig.enabled is false (B-MODE-
   };
   const res = applyCompression(body, "standard", {
     config: {
-      cavemanConfig: { enabled: false, compressRoles: ["user"], intensity: "full", minMessageLength: 0 },
+      cavemanConfig: {
+        enabled: false,
+        compressRoles: ["user"],
+        intensity: "full",
+        minMessageLength: 0,
+      },
     },
   } as Record<string, unknown>);
   assert.ok(res.compressed, "standard mode must run caveman regardless of cavemanConfig.enabled");

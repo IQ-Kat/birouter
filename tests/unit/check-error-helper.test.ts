@@ -95,7 +95,7 @@ test("does NOT flag a file that imports utils/error (relative)", () => {
 });
 
 test("does NOT flag a file that imports utils/error (workspace alias)", () => {
-  const src = `import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+  const src = `import { buildErrorBody } from "@birouter/open-sse/utils/error";
   function build(err: Error) { return new Response(JSON.stringify({ error: { message: \`x \${err.message}\` } })); }`;
   assert.deepEqual(run(src), []);
 });
@@ -232,7 +232,7 @@ test("6A.8: flags a src/app/api route.ts that forwards raw err.message", () => {
 });
 
 test("6A.8: does NOT flag mcp-server file that imports utils/error", () => {
-  const src = `import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+  const src = `import { buildErrorBody } from "@birouter/open-sse/utils/error";
   function handleTool(err: Error) { return buildErrorBody(err); }`;
   const result = find([{ path: "open-sse/mcp-server/tools/safeTool.ts", source: src }], EMPTY);
   assert.deepEqual(result, []);

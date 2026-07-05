@@ -6,7 +6,7 @@ import path from "node:path";
 
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-matrix-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-health-matrix-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 
@@ -19,7 +19,7 @@ const modelsDb = await import("../../src/lib/db/models.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const matrix = await import("../../src/lib/monitoring/providerHealthMatrix.ts");
 const route = await import("../../src/app/api/providers/health-matrix/route.ts");
-const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
+const accountFallback = await import("@birouter/open-sse/services/accountFallback");
 
 const PROVIDER = "matrix-test-provider";
 

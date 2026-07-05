@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-free-providers-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-free-providers-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 // Providers read process.env at call-time, so we can set flags before import
@@ -258,7 +258,10 @@ test("IplocateProvider.sync parses the plain-text ip:port lists (.txt, not .json
       seenUrls.length > 0 && seenUrls.every((u) => u.endsWith(".txt")),
       `expected .txt URLs, got: ${seenUrls.join(", ")}`
     );
-    assert.ok(result.fetched > 0, `expected proxies parsed from the txt list, got ${result.fetched}`);
+    assert.ok(
+      result.fetched > 0,
+      `expected proxies parsed from the txt list, got ${result.fetched}`
+    );
     const items = await p.list({ limit: 50 });
     assert.ok(
       items.some((i) => i.host === "103.173.141.10" && i.port === 8080),

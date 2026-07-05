@@ -3,7 +3,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { cliMitmStartSchema, cliMitmStopSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -69,7 +69,7 @@ export async function POST(request) {
     const { apiKey: rawApiKey, keyId: rawKeyId, sudoPassword } = validation.data;
     const apiKeyId = rawKeyId ?? null;
     const apiKey = await resolveApiKey(apiKeyId, rawApiKey);
-    if (!apiKey || apiKey === "sk_omniroute") {
+    if (!apiKey || apiKey === "sk_birouter") {
       return NextResponse.json(
         { error: "Missing apiKey: provide a valid apiKey or a resolvable keyId" },
         { status: 400 }

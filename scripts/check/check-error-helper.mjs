@@ -47,7 +47,7 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
 
 // Import specifiers that count as "uses the error helper" (path ends in utils/error).
 const ERROR_HELPER_IMPORT =
-  /\bfrom\s*["'](?:\.{1,2}\/)*(?:open-sse\/)?utils\/error(?:\.[tj]s)?["']|@omniroute\/open-sse\/utils\/error/;
+  /\bfrom\s*["'](?:\.{1,2}\/)*(?:open-sse\/)?utils\/error(?:\.[tj]s)?["']|@birouter\/open-sse\/utils\/error/;
 
 // A caught-error identifier whose .message/.stack is RAW (not sanitized): the leading
 // token must be exactly `err` / `error` / `e` (optionally `(err as Error)` cast), and

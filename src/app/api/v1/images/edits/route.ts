@@ -1,12 +1,12 @@
 import {
   handleImageEdit,
   handleOpenAIImageEdit,
-} from "@omniroute/open-sse/handlers/imageGeneration.ts";
+} from "@birouter/open-sse/handlers/imageGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
-import { parseImageModel, getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { parseImageModel, getImageProvider } from "@birouter/open-sse/config/imageRegistry.ts";
+import { errorResponse, unavailableResponse } from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -36,7 +36,7 @@ const ImageEditJsonSchema = z
  *
  * Two upstream shapes are supported:
  *  - **chatgpt-web**: an "edit" only makes sense if the uploaded image was originally
- *    generated through OmniRoute — we then have its `{conversationId, parentMessageId}`
+ *    generated through Birouter — we then have its `{conversationId, parentMessageId}`
  *    cached and can continue the saved chatgpt.com conversation node (the only way to
  *    actually edit the image instead of generating an unrelated one).
  *  - **custom OpenAI-compatible providers** (#3214/#3215): forward a multipart edit to

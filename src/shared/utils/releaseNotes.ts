@@ -1,11 +1,9 @@
 import { z } from "zod";
 
-export const NEWS_JSON_URL =
-  "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/news.json";
+export const NEWS_JSON_URL = "https://raw.githubusercontent.com/IQ-Kat/birouter/main/news.json";
 export const CHANGELOG_RAW_URL =
-  "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/CHANGELOG.md";
-export const CHANGELOG_GITHUB_URL =
-  "https://github.com/diegosouzapw/OmniRoute/blob/main/CHANGELOG.md";
+  "https://raw.githubusercontent.com/IQ-Kat/birouter/main/CHANGELOG.md";
+export const CHANGELOG_GITHUB_URL = "https://github.com/IQ-Kat/birouter/blob/main/CHANGELOG.md";
 
 const activeNewsSchema = z.object({
   active: z.literal(true),

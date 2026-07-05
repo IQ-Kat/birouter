@@ -215,7 +215,7 @@ export async function POST(request: Request) {
       headers,
       body: JSON.stringify({
         slug: projectName,
-        labels: { "custom.kind": "omniroute-relay" },
+        labels: { "custom.kind": "birouter-relay" },
         config: {
           install: "deno install",
           runtime: { type: "dynamic", entrypoint: "main.ts" },

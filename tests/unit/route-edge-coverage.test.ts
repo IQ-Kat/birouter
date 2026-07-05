@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-route-edges-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-route-edges-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
 process.env.CLOUD_URL = "http://cloud.example";
@@ -851,7 +851,7 @@ test("v1 routes surface provider-rate-limit sentinels instead of missing credent
       makeRequest("http://localhost/v1/moderations", {
         method: "POST",
         token,
-        body: { model: "openai/omni-moderation-latest", input: "hello" },
+        body: { model: "openai/bi-moderation-latest", input: "hello" },
       })
     ),
     await audioSpeechRoute.POST(

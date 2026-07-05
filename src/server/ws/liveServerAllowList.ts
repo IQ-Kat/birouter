@@ -6,7 +6,7 @@
  * full WebSocket server. The behaviour here MUST match the one used by the
  * connection handler exactly.
  *
- * Bug #1 (plans/2026-06-23-omniroute-v3.8.34-deep-audit.md) added the
+ * Bug #1 (plans/2026-06-23-birouter-v3.8.34-deep-audit.md) added the
  * `LIVE_WS_ALLOWED_HOSTS` opt-in for LAN/Tailscale deployments.
  */
 

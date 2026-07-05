@@ -97,7 +97,7 @@ async function confirm(q) {
 }
 
 export async function runCompressionStatus(opts, cmd) {
-  const data = await mcpCall("omniroute_compression_status", {}, restCompressionStatus);
+  const data = await mcpCall("birouter_compression_status", {}, restCompressionStatus);
   emit(data, cmd.optsWithGlobals());
 }
 
@@ -108,7 +108,7 @@ export async function runCompressionConfigure(opts, cmd) {
     config.caveman = { aggressiveness: opts.cavemanAggressiveness };
   if (opts.rtkBudget !== undefined) config.rtk = { tokenBudget: opts.rtkBudget };
   if (opts.languagePack) config.languagePack = opts.languagePack;
-  const data = await mcpCall("omniroute_compression_configure", config, () =>
+  const data = await mcpCall("birouter_compression_configure", config, () =>
     restCompressionConfigure(config)
   );
   emit(data, cmd.optsWithGlobals());
@@ -120,7 +120,7 @@ export async function runCompressionEngineSet(name, opts, cmd) {
     process.stderr.write(`Unknown engine: ${name}. Valid: ${VALID_ENGINES.join(", ")}\n`);
     process.exit(2);
   }
-  await mcpCall("omniroute_set_compression_engine", { engine: normalized }, () =>
+  await mcpCall("birouter_set_compression_engine", { engine: normalized }, () =>
     restSetEngine(normalized)
   );
   process.stdout.write(`Engine: ${normalized}\n`);
@@ -162,13 +162,13 @@ export function registerCompression(program) {
   const engine = cmp.command("engine").description(t("compression.engine.description"));
   engine.command("set <name>").action(runCompressionEngineSet);
   engine.command("get").action(async (opts, cmd) => {
-    const data = await mcpCall("omniroute_compression_status", {}, restCompressionStatus);
+    const data = await mcpCall("birouter_compression_status", {}, restCompressionStatus);
     process.stdout.write(`${data.engine ?? "(default)"}\n`);
   });
 
   const combos = cmp.command("combos").description(t("compression.combos.description"));
   combos.command("list").action(async (opts, cmd) => {
-    const data = await mcpCall("omniroute_list_compression_combos", {}, async () => ({
+    const data = await mcpCall("birouter_list_compression_combos", {}, async () => ({
       combos: await restListCombos(),
     }));
     emit(data.combos ?? data, cmd.optsWithGlobals());
@@ -178,7 +178,7 @@ export function registerCompression(program) {
     .option("--period <p>", null, "7d")
     .action(async (opts, cmd) => {
       const data = await mcpCall(
-        "omniroute_compression_combo_stats",
+        "birouter_compression_combo_stats",
         { period: opts.period ?? "7d" },
         () => restComboStats(opts.period)
       );

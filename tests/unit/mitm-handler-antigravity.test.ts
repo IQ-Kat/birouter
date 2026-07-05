@@ -1,12 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  AntigravityHandler,
-  convertGeminiToOpenAI,
-} from "../../src/mitm/handlers/antigravity.ts";
+import { AntigravityHandler, convertGeminiToOpenAI } from "../../src/mitm/handlers/antigravity.ts";
 import { runHandler } from "./_mitmHandlerHarness.ts";
 
-test("antigravity handler — forwards to OmniRoute and pipes SSE", async () => {
+test("antigravity handler — forwards to Birouter and pipes SSE", async () => {
   const r = await runHandler(
     new AntigravityHandler(),
     { model: "gpt-4o", messages: [{ role: "user", content: "hi" }] },
@@ -19,12 +16,10 @@ test("antigravity handler — forwards to OmniRoute and pipes SSE", async () => 
 });
 
 test("antigravity handler — propagates upstream failure as 500", async () => {
-  const r = await runHandler(
-    new AntigravityHandler(),
-    { model: "gpt-4o" },
-    "claude-3.5-sonnet",
-    { upstreamStatus: 500, upstreamBody: "boom" }
-  );
+  const r = await runHandler(new AntigravityHandler(), { model: "gpt-4o" }, "claude-3.5-sonnet", {
+    upstreamStatus: 500,
+    upstreamBody: "boom",
+  });
   assert.equal(r.status, 500);
   const body = r.responseChunks.join("");
   // Error must NOT include raw stack trace (Hard Rule #12 sanitization).

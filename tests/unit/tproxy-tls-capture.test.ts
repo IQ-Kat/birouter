@@ -142,7 +142,7 @@ function tlsRequest(
 test("decrypts an intercepted HTTPS request and captures it as source 'tproxy'", async () => {
   globalTrafficBuffer.clear();
   const upstream = await startHttpsUpstream();
-  const certStore = new DynamicCertStore("OmniRoute MITM CA (test)");
+  const certStore = new DynamicCertStore("Birouter MITM CA (test)");
   const caPem = await certStore.getCaCertPem();
   // forward = direct TLS to the test upstream (no SO_MARK — native addon not needed
   // here). The test upstream uses a self-signed cert, so opt out of verification
@@ -196,7 +196,7 @@ test("the forward dials its upstream through connectRaw — the bypass-marked se
   // this asserts connectRaw (the anti-loop seam) is actually invoked.
   globalTrafficBuffer.clear();
   const upstream = await startHttpsUpstream();
-  const certStore = new DynamicCertStore("OmniRoute MITM CA (test)");
+  const certStore = new DynamicCertStore("Birouter MITM CA (test)");
   const caPem = await certStore.getCaCertPem();
   let connectRawCalls = 0;
   const forward = createForward(
@@ -232,7 +232,7 @@ test("the forward dials its upstream through connectRaw — the bypass-marked se
 
 test("a forward failure is recorded as an error entry and the client gets 502", async () => {
   globalTrafficBuffer.clear();
-  const certStore = new DynamicCertStore("OmniRoute MITM CA (test)");
+  const certStore = new DynamicCertStore("Birouter MITM CA (test)");
   const caPem = await certStore.getCaCertPem();
   const failingForward = () => Promise.reject(new Error("upstream unreachable"));
   const engine = await startEngineListener(

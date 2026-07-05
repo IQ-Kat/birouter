@@ -313,7 +313,7 @@ function supportsMaxEffortForProvider(provider: string, model: string): boolean 
     supportsClaudeMaxEffort(model);
   // opencode-go proxies DeepSeek with the native DeepSeek API contract, which
   // accepts {high, max} literally. Without this opt-in, max would be
-  // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
+  // normalized to xhigh (the Birouter-internal top tier) and rejected by the
   // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
   // (pi#4055) is the documented inverse and expects xhigh, not max.
   // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
@@ -364,7 +364,7 @@ export function sanitizeReasoningEffortForProvider(
   }
 
   // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
-  // ONLY as {high, max} (its own top tier is literally "max"). OmniRoute's internal
+  // ONLY as {high, max} (its own top tier is literally "max"). Birouter's internal
   // scale is low|medium|high|xhigh where xhigh is the top, so map onto DeepSeek's
   // vocabulary: xhigh → max (top→top), low|medium → high (below the enum floor).
   // high/max pass through unchanged. Without this, the claude→openai translator's
@@ -428,11 +428,11 @@ export function sanitizeReasoningEffortForProvider(
 }
 
 /**
- * Strip the OmniRoute provider prefix from versioned built-in tool model
+ * Strip the Birouter provider prefix from versioned built-in tool model
  * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
  * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
  * the real Claude CLI sends a bare model id there, never a prefixed one, so a
- * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
+ * leaked Birouter prefix makes Anthropic reject the request. Mutates in place.
  */
 export function stripVersionedToolModelPrefix(tools: unknown): void {
   if (!Array.isArray(tools)) return;
@@ -1031,23 +1031,23 @@ export class BaseExecutor {
             for (const t of tb.tools as Array<Record<string, unknown>>) {
               delete t.cache_control;
             }
-            // Also strip OmniRoute provider prefix from versioned built-in tool
+            // Also strip Birouter provider prefix from versioned built-in tool
             // model fields (e.g. cc/claude-opus-4-8 → claude-opus-4-8).
             stripVersionedToolModelPrefix(tb.tools);
           }
 
           // Per-request behavior overrides via custom client headers.
-          //   x-omniroute-effort:   low | medium | high | xhigh | max | off
-          //   x-omniroute-thinking: adaptive | off
+          //   x-birouter-effort:   low | medium | high | xhigh | max | off
+          //   x-birouter-thinking: adaptive | off
           // A header value applies only when the corresponding body field is
           // not already set; "off" force-strips the field.
           const headerEffort = (
-            clientHeaders?.["x-omniroute-effort"] ?? clientHeaders?.["X-OmniRoute-Effort"]
+            clientHeaders?.["x-birouter-effort"] ?? clientHeaders?.["X-Birouter-Effort"]
           )
             ?.trim()
             .toLowerCase();
           const headerThinking = (
-            clientHeaders?.["x-omniroute-thinking"] ?? clientHeaders?.["X-OmniRoute-Thinking"]
+            clientHeaders?.["x-birouter-thinking"] ?? clientHeaders?.["X-Birouter-Thinking"]
           )
             ?.trim()
             .toLowerCase();
@@ -1103,7 +1103,7 @@ export class BaseExecutor {
           } else if (!effThinking && !headerEffort && isClaudeCodeClient) {
             // Default Claude Code logic when no override headers are present.
             // Generic OpenAI-compatible clients that route through native Claude OAuth
-            // must opt in with x-omniroute-thinking; force-injecting adaptive thinking
+            // must opt in with x-birouter-thinking; force-injecting adaptive thinking
             // leaks non-standard reasoning replay fields back into those clients.
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             // #5312 RC-B: honor the operator's proxy-level Thinking-Budget mode.
@@ -1165,7 +1165,7 @@ export class BaseExecutor {
           // For any Claude OAuth request, ignore client-supplied metadata.user_id /
           // X-Claude-Code-Session-Id and synthesize per-account: the CC device_id from
           // ~/.claude.json is shared across every account on one machine, which lets
-          // Anthropic correlate accounts behind one OmniRoute.
+          // Anthropic correlate accounts behind one Birouter.
           const cloakIdentity = isClaudeCodeClient || hasClaudeOAuthToken;
           const upstreamUserId = cloakIdentity ? null : parseUpstreamMetadataUserId(tb);
           if (upstreamUserId) {

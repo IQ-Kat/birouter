@@ -1,7 +1,7 @@
 /**
  * scripts/test/combo-live-vps.mjs
  *
- * Phase-3 VPS HTTP scenario driver for OmniRoute combo routing.
+ * Phase-3 VPS HTTP scenario driver for Birouter combo routing.
  * Exercises 6 strategies (priority / round-robin / weighted / cost-optimized /
  * fusion / auto) against the live server at 192.168.0.15:20128.
  *
@@ -40,18 +40,18 @@ const BROAD_CANDIDATES = [
   "gemini/gemini-2.0-flash",
 ];
 
-// Known approximate input cost ($/M tokens) from OmniRoute's default-pricing constants.
+// Known approximate input cost ($/M tokens) from Birouter's default-pricing constants.
 // Used only to identify cheap vs pricey pairs for cost-optimized scenario.
 // Models absent from this map are treated as unknown cost (Infinity in the server's
 // sortModelsByCost, i.e. sorted last — effectively "most expensive").
 const KNOWN_INPUT_COST = {
-  "groq/llama-3.1-8b-instant": 0,       // inference-hosts.ts: price=0 (free tier)
-  "groq/llama-3.3-70b-versatile": 0,     // inference-hosts.ts: price=0 (free tier)
-  "cerebras/llama3.1-8b": 0,             // inference-hosts.ts: price=0
-  "cerebras/llama-3.3-70b": 0,           // inference-hosts.ts: price=0
-  "deepseek/deepseek-chat": 0,           // inference-hosts.ts: price=0
-  "minimax/MiniMax-M3": 0.5,             // regional.ts: $0.5/M input
-  "minimax/minimax-m3": 0.5,             // regional.ts: $0.5/M input
+  "groq/llama-3.1-8b-instant": 0, // inference-hosts.ts: price=0 (free tier)
+  "groq/llama-3.3-70b-versatile": 0, // inference-hosts.ts: price=0 (free tier)
+  "cerebras/llama3.1-8b": 0, // inference-hosts.ts: price=0
+  "cerebras/llama-3.3-70b": 0, // inference-hosts.ts: price=0
+  "deepseek/deepseek-chat": 0, // inference-hosts.ts: price=0
+  "minimax/MiniMax-M3": 0.5, // regional.ts: $0.5/M input
+  "minimax/minimax-m3": 0.5, // regional.ts: $0.5/M input
   "kimi-coding-apikey/moonshot-v1-8k": 1, // not in pricing table → Infinity on server → treated pricey
 };
 
@@ -127,14 +127,10 @@ async function step0CacheProbe(healthy) {
     // Attempt immediate chat — expect instant visibility (getComboByName bypasses cache)
     let r = await chat(probeName, { maxTokens: 4 });
     if (r.status === 200 && r.text) {
-      console.log(
-        `  chat() → ${r.status} model=${r.model} text="${r.text.slice(0, 40)}"`
-      );
+      console.log(`  chat() → ${r.status} model=${r.model} text="${r.text.slice(0, 40)}"`);
       console.log("  PROBE RESULT: immediately routable — getComboByName bypasses in-memory cache");
     } else {
-      console.log(
-        `  Immediate chat → status=${r.status} text=${r.text ?? "(empty)"}`
-      );
+      console.log(`  Immediate chat → status=${r.status} text=${r.text ?? "(empty)"}`);
       console.log("  Polling up to 12 s (TTL cache unexpectedly active)...");
       let resolved = false;
       for (let i = 0; i < 6; i++) {
@@ -164,7 +160,9 @@ async function step0CacheProbe(healthy) {
   }
 
   if (blocked) {
-    throw new Error("BLOCKER: sqlite-inserted combo not routable within 12s — cannot run scenarios");
+    throw new Error(
+      "BLOCKER: sqlite-inserted combo not routable within 12s — cannot run scenarios"
+    );
   }
 }
 
@@ -193,7 +191,12 @@ async function scenarioPriority(healthy) {
     }
     pass("priority", `status=200 model=${r.model} text="${r.text.slice(0, 40)}"`);
   } finally {
-    if (id) try { deleteCombo(name); } catch { /* best effort */ }
+    if (id)
+      try {
+        deleteCombo(name);
+      } catch {
+        /* best effort */
+      }
   }
 }
 
@@ -228,9 +231,17 @@ async function scenarioRoundRobin(healthy) {
       );
       return;
     }
-    pass("round-robin", `${served.size} distinct models across 5 calls: [${[...served].join(", ")}]`);
+    pass(
+      "round-robin",
+      `${served.size} distinct models across 5 calls: [${[...served].join(", ")}]`
+    );
   } finally {
-    if (id) try { deleteCombo(name); } catch { /* best effort */ }
+    if (id)
+      try {
+        deleteCombo(name);
+      } catch {
+        /* best effort */
+      }
   }
 }
 
@@ -277,7 +288,12 @@ async function scenarioWeighted(healthy) {
     }
     pass("weighted", `8 calls distribution: ${JSON.stringify(tally)}`);
   } finally {
-    if (id) try { deleteCombo(name); } catch { /* best effort */ }
+    if (id)
+      try {
+        deleteCombo(name);
+      } catch {
+        /* best effort */
+      }
   }
 }
 
@@ -287,7 +303,7 @@ async function scenarioWeighted(healthy) {
 // Insert pricey first (position 0) so cost-optimized must reorder.
 // Assert: the served model matches the cheap provider.
 //
-// OmniRoute's sortModelsByCost uses getPricingForModel which merges
+// Birouter's sortModelsByCost uses getPricingForModel which merges
 // default-pricing constants. groq models have price=0; minimax M3 has $0.5.
 // Cost-optimized sorts ascending → groq (0) before minimax (0.5).
 // ---------------------------------------------------------------------------
@@ -331,7 +347,7 @@ async function scenarioCostOptimized(healthy) {
     }
     // Verify the cheap model was served (response.model contains cheap provider's model name)
     const cheapProvider = splitProviderModel(cheapModel).providerId;
-    // Both direct match and provider-substring match are accepted since OmniRoute
+    // Both direct match and provider-substring match are accepted since Birouter
     // returns the raw upstream model name (e.g. "llama-3.1-8b-instant" not "groq/...")
     const cheapModelPart = splitProviderModel(cheapModel).modelPart.toLowerCase();
     const servedModel = (r.model ?? "").toLowerCase();
@@ -354,7 +370,12 @@ async function scenarioCostOptimized(healthy) {
       `cheaper model served: ${r.model} (cheap=${cheapModel}@$${KNOWN_INPUT_COST[cheapModel]}, pricey=${priceyModel}@$${KNOWN_INPUT_COST[priceyModel]})`
     );
   } finally {
-    if (id) try { deleteCombo(name); } catch { /* best effort */ }
+    if (id)
+      try {
+        deleteCombo(name);
+      } catch {
+        /* best effort */
+      }
   }
 }
 
@@ -399,7 +420,12 @@ async function scenarioFusion(healthy) {
     }
     pass("fusion", `synthesized text="${r.text.slice(0, 60)}" served-model=${r.model}`);
   } finally {
-    if (id) try { deleteCombo(name); } catch { /* best effort */ }
+    if (id)
+      try {
+        deleteCombo(name);
+      } catch {
+        /* best effort */
+      }
   }
 }
 
@@ -445,7 +471,7 @@ async function scenarioAuto() {
 //
 // Why cross-provider?
 //   A same-provider bogus-model fails silently: when target[0] (bogus) returns a
-//   404, OmniRoute calls recordProviderCooldown(providerA, undefined) — a provider-
+//   404, Birouter calls recordProviderCooldown(providerA, undefined) — a provider-
 //   wide key. The combo then pre-screens target[1] (same providerA, real model) and
 //   finds providerA in cooldown → skips it → combo returns the 404 from target[0].
 //   Using DIFFERENT providers avoids this: target[0] puts providerA in cooldown,
@@ -461,8 +487,8 @@ async function scenarioAuto() {
 // comment below for how to implement it using encrypted wrong API key via SSH sqlite).
 //
 // BROKEN-CONNECTION approach (for future reference or if cross-provider is unavailable):
-//   1. SSH to read STORAGE_ENCRYPTION_KEY from /root/.omniroute/.env
-//   2. Encrypt a wrong API key using scryptSync(key,"omniroute-field-encryption-v1",32)+AES-256-GCM
+//   1. SSH to read STORAGE_ENCRYPTION_KEY from /root/.birouter/.env
+//   2. Encrypt a wrong API key using scryptSync(key,"birouter-field-encryption-v1",32)+AES-256-GCM
 //   3. INSERT broken provider_connection row into provider_connections table via SSH sqlite
 //   4. Combo: [{providerId:glm, model:glm/glm-4-flash, connectionId:brokenConnId}, realModel]
 //   5. Broken conn → 401 → recordProviderCooldown("glm",brokenConnId) → key "glm:brokenConnId"
@@ -543,7 +569,10 @@ async function scenarioFailover(healthy) {
     }
 
     if (!r.text) {
-      fail("failover", `status=200 but empty text — fallover may have served a no-content response`);
+      fail(
+        "failover",
+        `status=200 but empty text — fallover may have served a no-content response`
+      );
       return;
     }
 
@@ -594,7 +623,7 @@ async function scenarioFailover(healthy) {
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
-  console.log("=== OmniRoute combo-live-vps scenario driver ===");
+  console.log("=== Birouter combo-live-vps scenario driver ===");
   if (onlyScenario) console.log(`Filtering to scenario: ${onlyScenario}`);
   console.log();
 

@@ -84,8 +84,8 @@ bun.lock
 llm.txt
 images
 clipr
-omnirouteCloud
-omnirouteSite
+birouterCloud
+birouterSite
 
 # Temporary/Scratch Folders
 _*
@@ -110,7 +110,7 @@ fly.toml
 .idea/
 .config/
 .data/
-.omnivscodeagent/
+.bivscodeagent/
 *.sqlite-*
 *.tsbuildinfo
 next-env.d.ts

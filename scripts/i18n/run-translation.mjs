@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — Docs translation pipeline (hash-based, incremental).
+ * Birouter — Docs translation pipeline (hash-based, incremental).
  *
  * Source of truth: `config/i18n.json` (locale list) and the original English
  * markdown files at the repo root (`CLAUDE.md`, `GEMINI.md`, `README.md`, …)
@@ -23,11 +23,11 @@
  *   npm run i18n:run:dry
  *
  * Backend (configured via env, never committed):
- *   OMNIROUTE_TRANSLATION_API_URL     e.g. https://cloud.omniroute.dev/v1
- *   OMNIROUTE_TRANSLATION_API_KEY     bearer token (kept out of logs)
- *   OMNIROUTE_TRANSLATION_MODEL       e.g. cx/gpt-5.4-mini
- *   OMNIROUTE_TRANSLATION_TIMEOUT_MS  optional, default 60000
- *   OMNIROUTE_TRANSLATION_CONCURRENCY optional, default 4
+ *   BIROUTER_TRANSLATION_API_URL     e.g. https://cloud.birouter.dev/v1
+ *   BIROUTER_TRANSLATION_API_KEY     bearer token (kept out of logs)
+ *   BIROUTER_TRANSLATION_MODEL       e.g. cx/gpt-5.4-mini
+ *   BIROUTER_TRANSLATION_TIMEOUT_MS  optional, default 60000
+ *   BIROUTER_TRANSLATION_CONCURRENCY optional, default 4
  */
 
 import { promises as fs, existsSync, readFileSync } from "node:fs";
@@ -319,10 +319,10 @@ function requireEnv(name) {
 }
 
 function backendConfig() {
-  const apiUrl = requireEnv("OMNIROUTE_TRANSLATION_API_URL").replace(/\/$/, "");
-  const apiKey = requireEnv("OMNIROUTE_TRANSLATION_API_KEY");
-  const model = requireEnv("OMNIROUTE_TRANSLATION_MODEL");
-  const timeoutMs = Number(process.env.OMNIROUTE_TRANSLATION_TIMEOUT_MS || 60000);
+  const apiUrl = requireEnv("BIROUTER_TRANSLATION_API_URL").replace(/\/$/, "");
+  const apiKey = requireEnv("BIROUTER_TRANSLATION_API_KEY");
+  const model = requireEnv("BIROUTER_TRANSLATION_MODEL");
+  const timeoutMs = Number(process.env.BIROUTER_TRANSLATION_TIMEOUT_MS || 60000);
   return { apiUrl, apiKey, model, timeoutMs };
 }
 
@@ -501,12 +501,12 @@ async function main() {
   if (!opts.dryRun) {
     backend = backendConfig();
     if (opts.concurrency) backend.concurrency = opts.concurrency;
-    else backend.concurrency = Number(process.env.OMNIROUTE_TRANSLATION_CONCURRENCY || 4);
+    else backend.concurrency = Number(process.env.BIROUTER_TRANSLATION_CONCURRENCY || 4);
     logInfo(
       `backend: ${backend.apiUrl} (model=${backend.model}, concurrency=${backend.concurrency}, timeout=${backend.timeoutMs}ms)`
     );
   } else {
-    const apiUrl = (process.env.OMNIROUTE_TRANSLATION_API_URL || "").replace(/\/$/, "");
+    const apiUrl = (process.env.BIROUTER_TRANSLATION_API_URL || "").replace(/\/$/, "");
     logInfo(`backend (dry-run): ${apiUrl || "<unset>"}`);
   }
 

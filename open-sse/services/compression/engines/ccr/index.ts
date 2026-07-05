@@ -187,7 +187,7 @@ export function resetCcrStore(): void {
 // ─── MCP tool handler (pure function) ────────────────────────────────────────
 
 /**
- * Handler for the `omniroute_ccr_retrieve` MCP tool.
+ * Handler for the `birouter_ccr_retrieve` MCP tool.
  *
  * The `callerId` parameter must be the authenticated principal id derived from
  * the MCP `extra` context (see compressionTools.ts). Only the principal that
@@ -377,7 +377,7 @@ export const ccrEngine: CompressionEngine = {
   description:
     "Replaces large blocks of text with content-addressed retrieve markers " +
     "`[CCR retrieve hash=<24hex> chars=N]`. The original block is stored and " +
-    "retrievable via the `omniroute_ccr_retrieve` MCP tool (H4). " +
+    "retrievable via the `birouter_ccr_retrieve` MCP tool (H4). " +
     "Store is principal-scoped: only the storing principal can retrieve their blocks.",
   icon: "archive",
   targets: ["messages"],

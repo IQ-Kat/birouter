@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 
 /**
- * `omniroute login antigravity` — local OAuth helper for remote installs.
+ * `birouter login antigravity` — local OAuth helper for remote installs.
  *
  * Why this exists: Google's `firstparty/nativeapp` consent for the embedded
  * Antigravity desktop client only releases the authorization code when the
@@ -17,7 +17,7 @@ import { randomUUID } from "node:crypto";
  * dashboard (Antigravity → "Paste credentials"), which decodes it, finalizes the
  * onboarding server-side, and persists the connection.
  *
- * It talks ONLY to Google (no OmniRoute server needed locally), so it works even
+ * It talks ONLY to Google (no Birouter server needed locally), so it works even
  * if the remote VPS is firewalled from the user's machine.
  */
 
@@ -53,8 +53,8 @@ function defaultStartServer(preferredPort) {
       const params = Object.fromEntries(url.searchParams.entries());
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(
-        "<!doctype html><meta charset=utf-8><title>OmniRoute</title>" +
-          "<body style=\"font-family:system-ui;padding:2rem\">" +
+        "<!doctype html><meta charset=utf-8><title>Birouter</title>" +
+          '<body style="font-family:system-ui;padding:2rem">' +
           "<h2>✅ Authorization received</h2>" +
           "<p>Return to your terminal — you can close this tab.</p></body>"
       );
@@ -156,7 +156,7 @@ export async function runAntigravityLogin(opts = {}, deps = {}) {
   print(
     "\n" +
       "Antigravity authorized. Copy the line below and paste it into your remote\n" +
-      "OmniRoute dashboard: Providers → Antigravity → Connect → \"Paste credentials\".\n" +
+      'Birouter dashboard: Providers → Antigravity → Connect → "Paste credentials".\n' +
       "(This contains a refresh token — treat it like a password.)\n\n" +
       blob +
       "\n\n"
@@ -180,7 +180,7 @@ async function runLoginAntigravity(opts) {
 export function registerLogin(program) {
   const login = program
     .command("login")
-    .description("Local OAuth helpers for remote OmniRoute installs (run on your own machine)");
+    .description("Local OAuth helpers for remote Birouter installs (run on your own machine)");
 
   login
     .command("antigravity")

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const previousDataDir = process.env.DATA_DIR;
-const modelResolverDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-resolver-"));
+const modelResolverDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-model-resolver-"));
 process.env.DATA_DIR = modelResolverDataDir;
 
 const model = await import("../../open-sse/services/model.ts");
@@ -162,7 +162,7 @@ test("getModelInfoCore handles null", async () => {
 
 test(
   "getModelInfoCore routes newly released unprefixed Claude models to Claude Code when enabled",
-  withEnv("OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS", "true", async () => {
+  withEnv("BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS", "true", async () => {
     const result = await model.getModelInfoCore("claude-fable-5", {});
     assert.deepEqual(result, {
       provider: "claude",
@@ -174,7 +174,7 @@ test(
 
 test(
   "getModelInfoCore resolves ambiguous unprefixed Claude catalog models to Claude Code when enabled",
-  withEnv("OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS", "true", async () => {
+  withEnv("BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS", "true", async () => {
     const result = await model.getModelInfoCore("claude-haiku-4-5-20251001", {});
     assert.deepEqual(result, {
       provider: "claude",
@@ -185,9 +185,8 @@ test(
 );
 
 test("getModelInfoCore routes unprefixed Claude models to Claude Code from settings toggle", async () => {
-  const previousEnvFlag =
-    process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
-  delete process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
+  const previousEnvFlag = process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
+  delete process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
 
   try {
     const { updateSettings } = await import("../../src/lib/db/settings.ts");
@@ -208,17 +207,16 @@ test("getModelInfoCore routes unprefixed Claude models to Claude Code from setti
     });
   } finally {
     if (previousEnvFlag === undefined) {
-      delete process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
+      delete process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
     } else {
-      process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS = previousEnvFlag;
+      process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS = previousEnvFlag;
     }
   }
 });
 
 test("getModelInfoCore lets settings toggle disable Claude Code preference", async () => {
-  const previousEnvFlag =
-    process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
-  process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS = "true";
+  const previousEnvFlag = process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
+  process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS = "true";
 
   try {
     const { updateSettings } = await import("../../src/lib/db/settings.ts");
@@ -234,9 +232,9 @@ test("getModelInfoCore lets settings toggle disable Claude Code preference", asy
     assert.notEqual(result.provider, "claude");
   } finally {
     if (previousEnvFlag === undefined) {
-      delete process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
+      delete process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS;
     } else {
-      process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS = previousEnvFlag;
+      process.env.BIROUTER_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS = previousEnvFlag;
     }
   }
 });

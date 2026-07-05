@@ -14,7 +14,7 @@ function assertAlmostEqual(actual, expected, epsilon = 1e-9, message = "") {
 
 // ─── Test Setup: Single temp dir for whole file (core caches DATA_DIR at first import) ────────
 
-const fileTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-domain-test-"));
+const fileTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-domain-test-"));
 const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = fileTmpDir;
 

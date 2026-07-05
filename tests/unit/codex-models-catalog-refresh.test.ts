@@ -2,7 +2,7 @@
 //
 // The Codex CLI model-catalog refresh (codex_models_manager) does
 //   GET /v1/models?client_version=<v>
-// and decodes a JSON object with a TOP-LEVEL `models` array. OmniRoute answers in the
+// and decodes a JSON object with a TOP-LEVEL `models` array. Birouter answers in the
 // OpenAI-standard `{ object: "list", data: [...] }` shape, so codex's serde fails with
 //   failed to decode models response: missing field `models`
 // and logs "failed to refresh available models" on every startup (verified live against
@@ -26,7 +26,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-models-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-codex-models-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-test-secret";
 
@@ -56,7 +56,8 @@ test("codex client (originator: codex_exec) receives a top-level `models` array 
     new Request("http://localhost/v1/models?client_version=0.137.0", {
       headers: {
         originator: "codex_exec",
-        "user-agent": "codex_exec/0.137.0 (Ubuntu 24.4.0; x86_64) vscode/3.7.19 (codex_exec; 0.137.0)",
+        "user-agent":
+          "codex_exec/0.137.0 (Ubuntu 24.4.0; x86_64) vscode/3.7.19 (codex_exec; 0.137.0)",
       },
     })
   );

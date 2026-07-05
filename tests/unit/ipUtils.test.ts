@@ -5,7 +5,7 @@ import { extractClientIp, getClientIpFromRequest } from "@/lib/ipUtils";
 /**
  * Regression tests for IP detection — ported from decolua/9router#1893.
  *
- * When OmniRoute runs behind a local reverse proxy (nginx etc.) the TCP peer
+ * When Birouter runs behind a local reverse proxy (nginx etc.) the TCP peer
  * is loopback (127.0.0.1 / ::1) and forwarding headers (X-Forwarded-For,
  * X-Real-IP, CF-Connecting-IP) carry the real client IP. When the request
  * arrives directly from the public internet, the TCP peer IS the client and

@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolate DATA_DIR before importing validation.ts (it initializes the DB on load)
-// so the test never touches the developer's real ~/.omniroute database.
+// so the test never touches the developer's real ~/.birouter database.
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omr-proxy-ssrf-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -62,7 +62,11 @@ test("isRetryableProxyTarget rejects every private / link-local / metadata host"
 
 test("isRetryableProxyTarget allows public provider targets", () => {
   for (const url of PUBLIC_TARGETS) {
-    assert.equal(isRetryableProxyTarget(url), true, `${url} should be a valid proxy-fallback target`);
+    assert.equal(
+      isRetryableProxyTarget(url),
+      true,
+      `${url} should be a valid proxy-fallback target`
+    );
   }
 });
 

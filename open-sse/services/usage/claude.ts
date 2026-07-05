@@ -85,7 +85,7 @@ export async function getClaudeUsage(accessToken?: string) {
       const quotas: Record<string, UsageQuota> = {};
 
       // utilization = percentage USED (e.g., 90 means 90% used, 10% remaining)
-      // Confirmed via user report #299: Claude.ai shows 87% used = OmniRoute must show 13% remaining.
+      // Confirmed via user report #299: Claude.ai shows 87% used = Birouter must show 13% remaining.
       const hasUtilization = (window: JsonRecord) =>
         window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
 

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-disable-non-public-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-disable-non-public-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "disable-non-public-test-secret";
 
@@ -97,10 +97,7 @@ test("3 columns coexist: disableNonPublicModels, allowedQuotas, streamDefaultMod
   );
 
   // Verify streamDefaultMode is still present
-  assert.ok(
-    metadata.streamDefaultMode !== undefined,
-    "streamDefaultMode should be present"
-  );
+  assert.ok(metadata.streamDefaultMode !== undefined, "streamDefaultMode should be present");
   assert.equal(metadata.streamDefaultMode, "json", "streamDefaultMode should be 'json'");
 });
 

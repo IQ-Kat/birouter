@@ -11,14 +11,13 @@ import { DEFAULT_RTK_CONFIG } from "../../../open-sse/services/compression/types
 // but was unreachable in production: the Zod schema (.strict()) rejected the two fields on write
 // and normalizeRtkConfig dropped them on read. This proves both gates now let them through.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-grouping-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rtk-grouping-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../../src/lib/db/compression.ts");
 
 describe("RTK grouping config persistence (R5)", () => {
   beforeEach(() => {

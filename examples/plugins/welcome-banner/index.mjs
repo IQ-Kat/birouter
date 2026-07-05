@@ -1,5 +1,5 @@
 /**
- * Welcome Banner Plugin — PoC demonstrating the OmniRoute plugin system.
+ * Welcome Banner Plugin — PoC demonstrating the Birouter plugin system.
  *
  * Adds a banner message to request metadata on every request.
  * Logs a delivery confirmation on every response.
@@ -19,7 +19,7 @@ export function onRequest(ctx) {
   const enabled = config.enabled !== false; // default true
   if (!enabled) return;
 
-  const bannerText = config.bannerText || "Welcome to OmniRoute!";
+  const bannerText = config.bannerText || "Welcome to Birouter!";
   if (ctx.metadata) {
     ctx.metadata.banner = bannerText;
   }

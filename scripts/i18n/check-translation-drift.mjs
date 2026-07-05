@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — i18n translation drift checker (CI gate).
+ * Birouter — i18n translation drift checker (CI gate).
  *
  * Verifies that every source file recorded in `.i18n-state.json` still has
  * the same SHA-256 hash on disk and that every produced translation file

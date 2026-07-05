@@ -16,7 +16,7 @@ interface ModelMappingTableProps {
 }
 
 /**
- * Editable table: source model → target OmniRoute model.
+ * Editable table: source model → target Birouter model.
  */
 export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTableProps) {
   const t = useTranslations("agentBridge");
@@ -56,7 +56,7 @@ export function ModelMappingTable({ agentId, mappings, onSave }: ModelMappingTab
                 {t("sourceModel") || "Source model (agent native)"}
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-text-muted">
-                {t("targetModel") || "Target model (OmniRoute)"}
+                {t("targetModel") || "Target model (Birouter)"}
               </th>
             </tr>
           </thead>

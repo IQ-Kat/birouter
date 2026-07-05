@@ -2,7 +2,7 @@
  * Plugin Discovery Tool — Automated provider scanning.
  *
  * Scans LLM providers for free/unlimited access methods and reports findings.
- * Integrated into OmniRoute as an opt-in service (default off).
+ * Integrated into Birouter as an opt-in service (default off).
  *
  * Phase 1: Stub with types and config.
  * Phase 2: Full scanning engine.
@@ -61,7 +61,7 @@ export async function probeEndpoint(
   try {
     const res = await fetch(url, {
       method: "GET",
-      headers: { "User-Agent": "OmniRoute-Discovery/1.0" },
+      headers: { "User-Agent": "Birouter-Discovery/1.0" },
       signal,
     });
     return {

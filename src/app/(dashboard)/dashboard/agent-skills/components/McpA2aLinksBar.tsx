@@ -9,7 +9,7 @@ function useOrigin(): string {
   return useSyncExternalStore(
     () => () => {}, // no external subscription needed
     () => (typeof window !== "undefined" ? window.location.origin : ""),
-    () => "", // server snapshot
+    () => "" // server snapshot
   );
 }
 
@@ -78,7 +78,7 @@ export function McpA2aLinksBar(): JSX.Element {
         label={t("mcpUrl")}
         url={mcpUrl}
         icon="electrical_services"
-        prompt="Add this MCP endpoint to your agent to give it 37 OmniRoute tools."
+        prompt="Add this MCP endpoint to your agent to give it 37 Birouter tools."
       />
       <LinkCard
         label={t("a2aLink")}

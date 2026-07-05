@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { SEARCH_PROVIDERS } from "@omniroute/open-sse/config/searchRegistry.ts";
+import { SEARCH_PROVIDERS } from "@birouter/open-sse/config/searchRegistry.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { getSearchAggregateStats, getSearchProviderCounts } from "@/lib/db/callLogStats";
 

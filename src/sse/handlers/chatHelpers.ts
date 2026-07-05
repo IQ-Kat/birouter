@@ -1,32 +1,29 @@
 import { getModelInfo, getComboForModel } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
-import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
-import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
+import { connectionHasExtraKeys } from "@birouter/open-sse/services/apiKeyRotator.ts";
+import { createBuiltinAutoCombo } from "@birouter/open-sse/services/autoCombo/builtinCatalog.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
-import {
-  detectFormatFromEndpoint,
-  getTargetFormat,
-} from "@omniroute/open-sse/services/provider.ts";
+import { detectFormatFromEndpoint, getTargetFormat } from "@birouter/open-sse/services/provider.ts";
 import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
-} from "@omniroute/open-sse/config/providerModels.ts";
-import { handleChatCore } from "@omniroute/open-sse/handlers/chatCore.ts";
+} from "@birouter/open-sse/config/providerModels.ts";
+import { handleChatCore } from "@birouter/open-sse/handlers/chatCore.ts";
 import {
   errorResponse,
   modelCooldownResponse,
   providerCircuitOpenResponse,
   unavailableResponse,
-} from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+} from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
 import {
   runWithProxyContext,
   runWithAppliedProxyCapture,
   runWithTlsTracking,
   isTlsFingerprintActive,
   type AppliedProxySink,
-} from "@omniroute/open-sse/utils/proxyFetch.ts";
+} from "@birouter/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import {
   CircuitBreakerOpenError,
@@ -38,7 +35,7 @@ import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHi
 
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
-import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
+import { getRuntimeProviderProfile } from "@birouter/open-sse/services/accountFallback.ts";
 
 // Models that explicitly cannot run on the codex/ChatGPT-Pro OAuth pool — when
 // a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
@@ -400,81 +397,81 @@ export async function executeChatWithBreaker({
   try {
     const chatFn = () =>
       capture(() =>
-      runWithProxyContext(proxyInfo?.proxy || null, () =>
-        (handleChatCore as any)({
-          body: { ...body, model: `${provider}/${model}` },
-          modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
-          credentials: refreshedCredentials,
-          log: handlerLog,
-          clientRawRequest,
-          connectionId: credentials.connectionId,
-          apiKeyInfo,
-          userAgent,
-          comboName,
-          comboStrategy,
-          isCombo,
-          comboStepId,
-          comboExecutionKey,
-          cachedSettings,
-          skipUpstreamRetry,
-          trafficType: normalizedTrafficType,
-          correlationId,
-          onCredentialsRefreshed: async (newCreds: any) => {
-            await updateProviderCredentials(credentials.connectionId, {
-              accessToken: newCreds.accessToken,
-              refreshToken: newCreds.refreshToken,
-              expiresIn: newCreds.expiresIn,
-              expiresAt: newCreds.expiresAt,
-              providerSpecificData: newCreds.providerSpecificData,
-              // Cookie/session providers (chatgpt-web) rotate the stored
-              // apiKey blob mid-request — forward it so the DB credential
-              // doesn't go stale after Set-Cookie rotation.
-              apiKey: newCreds.apiKey,
-              testStatus: newCreds.testStatus ?? "active",
-              isActive: newCreds.isActive,
-            });
-          },
-          onRequestSuccess: async () => {
-            if (isShadowTraffic) return;
-            await clearAccountError(credentials.connectionId, credentials);
-          },
-          onStreamFailure: async (failure: any) => {
-            if (isShadowTraffic) return;
-            if (!credentials.connectionId) return;
-            if (
-              Number(failure?.status) === 499 ||
-              failure?.code === "client_disconnected" ||
-              failure?.type === "client_disconnected"
-            ) {
-              return;
-            }
-            // A3 guard: if 401 and connection has extra keys, skip connection-level disable
-            // (key-level failure already recorded in chatCore.ts via T07)
-            // Check extra keys directly from credentials for reliability across restarts
-            const extraKeys =
-              (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-            const hasExtraKeys =
-              extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
-            const is401 = Number(failure?.status) === 401;
-            if (is401 && hasExtraKeys) {
-              log.debug(
-                "AUTH",
-                `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
+        runWithProxyContext(proxyInfo?.proxy || null, () =>
+          (handleChatCore as any)({
+            body: { ...body, model: `${provider}/${model}` },
+            modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
+            credentials: refreshedCredentials,
+            log: handlerLog,
+            clientRawRequest,
+            connectionId: credentials.connectionId,
+            apiKeyInfo,
+            userAgent,
+            comboName,
+            comboStrategy,
+            isCombo,
+            comboStepId,
+            comboExecutionKey,
+            cachedSettings,
+            skipUpstreamRetry,
+            trafficType: normalizedTrafficType,
+            correlationId,
+            onCredentialsRefreshed: async (newCreds: any) => {
+              await updateProviderCredentials(credentials.connectionId, {
+                accessToken: newCreds.accessToken,
+                refreshToken: newCreds.refreshToken,
+                expiresIn: newCreds.expiresIn,
+                expiresAt: newCreds.expiresAt,
+                providerSpecificData: newCreds.providerSpecificData,
+                // Cookie/session providers (chatgpt-web) rotate the stored
+                // apiKey blob mid-request — forward it so the DB credential
+                // doesn't go stale after Set-Cookie rotation.
+                apiKey: newCreds.apiKey,
+                testStatus: newCreds.testStatus ?? "active",
+                isActive: newCreds.isActive,
+              });
+            },
+            onRequestSuccess: async () => {
+              if (isShadowTraffic) return;
+              await clearAccountError(credentials.connectionId, credentials);
+            },
+            onStreamFailure: async (failure: any) => {
+              if (isShadowTraffic) return;
+              if (!credentials.connectionId) return;
+              if (
+                Number(failure?.status) === 499 ||
+                failure?.code === "client_disconnected" ||
+                failure?.type === "client_disconnected"
+              ) {
+                return;
+              }
+              // A3 guard: if 401 and connection has extra keys, skip connection-level disable
+              // (key-level failure already recorded in chatCore.ts via T07)
+              // Check extra keys directly from credentials for reliability across restarts
+              const extraKeys =
+                (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+              const hasExtraKeys =
+                extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+              const is401 = Number(failure?.status) === 401;
+              if (is401 && hasExtraKeys) {
+                log.debug(
+                  "AUTH",
+                  `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
+                );
+                return;
+              }
+              await markAccountUnavailable(
+                credentials.connectionId,
+                Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
+                String(failure?.message || failure?.code || "stream failure"),
+                provider,
+                model,
+                providerProfile,
+                { isCombo }
               );
-              return;
-            }
-            await markAccountUnavailable(
-              credentials.connectionId,
-              Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
-              String(failure?.message || failure?.code || "stream failure"),
-              provider,
-              model,
-              providerProfile,
-              { isCombo }
-            );
-          },
-        })
-      )
+            },
+          })
+        )
       );
 
     if (isShadowTraffic) {
@@ -740,7 +737,7 @@ export async function safeLogEvents({
     let egressIp: string | null = null;
     try {
       const { getCachedEgressIp, warmEgressIp } = await import("../../lib/proxyEgress");
-      const { proxyConfigToUrl } = await import("@omniroute/open-sse/utils/proxyDispatcher.ts");
+      const { proxyConfigToUrl } = await import("@birouter/open-sse/utils/proxyDispatcher.ts");
       const proxyUrl = proxyInfo?.proxy ? proxyConfigToUrl(proxyInfo.proxy) : null;
       egressIp = getCachedEgressIp(proxyUrl);
       warmEgressIp(proxyUrl);
@@ -790,7 +787,7 @@ export function withSessionHeader(response: Response, sessionId: string | null):
   if (!response || !sessionId) return response;
 
   try {
-    response.headers.set("X-OmniRoute-Session-Id", sessionId);
+    response.headers.set("X-Birouter-Session-Id", sessionId);
     return response;
   } catch {
     const cloned = new Response(response.body, {
@@ -798,7 +795,7 @@ export function withSessionHeader(response: Response, sessionId: string | null):
       statusText: response.statusText,
       headers: response.headers,
     });
-    cloned.headers.set("X-OmniRoute-Session-Id", sessionId);
+    cloned.headers.set("X-Birouter-Session-Id", sessionId);
     return cloned;
   }
 }
@@ -827,7 +824,7 @@ export function withSelectedConnectionHeader(
   if (!response || !connectionId) return response;
 
   try {
-    response.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
+    response.headers.set("X-Birouter-Selected-Connection-Id", connectionId);
     return response;
   } catch {
     const cloned = new Response(response.body, {
@@ -835,7 +832,7 @@ export function withSelectedConnectionHeader(
       statusText: response.statusText,
       headers: response.headers,
     });
-    cloned.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
+    cloned.headers.set("X-Birouter-Selected-Connection-Id", connectionId);
     return cloned;
   }
 }

@@ -1,14 +1,14 @@
 ---
-title: "OmniRoute — Deployment Guide on VM with Cloudflare"
+title: "Birouter — Deployment Guide on VM with Cloudflare"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — Deployment Guide on VM with Cloudflare
+# Birouter — Deployment Guide on VM with Cloudflare
 
 🌐 **Languages:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md)
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+Complete guide to install and configure Birouter on a VM (VPS) with domain managed via Cloudflare.
 
 ---
 
@@ -86,18 +86,18 @@ ufw enable
 
 ---
 
-## 2. Install OmniRoute
+## 2. Install Birouter
 
 ### 2.1 Create configuration directory
 
 ```bash
-mkdir -p /opt/omniroute
+mkdir -p /opt/birouter
 ```
 
 ### 2.2 Create environment variables file
 
 ```bash
-cat > /opt/omniroute/.env << 'EOF'
+cat > /opt/birouter/.env << 'EOF'
 # === Security ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
@@ -105,7 +105,7 @@ API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
-OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # REQUIRED em produção: usado pelo Codex Responses WS bridge
+BIROUTER_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # REQUIRED em produção: usado pelo Codex Responses WS bridge
 
 # === App ===
 PORT=20128
@@ -122,11 +122,11 @@ BASE_URL=http://127.0.0.1:20128
 # Browser-facing URL used for OAuth callbacks, dashboard links, and generated public URLs.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 # Optional explicit public origin override for generated public asset URLs.
-# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
+# BIROUTER_PUBLIC_BASE_URL=https://llms.seudominio.com
 
 # === Cloud Sync (optional) ===
-# CLOUD_URL=https://cloud.omniroute.online
-# NEXT_PUBLIC_CLOUD_URL=https://cloud.omniroute.online
+# CLOUD_URL=https://cloud.Birouter.online
+# NEXT_PUBLIC_CLOUD_URL=https://cloud.Birouter.online
 EOF
 ```
 
@@ -135,22 +135,22 @@ EOF
 ### 2.3 Start the container
 
 ```bash
-docker pull diegosouzapw/omniroute:latest
+docker pull IQ-Kat/birouter:latest
 
 docker run -d \
-  --name omniroute \
+  --name birouter \
   --restart unless-stopped \
-  --env-file /opt/omniroute/.env \
+  --env-file /opt/birouter/.env \
   -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
+  -v birouter-data:/app/data \
+  IQ-Kat/birouter:latest
 ```
 
 ### 2.4 Verify that it is running
 
 ```bash
-docker ps | grep omniroute
-docker logs omniroute --tail 20
+docker ps | grep birouter
+docker logs birouter --tail 20
 ```
 
 It should display: `[DB] SQLite database ready` and `listening on port 20128`.
@@ -183,7 +183,7 @@ chmod 600 /etc/nginx/ssl/origin.key
 ### 3.2 Nginx Configuration
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << 'NGINX'
+cat > /etc/nginx/sites-available/birouter << 'NGINX'
 # Default server — blocks direct access via IP
 server {
     listen 80 default_server;
@@ -196,7 +196,7 @@ server {
     return 444;
 }
 
-# OmniRoute — HTTPS
+# Birouter — HTTPS
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
@@ -239,16 +239,16 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
+Keep reverse-proxy stream timeouts aligned with your Birouter timeout env vars. If you raise
 `FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
 above the same threshold.
 
-OmniRoute uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth
+Birouter uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth
 callbacks and generated public links. Authenticated dashboard writes use same-origin requests
 plus session-bound CSRF protection, so they do not require a static public base URL. The
 `X-Forwarded-*` headers above are still useful routing metadata, but they are not a replacement
 for setting the explicit public URL when OAuth or generated browser links need one. Only enable
-`OMNIROUTE_TRUST_PROXY` if OmniRoute is not directly reachable by clients and your proxy
+`BIROUTER_TRUST_PROXY` if Birouter is not directly reachable by clients and your proxy
 strips/rebuilds incoming forwarded headers.
 
 ### 3.3 Enable and Test
@@ -257,8 +257,8 @@ strips/rebuilds incoming forwarded headers.
 # Remove default configuration
 rm -f /etc/nginx/sites-enabled/default
 
-# Enable OmniRoute
-ln -sf /etc/nginx/sites-available/omniroute /etc/nginx/sites-enabled/omniroute
+# Enable Birouter
+ln -sf /etc/nginx/sites-available/birouter /etc/nginx/sites-enabled/birouter
 
 # Test and reload
 nginx -t && systemctl reload nginx
@@ -302,40 +302,40 @@ curl -sI https://llms.seudominio.com/health
 ### Upgrade to a new version
 
 ```bash
-docker pull diegosouzapw/omniroute:latest
-docker stop omniroute && docker rm omniroute
-docker run -d --name omniroute --restart unless-stopped \
-  --env-file /opt/omniroute/.env \
+docker pull IQ-Kat/birouter:latest
+docker stop birouter && docker rm birouter
+docker run -d --name birouter --restart unless-stopped \
+  --env-file /opt/birouter/.env \
   -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
+  -v birouter-data:/app/data \
+  IQ-Kat/birouter:latest
 ```
 
 ### View logs
 
 ```bash
-docker logs -f omniroute          # Real-time stream
-docker logs omniroute --tail 50   # Last 50 lines
+docker logs -f birouter          # Real-time stream
+docker logs birouter --tail 50   # Last 50 lines
 ```
 
 ### Manual database backup
 
 ```bash
 # Copy data from the volume to the host
-docker cp omniroute:/app/data ./backup-$(date +%F)
+docker cp birouter:/app/data ./backup-$(date +%F)
 
 # Or compress the entire volume
-docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
+docker run --rm -v birouter-data:/data -v $(pwd):/backup \
+  alpine tar czf /backup/birouter-data-$(date +%F).tar.gz /data
 ```
 
 ### Restore from backup
 
 ```bash
-docker stop omniroute
-docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
-docker start omniroute
+docker stop birouter
+docker run --rm -v birouter-data:/data -v $(pwd):/backup \
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/birouter-data-YYYY-MM-DD.tar.gz -C /"
+docker start birouter
 ```
 
 ---
@@ -404,13 +404,13 @@ For remote access via Cloudflare Workers (without exposing the VM directly):
 
 ```bash
 # In the local repository
-cd omnirouteCloud
+cd birouterCloud
 npm install
 npx wrangler login
 npx wrangler deploy
 ```
 
-See also [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) for the in-repo Cloudflare Tunnel walkthrough. The standalone `omnirouteCloud/` worker lives in a separate companion repo.
+See also [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) for the in-repo Cloudflare Tunnel walkthrough. The standalone `birouterCloud/` worker lives in a separate companion repo.
 
 ---
 
@@ -421,4 +421,4 @@ See also [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) for the in-repo Cloudflare Tunne
 | 22    | SSH         | Public (with fail2ban)     |
 | 80    | nginx HTTP  | Redirect → HTTPS           |
 | 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| 20128 | Birouter    | Localhost only (via nginx) |

@@ -14,7 +14,7 @@ const CACHE_TTL_MS = 60 * 60 * 1000;
 const DB_KEY = "cursorupdate.lastUpdatedAndShown.version";
 /**
  * Version reported when the Cursor IDE state DB is unavailable (the common
- * case for a headless OmniRoute deployment). Kept in sync with
+ * case for a headless Birouter deployment). Kept in sync with
  * `CURSOR_REGISTRY_VERSION` in providerHeaderProfiles.ts. Exported so tests
  * assert against the single source of truth instead of a drifting literal.
  */
@@ -50,8 +50,7 @@ export function getCursorVersion(): string {
     const db = new Database(getCursorDbPath(), { readonly: true, fileMustExist: true });
     try {
       const row = db.prepare("SELECT value FROM itemTable WHERE key = ?").get(DB_KEY) as
-        | { value: string }
-        | undefined;
+        { value: string } | undefined;
       if (row?.value) {
         cachedVersion = row.value;
         cachedAt = now;

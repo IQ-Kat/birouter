@@ -30,7 +30,7 @@ const SECRET_PATTERNS: Array<[RegExp, string]> = [
 ];
 
 function dataDir(): string {
-  return process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
+  return process.env.DATA_DIR || path.join(os.homedir(), ".birouter");
 }
 
 function safeId(seed: string): string {

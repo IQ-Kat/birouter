@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-provider-model-management-route-")
+  path.join(os.tmpdir(), "birouter-provider-model-management-route-")
 );
 process.env.DATA_DIR = TEST_DATA_DIR;
 

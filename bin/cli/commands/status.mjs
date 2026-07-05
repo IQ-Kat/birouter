@@ -23,7 +23,7 @@ function formatBytes(bytes) {
 export function registerStatus(program) {
   program
     .command("status")
-    .description("Show OmniRoute status dashboard")
+    .description("Show Birouter status dashboard")
     .option("-v, --verbose", "Show additional details")
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
@@ -73,7 +73,7 @@ export async function runStatusCommand(opts = {}) {
     return 0;
   }
 
-  printHeading("OmniRoute Status");
+  printHeading("Birouter Status");
   console.log(`  Version:     ${status.version}`);
   console.log(`  Data Dir:    ${status.dataDir}`);
   console.log(

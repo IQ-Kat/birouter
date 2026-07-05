@@ -23,7 +23,7 @@ import {
   supportsTokenRefresh,
   isUnrecoverableRefreshError,
   refreshCopilotToken,
-} from "@omniroute/open-sse/services/tokenRefresh.ts";
+} from "@birouter/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -178,7 +178,7 @@ function isEnvFlagEnabled(name: string): boolean {
 
 function isHealthCheckDisabled(): boolean {
   return (
-    isEnvFlagEnabled("OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK") ||
+    isEnvFlagEnabled("BIROUTER_DISABLE_TOKEN_HEALTHCHECK") ||
     isBuildProcess() ||
     isAutomatedTestProcess()
   );
@@ -187,14 +187,14 @@ function isHealthCheckDisabled(): boolean {
 /**
  * Providers excluded from the PROACTIVE refresh sweep, comma-separated and
  * case-insensitive (e.g. "codex,openai"). A targeted alternative to the blunt
- * OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK switch: it lets an operator keep the
+ * BIROUTER_DISABLE_TOKEN_HEALTHCHECK switch: it lets an operator keep the
  * rotating-token cascade providers (Codex/OpenAI share one Auth0 family) off the
  * proactive sweep — leaving their refresh to the reactive, serialized 401 path —
  * WITHOUT also starving short-TTL providers like Kimi-coding, whose tokens expire
  * while idle when the whole sweep is disabled.
  */
 function getHealthCheckSkipProviders(): Set<string> {
-  const raw = process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS || "";
+  const raw = process.env.BIROUTER_HEALTHCHECK_SKIP_PROVIDERS || "";
   return new Set(
     raw
       .split(",")
@@ -211,7 +211,7 @@ const CACHE_TTL = 30_000; // Cache settings for 30 seconds
 
 async function shouldHideLogs(): Promise<boolean> {
   if (
-    isEnvFlagEnabled("OMNIROUTE_HIDE_HEALTHCHECK_LOGS") ||
+    isEnvFlagEnabled("BIROUTER_HIDE_HEALTHCHECK_LOGS") ||
     isBuildProcess() ||
     isAutomatedTestProcess()
   ) {
@@ -276,15 +276,15 @@ export function clearHealthCheckLogCache() {
 // ── Singleton guard (globalThis survives HMR re-evaluation) ─────────────────
 
 declare global {
-  var __omnirouteTokenHC:
+  var __birouterTokenHC:
     { initialized: boolean; interval: ReturnType<typeof setInterval> | null } | undefined;
 }
 
 function getHCState() {
-  if (!globalThis.__omnirouteTokenHC) {
-    globalThis.__omnirouteTokenHC = { initialized: false, interval: null };
+  if (!globalThis.__birouterTokenHC) {
+    globalThis.__birouterTokenHC = { initialized: false, interval: null };
   }
-  return globalThis.__omnirouteTokenHC;
+  return globalThis.__birouterTokenHC;
 }
 
 /**
@@ -518,7 +518,7 @@ export async function checkConnection(conn) {
   // (each refresh consumes the old one and returns a new one). For these, refreshing
   // on a fixed interval — instead of strictly on imminent expiry — burns rotations
   // unnecessarily AND can trigger Auth0's token family revocation (especially OpenAI
-  // Codex). 9router did not have this background sweep; it was introduced in OmniRoute
+  // Codex). 9router did not have this background sweep; it was introduced in Birouter
   // and is the root cause of "adding account B invalidates account A" reports.
   // The interval path is kept ONLY for non-rotating providers where token state can
   // drift silently (e.g. cookie-based, opaque sessions without expires_at).

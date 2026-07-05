@@ -3,12 +3,12 @@ import {
   buildApiKeyUsageLimitPercentText,
   type ApiKeyUsageLimitStatus,
 } from "@/lib/usage/apiKeyUsageLimits";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 
 export const INTERNAL_USAGE_COMMAND = "@@om-usage";
 export const USAGE_COMMAND_DISABLED_MESSAGE = "Usage command is disabled for this API key.";
 const USAGE_COMMAND_AUTH_REQUIRED_MESSAGE = "Usage command requires an authenticated API key.";
-const LOCAL_USAGE_MODEL = "omniroute/local-usage";
+const LOCAL_USAGE_MODEL = "birouter/local-usage";
 const TEXT_PLAIN_HEADERS = { "Content-Type": "text/plain; charset=utf-8" } as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -576,13 +576,13 @@ function inferHttpUsageCommandSelection(request: Request): UsageCommandSelection
     return {
       preferredConnectionId:
         url.searchParams.get("connectionId")?.trim() ||
-        readHeader(request, "x-omniroute-connection")?.trim() ||
+        readHeader(request, "x-birouter-connection")?.trim() ||
         null,
       preferredProvider: url.searchParams.get("provider")?.trim() || null,
     };
   } catch {
     return {
-      preferredConnectionId: readHeader(request, "x-omniroute-connection")?.trim() || null,
+      preferredConnectionId: readHeader(request, "x-birouter-connection")?.trim() || null,
       preferredProvider: null,
     };
   }

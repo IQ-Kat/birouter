@@ -7,7 +7,7 @@
  */
 import { NextResponse } from "next/server";
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import { computeCoverage } from "@/lib/agentSkills/catalog";
 
 export const dynamic = "force-dynamic";

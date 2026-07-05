@@ -4,10 +4,10 @@ import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/rou
 import { POST as postRerank } from "@/app/api/v1/rerank/route";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/localDb";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
+import { withRateLimit } from "@birouter/open-sse/services/rateLimitManager";
 
-const INTERNAL_ORIGIN = "http://omniroute.internal";
+const INTERNAL_ORIGIN = "http://birouter.internal";
 const DEFAULT_TEST_TIMEOUT_MS = 10_000;
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -97,7 +97,7 @@ function buildInternalChatRequest(testBody: Record<string, unknown>, signal: Abo
       "Content-Type": "application/json",
       // Reuse the existing strict-mode internal bypass for live health checks.
       "X-Internal-Test": "combo-health-check",
-      "X-OmniRoute-No-Cache": "true",
+      "X-Birouter-No-Cache": "true",
       "X-Request-Id": `model-test-${randomUUID()}`,
     },
     body: JSON.stringify(testBody),
@@ -111,7 +111,7 @@ function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: A
     headers: {
       "Content-Type": "application/json",
       "X-Internal-Test": "combo-health-check",
-      "X-OmniRoute-No-Cache": "true",
+      "X-Birouter-No-Cache": "true",
       "X-Request-Id": `model-test-${randomUUID()}`,
     },
     body: JSON.stringify(testBody),
@@ -206,9 +206,9 @@ export async function runSingleModelTest(
   const testBody = isRerank
     ? {
         model: fullModelStr,
-        query: "What is OmniRoute?",
+        query: "What is Birouter?",
         documents: [
-          "OmniRoute routes AI requests across configured providers.",
+          "Birouter routes AI requests across configured providers.",
           "This document is unrelated to the test query.",
         ],
         top_n: 1,

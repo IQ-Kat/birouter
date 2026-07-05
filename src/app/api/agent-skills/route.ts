@@ -11,7 +11,7 @@
  */
 import { NextResponse } from "next/server";
 
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import { ListQuerySchema } from "@/lib/agentSkills/schemas";
 import { filterCatalog, computeCoverage } from "@/lib/agentSkills/catalog";
 
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         buildErrorBody(400, parsed.error.issues[0]?.message ?? "Invalid query parameters"),
-        { status: 400 },
+        { status: 400 }
       );
     }
 

@@ -33,10 +33,10 @@ test("does not detect ordinary goal text or longer slash commands", () => {
 test("header can force goal policy and env can tune or disable recovery", () => {
   const forced = resolveAgentGoalPolicy(
     { messages: [{ content: "normal prompt" }] },
-    { "x-omniroute-agent-goal": "true" },
+    { "x-birouter-agent-goal": "true" },
     {
-      OMNIROUTE_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS: "900000",
-      OMNIROUTE_AGENT_GOAL_STREAM_RECOVERY: "false",
+      BIROUTER_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS: "900000",
+      BIROUTER_AGENT_GOAL_STREAM_RECOVERY: "false",
     }
   );
 
@@ -53,20 +53,20 @@ test("goal policy defaults to 10 minute readiness cap with recovery enabled", ()
   assert.equal(policy.streamRecoveryEnabled, true);
 });
 
-test("OMNIROUTE_AGENT_GOAL_POLICY_ENABLED defaults to true — heuristic stays active", () => {
+test("BIROUTER_AGENT_GOAL_POLICY_ENABLED defaults to true — heuristic stays active", () => {
   const policy = resolveAgentGoalPolicy({ messages: [{ content: "/goal ship it" }] }, null, {});
 
   assert.equal(policy.detected, true);
   assert.equal(policy.streamRecoveryEnabled, true);
 });
 
-test("OMNIROUTE_AGENT_GOAL_POLICY_ENABLED=false disables the heuristic entirely (no-op)", () => {
+test("BIROUTER_AGENT_GOAL_POLICY_ENABLED=false disables the heuristic entirely (no-op)", () => {
   const policy = resolveAgentGoalPolicy(
     { messages: [{ content: "/goal ship it" }] },
-    { "x-omniroute-agent-goal": "true" },
+    { "x-birouter-agent-goal": "true" },
     {
-      OMNIROUTE_AGENT_GOAL_POLICY_ENABLED: "false",
-      OMNIROUTE_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS: "900000",
+      BIROUTER_AGENT_GOAL_POLICY_ENABLED: "false",
+      BIROUTER_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS: "900000",
     }
   );
 

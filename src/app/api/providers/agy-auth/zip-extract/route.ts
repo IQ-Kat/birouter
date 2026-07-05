@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { extractJsonZip } from "@/lib/oauth/utils/jsonZipExtract";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const ZIP_BODY_LIMIT = 11 * 1024 * 1024; // 11 MB — slightly above the 10 MB extracted limit
 

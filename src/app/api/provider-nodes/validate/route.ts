@@ -31,7 +31,7 @@ function getOutboundCauseCode(error: unknown): string | undefined {
 }
 
 // When a connection error happens against a localhost base URL, the most common
-// cause is running OmniRoute in Docker — `localhost` then points at the container,
+// cause is running Birouter in Docker — `localhost` then points at the container,
 // not the host. Augment the surfaced message with an actionable hint in that case.
 // Ported from decolua/9router#642.
 export function augmentDockerLocalhostHint(
@@ -47,10 +47,10 @@ export function augmentDockerLocalhostHint(
       : getOutboundCauseCode(error);
 
   if (code === "ECONNREFUSED") {
-    return "Connection refused — are you running OmniRoute in Docker? localhost points to the container, not your host. Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
+    return "Connection refused — are you running Birouter in Docker? localhost points to the container, not your host. Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
   }
   if (code === "ETIMEDOUT") {
-    return "Connection timeout — are you running OmniRoute in Docker? Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
+    return "Connection timeout — are you running Birouter in Docker? Use your host IP (e.g. http://192.168.x.x:11434) or http://host.docker.internal:11434 on Linux/Mac.";
   }
   return fallbackMessage;
 }

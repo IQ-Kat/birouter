@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 // the Electron dashboard has no effect (the server was spawned with the env
 // value at boot and the subsequent toggle only lands in the DB).
 
-const KEY = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS";
+const KEY = "BIROUTER_ALLOW_PRIVATE_PROVIDER_URLS";
 
 async function withEnv<T>(value: string | undefined, fn: () => Promise<T> | T): Promise<T> {
   const prev = process.env[KEY];

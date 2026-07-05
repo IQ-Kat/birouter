@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { FREE_MODEL_BUDGETS } from "@omniroute/open-sse/config/freeModelCatalog";
+import { FREE_MODEL_BUDGETS } from "@birouter/open-sse/config/freeModelCatalog";
 
 // GET /api/free-models - List free model budgets for plugin enrichment
 export async function GET(request: Request) {

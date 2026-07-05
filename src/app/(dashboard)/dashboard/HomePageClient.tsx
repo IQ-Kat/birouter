@@ -133,41 +133,35 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     if (platform === "darwin") {
       return {
         label: "Download DMG (macOS)",
-        url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.dmg`,
-        desc: `A new version of the OmniRoute desktop app is available. Please download and install the macOS DMG installer to update (current: v${versionInfo?.current || ""}).`,
+        url: `https://github.com/IQ-Kat/birouter/releases/download/v${cleanLatest}/Birouter-${cleanLatest}.dmg`,
+        desc: `A new version of the Birouter desktop app is available. Please download and install the macOS DMG installer to update (current: v${versionInfo?.current || ""}).`,
       };
     }
     if (platform === "win32") {
       return {
         label: "Download EXE (Windows)",
-        url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute.Setup.${cleanLatest}.exe`,
-        desc: `A new version of the OmniRoute desktop app is available. Please download and install the Windows EXE installer to update (current: v${versionInfo?.current || ""}).`,
+        url: `https://github.com/IQ-Kat/birouter/releases/download/v${cleanLatest}/Birouter.Setup.${cleanLatest}.exe`,
+        desc: `A new version of the Birouter desktop app is available. Please download and install the Windows EXE installer to update (current: v${versionInfo?.current || ""}).`,
       };
     }
     if (platform === "linux") {
       return {
         label: "Download AppImage (Linux)",
-        url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.AppImage`,
-        desc: `A new version of the OmniRoute desktop app is available. Please download the Linux AppImage package to update (current: v${versionInfo?.current || ""}).`,
+        url: `https://github.com/IQ-Kat/birouter/releases/download/v${cleanLatest}/Birouter-${cleanLatest}.AppImage`,
+        desc: `A new version of the Birouter desktop app is available. Please download the Linux AppImage package to update (current: v${versionInfo?.current || ""}).`,
       };
     }
     return {
       label: "Download Update",
-      url: `https://github.com/diegosouzapw/OmniRoute/releases/tag/v${cleanLatest}`,
-      desc: `A new version of the OmniRoute desktop app is available. Please download the respective app format for your system to update (current: v${versionInfo?.current || ""}).`,
+      url: `https://github.com/IQ-Kat/birouter/releases/tag/v${cleanLatest}`,
+      desc: `A new version of the Birouter desktop app is available. Please download the respective app format for your system to update (current: v${versionInfo?.current || ""}).`,
     };
   }, [platform, versionInfo?.latest, versionInfo?.current]);
 
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
     status:
-      | "idle"
-      | "checking"
-      | "available"
-      | "not-available"
-      | "downloading"
-      | "downloaded"
-      | "error";
+      "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error";
     version?: string;
     percent?: number;
     message?: string;
@@ -549,7 +543,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               {
                 step: "restart",
                 status: "pending",
-                message: "Waiting for OmniRoute to restart with the new version.",
+                message: "Waiting for Birouter to restart with the new version.",
               },
             ]
           : [
@@ -561,7 +555,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               {
                 step: "restart",
                 status: "pending",
-                message: "Waiting for OmniRoute to restart with the new version.",
+                message: "Waiting for Birouter to restart with the new version.",
               },
             ];
 
@@ -593,14 +587,14 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               next = mergeUpdateStep(next, {
                 step: "complete",
                 status: "done",
-                message: `OmniRoute is now running v${targetVersion}.`,
+                message: `Birouter is now running v${targetVersion}.`,
               });
 
               return next;
             });
             setUpdating(false);
             setUpdatePhase("done");
-            notify.success(`OmniRoute updated to v${targetVersion}.`);
+            notify.success(`Birouter updated to v${targetVersion}.`);
             await fetchData();
             return;
           }
@@ -624,7 +618,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
             next = mergeUpdateStep(next, {
               step: "restart",
               status: "pending",
-              message: `Waiting for OmniRoute to come back on v${targetVersion}.`,
+              message: `Waiting for Birouter to come back on v${targetVersion}.`,
             });
 
             return next;
@@ -649,7 +643,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
             next = mergeUpdateStep(next, {
               step: "restart",
               status: "running",
-              message: "Service restart in progress. Waiting for OmniRoute to come back online...",
+              message: "Service restart in progress. Waiting for Birouter to come back online...",
             });
 
             return next;
@@ -800,7 +794,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                     ? "Update Complete!"
                     : updatePhase === "failed"
                       ? "Update Failed"
-                      : "Updating OmniRoute..."}
+                      : "Updating Birouter..."}
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
                   {updatePhase === "done"
@@ -1020,7 +1014,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                       variant="secondary"
                       onClick={() =>
                         openExternal(
-                          `https://github.com/diegosouzapw/OmniRoute/releases/tag/v${versionInfo.latest}`
+                          `https://github.com/IQ-Kat/birouter/releases/tag/v${versionInfo.latest}`
                         )
                       }
                       className="font-semibold text-xs py-1"
@@ -1109,7 +1103,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
-                        <Link href="/dashboard/api-manager" className="text-primary hover:underline">
+                        <Link
+                          href="/dashboard/api-manager"
+                          className="text-primary hover:underline"
+                        >
                           {chunks}
                         </Link>
                       ),

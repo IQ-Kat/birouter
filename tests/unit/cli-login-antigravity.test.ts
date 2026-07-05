@@ -1,4 +1,4 @@
-// Tests for the `omniroute login antigravity` local OAuth helper.
+// Tests for the `birouter login antigravity` local OAuth helper.
 //
 // The helper runs the OAuth on the user's own machine (where the Google
 // native-loopback consent can complete) and prints a credential blob to paste
@@ -10,10 +10,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  buildAntigravityAuthRequest,
-  runAntigravityLogin,
-} from "../../bin/cli/commands/login.mjs";
+import { buildAntigravityAuthRequest, runAntigravityLogin } from "../../bin/cli/commands/login.mjs";
 import { decodeCredentialBlob } from "../../src/lib/oauth/credentialBlob.ts";
 
 test("buildAntigravityAuthRequest: loopback redirect on 127.0.0.1 + no PKCE", async () => {

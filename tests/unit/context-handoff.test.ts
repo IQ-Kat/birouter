@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-context-handoff-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-context-handoff-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -198,8 +198,8 @@ test("maybeGenerateHandoff persists a structured handoff once the threshold is r
   assert.deepEqual(saved.keyDecisions, ["Use context-relay"]);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].modelStr, "codex/gpt-5.4");
-  assert.equal(calls[0].body._omnirouteSkipContextRelay, true);
-  assert.equal(calls[0].body._omnirouteInternalRequest, "context-handoff");
+  assert.equal(calls[0].body._birouterSkipContextRelay, true);
+  assert.equal(calls[0].body._birouterInternalRequest, "context-handoff");
 });
 
 test("maybeGenerateHandoff deduplicates concurrent in-flight generations for the same session", async () => {
@@ -385,7 +385,7 @@ test("selectMessagesForSummary filters falsy values and preserves system/develop
     messages as contextHandoff.MessageLike[],
     2
   );
-  
+
   assert.equal(selected.length, 4);
   assert.equal(selected[0].role, "system");
   assert.equal(selected[1].role, "developer");

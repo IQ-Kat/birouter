@@ -16,8 +16,8 @@ export function createSqliteNativeError(error) {
   if (message.includes("NODE_MODULE_VERSION") || message.includes("ERR_DLOPEN_FAILED")) {
     return new Error(
       "better-sqlite3 native binding is incompatible with this Node.js runtime. " +
-        "Run `npm rebuild better-sqlite3` in the OmniRoute project and try again. " +
-        "Or run: omniroute runtime repair  " +
+        "Run `npm rebuild better-sqlite3` in the Birouter project and try again. " +
+        "Or run: birouter runtime repair  " +
         "(rebuilds into a user-writable runtime; works without a C++ toolchain)."
     );
   }
@@ -33,7 +33,7 @@ async function openSqliteDatabase(dbPath, options = {}) {
   }
 }
 
-export async function openOmniRouteDb() {
+export async function openBirouterDb() {
   const dataDir = resolveDataDir();
   const dbPath = resolveStoragePath(dataDir);
   fs.mkdirSync(dataDir, { recursive: true });
@@ -71,10 +71,10 @@ export async function readDatabaseHealth(dbPath) {
     const quickCheckValue = Object.values(quickCheck || {})[0];
     const hasMigrationTable = !!db
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-      .get("_omniroute_migrations");
+      .get("_birouter_migrations");
     const appliedMigrationVersions = hasMigrationTable
       ? db
-          .prepare("SELECT version FROM _omniroute_migrations")
+          .prepare("SELECT version FROM _birouter_migrations")
           .all()
           .map((row) => row.version)
       : [];

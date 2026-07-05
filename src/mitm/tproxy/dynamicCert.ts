@@ -32,7 +32,7 @@ export interface LeafPair {
 }
 
 /** Generate a long-lived local CA (basicConstraints CA, keyCertSign). */
-export async function generateMitmCa(name = "OmniRoute MITM CA"): Promise<CaPair> {
+export async function generateMitmCa(name = "Birouter MITM CA"): Promise<CaPair> {
   const { default: selfsigned } = await import("selfsigned");
   const notAfter = new Date();
   notAfter.setFullYear(notAfter.getFullYear() + 10);
@@ -74,7 +74,7 @@ export class DynamicCertStore {
   private caPromise: Promise<CaPair> | null = null;
   private readonly contexts = new Map<string, tls.SecureContext>();
 
-  constructor(caName = "OmniRoute MITM CA", existingCa?: CaPair) {
+  constructor(caName = "Birouter MITM CA", existingCa?: CaPair) {
     this.caName = caName;
     if (existingCa) this.caPromise = Promise.resolve(existingCa);
   }

@@ -1,7 +1,7 @@
 export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // Home
   "home",
-  // OmniProxy — flat
+  // BiProxy — flat
   "api-manager",
   "endpoints",
   "providers",
@@ -9,7 +9,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "combos",
   "combos-live",
   "quota",
-  // OmniProxy > Compression Context (Settings → Combos → engines → Studio)
+  // BiProxy > Compression Context (Settings → Combos → engines → Studio)
   "context-settings",
   "context-combos",
   "context-caveman",
@@ -22,17 +22,17 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-aggressive",
   "context-ultra",
   "compression-studio",
-  // OmniProxy > Tools
+  // BiProxy > Tools
   "cli-code",
   "cli-agents",
   "acp-agents",
   "cloud-agents",
   "agent-bridge",
   "traffic-inspector",
-  // OmniProxy > Integrations
+  // BiProxy > Integrations
   "api-endpoints",
   "webhooks",
-  // OmniProxy — proxy
+  // BiProxy — proxy
   "proxy",
   "mitm-proxy",
   "1proxy",
@@ -105,7 +105,7 @@ export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
 
 export type SidebarSectionId =
   | "home"
-  | "omni-proxy"
+  | "bi-proxy"
   | "analytics"
   | "costs"
   | "monitoring"

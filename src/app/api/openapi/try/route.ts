@@ -5,7 +5,7 @@
 
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
@@ -39,7 +39,7 @@ const tryRequestSchema = z.object({
     .refine((value) => !value.startsWith("//"), "Path must be a same-origin path")
     .refine(
       (value) => ALLOWED_TRY_PATH_PREFIXES.some((prefix) => value.startsWith(prefix)),
-      "Path must target an OmniRoute API endpoint"
+      "Path must target an Birouter API endpoint"
     ),
   headers: z.record(z.string(), z.string()).optional().default({}),
   body: z.any().optional(),

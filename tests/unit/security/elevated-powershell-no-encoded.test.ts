@@ -14,7 +14,7 @@ import {
 } from "../../../src/mitm/systemCommands.ts";
 
 test("buildElevatedScriptWrapper does not contain -EncodedCommand fingerprint", () => {
-  const wrapper = buildElevatedScriptWrapper("C:\\Temp\\omniroute-elevate-x.ps1");
+  const wrapper = buildElevatedScriptWrapper("C:\\Temp\\birouter-elevate-x.ps1");
   assert.ok(
     !wrapper.includes("-EncodedCommand"),
     "wrapper must not contain -EncodedCommand (Socket.dev textbook fingerprint)"
@@ -39,13 +39,13 @@ test("_runElevatedPowerShellForTest writes payload to a temp .ps1 file and unlin
   let capturedTempPath: string | null = null;
 
   await _runElevatedPowerShellForTest(
-    "Write-Output 'omniroute regression test'",
+    "Write-Output 'birouter regression test'",
     async (wrapper, tempPath) => {
       capturedWrapper = wrapper;
       capturedTempPath = tempPath;
       assert.ok(fs.existsSync(tempPath), "temp file must exist while the runner is active");
       const content = fs.readFileSync(tempPath, "utf8");
-      assert.match(content, /Write-Output 'omniroute regression test'/);
+      assert.match(content, /Write-Output 'birouter regression test'/);
       return "ok";
     }
   );

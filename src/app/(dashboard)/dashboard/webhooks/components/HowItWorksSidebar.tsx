@@ -44,7 +44,7 @@ export function HowItWorksSidebar({ t, showCustomNote }: HowItWorksSidebarProps)
         <p className="text-xs text-text-muted">{t("howItWorks.timeoutNote")}</p>
         <p className="text-xs text-text-muted">{t("howItWorks.retryNote")}</p>
         <a
-          href="https://docs.omniroute.app/webhooks"
+          href="https://docs.birouter.app/webhooks"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

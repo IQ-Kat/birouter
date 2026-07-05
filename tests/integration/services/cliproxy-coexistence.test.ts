@@ -129,7 +129,7 @@ describe("G-07 — /api/version-manager/* delegates to ServiceSupervisor", () =>
       const mockResult = {
         success: true,
         installedVersion: "1.1.0",
-        installPath: "/home/user/.omniroute/bin",
+        installPath: "/home/user/.birouter/bin",
         durationMs: 3000,
       };
       assert.strictEqual(mockResult.success, true);

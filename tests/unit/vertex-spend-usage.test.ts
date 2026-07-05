@@ -1,7 +1,7 @@
 /**
  * tests/unit/vertex-spend-usage.test.ts
  *
- * Vertex AI exposes no native usage/quota API for an API key or Service Account, so OmniRoute
+ * Vertex AI exposes no native usage/quota API for an API key or Service Account, so Birouter
  * SELF-TRACKS spend: it sums the tokens it routed to the connection (usage_history) and prices
  * them via the backend pricing table, surfacing a "$X used since this account was added" figure.
  * These tests cover the aggregation helper + the fetcher response shape with a real temp DB.
@@ -14,7 +14,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 // DATA_DIR must be set before any module that opens the DB is imported.
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vertex-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "bi-vertex-"));
 process.env.DATA_DIR = TMP;
 
 const core = await import("../../src/lib/db/core.ts");

@@ -9,7 +9,7 @@ import {
   getProxyLogsTableMaxRows,
 } from "@/lib/logEnv";
 import { getDbBackupMaxFiles, getDbBackupRetentionDays } from "@/lib/db/backup";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * GET /api/storage/health — Return database storage information.

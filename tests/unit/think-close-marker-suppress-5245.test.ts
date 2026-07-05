@@ -146,7 +146,7 @@ test("claude-to-openai: finish-flush suppressed under suppressThinkClose (#5312)
   assert.ok(!contents.includes("</think>"), "marker must be suppressed at finish");
 });
 
-// ── header signal resolution (x-omniroute-thinking-marker — #5312) ───────────
+// ── header signal resolution (x-birouter-thinking-marker — #5312) ───────────
 
 test("thinkingMarkerHeaderSignal: off → suppress, on → keep, absent/unknown → null", () => {
   assert.equal(thinkingMarkerHeaderSignal("off"), true);
@@ -162,7 +162,7 @@ test("thinkingMarkerHeaderSignal: off → suppress, on → keep, absent/unknown 
 
 test("resolveSuppressThinkClose: header opts in (Cursor) and overrides the UA allowlist", () => {
   // header constant is the documented wire name
-  assert.equal(THINKING_MARKER_HEADER, "x-omniroute-thinking-marker");
+  assert.equal(THINKING_MARKER_HEADER, "x-birouter-thinking-marker");
   // Cursor's UA is NOT in the allowlist → marker kept by default (orphan </think>, #5312)…
   assert.equal(resolveSuppressThinkClose({ userAgent: "cursor-agent/0.5" }), false);
   // …but `off` opts in to suppression regardless of UA.

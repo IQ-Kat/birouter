@@ -26,7 +26,7 @@ vi.mock("next-intl", () => ({
       "comparison.open": "Open →",
       "comparison.code.title": "Code tool",
       "comparison.agent.title": "Broad autonomous agent",
-      "comparison.acp.title": "CLI used as backend by Omni",
+      "comparison.acp.title": "CLI used as backend by Bi",
     };
     return (key: string) => messages[key] ?? key;
   },
@@ -74,7 +74,7 @@ describe("CliComparisonCard", () => {
     const container = renderCard("code");
     expect(container.textContent).toContain("Code tool");
     expect(container.textContent).toContain("Broad autonomous agent");
-    expect(container.textContent).toContain("CLI used as backend by Omni");
+    expect(container.textContent).toContain("CLI used as backend by Bi");
   });
 
   it("shows current page badge for currentType=code column", () => {

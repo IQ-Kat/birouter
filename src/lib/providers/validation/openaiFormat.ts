@@ -2,12 +2,12 @@
 // Extracted from validation.ts (god-file decomposition) — top-level functions; behavior is
 // byte-identical to the original inline defs.
 import { randomUUID } from "node:crypto";
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { getRegistryEntry } from "@birouter/open-sse/config/providerRegistry.ts";
 import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
   isBedrockNativeAuthError,
-} from "@omniroute/open-sse/services/bedrock.ts";
+} from "@birouter/open-sse/services/bedrock.ts";
 import { addModelsSuffix, normalizeBaseUrl, resolveChatUrl } from "./urlHelpers";
 import { applyCustomUserAgent, buildBearerHeaders } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
@@ -185,7 +185,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
     providerSpecificData?.validationModelId ||
     entry?.models?.find((model) => model.id === "deepseek/deepseek-v4-flash")?.id ||
     "deepseek/deepseek-v4-flash";
-  const { COMMAND_CODE_VERSION } = await import("@omniroute/open-sse/executors/commandCode.ts");
+  const { COMMAND_CODE_VERSION } = await import("@birouter/open-sse/executors/commandCode.ts");
 
   return validateDirectChatProvider({
     url,

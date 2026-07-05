@@ -10,7 +10,7 @@ export default function GetStarted() {
 
   const endpoint = useDisplayBaseUrl();
   const dashboardUrl = `${endpoint}/dashboard`;
-  const command = "npx omniroute";
+  const command = "npx birouter";
 
   const handleCopy = async (text: string) => {
     await copyToClipboard(text);
@@ -33,7 +33,7 @@ export default function GetStarted() {
                   1
                 </div>
                 <div>
-                  <h4 className="font-bold text-lg">{t("installOmniRoute")}</h4>
+                  <h4 className="font-bold text-lg">{t("installBirouter")}</h4>
                   <p className="text-sm text-gray-500 mt-1">{t("installStepDescription")}</p>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export default function GetStarted() {
                 </div>
 
                 <div className="text-gray-400 mb-6">
-                  <span className="text-[#0ea5e9]">&gt;</span> {t("startingOmniRoute")}
+                  <span className="text-[#0ea5e9]">&gt;</span> {t("startingBirouter")}
                   <br />
                   <span className="text-[#0ea5e9]">&gt;</span> {t("serverRunningOnLabel")}{" "}
                   <span className="text-blue-400 break-all">{endpoint}</span>
@@ -106,10 +106,10 @@ export default function GetStarted() {
                   <span className="text-purple-400">{t("dataLocation")}</span>
                   <br />
                   <span className="text-gray-500">{t("dataLocationMacLinux")}</span>{" "}
-                  <span className="break-all">~/.omniroute/db.json</span>
+                  <span className="break-all">~/.birouter/db.json</span>
                   <br />
                   <span className="text-gray-500">{t("dataLocationWindows")}</span>{" "}
-                  <span className="break-all">%APPDATA%/omniroute/db.json</span>
+                  <span className="break-all">%APPDATA%/birouter/db.json</span>
                 </div>
               </div>
             </div>

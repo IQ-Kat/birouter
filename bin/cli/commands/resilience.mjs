@@ -168,7 +168,7 @@ export function registerResilience(program) {
     .action(async (name, opts, cmd) => {
       const res = await apiFetch("/api/mcp/tools/call", {
         method: "POST",
-        body: { name: "omniroute_set_resilience_profile", arguments: { profile: name } },
+        body: { name: "birouter_set_resilience_profile", arguments: { profile: name } },
       });
       if (!res.ok) {
         process.stderr.write(`Error: ${res.status}\n`);

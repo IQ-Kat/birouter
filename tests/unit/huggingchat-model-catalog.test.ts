@@ -96,7 +96,7 @@ test("huggingchat registry contains only final concrete production models", () =
   const modelIds = huggingchatProvider.models.map((model) => model.id);
 
   assert.deepEqual(modelIds, HUGGINGCHAT_CONCRETE_MODELS);
-  assert.ok(!modelIds.includes("omni"), "omni is a router entry, not a concrete model");
+  assert.ok(!modelIds.includes("bi"), "bi is a router entry, not a concrete model");
   for (const removedModel of REMOVED_HUGGINGCHAT_MODELS) {
     assert.ok(!modelIds.includes(removedModel), `${removedModel} should not be registered`);
   }
@@ -124,7 +124,7 @@ test("huggingchat free catalog tracks final concrete models without router budge
   );
 
   assert.deepEqual(freeModelIds, HUGGINGCHAT_CONCRETE_MODELS);
-  assert.ok(!freeModelIds.includes("omni"), "omni is a router entry, not a free-model budget");
+  assert.ok(!freeModelIds.includes("bi"), "bi is a router entry, not a free-model budget");
   for (const removedModel of REMOVED_HUGGINGCHAT_MODELS) {
     assert.ok(!freeModelIds.includes(removedModel), `${removedModel} should not be advertised`);
   }

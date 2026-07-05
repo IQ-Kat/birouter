@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-stream-recovery-flags-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-stream-recovery-flags-"));
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chat-helpers-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-chat-helpers-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -221,7 +221,7 @@ test("checkPipelineGates blocks providers with an open circuit breaker", async (
   assert.ok(retryAfter <= 5);
   assert.match(json.error.message, /circuit breaker is open/i);
   assert.equal(json.error.code, "provider_circuit_open");
-  assert.equal(response.headers.get("X-OmniRoute-Provider-Breaker"), "open");
+  assert.equal(response.headers.get("X-Birouter-Provider-Breaker"), "open");
 });
 
 test("checkPipelineGates reapplies runtime breaker settings to existing breakers", async () => {
@@ -456,8 +456,8 @@ test("withSessionHeader adds headers to mutable and immutable responses", async 
   const mutable = withSessionHeader(new Response("ok"), "sess_mutable");
   const immutable = withSessionHeader(Response.redirect("https://example.com"), "sess_redirect");
 
-  assert.equal(mutable.headers.get("X-OmniRoute-Session-Id"), "sess_mutable");
-  assert.equal(immutable.headers.get("X-OmniRoute-Session-Id"), "sess_redirect");
+  assert.equal(mutable.headers.get("X-Birouter-Session-Id"), "sess_mutable");
+  assert.equal(immutable.headers.get("X-Birouter-Session-Id"), "sess_redirect");
   assert.equal(immutable.status, 302);
   assert.equal(await immutable.text(), "");
 });

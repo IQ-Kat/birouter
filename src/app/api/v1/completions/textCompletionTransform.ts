@@ -1,5 +1,5 @@
 /**
- * #3571 — `/v1/completions` is the legacy OpenAI Completions API. OmniRoute routes
+ * #3571 — `/v1/completions` is the legacy OpenAI Completions API. Birouter routes
  * it internally through the chat pipeline, which emits chat-shaped payloads
  * (`chat.completion` / `chat.completion.chunk` with `choices[].message|delta.content`).
  * Legacy Completion clients (e.g. TabbyML's `openai/completion` backend) require

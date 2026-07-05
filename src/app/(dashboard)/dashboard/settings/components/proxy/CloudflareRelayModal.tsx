@@ -20,7 +20,7 @@ export default function CloudflareRelayModal({
   const [accountId, setAccountId] = useState("");
   const [apiToken, setApiToken] = useState("");
   const [projectName, setProjectName] = useState(
-    process.env.NEXT_PUBLIC_CLOUDFLARE_RELAY_DEFAULT_PROJECT || "omniroute-relay"
+    process.env.NEXT_PUBLIC_CLOUDFLARE_RELAY_DEFAULT_PROJECT || "birouter-relay"
   );
   const [deploying, setDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,10 +68,7 @@ export default function CloudflareRelayModal({
     >
       <div className="bg-surface rounded-lg shadow-xl p-6 w-full max-w-md space-y-4">
         <div className="flex items-center justify-between">
-          <h2
-            id="cloudflare-relay-title"
-            className="text-lg font-bold flex items-center gap-2"
-          >
+          <h2 id="cloudflare-relay-title" className="text-lg font-bold flex items-center gap-2">
             <span className="material-symbols-outlined text-primary" aria-hidden="true">
               cloud
             </span>
@@ -107,9 +104,7 @@ export default function CloudflareRelayModal({
               placeholder="your-cloudflare-account-id"
               autoComplete="off"
             />
-            <p className="text-xs text-text-muted mt-1">
-              {t("cloudflareRelayAccountIdHint")}
-            </p>
+            <p className="text-xs text-text-muted mt-1">{t("cloudflareRelayAccountIdHint")}</p>
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block" htmlFor="cloudflare-api-token">
@@ -124,9 +119,7 @@ export default function CloudflareRelayModal({
               placeholder="cloudflare-api-token"
               autoComplete="off"
             />
-            <p className="text-xs text-text-muted mt-1">
-              {t("cloudflareRelayApiTokenHint")}
-            </p>
+            <p className="text-xs text-text-muted mt-1">{t("cloudflareRelayApiTokenHint")}</p>
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block" htmlFor="cloudflare-project-name">
@@ -138,7 +131,7 @@ export default function CloudflareRelayModal({
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               className="w-full text-sm bg-surface-alt border border-border rounded px-3 py-2 focus:outline-none focus:border-primary"
-              placeholder="omniroute-relay"
+              placeholder="birouter-relay"
             />
           </div>
         </div>

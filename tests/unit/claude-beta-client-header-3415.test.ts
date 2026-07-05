@@ -1,6 +1,6 @@
 // Regression test for #3415 — forced anthropic-beta rewrite corrupts opus tool_use stream.
 //
-// For Claude Code traffic to claude-opus-4-8 (claude→claude passthrough), OmniRoute
+// For Claude Code traffic to claude-opus-4-8 (claude→claude passthrough), Birouter
 // rebuilt the anthropic-beta header from scratch and UNCONDITIONALLY forced
 // interleaved-thinking-2025-05-14 (+ advanced-tool-use / effort for heavy agents),
 // even when the client never negotiated them. Anthropic then returned 200 turns with

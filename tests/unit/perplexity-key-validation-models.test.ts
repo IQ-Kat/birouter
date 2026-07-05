@@ -5,7 +5,7 @@
 // perplexity registry entry via `addModelsSuffix` — would always fail to
 // confirm a valid key, falling through to the chat-completions probe and
 // often misclassifying live keys as "Invalid". Inspired by upstream
-// 9router fix (see commit message); we port it OmniRoute-style by
+// 9router fix (see commit message); we port it Birouter-style by
 // declaring an explicit `modelsUrl` on the perplexity registry entry.
 
 import { describe, it } from "node:test";
@@ -13,9 +13,7 @@ import assert from "node:assert";
 
 describe("perplexity registry — key validation models endpoint", () => {
   it("declares a modelsUrl pointing at /v1/models (not the deprecated /models)", async () => {
-    const { getRegistryEntry } = await import(
-      "../../open-sse/config/providerRegistry.ts"
-    );
+    const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
     const entry = getRegistryEntry("perplexity");
     assert.ok(entry, "perplexity must be registered in the execution registry");
     assert.equal(entry.format, "openai");
@@ -33,18 +31,13 @@ describe("perplexity registry — key validation models endpoint", () => {
   });
 
   it("does not derive a /models URL that ends in /chat/completions/models", async () => {
-    const { getRegistryEntry } = await import(
-      "../../open-sse/config/providerRegistry.ts"
-    );
+    const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
     const entry = getRegistryEntry("perplexity");
     assert.ok(entry?.modelsUrl, "modelsUrl required");
     assert.ok(
       !entry.modelsUrl.includes("/chat/completions"),
       "modelsUrl must not include /chat/completions"
     );
-    assert.ok(
-      entry.modelsUrl.endsWith("/v1/models"),
-      "modelsUrl must end with /v1/models"
-    );
+    assert.ok(entry.modelsUrl.endsWith("/v1/models"), "modelsUrl must end with /v1/models");
   });
 });

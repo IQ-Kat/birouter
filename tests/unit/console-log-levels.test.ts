@@ -6,7 +6,7 @@ import path from "node:path";
 
 import { updateSettings } from "../../src/lib/db/settings";
 
-const TEST_LOG_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-console-log-levels-"));
+const TEST_LOG_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-console-log-levels-"));
 const TEST_LOG_PATH = path.join(TEST_LOG_DIR, "app.log");
 process.once("exit", () => {
   try {

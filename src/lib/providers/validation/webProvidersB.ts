@@ -130,7 +130,7 @@ export async function validateClaudeWebProvider({ apiKey, providerSpecificData =
     }
 
     const { tlsFetchClaude, TlsClientUnavailableError } =
-      await import("@omniroute/open-sse/services/claudeTlsClient.ts");
+      await import("@birouter/open-sse/services/claudeTlsClient.ts");
 
     let response: { status: number; text: string | null };
     try {
@@ -249,7 +249,7 @@ export async function validateCopilotWebProvider({ apiKey, providerSpecificData 
     }
 
     // Extract token — may be bare JWT, cookie string with access_token=, or Bearer prefix
-    const { extractAccessToken } = await import("@omniroute/open-sse/executors/copilot-web.ts");
+    const { extractAccessToken } = await import("@birouter/open-sse/executors/copilot-web.ts");
     const token = extractAccessToken(raw);
     if (!token) {
       return { valid: false, error: "Could not extract access_token from input" };
@@ -322,7 +322,9 @@ function extractM365CredentialParts(raw: string, providerSpecificData: Record<st
       (typeof providerSpecificData.access_token === "string"
         ? providerSpecificData.access_token
         : "") ||
-      (typeof providerSpecificData.accessToken === "string" ? providerSpecificData.accessToken : ""),
+      (typeof providerSpecificData.accessToken === "string"
+        ? providerSpecificData.accessToken
+        : ""),
     chathubPath:
       parts.chathubPath ||
       parts.userTenant ||
@@ -334,10 +336,7 @@ function extractM365CredentialParts(raw: string, providerSpecificData: Record<st
 }
 
 // ── Microsoft 365 Copilot Web token validator ──
-export async function validateCopilotM365WebProvider({
-  apiKey,
-  providerSpecificData = {},
-}: any) {
+export async function validateCopilotM365WebProvider({ apiKey, providerSpecificData = {} }: any) {
   const { accessToken, chathubPath } = extractM365CredentialParts(
     String(apiKey || ""),
     providerSpecificData

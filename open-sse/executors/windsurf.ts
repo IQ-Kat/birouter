@@ -16,7 +16,7 @@
  *   Gemini:         gemini-2-5-pro, gemini-2-5-flash, gemini-3-0-pro, gemini-3-0-flash
  *   OpenAI:         gpt-4-1, gpt-4-5, o1, o1-mini
  *
- * OmniRoute → Windsurf model-ID mapping lives in MODEL_ID_MAP below.
+ * Birouter → Windsurf model-ID mapping lives in MODEL_ID_MAP below.
  */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
@@ -40,11 +40,11 @@ const WS_LOCALE = "en-US";
 // Model names are passed directly to the Windsurf API as ModelOrAlias strings.
 // The API accepts the catalog names as-is (e.g. "claude-4.5-sonnet", "swe-1.6-fast").
 //
-// This table handles only OmniRoute-style backwards-compat aliases where users
+// This table handles only Birouter-style backwards-compat aliases where users
 // might type dashes instead of dots (e.g. "swe-1-6-fast" → "swe-1.6-fast").
 
 // Model IDs — source: model_configs_v2.bin extracted from Devin CLI binary.
-// OmniRoute uses dot-notation user IDs (e.g. "gpt-5.5-high").
+// Birouter uses dot-notation user IDs (e.g. "gpt-5.5-high").
 // Windsurf API accepts dash-notation modelUids (e.g. "gpt-5-5-high").
 // This map normalises dot→dash for newer models and handles legacy aliases.
 const MODEL_ALIAS_MAP: Record<string, string> = {

@@ -4,24 +4,27 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 export interface SkillsConceptCardProps {
-  variant: "agent" | "omni";
+  variant: "agent" | "bi";
   className?: string;
 }
 
 const COMPARISON_ROWS = ["whatIs", "direction", "executor", "storage", "tagline"] as const;
 type ComparisonRow = (typeof COMPARISON_ROWS)[number];
 
-export function SkillsConceptCard({ variant, className = "" }: SkillsConceptCardProps): JSX.Element {
+export function SkillsConceptCard({
+  variant,
+  className = "",
+}: SkillsConceptCardProps): JSX.Element {
   const t = useTranslations("agentSkills");
 
-  const crossLinkHref = variant === "agent" ? "/dashboard/omni-skills" : "/dashboard/agent-skills";
+  const crossLinkHref = variant === "agent" ? "/dashboard/bi-skills" : "/dashboard/agent-skills";
 
   const title = t(`conceptCard.${variant}.title`);
   const crossLinkLabel = t(`conceptCard.${variant}.crossLinkLabel`);
 
   const agentIcon = "share";
-  const omniIcon = "auto_fix_high";
-  const icon = variant === "agent" ? agentIcon : omniIcon;
+  const biIcon = "auto_fix_high";
+  const icon = variant === "agent" ? agentIcon : biIcon;
 
   return (
     <div
@@ -54,7 +57,7 @@ export function SkillsConceptCard({ variant, className = "" }: SkillsConceptCard
             {t("conceptCard.comparison.colAgent")}
           </div>
           <div className="px-3 py-2 text-xs font-semibold text-text-muted border-l border-black/5 dark:border-white/5">
-            {t("conceptCard.comparison.colOmni")}
+            {t("conceptCard.comparison.colBi")}
           </div>
         </div>
 
@@ -72,7 +75,7 @@ export function SkillsConceptCard({ variant, className = "" }: SkillsConceptCard
               {t(`conceptCard.comparison.${row}.agent`)}
             </div>
             <div className="px-3 py-2 text-xs text-text-main border-l border-black/5 dark:border-white/5">
-              {t(`conceptCard.comparison.${row}.omni`)}
+              {t(`conceptCard.comparison.${row}.bi`)}
             </div>
           </div>
         ))}

@@ -21,7 +21,7 @@ describe("plugin scanner", () => {
     it("returns a string path", () => {
       const dir = mod.getDefaultPluginDir();
       assert.equal(typeof dir, "string");
-      assert.ok(dir.includes("plugins") || dir.includes("omniroute"));
+      assert.ok(dir.includes("plugins") || dir.includes("birouter"));
     });
   });
 

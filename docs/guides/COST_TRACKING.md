@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Cost & Spend Tracking
 
-How OmniRoute estimates, records, and reports the cost of every request — and why the
+How Birouter estimates, records, and reports the cost of every request — and why the
 dashboard number is a **savings tracker**, not a bill.
 
 See also: [User Guide](./USER_GUIDE.md) · [Features Gallery](./FEATURES.md)
@@ -15,11 +15,11 @@ See also: [User Guide](./USER_GUIDE.md) · [Features Gallery](./FEATURES.md)
 
 ## What it is (and what it is not)
 
-OmniRoute attributes a per-request USD cost to every completion by multiplying token
+Birouter attributes a per-request USD cost to every completion by multiplying token
 counts by a model's pricing rates. These numbers power the **Costs** dashboard, the
-`omniroute cost` / `omniroute usage` CLI, CSV/JSON exports, and per-API-key budgets.
+`birouter cost` / `birouter usage` CLI, CSV/JSON exports, and per-API-key budgets.
 
-> **The dashboard "cost" is a savings tracker, not a bill.** OmniRoute never charges you
+> **The dashboard "cost" is a savings tracker, not a bill.** Birouter never charges you
 > — it routes your requests to providers you have already connected (your own
 > subscriptions, free tiers, and API keys). A "$290 total cost" accrued entirely on free
 > models means roughly **$290 you did _not_ pay** a paid API. The figure is an _estimate_
@@ -31,7 +31,7 @@ This framing is stated directly in the project [README](../../README.md) ("the d
 
 Because the number is an estimate:
 
-- It depends on the pricing table OmniRoute has for each model. A model with no pricing
+- It depends on the pricing table Birouter has for each model. A model with no pricing
   entry contributes `0` cost (it shows as a "Legacy / Free" row in the explorer).
 - Free-tier and subscription traffic still accrues an _estimated_ cost — that is the
   amount you are saving, not an amount owed.
@@ -49,7 +49,7 @@ Costs come from a pricing table resolved in this precedence order
 2. **Synced external pricing** — fetched from LiteLLM's public
    `model_prices_and_context_window.json` when sync is enabled (stored in a separate
    `pricing_synced` namespace so it never clobbers your overrides).
-3. **Hardcoded defaults** — shipped with OmniRoute.
+3. **Hardcoded defaults** — shipped with Birouter.
 
 External pricing sync is **opt-in**, disabled by default. Relevant env vars
 (see [`.env.example`](../../.env.example)):
@@ -88,10 +88,10 @@ Model names are normalized first (provider-path prefixes such as `openai/` or
   [`SpendBatchWriter`](../../src/lib/spend/batchWriter.ts) (default 60s flush interval,
   1,000-entry buffer). Tunable via:
 
-  | Env var                             | Default | Purpose                            |
-  | ----------------------------------- | ------- | ---------------------------------- |
-  | `OMNIROUTE_SPEND_FLUSH_INTERVAL_MS` | `60000` | Flush interval in milliseconds.    |
-  | `OMNIROUTE_SPEND_MAX_BUFFER_SIZE`   | `1000`  | Max buffered entries before flush. |
+  | Env var                            | Default | Purpose                            |
+  | ---------------------------------- | ------- | ---------------------------------- |
+  | `BIROUTER_SPEND_FLUSH_INTERVAL_MS` | `60000` | Flush interval in milliseconds.    |
+  | `BIROUTER_SPEND_MAX_BUFFER_SIZE`   | `1000`  | Max buffered entries before flush. |
 
 The dashboard's cost figures are **not** read from a stored per-row dollar amount — they
 are recomputed on the fly from token counts and the current pricing table each time the
@@ -194,50 +194,50 @@ noted.
 
 ## CLI
 
-OmniRoute's CLI exposes cost, usage, and pricing commands (registered in
+Birouter's CLI exposes cost, usage, and pricing commands (registered in
 [`bin/cli/commands/registry.mjs`](../../bin/cli/commands/registry.mjs)).
 
-### `omniroute cost`
+### `birouter cost`
 
 A cost report aggregated from `/api/usage/analytics`.
 
 ```bash
-omniroute cost                          # last 30d, grouped by provider
-omniroute cost --period 7d              # last 7 days
-omniroute cost --group-by model         # group by provider | model | combo | api-key | day
-omniroute cost --since 2026-06-01 --until 2026-06-13
-omniroute cost --api-key <key> --limit 50
+birouter cost                          # last 30d, grouped by provider
+birouter cost --period 7d              # last 7 days
+birouter cost --group-by model         # group by provider | model | combo | api-key | day
+birouter cost --since 2026-06-01 --until 2026-06-13
+birouter cost --api-key <key> --limit 50
 ```
 
 Columns: group, requests, tokens in/out, cost (USD), and % of total. A grand total line
 is printed at the end (suppressed with `--quiet` or `--output json`).
 
-### `omniroute usage`
+### `birouter usage`
 
 ```bash
-omniroute usage analytics --period 30d [--provider <id>]   # per-provider cost summary
-omniroute usage logs [--limit 100] [--follow] [--api-key <k>] [--search <q>]
-omniroute usage quota [--provider <id>] [--check]
-omniroute usage utilization [--api-key <k>]
-omniroute usage history [--limit 100]
-omniroute usage proxy-logs [--limit 100]
+birouter usage analytics --period 30d [--provider <id>]   # per-provider cost summary
+birouter usage logs [--limit 100] [--follow] [--api-key <k>] [--search <q>]
+birouter usage quota [--provider <id>] [--check]
+birouter usage utilization [--api-key <k>]
+birouter usage history [--limit 100]
+birouter usage proxy-logs [--limit 100]
 
 # Budgets
-omniroute usage budget list
-omniroute usage budget get [scope]
-omniroute usage budget set <amount> [--scope global] [--period monthly]
-omniroute usage budget reset [scope]
+birouter usage budget list
+birouter usage budget get [scope]
+birouter usage budget set <amount> [--scope global] [--period monthly]
+birouter usage budget reset [scope]
 ```
 
-### `omniroute pricing`
+### `birouter pricing`
 
 ```bash
-omniroute pricing list [--provider <p>] [--model <m>] [--limit 200]
-omniroute pricing get <model>
-omniroute pricing sync [--provider <p>] [--force]   # POST /api/pricing/sync
-omniroute pricing diff [--model <m>]
-omniroute pricing defaults show
-omniroute pricing defaults set [--input <p>] [--output <p>] [--cache-read <p>] [--cache-write <p>]
+birouter pricing list [--provider <p>] [--model <m>] [--limit 200]
+birouter pricing get <model>
+birouter pricing sync [--provider <p>] [--force]   # POST /api/pricing/sync
+birouter pricing diff [--model <m>]
+birouter pricing defaults show
+birouter pricing defaults set [--input <p>] [--output <p>] [--cache-read <p>] [--cache-write <p>]
 ```
 
 > `pricing defaults show` reads `GET /api/pricing/defaults`. To edit individual model
@@ -248,12 +248,12 @@ omniroute pricing defaults set [--input <p>] [--output <p>] [--cache-read <p>] [
 ## Troubleshooting
 
 - **All costs show $0 / "Legacy / Free".** The models in use have no pricing entry.
-  Enable external sync (`PRICING_SYNC_ENABLED=true`) and run `omniroute pricing sync`, or
+  Enable external sync (`PRICING_SYNC_ENABLED=true`) and run `birouter pricing sync`, or
   set prices manually via the Pricing page / `PATCH /api/pricing`.
 - **A historical model is mispriced.** Fix the price (override or re-sync) — cost is
   recomputed from token counts on every analytics read, so estimates update retroactively.
 - **Spend lags behind real time.** Per-key spend is batched; lower
-  `OMNIROUTE_SPEND_FLUSH_INTERVAL_MS` if you need fresher numbers.
+  `BIROUTER_SPEND_FLUSH_INTERVAL_MS` if you need fresher numbers.
 
 ---
 

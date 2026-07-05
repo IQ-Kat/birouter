@@ -22,7 +22,7 @@ interface UseApiKeyResult {
 }
 
 /**
- * useApiKey — fetch OmniRoute API keys from /api/keys and expose the first
+ * useApiKey — fetch Birouter API keys from /api/keys and expose the first
  * active key (or the one matching `preferredId`) as `apiKey`.
  *
  * The hook only fetches once on mount.  Use the returned `setApiKey` to let

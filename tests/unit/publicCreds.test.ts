@@ -76,7 +76,7 @@ test("decodePublicCred returns empty string for nullish/empty inputs", () => {
 });
 
 test("resolvePublicCred prefers env override over embedded default", () => {
-  const ENV_NAME = "OMNIROUTE_TEST_PUBLIC_CRED_OVERRIDE";
+  const ENV_NAME = "BIROUTER_TEST_PUBLIC_CRED_OVERRIDE";
   const original = process.env[ENV_NAME];
   try {
     process.env[ENV_NAME] = FAKE_AIZA;
@@ -91,7 +91,7 @@ test("resolvePublicCred prefers env override over embedded default", () => {
 });
 
 test("resolvePublicCredMulti picks the first non-empty env name", () => {
-  const NAMES = ["OMNIROUTE_TEST_PUBLIC_CRED_MULTI_A", "OMNIROUTE_TEST_PUBLIC_CRED_MULTI_B"];
+  const NAMES = ["BIROUTER_TEST_PUBLIC_CRED_MULTI_A", "BIROUTER_TEST_PUBLIC_CRED_MULTI_B"];
   const originals = NAMES.map((n) => process.env[n]);
   try {
     delete process.env[NAMES[0]];

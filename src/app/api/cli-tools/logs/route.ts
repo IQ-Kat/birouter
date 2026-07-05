@@ -2,7 +2,7 @@
  * CLI Log Stream API — GET /api/cli-tools/logs
  *
  * Reads the application log file and returns matching entries.
- * Called by the CLI `omniroute logs` command via
+ * Called by the CLI `birouter logs` command via
  * `src/lib/cli-helper/log-streamer.ts`.
  *
  * Query params:
@@ -25,7 +25,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 // Map pino numeric levels to string levels
 const NUMERIC_LEVEL_MAP: Record<number, string> = {

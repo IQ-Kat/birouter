@@ -9,7 +9,7 @@ import path from "node:path";
 // injecting a synthetic success message instead of failing over. Fix: emit a
 // real SSE error event and call controller.error() so the combo layer can retry.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-3685-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-3685-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { createSSEStream } = await import("../../open-sse/utils/stream.ts");

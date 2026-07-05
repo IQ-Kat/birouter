@@ -16,8 +16,8 @@ import path from "node:path";
 
 // Isolate the DB to a throwaway DATA_DIR *before* importing any module that pulls in
 // src/lib/db/core (its DATA_DIR/SQLITE_FILE consts are resolved eagerly at import), so the
-// combo fixture never touches the real ~/.omniroute database. Mirrors a2a-enabled-route.test.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-img-routes-3214-"));
+// combo fixture never touches the real ~/.birouter database. Mirrors a2a-enabled-route.test.
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-img-routes-3214-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

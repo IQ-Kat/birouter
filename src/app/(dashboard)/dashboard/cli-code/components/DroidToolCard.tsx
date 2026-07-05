@@ -45,12 +45,12 @@ export default function DroidToolCard({
   const [restoringBackup, setRestoringBackup] = useState(null);
   const cliReady = !!(droidStatus?.installed && droidStatus?.runnable);
 
-  // (#618) Match any custom:OmniRoute-<i> entry (multi-model).
-  const isOmniRouteEntry = (m) => typeof m?.id === "string" && m.id.startsWith("custom:OmniRoute");
+  // (#618) Match any custom:Birouter-<i> entry (multi-model).
+  const isBirouterEntry = (m) => typeof m?.id === "string" && m.id.startsWith("custom:Birouter");
 
   const getConfigStatus = () => {
     if (!cliReady) return null;
-    const currentConfig = droidStatus.settings?.customModels?.find(isOmniRouteEntry);
+    const currentConfig = droidStatus.settings?.customModels?.find(isBirouterEntry);
     if (!currentConfig) return "not_configured";
     const localMatch =
       currentConfig.baseUrl?.includes("localhost") || currentConfig.baseUrl?.includes("127.0.0.1");
@@ -93,10 +93,10 @@ export default function DroidToolCard({
   useEffect(() => {
     if (droidStatus?.installed && !hasInitializedModel.current) {
       hasInitializedModel.current = true;
-      // (#618) Pre-fill the multi-model list from every custom:OmniRoute-<i>
+      // (#618) Pre-fill the multi-model list from every custom:Birouter-<i>
       // entry, preserving the original index order.
       const existing = (droidStatus.settings?.customModels || [])
-        .filter(isOmniRouteEntry)
+        .filter(isBirouterEntry)
         .slice()
         .sort((a, b) => (a.index || 0) - (b.index || 0));
       if (existing.length > 0) {
@@ -160,7 +160,7 @@ export default function DroidToolCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           baseUrl: getEffectiveBaseUrl(),
-          apiKey: !cloudEnabled ? "sk_omniroute" : null,
+          apiKey: !cloudEnabled ? "sk_birouter" : null,
           keyId: selectedKeyId,
           // (#618) Send both `model` (legacy, first entry) and `models` (array).
           // Backend prefers `models` when present; `model` keeps Zod happy
@@ -269,7 +269,7 @@ export default function DroidToolCard({
     // (#523) Look up the key object by id to get the masked display value.
     const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
     const keyToDisplay =
-      selectedKeyObj?.key || (!cloudEnabled ? "sk_omniroute" : "<API_KEY_FROM_DASHBOARD>");
+      selectedKeyObj?.key || (!cloudEnabled ? "sk_birouter" : "<API_KEY_FROM_DASHBOARD>");
 
     // (#618) Render one entry per requested model; fall back to a placeholder
     // when the list is empty so manual-config preview still shows the shape.
@@ -277,7 +277,7 @@ export default function DroidToolCard({
     const settingsContent = {
       customModels: modelsForPreview.map((m, i) => ({
         model: m,
-        id: `custom:OmniRoute-${i}`,
+        id: `custom:Birouter-${i}`,
         index: i,
         baseUrl: getEffectiveBaseUrl(),
         apiKey: keyToDisplay,
@@ -362,8 +362,8 @@ export default function DroidToolCard({
           {!checkingDroid && cliReady && (
             <>
               <div className="flex flex-col gap-2">
-                {/* Current Base URL — first OmniRoute entry, any index (#618) */}
-                {droidStatus?.settings?.customModels?.find(isOmniRouteEntry)?.baseUrl && (
+                {/* Current Base URL — first Birouter entry, any index (#618) */}
+                {droidStatus?.settings?.customModels?.find(isBirouterEntry)?.baseUrl && (
                   <div className="flex items-center gap-2">
                     <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
                       {t("current")}
@@ -372,7 +372,7 @@ export default function DroidToolCard({
                       arrow_forward
                     </span>
                     <span className="flex-1 px-2 py-1.5 text-xs text-text-muted truncate">
-                      {droidStatus.settings.customModels.find(isOmniRouteEntry).baseUrl}
+                      {droidStatus.settings.customModels.find(isBirouterEntry).baseUrl}
                     </span>
                   </div>
                 )}
@@ -425,7 +425,7 @@ export default function DroidToolCard({
                     </select>
                   ) : (
                     <span className="flex-1 text-xs text-text-muted px-2 py-1.5">
-                      {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultOmnirouteKey")}
+                      {cloudEnabled ? t("noApiKeysCreateOne") : t("defaultBirouterKey")}
                     </span>
                   )}
                 </div>
@@ -521,7 +521,7 @@ export default function DroidToolCard({
                   variant="outline"
                   size="sm"
                   onClick={handleResetSettings}
-                  disabled={!droidStatus?.hasOmniRoute}
+                  disabled={!droidStatus?.hasBirouter}
                   loading={restoring}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">restore</span>

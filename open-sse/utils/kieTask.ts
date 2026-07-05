@@ -8,7 +8,7 @@ export type KieCallbackBody = {
   callbackUrl?: unknown;
 };
 
-const FALLBACK_KIE_CALLBACK_URL = "https://omniroute.local/api/kie/callback";
+const FALLBACK_KIE_CALLBACK_URL = "https://birouter.local/api/kie/callback";
 
 export function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -30,11 +30,11 @@ function callbackUrlFromBaseUrl(baseUrl: string | undefined): string | null {
 
 function getConfiguredKieCallbackUrl(): string {
   const explicit =
-    process.env.KIE_CALLBACK_URL?.trim() || process.env.OMNIROUTE_KIE_CALLBACK_URL?.trim();
+    process.env.KIE_CALLBACK_URL?.trim() || process.env.BIROUTER_KIE_CALLBACK_URL?.trim();
   if (explicit) return explicit;
 
   return (
-    callbackUrlFromBaseUrl(process.env.OMNIROUTE_PUBLIC_URL) ||
+    callbackUrlFromBaseUrl(process.env.BIROUTER_PUBLIC_URL) ||
     callbackUrlFromBaseUrl(process.env.NEXT_PUBLIC_APP_URL) ||
     callbackUrlFromBaseUrl(process.env.APP_URL) ||
     callbackUrlFromBaseUrl(process.env.PUBLIC_URL) ||

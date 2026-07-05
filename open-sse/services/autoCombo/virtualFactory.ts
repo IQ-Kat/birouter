@@ -8,7 +8,7 @@ import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
-import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
+import { defaultLogger as log } from "@birouter/open-sse/utils/logger";
 import { getTokenLimit } from "../contextManager";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
@@ -314,18 +314,18 @@ export async function createVirtualAutoCombo(
     if (narrowed.length > 0) {
       effectivePool = narrowed;
     } else if (
-      process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL === "true" ||
-      process.env.OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL === "1"
+      process.env.BIROUTER_AUTO_FREE_FALLBACK_TO_FULL_POOL === "true" ||
+      process.env.BIROUTER_AUTO_FREE_FALLBACK_TO_FULL_POOL === "1"
     ) {
       // Opt-in legacy behavior: warn loudly, then keep the full pool.
       log.warn(
         "AUTO",
-        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; falling back to the full pool (OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true)`
+        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; falling back to the full pool (BIROUTER_AUTO_FREE_FALLBACK_TO_FULL_POOL=true)`
       );
     } else {
       log.warn(
         "AUTO",
-        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; returning an empty pool. Set OMNIROUTE_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.`
+        `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""} matched no connected models; returning an empty pool. Set BIROUTER_AUTO_FREE_FALLBACK_TO_FULL_POOL=true to restore the legacy "use full pool" behavior.`
       );
       effectivePool = [];
     }

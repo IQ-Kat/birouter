@@ -105,10 +105,9 @@ test.describe("Group B — Quota Plans Config", () => {
   test("quota share page exists and returns 200", async ({ page }) => {
     // /dashboard/costs/quota-share/plans does not exist as a standalone route;
     // the plans wizard is embedded in /dashboard/costs/quota-share.
-    const response = await page.goto(
-      "http://localhost:20128/dashboard/costs/quota-share",
-      { waitUntil: "domcontentloaded" }
-    );
+    const response = await page.goto("http://localhost:20128/dashboard/costs/quota-share", {
+      waitUntil: "domcontentloaded",
+    });
     expect(response?.status()).not.toBe(404);
     expect(response?.status()).not.toBe(500);
   });
@@ -146,7 +145,7 @@ test.describe("Group B — Quota Plans Config", () => {
     // Note: page.content() includes the full HTML source, which contains Next.js
     // chunk filenames — those hashes can legitimately contain the string "500".
     // Checking for "500" in raw HTML is unreliable; instead check for the actual
-    // error boundary text that OmniRoute renders on unrecoverable errors
+    // error boundary text that Birouter renders on unrecoverable errors
     // (src/app/error.tsx heading: "Internal Server Error").
     const pageContent = await page.content();
     expect(pageContent).not.toContain("Internal Server Error");

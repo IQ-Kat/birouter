@@ -1,7 +1,7 @@
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { errorResponse } from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
 
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachBirouterMetaHeaders } from "@/domain/birouterResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
@@ -14,8 +14,7 @@ type MediaModelListEntry = {
 };
 
 type MediaGenerationResult =
-  | { success: true; data: unknown }
-  | { success: false; error: unknown; status: number };
+  { success: true; data: unknown } | { success: false; error: unknown; status: number };
 
 type MediaGenerationBody = {
   model: string;
@@ -24,8 +23,7 @@ type MediaGenerationBody = {
 } & Record<string, unknown>;
 
 type ValidatedMediaGenerationBody =
-  | { ok: true; body: MediaGenerationBody }
-  | { ok: false; response: Response };
+  { ok: true; body: MediaGenerationBody } | { ok: false; response: Response };
 
 export function mediaGenerationOptionsResponse() {
   return new Response(null, {
@@ -107,7 +105,7 @@ export async function successfulMediaGenerationResponse({
   const seconds = Number(duration) || 0;
   const costUsd = await calculateModalCost(billingMode, provider, model, { seconds });
   const headers = new Headers({ "Content-Type": "application/json" });
-  attachOmniRouteMetaHeaders(headers, {
+  attachBirouterMetaHeaders(headers, {
     provider,
     model,
     costUsd,

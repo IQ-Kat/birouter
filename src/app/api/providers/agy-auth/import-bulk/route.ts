@@ -8,7 +8,7 @@ import {
 } from "@/lib/oauth/utils/agyAuthImport";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { getProviderAuditTarget } from "@/lib/compliance/providerAudit";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { importAgyAuthBulkSchema } from "@/shared/validation/schemas";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { sanitizeProviderSpecificDataForResponse } from "@/lib/providers/requestDefaults";

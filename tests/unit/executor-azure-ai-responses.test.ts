@@ -5,13 +5,13 @@
  * Covers:
  *   1. transformRequest strips stream_options when routing to /responses.
  *   2. buildUrl picks the /responses path when
- *      providerSpecificData._omnirouteForceResponsesUpstream === true.
+ *      providerSpecificData._birouterForceResponsesUpstream === true.
  *   3. The default chat path is preserved for non-responses requests.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { DefaultExecutor } from "@omniroute/open-sse/executors/default.ts";
+import { DefaultExecutor } from "@birouter/open-sse/executors/default.ts";
 
 test("DefaultExecutor.transformRequest strips stream_options for openai-responses target (azure-ai)", () => {
   const executor = new DefaultExecutor("azure-ai");
@@ -36,13 +36,13 @@ test("DefaultExecutor.transformRequest strips stream_options for openai-response
   );
 });
 
-test("DefaultExecutor.buildUrl forces /responses path when _omnirouteForceResponsesUpstream=true", () => {
+test("DefaultExecutor.buildUrl forces /responses path when _birouterForceResponsesUpstream=true", () => {
   const executor = new DefaultExecutor("azure-ai");
 
   const forced = executor.buildUrl("gpt-4.1", true, 0, {
     providerSpecificData: {
       baseUrl: "https://example-resource.services.ai.azure.com/openai/v1",
-      _omnirouteForceResponsesUpstream: true,
+      _birouterForceResponsesUpstream: true,
     },
   });
 
@@ -85,7 +85,7 @@ test("DefaultExecutor: OCI generic-OpenAI honors force-responses flag", () => {
   const forced = executor.buildUrl("openai.gpt-oss-20b", true, 0, {
     providerSpecificData: {
       baseUrl: "https://inference.generativeai.us-ashburn-1.oci.oraclecloud.com",
-      _omnirouteForceResponsesUpstream: true,
+      _birouterForceResponsesUpstream: true,
     },
   });
 

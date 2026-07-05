@@ -81,7 +81,7 @@ test("#5006: sync-env.mjs does not call createRequire at module top-level scope"
 });
 
 test("#5006: getEnvSyncPlan(oauth) works with explicit rootDir and never throws on bad DATA_DIR", () => {
-  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-5006-"));
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-5006-"));
   const origDataDir = process.env.DATA_DIR;
   try {
     writeOauthEnvExample(rootDir);

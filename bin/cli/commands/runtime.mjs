@@ -18,8 +18,8 @@ async function confirm(msg) {
 }
 
 /**
- * Shared repair action used by both `omniroute runtime repair` and the
- * top-level `omniroute repair` alias. Reinstalls better-sqlite3 into the
+ * Shared repair action used by both `birouter runtime repair` and the
+ * top-level `birouter repair` alias. Reinstalls better-sqlite3 into the
  * user-writable runtime directory via the existing engine — no hand-rolled
  * npm-rebuild spawn. Exits with code 1 on failure.
  */
@@ -65,8 +65,8 @@ export function registerRuntime(program) {
     .option("--force", "Force reinstall even if valid")
     .action(runRepairAction);
 
-  // Top-level discoverability alias: `omniroute repair` invokes the SAME action
-  // as `omniroute runtime repair` (no duplicated logic). Surfaced in the
+  // Top-level discoverability alias: `birouter repair` invokes the SAME action
+  // as `birouter runtime repair` (no duplicated logic). Surfaced in the
   // native-error / startup hints so users with a broken better-sqlite3 binding
   // have a single self-heal command that works without a C++ toolchain.
   program

@@ -9,7 +9,7 @@ import path from "node:path";
 // model identifier is `name`, while `id` is an internal UUID. Discovery must use
 // `name` as the callable model id; otherwise the dashboard/import shows UUIDs.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cf-models-4259-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cf-models-4259-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

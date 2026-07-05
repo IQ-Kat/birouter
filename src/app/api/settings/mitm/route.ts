@@ -173,7 +173,7 @@ export async function GET(request: Request) {
       return new NextResponse(fs.readFileSync(certPath), {
         headers: {
           "Content-Type": "application/x-pem-file",
-          "Content-Disposition": 'attachment; filename="omniroute-mitm-ca.crt"',
+          "Content-Disposition": 'attachment; filename="birouter-mitm-ca.crt"',
         },
       });
     }

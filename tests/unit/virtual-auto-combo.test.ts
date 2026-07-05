@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-virtual-auto-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-virtual-auto-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -205,17 +205,32 @@ test("createVirtualAutoCombo includes all chat-capable no-auth providers without
   // Each noAuth provider should have multiple models (not just the first)
   const ddgwModels = combo.models.filter((m) => m.providerId === "duckduckgo-web");
   assert.ok(ddgwModels.length >= 1, "duckduckgo-web should have at least one model");
-  assert.ok(ddgwModels.every((m) => m.connectionId === "noauth"), "all ddgw models should use noauth connection");
-  assert.ok(ddgwModels.some((m) => m.model.startsWith("ddgw/")), "ddgw models should have correct prefix");
+  assert.ok(
+    ddgwModels.every((m) => m.connectionId === "noauth"),
+    "all ddgw models should use noauth connection"
+  );
+  assert.ok(
+    ddgwModels.some((m) => m.model.startsWith("ddgw/")),
+    "ddgw models should have correct prefix"
+  );
 
   const tllmModels = combo.models.filter((m) => m.providerId === "theoldllm");
   assert.ok(tllmModels.length >= 1, "theoldllm should have at least one model");
-  assert.ok(tllmModels.every((m) => m.connectionId === "noauth"), "all tllm models should use noauth connection");
-  assert.ok(tllmModels.some((m) => m.model === "tllm/GPT_5_4"), "tllm should include GPT_5_4");
+  assert.ok(
+    tllmModels.every((m) => m.connectionId === "noauth"),
+    "all tllm models should use noauth connection"
+  );
+  assert.ok(
+    tllmModels.some((m) => m.model === "tllm/GPT_5_4"),
+    "tllm should include GPT_5_4"
+  );
 
   const chipotleModels = combo.models.filter((m) => m.providerId === "chipotle");
   assert.ok(chipotleModels.length >= 1, "chipotle should have at least one model");
-  assert.ok(chipotleModels.every((m) => m.connectionId === "noauth"), "all chipotle models should use noauth connection");
+  assert.ok(
+    chipotleModels.every((m) => m.connectionId === "noauth"),
+    "all chipotle models should use noauth connection"
+  );
 
   assert.equal(
     combo.models.some((model) => model.providerId === "veoaifree-web"),

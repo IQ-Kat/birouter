@@ -53,9 +53,7 @@ describe("SkillsConceptCard", () => {
   });
 
   it("renders agent variant with correct i18n keys", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -68,25 +66,21 @@ describe("SkillsConceptCard", () => {
     expect(text).toContain("conceptCard.agent.crossLinkLabel");
   });
 
-  it("renders omni variant with correct i18n keys", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+  it("renders bi variant with correct i18n keys", async () => {
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
-      root.render(<SkillsConceptCard variant="omni" />);
+      root.render(<SkillsConceptCard variant="bi" />);
     });
 
     const text = container.textContent ?? "";
-    expect(text).toContain("conceptCard.omni.title");
-    expect(text).toContain("conceptCard.omni.crossLinkLabel");
+    expect(text).toContain("conceptCard.bi.title");
+    expect(text).toContain("conceptCard.bi.crossLinkLabel");
   });
 
   it("agent variant renders 5 comparison rows (whatIs, direction, executor, storage, tagline)", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -104,14 +98,12 @@ describe("SkillsConceptCard", () => {
     expect(rowIds).toContain("comparison-row-tagline");
   });
 
-  it("omni variant renders 5 comparison rows", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+  it("bi variant renders 5 comparison rows", async () => {
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
-      root.render(<SkillsConceptCard variant="omni" />);
+      root.render(<SkillsConceptCard variant="bi" />);
     });
 
     const rows = container.querySelectorAll("[data-testid^='comparison-row-']");
@@ -119,9 +111,7 @@ describe("SkillsConceptCard", () => {
   });
 
   it("renders data-testid for variant", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -132,10 +122,8 @@ describe("SkillsConceptCard", () => {
     expect(card).not.toBeNull();
   });
 
-  it("agent variant cross-link points to /dashboard/omni-skills", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+  it("agent variant cross-link points to /dashboard/bi-skills", async () => {
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -144,17 +132,15 @@ describe("SkillsConceptCard", () => {
 
     const link = container.querySelector("a");
     expect(link).not.toBeNull();
-    expect(link?.getAttribute("href")).toBe("/dashboard/omni-skills");
+    expect(link?.getAttribute("href")).toBe("/dashboard/bi-skills");
   });
 
-  it("omni variant cross-link points to /dashboard/agent-skills", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+  it("bi variant cross-link points to /dashboard/agent-skills", async () => {
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
-      root.render(<SkillsConceptCard variant="omni" />);
+      root.render(<SkillsConceptCard variant="bi" />);
     });
 
     const link = container.querySelector("a");
@@ -163,9 +149,7 @@ describe("SkillsConceptCard", () => {
   });
 
   it("accepts optional className prop", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -177,9 +161,7 @@ describe("SkillsConceptCard", () => {
   });
 
   it("renders without crashing when className is omitted", async () => {
-    const { SkillsConceptCard } = await import(
-      "../../src/shared/components/SkillsConceptCard.tsx"
-    );
+    const { SkillsConceptCard } = await import("../../src/shared/components/SkillsConceptCard.tsx");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {

@@ -40,8 +40,7 @@ export function buildTelegramPayload(
       : null;
   const accountId = typeof data.accountId === "string" ? data.accountId.trim() : null;
   const accountDisplay =
-    account ||
-    (accountId ? escapeMd(getAccountDisplayName({ id: accountId, name: null })) : null);
+    account || (accountId ? escapeMd(getAccountDisplayName({ id: accountId, name: null })) : null);
   const latencyMs =
     typeof data.latencyMs === "number" && Number.isFinite(data.latencyMs) ? data.latencyMs : null;
   const fallbackCount =
@@ -57,7 +56,7 @@ export function buildTelegramPayload(
   if (latencyMs !== null) lines.push(`Latency: \`${latencyMs}ms\``);
   if (fallbackCount !== null) lines.push(`Fallbacks: \`${fallbackCount}\``);
   if (error) lines.push(`Error: \`${error}\``);
-  lines.push(`_OmniRoute · ${new Date().toISOString()}_`);
+  lines.push(`_Birouter · ${new Date().toISOString()}_`);
 
   return {
     chat_id: chatId,

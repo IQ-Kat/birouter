@@ -5,7 +5,7 @@ import {
   buildStreamingResponseHeaders,
   isNextMiddlewareControlHeader,
   stripNextMiddlewareControlHeaders,
-} from "@omniroute/open-sse/handlers/chatCore/responseHeaders.ts";
+} from "@birouter/open-sse/handlers/chatCore/responseHeaders.ts";
 
 // Regression guard for issue #5849:
 // Providers hosted behind a Next.js middleware (e.g. synthetic.new) leak Next's

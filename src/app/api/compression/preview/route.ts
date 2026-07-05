@@ -5,20 +5,20 @@ import { compressionPreviewConfigSchema } from "@/shared/validation/compressionC
 import {
   applyCompression,
   applyCompressionAsync,
-} from "@omniroute/open-sse/services/compression/strategySelector";
+} from "@birouter/open-sse/services/compression/strategySelector";
 import type {
   CompressionConfig,
   CompressionMode,
-} from "@omniroute/open-sse/services/compression/types";
+} from "@birouter/open-sse/services/compression/types";
 import {
   buildCompressionPreviewDiff,
   type HeatmapMode,
-} from "@omniroute/open-sse/services/compression/diffHelper";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+} from "@birouter/open-sse/services/compression/diffHelper";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { countTextTokens } from "@/shared/utils/tiktokenCounter";
-import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
-import { summarizeEncoderCandidates } from "@omniroute/open-sse/services/compression/engines/headroom/encoderComparison";
-import { DEFAULT_MIN_ROWS } from "@omniroute/open-sse/services/compression/engines/headroom/smartcrusher";
+import { ensureEngineBreakdown } from "@birouter/open-sse/services/compression/engineBreakdown";
+import { summarizeEncoderCandidates } from "@birouter/open-sse/services/compression/engines/headroom/encoderComparison";
+import { DEFAULT_MIN_ROWS } from "@birouter/open-sse/services/compression/engines/headroom/smartcrusher";
 
 export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
 
@@ -183,8 +183,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
-    parsed.data;
+  const {
+    messages,
+    mode,
+    engineId,
+    pipeline,
+    config,
+    fidelityGate,
+    fuzzyDedup,
+    riskGate,
+    quantumLock,
+    heatmap: heatmapMode,
+  } = parsed.data;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);

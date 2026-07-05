@@ -9,7 +9,7 @@ import { NextRequest } from "next/server";
 // isAuthRequired() is false on a fresh DB (CI) and the route answers 200 —
 // these 401/403 assertions only held locally because the dev DATA_DIR had a
 // real password. Create an isolated DATA_DIR with login protection enabled.
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-detect-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-detect-"));
 const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

@@ -49,7 +49,7 @@ export async function POST(request: Request): Promise<NextResponse<DiscoverRespo
         {
           success: false,
           error:
-            "OmniRoute is running inside Docker and cannot access the host keychain. " +
+            "Birouter is running inside Docker and cannot access the host keychain. " +
             "Use the Manual Token Import tab to paste your API key directly.",
           zedInstalled: false,
           zedDockerEnvironment: true,

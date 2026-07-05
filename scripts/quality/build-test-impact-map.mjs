@@ -12,8 +12,8 @@ const EXTS = [".ts", ".tsx", ".mts", ".js", ".mjs"];
 function resolveImport(spec, fromFile) {
   let base;
   if (spec.startsWith("@/")) base = path.join(ROOT, "src", spec.slice(2));
-  else if (spec.startsWith("@omniroute/open-sse"))
-    base = path.join(ROOT, "open-sse", spec.replace(/^@omniroute\/open-sse\/?/, ""));
+  else if (spec.startsWith("@birouter/open-sse"))
+    base = path.join(ROOT, "open-sse", spec.replace(/^@birouter\/open-sse\/?/, ""));
   else if (spec.startsWith(".")) base = path.resolve(path.dirname(fromFile), spec);
   else return null;
   for (const e of EXTS) {
@@ -73,7 +73,10 @@ for (const tf of testFiles) {
 }
 for (const k of Object.keys(map)) map[k].sort();
 const out = path.join(ROOT, "config/quality/test-impact-map.json");
-fs.writeFileSync(out, JSON.stringify({ generatedFrom: "import-graph", sources: map }, null, 2) + "\n");
+fs.writeFileSync(
+  out,
+  JSON.stringify({ generatedFrom: "import-graph", sources: map }, null, 2) + "\n"
+);
 console.log(
   `test-impact-map: ${Object.keys(map).length} source files mapped from ${testFiles.length} test files`
 );

@@ -28,7 +28,7 @@ const COPILOT_WS_URL = "wss://copilot.microsoft.com/c/api/chat?api-version=2";
 const COPILOT_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-// Model mapping: OmniRoute model ID → Copilot mode
+// Model mapping: Birouter model ID → Copilot mode
 const MODEL_MODE_MAP: Record<string, string> = {
   copilot: "chat",
   "copilot-chat": "chat",

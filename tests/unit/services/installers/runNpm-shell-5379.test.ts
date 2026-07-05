@@ -9,7 +9,7 @@
  * Because `shell: true` makes the shell — not execFile — parse the command line,
  * NO runtime value may be interpolated into argv (Hard Rule #13). The install
  * `--prefix` (a DATA_DIR path that can contain spaces, e.g.
- * `C:\Users\John Doe\.omniroute\…`) is therefore passed via the
+ * `C:\Users\John Doe\.birouter\…`) is therefore passed via the
  * `npm_config_prefix` environment variable instead of an argv entry, and the
  * user-supplied install `version` is constrained by SERVICE_VERSION_PATTERN.
  */
@@ -34,7 +34,7 @@ test("buildNpmExecOptions: non-win32 platforms never enable shell", () => {
 });
 
 test("buildNpmExecOptions: prefix is passed via npm_config_prefix env, never argv (Hard Rule #13)", () => {
-  const prefix = "C:\\Users\\John Doe\\.omniroute\\services\\9router";
+  const prefix = "C:\\Users\\John Doe\\.birouter\\services\\9router";
   const opts = buildNpmExecOptions("win32", { timeoutMs: 1000, prefix });
   assert.equal(opts.env.npm_config_prefix, prefix);
 });

@@ -9,12 +9,12 @@
  * automatic fallback when wallet is empty."
  *
  * Operators can disable the redirect entirely with
- * `OMNIROUTE_EMERGENCY_FALLBACK=false` (or `0`). Default remains enabled.
+ * `BIROUTER_EMERGENCY_FALLBACK=false` (or `0`). Default remains enabled.
  */
 
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
-const EMERGENCY_FALLBACK_FLAG_KEY = "OMNIROUTE_EMERGENCY_FALLBACK";
+const EMERGENCY_FALLBACK_FLAG_KEY = "BIROUTER_EMERGENCY_FALLBACK";
 const EMERGENCY_FALLBACK_FLAG_CACHE_MS = 500;
 
 type FeatureFlagResolver = (key: string) => boolean;
@@ -77,7 +77,7 @@ export interface NoFallbackDecision {
 export type FallbackResult = FallbackDecision | NoFallbackDecision;
 
 function isEmergencyFallbackRawEnvEnabled(): boolean {
-  const raw = process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  const raw = process.env.BIROUTER_EMERGENCY_FALLBACK;
   return raw !== "false" && raw !== "0";
 }
 
@@ -126,7 +126,7 @@ export function shouldUseFallback(
   if (!isEmergencyFallbackEnvEnabled()) {
     return {
       shouldFallback: false,
-      reason: "emergency fallback disabled via OMNIROUTE_EMERGENCY_FALLBACK",
+      reason: "emergency fallback disabled via BIROUTER_EMERGENCY_FALLBACK",
     };
   }
   if (config.skipForToolRequests && requestHasTools) {

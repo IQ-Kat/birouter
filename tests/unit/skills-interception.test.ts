@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skills-interception-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-skills-interception-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");
@@ -12,7 +12,7 @@ const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
 const { interceptToolCalls, extractToolCalls, handleToolCallExecution } =
   await import("../../src/lib/skills/interception.ts");
-const { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } =
+const { BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME } =
   await import("../../open-sse/services/webSearchFallback.ts");
 
 function resetRuntime() {
@@ -125,8 +125,8 @@ test("extractToolCalls supports OpenAI, Anthropic and Gemini shapes", () => {
         {
           type: "function_call",
           call_id: "call-response",
-          name: OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
-          arguments: '{"query":"latest omniroute"}',
+          name: BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME,
+          arguments: '{"query":"latest birouter"}',
         },
       ],
     },
@@ -160,8 +160,8 @@ test("extractToolCalls supports OpenAI, Anthropic and Gemini shapes", () => {
   assert.deepEqual(responses, [
     {
       id: "call-response",
-      name: OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME,
-      arguments: { query: "latest omniroute" },
+      name: BIROUTER_WEB_SEARCH_FALLBACK_TOOL_NAME,
+      arguments: { query: "latest birouter" },
     },
   ]);
   assert.deepEqual(extractToolCalls({}, "custom-model"), []);
@@ -307,7 +307,10 @@ test("handleToolCallExecution intercepts a registered skill alongside an unregis
     },
     { type: "tool_use", id: "tool-native", name: "Bash", input: { command: "ls" } },
   ]);
-  assert.equal(mixed.content.some((b: { type: string }) => b.type === "tool_result"), false);
+  assert.equal(
+    mixed.content.some((b: { type: string }) => b.type === "tool_result"),
+    false
+  );
   assert.equal(mixed.stop_reason, "tool_use");
 });
 
@@ -337,7 +340,10 @@ test("handleToolCallExecution loads registry from DB on cold cache (covers loadF
       text: '[Skill result: lookup@1.0.0]\n{"record":"resolved:cold"}',
     },
   ]);
-  assert.equal(result.content.some((b: { type: string }) => b.type === "tool_result"), false);
+  assert.equal(
+    result.content.some((b: { type: string }) => b.type === "tool_result"),
+    false
+  );
   assert.equal(result.stop_reason, "end_turn");
   assert.equal(result.stop_sequence, null);
 });

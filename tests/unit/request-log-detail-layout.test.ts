@@ -111,7 +111,7 @@ test("request log detail splits token badges into input and output groups", () =
   assert.equal(outputLabelIndex < modelLabelIndex, true);
   assert.equal(modelLabelIndex < requestedModelLabelIndex, true);
   assert.notEqual(html.indexOf(">Cache Source<"), -1);
-  assert.notEqual(html.indexOf(">Semantic (OmniRoute)<"), -1);
+  assert.notEqual(html.indexOf(">Semantic (Birouter)<"), -1);
   assert.notEqual(html.indexOf(">OpenAI-Chat<"), -1);
 
   assert.match(

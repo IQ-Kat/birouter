@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolate DB state to avoid polluting production database
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-pii-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-test-pii-"));
 process.env.DATA_DIR = tmpDir;
 
 test("sanitizePII checks resolveFeatureFlag, not process.env", async (t) => {
@@ -14,14 +14,18 @@ test("sanitizePII checks resolveFeatureFlag, not process.env", async (t) => {
   await t.test("when env is true but DB is override false, it resolves to disabled", async () => {
     process.env.PII_RESPONSE_SANITIZATION = "true";
 
-    const { setFeatureFlagOverride, getFeatureFlagOverride } = await import("@/lib/db/featureFlags");
+    const { setFeatureFlagOverride, getFeatureFlagOverride } =
+      await import("@/lib/db/featureFlags");
     setFeatureFlagOverride("PII_RESPONSE_SANITIZATION", "false");
 
     console.log("Subtest 1 - Override in DB:", getFeatureFlagOverride("PII_RESPONSE_SANITIZATION"));
 
     const { sanitizePIIChunk } = await import("@/lib/piiSanitizer");
     const { isFeatureFlagEnabled } = await import("@/shared/utils/featureFlags");
-    console.log("Subtest 1 - isFeatureFlagEnabled:", isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION"));
+    console.log(
+      "Subtest 1 - isFeatureFlagEnabled:",
+      isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION")
+    );
 
     const input = "my email is test@example.com";
     const result = sanitizePIIChunk(input, true);
@@ -31,20 +35,23 @@ test("sanitizePII checks resolveFeatureFlag, not process.env", async (t) => {
   await t.test("when env is false but DB is override true, it resolves to enabled", async () => {
     process.env.PII_RESPONSE_SANITIZATION = "false";
 
-    const { setFeatureFlagOverride, getFeatureFlagOverride } = await import("@/lib/db/featureFlags");
+    const { setFeatureFlagOverride, getFeatureFlagOverride } =
+      await import("@/lib/db/featureFlags");
     setFeatureFlagOverride("PII_RESPONSE_SANITIZATION", "true");
 
     console.log("Subtest 2 - Override in DB:", getFeatureFlagOverride("PII_RESPONSE_SANITIZATION"));
 
     const { sanitizePIIChunk } = await import("@/lib/piiSanitizer");
     const { isFeatureFlagEnabled } = await import("@/shared/utils/featureFlags");
-    console.log("Subtest 2 - isFeatureFlagEnabled:", isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION"));
+    console.log(
+      "Subtest 2 - isFeatureFlagEnabled:",
+      isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION")
+    );
 
     const input = "my email is test@example.com";
     const result = sanitizePIIChunk(input, true);
     assert.ok(result.includes("[EMAIL_REDACTED]"));
   });
-
 
   if (originalEnv !== undefined) {
     process.env.PII_RESPONSE_SANITIZATION = originalEnv;
@@ -67,8 +74,10 @@ test("getMode returns redact for invalid flag values", async () => {
   const input = "my email is test@example.com";
   const result = sanitizePIIChunk(input, true);
 
-  assert.ok(result.includes("[EMAIL_REDACTED]"),
-    "invalid mode should fall back to redact, not silently pass PII through");
+  assert.ok(
+    result.includes("[EMAIL_REDACTED]"),
+    "invalid mode should fall back to redact, not silently pass PII through"
+  );
 
   delete process.env.PII_RESPONSE_SANITIZATION_MODE;
 });
@@ -82,7 +91,7 @@ test("sanitizePII detects and redacts SSN", async () => {
 
   assert.ok(result.text.includes("[SSN_REDACTED]"));
   assert.ok(!result.text.includes("123-45-6789"));
-  assert.ok(result.detections.some(d => d.pattern === "ssn"));
+  assert.ok(result.detections.some((d) => d.pattern === "ssn"));
 });
 
 test("sanitizePII detects and redacts credit card", async () => {
@@ -110,12 +119,14 @@ test("sanitizePIIResponse handles Claude format", async () => {
 
   const { sanitizePIIResponse } = await import("@/lib/piiSanitizer");
   const response = {
-    content: [{ type: "text", text: "email is john@example.com" }]
+    content: [{ type: "text", text: "email is john@example.com" }],
   };
   const result = sanitizePIIResponse(JSON.parse(JSON.stringify(response)));
 
-  assert.ok(result.content[0].text.includes("[EMAIL_REDACTED]"),
-    "Claude format PII should be redacted");
+  assert.ok(
+    result.content[0].text.includes("[EMAIL_REDACTED]"),
+    "Claude format PII should be redacted"
+  );
 });
 
 test("sanitizePIIResponse handles Gemini format", async () => {
@@ -123,10 +134,12 @@ test("sanitizePIIResponse handles Gemini format", async () => {
 
   const { sanitizePIIResponse } = await import("@/lib/piiSanitizer");
   const response = {
-    candidates: [{ content: { parts: [{ text: "email is john@example.com" }] } }]
+    candidates: [{ content: { parts: [{ text: "email is john@example.com" }] } }],
   };
   const result = sanitizePIIResponse(JSON.parse(JSON.stringify(response)));
 
-  assert.ok(result.candidates[0].content.parts[0].text.includes("[EMAIL_REDACTED]"),
-    "Gemini format PII should be redacted");
+  assert.ok(
+    result.candidates[0].content.parts[0].text.includes("[EMAIL_REDACTED]"),
+    "Gemini format PII should be redacted"
+  );
 });

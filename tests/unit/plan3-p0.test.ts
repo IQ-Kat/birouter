@@ -126,7 +126,7 @@ test("DefaultExecutor execute honors connection-level custom User-Agent", async 
       credentials: {
         apiKey: "sk-openai-test",
         providerSpecificData: {
-          customUserAgent: "OmniRouteCustomUA/2.0",
+          customUserAgent: "BirouterCustomUA/2.0",
         },
       },
     });
@@ -136,7 +136,7 @@ test("DefaultExecutor execute honors connection-level custom User-Agent", async 
 
   assert.ok(capturedHeaders);
   assert.equal(capturedHeaders.Authorization, "Bearer sk-openai-test");
-  assert.equal(capturedHeaders["User-Agent"], "OmniRouteCustomUA/2.0");
+  assert.equal(capturedHeaders["User-Agent"], "BirouterCustomUA/2.0");
 });
 
 test("CodexExecutor forces stream=true for upstream compatibility", () => {

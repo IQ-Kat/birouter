@@ -8,13 +8,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-comp-analytics-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-comp-analytics-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { writeCompressionAnalytics } = await import(
-  "../../open-sse/handlers/chatCore/compressionAnalyticsWrite.ts"
-);
+const { writeCompressionAnalytics } =
+  await import("../../open-sse/handlers/chatCore/compressionAnalyticsWrite.ts");
 
 type Stats = Parameters<typeof writeCompressionAnalytics>[0]["stats"];
 

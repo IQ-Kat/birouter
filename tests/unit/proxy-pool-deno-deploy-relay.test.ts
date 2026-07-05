@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Port of decolua/9router PR #1437 — Deno Deploy relays.
-// OmniRoute already supports Vercel-typed relays (#2743 test). Deno Deploy is a
+// Birouter already supports Vercel-typed relays (#2743 test). Deno Deploy is a
 // second cloud edge runtime that ships the same x-relay-{target,path,auth}
 // envelope: from the dispatch path's perspective the two are interchangeable.
 //

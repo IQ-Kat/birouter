@@ -49,7 +49,7 @@ test("serve command: --port option has no Commander default", async () => {
   const path = await import("node:path");
   const serveSource = fs.readFileSync(
     path.resolve(import.meta.dirname, "../../bin/cli/commands/serve.mjs"),
-    "utf-8",
+    "utf-8"
   );
   // Ensure the option does NOT have a third argument (Commander default)
   assert.match(serveSource, /\.option\("--port <port>",\s*t\("serve\.port"\)\)/);
@@ -66,11 +66,11 @@ function resolveAppDir(root: string, distServerExists: boolean): string {
 }
 
 test("serve app dir: resolves to dist/ when dist/server.js exists (current layout)", () => {
-  assert.equal(resolveAppDir("/opt/omniroute", true), "/opt/omniroute/dist");
+  assert.equal(resolveAppDir("/opt/birouter", true), "/opt/birouter/dist");
 });
 
 test("serve app dir: falls back to legacy app/ when dist/server.js is absent (upgrade safety)", () => {
-  assert.equal(resolveAppDir("/opt/omniroute", false), "/opt/omniroute/app");
+  assert.equal(resolveAppDir("/opt/birouter", false), "/opt/birouter/app");
 });
 
 test("serve command: APP_DIR keeps the dist/ -> app/ backward-compat fallback", async () => {
@@ -78,11 +78,11 @@ test("serve command: APP_DIR keeps the dist/ -> app/ backward-compat fallback", 
   const path = await import("node:path");
   const serveSource = fs.readFileSync(
     path.resolve(import.meta.dirname, "../../bin/cli/commands/serve.mjs"),
-    "utf-8",
+    "utf-8"
   );
   // Must probe dist/server.js and fall back to app/ — never hard-code dist/ only.
   assert.match(
     serveSource,
-    /existsSync\(join\(ROOT, "dist", "server\.js"\)\)\s*\?\s*join\(ROOT, "dist"\)\s*:\s*join\(ROOT, "app"\)/,
+    /existsSync\(join\(ROOT, "dist", "server\.js"\)\)\s*\?\s*join\(ROOT, "dist"\)\s*:\s*join\(ROOT, "app"\)/
   );
 });

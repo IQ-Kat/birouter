@@ -12,7 +12,7 @@ export const zaiProvider: RegistryEntry = {
   authHeader: "x-api-key",
   headers: getAnthropicCompatHeaders(),
   // Real upstream model IDs only. The effort tiers (glm-5.2-high / glm-5.2-max)
-  // are intentionally NOT listed here: they are OmniRoute aliases resolved by the
+  // are intentionally NOT listed here: they are Birouter aliases resolved by the
   // GlmExecutor (parseGlm52Effort → base "glm-5.2" + effort field). This provider
   // uses the DefaultExecutor, which sends the model ID verbatim, so the aliases
   // would reach z.ai's Anthropic endpoint as unknown IDs. Use the `glm` provider

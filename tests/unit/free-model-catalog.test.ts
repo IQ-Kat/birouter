@@ -60,7 +60,8 @@ test("recurring-uncapped models are surfaced but NEVER summed into the steady he
   const t = computeFreeModelTotals();
   // every uncapped record must carry monthlyTokens 0 (un-quantifiable, not counted)
   for (const m of FREE_MODEL_BUDGETS) {
-    if (m.freeType === "recurring-uncapped") assert.equal(m.monthlyTokens, 0, `${m.provider}/${m.modelId} uncapped but counted`);
+    if (m.freeType === "recurring-uncapped")
+      assert.equal(m.monthlyTokens, 0, `${m.provider}/${m.modelId} uncapped but counted`);
   }
   // uncappedProviders is the de-duped provider list and is non-empty (siliconflow, glm-cn, kilo…)
   assert.ok(Array.isArray(t.uncappedProviders) && t.uncappedProviders.length >= 3);
@@ -84,7 +85,7 @@ test("2026-06-17 refresh: discontinued providers dropped, new free providers add
   for (const dead of ["chutes", "phind", "kluster", "glhf", "gitlawb", "aimlapi", "theoldllm"]) {
     assert.ok(!providers.has(dead), `${dead} should be removed (discontinued)`);
   }
-  // qwen-web is KEPT on purpose: only its OAuth API tier died — OmniRoute uses the cookie/web path.
+  // qwen-web is KEPT on purpose: only its OAuth API tier died — Birouter uses the cookie/web path.
   assert.ok(providers.has("qwen-web"), "qwen-web must stay (cookie path still free)");
   // discovered in the refresh — must be present
   for (const fresh of ["kilo-gateway", "opencode-zen", "glm-cn"]) {

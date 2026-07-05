@@ -14,8 +14,8 @@ import {
   type ProviderCandidate,
   type ScoringFactors,
   type ScoringWeights,
-} from "@omniroute/open-sse/services/autoCombo/scoring.ts";
-import { getTaskFitness } from "@omniroute/open-sse/services/autoCombo/taskFitness.ts";
+} from "@birouter/open-sse/services/autoCombo/scoring.ts";
+import { getTaskFitness } from "@birouter/open-sse/services/autoCombo/taskFitness.ts";
 import type {
   ComboAutopilotCombo,
   ComboAutopilotReport,

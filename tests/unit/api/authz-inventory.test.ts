@@ -15,7 +15,7 @@ import { setupSettingsFixture } from "../_mocks/settings.ts";
 import { makeManagementSessionRequest } from "../../helpers/managementSession.ts";
 
 const fixture = setupSettingsFixture("authz-inventory");
-process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE = "1";
+process.env.BIROUTER_DISABLE_REDIS_AUTH_CACHE = "1";
 
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;

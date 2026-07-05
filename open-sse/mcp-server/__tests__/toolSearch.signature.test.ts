@@ -5,8 +5,8 @@ import { zodToTsSignature } from "../toolSearch/signature.ts";
 describe("zodToTsSignature", () => {
   it("primitives + optional", () => {
     const s = z.object({ query: z.string(), limit: z.number().optional() });
-    const out = zodToTsSignature("omniroute_tool_search", s);
-    expect(out).toContain("omniroute_tool_search(args: {");
+    const out = zodToTsSignature("birouter_tool_search", s);
+    expect(out).toContain("birouter_tool_search(args: {");
     expect(out).toContain("query: string");
     expect(out).toContain("limit?: number");
   });

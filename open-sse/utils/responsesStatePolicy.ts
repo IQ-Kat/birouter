@@ -45,7 +45,7 @@ export function shouldStripPreviousResponseId({
   if (!isResponsesSource && !isResponsesTarget) return false;
 
   // `previous_response_id` is only safe when the upstream actually keeps
-  // Responses state. OmniRoute defaults to stateless upstream calls, so auto
+  // Responses state. Birouter defaults to stateless upstream calls, so auto
   // strips unless the connection explicitly opts into OpenAI Responses storage.
   const providerSpecificData = toRecord(toRecord(credentials).providerSpecificData);
   return !isOpenAIResponsesStoreEnabled(providerSpecificData);

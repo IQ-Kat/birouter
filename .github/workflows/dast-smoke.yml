@@ -25,7 +25,7 @@ jobs:
       - run: npm ci
       - name: Build CLI bundle
         run: npm run build:cli
-      - name: Start OmniRoute
+      - name: Start Birouter
         env:
           PORT: "20128"
           INJECTION_GUARD_MODE: block
@@ -48,8 +48,8 @@ jobs:
             --request-timeout 20 --suppress-health-check all --no-color
       - name: promptfoo injection-guard (blocking)
         env:
-          OMNIROUTE_URL: http://localhost:20128
-          OMNIROUTE_API_KEY: not-needed-blocked-before-upstream
+          BIROUTER_URL: http://localhost:20128
+          BIROUTER_API_KEY: not-needed-blocked-before-upstream
         run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
       - name: Stop server
         if: always()

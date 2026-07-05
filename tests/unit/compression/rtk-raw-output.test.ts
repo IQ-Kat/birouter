@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe("RTK raw output retention", () => {
   it("redacts secrets before raw output persistence and exposes a pointer", () => {
-    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-raw-"));
+    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rtk-raw-"));
     process.env.DATA_DIR = tempData;
     const raw = [
       "Error: failed with token=sk-1234567890abcdefghijklmnop",
@@ -60,7 +60,7 @@ describe("RTK raw output retention", () => {
   });
 
   it("retains only configured failure output and enforces byte caps", () => {
-    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-raw-cap-"));
+    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rtk-raw-cap-"));
     process.env.DATA_DIR = tempData;
 
     assert.equal(
@@ -79,7 +79,7 @@ describe("RTK raw output retention", () => {
   });
 
   it("propagates raw output pointers from stacked RTK runs", () => {
-    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-stacked-raw-"));
+    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rtk-stacked-raw-"));
     process.env.DATA_DIR = tempData;
 
     const result = applyCompression(
@@ -133,7 +133,7 @@ describe("RTK raw output retention", () => {
     // Point DATA_DIR underneath a regular FILE so mkdirSync(recursive) throws ENOTDIR.
     // maybePersistRtkRawOutput is best-effort capture: a write failure must degrade to a
     // skipped capture (null), never propagate into the compression pipeline (F5.3).
-    const blocker = path.join(os.tmpdir(), `omniroute-rtk-blocked-${process.pid}-${Date.now()}`);
+    const blocker = path.join(os.tmpdir(), `birouter-rtk-blocked-${process.pid}-${Date.now()}`);
     fs.writeFileSync(blocker, "x");
     process.env.DATA_DIR = path.join(blocker, "nested");
 

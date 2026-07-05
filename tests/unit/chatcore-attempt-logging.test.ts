@@ -10,7 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-attempt-logging-test-"));
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "bi-attempt-logging-test-"));
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
@@ -18,7 +18,7 @@ const { getCallLogById } = await import("../../src/lib/usage/callLogs.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
 
 type CodexRotationEnvelope = {
-  _omniroute?: {
+  _birouter?: {
     codexAccountRotation?: {
       initialConnectionId: unknown;
       finalConnectionId: unknown;
@@ -63,7 +63,7 @@ async function pollForCallLog(id: string, tries = 120) {
 
 function getCodexAccountRotation(value: unknown) {
   if (!value || typeof value !== "object") return undefined;
-  return (value as CodexRotationEnvelope)._omniroute?.codexAccountRotation;
+  return (value as CodexRotationEnvelope)._birouter?.codexAccountRotation;
 }
 
 before(async () => {

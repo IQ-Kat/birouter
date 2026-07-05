@@ -41,7 +41,11 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
-import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
+import {
+  FetchTimeoutError,
+  fetchWithTimeout,
+  getConfiguredTimeout,
+} from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 // --- Per-provider handlers (extracted to co-located files in PR-#4582-batch) ---
@@ -60,7 +64,6 @@ import {
   extractMarkdownImageUrls,
   CHATGPT_WEB_IMAGE_ID_RE,
 } from "./imageGeneration/providers/chatgptWeb.ts";
-
 
 interface KieImageOptions {
   model: string;
@@ -126,9 +129,7 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
  */
 export function resolveImageBaseUrl(
   credentials:
-    | { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null }
-    | null
-    | undefined,
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
   fallback: string,
   endpoint: "generations" | "edits" = "generations"
 ): string {
@@ -749,7 +750,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       status: 400,
       startTime,
       error:
-        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers so OmniRoute can fetch your Cloud Code project.",
+        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers so Birouter can fetch your Cloud Code project.",
       requestBody: logRequestBody,
     });
   }
@@ -1051,7 +1052,7 @@ export async function handleOpenAIImageEdit({
   // makes undici serialize it as the string "[object FormData]" (text/plain), dropping every
   // field (including `model`, which reaches the upstream empty). A Buffer body is accepted
   // verbatim by any fetch implementation. (#3273)
-  const boundary = `----OmniRouteImageEdit${randomUUID().replace(/-/g, "")}`;
+  const boundary = `----BirouterImageEdit${randomUUID().replace(/-/g, "")}`;
   const CRLF = "\r\n";
   const partBuffers: Buffer[] = [];
   const appendField = (name: string, value: string) => {
@@ -1083,7 +1084,10 @@ export async function handleOpenAIImageEdit({
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   if (log) {
-    log.info("IMAGE", `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`);
+    log.info(
+      "IMAGE",
+      `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`
+    );
   }
 
   const result = await fetchImageEndpoint(
@@ -1185,7 +1189,7 @@ export async function handleImageEdit({
       status: 400,
       startTime,
       error:
-        "chatgpt-web image edit only works for images recently generated through this OmniRoute instance " +
+        "chatgpt-web image edit only works for images recently generated through this Birouter instance " +
         "(cache window: 30 minutes). Re-generate the image and try the edit immediately, or disable image-edit " +
         "in your client to use plain chat-completion edit prompts instead.",
       requestBody,
@@ -2401,7 +2405,14 @@ export function saveImageSuccessResult({
   };
 }
 
-export function saveImageErrorResult({ provider, model, status, startTime, error, requestBody = null }) {
+export function saveImageErrorResult({
+  provider,
+  model,
+  status,
+  startTime,
+  error,
+  requestBody = null,
+}) {
   saveCallLog({
     method: "POST",
     path: "/v1/images/generations",

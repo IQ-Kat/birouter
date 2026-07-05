@@ -11,7 +11,7 @@
 #
 # MOTIVATION (2026-03 incident): the trivy-action/LiteLLM supply-chain attack
 # exploited exactly the kind of pull_request_target misconfiguration that zizmor
-# detects statically. OmniRoute's npm/Docker/Electron publish workflows are high-
+# detects statically. Birouter's npm/Docker/Electron publish workflows are high-
 # value targets that warrant proactive audit.
 #
 # BASELINE STRATEGY: this file starts with an EMPTY ignores list. As zizmor is

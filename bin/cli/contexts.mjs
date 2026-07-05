@@ -40,10 +40,10 @@ export function saveContexts(cfg) {
  * Resolve the active context for a CLI invocation.
  *
  * Canonical schema is `{ currentContext, contexts }` (written by
- * `omniroute contexts ...`). For backward compatibility we also read the legacy
+ * `birouter contexts ...`). For backward compatibility we also read the legacy
  * `{ activeProfile, profiles }` shape and a bare top-level `baseUrl` — older
  * configs and `api.mjs::getBaseUrl` used those before remote-mode unified the
- * store. `overrideName` (from `--context`/`OMNIROUTE_CONTEXT`) wins when set.
+ * store. `overrideName` (from `--context`/`BIROUTER_CONTEXT`) wins when set.
  *
  * A context may carry `{ baseUrl, accessToken?, apiKey?, scope?, description? }`.
  * `accessToken` is the scoped CLI access token (preferred); `apiKey` is the

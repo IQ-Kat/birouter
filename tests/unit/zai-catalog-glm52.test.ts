@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 // crucially, documents WHY the effort-tier aliases must NOT appear here.
 //
 // The `zai` provider uses the DefaultExecutor, which sends the requested model ID
-// verbatim. The effort tiers `glm-5.2-high` / `glm-5.2-max` are OmniRoute aliases
+// verbatim. The effort tiers `glm-5.2-high` / `glm-5.2-max` are Birouter aliases
 // that only the GlmExecutor knows how to resolve (parseGlm52Effort → base model
 // "glm-5.2" + `effort` field + effort-2025-11-24 beta header). Listing them under
 // `zai` would send unknown model IDs to z.ai's Anthropic endpoint, so they belong

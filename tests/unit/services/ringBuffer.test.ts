@@ -59,7 +59,7 @@ test("subscribe receives new lines", () => {
 });
 
 test("flush writes to file when path set", async () => {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ring-"));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-ring-"));
   const filePath = path.join(tmpDir, "ring.log");
 
   try {

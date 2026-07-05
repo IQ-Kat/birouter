@@ -38,7 +38,7 @@ export function smartFilterText(text: string, config: McpAccessibilityConfig): s
     // have shrunk via noise removal / collapse above.
     const omitted = out.length - head.length;
     out =
-      `${head}\n\n... [truncated ${omitted} chars by OmniRoute MCP filter. ` +
+      `${head}\n\n... [truncated ${omitted} chars by Birouter MCP filter. ` +
       `Page is large; ask user to scroll/navigate to a specific section, or click an element with the refs shown above]`;
   }
   return out;

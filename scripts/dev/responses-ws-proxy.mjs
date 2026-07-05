@@ -255,7 +255,7 @@ const WRITE_ERROR_RESERVED_HEADERS = new Set([
   "referrer-policy",
   "permissions-policy",
   "strict-transport-security",
-  "x-omniroute-route-class",
+  "x-birouter-route-class",
   "x-request-id",
   "date",
 ]);
@@ -299,7 +299,7 @@ function getAuthHeaders(requestUrl, requestHeaders) {
   if (isText(requestHeaders.authorization)) {
     headers.authorization = requestHeaders.authorization;
   } else {
-    const url = new URL(requestUrl, "http://omniroute.local");
+    const url = new URL(requestUrl, "http://birouter.local");
     for (const key of WS_QUERY_TOKEN_KEYS) {
       const value = url.searchParams.get(key);
       if (isText(value)) {
@@ -364,7 +364,7 @@ async function callInternal(fetchImpl, baseUrl, bridgeSecret, action, payload) {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-omniroute-ws-bridge-secret": bridgeSecret,
+      "x-birouter-ws-bridge-secret": bridgeSecret,
     },
     body: JSON.stringify({ action, ...payload }),
   });
@@ -715,7 +715,7 @@ class ResponsesWsSession {
         transport: "responses_websocket",
         requestUrl: this.requestUrl,
         headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
-        path: new URL(this.requestUrl || "/v1/responses", "http://omniroute.local").pathname,
+        path: new URL(this.requestUrl || "/v1/responses", "http://birouter.local").pathname,
         startedAt: new Date(this.startedAt).toISOString(),
         completedAt: new Date(finishedAt).toISOString(),
         durationMs: Math.max(0, finishedAt - this.startedAt),

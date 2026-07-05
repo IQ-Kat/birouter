@@ -1,4 +1,4 @@
-# OmniRoute MCP Server Documentation (Norsk)
+# Birouter MCP Server Documentation (Norsk)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/MCP-SERVER.md) · 🇸🇦 [ar](../../ar/docs/MCP-SERVER.md) · 🇧🇬 [bg](../../bg/docs/MCP-SERVER.md) · 🇧🇩 [bn](../../bn/docs/MCP-SERVER.md) · 🇨🇿 [cs](../../cs/docs/MCP-SERVER.md) · 🇩🇰 [da](../../da/docs/MCP-SERVER.md) · 🇩🇪 [de](../../de/docs/MCP-SERVER.md) · 🇪🇸 [es](../../es/docs/MCP-SERVER.md) · 🇮🇷 [fa](../../fa/docs/MCP-SERVER.md) · 🇫🇮 [fi](../../fi/docs/MCP-SERVER.md) · 🇫🇷 [fr](../../fr/docs/MCP-SERVER.md) · 🇮🇳 [gu](../../gu/docs/MCP-SERVER.md) · 🇮🇱 [he](../../he/docs/MCP-SERVER.md) · 🇮🇳 [hi](../../hi/docs/MCP-SERVER.md) · 🇭🇺 [hu](../../hu/docs/MCP-SERVER.md) · 🇮🇩 [id](../../id/docs/MCP-SERVER.md) · 🇮🇹 [it](../../it/docs/MCP-SERVER.md) · 🇯🇵 [ja](../../ja/docs/MCP-SERVER.md) · 🇰🇷 [ko](../../ko/docs/MCP-SERVER.md) · 🇮🇳 [mr](../../mr/docs/MCP-SERVER.md) · 🇲🇾 [ms](../../ms/docs/MCP-SERVER.md) · 🇳🇱 [nl](../../nl/docs/MCP-SERVER.md) · 🇳🇴 [no](../../no/docs/MCP-SERVER.md) · 🇵🇭 [phi](../../phi/docs/MCP-SERVER.md) · 🇵🇱 [pl](../../pl/docs/MCP-SERVER.md) · 🇵🇹 [pt](../../pt/docs/MCP-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/MCP-SERVER.md) · 🇷🇴 [ro](../../ro/docs/MCP-SERVER.md) · 🇷🇺 [ru](../../ru/docs/MCP-SERVER.md) · 🇸🇰 [sk](../../sk/docs/MCP-SERVER.md) · 🇸🇪 [sv](../../sv/docs/MCP-SERVER.md) · 🇰🇪 [sw](../../sw/docs/MCP-SERVER.md) · 🇮🇳 [ta](../../ta/docs/MCP-SERVER.md) · 🇮🇳 [te](../../te/docs/MCP-SERVER.md) · 🇹🇭 [th](../../th/docs/MCP-SERVER.md) · 🇹🇷 [tr](../../tr/docs/MCP-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/MCP-SERVER.md) · 🇵🇰 [ur](../../ur/docs/MCP-SERVER.md) · 🇻🇳 [vi](../../vi/docs/MCP-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/MCP-SERVER.md)
 
@@ -8,17 +8,17 @@
 
 ## Installer
 
-OmniRoute MCP is built-in. Start it with:
+Birouter MCP is built-in. Start it with:
 
 ```bash
-omniroute --mcp
+birouter --mcp
 ```
 
 Or via the open-sse transport:
 
 ```bash
 # HTTP streamable transport (port 20130)
-omniroute --dev  # MCP auto-starts on /mcp endpoint
+birouter --dev  # MCP auto-starts on /mcp endpoint
 ```
 
 ## IDE Configuration
@@ -29,29 +29,29 @@ See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot,
 
 ## Essential Tools (8)
 
-| Tool                            | Description                              |
-| :------------------------------ | :--------------------------------------- |
-| `omniroute_get_health`          | Gateway health, circuit breakers, uptime |
-| `omniroute_list_combos`         | All configured combos with models        |
-| `omniroute_get_combo_metrics`   | Performance metrics for a specific combo |
-| `omniroute_switch_combo`        | Switch active combo by ID/name           |
-| `omniroute_check_quota`         | Quota status per provider or all         |
-| `omniroute_route_request`       | Send a chat completion through OmniRoute |
-| `omniroute_cost_report`         | Cost analytics for a time period         |
-| `omniroute_list_models_catalog` | Full model catalog with capabilities     |
+| Tool                           | Description                              |
+| :----------------------------- | :--------------------------------------- |
+| `birouter_get_health`          | Gateway health, circuit breakers, uptime |
+| `birouter_list_combos`         | All configured combos with models        |
+| `birouter_get_combo_metrics`   | Performance metrics for a specific combo |
+| `birouter_switch_combo`        | Switch active combo by ID/name           |
+| `birouter_check_quota`         | Quota status per provider or all         |
+| `birouter_route_request`       | Send a chat completion through Birouter  |
+| `birouter_cost_report`         | Cost analytics for a time period         |
+| `birouter_list_models_catalog` | Full model catalog with capabilities     |
 
 ## Advanced Tools (8)
 
-| Tool                               | Description                                                 |
-| :--------------------------------- | :---------------------------------------------------------- |
-| `omniroute_simulate_route`         | Dry-run routing simulation with fallback tree               |
-| `omniroute_set_budget_guard`       | Session budget with degrade/block/alert actions             |
-| `omniroute_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
-| `omniroute_test_combo`             | Live-test all models in a combo via a real upstream request |
-| `omniroute_get_provider_metrics`   | Detailed metrics for one provider                           |
-| `omniroute_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
-| `omniroute_explain_route`          | Explain a past routing decision                             |
-| `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
+| Tool                              | Description                                                 |
+| :-------------------------------- | :---------------------------------------------------------- |
+| `birouter_simulate_route`         | Dry-run routing simulation with fallback tree               |
+| `birouter_set_budget_guard`       | Session budget with degrade/block/alert actions             |
+| `birouter_set_resilience_profile` | Apply conservative/balanced/aggressive preset               |
+| `birouter_test_combo`             | Live-test all models in a combo via a real upstream request |
+| `birouter_get_provider_metrics`   | Detailed metrics for one provider                           |
+| `birouter_best_combo_for_task`    | Task-fitness recommendation with alternatives               |
+| `birouter_explain_route`          | Explain a past routing decision                             |
+| `birouter_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
 ## Authentication
 

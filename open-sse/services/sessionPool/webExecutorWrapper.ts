@@ -1,7 +1,7 @@
 /**
  * WebExecutorWrapper — Wraps any web executor with session pool support
  *
- * This is the integration bridge between the session pool and OmniRoute's
+ * This is the integration bridge between the session pool and Birouter's
  * executor system. It intercepts the fetch() call to add session-pool
  * headers (fingerprint-based User-Agent, Sec-CH-UA, etc.) and handles
  * 429/5xx responses with pool-level cooldown management.
@@ -54,7 +54,7 @@ export function withSessionPool(
   options?: {
     /** When true, wraps the response body for error handling */
     wrapResponse?: boolean;
-  },
+  }
 ): WebExecutorFn {
   const wrapResponse = options?.wrapResponse ?? true;
 

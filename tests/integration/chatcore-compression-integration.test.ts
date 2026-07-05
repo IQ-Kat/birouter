@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compression-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-compression-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.REQUIRE_API_KEY = "false";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-compression-secret";
@@ -570,8 +570,7 @@ test("chatCore integration: combo requests run proactive compression before Kiro
 
     // Ensure request was translated to Kiro shape (messages are not sent directly upstream).
     const conversationState = capturedTranslatedBody?.conversationState as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     assert.ok(conversationState, "Kiro translated request should include conversationState");
 
     const history = Array.isArray(conversationState?.history)
@@ -584,8 +583,7 @@ test("chatCore integration: combo requests run proactive compression before Kiro
 
     const currentMessage = conversationState?.currentMessage as Record<string, unknown> | undefined;
     const userInputMessage = currentMessage?.userInputMessage as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const currentContent =
       typeof userInputMessage?.content === "string" ? userInputMessage.content : "";
     assert.match(currentContent, /Please summarize everything\./);
@@ -687,7 +685,7 @@ test("chatCore integration: assigned compression combo applies language packs an
     assert.ok(capturedBody, "Fetch should receive the request body");
     const firstMessage = capturedBody.messages?.[0];
     assert.equal(firstMessage?.role, "system");
-    assert.match(firstMessage?.content ?? "", /OmniRoute Output Styles/);
+    assert.match(firstMessage?.content ?? "", /Birouter Output Styles/);
     assert.match(firstMessage?.content ?? "", /Responda conciso/);
 
     for (
@@ -782,7 +780,7 @@ test("chatCore integration: default stacked compression combo applies for unassi
     assert.ok(capturedBody, "Fetch should receive the request body");
     const firstMessage = capturedBody.messages?.[0];
     assert.equal(firstMessage?.role, "system");
-    assert.match(firstMessage?.content ?? "", /OmniRoute Output Styles/);
+    assert.match(firstMessage?.content ?? "", /Birouter Output Styles/);
     assert.match(firstMessage?.content ?? "", /Responda conciso/);
 
     let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();

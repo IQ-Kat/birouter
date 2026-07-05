@@ -9,7 +9,7 @@
  * SYNC_INTERVAL_MS. Stops automatically when the service stops.
  */
 
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { getServiceModels, saveServiceModels, type ServiceModel } from "@/lib/db/serviceModels";
 import { updateVersionManagerTool } from "@/lib/db/versionManager";
 

@@ -76,7 +76,7 @@ const eslintConfig = [
       // .claude/ (gitignored). They hold other sessions' in-progress work and
       // their files move mid-scan, so never lint them from the main checkout.
       ".claude/**",
-      ".omnivscodeagent/**",
+      ".bivscodeagent/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",
       "_references/**",
@@ -95,6 +95,8 @@ const eslintConfig = [
       "app.__qa_backup/**",
       // CLI package copy directory
       "clipr/**",
+      // Temp birouter backup
+      "temp-birouter-js/**",
     ],
   },
 ];

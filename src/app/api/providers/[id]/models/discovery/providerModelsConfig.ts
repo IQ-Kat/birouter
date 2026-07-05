@@ -1,5 +1,5 @@
-import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityModelsDiscoveryUrls } from "@birouter/open-sse/config/antigravityUpstream.ts";
+import { getAntigravityHeaders } from "@birouter/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 

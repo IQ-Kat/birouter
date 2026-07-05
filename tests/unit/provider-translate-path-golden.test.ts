@@ -19,7 +19,7 @@ import { goldenSnapshot } from "../helpers/goldenSnapshot.ts";
 // current translate-path behavior so any drift is caught as a snapshot diff.
 //
 // Ported from decolua/9router golden-provider-service test (JS/vitest) — adapted to
-// OmniRoute's TS provider service + node:test goldenSnapshot helper.
+// Birouter's TS provider service + node:test goldenSnapshot helper.
 
 const API_KEY_CRED = { apiKey: "sk-test-APIKEY", providerSpecificData: {} };
 const OAUTH_CRED = { accessToken: "tok-test-ACCESS", providerSpecificData: {} };
@@ -33,7 +33,7 @@ const OAUTH_CRED = { accessToken: "tok-test-ACCESS", providerSpecificData: {} };
 // (process.versions.node) forms are collapsed to <NODE>.
 const NODE_VERSION = typeof process !== "undefined" ? process.version : "";
 const NODE_VERSION_BARE = typeof process !== "undefined" ? (process.versions?.node ?? "") : "";
-// The OmniRoute app version also leaks into headers (cline X-CLIENT-VERSION /
+// The Birouter app version also leaks into headers (cline X-CLIENT-VERSION /
 // X-CORE-VERSION = clineAuth APP_VERSION = process.env.npm_package_version ||
 // "0.0.0"). It is "0.0.0" under a direct `node` run (Unit Tests shard) but the real
 // package version under `npx`/`npm run` (Coverage shard), so it must be normalized

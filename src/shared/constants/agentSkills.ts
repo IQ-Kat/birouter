@@ -4,7 +4,7 @@
 
 import type { AgentSkill, SkillArea, SkillCategory } from "@/lib/agentSkills/types";
 
-const REPO = "diegosouzapw/OmniRoute";
+const REPO = "IQ-Kat/birouter";
 const BRANCH = "main";
 const SKILL_PATH = "skills";
 
@@ -42,17 +42,17 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
   // ── API Skills (22) ─────────────────────────────────────────────────────────
 
   {
-    id: "omni-auth",
+    id: "bi-auth",
     name: "Authentication",
     description:
-      "Manage API key authentication and session tokens. Start here to authenticate requests via Bearer token, obtain session cookies, and configure login requirements for the OmniRoute API.",
+      "Manage API key authentication and session tokens. Start here to authenticate requests via Bearer token, obtain session cookies, and configure login requirements for the Birouter API.",
     category: "api",
     area: "auth",
     icon: "lock",
     isEntry: true,
   },
   {
-    id: "omni-providers",
+    id: "bi-providers",
     name: "Providers",
     description:
       "Manage provider connections, API keys, OAuth flows, and connection tests via the REST API. List, add, update, remove, and test AI provider integrations (OpenAI, Anthropic, Gemini, and 160+).",
@@ -61,7 +61,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "key",
   },
   {
-    id: "omni-models",
+    id: "bi-models",
     name: "Models",
     description:
       "Query available AI models across all configured providers. List models, resolve model aliases, and browse the full model catalog including provider-specific variants.",
@@ -70,7 +70,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "neurology",
   },
   {
-    id: "omni-combos-routing",
+    id: "bi-combos-routing",
     name: "Combos & Routing",
     description:
       "Create and manage routing combos with 14 strategies (priority, weighted, round-robin, Auto-combo, etc.). Configure fallback chains, test routing outcomes, and retrieve combo metrics.",
@@ -80,16 +80,16 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     isNew: true,
   },
   {
-    id: "omni-api-keys",
+    id: "bi-api-keys",
     name: "API Keys",
     description:
-      "Create, list, rotate, and revoke OmniRoute API keys. Control per-key scopes, spending limits, and expiration. Keys gate access to all proxy and management endpoints.",
+      "Create, list, rotate, and revoke Birouter API keys. Control per-key scopes, spending limits, and expiration. Keys gate access to all proxy and management endpoints.",
     category: "api",
     area: "api-keys",
     icon: "vpn_key",
   },
   {
-    id: "omni-usage-logs",
+    id: "bi-usage-logs",
     name: "Usage & Logs",
     description:
       "Access detailed call logs and usage analytics. Filter by provider, model, time range, status, and cost. Export logs and aggregate token usage across all connections.",
@@ -98,7 +98,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "bar_chart",
   },
   {
-    id: "omni-budget",
+    id: "bi-budget",
     name: "Budget & Rate Limits",
     description:
       "Configure spending limits, token quotas, and rate-limit policies per API key or globally. Inspect current consumption and enforce cost controls across providers.",
@@ -107,7 +107,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "savings",
   },
   {
-    id: "omni-settings",
+    id: "bi-settings",
     name: "Settings",
     description:
       "Read and update global application settings: system prompts, thinking budget, IP filters, payload rules, combo defaults, and require-login configuration.",
@@ -116,7 +116,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "settings",
   },
   {
-    id: "omni-proxies",
+    id: "bi-proxies",
     name: "Proxy Configuration",
     description:
       "Configure HTTP/HTTPS/SOCKS proxies for upstream provider requests. Set per-provider or global proxy rules, test connectivity, and manage proxy rotation.",
@@ -125,7 +125,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "swap_horiz",
   },
   {
-    id: "omni-cache",
+    id: "bi-cache",
     name: "Cache",
     description:
       "Manage the LLM response cache. View cache statistics, clear entries, configure TTL policies, and control semantic-similarity caching thresholds.",
@@ -134,7 +134,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "cached",
   },
   {
-    id: "omni-compression",
+    id: "bi-compression",
     name: "Compression",
     description:
       "Configure RTK (command output), Caveman (prose), and stacked compression modes. Manage language packs, custom rules, and test prompt compression reducing tokens by 60–90%.",
@@ -144,7 +144,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     isNew: true,
   },
   {
-    id: "omni-context-rtk",
+    id: "bi-context-rtk",
     name: "Context & RTK",
     description:
       "Configure RTK filters, context engineering rules, and context relay settings. Test compression with real prompt samples and manage context transformation pipelines.",
@@ -154,7 +154,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     isNew: true,
   },
   {
-    id: "omni-resilience",
+    id: "bi-resilience",
     name: "Resilience & Monitoring",
     description:
       "Monitor provider health, circuit-breaker states, p50/p95/p99 latency metrics, and budget guard alerts. Inspect connection cooldowns and model lockouts in real time.",
@@ -164,34 +164,34 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     isNew: true,
   },
   {
-    id: "omni-cli-tools",
+    id: "bi-cli-tools",
     name: "CLI Tools",
     description:
-      "Manage CLI tool integrations exposed via the API. List, configure, and invoke CLI tool plugins that extend OmniRoute's automation surface.",
+      "Manage CLI tool integrations exposed via the API. List, configure, and invoke CLI tool plugins that extend Birouter's automation surface.",
     category: "api",
     area: "cli-tools",
     icon: "terminal",
   },
   {
-    id: "omni-tunnels",
+    id: "bi-tunnels",
     name: "Tunnels",
     description:
-      "Create and manage secure tunnels (ngrok, Cloudflare Tunnel, custom) to expose OmniRoute to the internet or share access with remote agents and CI pipelines.",
+      "Create and manage secure tunnels (ngrok, Cloudflare Tunnel, custom) to expose Birouter to the internet or share access with remote agents and CI pipelines.",
     category: "api",
     area: "tunnels",
     icon: "vpn_lock",
   },
   {
-    id: "omni-sync-cloud",
+    id: "bi-sync-cloud",
     name: "Cloud Sync",
     description:
-      "Synchronise OmniRoute configuration, provider connections, and settings to/from cloud storage. Manage cloud worker authentication and remote backup targets.",
+      "Synchronise Birouter configuration, provider connections, and settings to/from cloud storage. Manage cloud worker authentication and remote backup targets.",
     category: "api",
     area: "sync-cloud",
     icon: "cloud_sync",
   },
   {
-    id: "omni-db-backups",
+    id: "bi-db-backups",
     name: "Database & Backups",
     description:
       "Trigger system backups, restore from backup files, and manage the SQLite database lifecycle. Supports export, import, and incremental snapshot strategies.",
@@ -200,7 +200,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "backup",
   },
   {
-    id: "omni-webhooks",
+    id: "bi-webhooks",
     name: "Webhooks",
     description:
       "Register, list, test, and remove webhook endpoints. Configure event subscriptions (request.completed, provider.error, budget.exceeded, etc.) and manage delivery retries.",
@@ -209,25 +209,25 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "webhook",
   },
   {
-    id: "omni-mcp",
+    id: "bi-mcp",
     name: "MCP Server",
     description:
-      "Connect to the OmniRoute MCP server (37 tools, 3 transports: SSE/stdio/HTTP). Covers routing, cache, compression, memory, skills, providers, and audit tools across 16 permission scopes.",
+      "Connect to the Birouter MCP server (37 tools, 3 transports: SSE/stdio/HTTP). Covers routing, cache, compression, memory, skills, providers, and audit tools across 16 permission scopes.",
     category: "api",
     area: "mcp",
     icon: "electrical_services",
   },
   {
-    id: "omni-agents-a2a",
+    id: "bi-agents-a2a",
     name: "Agents & A2A Protocol",
     description:
-      "Interact with OmniRoute via JSON-RPC 2.0 agent-to-agent protocol. 6 built-in A2A skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities.",
+      "Interact with Birouter via JSON-RPC 2.0 agent-to-agent protocol. 6 built-in A2A skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities.",
     category: "api",
     area: "agents-a2a",
     icon: "device_hub",
   },
   {
-    id: "omni-version-manager",
+    id: "bi-version-manager",
     name: "Version Manager",
     description:
       "Install, start, stop, restart, and update embedded services (9Router, CLIProxyAPI). Monitor service status, retrieve logs, and configure auto-start for local-only service endpoints.",
@@ -236,7 +236,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "manage_history",
   },
   {
-    id: "omni-inference",
+    id: "bi-inference",
     name: "Inference (OpenAI-compatible)",
     description:
       "The core OpenAI-compatible inference endpoints: chat completions, embeddings, images, audio (TTS/STT), moderations, rerank, and the Responses API. The primary integration surface for AI agents.",
@@ -251,7 +251,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "cli-serve",
     name: "CLI: Serve",
     description:
-      "Start, stop, and restart the OmniRoute server from the CLI. Manage daemon mode, port configuration, auto-recovery, system tray integration, and the dashboard open shortcut.",
+      "Start, stop, and restart the Birouter server from the CLI. Manage daemon mode, port configuration, auto-recovery, system tray integration, and the dashboard open shortcut.",
     category: "cli",
     area: "cli-serve",
     icon: "play_circle",
@@ -279,7 +279,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "cli-keys",
     name: "CLI: API Keys",
     description:
-      "Create, list, rotate, and revoke OmniRoute API keys from the CLI. Manage OAuth flows for provider authentication and inspect key scopes and expiration.",
+      "Create, list, rotate, and revoke Birouter API keys from the CLI. Manage OAuth flows for provider authentication and inspect key scopes and expiration.",
     category: "cli",
     area: "cli-keys",
     icon: "vpn_key",
@@ -297,7 +297,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "cli-chat",
     name: "CLI: Chat",
     description:
-      "Send chat completions, stream responses, and start an interactive REPL session from the CLI. Supports all OmniRoute providers, combo routing, and system prompt configuration.",
+      "Send chat completions, stream responses, and start an interactive REPL session from the CLI. Supports all Birouter providers, combo routing, and system prompt configuration.",
     category: "cli",
     area: "cli-chat",
     icon: "chat",
@@ -360,7 +360,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "cli-a2a",
     name: "CLI: A2A Protocol",
     description:
-      "Interact with the OmniRoute A2A server from the CLI. Send tasks, inspect skill execution history, and test the JSON-RPC 2.0 agent-to-agent protocol interactively.",
+      "Interact with the Birouter A2A server from the CLI. Send tasks, inspect skill execution history, and test the JSON-RPC 2.0 agent-to-agent protocol interactively.",
     category: "cli",
     area: "cli-a2a",
     icon: "device_hub",
@@ -378,7 +378,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "cli-backup-sync",
     name: "CLI: Backup & Sync",
     description:
-      "Backup and restore OmniRoute data from the CLI. Trigger incremental snapshots, sync to cloud storage, manage backup schedules, and restore from archive files.",
+      "Backup and restore Birouter data from the CLI. Trigger incremental snapshots, sync to cloud storage, manage backup schedules, and restore from archive files.",
     category: "cli",
     area: "cli-backup-sync",
     icon: "backup",
@@ -414,7 +414,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "cli-plugins-skills",
     name: "CLI: Plugins, Skills & Memory",
     description:
-      "Manage Omni Skills (list, install, test, remove), plugins (create, configure), and persistent memory (search, add, clear) from the CLI.",
+      "Manage Bi Skills (list, install, test, remove), plugins (create, configure), and persistent memory (search, add, clear) from the CLI.",
     category: "cli",
     area: "cli-plugins-skills",
     icon: "extension",
@@ -435,7 +435,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "config-codex-cli",
     name: "Config: Codex CLI",
     description:
-      "Step-by-step agent workflow to configure the OpenAI Codex CLI on any machine (Linux, macOS, Windows) to use OmniRoute as an OpenAI-compatible backend. Detects OS and shell, writes config.toml and 7 named profiles, sets environment variables, and verifies the setup.",
+      "Step-by-step agent workflow to configure the OpenAI Codex CLI on any machine (Linux, macOS, Windows) to use Birouter as an OpenAI-compatible backend. Detects OS and shell, writes config.toml and 7 named profiles, sets environment variables, and verifies the setup.",
     category: "config",
     area: "config-codex-cli",
     icon: "terminal",

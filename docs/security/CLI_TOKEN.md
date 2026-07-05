@@ -6,11 +6,11 @@ title: "CLI Machine-ID Token"
 
 ## Overview
 
-OmniRoute CLI commands authenticate against the local management API using a
-`HMAC-SHA256(machine-id, salt)` token sent via the `x-omniroute-cli-token`
+Birouter CLI commands authenticate against the local management API using a
+`HMAC-SHA256(machine-id, salt)` token sent via the `x-birouter-cli-token`
 request header.
 
-This allows CLI subcommands (`omniroute status`, `omniroute providers`, etc.)
+This allows CLI subcommands (`birouter status`, `birouter providers`, etc.)
 to call management endpoints without requiring the user to supply a JWT or
 password on every invocation.
 
@@ -20,7 +20,7 @@ password on every invocation.
    (falls back to an empty string on failure, disabling CLI auth).
 2. It computes `HMAC-SHA256(machine_id, salt)` and returns the full 64-char
    hex digest — a deterministic, non-reversible token tied to this machine.
-3. The CLI sends the token as `x-omniroute-cli-token` on every request to
+3. The CLI sends the token as `x-birouter-cli-token` on every request to
    `http://localhost:<port>/api/...`.
 4. The server (`src/server/authz/policies/management.ts`) recomputes the
    expected token with the same salt and compares via `timingSafeEqual` to
@@ -38,20 +38,20 @@ password on every invocation.
 
 ## Salt rotation
 
-Set `OMNIROUTE_CLI_SALT` to rotate the derived token without code changes.
+Set `BIROUTER_CLI_SALT` to rotate the derived token without code changes.
 After rotation, all CLI processes on this machine will use the new token
 automatically. Useful after a process-list leak that may have exposed the
 previous derived value.
 
 ```bash
 # Persistent rotation (add to shell profile)
-export OMNIROUTE_CLI_SALT="my-secret-salt-2026"
+export BIROUTER_CLI_SALT="my-secret-salt-2026"
 
 # Verify new token is in use
-omniroute status
+birouter status
 ```
 
-Default salt: `omniroute-cli-auth-v1`
+Default salt: `birouter-cli-auth-v1`
 
 ## Legacy format (SHA-256, 32-char) — still accepted
 
@@ -66,7 +66,7 @@ incoming header against each with `timingSafeEqual`
 So a token is valid if it matches **either** the 64-char HMAC digest or the 32-char
 legacy SHA-256 prefix.
 
-**Opt-out:** set `OMNIROUTE_DISABLE_CLI_TOKEN=true` (env or `.env`) to disable the CLI
+**Opt-out:** set `BIROUTER_DISABLE_CLI_TOKEN=true` (env or `.env`) to disable the CLI
 token mechanism entirely; all access then requires an explicit API key. On multi-user
 hosts this is recommended, since `machine-id` is per-device (not per-user) and another
 user on the same host could compute the same token.

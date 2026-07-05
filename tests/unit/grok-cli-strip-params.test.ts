@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { GrokCliExecutor } = await import("@omniroute/open-sse/executors/grok-cli");
+const { GrokCliExecutor } = await import("@birouter/open-sse/executors/grok-cli");
 
 // Regression for #5273: Grok Build returns `400 'Model does not support parameter
 // presencePenalty'` when clients (MiMoCode, Cursor, …) send OpenAI-style sampling

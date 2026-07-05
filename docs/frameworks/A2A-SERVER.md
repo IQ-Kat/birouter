@@ -1,12 +1,12 @@
 ---
-title: "OmniRoute A2A Server Documentation"
+title: "Birouter A2A Server Documentation"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute A2A Server Documentation
+# Birouter A2A Server Documentation
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+> Agent-to-Agent Protocol v0.3 — Birouter as an intelligent routing agent
 
 The A2A surface has two faces:
 
@@ -21,7 +21,7 @@ Tasks are tracked by `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, default 5-m
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+Returns the Agent Card describing Birouter's capabilities, skills, and authentication requirements.
 
 The Agent Card's `version` field is sourced from `process.env.npm_package_version` (see `src/app/.well-known/agent.json/route.ts:13`), so it stays auto-synced with `package.json` on every release.
 
@@ -32,7 +32,7 @@ The Agent Card's `version` field is sourced from `process.env.npm_package_versio
 All `/a2a` requests require an API key via the `Authorization` header:
 
 ```
-Authorization: Bearer YOUR_OMNIROUTE_API_KEY
+Authorization: Bearer YOUR_BIROUTER_API_KEY
 ```
 
 If no API key is configured on the server, authentication is bypassed.
@@ -139,27 +139,27 @@ curl -X POST http://localhost:20128/a2a \
 
 ## Available Skills
 
-OmniRoute exposes 6 A2A skills wired in `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Each skill module lives in `src/lib/a2a/skills/`.
+Birouter exposes 6 A2A skills wired in `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Each skill module lives in `src/lib/a2a/skills/`.
 
 | Skill              | ID                   | Description                                                                                                     | Tags                       | Examples                               |
 | :----------------- | :------------------- | :-------------------------------------------------------------------------------------------------------------- | :------------------------- | :------------------------------------- |
-| Smart Routing      | `smart-routing`      | Routes a prompt through the optimal provider/combo using OmniRoute's combo engine + scoring                     | routing, providers         | "Route this prompt via the best model" |
+| Smart Routing      | `smart-routing`      | Routes a prompt through the optimal provider/combo using Birouter's combo engine + scoring                      | routing, providers         | "Route this prompt via the best model" |
 | Quota Management   | `quota-management`   | Reports per-provider quota state, helps callers decide when to throttle/switch                                  | quota, providers           | "Check quota for anthropic"            |
 | Provider Discovery | `provider-discovery` | Lists installed providers with capabilities, free-tier flags, OAuth status                                      | providers, discovery       | "What providers are available?"        |
 | Cost Analysis      | `cost-analysis`      | Estimates cost of a request/conversation given the catalog + recent usage                                       | cost, usage                | "Estimate cost for this conversation"  |
 | Health Report      | `health-report`      | Aggregates circuit breaker, cooldown, lockout state per provider                                                | health, resilience         | "Show health status of all providers"  |
-| List Capabilities  | `list-capabilities`  | Returns the full 42-entry Agent Skills catalog as a markdown table with raw SKILL.md URLs for context injection | catalog, discovery, skills | "List all OmniRoute capabilities"      |
+| List Capabilities  | `list-capabilities`  | Returns the full 42-entry Agent Skills catalog as a markdown table with raw SKILL.md URLs for context injection | catalog, discovery, skills | "List all Birouter capabilities"       |
 
 > Note: the Agent Card description currently advertises "36+ providers" (`src/app/.well-known/agent.json/route.ts:26` and `:55`). The actual catalog has grown to 180+ providers — the string should be updated in a follow-up change (tracked as a separate doc/code TODO; not modified here).
 
 ### `list-capabilities` Skill Detail
 
-The `list-capabilities` skill is particularly useful for external agents that need to discover what OmniRoute exposes before sending API calls. It returns a structured markdown table artifact:
+The `list-capabilities` skill is particularly useful for external agents that need to discover what Birouter exposes before sending API calls. It returns a structured markdown table artifact:
 
 ```
 | ID | Name | Category | Area | Endpoints/Commands | Raw URL |
 | --- | --- | --- | --- | --- | --- |
-| omni-auth | Auth & Sessions | api | auth | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
+| bi-auth | Auth & Sessions | api | auth | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
 ...
 ```
 

@@ -24,8 +24,8 @@ describe("MCP audit shutdown", () => {
 
   beforeEach(() => {
     vi.resetModules();
-    globalThis.__omnirouteMcpAuditDb = undefined;
-    dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mcp-audit-"));
+    globalThis.__birouterMcpAuditDb = undefined;
+    dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-mcp-audit-"));
     dbFile = path.join(dataDir, "storage.sqlite");
     fs.writeFileSync(dbFile, "");
     process.env.DATA_DIR = dataDir;
@@ -33,7 +33,7 @@ describe("MCP audit shutdown", () => {
 
   afterEach(() => {
     delete process.env.DATA_DIR;
-    globalThis.__omnirouteMcpAuditDb = undefined;
+    globalThis.__birouterMcpAuditDb = undefined;
     vi.restoreAllMocks();
   });
 
@@ -54,7 +54,7 @@ describe("MCP audit shutdown", () => {
 
     const audit = await import("../audit.ts");
 
-    await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 12, true);
+    await audit.logToolCall("birouter_get_health", { ok: true }, { ok: true }, 12, true);
     expect(mockDb.prepare).toHaveBeenCalledTimes(1);
 
     expect(audit.closeAuditDb()).toBe(true);
@@ -82,7 +82,7 @@ describe("MCP audit shutdown", () => {
 
     const audit = await import("../audit.ts");
 
-    await audit.logToolCall("omniroute_get_health", {}, {}, 5, true);
+    await audit.logToolCall("birouter_get_health", {}, {}, 5, true);
     expect(audit.closeAuditDb()).toBe(true);
     expect(mockDb.close).toHaveBeenCalledTimes(1);
   });
@@ -127,7 +127,7 @@ describe("MCP audit shutdown", () => {
 
     const audit = await import("../audit.ts");
 
-    await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 4, true);
+    await audit.logToolCall("birouter_get_health", { ok: true }, { ok: true }, 4, true);
     expect(DatabaseSync).toHaveBeenCalledWith(dbFile);
     expect(mockNodeDb.prepare).toHaveBeenCalled();
 

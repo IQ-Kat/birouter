@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { SignJWT } from "jose";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-auth-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-api-auth-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
 
@@ -345,9 +345,9 @@ test("isAuthRequired stays enabled when INITIAL_PASSWORD is present", async () =
   delete process.env.INITIAL_PASSWORD;
 });
 
-test("getApiKeyMetadata recognizes OMNIROUTE_API_KEY environment variable", async () => {
+test("getApiKeyMetadata recognizes BIROUTER_API_KEY environment variable", async () => {
   const envKey = "sk-test-env-key-" + Date.now();
-  process.env.OMNIROUTE_API_KEY = envKey;
+  process.env.BIROUTER_API_KEY = envKey;
 
   const metadata = await apiKeysDb.getApiKeyMetadata(envKey);
 
@@ -355,7 +355,7 @@ test("getApiKeyMetadata recognizes OMNIROUTE_API_KEY environment variable", asyn
   assert.equal(metadata.id, "env-key");
   assert.equal(metadata.name, "Environment Key");
 
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
 });
 
 test("getApiKeyMetadata recognizes ROUTER_API_KEY environment variable", async () => {
@@ -439,15 +439,15 @@ test("requireManagementAuth accepts the legacy 32-character local CLI token", as
   assert.equal(res, null);
 });
 
-test("requireManagementAuth returns null for OMNIROUTE_API_KEY env passthrough", async () => {
+test("requireManagementAuth returns null for BIROUTER_API_KEY env passthrough", async () => {
   await setupAuth();
   const envKey = "sk-env-root-" + Date.now();
-  process.env.OMNIROUTE_API_KEY = envKey;
+  process.env.BIROUTER_API_KEY = envKey;
   try {
     const res = await requireManagementAuth(managementRequest(envKey));
     assert.equal(res, null);
   } finally {
-    delete process.env.OMNIROUTE_API_KEY;
+    delete process.env.BIROUTER_API_KEY;
   }
 });
 

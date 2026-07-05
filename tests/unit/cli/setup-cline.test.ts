@@ -26,13 +26,13 @@ test("buildClineGlobalState merges (preserves unrelated existing keys)", () => {
 });
 
 test("buildClineSecrets stores the key (separate secrets file), preserving others", () => {
-  const sec = buildClineSecrets({ anthropicApiKey: "keepme" }, { apiKey: "sk-omni" });
-  assert.equal(sec.openAiApiKey, "sk-omni");
+  const sec = buildClineSecrets({ anthropicApiKey: "keepme" }, { apiKey: "sk-bi" });
+  assert.equal(sec.openAiApiKey, "sk-bi");
   assert.equal(sec.anthropicApiKey, "keepme");
 });
 
 test("buildClineSecrets falls back to a placeholder when no key", () => {
-  assert.equal(buildClineSecrets({}, { apiKey: "" }).openAiApiKey, "sk_omniroute");
+  assert.equal(buildClineSecrets({}, { apiKey: "" }).openAiApiKey, "sk_birouter");
 });
 
 test("resolveClineTarget strips /v1 from --remote (Cline wants the ROOT url)", () => {

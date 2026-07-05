@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const tmpDir = mkdtempSync(join(tmpdir(), "omniroute-test-"));
+const tmpDir = mkdtempSync(join(tmpdir(), "birouter-test-"));
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../../src/lib/db/core.ts");

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 /**
- * Shown when OmniRoute was started with auto-generated secrets (zero-config mode).
+ * Shown when Birouter was started with auto-generated secrets (zero-config mode).
  * The banner is dismissable and persists only for the current session.
  */
 export default function BootstrapBanner() {
@@ -16,8 +16,8 @@ export default function BootstrapBanner() {
   // Determine default data dir hint based on platform hint from user-agent
   const dataDir =
     typeof navigator !== "undefined" && navigator.platform?.startsWith("Win")
-      ? "%APPDATA%\\omniroute\\server.env"
-      : "~/.omniroute/server.env";
+      ? "%APPDATA%\\birouter\\server.env"
+      : "~/.birouter/server.env";
 
   return (
     <div
@@ -30,7 +30,7 @@ export default function BootstrapBanner() {
           Running in zero-config mode
         </p>
         <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/80">
-          OmniRoute auto-generated secure encryption keys on first launch. They are persisted to{" "}
+          Birouter auto-generated secure encryption keys on first launch. They are persisted to{" "}
           <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
             {dataDir}
           </code>

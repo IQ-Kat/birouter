@@ -64,7 +64,7 @@ test("CLI fingerprint toggles only expose implemented fingerprints and functiona
   assert.equal((CLI_COMPAT_TOGGLE_IDS as readonly string[]).includes("github"), false);
 });
 
-test("CLI fingerprint strips OmniRoute internal body fields before upstream serialization", () => {
+test("CLI fingerprint strips Birouter internal body fields before upstream serialization", () => {
   const claude = applyFingerprint(
     "claude",
     { Authorization: "Bearer token" },

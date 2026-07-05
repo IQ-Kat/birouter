@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 //
 // Regression test: when the Open Claw CLI is not detected locally (typical of
-// remote OmniRoute deployments where the CLI lives on the user's laptop, not
+// remote Birouter deployments where the CLI lives on the user's laptop, not
 // on the server), the card must still surface a "Manual Config" button so the
 // user can copy the settings.json snippet and paste it into the CLI on their
 // local machine. Before this fix the Manual Config button only rendered when
@@ -20,7 +20,7 @@ vi.mock("next-intl", () => ({
       cliNotInstalled: "{tool} CLI not detected locally",
       cliNotRunnable: "{tool} CLI installed but not runnable",
       installCliPrompt:
-        "Manual configuration is still available if OmniRoute is deployed on a remote server.",
+        "Manual configuration is still available if Birouter is deployed on a remote server.",
       cliFoundFailedHealthcheck: "{tool} CLI was found but failed runtime healthcheck{reason}.",
       manualConfig: "Manual Config",
       checkingCli: "Checking {tool}...",
@@ -51,13 +51,7 @@ vi.mock("@/shared/components", async () => {
   const React = await import("react");
   return {
     Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    Button: ({
-      children,
-      onClick,
-    }: {
-      children: React.ReactNode;
-      onClick?: () => void;
-    }) => (
+    Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
       <button type="button" onClick={onClick}>
         {children}
       </button>
@@ -102,9 +96,8 @@ afterEach(() => {
 
 // ── Import under test (after mocks) ───────────────────────────────────────────
 
-const { default: OpenClawToolCard } = await import(
-  "@/app/(dashboard)/dashboard/cli-code/components/OpenClawToolCard"
-);
+const { default: OpenClawToolCard } =
+  await import("@/app/(dashboard)/dashboard/cli-code/components/OpenClawToolCard");
 
 async function renderExpanded() {
   const container = document.createElement("div");

@@ -15,7 +15,7 @@
  * LOCAL_ONLY enforced by routeGuard.
  */
 
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import { InspectorSystemProxyActionSchema } from "@/shared/schemas/inspector";
 import { apply, revert } from "@/mitm/inspector/systemProxyConfig";
 import {
@@ -25,9 +25,8 @@ import {
 } from "@/lib/inspector/captureState";
 
 const DEFAULT_PORT = Number(process.env.INSPECTOR_HTTP_PROXY_PORT ?? "8080") || 8080;
-const DEFAULT_GUARD_MINUTES = Number(
-  process.env.INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES ?? "30"
-) || 30;
+const DEFAULT_GUARD_MINUTES =
+  Number(process.env.INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES ?? "30") || 30;
 
 export async function POST(request: Request): Promise<Response> {
   let body: unknown;

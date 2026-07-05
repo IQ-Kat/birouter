@@ -16,17 +16,17 @@ import { setQuotaCache } from "@/domain/quotaCache";
 import { buildClaudeExtraUsageConnectionUpdate } from "@/lib/providers/claudeExtraUsage";
 import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
-import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
-import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
+import { getExecutor } from "@birouter/open-sse/executors/index.ts";
+import { getUsageForProvider } from "@birouter/open-sse/services/usage.ts";
 import {
   rotationGroupFor,
   serializeRefresh,
-} from "@omniroute/open-sse/services/refreshSerializer.ts";
+} from "@birouter/open-sse/services/refreshSerializer.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
-} from "@omniroute/open-sse/services/codeAssistSubscription.ts";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+} from "@birouter/open-sse/services/codeAssistSubscription.ts";
+import { runWithProxyContext } from "@birouter/open-sse/utils/proxyFetch.ts";
 import { onUsageRecorded } from "./usageEvents";
 import {
   isRecord,

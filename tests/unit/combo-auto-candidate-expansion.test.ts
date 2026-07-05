@@ -8,7 +8,7 @@ import path from "node:path";
 // without an explicit candidatePool broadens its eligible targets to every model
 // of every active provider connection (so the router has the full pool to score).
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-expand-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-expand-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

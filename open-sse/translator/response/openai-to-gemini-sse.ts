@@ -27,7 +27,7 @@
  * Ported from upstream decolua/9router#225 by @SteelMorgan.
  */
 
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /** Map OpenAI finish_reason → Gemini finishReason */
 export const OPENAI_TO_GEMINI_FINISH_REASON: Record<string, string> = {

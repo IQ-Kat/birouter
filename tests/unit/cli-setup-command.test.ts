@@ -11,7 +11,7 @@ const ORIGINAL_STORAGE_ENCRYPTION_KEY = process.env.STORAGE_ENCRYPTION_KEY;
 const ORIGINAL_FETCH = globalThis.fetch;
 
 function createTempDataDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-setup-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-setup-"));
 }
 
 async function withTempEnv(fn: (dataDir: string) => Promise<void>) {

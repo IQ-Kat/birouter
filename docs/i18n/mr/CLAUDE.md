@@ -39,7 +39,7 @@ npm run test:all
 
 ## प्रकल्पाचा आढावा
 
-**OmniRoute** — एकत्रित AI प्रॉक्सी/राउटर. एक एंडपॉइंट, 160+ LLM प्रदाते, स्वयंचलित फॉलबॅक.
+**Birouter** — एकत्रित AI प्रॉक्सी/राउटर. एक एंडपॉइंट, 160+ LLM प्रदाते, स्वयंचलित फॉलबॅक.
 
 | स्तर          | स्थान                   | उद्देश                                                       |
 | ------------- | ----------------------- | ------------------------------------------------------------ |
@@ -82,7 +82,7 @@ API मार्ग एक सुसंगत नमुना अनुसरण
 
 ## प्रतिकार रनटाइम स्थिती
 
-OmniRoute कडे तीन संबंधित पण भिन्न तात्पुरत्या-अपयश यांत्रिके आहेत. रूटिंग वर्तन डिबग करताना त्यांचा व्याप्ती वेगळी ठेवा. एक झलक नकाशासाठी [3-लेयर प्रतिकार आरेख](./docs/diagrams/exported/resilience-3layers.svg) पहा (स्त्रोत: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd)).
+Birouter कडे तीन संबंधित पण भिन्न तात्पुरत्या-अपयश यांत्रिके आहेत. रूटिंग वर्तन डिबग करताना त्यांचा व्याप्ती वेगळी ठेवा. एक झलक नकाशासाठी [3-लेयर प्रतिकार आरेख](./docs/diagrams/exported/resilience-3layers.svg) पहा (स्त्रोत: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd)).
 
 ### प्रदाता सर्किट ब्रेकर
 
@@ -194,7 +194,7 @@ baseCooldownMs * 2 ** failureIndex;
 ### कोड शैली
 
 - **2 जागा**, सेमीकोलन, डबल कोट्स, 100 वर्ण रुंदी, es5 ट्रेलिंग कॉमा (lint-staged द्वारे Prettier द्वारे लागू केले)
-- **आयात**: बाह्य → अंतर्गत (`@/`, `@omniroute/open-sse`) → सापेक्ष
+- **आयात**: बाह्य → अंतर्गत (`@/`, `@birouter/open-sse`) → सापेक्ष
 - **नावकरण**: फाइल्स=camelCase/kebab, घटक=PascalCase, स्थिरांक=UPPER_SNAKE
 - **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = सर्वत्र त्रुटी; `no-explicit-any` = `open-sse/` आणि `tests/` मध्ये चेतावणी
 - **TypeScript**: `strict: false`, लक्ष्य ES2022, मॉड्यूल esnext, रिझोल्यूशन बंडलर. स्पष्ट प्रकारांना प्राधान्य द्या.
@@ -362,9 +362,9 @@ git push -u origin feat/your-feature
 
 - **रनटाइम**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES मॉड्यूल
 - **TypeScript**: 5.9+, लक्ष्य ES2022, मॉड्यूल esnext, रिझोल्यूशन बंडलर
-- **पथ उपसर्ग**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **पथ उपसर्ग**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
 - **डीफॉल्ट पोर्ट**: 20128 (API + डॅशबोर्ड एकाच पोर्टवर)
-- **डेटा निर्देशिका**: `DATA_DIR` env var, डीफॉल्ट `~/.omniroute/`
+- **डेटा निर्देशिका**: `DATA_DIR` env var, डीफॉल्ट `~/.birouter/`
 - **महत्त्वाचे env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - सेटअप: `cp .env.example .env` नंतर `JWT_SECRET` (`openssl rand -base64 48`) आणि `API_KEY_SECRET` (`openssl rand -hex 32`) तयार करा
 
@@ -387,4 +387,4 @@ git push -u origin feat/your-feature
 13. कधीही बाह्य पथ किंवा रनटाइम मूल्ये `exec()`/`spawn()` कडे पाठवलेल्या शेल स्क्रिप्टमध्ये स्ट्रिंग-इंटरपोलेट करू नका — त्याऐवजी `env` पर्यायाद्वारे पास करा. संदर्भ: `src/mitm/cert/install.ts::updateNssDatabases`.
 14. कधीही CodeQL / Secret-Scanning अलर्ट नाकारू नका (a) वर दिलेल्या पॅटर्न दस्तऐवजांची तपासणी न करता, आणि (b) नकारात्मक टिप्पणीत तांत्रिक कारणाची नोंद न करता. उदाहरण: `js/stack-trace-exposure` कॉलसाइटवर उभा राहिला आहे जो आधीच `sanitizeErrorMessage()` द्वारे मार्गदर्शित आहे, हे एक ज्ञात CodeQL मर्यादा आहे (कस्टम सॅनिटायझर्स ओळखले जात नाहीत) — `docs/security/ERROR_SANITIZATION.md` संदर्भित करून `false positive` म्हणून नकारा.
 15. कधीही चाइल्ड प्रक्रियांचा स्पॉन करणारे मार्ग (`/api/mcp/`, `/api/cli-tools/runtime/`) समाविष्ट करू नका `src/server/authz/routeGuard.ts` मध्ये `isLocalOnlyPath()` वर्गीकरणाशिवाय. लूपबॅक अंमलबजावणी कोणत्याही प्रमाणीकरण तपासणीपूर्वी अनिवार्यपणे होते — टनलद्वारे गळती झालेला JWT प्रक्रिया स्पॉनिंगला ट्रिगर करू शकत नाही. पहा `docs/security/ROUTE_GUARD_TIERS.md`.
-16. AI सहाय्यक, LLM किंवा स्वयंचलित खात्याला श्रेय देणारे `Co-Authored-By` ट्रेलर्स कधीही समाविष्ट करू नका (उदा. "Claude", "GPT", "Copilot", "Bot" असलेली नावे; `anthropic.com` / `openai.com` / बॉट-मालकीच्या `noreply.github.com` पत्त्यांवरील ईमेल). असे ट्रेलर्स GitHub वर बॉट खात्यात कमिट अॅट्रिब्यूशन रूट करतात, PR इतिहासात खऱ्या लेखकाला (`diegosouzapw`) लपवतात. मानवी सहयोगी — upstream PR लेखक आणि OmniRoute मध्ये पोर्ट केले जाणारे issue रिपोर्टर सह — मानक `Co-authored-by: Name <email>` ट्रेलर्ससह श्रेय मिळवू शकतात आणि मिळावे; upstream-port वर्कफ्लो (`/port-upstream-features`, `/port-upstream-issues`) यावर अवलंबून आहेत.
+16. AI सहाय्यक, LLM किंवा स्वयंचलित खात्याला श्रेय देणारे `Co-Authored-By` ट्रेलर्स कधीही समाविष्ट करू नका (उदा. "Claude", "GPT", "Copilot", "Bot" असलेली नावे; `anthropic.com` / `openai.com` / बॉट-मालकीच्या `noreply.github.com` पत्त्यांवरील ईमेल). असे ट्रेलर्स GitHub वर बॉट खात्यात कमिट अॅट्रिब्यूशन रूट करतात, PR इतिहासात खऱ्या लेखकाला (`diegosouzapw`) लपवतात. मानवी सहयोगी — upstream PR लेखक आणि Birouter मध्ये पोर्ट केले जाणारे issue रिपोर्टर सह — मानक `Co-authored-by: Name <email>` ट्रेलर्ससह श्रेय मिळवू शकतात आणि मिळावे; upstream-port वर्कफ्लो (`/port-upstream-features`, `/port-upstream-issues`) यावर अवलंबून आहेत.

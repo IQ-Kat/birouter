@@ -31,7 +31,18 @@ describe("formatCompressionAnnotation", () => {
 
   it("aggregates rulesApplied counts deterministically", () => {
     const stats = makeStats({
-      rulesApplied: ["filler", "filler", "filler", "filler", "filler", "filler", "filler", "filler", "dedup", "dedup"],
+      rulesApplied: [
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "dedup",
+        "dedup",
+      ],
       techniquesUsed: ["caveman"],
     });
     const result = formatCompressionAnnotation(stats);
@@ -40,8 +51,8 @@ describe("formatCompressionAnnotation", () => {
     assert.ok(result.includes("dedupx2"), `missing dedupx2 in: ${result}`);
   });
 
-  it("is ASCII-only so it survives HTTP header (X-OmniRoute-Compression) construction", () => {
-    // Regression: the annotation is appended to the X-OmniRoute-Compression response
+  it("is ASCII-only so it survives HTTP header (X-Birouter-Compression) construction", () => {
+    // Regression: the annotation is appended to the X-Birouter-Compression response
     // header, a latin-1 ByteString. A non-ASCII char (e.g. U+2192 →) throws at
     // Headers/Response construction → 500 on every compressed response with rules.
     const stats = makeStats({
@@ -50,12 +61,15 @@ describe("formatCompressionAnnotation", () => {
     });
     const value = `standard; source=auto; ${formatCompressionAnnotation(stats)}`;
     for (const ch of value) {
-      assert.ok(ch.codePointAt(0)! <= 0xff, `non-latin1 char ${JSON.stringify(ch)} in header value: ${value}`);
+      assert.ok(
+        ch.codePointAt(0)! <= 0xff,
+        `non-latin1 char ${JSON.stringify(ch)} in header value: ${value}`
+      );
     }
     // Must not throw at real Headers/Response construction.
-    assert.doesNotThrow(() => new Headers({ "X-OmniRoute-Compression": value }));
-    const res = new Response(null, { headers: { "X-OmniRoute-Compression": value } });
-    assert.equal(res.headers.get("X-OmniRoute-Compression"), value);
+    assert.doesNotThrow(() => new Headers({ "X-Birouter-Compression": value }));
+    const res = new Response(null, { headers: { "X-Birouter-Compression": value } });
+    assert.equal(res.headers.get("X-Birouter-Compression"), value);
   });
 
   it("orders rule counts descending by count", () => {
@@ -66,7 +80,10 @@ describe("formatCompressionAnnotation", () => {
     const result = formatCompressionAnnotation(stats);
     const fillerIdx = result.indexOf("fillerx3");
     const dedupIdx = result.indexOf("dedupx1");
-    assert.ok(fillerIdx < dedupIdx, `filler (count=3) should appear before dedup (count=1): ${result}`);
+    assert.ok(
+      fillerIdx < dedupIdx,
+      `filler (count=3) should appear before dedup (count=1): ${result}`
+    );
   });
 
   it("is deterministic (same input → same output)", () => {

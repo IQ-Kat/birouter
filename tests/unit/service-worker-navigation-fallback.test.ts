@@ -39,7 +39,7 @@ function createServiceWorkerHarness() {
 
   const caches = {
     delete: async () => true,
-    keys: async () => ["omniroute-pwa-v2"],
+    keys: async () => ["birouter-pwa-v2"],
     match: async (request: Request | string) =>
       cacheEntries.get(typeof request === "string" ? request : request.url),
     open: async () => cache,

@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getServiceRow } from "@/lib/db/versionManager";
 import { getOrInitSupervisor } from "@/app/api/services/cliproxy/_lib";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 import { parseVersionManagerToolRequest } from "../request";
 

@@ -6,7 +6,7 @@
  *  1. /api/combos/auto never exposed context_length, so the opencode plugin
  *     advertised `limit: { context: 0 }` for auto combos. opencode disables
  *     its smart auto-compaction entirely when context === 0, letting the
- *     conversation grow until OmniRoute's destructive purifyHistory() drops
+ *     conversation grow until Birouter's destructive purifyHistory() drops
  *     old messages silently.
  *  2. chatCore's proactive-compression block overrode the per-target context
  *     limit with min(...allComboTargets) even though chatCore always executes
@@ -29,7 +29,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-auto-combo-ctx-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-auto-combo-ctx-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET ?? "auto-combo-ctx-test-secret";
 

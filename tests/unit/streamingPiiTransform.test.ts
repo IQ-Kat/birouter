@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 // Isolate DB state
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-streaming-pii-"));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-test-streaming-pii-"));
 process.env.DATA_DIR = tmpDir;
 
 // Enable the feature flag for tests

@@ -7,22 +7,22 @@ import path from "node:path";
 const { applyPayloadRules, getPayloadRulesConfig, resetPayloadRulesConfigForTests } =
   await import("../../open-sse/services/payloadRules.ts");
 
-const ORIGINAL_PAYLOAD_RULES_PATH = process.env.OMNIROUTE_PAYLOAD_RULES_PATH;
-const ORIGINAL_PAYLOAD_RULES_RELOAD_MS = process.env.OMNIROUTE_PAYLOAD_RULES_RELOAD_MS;
+const ORIGINAL_PAYLOAD_RULES_PATH = process.env.BIROUTER_PAYLOAD_RULES_PATH;
+const ORIGINAL_PAYLOAD_RULES_RELOAD_MS = process.env.BIROUTER_PAYLOAD_RULES_RELOAD_MS;
 
 test.afterEach(() => {
   resetPayloadRulesConfigForTests();
 
   if (ORIGINAL_PAYLOAD_RULES_PATH === undefined) {
-    delete process.env.OMNIROUTE_PAYLOAD_RULES_PATH;
+    delete process.env.BIROUTER_PAYLOAD_RULES_PATH;
   } else {
-    process.env.OMNIROUTE_PAYLOAD_RULES_PATH = ORIGINAL_PAYLOAD_RULES_PATH;
+    process.env.BIROUTER_PAYLOAD_RULES_PATH = ORIGINAL_PAYLOAD_RULES_PATH;
   }
 
   if (ORIGINAL_PAYLOAD_RULES_RELOAD_MS === undefined) {
-    delete process.env.OMNIROUTE_PAYLOAD_RULES_RELOAD_MS;
+    delete process.env.BIROUTER_PAYLOAD_RULES_RELOAD_MS;
   } else {
-    process.env.OMNIROUTE_PAYLOAD_RULES_RELOAD_MS = ORIGINAL_PAYLOAD_RULES_RELOAD_MS;
+    process.env.BIROUTER_PAYLOAD_RULES_RELOAD_MS = ORIGINAL_PAYLOAD_RULES_RELOAD_MS;
   }
 });
 
@@ -95,10 +95,10 @@ test("payload rules apply default, default-raw, override, and filter operations"
 });
 
 test("payload rules load from JSON file and reload changed content", async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-payload-rules-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-payload-rules-"));
   const configPath = path.join(tempDir, "payloadRules.json");
 
-  process.env.OMNIROUTE_PAYLOAD_RULES_PATH = configPath;
+  process.env.BIROUTER_PAYLOAD_RULES_PATH = configPath;
 
   fs.writeFileSync(
     configPath,

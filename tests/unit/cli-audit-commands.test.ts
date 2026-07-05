@@ -25,7 +25,7 @@ const MCP_ENTRIES = [
     id: "m1",
     timestamp: "2026-05-10T11:00:00Z",
     actor: "cli_client",
-    action: "omniroute_memory_search",
+    action: "birouter_memory_search",
     resource: null,
     result: "success",
   },
@@ -34,7 +34,7 @@ const MCP_ENTRIES = [
 const MCP_STATS = {
   period: "7d",
   totalCalls: 150,
-  byTool: [{ tool: "omniroute_memory_search", count: 40 }],
+  byTool: [{ tool: "birouter_memory_search", count: 40 }],
   byResult: { success: 140, error: 10 },
 };
 

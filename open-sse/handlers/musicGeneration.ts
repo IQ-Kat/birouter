@@ -188,7 +188,7 @@ async function handleComfyUIMusicGeneration({ model, provider, providerConfig, b
     "7": {
       class_type: "SaveAudio",
       inputs: {
-        filename_prefix: "omniroute_music",
+        filename_prefix: "birouter_music",
         audio: ["6", 0],
       },
     },

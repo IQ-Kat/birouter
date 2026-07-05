@@ -16,7 +16,7 @@
 
 import { execFile, type ExecFileOptions } from "node:child_process";
 import os from "node:os";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export type Platform = "linux" | "macos" | "windows";
 
@@ -41,10 +41,7 @@ export interface WindowsPreviousState {
   netshOutput: string;
 }
 
-export type PreviousState =
-  | MacOsPreviousState
-  | LinuxPreviousState
-  | WindowsPreviousState;
+export type PreviousState = MacOsPreviousState | LinuxPreviousState | WindowsPreviousState;
 
 export interface ApplyResult {
   platform: Platform;
@@ -152,12 +149,7 @@ async function macosApply(port: number): Promise<MacOsPreviousState> {
 async function macosRevert(state: MacOsPreviousState): Promise<void> {
   const service = state.service;
   if (state.http.enabled && state.http.host && state.http.port) {
-    await execImpl("networksetup", [
-      "-setwebproxy",
-      service,
-      state.http.host,
-      state.http.port,
-    ]);
+    await execImpl("networksetup", ["-setwebproxy", service, state.http.host, state.http.port]);
   } else {
     await execImpl("networksetup", ["-setwebproxystate", service, "off"]);
   }
@@ -186,10 +178,7 @@ async function readGsetting(key: string): Promise<string> {
   }
 }
 
-async function readGsubsetting(
-  scheme: string,
-  key: string
-): Promise<string> {
+async function readGsubsetting(scheme: string, key: string): Promise<string> {
   try {
     // HR#13: concat (not template) — scheme is a hardcoded "http"|"https" constant.
     const { stdout } = await execImpl("gsettings", [
@@ -232,20 +221,10 @@ async function linuxRevert(state: LinuxPreviousState): Promise<void> {
     await execImpl("gsettings", ["set", "org.gnome.system.proxy.http", "port", state.httpPort]);
   }
   if (state.httpsHost) {
-    await execImpl("gsettings", [
-      "set",
-      "org.gnome.system.proxy.https",
-      "host",
-      state.httpsHost,
-    ]);
+    await execImpl("gsettings", ["set", "org.gnome.system.proxy.https", "host", state.httpsHost]);
   }
   if (state.httpsPort) {
-    await execImpl("gsettings", [
-      "set",
-      "org.gnome.system.proxy.https",
-      "port",
-      state.httpsPort,
-    ]);
+    await execImpl("gsettings", ["set", "org.gnome.system.proxy.https", "port", state.httpsPort]);
   }
 }
 
@@ -278,7 +257,7 @@ async function windowsRevert(_state: WindowsPreviousState): Promise<void> {
 // ────────────────────────────────────────────────────────────────────────────
 
 /**
- * Apply OmniRoute as the system-wide HTTP/HTTPS proxy at `127.0.0.1:<port>`.
+ * Apply Birouter as the system-wide HTTP/HTTPS proxy at `127.0.0.1:<port>`.
  * Captures and returns the prior configuration so callers can revert later.
  *
  * Throws a sanitized `Error` if the underlying command fails (no stack/path
@@ -308,8 +287,7 @@ export async function revert(previousState: PreviousState | unknown): Promise<vo
   try {
     if (platform === "macos") await macosRevert(state as unknown as MacOsPreviousState);
     else if (platform === "linux") await linuxRevert(state as unknown as LinuxPreviousState);
-    else if (platform === "windows")
-      await windowsRevert(state as unknown as WindowsPreviousState);
+    else if (platform === "windows") await windowsRevert(state as unknown as WindowsPreviousState);
   } catch (err) {
     throw new Error(sanitizeErrorMessage(err) || "system proxy revert failed");
   }

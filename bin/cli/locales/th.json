@@ -1,8 +1,8 @@
 {
   "common": {
     "error": "ข้อผิดพลาด: {message}",
-    "serverOffline": "เซิร์ฟเวอร์ OmniRoute ออฟไลน์ เริ่มด้วย: omniroute serve",
-    "authRequired": "ต้องการการยืนยันตัวตน ตั้งค่า OMNIROUTE_API_KEY หรือรัน: omniroute setup",
+    "serverOffline": "เซิร์ฟเวอร์ Birouter ออฟไลน์ เริ่มด้วย: birouter serve",
+    "authRequired": "ต้องการการยืนยันตัวตน ตั้งค่า BIROUTER_API_KEY หรือรัน: birouter setup",
     "rateLimited": "เกินขีดจำกัดคำขอ ลองใหม่หลังจาก {seconds}วินาที",
     "timeout": "คำขอหมดเวลาหลังจาก {ms}ms",
     "success": "เสร็จสิ้น",
@@ -15,18 +15,18 @@
     "yesOpt": "ข้ามการยืนยัน"
   },
   "program": {
-    "description": "OmniRoute — AI Router อัจฉริยะพร้อม Auto Fallback",
+    "description": "Birouter — AI Router อัจฉริยะพร้อม Auto Fallback",
     "version": "แสดงเวอร์ชันและออก",
     "output": "รูปแบบเอาต์พุต (table, json, jsonl, csv)",
     "quiet": "ซ่อนเอาต์พุตที่ไม่จำเป็น",
     "no_color": "ปิดใช้งานเอาต์พุตสี",
     "timeout": "หมดเวลา HTTP request ในมิลลิวินาที",
-    "api_key": "API Key สำหรับ OmniRoute server",
-    "base_url": "Base URL ของ OmniRoute server",
+    "api_key": "API Key สำหรับ Birouter server",
+    "base_url": "Base URL ของ Birouter server",
     "context": "บริบท/โปรไฟล์ของเซิร์ฟเวอร์สำหรับคำสั่งนี้",
-    "lang": "ตั้งค่าภาษาแสดงผล CLI (แทนที่ OMNIROUTE_LANG)"
+    "lang": "ตั้งค่าภาษาแสดงผล CLI (แทนที่ BIROUTER_LANG)"
   },
   "redis": {
-    "description": "เปิดใช้คอนเทนเนอร์ Redis ในเครื่องด้วยการคลิกเดียว (Podman หรือ Docker) สำหรับการแคชและการติดตามโควตาของ OmniRoute"
+    "description": "เปิดใช้คอนเทนเนอร์ Redis ในเครื่องด้วยการคลิกเดียว (Podman หรือ Docker) สำหรับการแคชและการติดตามโควตาของ Birouter"
   }
 }

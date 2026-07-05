@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/webhookDispatcher.ts`, `src/lib/db/webhooks.ts`, `src/app/api/webhooks/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-OmniRoute can fire HTTP webhooks on platform events. Use them to integrate with
+Birouter can fire HTTP webhooks on platform events. Use them to integrate with
 Slack, PagerDuty, Datadog, internal alerting services, or any HTTP receiver.
 
 The dispatcher signs each delivery with HMAC-SHA256, retries on transient
@@ -59,17 +59,17 @@ per-webhook errors so one bad receiver cannot block the others.
 
 ## HMAC Signing
 
-When a webhook has a `secret`, OmniRoute signs the JSON body and sends:
+When a webhook has a `secret`, Birouter signs the JSON body and sends:
 
 ```
 Content-Type: application/json
-User-Agent: OmniRoute-Webhook/1.0
+User-Agent: Birouter-Webhook/1.0
 X-Webhook-Event: <event>
 X-Webhook-Timestamp: <ISO-8601>
 X-Webhook-Signature: sha256=<hex HMAC-SHA256(secret, body)>
 ```
 
-> Header names use the `X-Webhook-*` prefix (not `X-OmniRoute-*`). The signature
+> Header names use the `X-Webhook-*` prefix (not `X-Birouter-*`). The signature
 > value is `sha256=<hex>` — verify the full prefix.
 
 If `createWebhook` is called without a secret, the DB module generates one
@@ -225,7 +225,7 @@ The dashboard page at `/dashboard/webhooks` (see
   "event": "test.ping",
   "timestamp": "2026-05-13T20:32:00.000Z",
   "data": {
-    "message": "Test webhook delivery from OmniRoute",
+    "message": "Test webhook delivery from Birouter",
     "webhookId": "<uuid>"
   }
 }

@@ -8,7 +8,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-smelt-settings-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-smelt-settings-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-smelt";
 process.env.JWT_SECRET = "test-jwt-secret-smelt";
@@ -16,9 +16,7 @@ process.env.JWT_SECRET = "test-jwt-secret-smelt";
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 
-const { GET, POST, DELETE } = await import(
-  "../../src/app/api/cli-tools/smelt-settings/route.ts"
-);
+const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/smelt-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
@@ -101,17 +99,14 @@ test("smelt-settings POST: writes config.json with valid body", async () => {
         }),
       })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Unexpected status ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Unexpected status ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);
       const configPath = path.join(tmpHome, ".smelt", "config.json");
       if (fs.existsSync(configPath)) {
         const written = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-        assert.equal(written._managedBy, "omniroute");
+        assert.equal(written._managedBy, "birouter");
         assert.ok(written.baseUrl.includes("localhost:20128"));
         assert.equal(written.model, "gpt-5.4-mini");
       }
@@ -122,9 +117,9 @@ test("smelt-settings POST: writes config.json with valid body", async () => {
   }
 });
 
-// ── Test 5: DELETE → removes OmniRoute fields ────────────────────────────────
+// ── Test 5: DELETE → removes Birouter fields ────────────────────────────────
 
-test("smelt-settings DELETE: removes OmniRoute fields from existing config", async () => {
+test("smelt-settings DELETE: removes Birouter fields from existing config", async () => {
   const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "smelt-home-del-"));
   const origHome = process.env.HOME;
   process.env.HOME = tmpHome;
@@ -135,7 +130,7 @@ test("smelt-settings DELETE: removes OmniRoute fields from existing config", asy
     fs.writeFileSync(
       path.join(smeltDir, "config.json"),
       JSON.stringify({
-        _managedBy: "omniroute",
+        _managedBy: "birouter",
         baseUrl: "http://localhost:20128",
         apiKey: "sk-test",
         model: "gpt-5",
@@ -145,10 +140,7 @@ test("smelt-settings DELETE: removes OmniRoute fields from existing config", asy
     const res = await DELETE(
       new Request("http://localhost/api/cli-tools/smelt-settings", { method: "DELETE" })
     );
-    assert.ok(
-      [200, 403, 500].includes(res.status),
-      `Expected 200/403/500, got ${res.status}`
-    );
+    assert.ok([200, 403, 500].includes(res.status), `Expected 200/403/500, got ${res.status}`);
     if (res.status === 200) {
       const body = await res.json();
       assert.equal(body.success, true);

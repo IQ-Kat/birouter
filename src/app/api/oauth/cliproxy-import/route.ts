@@ -4,18 +4,15 @@ import { NextResponse } from "next/server";
 
 import { createProviderConnection } from "@/models";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import {
-  scanCliProxyAuthDir,
-  toConnectionPayload,
-} from "@/lib/oauth/utils/cliProxyAuthImport";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
+import { scanCliProxyAuthDir, toConnectionPayload } from "@/lib/oauth/utils/cliProxyAuthImport";
 
 /**
  * #1934: import OAuth credentials saved by CLIProxyAPI (~/.cli-proxy-api/) so users
  * don't have to re-login every account individually.
  *
  *   GET  → preview the importable accounts (provider/email/type only — never tokens).
- *   POST → import them as OmniRoute connections (upsert via createProviderConnection).
+ *   POST → import them as Birouter connections (upsert via createProviderConnection).
  */
 
 function cliProxyConfigDir(): string {
@@ -32,7 +29,10 @@ export async function GET(request: Request) {
   const authResponse = await requireImportAuth(request);
   if (authResponse) return authResponse;
   try {
-    const { candidates, skipped, scanned } = await scanCliProxyAuthDir(cliProxyConfigDir(), Date.now());
+    const { candidates, skipped, scanned } = await scanCliProxyAuthDir(
+      cliProxyConfigDir(),
+      Date.now()
+    );
     // Sanitize: never return access/refresh tokens to the client.
     const accounts = candidates.map((c) => ({
       provider: c.provider,
@@ -52,7 +52,10 @@ export async function POST(request: Request) {
   const authResponse = await requireImportAuth(request);
   if (authResponse) return authResponse;
   try {
-    const { candidates, skipped, scanned } = await scanCliProxyAuthDir(cliProxyConfigDir(), Date.now());
+    const { candidates, skipped, scanned } = await scanCliProxyAuthDir(
+      cliProxyConfigDir(),
+      Date.now()
+    );
     let imported = 0;
     const results: Array<{ provider: string; email: string | null; ok: boolean; error?: string }> =
       [];

@@ -53,7 +53,7 @@ describe("tierConfig DB module", () => {
     ).run("not-valid-json{{{");
 
     // Spy on the logger to confirm we emit a warning that operators can spot.
-    const loggerModule = await import("@omniroute/open-sse/utils/logger.ts");
+    const loggerModule = await import("@birouter/open-sse/utils/logger.ts");
     const warnSpy = mock.method(loggerModule.defaultLogger, "warn", () => {});
 
     try {
@@ -87,7 +87,7 @@ describe("tierConfig DB module", () => {
       "INSERT OR REPLACE INTO tier_config (key, value, updated_at) VALUES ('tier_config', ?, datetime('now'))"
     ).run(badShape);
 
-    const loggerModule = await import("@omniroute/open-sse/utils/logger.ts");
+    const loggerModule = await import("@birouter/open-sse/utils/logger.ts");
     const warnSpy = mock.method(loggerModule.defaultLogger, "warn", () => {});
 
     try {
@@ -108,7 +108,7 @@ describe("tierConfig DB module", () => {
       "INSERT OR REPLACE INTO tier_config (key, value, updated_at) VALUES ('tier_config', ?, datetime('now'))"
     ).run(long);
 
-    const loggerModule = await import("@omniroute/open-sse/utils/logger.ts");
+    const loggerModule = await import("@birouter/open-sse/utils/logger.ts");
     const warnSpy = mock.method(loggerModule.defaultLogger, "warn", () => {});
 
     try {

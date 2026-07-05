@@ -108,7 +108,7 @@ export async function runSkillsInstall(opts, cmd) {
 export async function runSkillsEnable(id, opts, cmd) {
   const res = await apiFetch("/api/mcp/tools/call", {
     method: "POST",
-    body: { name: "omniroute_skills_enable", arguments: { skillId: id, enabled: true } },
+    body: { name: "birouter_skills_enable", arguments: { skillId: id, enabled: true } },
   });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
@@ -124,7 +124,7 @@ export async function runSkillsDisable(id, opts, cmd) {
   }
   const res = await apiFetch("/api/mcp/tools/call", {
     method: "POST",
-    body: { name: "omniroute_skills_enable", arguments: { skillId: id, enabled: false } },
+    body: { name: "birouter_skills_enable", arguments: { skillId: id, enabled: false } },
   });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
@@ -155,7 +155,7 @@ export async function runSkillsExecute(id, opts, cmd) {
       : {};
   const res = await apiFetch("/api/mcp/tools/call", {
     method: "POST",
-    body: { name: "omniroute_skills_execute", arguments: { skillId: id, input } },
+    body: { name: "birouter_skills_execute", arguments: { skillId: id, input } },
     timeout: opts.timeout ?? 30000,
   });
   if (!res.ok) {

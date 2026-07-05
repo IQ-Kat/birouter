@@ -4,10 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import {
-  applyRtkCompression,
-  stripCode,
-} from "../../../open-sse/services/compression/index.ts";
+import { applyRtkCompression, stripCode } from "../../../open-sse/services/compression/index.ts";
 import { rtkConfigSchema } from "../../../src/shared/validation/compressionConfigSchemas.ts";
 import { DEFAULT_RTK_CONFIG } from "../../../open-sse/services/compression/types.ts";
 
@@ -17,14 +14,13 @@ import { DEFAULT_RTK_CONFIG } from "../../../open-sse/services/compression/types
 // stripJsTsComments. This proves the new RTK config fields wire it end to end and that
 // preserveDocstrings now keeps JSDoc.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-strip-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-rtk-strip-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../../src/lib/db/core.ts");
-const { getCompressionSettings, updateCompressionSettings } = await import(
-  "../../../src/lib/db/compression.ts"
-);
+const { getCompressionSettings, updateCompressionSettings } =
+  await import("../../../src/lib/db/compression.ts");
 
 describe("RTK strip-code-comments — stripCode behavior", () => {
   it("removes line/block comments but keeps JSDoc when preserveDocstrings is on", () => {

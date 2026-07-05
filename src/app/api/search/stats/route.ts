@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCacheStats } from "@omniroute/open-sse/services/searchCache.ts";
-import { SEARCH_PROVIDERS } from "@omniroute/open-sse/config/searchRegistry.ts";
+import { getCacheStats } from "@birouter/open-sse/services/searchCache.ts";
+import { SEARCH_PROVIDERS } from "@birouter/open-sse/config/searchRegistry.ts";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSearchProviderStats, getRecentSearchLogs } from "@/lib/db/callLogStats";
 

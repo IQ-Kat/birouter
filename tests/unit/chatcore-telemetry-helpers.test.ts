@@ -6,12 +6,11 @@ import path from "node:path";
 
 // Isolated DATA_DIR set BEFORE importing anything that may touch the DB
 // (maybeSyncClaudeExtraUsageState -> fetchLiveProviderLimits -> getProviderConnectionById).
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-telemetry-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-telemetry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { forwardDashboardEventToLiveWs, maybeSyncClaudeExtraUsageState } = await import(
-  "../../open-sse/handlers/chatCore/telemetryHelpers.ts"
-);
+const { forwardDashboardEventToLiveWs, maybeSyncClaudeExtraUsageState } =
+  await import("../../open-sse/handlers/chatCore/telemetryHelpers.ts");
 const core = await import("../../src/lib/db/core.ts");
 
 const originalFetch = globalThis.fetch;
@@ -49,7 +48,7 @@ test("forwardDashboardEventToLiveWs POSTs event+payload+timestamp as JSON to the
   const after = Date.now();
 
   // Default port is 20129 when LIVE_WS_PORT is unset.
-  assert.equal(capturedUrl, "http://127.0.0.1:20129/__omniroute_event");
+  assert.equal(capturedUrl, "http://127.0.0.1:20129/__birouter_event");
   assert.equal(capturedInit?.method, "POST");
   assert.equal(
     (capturedInit?.headers as Record<string, string>)["content-type"],
@@ -77,7 +76,7 @@ test("forwardDashboardEventToLiveWs honors LIVE_WS_PORT override", async () => {
 
   await forwardDashboardEventToLiveWs("e", null);
 
-  assert.equal(capturedUrl, "http://127.0.0.1:31337/__omniroute_event");
+  assert.equal(capturedUrl, "http://127.0.0.1:31337/__birouter_event");
 });
 
 test("forwardDashboardEventToLiveWs swallows fetch rejection and still resolves", async () => {

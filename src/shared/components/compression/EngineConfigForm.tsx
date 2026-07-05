@@ -1,5 +1,5 @@
 "use client";
-import type { EngineConfigField } from "@omniroute/open-sse/services/compression/engines/types";
+import type { EngineConfigField } from "@birouter/open-sse/services/compression/engines/types";
 
 export interface EngineConfigFormProps {
   schema: EngineConfigField[];

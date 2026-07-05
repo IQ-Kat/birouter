@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getVersionManagerStatus } from "@/lib/db/versionManager";
 import { getSupervisor } from "@/lib/services/registry";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);

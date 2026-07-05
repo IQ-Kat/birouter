@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import {
   applyRtkCompression,
   effectiveMaxLines,
-} from "@omniroute/open-sse/services/compression/engines/rtk/index.ts";
+} from "@birouter/open-sse/services/compression/engines/rtk/index.ts";
 
 test("effectiveMaxLines scales the line budget by intensity (minimal > standard > aggressive)", () => {
   const min = effectiveMaxLines(120, "minimal");

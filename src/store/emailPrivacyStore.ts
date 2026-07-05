@@ -17,7 +17,7 @@ const useEmailPrivacyStore = create<EmailPrivacyState>()(
       setEmailsVisible: (visible) => set({ emailsVisible: visible }),
     }),
     {
-      name: "omniroute-email-privacy",
+      name: "birouter-email-privacy",
     }
   )
 );

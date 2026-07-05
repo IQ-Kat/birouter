@@ -21,7 +21,7 @@
  * when to schedule it, so importing this module in tests never spawns a timer.
  */
 
-import { cooldownUntilMs } from "@omniroute/open-sse/services/accountFallback.ts";
+import { cooldownUntilMs } from "@birouter/open-sse/services/accountFallback.ts";
 
 /**
  * The transient-cooldown status written by `markAccountUnavailable()` for a
@@ -147,8 +147,7 @@ export async function runConnectionRecoveryTick(
         return (Array.isArray(rows) ? rows : []).map((row) => ({
           id: typeof row.id === "string" ? row.id : "",
           testStatus: typeof row.testStatus === "string" ? row.testStatus : null,
-          rateLimitedUntil:
-            typeof row.rateLimitedUntil === "string" ? row.rateLimitedUntil : null,
+          rateLimitedUntil: typeof row.rateLimitedUntil === "string" ? row.rateLimitedUntil : null,
         }));
       });
     connections = await load();
@@ -202,16 +201,15 @@ const RECOVERY_LOG_PREFIX = "[ConnectionRecovery]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 declare global {
-  var __omnirouteConnRecovery:
-    | { initialized: boolean; interval: ReturnType<typeof setInterval> | null }
-    | undefined;
+  var __birouterConnRecovery:
+    { initialized: boolean; interval: ReturnType<typeof setInterval> | null } | undefined;
 }
 
 function getRecoveryState() {
-  if (!globalThis.__omnirouteConnRecovery) {
-    globalThis.__omnirouteConnRecovery = { initialized: false, interval: null };
+  if (!globalThis.__birouterConnRecovery) {
+    globalThis.__birouterConnRecovery = { initialized: false, interval: null };
   }
-  return globalThis.__omnirouteConnRecovery;
+  return globalThis.__birouterConnRecovery;
 }
 
 function isEnvFlagEnabled(name: string): boolean {
@@ -234,20 +232,20 @@ function isAutomatedTestProcess(): boolean {
 
 function isRecoverySchedulerDisabled(): boolean {
   return (
-    isEnvFlagEnabled("OMNIROUTE_DISABLE_CONNECTION_RECOVERY") ||
-    isEnvFlagEnabled("OMNIROUTE_DISABLE_BACKGROUND_SERVICES") ||
+    isEnvFlagEnabled("BIROUTER_DISABLE_CONNECTION_RECOVERY") ||
+    isEnvFlagEnabled("BIROUTER_DISABLE_BACKGROUND_SERVICES") ||
     isBuildProcess() ||
     isAutomatedTestProcess()
   );
 }
 
 /**
- * Resolve the tick interval (ms) from OMNIROUTE_CONNECTION_RECOVERY_INTERVAL_MS,
+ * Resolve the tick interval (ms) from BIROUTER_CONNECTION_RECOVERY_INTERVAL_MS,
  * falling back to the 60s default and clamping to a small floor.
  */
 export function resolveConnectionRecoveryIntervalMs(
   rawValue: string | undefined = typeof process !== "undefined"
-    ? process.env.OMNIROUTE_CONNECTION_RECOVERY_INTERVAL_MS
+    ? process.env.BIROUTER_CONNECTION_RECOVERY_INTERVAL_MS
     : undefined
 ): number {
   if (!rawValue) return DEFAULT_TICK_MS;

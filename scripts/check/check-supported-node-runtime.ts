@@ -16,5 +16,5 @@ if (!support.nodeCompatible) {
 }
 
 console.log(
-  `Node.js ${support.nodeVersion} satisfies OmniRoute secure runtime policy (${support.supportedRange}).`
+  `Node.js ${support.nodeVersion} satisfies Birouter secure runtime policy (${support.supportedRange}).`
 );

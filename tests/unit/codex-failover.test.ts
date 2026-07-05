@@ -1,7 +1,7 @@
 /**
  * Tests for codex provider 429 mid-request failover with account rotation.
  *
- * Verifies the logic that, when a codex connection returns 429, OmniRoute:
+ * Verifies the logic that, when a codex connection returns 429, Birouter:
  *   1. Marks the failing connection as rate-limited
  *   2. Clears session affinity for the failing account
  *   3. Fetches the next available codex connection

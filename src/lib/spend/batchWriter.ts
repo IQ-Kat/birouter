@@ -23,12 +23,12 @@ const DEFAULT_FLUSH_INTERVAL_MS = 60_000;
 const DEFAULT_MAX_BUFFER_SIZE = 1_000;
 
 function getFlushIntervalMs() {
-  const parsed = Number.parseInt(process.env.OMNIROUTE_SPEND_FLUSH_INTERVAL_MS || "", 10);
+  const parsed = Number.parseInt(process.env.BIROUTER_SPEND_FLUSH_INTERVAL_MS || "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_FLUSH_INTERVAL_MS;
 }
 
 function getMaxBufferSize() {
-  const parsed = Number.parseInt(process.env.OMNIROUTE_SPEND_MAX_BUFFER_SIZE || "", 10);
+  const parsed = Number.parseInt(process.env.BIROUTER_SPEND_MAX_BUFFER_SIZE || "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_BUFFER_SIZE;
 }
 

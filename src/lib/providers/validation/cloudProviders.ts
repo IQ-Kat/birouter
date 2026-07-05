@@ -12,35 +12,35 @@ import {
 import { applyCustomUserAgent, buildBearerHeaders } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { validateDirectChatProvider } from "./directChatProbe";
-import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
+import { getGigachatAccessToken } from "@birouter/open-sse/services/gigachatAuth.ts";
 import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiChatUrl,
   buildAzureAiModelsUrl,
-} from "@omniroute/open-sse/config/azureAi.ts";
+} from "@birouter/open-sse/config/azureAi.ts";
 import {
   DATAROBOT_DEFAULT_BASE_URL,
   buildDataRobotCatalogUrl,
   buildDataRobotChatUrl,
   isDataRobotDeploymentUrl,
-} from "@omniroute/open-sse/config/datarobot.ts";
+} from "@birouter/open-sse/config/datarobot.ts";
 import {
   OCI_DEFAULT_BASE_URL,
   buildOciChatUrl,
   buildOciModelsUrl,
-} from "@omniroute/open-sse/config/oci.ts";
+} from "@birouter/open-sse/config/oci.ts";
 import {
   SAP_DEFAULT_BASE_URL,
   buildSapChatUrl,
   buildSapModelsUrl,
   getSapResourceGroup,
   isSapDeploymentUrl,
-} from "@omniroute/open-sse/config/sap.ts";
+} from "@birouter/open-sse/config/sap.ts";
 import {
   WATSONX_DEFAULT_BASE_URL,
   buildWatsonxChatUrl,
   buildWatsonxModelsUrl,
-} from "@omniroute/open-sse/config/watsonx.ts";
+} from "@birouter/open-sse/config/watsonx.ts";
 
 export async function validateHerokuProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
@@ -666,4 +666,3 @@ export async function validateSapProvider({ apiKey, providerSpecificData = {} }:
 
   return { valid: false, error: "Connection failed while testing SAP Generative AI Hub" };
 }
-

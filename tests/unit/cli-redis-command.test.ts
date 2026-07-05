@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-// ─── T-12 (#3932 PR-3): `omniroute redis` CLI command ─────────────────────
+// ─── T-12 (#3932 PR-3): `birouter redis` CLI command ─────────────────────
 
 test("registerRedis: exports a registerRedis function", async () => {
   const mod = await import(`../../bin/cli/commands/redis.mjs?case=${Date.now()}-${Math.random()}`);
@@ -53,18 +53,24 @@ test("registerRedis: attaches a `redis` command with up/down/status subcommands"
             const sub = {
               name: subName,
               options: new Set<string>(),
-              description() { return sub; },
+              description() {
+                return sub;
+              },
               option(flag) {
                 const optName = flag.split(/[ ,]/)[0].replace(/^-+/, "");
                 sub.options.add(optName);
                 return sub;
               },
-              action() { return sub; },
+              action() {
+                return sub;
+              },
             };
             subStubs.push(sub);
             return sub;
           },
-          description() { return redisCmd; },
+          description() {
+            return redisCmd;
+          },
           option(flag) {
             const optName = flag.split(/[ ,]/)[0].replace(/^-+/, "");
             redisCmd.options.add(optName);
@@ -97,7 +103,9 @@ test("registerRedis: `up` subcommand has the expected option flags", async () =>
           const sub = {
             name: subName,
             options: new Set<string>(),
-            description() { return sub; },
+            description() {
+              return sub;
+            },
             option(flag: string) {
               // Prefer the canonical long flag (`--port` from `-p, --port <port>`);
               // fall back to the first token for short-only / `--no-x` flags.
@@ -106,12 +114,16 @@ test("registerRedis: `up` subcommand has the expected option flags", async () =>
               sub.options.add(optName);
               return sub;
             },
-            action() { return sub; },
+            action() {
+              return sub;
+            },
           };
           subStubs.push(sub);
           return sub;
         },
-        description() { return redisCmd; },
+        description() {
+          return redisCmd;
+        },
         option(flag: string) {
           // Prefer the canonical long flag (`--port` from `-p, --port <port>`);
           // fall back to the first token for short-only / `--no-x` flags.

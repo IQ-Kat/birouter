@@ -9,7 +9,7 @@ import {
 } from "@/lib/oauth/deviceFlowTickets";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { oauthDeviceCompleteSchema } from "@/shared/validation/schemas";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 /**
  * Public Codex device-flow completion endpoint (NOT behind dashboard auth).
@@ -23,10 +23,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 const PROVIDER = "codex";
 
 // GET — validate the ticket so the public page can show "ready" vs "expired".
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ token: string }> }
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const ticket = peekDeviceFlowTicket(token);
   if (!ticket || ticket.provider !== PROVIDER || ticket.status !== "pending") {
@@ -43,10 +40,7 @@ export async function GET(
 }
 
 // POST — the browser finished the device flow; consume the ticket and persist.
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ token: string }> }
-) {
+export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
 
   let rawBody: any;

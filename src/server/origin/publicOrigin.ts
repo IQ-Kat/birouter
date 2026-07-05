@@ -3,10 +3,7 @@ import { PEER_IP_HEADER } from "@/server/authz/headers";
 import { resolveStampedPeer } from "@/server/authz/peerStamp";
 
 export type PublicOriginSource =
-  | "configured"
-  | "trusted-forwarded"
-  | "request-url"
-  | "direct-local-host";
+  "configured" | "trusted-forwarded" | "request-url" | "direct-local-host";
 
 export interface PublicOriginCandidate {
   origin: string;
@@ -19,7 +16,7 @@ export interface BrowserMutationOriginVerdict {
 }
 
 const PUBLIC_BASE_URL_ENV = [
-  "OMNIROUTE_PUBLIC_BASE_URL",
+  "BIROUTER_PUBLIC_BASE_URL",
   "NEXT_PUBLIC_BASE_URL",
   "NEXT_PUBLIC_APP_URL",
 ] as const;
@@ -117,7 +114,7 @@ function sanitizeForwardedHost(host: string | null): string | null {
 }
 
 function trustProxyMode(): "none" | "loopback" | "private" {
-  const raw = process.env.OMNIROUTE_TRUST_PROXY?.trim().toLowerCase();
+  const raw = process.env.BIROUTER_TRUST_PROXY?.trim().toLowerCase();
   if (!raw || ["0", "false", "none", "off", "no", "disable", "disabled"].includes(raw)) {
     return "none";
   }
@@ -132,7 +129,7 @@ export function trustsForwardedHeaders(request: Request): boolean {
 
   const peer = resolveStampedPeer(
     request.headers.get(PEER_IP_HEADER),
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    process.env.BIROUTER_PEER_STAMP_TOKEN
   );
   const locality = classifyHostLocality(peer);
   if (mode === "loopback") return locality === "loopback";
@@ -195,12 +192,12 @@ function requestUrlProtocol(request: Request): "http" | "https" {
 function directLocalHostOrigin(request: Request): string | null {
   const peer = resolveStampedPeer(
     request.headers.get(PEER_IP_HEADER),
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    process.env.BIROUTER_PEER_STAMP_TOKEN
   );
   if (classifyHostLocality(peer) === "remote") return null;
 
   const rawHost = trustsForwardedHeaders(request)
-    ? firstHeaderValue(request.headers.get("x-forwarded-host")) ?? request.headers.get("host")
+    ? (firstHeaderValue(request.headers.get("x-forwarded-host")) ?? request.headers.get("host"))
     : request.headers.get("host");
   const host = sanitizeForwardedHost(rawHost);
   if (!host) return null;

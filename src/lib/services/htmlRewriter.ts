@@ -2,7 +2,7 @@
  * HTML rewriter for the embedded-service reverse proxy.
  *
  * Rewrites an HTML document so that absolute-path URLs point through the
- * OmniRoute proxy prefix instead of directly to the embedded service's port.
+ * Birouter proxy prefix instead of directly to the embedded service's port.
  *
  * What it does:
  *   - Inserts `<base href="${publicPrefix}/">` as the first child of `<head>`.

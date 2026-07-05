@@ -9,7 +9,7 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const ORIGINAL_FETCH = globalThis.fetch;
 
 function createTempDataDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-rotate-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cli-rotate-"));
 }
 
 async function withEnv(fn: (dataDir: string) => Promise<void>) {

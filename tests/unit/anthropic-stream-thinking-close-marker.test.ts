@@ -1,6 +1,6 @@
 // Regression test for the Anthropic-compatible stream "thinking block never closes" bug.
 //
-// When clients consume the OpenAI-compatible stream that OmniRoute synthesises from
+// When clients consume the OpenAI-compatible stream that Birouter synthesises from
 // Claude-native SSE, they need an explicit signal that the thinking/reasoning section
 // has ended; otherwise the UI stays stuck on the "thinking" indicator even after the
 // upstream stream has cleanly completed.
@@ -24,9 +24,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { claudeToOpenAIResponse } = await import(
-  "../../open-sse/translator/response/claude-to-openai.ts"
-);
+const { claudeToOpenAIResponse } =
+  await import("../../open-sse/translator/response/claude-to-openai.ts");
 
 function newState() {
   return {
@@ -62,10 +61,7 @@ test("claudeToOpenAIResponse emits </think> close marker on message finish (defe
   );
 
   // Close the thinking block — marker is now DEFERRED (not emitted here).
-  const closeChunks = claudeToOpenAIResponse(
-    { type: "content_block_stop", index: 0 },
-    state
-  );
+  const closeChunks = claudeToOpenAIResponse({ type: "content_block_stop", index: 0 }, state);
   // content_block_stop for a thinking block no longer emits </think> immediately
   // (the marker is deferred to prevent leaking before tool_calls — see #5123).
   const immediateClose = Array.isArray(closeChunks) ? closeChunks : [];
@@ -80,7 +76,11 @@ test("claudeToOpenAIResponse emits </think> close marker on message finish (defe
 
   // After close, the thinking-block flag is cleared and the pending marker is queued.
   assert.equal(state.inThinkingBlock, false);
-  assert.equal(state.pendingThinkClose, true, "pendingThinkClose must be set after thinking block stop");
+  assert.equal(
+    state.pendingThinkClose,
+    true,
+    "pendingThinkClose must be set after thinking block stop"
+  );
 
   // message_delta with stop_reason=end_turn and no tool_calls → marker must be flushed here.
   const finishChunks = claudeToOpenAIResponse(
@@ -89,9 +89,7 @@ test("claudeToOpenAIResponse emits </think> close marker on message finish (defe
   );
 
   const arr = Array.isArray(finishChunks) ? finishChunks : [];
-  const hasCloseMarker = arr.some(
-    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
-  );
+  const hasCloseMarker = arr.some((chunk) => chunk?.choices?.[0]?.delta?.content === "</think>");
   assert.ok(
     hasCloseMarker,
     `expected a chunk with delta.content === "</think>" in message_delta result; got ${JSON.stringify(arr)}`
@@ -113,18 +111,9 @@ test("claudeToOpenAIResponse does not emit </think> on stop of non-thinking bloc
     },
     state
   );
-  const closeChunks = claudeToOpenAIResponse(
-    { type: "content_block_stop", index: 0 },
-    state
-  );
+  const closeChunks = claudeToOpenAIResponse({ type: "content_block_stop", index: 0 }, state);
 
   const arr = Array.isArray(closeChunks) ? closeChunks : [];
-  const hasCloseMarker = arr.some(
-    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
-  );
-  assert.equal(
-    hasCloseMarker,
-    false,
-    "text-block close must not emit </think> sentinel"
-  );
+  const hasCloseMarker = arr.some((chunk) => chunk?.choices?.[0]?.delta?.content === "</think>");
+  assert.equal(hasCloseMarker, false, "text-block close must not emit </think> sentinel");
 });

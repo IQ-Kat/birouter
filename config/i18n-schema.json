@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "OmniRoute i18n config",
+  "title": "Birouter i18n config",
   "description": "Canonical list of locales used by both the UI (next-intl) and the docs translation pipeline.",
   "type": "object",
   "required": ["default", "rtl", "locales"],

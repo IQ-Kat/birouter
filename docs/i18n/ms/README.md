@@ -1,4 +1,4 @@
-# 🚀 OmniRoute — The Free AI Gateway (Bahasa Melayu)
+# 🚀 Birouter — The Free AI Gateway (Bahasa Melayu)
 
 🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md)
 
@@ -14,34 +14,34 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-[![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
+[![npm version](https://img.shields.io/npm/v/birouter?color=cb3837&logo=npm)](https://www.npmjs.com/package/Birouter)
+[![Docker Hub](https://img.shields.io/docker/v/IQ-Kat/birouter?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/IQ-Kat/birouter)
 
-![NPM Downloads](https://img.shields.io/npm/dw/omniroute?label=npm%20down%20week&color=red)
-![NPM Downloads](https://img.shields.io/npm/dm/omniroute?label=npm%20down%20month&color=red)
+![NPM Downloads](https://img.shields.io/npm/dw/birouter?label=npm%20down%20week&color=red)
+![NPM Downloads](https://img.shields.io/npm/dm/birouter?label=npm%20down%20month&color=red)
 
-![NPM Downloads](https://img.shields.io/npm/d18m/omniroute?label=npm%20down%20year&color=red)
-![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=eletron%20donwloads&color=blue)
+![NPM Downloads](https://img.shields.io/npm/d18m/birouter?label=npm%20down%20year&color=red)
+![Docker Pulls](https://img.shields.io/docker/pulls/IQ-Kat/birouter)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/IQ-Kat/birouter/total?style=flat&label=eletron%20donwloads&color=blue)
 
-[![stars](https://custom-icon-badges.demolab.com/github/stars/diegosouzapw/OmniRoute?logo=star&style=flat)](https://github.com/diegosouzapw/OmniRoute/stargazers)
-[![open issues](https://custom-icon-badges.demolab.com/github/issues-raw/diegosouzapw/OmniRoute?logo=issue)](https://github.com/diegosouzapw/OmniRoute/issues)
-[![license](https://custom-icon-badges.demolab.com/github/license/diegosouzapw/OmniRoute?logo=law)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
-[![last commit](https://custom-icon-badges.demolab.com/github/last-commit/diegosouzapw/OmniRoute?logo=history&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/commits/main)
+[![stars](https://custom-icon-badges.demolab.com/github/stars/IQ-Kat/birouter?logo=star&style=flat)](https://github.com/IQ-Kat/birouter/stargazers)
+[![open issues](https://custom-icon-badges.demolab.com/github/issues-raw/IQ-Kat/birouter?logo=issue)](https://github.com/IQ-Kat/birouter/issues)
+[![license](https://custom-icon-badges.demolab.com/github/license/IQ-Kat/birouter?logo=law)](https://github.com/IQ-Kat/birouter/blob/main/LICENSE)
+[![last commit](https://custom-icon-badges.demolab.com/github/last-commit/IQ-Kat/birouter?logo=history&logoColor=white)](https://github.com/IQ-Kat/birouter/commits/main)
 [![total contributions](https://custom-icon-badges.demolab.com/badge/dynamic/json?logo=graph&logoColor=fff&color=blue&label=total%20contributions&query=%24.totalContributions&url=https%3A%2F%2Fstreak-stats.demolab.com%2F%3Fuser%3Ddiegosouzapw%26type%3Djson)](https://github.com/diegosouzapw)
-[![code size](https://custom-icon-badges.demolab.com/github/languages/code-size/diegosouzapw/OmniRoute?logo=file-code&logoColor=white)](https://github.com/diegosouzapw/OmniRoute)
-[![pr closed](https://custom-icon-badges.demolab.com/github/issues-pr-closed/diegosouzapw/OmniRoute?color=purple&logo=git-pull-request&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/pulls?q=is%3Apr+is%3Aclosed)
-[![tag](https://custom-icon-badges.demolab.com/github/v/tag/diegosouzapw/OmniRoute?logo=tag&logoColor=white)](https://github.com/diegosouzapw/OmniRoute/tags)
+[![code size](https://custom-icon-badges.demolab.com/github/languages/code-size/IQ-Kat/birouter?logo=file-code&logoColor=white)](https://github.com/IQ-Kat/birouter)
+[![pr closed](https://custom-icon-badges.demolab.com/github/issues-pr-closed/IQ-Kat/birouter?color=purple&logo=git-pull-request&logoColor=white)](https://github.com/IQ-Kat/birouter/pulls?q=is%3Apr+is%3Aclosed)
+[![tag](https://custom-icon-badges.demolab.com/github/v/tag/IQ-Kat/birouter?logo=tag&logoColor=white)](https://github.com/IQ-Kat/birouter/tags)
 [![github streak](https://custom-icon-badges.demolab.com/badge/dynamic/json?logo=fire&logoColor=fff&color=orange&label=github%20streak&query=%24.currentStreak.length&suffix=%20days&url=https%3A%2F%2Fstreak-stats.demolab.com%2F%3Fuser%3Ddiegosouzapw%26type%3Djson)](https://github.com/diegosouzapw)
 [![followers](https://custom-icon-badges.demolab.com/github/followers/diegosouzapw?logo=person-add)](https://github.com/diegosouzapw?tab=followers)
-[![fork](https://custom-icon-badges.demolab.com/github/forks/diegosouzapw/OmniRoute?logo=fork)](https://github.com/diegosouzapw/OmniRoute/network/members)
-[![watch](https://custom-icon-badges.demolab.com/github/watchers/diegosouzapw/OmniRoute?logo=eye)](https://github.com/diegosouzapw/OmniRoute/watchers)
+[![fork](https://custom-icon-badges.demolab.com/github/forks/IQ-Kat/birouter?logo=fork)](https://github.com/IQ-Kat/birouter/network/members)
+[![watch](https://custom-icon-badges.demolab.com/github/watchers/IQ-Kat/birouter?logo=eye)](https://github.com/IQ-Kat/birouter/watchers)
 
-[![License](https://img.shields.io/github/license/diegosouzapw/OmniRoute)](https://github.com/diegosouzapw/OmniRoute/blob/main/LICENSE)
-[![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
+[![License](https://img.shields.io/github/license/IQ-Kat/birouter)](https://github.com/IQ-Kat/birouter/blob/main/LICENSE)
+[![Website](https://img.shields.io/badge/Website-Birouter.online-blue?logo=google-chrome&logoColor=white)](https://Birouter.online)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Community-25D366?logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
-[🌐 Website](https://omniroute.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+[🌐 Website](https://Birouter.online) • [🚀 Quick Start](#-quick-start) • [💡 Features](#-key-features) • [📖 Docs](#-documentation) • [💰 Pricing](#-pricing-at-a-glance) • [💬 WhatsApp](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 
 </div>
 
@@ -52,7 +52,7 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 ## 🖼️ Main Dashboard
 
 <div align="center">
-  <img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="800"/>
+  <img src="./docs/screenshots/MainBirouter.png" alt="Birouter Dashboard" width="800"/>
 </div>
 
 ---
@@ -80,7 +80,7 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 
 ### 🤖 Free AI Provider for your favorite coding agents
 
-_Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway for unlimited coding._
+_Connect any AI-powered IDE or CLI tool through Birouter — free API gateway for unlimited coding._
 
   <table>
     <tr>
@@ -152,11 +152,11 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
     </tr>
   </table>
 
-<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
+<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.Birouter.online/v1</code> — one config, unlimited models and quota</sub>
 
 ---
 
-## 🤔 Why OmniRoute?
+## 🤔 Why Birouter?
 
 **Stop wasting money and hitting limits:**
 
@@ -165,7 +165,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 - <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Expensive APIs ($20-50/month per provider)
 - <img src="https://img.shields.io/badge/✗-e74c3c?style=flat-square" height="16"/> Manual switching between providers
 
-**OmniRoute solves this:**
+**Birouter solves this:**
 
 - ✅ **Maximize subscriptions** - Track quota, use every bit before reset
 - ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
@@ -177,9 +177,9 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 
 > 💬 **Join our community!** [WhatsApp Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) — Get help, share tips, and stay updated.
 
-- **Website**: [omniroute.online](https://omniroute.online)
-- **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Website**: [Birouter.online](https://Birouter.online)
+- **GitHub**: [github.com/IQ-Kat/birouter](https://github.com/IQ-Kat/birouter)
+- **Issues**: [github.com/IQ-Kat/birouter/issues](https://github.com/IQ-Kat/birouter/issues)
 - **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
 
@@ -191,7 +191,7 @@ When opening an issue, please run the system-info command and attach the generat
 npm run system-info
 ```
 
-This generates a `system-info.txt` with your Node.js version, OmniRoute version, OS details, installed CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.), Docker/PM2 status, and system packages — everything we need to reproduce your issue quickly. Attach the file directly to your GitHub issue.
+This generates a `system-info.txt` with your Node.js version, Birouter version, OS details, installed CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.), Docker/PM2 status, and system packages — everything we need to reproduce your issue quickly. Attach the file directly to your GitHub issue.
 
 ---
 
@@ -205,7 +205,7 @@ This generates a `system-info.txt` with your Node.js version, OmniRoute version,
        │ http://localhost:20128/v1
        ↓
 ┌─────────────────────────────────────────┐
-│           OmniRoute (Smart Router)        │
+│           Birouter (Smart Router)        │
 │  • Format translation (OpenAI ↔ Claude) │
 │  • Quota tracking + Embeddings + Images │
 │  • Auto token refresh                   │
@@ -224,16 +224,16 @@ Result: Never stop coding, minimal cost
 
 ---
 
-## 🎯 What OmniRoute Solves — 30 Real Pain Points & Use Cases
+## 🎯 What Birouter Solves — 30 Real Pain Points & Use Cases
 
-> **Every developer using AI tools faces these problems daily.** OmniRoute was built to solve them all — from cost overruns to regional blocks, from broken OAuth flows to protocol operations and enterprise observability.
+> **Every developer using AI tools faces these problems daily.** Birouter was built to solve them all — from cost overruns to regional blocks, from broken OAuth flows to protocol operations and enterprise observability.
 
 <details>
 <summary><b>💸 1. "I pay for an expensive subscription but still get interrupted by limits"</b></summary>
 
 Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Even paying, quota has a ceiling — 5h of usage, weekly limits, or per-minute rate limits. Mid-coding session, the provider stops responding and the developer loses flow and productivity.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Smart 4-Tier Fallback** — If subscription quota runs out, automatically redirects to API Key → Cheap → Free with zero manual intervention
 - **Provider Limits Tracking** — Cached quota snapshots refresh on a server-side schedule (default `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES=70`) with manual refresh available in the UI
@@ -250,7 +250,7 @@ Developers pay $20–200/month for Claude Pro, Codex Pro, or GitHub Copilot. Eve
 
 OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If a dev wants to test models from different providers or fallback between them, they need to reconfigure SDKs, change endpoints, deal with incompatible formats. Custom providers (FriendLI, NIM) have non-standard model endpoints.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
@@ -267,7 +267,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 Providers like OpenAI/Codex block access from certain geographic regions. Users get errors like `unsupported_country_region_territory` during OAuth and API connections. This is especially frustrating for developers from developing countries.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **3-Level Proxy Config** — Configurable proxy at 3 levels: global (all traffic), per-provider (one provider only), and per-connection/key
 - **Color-Coded Proxy Badges** — Visual indicators: 🟢 global proxy, 🟡 provider proxy, 🔵 connection proxy, always showing the IP
@@ -284,7 +284,7 @@ Providers like OpenAI/Codex block access from certain geographic regions. Users 
 
 Not everyone can pay $20–200/month for AI subscriptions. Students, devs from emerging countries, hobbyists, and freelancers need access to quality models at zero cost.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
 - **Free-Only Combos** — Chain `if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
@@ -298,7 +298,7 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 
 When exposing an AI gateway to the network (LAN, VPS, Docker), anyone with the address can consume the developer's tokens/quota. Without protection, APIs are vulnerable to misuse, prompt injection, and abuse.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **API Key Management** — Generation, rotation, and scoping per provider with a dedicated `/dashboard/api-manager` page
 - **Model-Level Permissions** — Restrict API keys to specific models (`openai/*`, wildcard patterns), with Allow All/Restrict toggle
@@ -316,7 +316,7 @@ When exposing an AI gateway to the network (LAN, VPS, Docker), anyone with the a
 
 AI providers can become unstable, return 5xx errors, or hit temporary rate limits. If a dev depends on a single provider, they're interrupted. Without circuit breakers, repeated retries can crash the application.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Request Queue & Pacing** — Per-connection request buckets smooth bursts before they hit upstream rate caps
 - **Connection Cooldown** — A single connection cools down after retryable failures with optional upstream `Retry-After` hints and exponential backoff
@@ -331,8 +331,7 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 <details>
 <summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
 
-
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
@@ -346,7 +345,7 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 Claude Code, Codex, Copilot — all use OAuth 2.0 with expiring tokens. Developers need to re-authenticate constantly, deal with `client_secret is missing`, `redirect_uri_mismatch`, and failures on remote servers. OAuth on LAN/VPS is particularly problematic.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Auto Token Refresh** — OAuth tokens refresh in background before expiration
 - **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Copilot, Kiro, Qwen, Qoder
@@ -362,7 +361,7 @@ Claude Code, Codex, Copilot — all use OAuth 2.0 with expiring tokens. Develope
 
 Developers use multiple paid providers but have no unified view of spending. Each provider has its own billing dashboard, but there's no consolidated view. Unexpected costs can pile up.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Cost Analytics Dashboard** — Per-token cost tracking and budget management per provider
 - **Budget Limits per Tier** — Spending ceiling per tier that triggers automatic fallback
@@ -377,7 +376,7 @@ Developers use multiple paid providers but have no unified view of spending. Eac
 
 When a call fails, the dev doesn't know if it was a rate limit, expired token, wrong format, or provider error. Fragmented logs across different terminals. Without observability, debugging is trial-and-error.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Unified Logs Dashboard** — 4 tabs: Request Logs, Proxy Logs, Audit Logs, Console
 - **Console Log Viewer** — Real-time terminal-style viewer with color-coded levels, auto-scroll, search, filter
@@ -385,7 +384,7 @@ When a call fails, the dev doesn't know if it was a rate limit, expired token, w
 - **Translator Playground** — 4 debugging modes: Playground (format translation), Chat Tester (round-trip), Test Bench (batch), Live Monitor (real-time)
 - **Request Telemetry** — p50/p95/p99 latency + X-Request-Id tracing
 - **File-Based Detail Artifacts** — App logs rotate by size, retention days, and archive count; detailed request/response payloads live in `DATA_DIR/call_logs/` and rotate independently of SQLite summaries
-- **System Info Report** — `npm run system-info` generates `system-info.txt` with your full environment (Node version, OmniRoute version, OS, CLI tools, Docker/PM2 status). Attach it when reporting issues for instant triage.
+- **System Info Report** — `npm run system-info` generates `system-info.txt` with your full environment (Node version, Birouter version, OS, CLI tools, Docker/PM2 status). Attach it when reporting issues for instant triage.
 
 </details>
 
@@ -394,9 +393,9 @@ When a call fails, the dev doesn't know if it was a rate limit, expired token, w
 
 Installing, configuring, and maintaining an AI proxy across different environments (local, VPS, Docker, cloud) is labor-intensive. Problems like hardcoded paths, `EACCES` on directories, port conflicts, and cross-platform builds add friction.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
-- **npm global install** — `npm install -g omniroute && omniroute` — done
+- **npm global install** — `npm install -g birouter && birouter` — done
 - **Docker Multi-Platform** — AMD64 + ARM64 native (Apple Silicon, AWS Graviton, Raspberry Pi)
 - **Docker Compose Profiles** — `base` (no CLI tools) and `cli` (with Claude Code, Codex, OpenClaw)
 - **Electron Desktop App** — Native app for Windows/macOS/Linux with system tray, auto-start, offline mode
@@ -411,7 +410,7 @@ Installing, configuring, and maintaining an AI proxy across different environmen
 
 Teams in non-English-speaking countries, especially in Latin America, Asia, and Europe, struggle with English-only interfaces. Language barriers reduce adoption and increase configuration errors.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Dashboard i18n — 30 Languages** — All 500+ keys translated including Arabic, Bulgarian, Danish, German, Spanish, Finnish, French, Hebrew, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean, Malay, Dutch, Norwegian, Polish, Portuguese (PT/BR), Romanian, Russian, Slovak, Swedish, Thai, Ukrainian, Vietnamese, Chinese, Filipino, English
 - **RTL Support** — Right-to-left support for Arabic and Hebrew
@@ -425,7 +424,7 @@ Teams in non-English-speaking countries, especially in Latin America, Asia, and 
 
 AI isn't just chat completion. Devs need to generate images, transcribe audio, create embeddings for RAG, rerank documents, and moderate content. Each API has a different endpoint and format.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Embeddings** — `/v1/embeddings` with 6 providers and 9+ models
 - **Image Generation** — `/v1/images/generations` with 10 providers and 20+ models (OpenAI, xAI, Together, Fireworks, Nebius, Hyperbolic, NanoBanana, Antigravity, SD WebUI, ComfyUI)
@@ -444,7 +443,7 @@ AI isn't just chat completion. Devs need to generate images, transcribe audio, c
 
 Developers want to know which model is best for their use case — code, translation, reasoning — but comparing manually is slow. No integrated eval tools exist.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **LLM Evaluations** — Golden set testing with 10 pre-loaded cases covering greetings, math, geography, code generation, JSON compliance, translation, markdown, safety refusal
 - **4 Match Strategies** — `exact`, `contains`, `regex`, `custom` (JS function)
@@ -459,7 +458,7 @@ Developers want to know which model is best for their use case — code, transla
 
 As request volume grows, without caching the same questions generate duplicate costs. Without idempotency, duplicate requests waste processing. Per-provider rate limits must be respected.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Semantic Cache** — Two-tier cache (signature + semantic) reduces cost and latency
 - **Request Idempotency** — 5s deduplication window for identical requests
@@ -475,7 +474,7 @@ As request volume grows, without caching the same questions generate duplicate c
 
 Developers who want all responses in a specific language, with a specific tone, or want to limit reasoning tokens. Configuring this in every tool/request is impractical.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **System Prompt Injection** — Global prompt applied to all requests
 - **Thinking Budget Validation** — Reasoning token allocation control per request (passthrough, auto, custom, adaptive)
@@ -493,11 +492,11 @@ Developers who want all responses in a specific language, with a specific tone, 
 
 Many AI gateways expose MCP only as a hidden implementation detail. Teams need a visible, manageable operation layer.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - MCP appears in the dashboard navigation and endpoint protocol tab
 - Dedicated MCP management page with process, tools, scopes, and audit
-- Built-in quick-start for `omniroute --mcp` and client onboarding
+- Built-in quick-start for `birouter --mcp` and client onboarding
 
 </details>
 
@@ -506,7 +505,7 @@ Many AI gateways expose MCP only as a hidden implementation detail. Teams need a
 
 Agent workflows need both direct replies and long-running streamed execution with lifecycle control.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - A2A JSON-RPC endpoint (`POST /a2a`) with `message/send` and `message/stream`
 - SSE streaming with terminal state propagation
@@ -519,7 +518,7 @@ Agent workflows need both direct replies and long-running streamed execution wit
 
 Operational teams need to know if MCP is actually alive, not just whether an API is reachable.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Runtime heartbeat file with PID, timestamps, transport, tool count, and scope mode
 - MCP status API combining heartbeat + recent activity
@@ -532,7 +531,7 @@ Operational teams need to know if MCP is actually alive, not just whether an API
 
 When tools mutate config or trigger ops actions, teams need forensic traceability.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - SQLite-backed audit logging for MCP tool calls
 - Filters by tool, success/failure, API key, and pagination
@@ -545,7 +544,7 @@ When tools mutate config or trigger ops actions, teams need forensic traceabilit
 
 Different clients should have least-privilege access to tool categories.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - 10 granular MCP scopes for controlled tool access
 - Scope enforcement and visibility in MCP management UI
@@ -558,7 +557,7 @@ Different clients should have least-privilege access to tool categories.
 
 Teams need quick runtime changes during incidents or cost events.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Switch combo activation directly from MCP dashboard
 - Tune queue, cooldown, breaker, and wait settings from the dedicated Resilience page
@@ -571,7 +570,7 @@ Teams need quick runtime changes during incidents or cost events.
 
 Without lifecycle visibility, task incidents become hard to triage.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Task listing/filtering by state/skill with pagination
 - Drill-down on task metadata, events, and artifacts
@@ -584,7 +583,7 @@ Without lifecycle visibility, task incidents become hard to triage.
 
 Streaming workflows require operational insight into concurrency and live connections.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Active stream counters integrated into A2A status
 - Last task timestamp and per-state counts
@@ -597,7 +596,7 @@ Streaming workflows require operational insight into concurrency and live connec
 
 External clients and orchestrators need machine-readable metadata for onboarding.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Agent Card exposed at `/.well-known/agent.json`
 - Capabilities and skills shown in management UI
@@ -610,7 +609,7 @@ External clients and orchestrators need machine-readable metadata for onboarding
 
 If users cannot discover protocol surfaces, adoption and support quality drop.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Consolidated **Endpoints** page with tabs for Proxy, MCP, A2A, and API Endpoints
 - Inline service status toggles (Online/Offline) for MCP and A2A
@@ -623,7 +622,7 @@ If users cannot discover protocol surfaces, adoption and support quality drop.
 
 Mock tests are not enough to validate protocol compatibility before release.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - E2E suite that boots app and uses real MCP SDK client transport
 - A2A client tests for discovery, send, stream, get, and cancel flows
@@ -636,7 +635,7 @@ Mock tests are not enough to validate protocol compatibility before release.
 
 Splitting observability by protocol creates blind spots and longer MTTR.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Unified dashboards/logs/analytics in one product
 - Health + audit + request telemetry across OpenAI, MCP, and A2A layers
@@ -649,7 +648,7 @@ Splitting observability by protocol creates blind spots and longer MTTR.
 
 Running many separate services increases operational cost and failure modes.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - OpenAI-compatible proxy, MCP server, and A2A server in one stack
 - Shared auth, resilience, data store, and observability
@@ -662,7 +661,7 @@ Running many separate services increases operational cost and failure modes.
 
 Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - Unified endpoint strategy for clients and agents
 - Built-in protocol management UIs and smoke validation paths
@@ -675,7 +674,7 @@ Teams lose velocity when stitching multiple ad-hoc services and scripts.
 
 During deep debugging, long histories with tool results quickly exceed provider token windows, causing failed requests and orphaned context.
 
-**How OmniRoute solves it:**
+**How Birouter solves it:**
 
 - **Proactive Context Compression** — Evaluates token budgets before the request hits upstream and proactively prunes old conversation history with a smart binary-search mechanism.
 - **Structural Integrity Guards** — Automatically tracks explicit `tool_use` definitions and ensures that if a tool input is truncated, its corresponding `tool_result` is also safely removed, preventing API validation errors.
@@ -724,7 +723,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 **Playbook D: Agent ops with MCP + A2A**
 
 ```txt
-1) Start MCP transport (`omniroute --mcp`) for tool-driven operations
+1) Start MCP transport (`birouter --mcp`) for tool-driven operations
 2) Run A2A tasks via `message/send` and `message/stream`
 3) Observe via /dashboard/endpoint (MCP and A2A tabs)
 4) Toggle services via inline status controls
@@ -752,54 +751,54 @@ Outcome: deep fallback depth for deadline-critical workloads
 ### 1) Install and run
 
 ```bash
-npm install -g omniroute
-omniroute
+npm install -g birouter
+birouter
 ```
 
 > **pnpm users:** Pass `--allow-build` at install time to enable native build scripts required by `better-sqlite3` and `@swc/core` (the `approve-builds -g` command is not supported for global installs on pnpm v11):
 >
 > ```bash
-> pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core
-> omniroute
+> pnpm add -g birouter@latest --allow-build=better-sqlite3 --allow-build=@swc/core
+> birouter
 > ```
 
 Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
 #### Arch Linux (AUR)
 
-Arch Linux users can install the [AUR package](https://aur.archlinux.org/packages/omniroute-bin), which installs OmniRoute and provides a systemd user service:
+Arch Linux users can install the [AUR package](https://aur.archlinux.org/packages/birouter-bin), which installs Birouter and provides a systemd user service:
 
 ```bash
-yay -S omniroute-bin
-systemctl --user enable --now omniroute.service
+yay -S birouter-bin
+systemctl --user enable --now birouter.service
 ```
 
-| Command                 | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
-| `omniroute --port 3000` | Set canonical/API port to 3000                              |
-| `omniroute --mcp`       | Start MCP server (stdio transport)                          |
-| `omniroute --no-open`   | Don't auto-open browser                                     |
-| `omniroute --help`      | Show help                                                   |
+| Command                | Description                                                 |
+| ---------------------- | ----------------------------------------------------------- |
+| `birouter`             | Start server (`PORT=20128`, API and dashboard on same port) |
+| `birouter --port 3000` | Set canonical/API port to 3000                              |
+| `birouter --mcp`       | Start MCP server (stdio transport)                          |
+| `birouter --no-open`   | Don't auto-open browser                                     |
+| `birouter --help`      | Show help                                                   |
 
 Optional split-port mode:
 
 ```bash
-PORT=20128 DASHBOARD_PORT=20129 omniroute
+PORT=20128 DASHBOARD_PORT=20129 birouter
 # API:       http://localhost:20128/v1
 # Dashboard: http://localhost:20129
 ```
 
 ### 2) Uninstalling
 
-When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
+When you no longer need Birouter, we provide two quick scripts for a clean removal:
 
 | Command                  | Action                                                                              |
 | ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.birouter`.   |
 | `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
-> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
+> Note: To run these commands, navigate to the Birouter project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g birouter`.
 
 ### Long-Running Streaming Timeouts
 
@@ -808,16 +807,16 @@ For most deployments, you only need:
 | Variable                 | Default                       | Purpose                                                                                                                                      |
 | ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream response-start timeout, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                                  |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before Birouter aborts the SSE stream                                                                   |
 
 Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
 
-For Claude Code-compatible upstreams (`anthropic-compatible-cc-*`), OmniRoute also derives the outbound `X-Stainless-Timeout` header from the resolved fetch timeout so provider-side read timeouts stay aligned with your env configuration.
+For Claude Code-compatible upstreams (`anthropic-compatible-cc-*`), Birouter also derives the outbound `X-Stainless-Timeout` header from the resolved fetch timeout so provider-side read timeouts stay aligned with your env configuration.
 
-For third-party Claude Code-compatible reverse proxies, OmniRoute keeps the default
+For third-party Claude Code-compatible reverse proxies, Birouter keeps the default
 `anthropic-beta` set conservative and, when `Client Cache Control` is left on `Auto`,
 only forwards client-provided `cache_control` markers. If the request does not include
-`cache_control`, OmniRoute does not inject bridge-owned markers.
+`cache_control`, Birouter does not inject bridge-owned markers.
 
 Advanced overrides are available if you need finer control:
 
@@ -835,10 +834,10 @@ Advanced overrides are available if you need finer control:
 | `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                          |
 | `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it) |
 
-For streaming requests, `FETCH_TIMEOUT_MS` only covers connection setup / waiting for the first upstream response. Once the stream is active, OmniRoute will only abort on an actual stall (`STREAM_IDLE_TIMEOUT_MS`) or Undici body inactivity (`FETCH_BODY_TIMEOUT_MS`).
+For streaming requests, `FETCH_TIMEOUT_MS` only covers connection setup / waiting for the first upstream response. Once the stream is active, Birouter will only abort on an actual stall (`STREAM_IDLE_TIMEOUT_MS`) or Undici body inactivity (`FETCH_BODY_TIMEOUT_MS`).
 
-If you run OmniRoute behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy
-timeouts are also higher than your OmniRoute stream/fetch timeouts.
+If you run Birouter behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy
+timeouts are also higher than your Birouter stream/fetch timeouts.
 
 ### 2) Connect providers and create your API key
 
@@ -846,7 +845,7 @@ timeouts are also higher than your OmniRoute stream/fetch timeouts.
 2. Open Dashboard → `Endpoints` and create an API key.
 3. (Optional) Open Dashboard → `Combos` and set your fallback chain.
 
-### 3) Point your coding tool to OmniRoute
+### 3) Point your coding tool to Birouter
 
 ```txt
 Base URL: http://localhost:20128/v1
@@ -854,19 +853,18 @@ API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
 
-
 ### 4) Enable and validate protocols (v2.0)
 
 **MCP (for tool-driven operations):**
 
 ```bash
-omniroute --mcp
+birouter --mcp
 ```
 
 Then connect your MCP client over `stdio` and test tools like:
 
-- `omniroute_get_health`
-- `omniroute_list_combos`
+- `birouter_get_health`
+- `birouter_list_combos`
 
 **A2A (for agent-to-agent workflows):**
 
@@ -899,11 +897,11 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 <details>
 <summary><b>Void Linux (`xbps-src` template)</b></summary>
 
-For Void Linux users, you can build a native package using `xbps-src`. Save this block as `srcpkgs/omniroute/template`:
+For Void Linux users, you can build a native package using `xbps-src`. Save this block as `srcpkgs/birouter/template`:
 
 ```bash
-# Template file for 'omniroute'
-pkgname=omniroute
+# Template file for 'birouter'
+pkgname=birouter
 version=3.4.1
 revision=1
 hostmakedepends="nodejs python3 make"
@@ -911,11 +909,11 @@ depends="openssl"
 short_desc="Universal AI gateway with smart routing for multiple LLM providers"
 maintainer="zenobit <zenobit@disroot.org>"
 license="MIT"
-homepage="https://github.com/diegosouzapw/OmniRoute"
-distfiles="https://github.com/diegosouzapw/OmniRoute/archive/refs/tags/v${version}.tar.gz"
+homepage="https://github.com/IQ-Kat/birouter"
+distfiles="https://github.com/IQ-Kat/birouter/archive/refs/tags/v${version}.tar.gz"
 checksum=009400afee90a9f32599d8fe734145cfd84098140b7287990183dde45ae2245b
-system_accounts="_omniroute"
-omniroute_homedir="/var/lib/omniroute"
+system_accounts="_birouter"
+birouter_homedir="/var/lib/birouter"
 export NODE_ENV=production
 export npm_config_engine_strict=false
 export npm_config_loglevel=error
@@ -973,27 +971,27 @@ do_check() {
 }
 
 do_install() {
-	vmkdir usr/lib/omniroute/.next
+	vmkdir usr/lib/birouter/.next
 
-	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
+	vcopy .next/standalone/. usr/lib/birouter/.next/standalone
 
 	# Prevent removal of empty Next.js app router dirs by the post-install hook
 	for _d in \
 		.next/standalone/.next/server/app/dashboard \
 		.next/standalone/.next/server/app/dashboard/settings \
 		.next/standalone/.next/server/app/dashboard/providers; do
-		touch "${DESTDIR}/usr/lib/omniroute/${_d}/.keep"
+		touch "${DESTDIR}/usr/lib/birouter/${_d}/.keep"
 	done
 
-	cat > "${WRKDIR}/omniroute" <<'EOF'
+	cat > "${WRKDIR}/birouter" <<'EOF'
 #!/bin/sh
 export PORT="${PORT:-20128}"
-export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/omniroute}"
+export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/birouter}"
 export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
-exec node /usr/lib/omniroute/.next/standalone/server.js "$@"
+exec node /usr/lib/birouter/.next/standalone/server.js "$@"
 EOF
-	vbin "${WRKDIR}/omniroute"
+	vbin "${WRKDIR}/birouter"
 }
 
 post_install() {
@@ -1007,18 +1005,18 @@ post_install() {
 
 ## 🐳 Docker
 
-OmniRoute is available as a public Docker image on [Docker Hub](https://hub.docker.com/r/diegosouzapw/omniroute).
+Birouter is available as a public Docker image on [Docker Hub](https://hub.docker.com/r/IQ-Kat/birouter).
 
 **Quick run:**
 
 ```bash
 docker run -d \
-  --name omniroute \
+  --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
   -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
+  -v birouter-data:/app/data \
+  IQ-Kat/birouter:latest
 ```
 
 **With environment file:**
@@ -1028,13 +1026,13 @@ docker run -d \
 cp .env.example .env
 
 docker run -d \
-  --name omniroute \
+  --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
   --env-file .env \
   -p 20128:20128 \
-  -v omniroute-data:/app/data \
-  diegosouzapw/omniroute:latest
+  -v birouter-data:/app/data \
+  IQ-Kat/birouter:latest
 ```
 
 **Using Docker Compose:**
@@ -1052,26 +1050,26 @@ Dashboard support for Docker deployments now includes a one-click **Cloudflare Q
 Notes:
 
 - Quick Tunnel URLs are temporary and change after every restart.
-- Quick Tunnels are not auto-restored after an OmniRoute or container restart. Re-enable them from the dashboard when needed.
+- Quick Tunnels are not auto-restored after an Birouter or container restart. Re-enable them from the dashboard when needed.
 - Managed install currently supports Linux, macOS, and Windows on `x64` / `arm64`.
 - Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained container environments. Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want a different transport.
 - Docker images bundle system CA roots and pass them to managed `cloudflared`, which avoids TLS trust failures when the tunnel bootstraps inside the container.
-- SQLite runs in WAL mode. `docker stop` should be allowed to finish so OmniRoute can checkpoint the latest changes back into `storage.sqlite`.
+- SQLite runs in WAL mode. `docker stop` should be allowed to finish so Birouter can checkpoint the latest changes back into `storage.sqlite`.
 - The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40` (or similar) so manual stops do not cut off shutdown cleanup.
-- Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want OmniRoute to use an existing binary instead of downloading one.
+- Set `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` if you want Birouter to use an existing binary instead of downloading one.
 
 **Using Docker Compose with Caddy (HTTPS Auto-TLS):**
 
-OmniRoute can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
+Birouter can be securely exposed using Caddy's automatic SSL provisioning. Ensure your domain's DNS A record points to your server's IP.
 
 ```yaml
 services:
-  omniroute:
-    image: diegosouzapw/omniroute:latest
-    container_name: omniroute
+  birouter:
+    image: IQ-Kat/birouter:latest
+    container_name: birouter
     restart: unless-stopped
     volumes:
-      - omniroute-data:/app/data
+      - birouter-data:/app/data
     environment:
       - PORT=20128
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
@@ -1083,27 +1081,27 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    command: caddy reverse-proxy --from https://your-domain.com --to http://omniroute:20128
+    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:20128
 
 volumes:
-  omniroute-data:
+  birouter-data:
 ```
 
-| Image                    | Tag      | Size   | Description           |
-| ------------------------ | -------- | ------ | --------------------- |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | Latest stable release |
-| `diegosouzapw/omniroute` | `3.6.2`  | ~250MB | Current version       |
+| Image             | Tag      | Size   | Description           |
+| ----------------- | -------- | ------ | --------------------- |
+| `IQ-Kat/birouter` | `latest` | ~250MB | Latest stable release |
+| `IQ-Kat/birouter` | `3.6.2`  | ~250MB | Current version       |
 
 ---
 
 ## 🖥️ Desktop App — Offline & Always-On
 
-> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
+> 🆕 **NEW!** Birouter is now available as a **native desktop application** for Windows, macOS, and Linux.
 
-Run OmniRoute as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
+Run Birouter as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
 
 - 🖥️ **Native Window** — Dedicated app window with system tray integration
-- 🔄 **Auto-Start** — Launch OmniRoute on system login
+- 🔄 **Auto-Start** — Launch Birouter on system login
 - 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
 - ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
 - 🌐 **Offline Mode** — Works fully offline with bundled server
@@ -1123,7 +1121,7 @@ npm run electron:build:linux   # Linux (.AppImage)
 
 ### System Tray
 
-When minimized, OmniRoute lives in your system tray with quick actions:
+When minimized, Birouter lives in your system tray with quick actions:
 
 - Open dashboard
 - Change server port
@@ -1181,7 +1179,7 @@ NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
 Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 ```
 
-**Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
+**Zero cost. Never stops coding.** Configure this as one Birouter combo and all fallbacks happen automatically — no manual switching ever.
 
 ---
 
@@ -1189,7 +1187,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ## 🆓 Free Models — What You Actually Get
 
-> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
+> All models below are **100% free with zero credit card required**. Birouter auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
 
 ### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
 
@@ -1220,7 +1218,6 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
-
 
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
@@ -1254,7 +1251,7 @@ Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whis
 | `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
 | `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
 | `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
-| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
+| `LongCat-Flash-Bi-2603`       | `lc/`  | 500K tokens       | Multimodal              |
 
 > 100% free while in public beta. Sign up at [longcat.chat](https://longcat.chat) with email or phone. Resets daily 00:00 UTC.
 
@@ -1332,7 +1329,7 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 
 ## 💡 Key Features
 
-OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
+Birouter v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🆕 New — v3.6.x Highlights (Apr 2026)
 
@@ -1351,7 +1348,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
 | 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
 | 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
-| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
+| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                   |
 | 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
 | 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
 | 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                              |
@@ -1374,14 +1371,14 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP
 
-| Feature                                    | What It Does                                                                                                                                                                                                                            |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
-| 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
+| Feature                                 | What It Does                                                                                                                                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                 | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
+| 🔏 **CLI Fingerprint Matching**         | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
+| 🤖 **ACP Agents Dashboard**             | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
+| 🔧 **Custom Model `apiFormat` Routing** | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
+| 🏢 **Codex Workspace Isolation**        | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
+| 🔄 **Electron Auto-Update**             | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 
@@ -1511,7 +1508,7 @@ Combo: "my-coding-stack"
   4. if/kimi-k2-thinking
 ```
 
-When quota, rate, or health fails, OmniRoute automatically moves to the next candidate without manual switching.
+When quota, rate, or health fails, Birouter automatically moves to the next candidate without manual switching.
 
 #### Protocol management that is visible and operable
 
@@ -1536,11 +1533,11 @@ Plus protocol validation with real clients via `npm run test:protocols:e2e`.
 
 ## 🧪 Evaluations (Evals)
 
-OmniRoute includes a built-in evaluation framework to test LLM response quality against a golden set. Access it via **Analytics → Evals** in the dashboard.
+Birouter includes a built-in evaluation framework to test LLM response quality against a golden set. Access it via **Analytics → Evals** in the dashboard.
 
 ### Built-in Golden Set
 
-The pre-loaded "OmniRoute Golden Set" contains test cases for:
+The pre-loaded "Birouter Golden Set" contains test cases for:
 
 - Greetings, math, geography, code generation
 - JSON format compliance, translation, markdown generation
@@ -1567,14 +1564,14 @@ The pre-loaded "OmniRoute Golden Set" contains test cases for:
 Start MCP transport in stdio mode:
 
 ```bash
-omniroute --mcp
+birouter --mcp
 ```
 
 Recommended validation flow:
 
 1. Connect your MCP client over stdio.
-2. Run `omniroute_get_health`.
-3. Run `omniroute_list_combos`.
+2. Run `birouter_get_health`.
+3. Run `birouter_list_combos`.
 4. Open `/dashboard/mcp` to confirm heartbeat, activity, and audit.
 
 Useful APIs for automation:
@@ -1649,7 +1646,7 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
+**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. Birouter tracks quota per model!
 
 ### OpenAI Codex (Plus/Pro)
 
@@ -1670,7 +1667,7 @@ Each Codex account now has policy toggles in `Dashboard -> Providers`:
 - `5h` (ON/OFF): enforce the 5-hour window threshold policy.
 - `Weekly` (ON/OFF): enforce the weekly window threshold policy.
 - Threshold behavior: when an enabled window reaches >=90% usage, that account is skipped.
-- Rotation behavior: OmniRoute routes to the next eligible Codex account automatically.
+- Rotation behavior: Birouter routes to the next eligible Codex account automatically.
 - Reset behavior: when the provider `resetAt` time passes, the account becomes eligible again automatically.
 
 Scenarios:
@@ -1679,8 +1676,6 @@ Scenarios:
 - `5h OFF` + `Weekly ON`: only weekly usage can block the account.
 - `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
 - `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
-
-
 
 ### GitHub Copilot
 
@@ -1709,7 +1704,7 @@ Models:
 
 **Models:** `nvidia/llama-3.3-70b-instruct`, `nvidia/mistral-7b-instruct`, and 50+ more
 
-**Pro Tip:** OpenAI-compatible API — works seamlessly with OmniRoute's format translation!
+**Pro Tip:** OpenAI-compatible API — works seamlessly with Birouter's format translation!
 
 ### DeepSeek
 
@@ -1860,7 +1855,7 @@ Cost: $0 forever!
 ```
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [from OmniRoute dashboard]
+  OpenAI API Key: [from Birouter dashboard]
   Model: cc/claude-opus-4-7
 ```
 
@@ -1872,7 +1867,7 @@ Use the **CLI Tools** page in the dashboard for one-click configuration, or edit
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:20128"
-export OPENAI_API_KEY="your-omniroute-api-key"
+export OPENAI_API_KEY="your-birouter-api-key"
 
 codex "your prompt"
 ```
@@ -1891,9 +1886,9 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 {
   "models": {
     "providers": {
-      "omniroute": {
+      "birouter": {
         "baseUrl": "http://127.0.0.1:20128/v1",
-        "apiKey": "sk_omniroute",
+        "apiKey": "sk_birouter",
         "api": "openai-completions"
       }
     }
@@ -1901,7 +1896,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 }
 ```
 
-> **Note:** OpenClaw only works with local OmniRoute. Use `127.0.0.1` instead of `localhost` to avoid IPv6 resolution issues.
+> **Note:** OpenClaw only works with local Birouter. Use `127.0.0.1` instead of `localhost` to avoid IPv6 resolution issues.
 
 ### Cline / Continue / RooCode
 
@@ -1909,18 +1904,18 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 Settings → API Configuration:
   Provider: OpenAI Compatible
   Base URL: http://localhost:20128/v1
-  API Key: [from OmniRoute dashboard]
+  API Key: [from Birouter dashboard]
   Model: if/kimi-k2-thinking
 ```
 
 ### OpenCode
 
-**Step 1:** Add OmniRoute as a custom provider:
+**Step 1:** Add Birouter as a custom provider:
 
 ```bash
 opencode
 /connect
-# Select "Other" → Enter ID: "omniroute" → Enter your OmniRoute API key
+# Select "Other" → Enter ID: "birouter" → Enter your Birouter API key
 ```
 
 **Step 2:** Create/edit `opencode.json` in your project root:
@@ -1929,9 +1924,9 @@ opencode
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "omniroute": {
+    "birouter": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "OmniRoute",
+      "name": "Birouter",
       "options": {
         "baseURL": "http://localhost:20128/v1"
       },
@@ -1949,10 +1944,10 @@ opencode
 
 ```bash
 /models
-# Select any OmniRoute model from the list
+# Select any Birouter model from the list
 ```
 
-> **Tip:** Add any model available in your OmniRoute `/v1/models` endpoint to the `models` section. Use the format `provider/model-id` from your OmniRoute dashboard.
+> **Tip:** Add any model available in your Birouter `/v1/models` endpoint to the `models` section. Use the format `provider/model-id` from your Birouter dashboard.
 
 </details>
 
@@ -1975,7 +1970,7 @@ opencode
 
 **OAuth token expired**
 
-- Auto-refreshed by OmniRoute
+- Auto-refreshed by Birouter
 - If issues persist: Dashboard → Provider → Reconnect
 
 **High costs**
@@ -2013,7 +2008,7 @@ opencode
 **Connection test shows "Invalid" for OpenAI-compatible providers**
 
 - Many providers don't expose a `/models` endpoint
-- OmniRoute v1.0.6+ includes fallback validation via chat completions
+- Birouter v1.0.6+ includes fallback validation via chat completions
 - Ensure base URL includes `/v1` suffix
 
 ### 🔐 OAuth on a Remote Server
@@ -2021,11 +2016,9 @@ opencode
 <a name="oauth-on-a-remote-server"></a>
 <a name="oauth-em-servidor-remoto"></a>
 
-> **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
+> **⚠️ Important for users running Birouter on a VPS, Docker, or any remote server**
 
-
-
-The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
+The OAuth credentials bundled in Birouter are registered **for `localhost` only**. When you access Birouter on a remote server (e.g. `https://birouter.myserver.com`), Google rejects the authentication with:
 
 ```
 Error 400: redirect_uri_mismatch
@@ -2045,7 +2038,7 @@ Go to: [https://console.cloud.google.com/apis/credentials](https://console.cloud
 
 - Click **"+ Create Credentials"** → **"OAuth client ID"**
 - Application type: **"Web application"**
-- Name: anything you like (e.g. `OmniRoute Remote`)
+- Name: anything you like (e.g. `Birouter Remote`)
 
 **3. Add Authorized Redirect URIs**
 
@@ -2074,18 +2067,17 @@ GEMINI_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-your-secret
 ```
 
-**6. Restart OmniRoute**
+**6. Restart Birouter**
 
 ```bash
 # npm:
 npm run dev
 
 # Docker:
-docker restart omniroute
+docker restart birouter
 ```
 
 **7. Try connecting again**
-
 
 Google will now redirect correctly to `https://your-server.com/callback`.
 
@@ -2095,10 +2087,10 @@ Google will now redirect correctly to `https://your-server.com/callback`.
 
 If you don't want to set up your own credentials right now, you can still use the **manual URL flow**:
 
-1. OmniRoute opens the Google authorization URL
+1. Birouter opens the Google authorization URL
 2. After authorizing, Google tries to redirect to `localhost` (which fails on the remote server)
 3. **Copy the full URL** from your browser's address bar (even if the page doesn't load)
-4. Paste that URL into the field shown in the OmniRoute connection modal
+4. Paste that URL into the field shown in the Birouter connection modal
 5. Click **"Connect"**
 
 > This works because the authorization code in the URL is valid regardless of whether the redirect page loaded.
@@ -2108,9 +2100,7 @@ If you don't want to set up your own credentials right now, you can still use th
 <details>
 <summary><b>🇧🇷 Versão em Português</b></summary>
 
-
-
-As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
+As credenciais OAuth embutidas no Birouter estão cadastradas **apenas para `localhost`**. Quando você acessa o Birouter em um servidor remoto (ex: `https://birouter.meuservidor.com`), o Google rejeita a autenticação com:
 
 ```
 Error 400: redirect_uri_mismatch
@@ -2130,7 +2120,7 @@ Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.
 
 - Clique em **"+ Create Credentials"** → **"OAuth client ID"**
 - Tipo de aplicativo: **"Web application"**
-- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
+- Nome: escolha qualquer nome (ex: `Birouter Remote`)
 
 **3. Adicione as Authorized Redirect URIs**
 
@@ -2159,18 +2149,17 @@ GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
 GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
 ```
 
-**6. Reinicie o OmniRoute**
+**6. Reinicie o Birouter**
 
 ```bash
 # Se usando npm:
 npm run dev
 
 # Se usando Docker:
-docker restart omniroute
+docker restart birouter
 ```
 
 **7. Tente conectar novamente**
-
 
 Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
 
@@ -2180,10 +2169,10 @@ Agora o Google redirecionará corretamente para `https://seu-servidor.com/callba
 
 Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
 
-1. O OmniRoute abrirá a URL de autorização do Google
+1. O Birouter abrirá a URL de autorização do Google
 2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
 3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
+4. Cole essa URL no campo que aparece no modal de conexão do Birouter
 5. Clique em **"Connect"**
 
 > Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
@@ -2209,9 +2198,9 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
 - **Testing**: Node.js test runner + Vitest (900+ tests including unit, integration, E2E)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
-- **Website**: [omniroute.online](https://omniroute.online)
-- **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
-- **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
+- **Website**: [Birouter.online](https://Birouter.online)
+- **Package**: [npmjs.com/package/Birouter](https://www.npmjs.com/package/Birouter)
+- **Docker**: [hub.docker.com/r/IQ-Kat/birouter](https://hub.docker.com/r/IQ-Kat/birouter)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
 
 </details>
@@ -2244,7 +2233,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## 🗺️ Roadmap
 
-OmniRoute has **218+ features planned** across multiple development phases. Here are the key areas:
+Birouter has **218+ features planned** across multiple development phases. Here are the key areas:
 
 | Category                      | Planned Features | Highlights                                                                                            |
 | ----------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
@@ -2269,7 +2258,7 @@ OmniRoute has **218+ features planned** across multiple development phases. Here
 
 ## 👥 Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=100&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=IQ-Kat/birouter&max=100&columns=20&anon=1)](https://github.com/IQ-Kat/birouter/graphs/contributors)
 
 ### How to Contribute
 
@@ -2292,21 +2281,21 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 ## 📊 Star History
 
-<a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=diegosouzapw%2Fbirouter&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=IQ-Kat/birouter&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=IQ-Kat/birouter&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=IQ-Kat/birouter&type=date&legend=top-left" />
  </picture>
 </a>
 
 ## 🌍 StarMapper
 
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
+<a href="https://starmapper.bruniaux.com/IQ-Kat/birouter">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/IQ-Kat/birouter?theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/IQ-Kat/birouter?theme=light" />
+    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/IQ-Kat/birouter" />
   </picture>
 </a>
 
@@ -2325,6 +2314,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 <div align="center">
   <sub>Built with ❤️ for developers who code 24/7</sub>
   <br/>
-  <sub><a href="https://omniroute.online">omniroute.online</a></sub>
+  <sub><a href="https://Birouter.online">Birouter.online</a></sub>
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

@@ -67,7 +67,9 @@ export default function VscodeTokenAliasCard({
     }
 
     const storedCopilotKeyId =
-      typeof window !== "undefined" ? window.localStorage.getItem("omniroute-cli-key-copilot") : null;
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("birouter-cli-key-copilot")
+        : null;
 
     return (
       (storedCopilotKeyId ? cliApiKeys.find((key) => key.id === storedCopilotKeyId) : null) ??

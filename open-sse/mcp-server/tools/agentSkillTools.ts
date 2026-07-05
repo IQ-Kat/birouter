@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { getCatalog, getSkillById, filterCatalog, computeCoverage, fetchSkillMarkdown } from "@/lib/agentSkills/catalog";
+import {
+  getCatalog,
+  getSkillById,
+  filterCatalog,
+  computeCoverage,
+  fetchSkillMarkdown,
+} from "@/lib/agentSkills/catalog";
 import type { AgentSkill, SkillCoverage } from "@/lib/agentSkills/types";
 
 // ── Input Schemas ────────────────────────────────────────────────────────────
@@ -10,7 +16,7 @@ export const AgentSkillsListSchema = z.object({
 });
 
 export const AgentSkillsGetSchema = z.object({
-  id: z.string().describe("Canonical skill ID (e.g. 'omni-providers', 'cli-serve')"),
+  id: z.string().describe("Canonical skill ID (e.g. 'bi-providers', 'cli-serve')"),
 });
 
 export const AgentSkillsCoverageSchema = z.object({});
@@ -18,10 +24,10 @@ export const AgentSkillsCoverageSchema = z.object({});
 // ── Tool Definitions ─────────────────────────────────────────────────────────
 
 export const agentSkillTools = {
-  omniroute_agent_skills_list: {
-    name: "omniroute_agent_skills_list",
+  birouter_agent_skills_list: {
+    name: "birouter_agent_skills_list",
     description:
-      "List OmniRoute agent skills with optional filtering by category (api/cli) or area. Returns skill metadata including id, name, description, endpoints/commands, and URLs.",
+      "List Birouter agent skills with optional filtering by category (api/cli) or area. Returns skill metadata including id, name, description, endpoints/commands, and URLs.",
     inputSchema: AgentSkillsListSchema,
     handler: async (args: z.infer<typeof AgentSkillsListSchema>) => {
       const skills: AgentSkill[] =
@@ -50,8 +56,8 @@ export const agentSkillTools = {
     },
   },
 
-  omniroute_agent_skills_get: {
-    name: "omniroute_agent_skills_get",
+  birouter_agent_skills_get: {
+    name: "birouter_agent_skills_get",
     description:
       "Get detailed metadata and SKILL.md markdown for a single agent skill by its canonical ID. Returns all skill fields plus the raw markdown content.",
     inputSchema: AgentSkillsGetSchema,
@@ -70,8 +76,8 @@ export const agentSkillTools = {
     },
   },
 
-  omniroute_agent_skills_coverage: {
-    name: "omniroute_agent_skills_coverage",
+  birouter_agent_skills_coverage: {
+    name: "birouter_agent_skills_coverage",
     description:
       "Returns the current SKILL.md coverage stats: how many of the 22 API skills and 20 CLI skills have generated SKILL.md files on the filesystem vs the catalog total.",
     inputSchema: AgentSkillsCoverageSchema,
