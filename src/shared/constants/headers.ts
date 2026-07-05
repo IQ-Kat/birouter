@@ -1,0 +1,16 @@
+export const BIROUTER_RESPONSE_HEADERS = {
+  cache: "X-Birouter-Cache",
+  cacheHit: "X-Birouter-Cache-Hit",
+  compression: "X-Birouter-Compression",
+  costSaved: "X-Birouter-Cost-Saved",
+  fallbackAttempts: "X-Birouter-Fallback-Attempts",
+  latencyMs: "X-Birouter-Latency-Ms",
+  model: "X-Birouter-Model",
+  progress: "X-Birouter-Progress",
+  provider: "X-Birouter-Provider",
+  requestId: "X-Birouter-Request-Id",
+  responseCost: "X-Birouter-Response-Cost",
+  tokensIn: "X-Birouter-Tokens-In",
+  tokensOut: "X-Birouter-Tokens-Out",
+  version: "X-Birouter-Version",
+} as const;

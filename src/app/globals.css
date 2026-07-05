@@ -1,204 +1,257 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+/* Self-hosted Material Symbols icon font (#3695): the Google Fonts CDN
+   (fonts.googleapis.com) is blocked in some networks (e.g. mainland China),
+   which made every icon ligature fall back to its literal text name and broke
+   the layout. Bundling the font locally removes that runtime CDN dependency.
+   The bundled @font-face uses family "Material Symbols Outlined", matching the
+   .material-symbols-outlined rule defined later in this file. */
+@import "material-symbols/outlined.css";
+@source "../../node_modules/fumadocs-ui/css/generated/*.css";
+
+/* Tailwind v4 auto-detection cannot scan directories with parentheses
+   (e.g. Next.js route groups like "(dashboard)"). Explicit @source
+   directives ensure all utility classes in route groups are included. */
+@source "../app/(dashboard)";
+@source "../../node_modules/fumadocs-ui/dist/**/*.js";
+@source not "../../*.sqlite*";
+@source not "../../.claude*";
+@source not "../../.claude-memory";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Hide icon ligature text until font is ready */
-.material-symbols-outlined { visibility: hidden; }
-.fonts-loaded .material-symbols-outlined { visibility: visible; }
-
-/* ============================================================
-   Birouter palette
-   Brand sky blue, neutral warm bases
-   ============================================================ */
+/* Fumadocs sidebar width override */
 :root {
-  /* Brand scale (light) - centered on #38BDF8 (sky-400) */
-  --color-brand-50: #f0f9ff;
-  --color-brand-100: #e0f2fe;
-  --color-brand-200: #bae6fd;
-  --color-brand-300: #7dd3fc;
-  --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
+  --fd-sidebar-width: 220px;
+}
 
-  /* Primary (legacy alias for backward compat with existing components) */
-  --color-primary: var(--color-brand-500);
-  --color-primary-hover: var(--color-brand-600);
+/* OpenClaw × ClawHub Color Palette */
+:root {
+  --desktop-safe-top: 0px;
+  --desktop-safe-bottom: 0px;
+  color-scheme: light;
 
-  /* Surfaces & backgrounds (light) */
-  --color-bg: #FDFAF6;
-  --color-bg-alt: #F7F3EE;
+  /* Primary - Sky Blue (Birouter) */
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #0284c7;
+
+  /* Accent - Light Sky Blue */
+  --color-accent: #38bdf8;
+  --color-accent-hover: #0ea5e9;
+  --color-accent-light: #7dd3fc;
+
+  /* Semantic */
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  /* Traffic lights */
+  --color-traffic-red: #ff5f56;
+  --color-traffic-yellow: #ffbd2e;
+  --color-traffic-green: #27c93f;
+
+  /* Light theme */
+  --color-bg: #f9f9fb;
+  --color-bg-alt: #f0f0f5;
+  --color-bg-primary: #f9f9fb;
+  --color-bg-subtle: #f0f0f5;
   --color-surface: #ffffff;
-  --color-surface-2: #f4f4f5;
-  --color-surface-3: #e7e7e9;
-  --color-sidebar: rgba(244, 241, 236, 0.85);
+  --color-card: #ffffff;
+  --color-sidebar: #f5f5fa;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-text-main: #1a1a2e;
+  --color-text-primary: #1a1a2e;
+  --color-text-muted: #71717a;
 
-  /* Borders */
-  --color-border: #e5e7eb;
-  --color-border-subtle: #f1f1f3;
-
-  /* Text */
-  --color-text: #0a0a0a;
-  --color-text-main: #0a0a0a;
-  --color-text-muted: #6B7280;
-  --color-text-subtle: #9CA3AF;
-
-  /* Status */
-  --color-danger: #cf222e;
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-info: #3B82F6;
-
-  /* Radius */
-  --radius-brand: 10px;
-  --radius-brand-lg: 14px;
+  /* Fumadocs light theme */
+  --color-fd-background: #f9f9fb;
+  --color-fd-foreground: #1a1a2e;
+  --color-fd-muted: #f0f0f5;
+  --color-fd-muted-foreground: #71717a;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #1a1a2e;
+  --color-fd-card: #ffffff;
+  --color-fd-card-foreground: #1a1a2e;
+  --color-fd-border: rgba(0, 0, 0, 0.08);
+  --color-fd-primary: #0ea5e9;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f0f0f5;
+  --color-fd-secondary-foreground: #1a1a2e;
+  --color-fd-accent: rgba(14, 165, 233, 0.08);
+  --color-fd-accent-foreground: #1a1a2e;
+  --color-fd-ring: #0ea5e9;
 
   /* Shadows */
-  --shadow-soft: 0 1px 2px 0 rgba(0,0,0,0.04);
-  --shadow-warm: 0 2px 12px -2px rgba(14, 165, 233, 0.18);
-  --shadow-elevated: 0 12px 28px -4px rgba(60, 50, 45, 0.06);
-  --shadow-elev:
-    inset 0 1px 0 0 rgba(255,255,255,0.8),
-    0 1px 2px rgba(15,23,42,0.04),
-    0 12px 36px -8px rgba(15,23,42,0.10);
-  --shadow-focus: 0 0 0 3px rgba(14,165,233,0.18);
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
+  --shadow-warm: 0 2px 12px -2px rgba(14, 165, 233, 0.12);
+  --shadow-elevated: 0 12px 28px -4px rgba(20, 20, 40, 0.06);
 
-  color-scheme: light;
+  /* Graph-paper wallpaper grid — shared visual identity with the marketing site
+     (_mono_repo/birouterSite/css). Light theme values. Rendered by body::before.
+     Opacity tuned up from the site's 0.045 so the wallpaper is actually visible on
+     the dense dashboard (cards/chrome cover most of the viewport). */
+  --grid-line: rgba(0, 0, 0, 0.07);
+  --grid-size: 32px;
+  --section-alt: rgba(0, 0, 0, 0.022);
+
+  /* Identity tokens mirrored from the site. Definitions only in this phase —
+     components are repointed to them in a later phase. */
+  --surface-2: #f5f5fa;
+  --radius: 14px;
+  --radius-control: 9px;
+  --grad-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent-light));
+
+  /* Data-table surfaces — theme-aware. The DARK values (in .dark below) exactly mirror
+     the previous hardcoded rgba in DataTable.tsx so dark stays byte-identical; these
+     light values are the fix (the old code was always-dark via dead var fallbacks). */
+  --table-header-bg: rgba(249, 249, 251, 0.95);
+  --table-row-zebra: rgba(0, 0, 0, 0.02);
+  --table-row-hover: rgba(0, 0, 0, 0.04);
+  --table-cell-border: rgba(0, 0, 0, 0.04);
+  /* Selected row — an accent tint that reads on both themes (inherited by .dark). */
+  --table-row-selected: rgba(99, 102, 241, 0.1);
 }
 
 .dark {
-  /* Brand scale (dark) - sky blue */
-  --color-brand-50: #f0f9ff;
-  --color-brand-100: #e0f2fe;
-  --color-brand-200: #bae6fd;
-  --color-brand-300: #7dd3fc;
-  --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
+  /* Dark theme (ClawHub deep) */
+  color-scheme: dark;
+  --color-bg: #0b0e14;
+  --color-bg-alt: #111520;
+  --color-bg-primary: #0b0e14;
+  --color-bg-subtle: #111520;
+  --color-surface: #161b22;
+  --color-card: #161b22;
+  --color-sidebar: #10141e;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text-main: #e6e6ef;
+  --color-text-primary: #e6e6ef;
+  --color-text-muted: #a1a1aa;
 
+  /* Fumadocs theme mapping */
+  --color-fd-background: #0b0e14;
+  --color-fd-foreground: #e6e6ef;
+  --color-fd-muted: #111520;
+  --color-fd-muted-foreground: #a1a1aa;
+  --color-fd-popover: #161b22;
+  --color-fd-popover-foreground: #e6e6ef;
+  --color-fd-card: #161b22;
+  --color-fd-card-foreground: #e6e6ef;
+  --color-fd-border: rgba(255, 255, 255, 0.08);
   --color-primary: #38bdf8;
   --color-primary-hover: #0ea5e9;
 
-  /* Surfaces (dark - Claude-like neutral warm) */
-  --color-bg: #1a1a1a;
-  --color-bg-alt: #1F1F1E;
-  --color-surface: #262626;
-  --color-surface-2: #303030;
-  --color-surface-3: #3a3a3a;
-  --color-sidebar: rgba(30, 30, 30, 0.85);
+  --color-fd-primary: #38bdf8;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #111520;
+  --color-fd-secondary-foreground: #e6e6ef;
+  --color-fd-accent: rgba(14, 165, 233, 0.12);
+  --color-fd-accent-foreground: #e6e6ef;
+  --color-fd-ring: #38bdf8;
 
-  --color-border: #333333;
-  --color-border-subtle: #2a2a2a;
+  /* Dark shadows */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-warm: 0 2px 12px -2px rgba(56, 189, 248, 0.15);
+  --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.3);
 
-  --color-text: #ededed;
-  --color-text-main: #ededed;
-  --color-text-muted: #9ca3af;
-  --color-text-subtle: #6b7280;
+  /* Graph-paper wallpaper grid — dark theme values (tuned up from 0.035 for visibility). */
+  --grid-line: rgba(255, 255, 255, 0.06);
+  --section-alt: rgba(255, 255, 255, 0.018);
+  --surface-2: #1c2230;
 
-  --color-danger: #ef4444;
-  --color-success: #22c55e;
-  --color-warning: #fbbf24;
-  --color-info: #60a5fa;
-
-  --shadow-soft: 0 1px 2px 0 rgba(0,0,0,0.3);
-  --shadow-warm: 0 2px 12px -2px rgba(56, 189, 248, 0.25);
-  --shadow-elevated: 0 12px 28px -4px rgba(0, 0, 0, 0.45);
-  --shadow-elev:
-    inset 0 1px 0 0 rgba(255,255,255,0.06),
-    0 1px 2px rgba(0,0,0,0.4),
-    0 16px 48px -8px rgba(0,0,0,0.55);
-  --shadow-focus: 0 0 0 3px rgba(56, 189, 248, 0.25);
-
-  color-scheme: dark;
-}
-
-/* ============================================================
-   Fix native select dropdowns in dark mode
-   ============================================================ */
-select {
-  color-scheme: light;
-}
-
-.dark select {
-  color-scheme: dark;
-}
-
-.dark select option {
-  background-color: var(--color-surface);
-  color: var(--color-text-main);
+  /* Data-table surfaces — dark = the exact old hardcoded values (byte-identical). */
+  --table-header-bg: rgba(15, 15, 25, 0.95);
+  --table-row-zebra: rgba(255, 255, 255, 0.02);
+  --table-row-hover: rgba(255, 255, 255, 0.04);
+  --table-cell-border: rgba(255, 255, 255, 0.04);
 }
 
 @theme inline {
-  /* Brand scale */
-  --color-brand-50: var(--color-brand-50);
-  --color-brand-100: var(--color-brand-100);
-  --color-brand-200: var(--color-brand-200);
-  --color-brand-300: var(--color-brand-300);
-  --color-brand-400: var(--color-brand-400);
-  --color-brand-500: var(--color-brand-500);
-  --color-brand-600: var(--color-brand-600);
-  --color-brand-700: var(--color-brand-700);
-  --color-brand-800: var(--color-brand-800);
-  --color-brand-900: var(--color-brand-900);
-
-  /* Primary aliases */
+  /* Primary */
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
 
+  /* Accent */
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-light: var(--color-accent-light);
+
   /* Semantic */
-  --color-bg: var(--color-bg);
-  --color-bg-alt: var(--color-bg-alt);
-  --color-surface: var(--color-surface);
-  --color-surface-2: var(--color-surface-2);
-  --color-surface-3: var(--color-surface-3);
-  --color-sidebar: var(--color-sidebar);
-  --color-border: var(--color-border);
-  --color-border-subtle: var(--color-border-subtle);
-  --color-text: var(--color-text);
-  --color-text-main: var(--color-text-main);
-  --color-text-muted: var(--color-text-muted);
-  --color-text-subtle: var(--color-text-subtle);
-  --color-accent: var(--color-brand-500);
-  --color-danger: var(--color-danger);
+  --color-error: var(--color-error);
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
-  --color-info: var(--color-info);
 
-  /* Static fallbacks (explicit per-mode usage if needed) */
-  --color-bg-light: #FCFBF9;
-  --color-bg-dark: #1a1a1a;
+  /* Auto-switch colors (use CSS variables from :root/.dark) */
+  --color-bg: var(--color-bg);
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-subtle: var(--color-bg-subtle);
+  --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
+  --color-sidebar: var(--color-sidebar);
+  --color-border: var(--color-border);
+  --color-text-main: var(--color-text-main);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-muted: var(--color-text-muted);
+
+  /* Static colors (for explicit light/dark usage) */
+  --color-bg-light: #f9f9fb;
+  --color-bg-dark: #0b0e14;
   --color-surface-light: #ffffff;
-  --color-surface-dark: #262626;
-  --color-sidebar-light: #F4F1EC;
-  --color-sidebar-dark: #1F1F1E;
-  --color-border-light: #e5e7eb;
-  --color-border-dark: #333333;
-  --color-text-main-light: #0a0a0a;
-  --color-text-main-dark: #ededed;
-  --color-text-muted-light: #6B7280;
-  --color-text-muted-dark: #9ca3af;
-
-  /* Radius */
-  --radius-brand: var(--radius-brand);
-  --radius-brand-lg: var(--radius-brand-lg);
+  --color-surface-dark: #161b22;
+  --color-sidebar-light: #ededf2;
+  --color-sidebar-dark: #111520;
+  --color-border-light: #e2e2ea;
+  --color-border-dark: #2d333b;
+  --color-text-main-light: #1a1a2e;
+  --color-text-main-dark: #e6e6ef;
+  --color-text-muted-light: #71717a;
+  --color-text-muted-dark: #a1a1aa;
 
   /* Shadows */
   --shadow-soft: var(--shadow-soft);
   --shadow-warm: var(--shadow-warm);
   --shadow-elevated: var(--shadow-elevated);
-  --shadow-elev: var(--shadow-elev);
-  --shadow-focus: var(--shadow-focus);
 
-  /* Font - Inter primary, Apple system fallback */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  /* Font - macOS system fonts */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  /* Monospace stack (parity with the site) — code blocks, IDs, endpoints, terminals */
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+
+  /* Nested surface (enables bg-surface-2) */
+  --color-surface-2: var(--surface-2);
+
+  /* Semantic radius scale → rounded-card (surfaces, 14px) / rounded-control (controls,
+     9px). Custom names so the default rounded-sm/md/lg/xl utilities stay untouched. */
+  --radius-card: var(--radius);
+  --radius-control: var(--radius-control);
 }
 
-/* Base */
+/* ── Focus Indicators (U-3) ── */
+:root {
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+}
+
+/* Visible focus ring on keyboard navigation only */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 4px;
+}
+
+/* Utility class for custom focus ring */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Remove focus ring from mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Base styles */
 body {
   background-color: var(--color-bg);
   color: var(--color-text-main);
@@ -207,98 +260,94 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Selection - brand-tinted */
+/* Graph-paper wallpaper grid — one fixed, full-viewport layer behind every screen
+   (dashboard, auth, error pages). A z-index:-1 ::before paints above body's own
+   background but below all in-flow content, so it shows through any transparent
+   wrapper without lowering text contrast. Mirrors the marketing site exactly. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+body.electron-macos {
+  --desktop-safe-top: 30px;
+  --desktop-safe-bottom: 8px;
+}
+
+/* Selection — with fallback for browsers that don't support color-mix() */
 ::selection {
-  background-color: rgba(229, 106, 74, 0.25);
+  background-color: rgba(14, 165, 233, 0.22);
+  background-color: color-mix(in srgb, var(--color-primary) 22%, transparent);
   color: var(--color-primary);
 }
-.dark ::selection {
-  background-color: rgba(229, 106, 74, 0.3);
-  color: var(--color-brand-300);
-}
 
-/* iOS keyboard accent */
-input, textarea {
-  accent-color: var(--color-primary);
-}
-
-/* Scrollbar (custom-scrollbar utility kept for compat) */
-.custom-scrollbar::-webkit-scrollbar {
+/* Global custom scrollbar — thin, minimal, theme-aware */
+*::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
+
+*::-webkit-scrollbar-track {
   background: transparent;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.3);
-  border-radius: 20px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-primary);
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.2);
+  border-radius: 9999px;
+  transition: background-color 0.2s;
 }
 
-/* Thin horizontal scrollbar - brand colored */
-.scroll-thin-x {
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.45);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark theme scrollbar — slightly brighter thumb */
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox support */
+* {
   scrollbar-width: thin;
-  scrollbar-color: rgba(229, 106, 74, 0.55) transparent;
-}
-.dark .scroll-thin-x {
-  scrollbar-color: rgba(229, 106, 74, 0.55) transparent;
-}
-.scroll-thin-x::-webkit-scrollbar { height: 3px; }
-.scroll-thin-x::-webkit-scrollbar-track { background: transparent; }
-.scroll-thin-x::-webkit-scrollbar-thumb {
-  background: rgba(229, 106, 74, 0.55);
-  border-radius: 3px;
-}
-.dark .scroll-thin-x::-webkit-scrollbar-thumb {
-  background: rgba(229, 106, 74, 0.55);
+  scrollbar-color: rgba(156, 163, 175, 0.2) transparent;
 }
 
-/* Reusable elevated card */
-.card-soft {
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-soft);
-  border-radius: var(--radius-brand-lg);
-}
-.card-elev {
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-elev);
-  border-radius: var(--radius-brand-lg);
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 }
 
-/* Hero gradient (compat) */
+/* Keep .custom-scrollbar alias for backward compatibility */
+.custom-scrollbar {
+  scrollbar-width: thin;
+}
+
+/* Hero gradient */
 .bg-hero-gradient {
-  background: linear-gradient(180deg, var(--color-bg-alt) 0%, var(--color-bg) 100%);
+  background: linear-gradient(180deg, #f0f0f5 0%, #f9f9fb 100%);
 }
 
-/* macOS Vibrancy */
-.bg-vibrancy {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.72);
+.dark .bg-hero-gradient {
+  background: linear-gradient(180deg, #111520 0%, #0b0e14 100%);
 }
-.dark .bg-vibrancy {
-  background: rgba(38, 38, 38, 0.72);
-}
-
-/* macOS Traffic Lights */
-.traffic-lights {
-  display: flex;
-  gap: 8px;
-}
-.traffic-light {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-.traffic-light.red { background: #FF5F56; }
-.traffic-light.yellow { background: #FFBD2E; }
-.traffic-light.green { background: #27C93F; }
 
 /* Material Symbols */
 .material-symbols-outlined {
-  font-family: 'Material Symbols Outlined', sans-serif;
+  font-family: "Material Symbols Outlined", sans-serif !important;
   font-weight: normal;
   font-style: normal;
   font-size: 24px;
@@ -309,202 +358,156 @@ input, textarea {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-.material-symbols-outlined.fill-1 {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-/* Disable text selection on buttons */
-button {
-  -webkit-user-select: none;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
   user-select: none;
 }
 
-/* Tailwind v4 dropped default button cursor — restore globally */
-button:not(:disabled),
-[role="button"]:not([aria-disabled="true"]),
-label[for],
-summary,
-select {
-  cursor: pointer;
+/* Ensure icon clicks always bubble to the parent button */
+button .material-symbols-outlined,
+[role="button"] .material-symbols-outlined {
+  pointer-events: none;
 }
 
-button:disabled,
-[role="button"][aria-disabled="true"] {
-  cursor: not-allowed;
+.material-symbols-outlined.fill-1 {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
-/* ============================================================
-   Animations
-   ============================================================ */
+/* Animations */
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
-.animate-spin { animation: spin 1s linear infinite; }
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-
-@keyframes border-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(229, 106, 74, 0.3), 0 0 10px rgba(229, 106, 74, 0.2);
-    border-color: rgba(229, 106, 74, 0.5);
+  0%,
+  100% {
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 10px rgba(229, 106, 74, 0.5), 0 0 20px rgba(229, 106, 74, 0.3);
-    border-color: rgba(229, 106, 74, 0.8);
+    opacity: 0.5;
   }
 }
-.animate-border-glow { animation: border-glow 2s ease-in-out infinite; }
 
-@keyframes slideInFromRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes slideInFromTop {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.slide-in-right { animation: slideInFromRight 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-.fade-in { animation: fadeIn 0.2s ease-out forwards; }
-.slide-in-top { animation: slideInFromTop 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.05); }
-}
-.animate-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
-
-/* CTA shimmer + glow pulse */
-@keyframes ctaShimmer {
-  0% { transform: translateX(-120%) skewX(-20deg); }
-  100% { transform: translateX(220%) skewX(-20deg); }
-}
-@keyframes ctaGlowPulse {
-  0%, 100% { box-shadow: 0 8px 24px -8px rgba(229, 106, 74, 0.45), 0 0 0 0 rgba(229, 106, 74, 0.5); }
-  50% { box-shadow: 0 12px 32px -8px rgba(229, 106, 74, 0.6), 0 0 0 8px rgba(229, 106, 74, 0); }
-}
-.btn-cta {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  animation: ctaGlowPulse 2.4s ease-in-out infinite;
-}
-.btn-cta::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-  animation: ctaShimmer 2.8s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-.btn-cta > * { position: relative; z-index: 2; }
-
-/* Dot Grid Background Pattern */
-.dot-grid-bg {
-  background-color: var(--color-bg);
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(229, 106, 74, 0.10) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(229, 106, 74, 0.06) 0%, transparent 40%);
-}
-.dark .dot-grid-bg {
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(229, 106, 74, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(229, 106, 74, 0.10) 0%, transparent 40%);
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Landing-style faint grid overlay (use absolute pos inside relative parent) */
-.landing-grid {
-  background-image:
-    linear-gradient(to right, var(--color-accent) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-accent) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.08;
-}
-.dark .landing-grid {
-  opacity: 0.04;
-}
-
-/* React Flow controls: match app theme */
-.react-flow-controls-custom {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: var(--shadow-soft);
-  overflow: hidden;
+@keyframes border-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 5px rgba(14, 165, 233, 0.3),
+      0 0 10px rgba(14, 165, 233, 0.2);
+    border-color: rgba(14, 165, 233, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 10px rgba(14, 165, 233, 0.5),
+      0 0 20px rgba(14, 165, 233, 0.3);
+    border-color: rgba(14, 165, 233, 0.8);
+  }
 }
 
-.react-flow-controls-custom button {
-  background: var(--color-surface);
+.animate-border-glow {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+/* macOS Vibrancy/Blur Effect */
+.bg-vibrancy {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.dark .bg-vibrancy {
+  background: rgba(16, 20, 30, 0.72);
+}
+
+/* macOS Traffic Lights */
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+}
+
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.traffic-light.red {
+  background: var(--color-traffic-red);
+}
+
+.traffic-light.yellow {
+  background: var(--color-traffic-yellow);
+}
+
+.traffic-light.green {
+  background: var(--color-traffic-green);
+}
+
+/* ── Mobile Layout Fixes (Issue #659) ── */
+@media (max-width: 768px) {
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100vw;
+  }
+
+  .ant-table {
+    min-width: 600px; /* Prevent columns from crushing together */
+  }
+}
+
+/* Fix for native dropdown options visibility in dark mode */
+select option {
+  background-color: var(--color-surface);
   color: var(--color-text-main);
-  border: 0;
-  border-bottom: 1px solid var(--color-border);
 }
 
-.react-flow-controls-custom button:last-child {
-  border-bottom: 0;
+/* ReactFlow Controls (zoom +/- buttons) dark mode theming */
+.react-flow__controls-button {
+  background-color: var(--color-surface);
+  border-bottom-color: var(--color-border);
+  fill: var(--color-text-main);
 }
 
-.react-flow-controls-custom button:hover {
-  background: var(--color-bg-alt);
+.react-flow__controls-button:hover {
+  background-color: var(--color-bg-subtle);
 }
 
-/* Changelog markdown body */
-.changelog-body h1 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin: 1.5rem 0 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
+.react-flow__controls-button svg {
+  fill: var(--color-text-main);
 }
-.changelog-body h1:first-child { margin-top: 0; }
-.changelog-body h2 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin: 1rem 0 0.5rem;
-  color: var(--color-primary);
+
+/* Desktop sidebar visibility must not depend on Tailwind's hidden/lg:flex cascade
+   (ordering/specificity can collapse it). Explicit class + 1024px media query. */
+.dashboard-sidebar-desktop {
+  display: none;
+  min-height: 0;
 }
-.changelog-body h3 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0.75rem 0 0.4rem;
-}
-.changelog-body ul {
-  list-style: disc;
-  padding-left: 1.5rem;
-  margin: 0.5rem 0;
-}
-.changelog-body li { margin: 0.25rem 0; line-height: 1.6; }
-.changelog-body p { margin: 0.5rem 0; line-height: 1.6; }
-.changelog-body code {
-  background: var(--color-bg-alt);
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  font-size: 0.875em;
-  font-family: ui-monospace, monospace;
-}
-.changelog-body a {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-.changelog-body hr {
-  border: none;
-  border-top: 1px solid var(--color-border);
-  margin: 1.5rem 0;
+@media (min-width: 1024px) {
+  .dashboard-sidebar-desktop {
+    display: flex;
+  }
 }

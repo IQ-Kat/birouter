@@ -1,0 +1,4 @@
+● birouter.service - Birouter
+     Loaded: loaded (/etc/systemd/system/birouter.service; enabled)
+     Active: failed (Result: exit-code) since Sat 2026-05-02 12:00:00 UTC; 1min ago
+    Process: 1234 ExecStart=/usr/bin/node server.js (code=exited, status=1/FAILURE)

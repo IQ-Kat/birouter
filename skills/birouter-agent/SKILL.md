@@ -5,11 +5,12 @@ description: Super-agent skill for Birouter. Use when the user wants an "Agentic
 
 # Birouter — Agentic Super Skill
 
-This skill transforms any AI (Claude Code, Cursor, Cline, etc.) into a stable, agentic powered by Birouter. It eliminates common connection drops and timeouts.
+This skill transforms any AI (Claude Code, Cursor, Cline, etc.) into a stable, agentic experience powered by Birouter. It eliminates common connection drops and timeouts.
 
 ## 🛠️ Configuration
 
 Ensure your environment is set up:
+
 ```bash
 export BIROUTER_URL="http://localhost:2004"
 export BIROUTER_KEY="bi-..." # From Dashboard -> Keys
@@ -20,18 +21,24 @@ export BIROUTER_KEY="bi-..." # From Dashboard -> Keys
 As an AI Agent using Birouter, you **MUST** strictly adhere to these protocols to maintain connection stability, especially when using free/cheap providers (Kiro, Vertex, GLM).
 
 ### 1. The 300-Line Rule (Chunked Write)
+
 Server-side timeouts (2-3 minutes) are the #1 cause of "Agent disconnected" errors.
+
 - **Rule**: Never write or edit more than **300 lines** of code in a single message.
 - **Action**: If a file is large (>300 lines), write it in logical chunks using `append` or multiple `write` operations.
 - **Why**: Keeps the request duration short, preventing the upstream server from killing the connection.
 
 ### 2. RTK Awareness (Token Compression)
+
 Birouter uses **RTK (Result Token Compression)** to save 20-40% tokens.
+
 - **What happens**: Large tool outputs (like `git diff` or `cat large_file`) might appear slightly truncated or summarized in your input.
 - **Action**: If you need more detail, ask for a specific line range (e.g., `cat file.js | sed -n '100,150p'`). Do not assume information is missing; it's just compressed to save you money.
 
 ### 3. Self-Healing Error Handling
+
 If you encounter these status codes, handle them as follows:
+
 - **503 (All accounts unavailable)**: Birouter's auto-fallback is exhausted. Wait 30 seconds and try again, or suggest the user check their Provider connections.
 - **429 (Rate Limit)**: Switch to a different model prefix (e.g., if `cc/` hits a limit, try `if/` or `glm/`).
 - **401 (Unauthorized)**: Remind the user to check their `BIROUTER_KEY`.
@@ -49,10 +56,11 @@ Follow this loop for maximum reliability:
 
 ## 🔗 Capability Links
 
-| Role | Provider/Model Prefix | Best For |
-|---|---|---|
-| **Primary** | `cc/`, `cx/`, `gh/` | High-accuracy coding (Subscriptions) |
-| **Agentic** | `kr/`, `if/`, `glm/` | Multi-step tasks, background work (Free/Cheap) |
+| Role        | Provider/Model Prefix | Best For                                       |
+| ----------- | --------------------- | ---------------------------------------------- |
+| **Primary** | `cc/`, `cx/`, `gh/`   | High-accuracy coding (Subscriptions)           |
+| **Agentic** | `kr/`, `if/`, `glm/`  | Multi-step tasks, background work (Free/Cheap) |
 
 ---
-*Powered by Birouter — Save tokens, never stop coding.*
+
+_Powered by Birouter — Save tokens, never stop coding._

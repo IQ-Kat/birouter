@@ -1,0 +1,32 @@
+{
+  "common": {
+    "error": "Ошибка: {message}",
+    "serverOffline": "Сервер Birouter отключён. Запустите: birouter serve",
+    "authRequired": "Требуется аутентификация. Установите BIROUTER_API_KEY или выполните: birouter setup",
+    "rateLimited": "Превышен лимит запросов. Повторите через {seconds}с.",
+    "timeout": "Запрос истёк через {ms}мс.",
+    "success": "Готово.",
+    "yes": "да",
+    "no": "нет",
+    "confirm": "Вы уверены? (да/нет)",
+    "dryRun": "[симуляция] выполнит: {action}",
+    "cancelled": "Отменено.",
+    "jsonOpt": "Вывод в формате JSON",
+    "yesOpt": "Пропустить подтверждение"
+  },
+  "program": {
+    "description": "Birouter — Умный AI-маршрутизатор с автоматическим переключением",
+    "version": "Вывести версию и выйти",
+    "output": "Формат вывода (table, json, jsonl, csv)",
+    "quiet": "Подавить несущественный вывод",
+    "no_color": "Отключить цветной вывод",
+    "timeout": "Таймаут HTTP-запросов в миллисекундах",
+    "api_key": "API-ключ для сервера Birouter",
+    "base_url": "Базовый URL сервера Birouter",
+    "context": "Контекст/профиль сервера для этой команды",
+    "lang": "Установить язык отображения CLI (переопределяет BIROUTER_LANG)"
+  },
+  "redis": {
+    "description": "Запустить локальный контейнер Redis одним нажатием (Podman или Docker) для кэширования и отслеживания квот Birouter"
+  }
+}

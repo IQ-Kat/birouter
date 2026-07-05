@@ -1,0 +1,32 @@
+{
+  "common": {
+    "error": "Hata: {message}",
+    "serverOffline": "Birouter sunucusu çevrimdışı. Başlatın: birouter serve",
+    "authRequired": "Kimlik doğrulama gerekli. BIROUTER_API_KEY ayarlayın veya çalıştırın: birouter setup",
+    "rateLimited": "İstek limiti aşıldı. {seconds}s sonra tekrar deneyin.",
+    "timeout": "İstek {ms}ms sonra zaman aşımına uğradı.",
+    "success": "Tamamlandı.",
+    "yes": "evet",
+    "no": "hayır",
+    "confirm": "Emin misiniz? (evet/hayır)",
+    "dryRun": "[simülasyon] yapılacaktı: {action}",
+    "cancelled": "İptal edildi.",
+    "jsonOpt": "JSON olarak çıktı",
+    "yesOpt": "Onayı atla"
+  },
+  "program": {
+    "description": "Birouter — Otomatik Fallback ile Akıllı AI Yönlendirici",
+    "version": "Sürümü yazdır ve çık",
+    "output": "Çıktı formatı (table, json, jsonl, csv)",
+    "quiet": "Önemsiz çıktıyı gizle",
+    "no_color": "Renkli çıktıyı devre dışı bırak",
+    "timeout": "HTTP istek zaman aşımı (milisaniye)",
+    "api_key": "Birouter sunucusu için API anahtarı",
+    "base_url": "Birouter sunucusu temel URL'si",
+    "context": "Bu komut için sunucu bağlamı/profili",
+    "lang": "CLI görüntüleme dilini ayarla (BIROUTER_LANG'ı geçersiz kılar)"
+  },
+  "redis": {
+    "description": "Birouter önbelleği ve kota takibi için tek tıkla yerel Redis konteyneri (Podman veya Docker) başlatın"
+  }
+}

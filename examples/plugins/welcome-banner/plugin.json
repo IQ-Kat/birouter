@@ -1,0 +1,29 @@
+{
+  "name": "welcome-banner",
+  "version": "1.0.0",
+  "description": "Adds a welcome banner to API responses",
+  "author": "Birouter",
+  "license": "MIT",
+  "main": "index.mjs",
+  "source": "local",
+  "tags": ["demo", "banner"],
+  "hooks": {
+    "onRequest": true,
+    "onResponse": true,
+    "onError": false
+  },
+  "permissions": [],
+  "enabledByDefault": true,
+  "configSchema": {
+    "bannerText": {
+      "type": "string",
+      "default": "Welcome to Birouter!",
+      "description": "Banner message to display"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable the banner"
+    }
+  }
+}
