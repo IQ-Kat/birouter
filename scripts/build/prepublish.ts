@@ -176,11 +176,15 @@ if (existsSync(mitmSrc)) {
   mkdirSync(mitmDest, { recursive: true });
 
   // Write a temporary tsconfig.json targeting the mitm directory
+  // rootDir = mitmSrc limits scope to MITM files only. Cross-root imports (e.g.
+  // @/lib/db/) will fail during type-check, triggering the non-fatal fallback
+  // that copies source .ts files as-is. This is by design — MITM compilation is
+  // best-effort; the Next.js build handles the actual bundling.
   const mitmTsconfig = {
     compilerOptions: {
       target: "ES2022",
-      module: "NodeNext",
-      moduleResolution: "NodeNext",
+      module: "esnext",
+      moduleResolution: "bundler",
       outDir: mitmDest,
       rootDir: mitmSrc,
       strict: false,
@@ -197,6 +201,7 @@ if (existsSync(mitmSrc)) {
       baseUrl: ".",
       paths: {
         "@/*": ["src/*"],
+        "@birouter/open-sse/*": ["open-sse/*"],
       },
     },
     include: [mitmSrc + "/**/*"],
@@ -208,6 +213,7 @@ if (existsSync(mitmSrc)) {
     execFileSync(NPX_BIN, ["tsc", "-p", "tsconfig.mitm.tmp.json"], {
       cwd: ROOT,
       stdio: "inherit",
+      shell: process.platform === "win32",
     });
     const mitmServerSrc = join(mitmSrc, "server.cjs");
     if (existsSync(mitmServerSrc)) {
@@ -246,7 +252,7 @@ if (existsSync(mcpSrcFile)) {
         "--format=esm",
         "--outfile=dist/open-sse/mcp-server/server.js",
       ],
-      { cwd: ROOT, stdio: "inherit" }
+      { cwd: ROOT, stdio: "inherit", shell: process.platform === "win32" }
     );
     console.log("  ✅ MCP Server bundled to dist/open-sse/mcp-server/server.js");
   } catch (err: any) {
@@ -292,7 +298,7 @@ if (existsSync(llmWorkerSrc)) {
         "--format=esm",
         "--outfile=dist/open-sse/services/compression/engines/llmlingua/onnxWorker.js",
       ],
-      { cwd: ROOT, stdio: "inherit" }
+      { cwd: ROOT, stdio: "inherit", shell: process.platform === "win32" }
     );
     console.log(
       "  ✅ LLMLingua worker bundled to dist/open-sse/services/compression/engines/llmlingua/onnxWorker.js"
@@ -320,7 +326,7 @@ if (existsSync(cliSrcFile)) {
         "--format=esm",
         "--outfile=bin/birouter.mjs",
       ],
-      { cwd: ROOT, stdio: "inherit" }
+      { cwd: ROOT, stdio: "inherit", shell: process.platform === "win32" }
     );
     chmodSync(cliDestFile, 0o755);
     console.log("  ✅ CLI Entrypoint bundled to bin/birouter.mjs");
@@ -353,11 +359,13 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
         execFileSync(NPM_BIN, ["install", "--no-audit", "--no-fund"], {
           cwd: opencodePluginSrc,
           stdio: "inherit",
+          shell: process.platform === "win32",
         });
       }
       execFileSync(NPX_BIN, ["tsup"], {
         cwd: opencodePluginSrc,
         stdio: "inherit",
+        shell: process.platform === "win32",
         env: { ...process.env, NODE_ENV: "production" },
       });
       console.log("  ✅ @birouter/opencode-plugin bundled to @birouter/opencode-plugin/dist/");
