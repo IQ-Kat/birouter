@@ -4,6 +4,7 @@
 
 ---
 
+
 > Birouter is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 177 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (37 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex-cloud, devin, jules), Guardrails framework, and an Electron desktop app.
 
 ## Overview
@@ -497,7 +498,7 @@ Birouter solves the problem of managing multiple AI provider subscriptions, quot
 ## Links
 
 - Repository: https://github.com/IQ-Kat/birouter
-- Website: https://Birouter.online
+- Website: https://omniroute.online
 - npm: https://www.npmjs.com/package/Birouter
 - Docker Hub: https://hub.docker.com/r/IQ-Kat/birouter
 - Documentation: See `/docs/` directory

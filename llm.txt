@@ -493,7 +493,7 @@ Birouter solves the problem of managing multiple AI provider subscriptions, quot
 ## Links
 
 - Repository: https://github.com/IQ-Kat/birouter
-- Website: https://Birouter.online
+- Website: https://omniroute.online
 - npm: https://www.npmjs.com/package/Birouter
 - Docker Hub: https://hub.docker.com/r/IQ-Kat/birouter
 - Documentation: See `/docs/` directory
