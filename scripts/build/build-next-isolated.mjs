@@ -168,7 +168,7 @@ export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
   // on a 32-core box; ~20min -> 7min on ubuntu-latest), artifact validated
   // end-to-end (standalone smoke + e2e/package/electron CI jobs). Webpack stays as
   // the explicit escape hatch (=0) for bundler-compat regressions.
-  return baseEnv.OMNIROUTE_USE_TURBOPACK === "0" ? "--webpack" : "--turbopack";
+  return baseEnv.BIROUTER_USE_TURBOPACK === "0" ? "--webpack" : "--turbopack";
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
@@ -299,7 +299,7 @@ export async function main() {
 
     if (isBackendOnlyBuild()) {
       console.log(
-        "[build-next-isolated] OMNIROUTE_BUILD_BACKEND_ONLY set — building API only (dashboard UI stubbed)"
+        "[build-next-isolated] BIROUTER_BUILD_BACKEND_ONLY set — building API only (dashboard UI stubbed)"
       );
       stubbedPages = stubDashboardPages(projectRoot);
       process.once("SIGINT", onFatalSignal);

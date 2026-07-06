@@ -69,10 +69,10 @@ process.env.NODE_ENV = dev ? "development" : "production";
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
 // Turbopack by default in dev (matches the Next 16 CLI default and the production
-// build default in build-next-isolated.mjs); OMNIROUTE_USE_TURBOPACK=0 is the
+// build default in build-next-isolated.mjs); BIROUTER_USE_TURBOPACK=0 is the
 // webpack escape hatch.
-const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK !== "0";
-process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
+const useTurbopack = dev && mergedEnv.BIROUTER_USE_TURBOPACK !== "0";
+process.env.BIROUTER_WS_BRIDGE_SECRET ||= randomUUID();
 // Per-process secret used to prove the trusted peer-IP stamp came from this
 // server (read by the authz middleware in the same process). See peer-stamp.mjs.
 ensurePeerStampToken();

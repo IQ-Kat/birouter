@@ -2,11 +2,11 @@
 /**
  * Backend-only build helper.
  *
- * When `OMNIROUTE_BUILD_BACKEND_ONLY=1` (or `OMNIROUTE_BUILD_PROFILE=backend`) is set,
+ * When `BIROUTER_BUILD_BACKEND_ONLY=1` (or `BIROUTER_BUILD_PROFILE=backend`) is set,
  * `build-next-isolated.mjs` calls `stubDashboardPages()` BEFORE `next build` and
  * `restoreDashboardPages()` in a `finally` afterward.
  *
- * WHY: OmniRoute embedders that only consume the HTTP API (`/api/*`, `/v1/*`, `/v1beta/*`)
+ * WHY: Birouter embedders that only consume the HTTP API (`/api/*`, `/v1/*`, `/v1beta/*`)
  * — e.g. the VibeProxy desktop app, headless self-hosters, CI that only needs the router —
  * do NOT need the Next.js dashboard UI. Building it dominates `next build`: the ~126 leaf
  * pages pull in heavy client vendor chunks (recharts, monaco-editor, @xyflow, mermaid,
@@ -34,7 +34,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const BACKEND_ONLY_STUB_MARKER =
-  "/* omniroute:backend-only-stub (auto-restored after build) */";
+  "/* birouter:backend-only-stub (auto-restored after build) */";
 
 const HEADER = `${BACKEND_ONLY_STUB_MARKER}\n`;
 
@@ -56,7 +56,7 @@ const UI_BASENAME_RE =
 const ROUTE_FILE_RE = /[\\/]route\.(ts|js|tsx|jsx)$/;
 
 /**
- * Strip a leading `"use server"` module directive. Some OmniRoute API Route Handlers
+ * Strip a leading `"use server"` module directive. Some Birouter API Route Handlers
  * (`src/app/api/**\/route.ts`) carry a top-level `"use server"` — which registers the module
  * as a React Server-Actions provider. Once the dashboard pages that import those exports as
  * actions are stubbed away, Next's FlightClientEntryPlugin still has the action registered but
@@ -84,7 +84,7 @@ function stripLeadingUseServer(src) {
 
 /** True when the current build should skip the dashboard frontend. */
 export function isBackendOnlyBuild(env = process.env) {
-  return env.OMNIROUTE_BUILD_BACKEND_ONLY === "1" || env.OMNIROUTE_BUILD_PROFILE === "backend";
+  return env.BIROUTER_BUILD_BACKEND_ONLY === "1" || env.BIROUTER_BUILD_PROFILE === "backend";
 }
 
 function walkFiles(dir, out = []) {
