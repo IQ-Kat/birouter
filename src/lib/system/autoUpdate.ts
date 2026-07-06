@@ -125,7 +125,7 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
 
   let mode = normalizeMode(env.AUTO_UPDATE_MODE);
   if (mode === "npm") {
-    const isGitRepo = existsSync(path.join(PROJECT_ROOT, ".git"));
+    const isGitRepo = existsSync(path.join(/* turbopackIgnore: true */ PROJECT_ROOT, ".git"));
     const currentDir = typeof __dirname !== "undefined" ? __dirname : PROJECT_ROOT;
     mode = resolveAutoUpdateMode(mode, { isGitRepo, currentDir });
   }
@@ -166,7 +166,7 @@ export async function validateAutoUpdateRuntime(
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
   if (config.mode === "source") {
-    const gitDir = path.join(PROJECT_ROOT, ".git");
+    const gitDir = path.join(/* turbopackIgnore: true */ PROJECT_ROOT, ".git");
     if (!(await existsImpl(gitDir))) {
       return {
         supported: false,

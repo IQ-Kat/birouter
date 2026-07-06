@@ -64,9 +64,9 @@ function getModuleDir(): string {
   if (typeof argv1 === "string" && argv1) anchors.push(path.dirname(argv1));
   const rel = path.join("open-sse", "services", "compression");
   for (const anchor of anchors) {
-    let dir = path.resolve(anchor);
+    let dir = path.resolve(/* turbopackIgnore: true */ anchor);
     for (let i = 0; i <= 8; i++) {
-      if (fs.existsSync(path.join(dir, rel))) return dir;
+      if (fs.existsSync(path.join(/* turbopackIgnore: true */ dir, rel))) return dir;
       const parent = path.dirname(dir);
       if (parent === dir) break;
       dir = parent;
@@ -223,7 +223,7 @@ export function loadAllRulesForLanguage(
   const key = `${getRulesDir()}:${language}:*`;
   if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
 
-  const languageDir = path.join(getRulesDir(), language);
+  const languageDir = path.join(/* turbopackIgnore: true */ getRulesDir(), language);
   if (!fs.existsSync(languageDir)) {
     cache.set(key, []);
     return [];
@@ -245,10 +245,12 @@ export function getAvailableLanguagePacks(): RulePackMetadata[] {
 
   return fs
     .readdirSync(root)
-    .filter((entry) => fs.statSync(path.join(root, entry)).isDirectory())
+    .filter((entry) =>
+      fs.statSync(path.join(/* turbopackIgnore: true */ root, entry)).isDirectory()
+    )
     .map((language) => {
       const categories = fs
-        .readdirSync(path.join(root, language))
+        .readdirSync(path.join(/* turbopackIgnore: true */ root, language))
         .filter((entry) => entry.endsWith(".json"))
         .map((entry) => path.basename(entry, ".json"))
         .sort();

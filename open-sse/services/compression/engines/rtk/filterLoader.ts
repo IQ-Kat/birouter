@@ -52,9 +52,9 @@ function getModuleDir(): string {
   if (typeof argv1 === "string" && argv1) anchors.push(path.dirname(argv1));
   const rel = path.join("open-sse", "services", "compression");
   for (const anchor of anchors) {
-    let dir = path.resolve(anchor);
+    let dir = path.resolve(/* turbopackIgnore: true */ anchor);
     for (let i = 0; i <= 8; i++) {
-      if (fs.existsSync(path.join(dir, rel))) return dir;
+      if (fs.existsSync(path.join(/* turbopackIgnore: true */ dir, rel))) return dir;
       const parent = path.dirname(dir);
       if (parent === dir) break;
       dir = parent;

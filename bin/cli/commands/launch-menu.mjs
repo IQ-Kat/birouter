@@ -26,23 +26,23 @@ function createPrompt(question) {
   });
 }
 
-function printBanner() {
+function printBanner(version) {
+  const ver = version ? `v${version}` : "";
   console.log(`
-\x1b[36m   ____  _                     _
-  |  _ \\(_)               _   | |
-  | |_) |_ _ __ ___  _   | |_ | |_ ___  _ __
-  |  _ <| | '__/ _ \\| | | |  _|| __/ _ \\| '__|
-  | |_) | | | | (_) | |_| | |_ | ||  __/| |
-  |____/|_|_|  \\___/ \\__,_|\\__| \\__\\___||_|
-\x1b[0m`);
+\x1b[36m  ____ ___ ____   ___  _   _ _____ _____ ____  
+ | __ )_ _|  _ \\ / _ \\| | | |_   _| ____|  _ \\ 
+ |  _ \\| || |_) | | | | | | | | | |  _| | |_) |
+ | |_) | ||  _ <| |_| | |_| | | | | |___|  _ < 
+ |____/___|_| \\_\\\\___/ \\___/  |_| |_____|_| \\_\\
+\x1b[0m  \x1b[34m${ver}  by Ikbal (IQ-Kat)\x1b[0m`);
 }
 
 /**
  * Show the interactive launch menu.
  * Returns the action to perform: "serve", "serve-tray", "help", or "quit".
  */
-export async function showLaunchMenu() {
-  printBanner();
+export async function showLaunchMenu(version) {
+  printBanner(version);
 
   const supportsTray = platform() === "win32" || platform() === "darwin";
 

@@ -67,6 +67,9 @@
     "auto-fallback"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "IQ-Kat",
   "repository": {
     "type": "git",

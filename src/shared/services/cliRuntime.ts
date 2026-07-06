@@ -586,7 +586,7 @@ const getKnownToolPaths = (toolId: string): string[] => {
           paths.push(appDataPath);
         }
       }
-      if (nvmNodePath) paths.push(path.join(nvmNodePath, winName));
+      if (nvmNodePath) paths.push(path.join(/* turbopackIgnore: true */ nvmNodePath, winName));
     }
   } else {
     for (const [, posixName] of bins) {

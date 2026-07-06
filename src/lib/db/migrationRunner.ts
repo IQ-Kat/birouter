@@ -204,7 +204,7 @@ function getMigrationFiles(): Array<{ version: string; name: string; path: strin
       return {
         version: match[1],
         name: match[2],
-        path: path.join(MIGRATIONS_DIR, filename),
+        path: path.join(/* turbopackIgnore: true */ MIGRATIONS_DIR, filename),
       };
     })
     .filter(Boolean) as Array<{ version: string; name: string; path: string }>;

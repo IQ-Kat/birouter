@@ -239,7 +239,7 @@ function assembleFileContent(fm: { name: string; description: string }, body: st
 export async function generateAgentSkills(opts: GeneratorOptions): Promise<GeneratorReport> {
   const { dryRun = true, prune = false, outputDir = "skills", onlyIds } = opts;
 
-  const outputBase = path.resolve(process.cwd(), outputDir);
+  const outputBase = path.resolve(/* turbopackIgnore: true */ process.cwd(), outputDir);
 
   const catalog = getCatalog();
   const catalogIds = new Set(catalog.map((s) => s.id));
@@ -294,7 +294,10 @@ export async function generateAgentSkills(opts: GeneratorOptions): Promise<Gener
         report.orphansDetected.push(dir);
         if (!dryRun) {
           try {
-            fs.rmSync(path.join(outputBase, dir), { recursive: true, force: true });
+            fs.rmSync(path.join(/* turbopackIgnore: true */ outputBase, dir), {
+              recursive: true,
+              force: true,
+            });
             report.pruned.push(dir);
           } catch (err) {
             report.errors.push({
@@ -312,7 +315,7 @@ export async function generateAgentSkills(opts: GeneratorOptions): Promise<Gener
 
   for (const skill of skillsToProcess) {
     try {
-      const skillDir = path.join(outputBase, skill.id);
+      const skillDir = path.join(/* turbopackIgnore: true */ outputBase, skill.id);
       const skillFile = path.join(skillDir, "SKILL.md");
 
       // Read existing content for marker preservation

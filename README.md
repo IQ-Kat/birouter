@@ -1180,7 +1180,7 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 </div>
 
-Birouter stands on the shoulders of giants. It started as a fork of **[9router](https://github.com/decolua/9router)** and a TypeScript port of the Go project **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — and from there, every subsystem below was inspired by an open-source project that got there first. Each one shaped a concrete piece of Birouter. This is our thank-you to all of them. 🙏
+Birouter stands on the shoulders of giants. It started as a fork of **[OmniRoute](https://github.com/diegosouzapw/OmniRoute)** (which itself was a fork of **[9router](https://github.com/decolua/9router)**) and a TypeScript port of the Go project **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — and from there, every subsystem below was inspired by an open-source project that got there first. Each one shaped a concrete piece of Birouter. This is our thank-you to all of them. 🙏
 
 > ⭐ star counts as of June 2026 — go give these projects a star.
 
@@ -1188,7 +1188,8 @@ Birouter stands on the shoulders of giants. It started as a fork of **[9router](
 
 | Project                                                                         |    ⭐ | How it inspired Birouter                                                                                                              |
 | ------------------------------------------------------------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **[9router](https://github.com/decolua/9router)** · decolua                     | 19.0k | The original project this fork is built on — extended here with multi-modal APIs and a full TypeScript rewrite.                       |
+| **[9router](https://github.com/decolua/9router)** · decolua                     | 19.0k | The original upstream this project traces back to.                                                                                    |
+| **[OmniRoute](https://github.com/diegosouzapw/OmniRoute)** · diegosouzapw       |       | The direct fork source — Birouter was built on OmniRoute's foundation before diverging into a standalone router.                      |
 | **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** · router-for-me | 38.8k | The Go implementation that inspired this JavaScript / TypeScript port.                                                                |
 | **[LiteLLM](https://github.com/BerriAI/litellm)** · BerriAI                     | 52.1k | The AI gateway whose public pricing dataset feeds our cost-tracking sync and whose provider-normalization model informed our routing. |
 

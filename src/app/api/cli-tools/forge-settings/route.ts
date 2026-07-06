@@ -19,7 +19,8 @@ import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 const TOOL_ID = "forge";
 
 const getForgeConfigPath = (): string =>
-  getCliPrimaryConfigPath(TOOL_ID) ?? path.join(process.env.HOME ?? "~", ".forge", "config.toml");
+  getCliPrimaryConfigPath(TOOL_ID) ??
+  path.join(/* turbopackIgnore: true */ process.env.HOME ?? "~", ".forge", "config.toml");
 
 const getForgeDir = () => path.dirname(getForgeConfigPath());
 
