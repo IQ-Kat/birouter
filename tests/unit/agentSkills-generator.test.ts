@@ -62,7 +62,7 @@ test("dry-run (default) returns report without writing any files", async () => {
     assert.equal(
       report.generated.length + report.unchanged.length,
       44,
-      `Expected 44 total (generated+unchanged), got generated=${report.generated.length} unchanged=${report.unchanged.length}`,
+      `Expected 44 total (generated+unchanged), got generated=${report.generated.length} unchanged=${report.unchanged.length}`
     );
     assert.equal(report.errors.length, 0, `Unexpected errors: ${JSON.stringify(report.errors)}`);
 

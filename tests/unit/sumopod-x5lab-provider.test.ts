@@ -51,7 +51,11 @@ test("SumoPod registry entry uses OpenAI format with bearer API-key auth and pas
   assert.equal(entry.baseUrl, SUMOPOD_CHAT_URL);
   assert.equal(entry.modelsUrl, SUMOPOD_MODELS_URL);
   assert.equal(entry.passthroughModels, true);
-  assert.deepEqual(entry.models, [], "SumoPod ships no speculative seeded models — passthrough only");
+  assert.deepEqual(
+    entry.models,
+    [],
+    "SumoPod ships no speculative seeded models — passthrough only"
+  );
 });
 
 test("X5Lab registry entry uses OpenAI format with bearer API-key auth and passthrough models", () => {

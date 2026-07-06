@@ -60,7 +60,10 @@ test("handleImageGeneration(nvidia/flux.1-schnell): URL construction + minimal b
     });
 
     assert.equal(result.success, true);
-    assert.equal(capturedUrl, "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell");
+    assert.equal(
+      capturedUrl,
+      "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell"
+    );
     assert.equal(capturedOptions.method, "POST");
     assert.equal(capturedOptions.headers.Authorization, "Bearer nv-token");
     assert.equal(capturedOptions.headers.Accept, "application/json");

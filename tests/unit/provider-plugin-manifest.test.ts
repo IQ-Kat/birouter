@@ -76,7 +76,7 @@ test("provider plugin manifest is JSON-safe and stable enough for sidecars", () 
   assert.equal(roundTripped.providers.length, 4);
   assert.deepEqual(
     roundTripped.providers.map((provider: { id: string }) => provider.id),
-    [...roundTripped.providers.map((provider: { id: string }) => provider.id)].sort(),
+    [...roundTripped.providers.map((provider: { id: string }) => provider.id)].sort()
   );
 });
 

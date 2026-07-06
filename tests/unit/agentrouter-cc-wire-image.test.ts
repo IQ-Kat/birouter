@@ -78,11 +78,7 @@ test("(c) CRUX: agentrouter keeps its OWN registry baseUrl + ?beta=true", () => 
 
 test("(c) real CC-family provider still uses the CC default baseUrl + Bearer auth", () => {
   // The wire-image guard must NOT leak into genuine anthropic-compatible-cc-* providers.
-  const headers = buildProviderHeaders(
-    "anthropic-compatible-cc-foo",
-    { apiKey: "sk-foo" },
-    true
-  );
+  const headers = buildProviderHeaders("anthropic-compatible-cc-foo", { apiKey: "sk-foo" }, true);
   assert.equal(headers["Authorization"], "Bearer sk-foo");
   assert.equal(headers["x-api-key"], undefined);
 

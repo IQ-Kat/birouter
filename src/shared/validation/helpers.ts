@@ -64,8 +64,7 @@ export function isValidationFailure<TData>(
  * do `if (!r.success) return r.response;` without knowing the envelope shape.
  */
 export type ValidatedJsonBodyResult<TData> =
-  | { success: true; data: TData }
-  | { success: false; response: NextResponse };
+  { success: true; data: TData } | { success: false; response: NextResponse };
 
 /**
  * Parse a request body as JSON and validate it against a Zod schema in one

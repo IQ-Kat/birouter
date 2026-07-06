@@ -96,14 +96,8 @@ test("resolver: default false when neither config nor settings set it", () => {
 });
 
 test("resolver: global settings fallback (AC #3 global on)", () => {
-  assert.equal(
-    resolveDisableSessionStickiness({}, { disableSessionStickiness: true }),
-    true
-  );
-  assert.equal(
-    resolveDisableSessionStickiness({}, { disableSessionStickiness: false }),
-    false
-  );
+  assert.equal(resolveDisableSessionStickiness({}, { disableSessionStickiness: true }), true);
+  assert.equal(resolveDisableSessionStickiness({}, { disableSessionStickiness: false }), false);
 });
 
 test("resolver: per-combo config wins over global (AC #3 precedence)", () => {

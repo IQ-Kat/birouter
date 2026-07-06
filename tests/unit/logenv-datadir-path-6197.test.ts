@@ -50,20 +50,14 @@ test("getAppLogFilePath: default anchors to DATA_DIR, not process.cwd()", () => 
         path.resolve(dataDir).startsWith(path.resolve(process.cwd())),
       `log path must not be anchored to cwd; got ${resolved}`
     );
-    assert.equal(
-      resolved,
-      path.join(resolveDataDir(), "logs", "application", "app.log")
-    );
+    assert.equal(resolved, path.join(resolveDataDir(), "logs", "application", "app.log"));
   });
 });
 
 test("getAppLogFilePath: default with no DATA_DIR uses default data dir, not cwd", () => {
   withEnv({ DATA_DIR: undefined, APP_LOG_FILE_PATH: undefined }, () => {
     const resolved = getAppLogFilePath();
-    assert.equal(
-      resolved,
-      path.join(resolveDataDir(), "logs", "application", "app.log")
-    );
+    assert.equal(resolved, path.join(resolveDataDir(), "logs", "application", "app.log"));
   });
 });
 

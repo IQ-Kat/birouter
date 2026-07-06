@@ -9,9 +9,8 @@ import assert from "node:assert/strict";
 
 describe("MuxServiceTab — module shape", () => {
   it("exports MuxServiceTab function", async () => {
-    const mod = await import(
-      "../../../../../src/app/(dashboard)/dashboard/providers/services/tabs/MuxServiceTab.tsx"
-    );
+    const mod =
+      await import("../../../../../src/app/(dashboard)/dashboard/providers/services/tabs/MuxServiceTab.tsx");
     assert.equal(typeof mod.MuxServiceTab, "function");
   });
 });

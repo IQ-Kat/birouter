@@ -62,9 +62,7 @@ test("a genuinely empty credential is NOT flagged as decrypt failure (#6148)", a
 });
 
 test("models route guard returns HTTP 424 storage_encryption_stale (#6148)", async () => {
-  const guard = await importFresh(
-    "src/app/api/providers/[id]/models/staleEncryptionGuard.ts"
-  );
+  const guard = await importFresh("src/app/api/providers/[id]/models/staleEncryptionGuard.ts");
 
   // Connection flagged by decryptConnectionFields (stale key).
   const staleResponse = guard.buildStaleEncryptionKeyResponse({

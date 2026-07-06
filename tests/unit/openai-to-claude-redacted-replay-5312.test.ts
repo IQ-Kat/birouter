@@ -36,12 +36,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiToClaudeRequest } = await import(
-  "../../open-sse/translator/request/openai-to-claude.ts"
-);
-const { DEFAULT_THINKING_CLAUDE_SIGNATURE } = await import(
-  "../../open-sse/config/defaultThinkingSignature.ts"
-);
+const { openaiToClaudeRequest } =
+  await import("../../open-sse/translator/request/openai-to-claude.ts");
+const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
+  await import("../../open-sse/config/defaultThinkingSignature.ts");
 
 test("#5945: reasoning_content on a plain-text assistant turn (no tool_use, thinking not requested) yields NO redacted_thinking/thinking block", () => {
   const result = openaiToClaudeRequest(

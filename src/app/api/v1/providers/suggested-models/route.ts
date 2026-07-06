@@ -63,10 +63,10 @@ export async function GET(request: Request) {
   const { type, sortBy, limit } = parsed.data;
   const pipelineTag = resolveHfPipelineTag(type);
   if (!pipelineTag) {
-    return NextResponse.json(
-      buildErrorBody(400, `Unsupported suggested-models type: ${type}`),
-      { status: 400, headers: CORS_HEADERS }
-    );
+    return NextResponse.json(buildErrorBody(400, `Unsupported suggested-models type: ${type}`), {
+      status: 400,
+      headers: CORS_HEADERS,
+    });
   }
 
   try {

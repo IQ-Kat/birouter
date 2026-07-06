@@ -87,8 +87,7 @@ export interface ResolvedCompatibleProviderCatalogEntry extends ProviderCatalogM
 }
 
 export type ResolvedProviderCatalogEntry =
-  | ResolvedStaticProviderCatalogEntry
-  | ResolvedCompatibleProviderCatalogEntry;
+  ResolvedStaticProviderCatalogEntry | ResolvedCompatibleProviderCatalogEntry;
 
 export const STATIC_PROVIDER_CATALOG_GROUPS: Record<
   StaticProviderCatalogCategory,

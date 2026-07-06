@@ -14,8 +14,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://hyper.charm.land",
     hasFree: true,
     freeNote: "100 free monthly Hypercredits on signup",
-    apiHint:
-      "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
+    apiHint: "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
   },
   agentrouter: {
     id: "agentrouter",

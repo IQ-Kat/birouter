@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { unwrapClineNonStreamingEnvelope } = await import(
-  "../../open-sse/handlers/chatCore/clineResponseEnvelope.ts"
-);
+const { unwrapClineNonStreamingEnvelope } =
+  await import("../../open-sse/handlers/chatCore/clineResponseEnvelope.ts");
 
 test("unwrapClineNonStreamingEnvelope extracts Cline wrapped chat completions", () => {
   const wrapped = {

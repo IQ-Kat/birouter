@@ -1,9 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  insertNextSection,
-  extractSection,
-} from "../../scripts/release/sync-next-cycle.mjs";
+import { insertNextSection, extractSection } from "../../scripts/release/sync-next-cycle.mjs";
 
 // Pure-function guards for the parallel-cycle sync-back (generate-release
 // Phase 5 step 20): main's CHANGELOG must win VERBATIM and the next cycle's

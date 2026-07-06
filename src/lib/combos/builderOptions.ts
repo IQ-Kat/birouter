@@ -554,9 +554,8 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
       customModels
     );
 
-    const normalizedConnections = expandConnectionOptions(providerConnections).sort(
-      compareConnections
-    );
+    const normalizedConnections =
+      expandConnectionOptions(providerConnections).sort(compareConnections);
 
     const activeConnectionCount = normalizedConnections.filter(
       (connection) => connection.isActive

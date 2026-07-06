@@ -25,9 +25,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { updateSettings } = await import("../../src/lib/db/settings.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { shouldDefaultAllowClassifier, buildDefaultAllowClaudeMessage } = await import(
-  "../../open-sse/handlers/chatCore/claudeClassifierCompat.ts"
-);
+const { shouldDefaultAllowClassifier, buildDefaultAllowClaudeMessage } =
+  await import("../../open-sse/handlers/chatCore/claudeClassifierCompat.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 const originalFetch = globalThis.fetch;

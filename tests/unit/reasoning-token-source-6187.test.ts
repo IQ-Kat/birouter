@@ -77,7 +77,9 @@ test("saveCallLog records reasoning_source=content when usage under-reports reas
     // usage EXPLICITLY reports reasoning_tokens=0 (the bug trigger)
     tokens: { prompt_tokens: 10, completion_tokens: 20, reasoning_tokens: 0 },
     responseBody: {
-      choices: [{ message: { role: "assistant", content: "answer", reasoning_content: reasoning } }],
+      choices: [
+        { message: { role: "assistant", content: "answer", reasoning_content: reasoning } },
+      ],
     },
   });
 
@@ -135,7 +137,9 @@ test("saveCallLog keeps reasoning_source=usage when usage reports reasoning toke
   });
 
   const row = db
-    .prepare("SELECT tokens_reasoning, reasoning_source, reasoning_chars FROM call_logs WHERE id = ?")
+    .prepare(
+      "SELECT tokens_reasoning, reasoning_source, reasoning_chars FROM call_logs WHERE id = ?"
+    )
     .get(testId) as {
     tokens_reasoning: number | null;
     reasoning_source: string | null;

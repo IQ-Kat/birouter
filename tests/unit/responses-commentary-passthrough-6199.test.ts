@@ -173,10 +173,7 @@ test("commentary-phase output text is NOT forwarded when dropping is enabled (#6
     "commentary-phase text must be dropped from the passthrough stream"
   );
   // The commentary item announcement / completion must not leak either.
-  assert.ok(
-    !output.includes("msg_commentary"),
-    "commentary item events must be dropped entirely"
-  );
+  assert.ok(!output.includes("msg_commentary"), "commentary item events must be dropped entirely");
   // The real answer must always be forwarded.
   assert.ok(output.includes(FINAL_TEXT), "the final answer text must be forwarded");
   assert.ok(output.includes("msg_final"), "the final answer item must be forwarded");

@@ -31,7 +31,10 @@ test("returns valid=false for non-JSON non-SSE text", async () => {
 
 test("returns valid=false for Responses API bodies with no output items", async () => {
   const res = await validateResponseQuality(
-    makeResponse(JSON.stringify({ object: "response", status: "completed", output: [] }), "application/json"),
+    makeResponse(
+      JSON.stringify({ object: "response", status: "completed", output: [] }),
+      "application/json"
+    ),
     false,
     {}
   );

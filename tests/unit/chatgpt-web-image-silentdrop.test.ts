@@ -16,9 +16,8 @@ import { join } from "node:path";
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-cgptweb-silentdrop-"));
 
 const { detectImageResolutionFailure } = await import("../../open-sse/executors/chatgpt-web.ts");
-const { handleChatGptWebImageGeneration } = await import(
-  "../../open-sse/handlers/imageGeneration/providers/chatgptWeb.ts"
-);
+const { handleChatGptWebImageGeneration } =
+  await import("../../open-sse/handlers/imageGeneration/providers/chatgptWeb.ts");
 
 function fakeExecutor(jsonBody: object, status = 200) {
   return {

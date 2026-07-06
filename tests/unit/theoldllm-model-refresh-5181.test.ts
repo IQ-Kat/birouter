@@ -9,9 +9,7 @@ import assert from "node:assert/strict";
 //      to the `return "GPT_5_4"` default and silently misrouted every request.
 //   2. The registry catalog is refreshed with the current free-tier models while
 //      keeping the legacy alias IDs for saved-preference backward compatibility.
-const { mapModel, CHATGPT_UPSTREAM_MODELS } = await import(
-  "../../open-sse/executors/theoldllm.ts"
-);
+const { mapModel, CHATGPT_UPSTREAM_MODELS } = await import("../../open-sse/executors/theoldllm.ts");
 const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
 
 function catalogIds(): string[] {

@@ -19,13 +19,15 @@ import assert from "node:assert/strict";
 // misses, and retrieval errors out.
 
 const { createMcpServer } = await import("../../open-sse/mcp-server/server.ts");
-const { storeBlock, resetCcrStore } = await import(
-  "../../open-sse/services/compression/engines/ccr/index.ts"
-);
+const { storeBlock, resetCcrStore } =
+  await import("../../open-sse/services/compression/engines/ccr/index.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 type RegisteredTool = {
-  handler: (args: unknown, extra?: unknown) => Promise<{
+  handler: (
+    args: unknown,
+    extra?: unknown
+  ) => Promise<{
     content?: Array<{ type: string; text: string }>;
     isError?: boolean;
   }>;

@@ -8,9 +8,8 @@ import assert from "node:assert/strict";
 // The pure resolvers below turn the raw header values into an override the
 // auto-combo engine already knows how to consume (config.modePack / config.budgetCap).
 
-const { resolveRequestModePack, parseRequestBudgetCap } = await import(
-  "../../open-sse/services/autoCombo/requestControls.ts"
-);
+const { resolveRequestModePack, parseRequestBudgetCap } =
+  await import("../../open-sse/services/autoCombo/requestControls.ts");
 
 test("#6024 friendly presets map to mode packs and override combo config", () => {
   assert.deepEqual(resolveRequestModePack("fast"), { override: true, modePack: "ship-fast" });

@@ -13,7 +13,7 @@ test("provider manifest URL uses explicit env override", () => {
   try {
     assert.equal(
       resolveProviderPluginManifestUrl("http://127.0.0.1:20128"),
-      "http://sidecar.local/manifest.json",
+      "http://sidecar.local/manifest.json"
     );
   } finally {
     if (previous === undefined) {
@@ -27,13 +27,12 @@ test("provider manifest URL uses explicit env override", () => {
 test("provider manifest URL derives from request origin", () => {
   assert.equal(
     resolveProviderPluginManifestUrl("http://127.0.0.1:20128/"),
-    "http://127.0.0.1:20128/api/v1/provider-plugin-manifest",
+    "http://127.0.0.1:20128/api/v1/provider-plugin-manifest"
   );
 });
 
 test("provider manifest header exposes stable header name", () => {
   assert.deepEqual(getProviderPluginManifestHeader("http://localhost:20128"), {
-    [PROVIDER_PLUGIN_MANIFEST_HEADER]:
-      "http://localhost:20128/api/v1/provider-plugin-manifest",
+    [PROVIDER_PLUGIN_MANIFEST_HEADER]: "http://localhost:20128/api/v1/provider-plugin-manifest",
   });
 });

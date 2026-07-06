@@ -21,62 +21,53 @@ import { isNoSudoEnv, resolveSudoSpawn } from "../../src/mitm/systemCommands.ts"
 // the exact environment the feature targets (sudo present, must be skipped).
 const NON_ROOT_WITH_SUDO = { root: false, sudoAvailable: true } as const;
 
-test(
-  "resolveSudoSpawn: with OMNIROUTE_NO_SUDO=1, strips `sudo -S` and needs no password",
-  () => {
-    const prev = process.env.OMNIROUTE_NO_SUDO;
-    process.env.OMNIROUTE_NO_SUDO = "1";
-    try {
-      const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
-        "sudo",
-        ["-S", "cp", "/tmp/ca.pem", "/usr/local/share/ca-certificates/ca.crt"],
-        NON_ROOT_WITH_SUDO
-      );
-      assert.equal(stripSudo, true);
-      assert.equal(finalCommand, "cp");
-      assert.deepEqual(finalArgs, [
-        "/tmp/ca.pem",
-        "/usr/local/share/ca-certificates/ca.crt",
-      ]);
-      // No `sudo` and no `-S` survive into the spawned argv.
-      assert.ok(!finalArgs.includes("sudo"));
-      assert.ok(!finalArgs.includes("-S"));
-      // Password is only piped when `sudo -S` is actually spawned.
-      assert.equal(needsPassword, false);
-    } finally {
-      if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-      else process.env.OMNIROUTE_NO_SUDO = prev;
-    }
+test("resolveSudoSpawn: with OMNIROUTE_NO_SUDO=1, strips `sudo -S` and needs no password", () => {
+  const prev = process.env.OMNIROUTE_NO_SUDO;
+  process.env.OMNIROUTE_NO_SUDO = "1";
+  try {
+    const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
+      "sudo",
+      ["-S", "cp", "/tmp/ca.pem", "/usr/local/share/ca-certificates/ca.crt"],
+      NON_ROOT_WITH_SUDO
+    );
+    assert.equal(stripSudo, true);
+    assert.equal(finalCommand, "cp");
+    assert.deepEqual(finalArgs, ["/tmp/ca.pem", "/usr/local/share/ca-certificates/ca.crt"]);
+    // No `sudo` and no `-S` survive into the spawned argv.
+    assert.ok(!finalArgs.includes("sudo"));
+    assert.ok(!finalArgs.includes("-S"));
+    // Password is only piped when `sudo -S` is actually spawned.
+    assert.equal(needsPassword, false);
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
+    else process.env.OMNIROUTE_NO_SUDO = prev;
   }
-);
+});
 
-test(
-  "resolveSudoSpawn: with the flag OFF + non-root + sudo available, preserves `sudo -S`",
-  () => {
-    const prev = process.env.OMNIROUTE_NO_SUDO;
-    delete process.env.OMNIROUTE_NO_SUDO;
-    try {
-      const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
-        "sudo",
-        ["-S", "cp", "/tmp/ca.pem", "/usr/local/share/ca-certificates/ca.crt"],
-        NON_ROOT_WITH_SUDO
-      );
-      // Regression guard: do NOT strip when not asked to.
-      assert.equal(stripSudo, false);
-      assert.equal(finalCommand, "sudo");
-      assert.deepEqual(finalArgs, [
-        "-S",
-        "cp",
-        "/tmp/ca.pem",
-        "/usr/local/share/ca-certificates/ca.crt",
-      ]);
-      assert.equal(needsPassword, true);
-    } finally {
-      if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-      else process.env.OMNIROUTE_NO_SUDO = prev;
-    }
+test("resolveSudoSpawn: with the flag OFF + non-root + sudo available, preserves `sudo -S`", () => {
+  const prev = process.env.OMNIROUTE_NO_SUDO;
+  delete process.env.OMNIROUTE_NO_SUDO;
+  try {
+    const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
+      "sudo",
+      ["-S", "cp", "/tmp/ca.pem", "/usr/local/share/ca-certificates/ca.crt"],
+      NON_ROOT_WITH_SUDO
+    );
+    // Regression guard: do NOT strip when not asked to.
+    assert.equal(stripSudo, false);
+    assert.equal(finalCommand, "sudo");
+    assert.deepEqual(finalArgs, [
+      "-S",
+      "cp",
+      "/tmp/ca.pem",
+      "/usr/local/share/ca-certificates/ca.crt",
+    ]);
+    assert.equal(needsPassword, true);
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
+    else process.env.OMNIROUTE_NO_SUDO = prev;
   }
-);
+});
 
 test("resolveSudoSpawn: a non-sudo command is never touched, regardless of the flag", () => {
   const prev = process.env.OMNIROUTE_NO_SUDO;

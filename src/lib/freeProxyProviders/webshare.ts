@@ -72,7 +72,10 @@ export class WebshareProvider implements FreeProxyProvider {
         const url = new URL(apiUrl);
         url.searchParams.set("mode", "direct");
         url.searchParams.set("page", String(page));
-        url.searchParams.set("page_size", String(Math.min(DEFAULT_PAGE_SIZE, maxProxies - fetched)));
+        url.searchParams.set(
+          "page_size",
+          String(Math.min(DEFAULT_PAGE_SIZE, maxProxies - fetched))
+        );
 
         const res = await fetch(url, {
           signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),

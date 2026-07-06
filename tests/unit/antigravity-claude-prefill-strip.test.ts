@@ -51,7 +51,11 @@ test("(b) does NOT strip a trailing model turn for non-Claude (native Gemini) mo
   ]);
   const contents = request.contents as Array<{ role: string }>;
   assert.equal(contents.length, 2);
-  assert.equal(contents.at(-1)?.role, "model", "native Gemini requests via Antigravity are untouched");
+  assert.equal(
+    contents.at(-1)?.role,
+    "model",
+    "native Gemini requests via Antigravity are untouched"
+  );
 });
 
 test("(c) a Claude conversation already ending on user is unchanged", async () => {

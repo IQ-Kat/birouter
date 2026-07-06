@@ -6,9 +6,8 @@ import assert from "node:assert/strict";
 // strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject with HTTP 400
 // "Unsupported parameter(s): ...". OmniRoute already strips `client_metadata`,
 // `background`, and `safety_identifier`; `truncation` was the remaining gap.
-const { openaiResponsesToOpenAIRequest } = await import(
-  "../../open-sse/translator/request/openai-responses.ts"
-);
+const { openaiResponsesToOpenAIRequest } =
+  await import("../../open-sse/translator/request/openai-responses.ts");
 
 test("Responses -> OpenAI: truncation is stripped (never forwarded to Chat Completions)", () => {
   const result = openaiResponsesToOpenAIRequest(

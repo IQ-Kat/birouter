@@ -105,12 +105,7 @@ test("filter: configuredOnly keeps only providers with ≥1 connection", () => {
 
 test("filter: availableOnly drops exhausted-only provider, keeps healthy", () => {
   const connections = [conn("glm"), conn("groq", { testStatus: "credits_exhausted" })];
-  const out = filterFreeProviderRankings(
-    RANKINGS,
-    connections,
-    { availableOnly: true },
-    FIXED_NOW
-  );
+  const out = filterFreeProviderRankings(RANKINGS, connections, { availableOnly: true }, FIXED_NOW);
   assert.deepEqual(
     out.map((r) => r.id),
     ["glm"]
@@ -146,12 +141,7 @@ test("filter: availableOnly keeps a provider that has at least one usable connec
     conn("glm", { testStatus: "banned" }),
     conn("glm"), // second connection is healthy
   ];
-  const out = filterFreeProviderRankings(
-    RANKINGS,
-    connections,
-    { availableOnly: true },
-    FIXED_NOW
-  );
+  const out = filterFreeProviderRankings(RANKINGS, connections, { availableOnly: true }, FIXED_NOW);
   assert.deepEqual(
     out.map((r) => r.id),
     ["glm"]

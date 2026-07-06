@@ -20,9 +20,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { antigravityToOpenAIRequest } = await import(
-  "../../open-sse/translator/request/antigravity-to-openai.ts"
-);
+const { antigravityToOpenAIRequest } =
+  await import("../../open-sse/translator/request/antigravity-to-openai.ts");
 const { fixToolPairs } = await import("../../open-sse/services/contextManager.ts");
 
 test("#6026: antigravityToOpenAIRequest strips an orphan functionResponse (no preceding functionCall)", () => {
@@ -91,9 +90,7 @@ test("#6026: well-formed functionCall/functionResponse pair is preserved (no reg
     false
   );
 
-  const assistant = result.messages.find(
-    (m: Record<string, unknown>) => m.role === "assistant"
-  );
+  const assistant = result.messages.find((m: Record<string, unknown>) => m.role === "assistant");
   const tool = result.messages.find((m: Record<string, unknown>) => m.role === "tool");
   assert.ok(assistant, "assistant tool_call message must survive");
   assert.ok(tool, "matched tool_result message must survive");

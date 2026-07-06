@@ -32,7 +32,10 @@ describe("vercel-ai-gateway media registry entries (upstream #1704)", () => {
 
   describe("imageRegistry — vercel-ai-gateway", () => {
     it("is registered in IMAGE_PROVIDERS", () => {
-      assert.ok(IMAGE_PROVIDERS["vercel-ai-gateway"], "vercel-ai-gateway should be in IMAGE_PROVIDERS");
+      assert.ok(
+        IMAGE_PROVIDERS["vercel-ai-gateway"],
+        "vercel-ai-gateway should be in IMAGE_PROVIDERS"
+      );
     });
 
     it("resolves vercel-ai-gateway image provider config", () => {

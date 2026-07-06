@@ -61,9 +61,7 @@ export const CLIENT_IDENTITY_PROFILES: Readonly<Record<string, ClientIdentityPro
     "gemini-cli": GEMINI_CLI_PROFILE,
   });
 
-export const CLIENT_IDENTITY_PROFILE_IDS: readonly string[] = Object.keys(
-  CLIENT_IDENTITY_PROFILES
-);
+export const CLIENT_IDENTITY_PROFILE_IDS: readonly string[] = Object.keys(CLIENT_IDENTITY_PROFILES);
 
 export const CLIENT_IDENTITY_PROFILE_OPTIONS: ReadonlyArray<{ value: string; label: string }> =
   CLIENT_IDENTITY_PROFILE_IDS.map((id) => ({
@@ -72,7 +70,10 @@ export const CLIENT_IDENTITY_PROFILE_OPTIONS: ReadonlyArray<{ value: string; lab
   }));
 
 export function isClientIdentityProfileId(value: unknown): value is string {
-  return typeof value === "string" && Object.prototype.hasOwnProperty.call(CLIENT_IDENTITY_PROFILES, value);
+  return (
+    typeof value === "string" &&
+    Object.prototype.hasOwnProperty.call(CLIENT_IDENTITY_PROFILES, value)
+  );
 }
 
 /**

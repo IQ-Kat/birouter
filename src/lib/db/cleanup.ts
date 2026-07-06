@@ -492,9 +492,7 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} proxy_logs older than ${retentionDays} days`
-    );
+    console.log(`[Cleanup] Deleted ${result.deleted} proxy_logs older than ${retentionDays} days`);
   } catch (err: unknown) {
     console.error("[Cleanup] Error cleaning proxy_logs:", err);
     result.errors++;
@@ -526,9 +524,7 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(
-          `[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`
-        );
+        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`);
         try {
           const db = getDbInstance();
           db.exec("VACUUM");
@@ -549,9 +545,7 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(
-          `[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`
-        );
+        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`);
         try {
           const db = getDbInstance();
           db.exec("VACUUM");

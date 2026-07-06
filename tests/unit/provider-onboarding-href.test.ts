@@ -6,10 +6,7 @@ test("buildProviderDetailsHref uses the server-assigned connection UUID", () => 
   const href = buildProviderDetailsHref({
     id: "9f3c1a4d-1c2b-4a3c-8def-0123456789ab",
   });
-  assert.equal(
-    href,
-    "/dashboard/providers/9f3c1a4d-1c2b-4a3c-8def-0123456789ab"
-  );
+  assert.equal(href, "/dashboard/providers/9f3c1a4d-1c2b-4a3c-8def-0123456789ab");
 });
 
 test("buildProviderDetailsHref does not leak the provider category into the URL", () => {

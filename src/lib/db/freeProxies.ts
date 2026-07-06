@@ -313,9 +313,11 @@ const FREE_PROXY_SYNC_KEY = "last_sync_at";
 export async function recordFreeProxySync(at?: string): Promise<string> {
   const db = getDbInstance();
   const ts = at ?? new Date().toISOString();
-  db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-  ).run(FREE_PROXY_SYNC_NAMESPACE, FREE_PROXY_SYNC_KEY, ts);
+  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    FREE_PROXY_SYNC_NAMESPACE,
+    FREE_PROXY_SYNC_KEY,
+    ts
+  );
   backupDbFile("pre-write");
   return ts;
 }

@@ -12,9 +12,8 @@ import assert from "node:assert/strict";
 // ─── resolveEndpointCategory: pure function tests ─────────────────────────
 // Import the pure resolver without DB dependencies
 
-const { resolveEndpointCategory } = await import(
-  "../../src/shared/constants/endpointCategories.ts"
-);
+const { resolveEndpointCategory } =
+  await import("../../src/shared/constants/endpointCategories.ts");
 
 test("resolveEndpointCategory: maps /v1/chat/completions to 'chat'", () => {
   assert.equal(resolveEndpointCategory("/v1/chat/completions"), "chat");

@@ -14,9 +14,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { AuggieExecutor, buildAuggiePrompt, resolveAuggieBin, resolveAuggieModel } = await import(
-  "@omniroute/open-sse/executors/auggie"
-);
+const { AuggieExecutor, buildAuggiePrompt, resolveAuggieBin, resolveAuggieModel } =
+  await import("@omniroute/open-sse/executors/auggie");
 
 const TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-auggie-test-"));
 
@@ -26,7 +25,6 @@ function writeFakeBin(name: string, script: string): string {
   fs.writeFileSync(p, `#!/bin/sh\n${script}\n`, { mode: 0o755 });
   return p;
 }
-
 
 async function readSseEvents(response: Response): Promise<Record<string, unknown>[]> {
   const text = await response.text();
@@ -61,7 +59,13 @@ test("buildAuggiePrompt flattens system/user/assistant turns with role tags", ()
 
 test("buildAuggiePrompt flattens array-shaped content blocks and skips empty turns", () => {
   const prompt = buildAuggiePrompt([
-    { role: "user", content: [{ type: "text", text: "part1 " }, { type: "text", text: "part2" }] },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "part1 " },
+        { type: "text", text: "part2" },
+      ],
+    },
     { role: "user", content: "" },
     { role: "user", content: [] },
   ]);
@@ -138,7 +142,10 @@ test("execute() surfaces a sanitized 'CLI not found' error on ENOENT (non-stream
 // ─── execute(): non-zero exit → sanitized error ────────────────────────────
 
 test("execute() surfaces a sanitized error when the CLI exits non-zero (streaming)", async () => {
-  const bin = writeFakeBin("fake-auggie-fail.sh", 'echo "boom at /home/attacker/secret.ts:42" 1>&2\nexit 3');
+  const bin = writeFakeBin(
+    "fake-auggie-fail.sh",
+    'echo "boom at /home/attacker/secret.ts:42" 1>&2\nexit 3'
+  );
   const prevBin = process.env.AUGGIE_BIN;
   process.env.AUGGIE_BIN = bin;
   try {

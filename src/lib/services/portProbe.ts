@@ -25,9 +25,7 @@ export interface PreSpawnProbe {
 
 /** Outcome of the pre-spawn decision. */
 export type PreSpawnDecision =
-  | { action: "spawn" }
-  | { action: "adopt" }
-  | { action: "error"; message: string };
+  { action: "spawn" } | { action: "adopt" } | { action: "error"; message: string };
 
 const HEALTH_PROBE_TIMEOUT_MS = 3_000;
 const PORT_PROBE_TIMEOUT_MS = 1_000;

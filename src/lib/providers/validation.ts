@@ -302,9 +302,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     // key to check upstream. The only meaningful validation is confirming the
     // `auggie` binary is installed and runnable on this machine.
     auggie: async () => {
-      const { checkAuggieCliVersion } = await import(
-        "@omniroute/open-sse/executors/auggie.ts"
-      );
+      const { checkAuggieCliVersion } = await import("@omniroute/open-sse/executors/auggie.ts");
       const result = await checkAuggieCliVersion();
       if (!result.ok) {
         return {

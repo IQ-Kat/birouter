@@ -7,9 +7,8 @@ import assert from "node:assert/strict";
 // under the RSC prefetch storm, or a stalled connection) left `loading` true
 // forever. loadProviderPageData bounds each request with an AbortSignal timeout
 // so the loader ALWAYS resolves (degrading to defaults) and the page paints.
-const { loadProviderPageData } = await import(
-  "@/app/(dashboard)/dashboard/providers/providerPageUtils"
-);
+const { loadProviderPageData } =
+  await import("@/app/(dashboard)/dashboard/providers/providerPageUtils");
 
 // A fetch mock that honors AbortSignal the way the real fetch does: it never
 // resolves on its own, but rejects with an AbortError once the signal fires.
@@ -22,11 +21,9 @@ function hangingFetch(): typeof fetch {
           reject(new DOMException("Aborted", "AbortError"));
           return;
         }
-        signal.addEventListener(
-          "abort",
-          () => reject(new DOMException("Aborted", "AbortError")),
-          { once: true }
-        );
+        signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), {
+          once: true,
+        });
       }
     })) as unknown as typeof fetch;
 }
@@ -78,7 +75,8 @@ describe("loadProviderPageData — never freezes the dashboard skeleton", () => 
   });
 
   test("a rejecting fetch degrades to defaults instead of throwing", async () => {
-    const rejectFetch = (() => Promise.reject(new Error("network down"))) as unknown as typeof fetch;
+    const rejectFetch = (() =>
+      Promise.reject(new Error("network down"))) as unknown as typeof fetch;
     const data = await loadProviderPageData(rejectFetch, 1000);
     assert.deepEqual(data.connections, []);
     assert.equal(data.settings, null);

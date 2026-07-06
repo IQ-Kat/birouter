@@ -11,12 +11,7 @@
 
 import { getDbInstance } from "./core";
 
-export type DiscoveryMethod =
-  | "free_tier"
-  | "web_cookie"
-  | "auto_register"
-  | "trial"
-  | "public_api";
+export type DiscoveryMethod = "free_tier" | "web_cookie" | "auto_register" | "trial" | "public_api";
 export type DiscoveryAuthType = "none" | "cookie" | "api_key" | "oauth";
 export type DiscoveryRiskLevel = "none" | "low" | "medium" | "high" | "critical";
 export type DiscoveryStatus = "pending" | "testing" | "verified" | "rejected";
@@ -145,8 +140,7 @@ export function getDiscoveryResults(providerId?: string): DiscoveryResult[] {
 export function getDiscoveryResultById(id: number): DiscoveryResult | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM discovery_results WHERE id = ?").get(id) as
-    | DiscoveryRow
-    | undefined;
+    DiscoveryRow | undefined;
   return row ? rowToResult(row) : null;
 }
 

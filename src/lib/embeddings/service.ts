@@ -237,7 +237,9 @@ export async function createEmbeddingResponse(
   const runEmbedding = () =>
     handleEmbedding({
       body:
-        effectiveModel !== resolvedModel ? { ...body, model: `${provider}/${effectiveModel}` } : body,
+        effectiveModel !== resolvedModel
+          ? { ...body, model: `${provider}/${effectiveModel}` }
+          : body,
       // getProviderCredentials returns a richer connection object; handleEmbedding
       // only reads apiKey/accessToken, both present at runtime. Bridge the wider
       // selection type to the handler's narrow credential shape.

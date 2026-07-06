@@ -82,9 +82,10 @@ export function shouldTryBifrostForRequest(
     return { tryBifrost: true };
   }
 
-  const model = typeof (body as { model?: unknown } | null)?.model === "string"
-    ? (body as { model: string }).model
-    : undefined;
+  const model =
+    typeof (body as { model?: unknown } | null)?.model === "string"
+      ? (body as { model: string }).model
+      : undefined;
   const provider = lookupProviderSidecar(model);
   if (provider?.eligible) {
     return { tryBifrost: true };

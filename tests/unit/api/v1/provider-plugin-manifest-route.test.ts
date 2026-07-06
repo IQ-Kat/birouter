@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  GET,
-  OPTIONS,
-} from "../../../../src/app/api/v1/provider-plugin-manifest/route.ts";
+import { GET, OPTIONS } from "../../../../src/app/api/v1/provider-plugin-manifest/route.ts";
 
 test("provider plugin manifest route returns JSON-safe manifest", async () => {
   const response = await GET();

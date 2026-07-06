@@ -162,7 +162,13 @@ test("Antigravity -> OpenAI keeps co-located function call and text but strips t
             role: "model",
             parts: [
               { text: "Let me look that up." },
-              { functionResponse: { id: "call_9", name: "lookup", response: { result: { ok: true } } } },
+              {
+                functionResponse: {
+                  id: "call_9",
+                  name: "lookup",
+                  response: { result: { ok: true } },
+                },
+              },
               { functionCall: { id: "call_10", name: "lookup", args: { q: "weather" } } },
             ],
           },

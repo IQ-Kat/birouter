@@ -22,7 +22,8 @@ process.env.JWT_SECRET = "test-jwt-secret-codewhale";
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 
-const { GET, POST, DELETE } = await import("../../src/app/api/cli-tools/codewhale-settings/route.ts");
+const { GET, POST, DELETE } =
+  await import("../../src/app/api/cli-tools/codewhale-settings/route.ts");
 
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;

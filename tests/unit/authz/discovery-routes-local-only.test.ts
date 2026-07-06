@@ -1,9 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  isLocalOnlyPath,
-  isLocalOnlyBypassableByManageScope,
-} from "@/server/authz/routeGuard";
+import { isLocalOnlyPath, isLocalOnlyBypassableByManageScope } from "@/server/authz/routeGuard";
 
 // Security guard: the discovery surface must be strict-loopback only. If someone
 // removes "/api/discovery/" from LOCAL_ONLY_API_PREFIXES, or adds it to the

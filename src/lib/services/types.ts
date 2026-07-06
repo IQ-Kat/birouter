@@ -24,12 +24,7 @@ export interface ServiceConfig {
 }
 
 export type ServiceState =
-  | "not_installed"
-  | "stopped"
-  | "starting"
-  | "running"
-  | "stopping"
-  | "error";
+  "not_installed" | "stopped" | "starting" | "running" | "stopping" | "error";
 
 export type HealthState = "healthy" | "unhealthy" | "unknown";
 

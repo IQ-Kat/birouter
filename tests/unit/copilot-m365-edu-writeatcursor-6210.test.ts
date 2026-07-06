@@ -33,12 +33,19 @@ import {
 // ── Part 2: writeAtCursor + type:2 fallback ─────────────────────────────────
 
 test("extractWriteAtCursor: reads arguments[0].writeAtCursor delta [#6210]", () => {
-  const frame = { type: 1, target: "update", arguments: [{ writeAtCursor: " received", references: {} }] };
+  const frame = {
+    type: 1,
+    target: "update",
+    arguments: [{ writeAtCursor: " received", references: {} }],
+  };
   assert.equal(extractWriteAtCursor(frame), " received");
 });
 
 test("extractWriteAtCursor: null when absent or not an update frame [#6210]", () => {
-  assert.equal(extractWriteAtCursor({ type: 1, target: "update", arguments: [{ messages: [] }] }), null);
+  assert.equal(
+    extractWriteAtCursor({ type: 1, target: "update", arguments: [{ messages: [] }] }),
+    null
+  );
   assert.equal(extractWriteAtCursor({ type: 2, item: {} }), null);
   assert.equal(extractWriteAtCursor(null), null);
 });
@@ -47,7 +54,10 @@ test("extractFinalResultMessage: reads type:2 item.result.message [#6210]", () =
   const frame = {
     type: 2,
     invocationId: "0",
-    item: { turnState: "Completed", result: { value: "Success", message: "Test received — everything's working." } },
+    item: {
+      turnState: "Completed",
+      result: { value: "Success", message: "Test received — everything's working." },
+    },
   };
   assert.equal(extractFinalResultMessage(frame), "Test received — everything's working.");
   assert.equal(extractFinalResultMessage({ type: 1, target: "update", arguments: [] }), null);
@@ -57,11 +67,20 @@ test("accumulateBotContent: reproduces the reporter's EDU frame sequence → ful
   const frames = [
     { type: 1, target: "update", arguments: [{ messages: [{ text: "Test", author: "bot" }] }] },
     { type: 1, target: "update", arguments: [{ writeAtCursor: " received", references: {} }] },
-    { type: 1, target: "update", arguments: [{ writeAtCursor: " — everything's working.", references: {} }] },
     {
       type: 1,
       target: "update",
-      arguments: [{ messages: [{ text: "Test received — everything's working.", author: "bot" }], isLastUpdate: true }],
+      arguments: [{ writeAtCursor: " — everything's working.", references: {} }],
+    },
+    {
+      type: 1,
+      target: "update",
+      arguments: [
+        {
+          messages: [{ text: "Test received — everything's working.", author: "bot" }],
+          isLastUpdate: true,
+        },
+      ],
     },
   ];
 

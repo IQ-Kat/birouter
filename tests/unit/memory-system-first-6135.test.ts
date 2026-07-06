@@ -11,10 +11,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  injectMemory,
-  systemMessageMustBeFirst,
-} from "../../src/lib/memory/injection.ts";
+import { injectMemory, systemMessageMustBeFirst } from "../../src/lib/memory/injection.ts";
 import type { ChatMessage, ChatRequest } from "../../src/lib/memory/injection.ts";
 import { MemoryType } from "../../src/lib/memory/types.ts";
 import type { Memory } from "../../src/lib/memory/types.ts";

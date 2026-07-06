@@ -17,7 +17,8 @@ const {
   getClientIdentityProfileHeaders,
   isClientIdentityProfileId,
 } = await import("../../src/shared/constants/clientIdentityProfiles.ts");
-const { isForbiddenCustomHeaderName } = await import("../../src/shared/constants/upstreamHeaders.ts");
+const { isForbiddenCustomHeaderName } =
+  await import("../../src/shared/constants/upstreamHeaders.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const core = await import("../../src/lib/db/core.ts");
 

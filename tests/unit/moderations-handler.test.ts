@@ -2,9 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { handleModeration } = await import("../../open-sse/handlers/moderations.ts");
-const { MODERATION_PROVIDERS, getModerationProvider, parseModerationModel } = await import(
-  "../../open-sse/config/moderationRegistry.ts"
-);
+const { MODERATION_PROVIDERS, getModerationProvider, parseModerationModel } =
+  await import("../../open-sse/config/moderationRegistry.ts");
 
 const originalFetch = globalThis.fetch;
 

@@ -141,8 +141,16 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   );
   // run() must honor a per-gate env override so GITHUB_BASE_REF actually reaches the child
   // (routed through buildGateEnv since the --hermetic scrub was added).
-  assert.match(src, /env:\s*buildGateEnv\(opts\.env\)/, "run() must merge opts.env into the child env");
-  assert.match(src, /\.\.\.\(extra \|\| \{\}\)/, "buildGateEnv must spread the per-gate env override");
+  assert.match(
+    src,
+    /env:\s*buildGateEnv\(opts\.env\)/,
+    "run() must merge opts.env into the child env"
+  );
+  assert.match(
+    src,
+    /\.\.\.\(extra \|\| \{\}\)/,
+    "buildGateEnv must spread the per-gate env override"
+  );
 });
 
 test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {

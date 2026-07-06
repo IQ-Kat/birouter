@@ -120,7 +120,10 @@ test("GET /api/agent-skills?category=api — returns 23 api skills", async () =>
   assert.equal(res.status, 200);
   const body = (await res.json()) as { skills: Array<{ category: string }>; count: number };
   assert.equal(body.count, 23);
-  assert.ok(body.skills.every((s) => s.category === "api"), "All skills should be api category");
+  assert.ok(
+    body.skills.every((s) => s.category === "api"),
+    "All skills should be api category"
+  );
 });
 
 test("GET /api/agent-skills?category=cli — returns 20 cli skills", async () => {
