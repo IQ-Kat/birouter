@@ -97,7 +97,7 @@ async function testOneProxy(proxy: {
       method: "HEAD",
       signal: controller.signal,
       dispatcher,
-      headers: { "User-Agent": "OmniRoute/1.0" },
+      headers: { "User-Agent": "Birouter/1.0" },
     });
     // A 5xx from the probe target means the proxy DID relay — the target is at
     // fault, not the proxy. Do not penalize the proxy for that.

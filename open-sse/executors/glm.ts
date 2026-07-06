@@ -424,7 +424,7 @@ export class GlmExecutor extends DefaultExecutor {
         userAgent: clientHeaders["user-agent"] ?? clientHeaders["User-Agent"] ?? null,
         thinkingMarkerHeader:
           clientHeaders[THINKING_MARKER_HEADER] ??
-          clientHeaders["x-omniroute-thinking-marker"] ??
+          clientHeaders["x-birouter-thinking-marker"] ??
           null,
       });
 

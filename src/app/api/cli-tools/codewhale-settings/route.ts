@@ -35,13 +35,13 @@ const getLegacyConfigPath = (): string =>
 const getPrimaryConfigDir = () => path.dirname(getPrimaryConfigPath());
 
 /**
- * Render the OmniRoute config block in CodeWhale TOML format.
+ * Render the Birouter config block in CodeWhale TOML format.
  * CodeWhale reads OPENAI_BASE_URL and OPENAI_API_KEY from its config.
  * Reference: https://github.com/Hmbown/CodeWhale
  */
 function renderCodewhaleConfig(baseUrl: string, apiKey: string, model: string): string {
   return [
-    "# CodeWhale config — managed by OmniRoute (plan 14)",
+    "# CodeWhale config — managed by Birouter (plan 14)",
     "",
     "[openai]",
     `base_url = "${baseUrl}"`,
@@ -52,11 +52,11 @@ function renderCodewhaleConfig(baseUrl: string, apiKey: string, model: string): 
 }
 
 /**
- * Check if the config file contains OmniRoute settings.
+ * Check if the config file contains Birouter settings.
  */
-const hasOmniRouteConfig = (content: string | null): boolean => {
+const hasBirouterConfig = (content: string | null): boolean => {
   if (!content) return false;
-  return content.includes("managed by OmniRoute");
+  return content.includes("managed by Birouter");
 };
 
 // Read current config.toml — prefers the primary ~/.codewhale path, falling
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
       runtimeMode: runtime.runtimeMode,
       reason: runtime.reason,
       config,
-      hasOmniRoute: hasOmniRouteConfig(config),
+      hasBirouter: hasBirouterConfig(config),
       configPath: getPrimaryConfigPath(),
     });
   } catch (err) {
@@ -114,7 +114,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST — write OmniRoute settings to CodeWhale's config.toml (primary), and
+// POST — write Birouter settings to CodeWhale's config.toml (primary), and
 // keep the legacy ~/.deepseek/config.toml in sync when it already exists so
 // users who have not yet upgraded their CLI binary keep working.
 export async function POST(request: Request) {
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
   }
 }
 
-// DELETE — remove OmniRoute CodeWhale config (primary + legacy, if present)
+// DELETE — remove Birouter CodeWhale config (primary + legacy, if present)
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;

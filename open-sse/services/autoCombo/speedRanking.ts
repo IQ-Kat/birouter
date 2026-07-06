@@ -17,7 +17,7 @@
  * also does not get a free pass on a metric we have no data for.  This mirrors
  * the behavior of the existing `LatencyStrategyImpl` and is intentional — the
  * function is the canonical ranking for the "fastest reliable provider-model"
- * UX in the playground + MCP `omniroute_pick_fastest_model` tool, and is
+ * UX in the playground + MCP `birouter_pick_fastest_model` tool, and is
  * reused by the runtime `LatencyStrategyImpl` so the runtime router picks the
  * same winner as the user-facing preview.
  *
@@ -322,7 +322,7 @@ export function rankBySpeed(
 /**
  * Convenience selector — returns the top-ranked candidate or `null` when the
  * pool is empty.  Used by the runtime `LatencyStrategyImpl` and the MCP
- * `omniroute_pick_fastest_model` tool when only the winner is needed.
+ * `birouter_pick_fastest_model` tool when only the winner is needed.
  */
 export function pickFastest(
   candidates: ReadonlyArray<SpeedCandidate>,

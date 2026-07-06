@@ -187,9 +187,9 @@ function getBirouterApiKey(): string {
   return process.env.BIROUTER_API_KEY || "";
 }
 
-export async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
+export async function birouterFetch(path: string, options: RequestInit = {}): Promise<unknown> {
   const url = `${BIROUTER_BASE_URL}${path}`;
-  const apiKey = getOmniRouteApiKey();
+  const apiKey = getBirouterApiKey();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     // Static env key is only a fallback; the per-caller MCP identity forwarded via

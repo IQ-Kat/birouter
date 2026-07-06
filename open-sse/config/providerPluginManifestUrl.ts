@@ -1,4 +1,4 @@
-﻿export const PROVIDER_PLUGIN_MANIFEST_HEADER = "X-OmniRoute-Provider-Manifest-Url";
+﻿export const PROVIDER_PLUGIN_MANIFEST_HEADER = "X-Birouter-Provider-Manifest-Url";
 export const PROVIDER_PLUGIN_MANIFEST_PATH = "/api/v1/provider-plugin-manifest";
 
 function trimTrailingSlash(value: string): string {

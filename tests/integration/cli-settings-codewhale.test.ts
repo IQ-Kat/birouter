@@ -197,8 +197,8 @@ test("codewhale-settings GET: falls back to legacy ~/.deepseek/config.toml when 
     assert.equal(res.status, 200);
     const body = await res.json();
     if (body.config) {
-      assert.ok(body.config.includes("managed by OmniRoute"));
-      assert.equal(body.hasOmniRoute, true);
+      assert.ok(body.config.includes("managed by Birouter"));
+      assert.equal(body.hasBirouter, true);
     }
   } finally {
     process.env.HOME = origHome;

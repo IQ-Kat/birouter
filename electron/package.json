@@ -1,14 +1,14 @@
 {
-  "name": "omniroute-desktop",
+  "name": "birouter-desktop",
   "version": "3.8.46",
-  "description": "OmniRoute Desktop Application",
+  "description": "Birouter Desktop Application",
   "main": "main.js",
   "author": {
     "name": "Birouter Team",
-    "email": "support@omniroute.online"
+    "email": "support@birouter.online"
   },
   "license": "MIT",
-  "homepage": "https://omniroute.online",
+  "homepage": "https://birouter.online",
   "engines": {
     "node": ">=22.22.2 <23 || >=24.0.0 <27"
   },

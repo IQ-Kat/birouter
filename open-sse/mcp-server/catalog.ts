@@ -258,7 +258,7 @@ export async function getMcpModelsCatalog(
   } = {}
 ): Promise<McpCatalogResponse> {
   const fetchJson =
-    deps.fetchJson ?? ((path: string) => import("./server.ts").then((m) => m.omniRouteFetch(path)));
+    deps.fetchJson ?? ((path: string) => import("./server.ts").then((m) => m.birouterFetch(path)));
   const listProviderConnections = deps.listProviderConnections ?? getProviderConnections;
   const aliasMap = buildProviderAliasMap();
   const normalizeProviderId = (value: string) => aliasMap[value] || value;

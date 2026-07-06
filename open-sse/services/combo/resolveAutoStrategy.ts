@@ -51,9 +51,9 @@ export interface ResolveAutoStrategyDeps {
   relayOptions?: {
     bypassProviderQuotaPolicy?: boolean;
     sessionId?: string | null;
-    /** Per-request X-OmniRoute-Mode value (#6024/#6025). */
+    /** Per-request X-Birouter-Mode value (#6024/#6025). */
     mode?: string | null;
-    /** Per-request X-OmniRoute-Budget value in USD (#6023). */
+    /** Per-request X-Birouter-Budget value in USD (#6023). */
     budgetCap?: number | null;
   } | null;
   resilienceSettings: ResilienceSettings;
@@ -159,8 +159,8 @@ export async function resolveAutoStrategyOrder(
     slaPolicy,
   } = parseAutoConfig(combo, eligibleTargets);
 
-  // Per-request overrides (#6023 / #6024 / #6025): X-OmniRoute-Budget and
-  // X-OmniRoute-Mode headers (threaded via relayOptions) take precedence over
+  // Per-request overrides (#6023 / #6024 / #6025): X-Birouter-Budget and
+  // X-Birouter-Mode headers (threaded via relayOptions) take precedence over
   // the combo's stored config for this single request. Unknown/garbage header
   // values are ignored so the saved config is preserved.
   const requestBudgetCap = parseRequestBudgetCap(relayOptions?.budgetCap);

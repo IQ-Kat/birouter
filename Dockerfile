@@ -91,8 +91,8 @@ FROM base AS runner-base
 
 LABEL org.opencontainers.image.title="birouter" \
   org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint" \
-  org.opencontainers.image.url="https://omniroute.online" \
-  org.opencontainers.image.source="https://github.com/diegosouzapw/OmniRoute" \
+  org.opencontainers.image.url="https://birouter.online" \
+  org.opencontainers.image.source="https://github.com/IQ-Kat/birouter" \
   org.opencontainers.image.licenses="MIT"
 
 ENV NODE_ENV=production

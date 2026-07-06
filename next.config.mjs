@@ -95,12 +95,12 @@ function readTimeoutMs(...values) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Opt-in subpath deployment behind a reverse proxy (e.g. nginx/Caddy serving
-  // OmniRoute under https://host/omniroute/). Empty by default so root-path
+  // Birouter under https://host/birouter/). Empty by default so root-path
   // deployments are unaffected. Next.js strips this prefix from `pathname`
   // before route matching, so authz classification (classifyRoute/isLocalOnlyPath)
   // keeps operating on un-prefixed paths — see src/server/authz/pipeline.ts for
   // the two redirect call sites that re-add it via `request.nextUrl.basePath`.
-  basePath: process.env.OMNIROUTE_BASE_PATH || "",
+  basePath: process.env.BIROUTER_BASE_PATH || "",
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {

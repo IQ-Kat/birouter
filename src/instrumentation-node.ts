@@ -383,7 +383,7 @@ export async function registerNodejs(): Promise<void> {
     // daemon on import (gated by BIROUTER_ENABLE_LIVE_WS, default ON) — but NOTHING
     // imported it in the packaged standalone/PM2 runtime. Only the unused
     // `server-init.ts` and a dev-only helper script (`scripts/start-ws-server.mjs`)
-    // ever pulled it into a module graph, so in the published `omniroute` bin the
+    // ever pulled it into a module graph, so in the published `birouter` bin the
     // daemon never bound its port and every live dashboard reported "Live disabled —
     // WebSocket disconnected". Importing it here (the instrumentation hook that DOES
     // run in standalone) fires that flag-gated auto-start. Side-effect import + the

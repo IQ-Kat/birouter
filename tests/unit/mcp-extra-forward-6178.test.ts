@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 // Regression guard for #6178: the static MCP tool-registration loops in
 // open-sse/mcp-server/server.ts wrapped handlers as `async (args) => { … }`,
 // dropping the MCP request `extra` argument that `withScopeEnforcement`
-// forwards. On the stdio transport `omniroute_ccr_retrieve` therefore fell back
+// forwards. On the stdio transport `birouter_ccr_retrieve` therefore fell back
 // to an anonymous caller (`resolveMcpCallerApiKeyId()` AsyncLocalStorage is
 // undefined off the HTTP path, and `extra` was gone), so its principal-scoped
 // CCR store lookup used the `__anon__` bucket and never matched the block the
@@ -13,7 +13,7 @@ import assert from "node:assert/strict";
 //
 // This drives the REAL registration loop: it builds the live MCP server via
 // createMcpServer(), stores a CCR block under a concrete principal, then invokes
-// the registered omniroute_ccr_retrieve handler with an `extra` carrying that
+// the registered birouter_ccr_retrieve handler with an `extra` carrying that
 // principal as the caller id (clientId) — exactly what the SDK passes on a tool
 // call. If `extra` is dropped, the caller resolves to "anonymous", the store key
 // misses, and retrieval errors out.
@@ -50,7 +50,7 @@ test("static tool loops forward `extra` so stdio callers keep their scope/identi
   const hash = storeBlock(verbatim, principal);
 
   const server = createMcpServer();
-  const retrieve = getRegisteredHandler(server, "omniroute_ccr_retrieve");
+  const retrieve = getRegisteredHandler(server, "birouter_ccr_retrieve");
 
   // Simulate a stdio tool call: no HTTP AsyncLocalStorage principal, but the MCP
   // `extra` carries the caller identity (clientId) + granted scopes.

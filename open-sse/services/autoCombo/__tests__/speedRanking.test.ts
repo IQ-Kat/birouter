@@ -3,7 +3,7 @@
  *
  * Covers the pure `rankBySpeed` function used by:
  *   - the runtime `LatencyStrategyImpl` (routerStrategy.ts)
- *   - the `omniroute_pick_fastest_model` MCP tool
+ *   - the `birouter_pick_fastest_model` MCP tool
  *   - the latency-optimized playground preview (via the same shared core)
  */
 

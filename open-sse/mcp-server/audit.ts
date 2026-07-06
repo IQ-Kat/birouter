@@ -233,7 +233,7 @@ async function openFallbackAuditDb(
     console.error(
       `[MCP Audit] better-sqlite3 native binding unavailable and Node ${process.version} ` +
         "has no built-in sqlite. Audit logging disabled. Fix: run " +
-        "`npm rebuild better-sqlite3` in the omniroute install root."
+        "`npm rebuild better-sqlite3` in the birouter install root."
     );
     return null;
   }

@@ -88,7 +88,7 @@ export async function install(version = "latest"): Promise<InstallResult> {
     fs.writeFileSync(
       hostPkgPath,
       JSON.stringify(
-        { name: "omniroute-mux-host", version: "0.0.0", private: true, dependencies: {} },
+        { name: "birouter-mux-host", version: "0.0.0", private: true, dependencies: {} },
         null,
         2
       ),

@@ -81,7 +81,7 @@ test("install creates host package.json structure", async () => {
     name: string;
     private: boolean;
   };
-  assert.equal(parsedHost.name, "omniroute-bifrost-host");
+  assert.equal(parsedHost.name, "birouter-bifrost-host");
   assert.ok(parsedHost.private);
 
   assert.equal(result.installedVersion, "1.6.3");

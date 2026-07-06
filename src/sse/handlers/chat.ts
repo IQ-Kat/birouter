@@ -653,8 +653,8 @@ export async function handleChat(
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
     // Per-request Auto-Combo controls (#6023 / #6024 / #6025): steer an `auto`
     // combo on this single request without mutating its stored config.
-    const requestModeHeader = request.headers.get("x-omniroute-mode")?.trim() || null;
-    const requestBudgetHeader = request.headers.get("x-omniroute-budget")?.trim() || null;
+    const requestModeHeader = request.headers.get("x-birouter-mode")?.trim() || null;
+    const requestBudgetHeader = request.headers.get("x-birouter-budget")?.trim() || null;
     const perRequestMode = resolveRequestModePack(requestModeHeader);
     const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
     const relayOptions =

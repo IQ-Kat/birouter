@@ -93,7 +93,7 @@ export const pickFastestModelTool: McpToolDefinition<
   typeof pickFastestModelInput,
   typeof pickFastestModelOutput
 > = {
-  name: "omniroute_pick_fastest_model",
+  name: "birouter_pick_fastest_model",
   description:
     "Picks the fastest reliable provider-model pair from live telemetry and can apply latency routing to a combo.",
   inputSchema: pickFastestModelInput,

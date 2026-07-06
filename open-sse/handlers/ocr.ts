@@ -7,7 +7,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 
 import { getOcrProvider, parseOcrModel } from "../config/ocrRegistry.ts";
 import { errorResponse } from "../utils/error.ts";
-import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { attachBirouterMetaHeaders } from "@/domain/birouterResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 
 /**
@@ -65,7 +65,7 @@ export async function handleOcr({ body, credentials }) {
 
     const data = await res.json();
     const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
+    attachBirouterMetaHeaders(headers, {
       provider: providerId,
       model: modelId,
       costUsd: 0,

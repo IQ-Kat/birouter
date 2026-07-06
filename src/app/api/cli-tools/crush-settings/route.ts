@@ -21,7 +21,7 @@ const TOOL_ID = "crush";
 // Crush (charmbracelet/crush) reads a file-based config, default
 // ~/.config/crush/crush.json — same default `bin/cli/commands/setup-crush.mjs`
 // (resolveCrushTarget / runSetupCrushCommand) writes to, so the dashboard and
-// the `omniroute setup-crush` CLI command agree on one canonical location.
+// the `birouter setup-crush` CLI command agree on one canonical location.
 const getCrushConfigPath = (): string =>
   getCliPrimaryConfigPath(TOOL_ID) ??
   path.join(process.env.HOME ?? "~", ".config", "crush", "crush.json");
@@ -29,8 +29,8 @@ const getCrushConfigPath = (): string =>
 const getCrushDir = () => path.dirname(getCrushConfigPath());
 
 /**
- * Crush's config uses a `providers.<id>` map. OmniRoute is registered under
- * the `omniroute` provider id as an `openai-compat` provider — same shape
+ * Crush's config uses a `providers.<id>` map. Birouter is registered under
+ * the `birouter` provider id as an `openai-compat` provider — same shape
  * `buildCrushProvider()`/`mergeCrushConfig()` in setup-crush.mjs produce.
  */
 type CrushProvider = {
@@ -47,15 +47,15 @@ const ensureV1 = (url: string): string => {
   return s.endsWith("/v1") ? s : `${s}/v1`;
 };
 
-const hasOmniRouteConfig = (settings: Record<string, unknown> | null): boolean => {
+const hasBirouterConfig = (settings: Record<string, unknown> | null): boolean => {
   if (!settings) return false;
   const providers = settings.providers as Record<string, unknown> | undefined;
-  const omniroute = providers?.omniroute as Record<string, unknown> | undefined;
+  const birouterProvider = providers?.birouter as Record<string, unknown> | undefined;
   return (
-    !!omniroute &&
-    omniroute.type === "openai-compat" &&
-    typeof omniroute.base_url === "string" &&
-    omniroute.base_url.length > 0
+    !!birouterProvider &&
+    birouterProvider.type === "openai-compat" &&
+    typeof birouterProvider.base_url === "string" &&
+    birouterProvider.base_url.length > 0
   );
 };
 
@@ -104,7 +104,7 @@ export async function GET(request: Request) {
       runtimeMode: runtime.runtimeMode,
       reason: runtime.reason,
       config,
-      hasOmniRoute: hasOmniRouteConfig(config),
+      hasBirouter: hasBirouterConfig(config),
       configPath: getCrushConfigPath(),
     });
   } catch (err) {
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST — write OmniRoute settings to crush.json (providers.omniroute)
+// POST — write Birouter settings to crush.json (providers.birouter)
 export async function POST(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -163,14 +163,14 @@ export async function POST(request: Request) {
       type: "openai-compat",
       base_url: normalizedBaseUrl,
       api_key: apiKey,
-      models: [{ id: model, name: `OmniRoute: ${model}`, context_window: DEFAULT_CONTEXT_WINDOW }],
+      models: [{ id: model, name: `Birouter: ${model}`, context_window: DEFAULT_CONTEXT_WINDOW }],
     };
 
     const updated: Record<string, unknown> = {
       ...existing,
       providers: {
         ...((existing.providers as Record<string, unknown>) || {}),
-        omniroute: provider,
+        birouter: provider,
       },
     };
 
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
   }
 }
 
-// DELETE — remove OmniRoute provider from Crush config
+// DELETE — remove Birouter provider from Crush config
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -221,10 +221,10 @@ export async function DELETE(request: Request) {
       throw err;
     }
 
-    // Remove only the OmniRoute-managed provider entry — preserve the rest
+    // Remove only the Birouter-managed provider entry — preserve the rest
     // of the user's providers map (Crush supports multiple providers).
     const providers = { ...((existing.providers as Record<string, unknown>) || {}) };
-    delete providers.omniroute;
+    delete providers.birouter;
 
     if (Object.keys(providers).length === 0) {
       delete existing.providers;
@@ -245,7 +245,7 @@ export async function DELETE(request: Request) {
       /* non-critical */
     }
 
-    return NextResponse.json({ success: true, message: "Crush OmniRoute settings removed" });
+    return NextResponse.json({ success: true, message: "Crush Birouter settings removed" });
   } catch (err) {
     return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }

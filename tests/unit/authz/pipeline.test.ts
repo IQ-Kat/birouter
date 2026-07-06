@@ -165,7 +165,7 @@ test("runAuthzPipeline prefixes the dashboard login redirect with basePath when 
 
   assert.equal(response.status, 307);
   assert.equal(response.headers.get("location"), "http://localhost/omniroute/login");
-  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  assert.equal(response.headers.get("x-birouter-route-class"), "MANAGEMENT");
 });
 
 test("runAuthzPipeline leaves redirect targets unprefixed when basePath is empty", async () => {

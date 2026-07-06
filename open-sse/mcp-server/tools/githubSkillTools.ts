@@ -105,8 +105,8 @@ async function handleInstall(args: z.infer<typeof GitHubSkillsInstallSchema>) {
 // ── Tool Definitions ─────────────────────────────────────────────────────────
 
 export const githubSkillTools = {
-  omniroute_github_skills_search: {
-    name: "omniroute_github_skills_search",
+  birouter_github_skills_search: {
+    name: "birouter_github_skills_search",
     description:
       "Search GitHub for agent skill repositories that contain SKILL.md, CLAUDE.md, .cursorrules, or similar agent configuration files. " +
       "Returns scored results sorted by relevance. Scores are 0.0–1.0 based on stars, name signals, description keywords, and topic tags. " +
@@ -116,8 +116,8 @@ export const githubSkillTools = {
     handler: handleSearch,
   },
 
-  omniroute_github_skills_scan: {
-    name: "omniroute_github_skills_scan",
+  birouter_github_skills_scan: {
+    name: "birouter_github_skills_scan",
     description:
       "Scan SKILL.md or README content from a GitHub repo for blocked patterns including eval(base64), " +
       "hardcoded secrets (API keys, passwords, private keys), dangerous function calls (os.system, subprocess.Popen), " +
@@ -127,8 +127,8 @@ export const githubSkillTools = {
     handler: handleScan,
   },
 
-  omniroute_github_skills_install: {
-    name: "omniroute_github_skills_install",
+  birouter_github_skills_install: {
+    name: "birouter_github_skills_install",
     description:
       "Preview or plan the installation of a discovered GitHub skill into one or more agent directories " +
       "(Hermes: ~/AppData/Local/hermes/skills/, Claude: ~/.claude/skills/, Gemini: ~/.gemini/skills/, " +

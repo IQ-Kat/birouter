@@ -209,11 +209,11 @@ test("does NOT mark transientRateLimited on 429 when isTokenLimitBreach is true"
   assert.equal(s.exhaustedProviders.has("test-dedup-provider"), false);
 });
 
-test("does NOT mark anything for circuit-open (X-OmniRoute-Provider-Breaker header)", () => {
+test("does NOT mark anything for circuit-open (X-Birouter-Provider-Breaker header)", () => {
   const s = sets();
   const exhausted = applyComboTargetExhaustion(target(), {
     ...baseOpts,
-    result: { status: 503, headers: new Map([["x-omniroute-provider-breaker", "open"]]) },
+    result: { status: 503, headers: new Map([["x-birouter-provider-breaker", "open"]]) },
     fallbackResult: {},
     errorText: "",
     sets: s,

@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 
 // Regression guard for #6024 / #6025 / #6023 — per-request auto-combo routing controls.
 // A caller can steer an `auto` combo per request via two headers:
-//   X-OmniRoute-Mode:   fast | balanced | quality | <raw mode-pack name>   (#6024/#6025)
-//   X-OmniRoute-Budget: <max USD per request>                              (#6023)
+//   X-Birouter-Mode:   fast | balanced | quality | <raw mode-pack name>   (#6024/#6025)
+//   X-Birouter-Budget: <max USD per request>                              (#6023)
 // The pure resolvers below turn the raw header values into an override the
 // auto-combo engine already knows how to consume (config.modePack / config.budgetCap).
 

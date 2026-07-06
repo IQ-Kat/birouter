@@ -120,8 +120,8 @@ test("each SKILL.md body is at least 100 chars", () => {
 
 // ── §3: MCP tool birouter_agent_skills_list ─────────────────────────────────
 
-test("MCP omniroute_agent_skills_list handler returns count 44 (43 + config)", async () => {
-  const result = await agentSkillTools.omniroute_agent_skills_list.handler({});
+test("MCP birouter_agent_skills_list handler returns count 44 (43 + config)", async () => {
+  const result = await agentSkillTools.birouter_agent_skills_list.handler({});
   assert.equal(result.count, 44, `Expected 44 but got ${result.count}`);
   assert.ok(Array.isArray(result.skills));
   assert.equal(result.skills.length, 44);
