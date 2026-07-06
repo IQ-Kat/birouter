@@ -14,7 +14,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codewhale-settings-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "biroute-codewhale-settings-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-codewhale";
 process.env.JWT_SECRET = "test-jwt-secret-codewhale";
@@ -81,7 +81,7 @@ test("codewhale-settings POST: 400 when model is missing", async () => {
     new Request("http://localhost/api/cli-tools/codewhale-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ baseUrl: "http://localhost:20128", apiKey: "sk-test" }),
+      body: JSON.stringify({ baseUrl: "http://localhost:2004", apiKey: "sk-test" }),
     })
   );
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
@@ -100,7 +100,7 @@ test("codewhale-settings POST: writes primary ~/.codewhale/config.toml for a fre
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test-codewhale-key",
           model: "deepseek-v4-pro",
         }),
@@ -114,8 +114,8 @@ test("codewhale-settings POST: writes primary ~/.codewhale/config.toml for a fre
       const primaryPath = path.join(tmpHome, ".codewhale", "config.toml");
       assert.ok(fs.existsSync(primaryPath), "Primary ~/.codewhale/config.toml must be written");
       const content = fs.readFileSync(primaryPath, "utf-8");
-      assert.ok(content.includes("managed by OmniRoute"), "Config should have OmniRoute marker");
-      assert.ok(content.includes("http://localhost:20128"), "Config should contain base URL");
+      assert.ok(content.includes("managed by Birouter"), "Config should have Birouter marker");
+      assert.ok(content.includes("http://localhost:2004"), "Config should contain base URL");
       assert.ok(content.includes("[openai]"), "Config should have [openai] section");
 
       // No legacy ~/.deepseek dir existed before the write — must NOT be created.
@@ -149,7 +149,7 @@ test("codewhale-settings POST: syncs an existing legacy ~/.deepseek/config.toml"
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test-codewhale-key",
           model: "deepseek-v4-flash",
         }),
@@ -165,9 +165,9 @@ test("codewhale-settings POST: syncs an existing legacy ~/.deepseek/config.toml"
 
       const primaryContent = fs.readFileSync(primaryPath, "utf-8");
       const legacyContent = fs.readFileSync(legacyPath, "utf-8");
-      assert.ok(primaryContent.includes("http://localhost:20128"));
+      assert.ok(primaryContent.includes("http://localhost:2004"));
       assert.ok(
-        legacyContent.includes("http://localhost:20128"),
+        legacyContent.includes("http://localhost:2004"),
         "Legacy config must be kept in sync with the new base URL"
       );
       assert.equal(primaryContent, legacyContent, "Primary and legacy configs should match");
@@ -190,7 +190,7 @@ test("codewhale-settings GET: falls back to legacy ~/.deepseek/config.toml when 
     fs.mkdirSync(legacyDir, { recursive: true });
     fs.writeFileSync(
       path.join(legacyDir, "config.toml"),
-      '# managed by OmniRoute (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
+      '# managed by Birouter (plan 14)\n[openai]\nbase_url = "http://localhost:2004"\n'
     );
 
     const res = await GET(new Request("http://localhost/api/cli-tools/codewhale-settings"));
@@ -220,11 +220,11 @@ test("codewhale-settings DELETE: removes primary and legacy config files", async
     fs.mkdirSync(legacyDir, { recursive: true });
     fs.writeFileSync(
       path.join(primaryDir, "config.toml"),
-      '# managed by OmniRoute (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
+      '# managed by Birouter (plan 14)\n[openai]\nbase_url = "http://localhost:2004"\n'
     );
     fs.writeFileSync(
       path.join(legacyDir, "config.toml"),
-      '# managed by OmniRoute (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
+      '# managed by Birouter (plan 14)\n[openai]\nbase_url = "http://localhost:2004"\n'
     );
 
     const res = await DELETE(

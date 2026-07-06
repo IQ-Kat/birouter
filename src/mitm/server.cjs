@@ -42,7 +42,7 @@ const MITM_IDLE_TIMEOUT_MS =
 const ROUTER_BASE_URL = (
   process.env.BIROUTER_BASE_URL ||
   process.env.BASE_URL ||
-  "http://localhost:20128"
+  "http://localhost:2004"
 )
   .trim()
   .replace(/\/+$/, "");

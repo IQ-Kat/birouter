@@ -263,9 +263,9 @@ async function handleGetHealth() {
   const start = Date.now();
   try {
     const [healthRaw, resilienceRaw, rateLimitsRaw] = await Promise.allSettled([
-      biRouteFetch("/api/monitoring/health"),
-      biRouteFetch("/api/resilience"),
-      biRouteFetch("/api/rate-limits"),
+      birouterFetch("/api/monitoring/health"),
+      birouterFetch("/api/resilience"),
+      birouterFetch("/api/rate-limits"),
     ]);
 
     const health = healthRaw.status === "fulfilled" ? toRecord(healthRaw.value) : {};
@@ -313,7 +313,7 @@ async function handleGetHealth() {
 async function handleListCombos(args: { includeMetrics?: boolean }) {
   const start = Date.now();
   try {
-    const combosRaw = await biRouteFetch("/api/combos");
+    const combosRaw = await birouterFetch("/api/combos");
     const combosRecord = toRecord(combosRaw);
     const combos = Array.isArray(combosRecord.combos)
       ? combosRecord.combos
@@ -322,7 +322,7 @@ async function handleListCombos(args: { includeMetrics?: boolean }) {
         : [];
     let metrics: JsonRecord = {};
     if (args.includeMetrics) {
-      metrics = toRecord(await biRouteFetch("/api/combos/metrics").catch(() => ({})));
+      metrics = toRecord(await birouterFetch("/api/combos/metrics").catch(() => ({})));
     }
 
     const result = {
@@ -355,7 +355,7 @@ async function handleListCombos(args: { includeMetrics?: boolean }) {
 async function handleGetComboMetrics(args: { comboId: string }) {
   const start = Date.now();
   try {
-    const result = await biRouteFetch(
+    const result = await birouterFetch(
       `/api/combos/metrics?comboId=${encodeURIComponent(args.comboId)}`
     );
     await logToolCall("birouter_get_combo_metrics", args, result, Date.now() - start, true);
@@ -370,7 +370,7 @@ async function handleGetComboMetrics(args: { comboId: string }) {
 async function handleSwitchCombo(args: { comboId: string; active: boolean }) {
   const start = Date.now();
   try {
-    const result = await biRouteFetch(`/api/combos/${encodeURIComponent(args.comboId)}`, {
+    const result = await birouterFetch(`/api/combos/${encodeURIComponent(args.comboId)}`, {
       method: "PUT",
       body: JSON.stringify({ isActive: args.active }),
     });
@@ -390,7 +390,7 @@ async function handleCheckQuota(args: { provider?: string; connectionId?: string
     if (args.connectionId) path += `?connectionId=${encodeURIComponent(args.connectionId)}`;
     else if (args.provider) path += `?provider=${encodeURIComponent(args.provider)}`;
 
-    const result = normalizeQuotaResponse(await biRouteFetch(path), {
+    const result = normalizeQuotaResponse(await birouterFetch(path), {
       provider: args.provider || null,
       connectionId: args.connectionId || null,
     });
@@ -423,7 +423,7 @@ async function handleRouteRequest(args: {
       body["x-combo"] = args.combo;
     }
 
-    const raw = (await biRouteFetch("/v1/chat/completions", {
+    const raw = (await birouterFetch("/v1/chat/completions", {
       method: "POST",
       body: JSON.stringify(body),
     })) as JsonRecord;
@@ -488,7 +488,7 @@ async function handleCostReport(args: { period?: string }) {
     };
     const range = rangeMap[period] || "30d";
     const raw = toRecord(
-      await biRouteFetch(`/api/usage/analytics?range=${encodeURIComponent(range)}`)
+      await birouterFetch(`/api/usage/analytics?range=${encodeURIComponent(range)}`)
     );
     const tokenCount = toRecord(raw.tokenCount);
     const budget = toRecord(raw.budget);
@@ -562,7 +562,7 @@ async function handleWebSearch(args: {
     };
     if (args.provider) body.provider = args.provider;
 
-    const result = await biRouteFetch("/v1/search", {
+    const result = await birouterFetch("/v1/search", {
       method: "POST",
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(60000),
@@ -595,7 +595,7 @@ async function handleWebFetch(args: {
     if (args.depth !== undefined) body.depth = args.depth;
     if (args.wait_for_selector) body.wait_for_selector = args.wait_for_selector;
 
-    const result = await biRouteFetch("/v1/web/fetch", {
+    const result = await birouterFetch("/v1/web/fetch", {
       method: "POST",
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(60000),

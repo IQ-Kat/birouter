@@ -5,7 +5,7 @@
  * Matching order:
  *  1. Exact match against `navigator.languages` entries (case-insensitive).
  *  2. `zh-HK` / `zh-MO` are treated as `zh-TW` (Traditional Chinese) since
- *     OmniRoute does not ship a dedicated Hong-Kong/Macau locale.
+ *     Birouter does not ship a dedicated Hong-Kong/Macau locale.
  *  3. Language-prefix match — e.g. `en-US` matches a supported `en` locale.
  *  4. No match → `null` (caller should keep the existing default).
  *

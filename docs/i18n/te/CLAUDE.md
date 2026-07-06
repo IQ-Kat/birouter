@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # డిపెండెన్సీలు ఇన్‌స్టాల్ చేయండి (.env.example నుండి .env ఆటో-జనరేట్ చేస్తుంది)
-npm run dev                    # http://localhost:20128 వద్ద డెవ్ సర్వర్
+npm run dev                    # http://localhost:2004 వద్ద డెవ్ సర్వర్
 npm run build                  # ఉత్పత్తి నిర్మాణం (Next.js 16 standalone)
 npm run lint                   # ESLint (0 తప్పులు ఆశించబడుతున్నాయి; హెచ్చరికలు ముందుగా ఉన్నాయి)
 npm run typecheck:core         # TypeScript తనిఖీ (స్వచ్ఛంగా ఉండాలి)
@@ -359,7 +359,7 @@ git push -u origin feat/your-feature
 - **రన్‌టైమ్**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES మాడ్యూల్స్
 - **TypeScript**: 5.9+, లక్ష్యం ES2022, మాడ్యూల్ esnext, రిజల్యూషన్ బండ్లర్
 - **పాత్ అలియాసులు**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **డిఫాల్ట్ పోర్ట్**: 20128 (API + డాష్‌బోర్డ్ ఒకే పోర్ట్‌లో)
+- **డిఫాల్ట్ పోర్ట్**: 2004 (API + డాష్‌బోర్డ్ ఒకే పోర్ట్‌లో)
 - **డేటా డైరెక్టరీ**: `DATA_DIR` env var, డిఫాల్ట్ గా `~/.birouter/`
 - **కీ env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - సెటప్: `cp .env.example .env` తరువాత `JWT_SECRET` (`openssl rand -base64 48`) మరియు `API_KEY_SECRET` (`openssl rand -hex 32`) ను ఉత్పత్తి చేయండి

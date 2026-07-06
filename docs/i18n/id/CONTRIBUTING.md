@@ -37,13 +37,13 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 Variabel-variabel utama untuk pengembangan:
 
-| Variable               | Development Default      | Deskripsi                 |
-| ---------------------- | ------------------------ | ------------------------- |
-| `PORT`                 | `20128`                  | Port server               |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | URL dasar untuk frontend  |
-| `JWT_SECRET`           | (generate above)         | Kunci penandatanganan JWT |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | Kata sandi login pertama  |
-| `APP_LOG_LEVEL`        | `info`                   | Tingkat verbositas log    |
+| Variable               | Development Default     | Deskripsi                 |
+| ---------------------- | ----------------------- | ------------------------- |
+| `PORT`                 | `2004`                  | Port server               |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:2004` | URL dasar untuk frontend  |
+| `JWT_SECRET`           | (generate above)        | Kunci penandatanganan JWT |
+| `INITIAL_PASSWORD`     | `CHANGEME`              | Kata sandi login pertama  |
+| `APP_LOG_LEVEL`        | `info`                  | Tingkat verbositas log    |
 
 ### Pengaturan Dashboard
 
@@ -67,13 +67,13 @@ npm run build
 npm run start
 
 # Common port configuration
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=2004 NEXT_PUBLIC_BASE_URL=http://localhost:2004 npm run dev
 ```
 
 URL default:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
+- **Dashboard**: `http://localhost:2004/dashboard`
+- **API**: `http://localhost:2004/v1`
 
 ---
 

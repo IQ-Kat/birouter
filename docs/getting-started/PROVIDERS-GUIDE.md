@@ -23,7 +23,7 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 
 ### Option A: Free Provider (No Credit Card)
 
-1. Open the dashboard at `http://localhost:20128`
+1. Open the dashboard at `http://localhost:2004`
 2. Go to **Providers** → **Add Provider**
 3. Select one of these free providers:
    - **Kiro AI** — Free Claude models (no auth needed)
@@ -42,7 +42,7 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
    - **Google**: https://aistudio.google.com/apikey
    - **DeepSeek**: https://platform.deepseek.com/
    - **Groq**: https://console.groq.com/
-2. Open the dashboard at `http://localhost:20128`
+2. Open the dashboard at `http://localhost:2004`
 3. Go to **Providers** → **Add Provider**
 4. Select your provider
 5. Paste your API key
@@ -51,7 +51,7 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 
 ### Option C: OAuth Provider (Subscription)
 
-1. Open the dashboard at `http://localhost:20128`
+1. Open the dashboard at `http://localhost:2004`
 2. Go to **Providers** → **Add Provider**
 3. Select your provider (e.g., Claude Code, GitHub Copilot)
 4. Click **Connect with OAuth**
@@ -99,7 +99,7 @@ These providers offer **high-quality models** with API keys:
 
 ### Step 1: Open the Dashboard
 
-Go to `http://localhost:20128` in your browser.
+Go to `http://localhost:2004` in your browser.
 
 ### Step 2: Go to Providers
 

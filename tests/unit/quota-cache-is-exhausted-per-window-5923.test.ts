@@ -18,7 +18,7 @@ import path from "node:path";
  * (`remainingPercentage <= 0` for THAT window), independent of sibling windows
  * on the same connection.
  */
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-quota-per-window-5923-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "bi-quota-per-window-5923-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const coreDb = await import("../../src/lib/db/core.ts");

@@ -22,7 +22,7 @@ System health check
 Returns system health including uptime, memory, circuit breakers, rate limits
 
 ```bash
-curl https://localhost:20128/api/monitoring/health \
+curl https://localhost:2004/api/monitoring/health \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

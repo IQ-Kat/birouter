@@ -57,7 +57,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcp": {
     "servers": {
       "birouter": {
-        "url": "http://localhost:20128/api/mcp/sse",
+        "url": "http://localhost:2004/api/mcp/sse",
         "headers": { "Authorization": "Bearer sk-..." }
       }
     }

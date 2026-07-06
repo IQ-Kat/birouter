@@ -64,7 +64,7 @@ src/mitm/server.cjs  (port 443, CJS child process)
     │  resolves target by Host header SNI
     │  generates per-SNI TLS cert signed by AgentBridge CA
     ├── Bypass list match? → TCP passthrough (no decrypt)
-    ├── Target match? → fetch → Birouter router (port 20128)
+    ├── Target match? → fetch → Birouter router (port 2004)
     │       └── handler.intercept() — TypeScript
     │               ├── maskSecrets() on request body/headers
     │               ├── TrafficBuffer.push() — publishes to Traffic Inspector
@@ -80,7 +80,7 @@ The core MITM server runs as a Node.js CJS child process (to avoid rewriting the
 - Receives CONNECT tunnels from the OS (via `/etc/hosts` DNS redirect)
 - Generates per-SNI TLS certificates signed by the AgentBridge CA (`DATA_DIR/mitm/ca.crt`)
 - Resolves the target agent by Host header via `targets/index.ts` registry
-- Dispatches to the TypeScript handler layer via HTTP to `http://127.0.0.1:20128`
+- Dispatches to the TypeScript handler layer via HTTP to `http://127.0.0.1:2004`
 
 `TARGET_HOSTS` is loaded from `DATA_DIR/mitm/targets.json` (written by `targets/index.ts` at boot), allowing dynamic updates without restarting the CJS server.
 
@@ -470,7 +470,7 @@ If AgentBridge intercepts but all requests fail:
 
 1. Verify at least one provider is connected at `/dashboard/providers`
 2. Check Birouter server logs: `APP_LOG_LEVEL=debug` in `.env`
-3. Verify `BIROUTER_BASE_URL` points to the correct router endpoint (default: `http://127.0.0.1:20128`)
+3. Verify `BIROUTER_BASE_URL` points to the correct router endpoint (default: `http://127.0.0.1:2004`)
 
 ---
 

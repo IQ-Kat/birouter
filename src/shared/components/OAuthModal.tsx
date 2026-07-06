@@ -406,19 +406,19 @@ export default function OAuthModal({
       } else if (provider === "windsurf" || provider === "devin-cli") {
         // Remote fallback: use Birouter's port with the /auth/callback path Windsurf expects.
         // On true localhost this code is never reached (callback server handles the flow above).
-        const port = window.location.port || "20128";
+        const port = window.location.port || "2004";
         redirectUri = `http://localhost:${port}/auth/callback`;
       } else if (GOOGLE_OAUTH_PROVIDERS.has(provider)) {
         // Google OAuth built-in credentials only accept loopback redirect URIs.
         // Even in remote deployments we use loopback — user copies the callback URL manually.
-        const port = window.location.port || "20128";
+        const port = window.location.port || "2004";
         redirectUri = `http://127.0.0.1:${port}/callback`;
       } else if (!isLocalhost) {
         // Behind reverse proxy: use actual origin (e.g., https://birouter.example.com/callback)
         // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
         const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
         const origin =
-          publicUrl && publicUrl !== "http://localhost:20128"
+          publicUrl && publicUrl !== "http://localhost:2004"
             ? publicUrl.replace(/\/$/, "")
             : window.location.origin;
         redirectUri = `${origin}/callback`;

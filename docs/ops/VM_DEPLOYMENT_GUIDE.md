@@ -108,7 +108,7 @@ MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
 BIROUTER_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # REQUIRED em produção: usado pelo Codex Responses WS bridge
 
 # === App ===
-PORT=20128
+PORT=2004
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
@@ -118,7 +118,7 @@ REQUIRE_API_KEY=false
 
 # === URLs (change to your domain) ===
 # Internal server-to-server base URL for scheduled jobs / self-fetches.
-BASE_URL=http://127.0.0.1:20128
+BASE_URL=http://127.0.0.1:2004
 # Browser-facing URL used for OAuth callbacks, dashboard links, and generated public URLs.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 # Optional explicit public origin override for generated public asset URLs.
@@ -141,7 +141,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --env-file /opt/birouter/.env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -153,7 +153,7 @@ docker ps | grep birouter
 docker logs birouter --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+It should display: `[DB] SQLite database ready` and `listening on port 2004`.
 
 ---
 
@@ -209,7 +209,7 @@ server {
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://127.0.0.1:20128;
+        proxy_pass http://127.0.0.1:2004;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -306,7 +306,7 @@ docker pull IQ-Kat/birouter:latest
 docker stop birouter && docker rm birouter
 docker run -d --name birouter --restart unless-stopped \
   --env-file /opt/birouter/.env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -387,9 +387,9 @@ fail2ban-client status sshd
 ### Block direct access to the Docker port
 
 ```bash
-# Prevent direct external access to port 20128
-iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
-iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
+# Prevent direct external access to port 2004
+iptables -I DOCKER-USER -p tcp --dport 2004 -j DROP
+iptables -I DOCKER-USER -i lo -p tcp --dport 2004 -j ACCEPT
 
 # Persist the rules
 apt install -y iptables-persistent
@@ -416,9 +416,9 @@ See also [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) for the in-repo Cloudflare Tunne
 
 ## Port Summary
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | Birouter    | Localhost only (via nginx) |
+| Port | Service     | Access                     |
+| ---- | ----------- | -------------------------- |
+| 22   | SSH         | Public (with fail2ban)     |
+| 80   | nginx HTTP  | Redirect → HTTPS           |
+| 443  | nginx HTTPS | Via Cloudflare Proxy       |
+| 2004 | Birouter    | Localhost only (via nginx) |

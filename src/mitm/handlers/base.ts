@@ -134,7 +134,7 @@ export abstract class MitmHandlerBase {
     path: string,
     headers: IncomingHttpHeaders
   ): Promise<Response> {
-    const base = process.env.BIROUTER_BASE_URL ?? "http://127.0.0.1:20128";
+    const base = process.env.BIROUTER_BASE_URL ?? "http://127.0.0.1:2004";
     const url = `${base.replace(/\/+$/, "")}${path}`;
     const apiKey = process.env.ROUTER_API_KEY ?? "";
 

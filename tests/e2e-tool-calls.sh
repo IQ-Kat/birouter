@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-BIROUTER_URL="${BIROUTER_URL:-http://localhost:20128}"
+BIROUTER_URL="${BIROUTER_URL:-http://localhost:2004}"
 MODEL="${1:-${BIROUTER_MODEL:-}}"
 AUTH_TOKEN="${BIROUTER_AUTH_TOKEN:-dummy}"
 FAILURES=0

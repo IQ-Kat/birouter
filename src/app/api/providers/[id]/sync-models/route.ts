@@ -191,7 +191,7 @@ export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): 
         // readiness — we only care that the dispatcher succeeds (no
         // ECONNREFUSED). Using a synthetic connection id so no real DB lookup
         // is needed; the 404 is sufficient proof the server is dispatching.
-        const probePort = process.env.BIROUTER_PORT || process.env.PORT || "20128";
+        const probePort = process.env.BIROUTER_PORT || process.env.PORT || "2004";
         const res = await f(
           `http://127.0.0.1:${probePort}/api/providers/__readiness_probe__/models`,
           {
@@ -332,7 +332,7 @@ async function fetchProviderModelsForSync(request: Request, connectionId: string
   const loopbackPort =
     SAFE_HOSTS.has(incomingUrl.hostname) && incomingUrl.port
       ? incomingUrl.port
-      : process.env.PORT || "20128";
+      : process.env.PORT || "2004";
   const safeOrigin = `http://127.0.0.1:${loopbackPort}`;
   const modelsPath = `/api/providers/${encodeURIComponent(connectionId)}/models?refresh=true`;
   const headers = {

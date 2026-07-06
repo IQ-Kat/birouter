@@ -101,13 +101,13 @@ The generator preserves content between `<!-- skill:custom-start -->` and `<!-- 
 Example — list all API skills:
 
 ```bash
-curl "http://localhost:20128/api/agent-skills?category=api"
+curl "http://localhost:2004/api/agent-skills?category=api"
 ```
 
 Example — fetch a single SKILL.md:
 
 ```bash
-curl -H "Accept: text/markdown" "http://localhost:20128/api/agent-skills/bi-providers/raw"
+curl -H "Accept: text/markdown" "http://localhost:2004/api/agent-skills/bi-providers/raw"
 ```
 
 ---
@@ -251,19 +251,19 @@ The generator reads the curated catalog + OpenAPI spec + CLI registry and writes
 
 ```bash
 # Preview (dry run, no writes)
-curl -X POST http://localhost:20128/api/agent-skills/generate \
+curl -X POST http://localhost:2004/api/agent-skills/generate \
   -H "Authorization: Bearer <admin-key>" \
   -H "Content-Type: application/json" \
   -d '{"dryRun":true}'
 
 # Full regeneration
-curl -X POST http://localhost:20128/api/agent-skills/generate \
+curl -X POST http://localhost:2004/api/agent-skills/generate \
   -H "Authorization: Bearer <admin-key>" \
   -H "Content-Type: application/json" \
   -d '{"dryRun":false,"prune":false}'
 
 # Regenerate specific IDs
-curl -X POST http://localhost:20128/api/agent-skills/generate \
+curl -X POST http://localhost:2004/api/agent-skills/generate \
   -H "Authorization: Bearer <admin-key>" \
   -H "Content-Type: application/json" \
   -d '{"dryRun":false,"onlyIds":["bi-providers","cli-serve"]}'
@@ -286,7 +286,7 @@ The generator response is a `GeneratorReport`:
 ## Coverage API
 
 ```bash
-curl "http://localhost:20128/api/agent-skills/coverage"
+curl "http://localhost:2004/api/agent-skills/coverage"
 ```
 
 ```json

@@ -133,7 +133,7 @@ and forward — let OmniRoute answer preflight:
 ```nginx
 # nginx — forward to OmniRoute; do NOT inject Access-Control-* here
 location / {
-    proxy_pass http://127.0.0.1:20128;
+    proxy_pass http://127.0.0.1:2004;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     # Do NOT set X-Forwarded-For to 127.0.0.1 — it defeats the loopback route guard.

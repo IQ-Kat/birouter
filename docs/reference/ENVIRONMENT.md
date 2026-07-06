@@ -116,7 +116,7 @@ Birouter uses **SQLite** (via `better-sqlite3`) for all persistence. These varia
 
 | Variable                                    | Default                         | Source File                                                              | Description                                                                                                                                                    |
 | ------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                                      | `20128`                         | `src/lib/runtime/ports.ts`                                               | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                       |
+| `PORT`                                      | `2004`                         | `src/lib/runtime/ports.ts`                                               | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                       |
 | `OMNIROUTE_BASE_PATH`                       | _(empty = root)_                | `next.config.mjs`                                                        | URL subpath for serving OmniRoute behind a reverse proxy under a subpath (sets Next.js `basePath`; auth redirects are basePath-aware). E.g. `/omniroute`.       |
 | `API_PORT`                                  | _(unset)_                       | `src/lib/runtime/ports.ts`                                               | When set, serves the `/v1/*` proxy API on this separate port.                                                                                                  |
 | `API_HOST`                                  | `0.0.0.0`                       | `src/lib/runtime/ports.ts`                                               | Bind address for the API port.                                                                                                                                 |
@@ -146,16 +146,16 @@ Birouter uses **SQLite** (via `better-sqlite3`) for all persistence. These varia
 
 ```
 ┌─────────────────────────── Single Port (default) ──────────────────────────┐
-│  PORT=20128                                                                 │
-│  → Dashboard: http://localhost:20128                                        │
-│  → API:       http://localhost:20128/v1/chat/completions                    │
+│  PORT=2004                                                                 │
+│  → Dashboard: http://localhost:2004                                        │
+│  → API:       http://localhost:2004/v1/chat/completions                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────── Split Ports ─────────────────────────────────────┐
-│  DASHBOARD_PORT=20128                                                       │
+│  DASHBOARD_PORT=2004                                                       │
 │  API_PORT=20129                                                             │
 │  API_HOST=0.0.0.0                                                           │
-│  → Dashboard: http://localhost:20128                                        │
+│  → Dashboard: http://localhost:2004                                        │
 │  → API:       http://0.0.0.0:20129/v1/chat/completions                     │
 │  Use case: Expose API to LAN while restricting Dashboard to localhost.      │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -255,14 +255,14 @@ Birouter provides a two-layer defense: request-side injection scanning and respo
 
 | Variable                                | Default                                                         | Source File                                 | Description                                                                                                                                                                                                                                                                                       |
 | --------------------------------------- | --------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BASE_URL`                              | `http://localhost:20128`                                        | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`. Keep this as a loopback/container URL even when the app is publicly proxied.                                                                                                                                                    |
+| `BASE_URL`                              | `http://localhost:2004`                                        | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`. Keep this as a loopback/container URL even when the app is publicly proxied.                                                                                                                                                    |
 | `CLOUD_URL`                             | _(empty)_                                                       | `src/lib/cloudSync.ts`                      | Cloud relay endpoint URL (premium feature).                                                                                                                                                                                                                                                       |
 | `CLOUD_SYNC_TIMEOUT_MS`                 | `12000`                                                         | `src/lib/cloudSync.ts`                      | HTTP timeout for cloud sync requests.                                                                                                                                                                                                                                                             |
 | `BIROUTER_BUILD_PROFILE`               | `full`                                                          | Webpack build config                        | Build-time profile (set to `minimal` to physically exclude privileged modules from bundle).                                                                                                                                                                                                       |
 | `BIROUTER_CLOUD_SYNC_SECRET`           | _(empty)_                                                       | `src/lib/cloudSync.ts`                      | Shared secret used to verify the HMAC-SHA256 signature of Cloud Sync responses.                                                                                                                                                                                                                   |
 | `BIROUTER_CLOUD_SYNC_SECRETS`          | `false`                                                         | `src/lib/cloudSync.ts`                      | Set to `true` to allow the Cloud Sync endpoint to overwrite local credentials. Default is `false`.                                                                                                                                                                                                |
 | `BIROUTER_ZED_IMPORT_LEGACY_ONE_STEP`  | `false`                                                         | `src/app/api/providers/zed/import/route.ts` | Set to `true` to fall back to the v3.8.5 one-step "import everything" behavior without user confirmation.                                                                                                                                                                                         |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`                                        | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links, and generated public URLs. Set this to the stable public URL when OAuth callbacks or generated browser links must use a canonical reverse-proxy host.                                                                                     |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:2004`                                        | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links, and generated public URLs. Set this to the stable public URL when OAuth callbacks or generated browser links must use a canonical reverse-proxy host.                                                                                     |
 | `NEXT_PUBLIC_CLOUD_URL`                 | _(empty)_                                                       | Client-side                                 | Client-side mirror of `CLOUD_URL`.                                                                                                                                                                                                                                                                |
 | `NEXT_PUBLIC_APP_URL`                   | _(unset)_                                                       | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                                                                                                                                                                                                       |
 | `OMNIROUTE_PUBLIC_BASE_URL`             | _(unset)_                                                       | Public-origin resolver, image URLs          | Highest-priority browser-facing OmniRoute origin used for public URL generation and non-dashboard browser-origin validation (for example `/v1/chatgpt-web/image/<id>`). Set this when OpenWebUI or another relay reaches OmniRoute by an internal URL but the user's browser must fetch images from a LAN, tunnel, or public origin. Do **not** include `/v1`. |
@@ -923,7 +923,7 @@ For relay backend SRE guidance (ts/bifrost/auto behavior, 9router vs CLIProxyAPI
 JWT_SECRET=$(openssl rand -base64 48)
 API_KEY_SECRET=$(openssl rand -hex 32)
 INITIAL_PASSWORD=dev123
-PORT=20128
+PORT=2004
 NODE_ENV=development
 ```
 
@@ -935,13 +935,13 @@ API_KEY_SECRET=<generated>
 INITIAL_PASSWORD=<generated>
 STORAGE_ENCRYPTION_KEY=<generated>
 DATA_DIR=/data
-PORT=20128
+PORT=2004
 API_PORT=20129
 NODE_ENV=production
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
 NEXT_PUBLIC_BASE_URL=https://birouter.example.com
-BASE_URL=http://localhost:20128
+BASE_URL=http://localhost:2004
 BIROUTER_MEMORY_MB=512
 CORS_ORIGIN=https://your-frontend.example.com
 ```
@@ -963,11 +963,11 @@ APP_LOG_TO_FILE=false
 JWT_SECRET=<generated>
 API_KEY_SECRET=<generated>
 STORAGE_ENCRYPTION_KEY=<generated>
-PORT=20128
+PORT=2004
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
 NEXT_PUBLIC_BASE_URL=https://birouter.example.com
-BASE_URL=http://127.0.0.1:20128
+BASE_URL=http://127.0.0.1:2004
 CORS_ORIGIN=https://birouter.example.com
 ENABLE_TLS_FINGERPRINT=true
 CLI_COMPAT_ALL=1
@@ -1110,7 +1110,7 @@ value below unset in production deployments.
 | `BIROUTER_PLAYWRIGHT_SKIP_BUILD`      | `0`                              | `scripts/dev/run-next-playwright.mjs`     | Skip the Next.js production build before Playwright starts (CI optimization).                                                                                                                                                              |
 | `BIROUTER_SKIP_UNINSTALL_HOOK`        | `0`                              | `scripts/build/uninstall.mjs`             | Skip the Birouter uninstall hook (used by CI to keep `node_modules` intact).                                                                                                                                                              |
 | `ECOSYSTEM_SERVER_WAIT_MS`             | `180000`                         | `scripts/dev/run-ecosystem-tests.mjs`     | Wait time (ms) for the server to become healthy before running ecosystem/protocol tests.                                                                                                                                                   |
-| `ELECTRON_SMOKE_URL`                   | `http://127.0.0.1:20128/login`   | `scripts/dev/smoke-electron-packaged.mjs` | URL the Electron smoke harness expects the packaged app to serve.                                                                                                                                                                          |
+| `ELECTRON_SMOKE_URL`                   | `http://127.0.0.1:2004/login`   | `scripts/dev/smoke-electron-packaged.mjs` | URL the Electron smoke harness expects the packaged app to serve.                                                                                                                                                                          |
 | `ELECTRON_SMOKE_TIMEOUT_MS`            | `45000`                          | `scripts/dev/smoke-electron-packaged.mjs` | Total timeout (ms) before the smoke harness gives up.                                                                                                                                                                                      |
 | `ELECTRON_SMOKE_SETTLE_MS`             | `2000`                           | `scripts/dev/smoke-electron-packaged.mjs` | Settle window (ms) after the page loads.                                                                                                                                                                                                   |
 | `ELECTRON_SMOKE_APP_EXECUTABLE`        | _(auto)_                         | `scripts/dev/smoke-electron-packaged.mjs` | Explicit path to the packaged Electron executable.                                                                                                                                                                                         |
@@ -1169,7 +1169,7 @@ is developer tooling only.
 
 | Variable           | Default                  | Source File                               | Description                                                                                                               |
 | ------------------ | ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `BIROUTER_URL`    | `http://localhost:20128` | `scripts/ad-hoc/regen-opencode-config.ts` | Base URL of the Birouter instance to query for `/v1/models`.                                                             |
+| `BIROUTER_URL`    | `http://localhost:2004` | `scripts/ad-hoc/regen-opencode-config.ts` | Base URL of the Birouter instance to query for `/v1/models`.                                                             |
 | `BIROUTER_KEY`    | _(unset)_                | `scripts/ad-hoc/regen-opencode-config.ts` | API key to authenticate against the Birouter `/v1/models` endpoint. Falls back to `OPENCODE_API_KEY` when unset.         |
 | `OPENCODE_API_KEY` | _(unset)_                | `scripts/ad-hoc/regen-opencode-config.ts` | OpenCode-style API key (`sk-...`) written into the regenerated `opencode.json`. Falls back to `BIROUTER_KEY` when unset. |
 

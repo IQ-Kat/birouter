@@ -105,10 +105,10 @@ Every CLI command that talks to the server reads two values:
 | Base URL | `BIROUTER_BASE_URL` or `--base-url` |
 | API key  | `BIROUTER_API_KEY` or `--api-key`   |
 
-Default base URL: `http://localhost:20128`
+Default base URL: `http://localhost:2004`
 
 ```bash
-export BIROUTER_BASE_URL="http://localhost:20128"
+export BIROUTER_BASE_URL="http://localhost:2004"
 export BIROUTER_API_KEY="sk-..."          # from Dashboard → API Manager
 ```
 
@@ -128,7 +128,7 @@ export BIROUTER_BASE_URL="https://your-server.com"
 | `--json`            | Shorthand for `--output json`                            |
 | `--non-interactive` | Disable prompts — for CI / shell scripts                 |
 | `--no-open`         | Don't auto-open the browser on start                     |
-| `--port <n>`        | Override default port 20128                              |
+| `--port <n>`        | Override default port 2004                               |
 | `--help`, `-h`      | Show help for the current command                        |
 | `--version`, `-v`   | Print the installed version                              |
 
@@ -179,7 +179,7 @@ Requires the `birouter` CLI. See [CLI entry-point skill](https://raw.githubuserc
 ### Server lifecycle
 
 ```bash
-birouter                              # Start server (default port 20128)
+birouter                              # Start server (default port 2004)
 birouter serve                        # Explicit alias
 birouter --port 3000                  # Override port
 birouter --no-open                    # Don't auto-open browser

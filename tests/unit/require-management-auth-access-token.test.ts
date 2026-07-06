@@ -18,7 +18,7 @@ const core = await import("../../src/lib/db/core.ts");
 const at = await import("../../src/lib/db/accessTokens.ts");
 const { requireManagementAuth } = await import("../../src/lib/api/requireManagementAuth.ts");
 
-const BASE = "http://localhost:20128";
+const BASE = "http://localhost:2004";
 
 function req(method: string, pathname: string, token?: string): Request {
   const headers: Record<string, string> = {};

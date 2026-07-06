@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # ติดตั้ง deps (สร้าง .env จาก .env.example โดยอัตโนมัติ)
-npm run dev                    # เซิร์ฟเวอร์พัฒนาอยู่ที่ http://localhost:20128
+npm run dev                    # เซิร์ฟเวอร์พัฒนาอยู่ที่ http://localhost:2004
 npm run build                  # สร้างโปรดักชัน (Next.js 16 standalone)
 npm run lint                   # ESLint (คาดหวัง 0 ข้อผิดพลาด; คำเตือนเป็นสิ่งที่มีอยู่แล้ว)
 npm run typecheck:core         # ตรวจสอบ TypeScript (ควรสะอาด)
@@ -362,7 +362,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **พอร์ตเริ่มต้น**: 20128 (API + แดชบอร์ดบนพอร์ตเดียวกัน)
+- **พอร์ตเริ่มต้น**: 2004 (API + แดชบอร์ดบนพอร์ตเดียวกัน)
 - **ไดเรกทอรีข้อมูล**: `DATA_DIR` env var, ค่าเริ่มต้นเป็น `~/.birouter/`
 - **ตัวแปรสภาพแวดล้อมหลัก**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - การตั้งค่า: `cp .env.example .env` จากนั้นสร้าง `JWT_SECRET` (`openssl rand -base64 48`) และ `API_KEY_SECRET` (`openssl rand -hex 32`)

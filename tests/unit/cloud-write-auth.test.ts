@@ -1,10 +1,10 @@
-﻿import test from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cloud-write-auth-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-cloud-write-auth-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.JWT_SECRET = "cloud-write-auth-jwt";

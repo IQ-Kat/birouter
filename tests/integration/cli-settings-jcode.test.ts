@@ -74,7 +74,7 @@ test("jcode-settings POST: 400 when model is missing", async () => {
     new Request("http://localhost/api/cli-tools/jcode-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ baseUrl: "http://localhost:20128", apiKey: "sk-test" }),
+      body: JSON.stringify({ baseUrl: "http://localhost:2004", apiKey: "sk-test" }),
     })
   );
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
@@ -93,7 +93,7 @@ test("jcode-settings POST: writes config.json with valid body", async () => {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test-jcode-key",
           model: "gpt-5.4-mini",
         }),
@@ -107,7 +107,7 @@ test("jcode-settings POST: writes config.json with valid body", async () => {
       if (fs.existsSync(configPath)) {
         const written = JSON.parse(fs.readFileSync(configPath, "utf-8"));
         assert.equal(written._managedBy, "birouter");
-        assert.ok(written.baseUrl.includes("localhost:20128"));
+        assert.ok(written.baseUrl.includes("localhost:2004"));
         assert.equal(written.model, "gpt-5.4-mini");
       }
     }
@@ -131,7 +131,7 @@ test("jcode-settings DELETE: removes Birouter fields from existing config", asyn
       path.join(jcodeDir, "config.json"),
       JSON.stringify({
         _managedBy: "birouter",
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test",
         model: "gpt-5",
       })

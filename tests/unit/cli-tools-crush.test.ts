@@ -50,7 +50,7 @@ test("getCliConfigPaths('crush') resolves to ~/.config/crush/crush.json (matches
 
 // ── /api/cli-tools/crush-settings round-trip ─────────────────────────────────
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-crush-settings-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-crush-settings-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-crush";
 process.env.JWT_SECRET = "test-jwt-secret-crush";
@@ -110,13 +110,13 @@ test("crush-settings POST: 400 when model is missing", async () => {
     new Request("http://localhost/api/cli-tools/crush-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ baseUrl: "http://localhost:20128", apiKey: "sk-test" }),
+      body: JSON.stringify({ baseUrl: "http://localhost:2004", apiKey: "sk-test" }),
     })
   );
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
 });
 
-test("crush-settings POST: writes crush.json with an openai-compat providers.omniroute block", async () => {
+test("crush-settings POST: writes crush.json with an openai-compat providers.birouter block", async () => {
   const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "crush-home-"));
   const origHome = process.env.HOME;
   process.env.HOME = tmpHome;
@@ -127,7 +127,7 @@ test("crush-settings POST: writes crush.json with an openai-compat providers.omn
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test-crush-key",
           model: "openai/gpt-5.4-mini",
         }),
@@ -140,10 +140,10 @@ test("crush-settings POST: writes crush.json with an openai-compat providers.omn
       const configPath = path.join(tmpHome, ".config", "crush", "crush.json");
       if (fs.existsSync(configPath)) {
         const written = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-        const provider = written.providers?.omniroute;
-        assert.ok(provider, "providers.omniroute must be written");
+        const provider = written.providers?.birouter;
+        assert.ok(provider, "providers.birouter must be written");
         assert.equal(provider.type, "openai-compat");
-        assert.ok(provider.base_url.includes("localhost:20128"));
+        assert.ok(provider.base_url.includes("localhost:2004"));
         assert.ok(provider.base_url.endsWith("/v1"));
         assert.ok(Array.isArray(provider.models) && provider.models.length === 1);
         assert.equal(provider.models[0].id, "openai/gpt-5.4-mini");
@@ -155,7 +155,7 @@ test("crush-settings POST: writes crush.json with an openai-compat providers.omn
   }
 });
 
-test("crush-settings DELETE: removes only the omniroute provider entry", async () => {
+test("crush-settings DELETE: removes only the birouter provider entry", async () => {
   const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "crush-home-del-"));
   const origHome = process.env.HOME;
   process.env.HOME = tmpHome;
@@ -167,12 +167,12 @@ test("crush-settings DELETE: removes only the omniroute provider entry", async (
       path.join(crushDir, "crush.json"),
       JSON.stringify({
         providers: {
-          omniroute: {
+          birouter: {
             type: "openai-compat",
-            base_url: "http://localhost:20128/v1",
+            base_url: "http://localhost:2004/v1",
             api_key: "sk-test",
             models: [
-              { id: "openai/gpt-5", name: "OmniRoute: openai/gpt-5", context_window: 128000 },
+              { id: "openai/gpt-5", name: "Birouter: openai/gpt-5", context_window: 128000 },
             ],
           },
           other: { type: "openai-compat", base_url: "http://example.com/v1" },
@@ -190,7 +190,7 @@ test("crush-settings DELETE: removes only the omniroute provider entry", async (
       const configPath = path.join(crushDir, "crush.json");
       if (fs.existsSync(configPath)) {
         const written = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-        assert.equal(written.providers?.omniroute, undefined);
+        assert.equal(written.providers?.birouter, undefined);
         assert.ok(written.providers?.other, "Unrelated providers must be preserved");
       }
     }

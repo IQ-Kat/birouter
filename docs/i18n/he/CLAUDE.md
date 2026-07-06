@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # התקנת תלותים (יוצר אוטומטית .env מ-.env.example)
-npm run dev                    # שרת פיתוח ב-http://localhost:20128
+npm run dev                    # שרת פיתוח ב-http://localhost:2004
 npm run build                  # בניית הפקה (Next.js 16 עצמאי)
 npm run lint                   # ESLint (0 שגיאות צפויות; אזהרות קיימות מראש)
 npm run typecheck:core         # בדיקת TypeScript (אמור להיות נקי)
@@ -381,7 +381,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, מודולי ES
 - **TypeScript**: 5.9+, יעד ES2022, מודול esnext, פתרון bundler
 - **Alias נתיב**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **פורט ברירת מחדל**: 20128 (API + לוח מחוונים באותו פורט)
+- **פורט ברירת מחדל**: 2004 (API + לוח מחוונים באותו פורט)
 - **ספריית נתונים**: משתנה סביבה `DATA_DIR`, ברירת מחדל ל-`~/.birouter/`
 - **משתני סביבה מרכזיים**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - הגדרה: `cp .env.example .env` ואז צור `JWT_SECRET` (`openssl rand -base64 48`) ו-`API_KEY_SECRET` (`openssl rand -hex 32`)

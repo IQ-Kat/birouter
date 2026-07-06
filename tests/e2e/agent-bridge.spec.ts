@@ -1,7 +1,7 @@
 /**
  * E2E — AgentBridge page smoke tests
  *
- * These tests require the Birouter server to be running at http://localhost:20128
+ * These tests require the Birouter server to be running at http://localhost:2004
  * (or the URL in PLAYWRIGHT_BASE_URL / baseURL in playwright.config.ts).
  *
  * CI behaviour: tests are marked `.skip` unless the env var

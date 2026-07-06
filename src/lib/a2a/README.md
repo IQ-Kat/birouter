@@ -42,7 +42,7 @@ The A2A Server exposes Birouter as a **first-class agent** that other agents can
 Every A2A-compatible agent exposes an **Agent Card** at `/.well-known/agent.json`:
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 **Response:**
@@ -51,7 +51,7 @@ curl http://localhost:20128/.well-known/agent.json
 {
   "name": "Birouter",
   "description": "Intelligent AI gateway with auto-routing across 50+ providers",
-  "url": "http://localhost:20128/a2a",
+  "url": "http://localhost:2004/a2a",
   "version": "1.8.1",
   "capabilities": {
     "streaming": true,
@@ -95,7 +95,7 @@ curl http://localhost:20128/.well-known/agent.json
 Send a message to a skill and receive the complete response.
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{
@@ -136,7 +136,7 @@ curl -X POST http://localhost:20128/a2a \
 Same as `message/send` but returns Server-Sent Events for real-time streaming.
 
 ```bash
-curl -N -X POST http://localhost:20128/a2a \
+curl -N -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{
@@ -163,7 +163,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 ### `tasks/get` — Query Task Status
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
@@ -172,7 +172,7 @@ curl -X POST http://localhost:20128/a2a \
 ### `tasks/cancel` — Cancel a Running Task
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"3","method":"tasks/cancel","params":{"taskId":"TASK_UUID"}}'
@@ -253,7 +253,7 @@ Discovers Birouter agent, sends a task, and processes the result.
 import requests
 import json
 
-BASE_URL = "http://localhost:20128"
+BASE_URL = "http://localhost:2004"
 API_KEY = "your-api-key"
 HEADERS = {
     "Content-Type": "application/json",
@@ -308,7 +308,7 @@ print(f"\n📊 Quota: {quota_result['artifacts'][0]['content']}")
  * Shows agent discovery, task delegation, and streaming.
  */
 
-const BASE_URL = "http://localhost:20128";
+const BASE_URL = "http://localhost:2004";
 const API_KEY = "your-api-key";
 
 interface JsonRpcResponse<T = any> {
@@ -407,7 +407,7 @@ import requests
 from typing import List, Optional
 
 class BirouterA2A(BaseLLM):
-    base_url: str = "http://localhost:20128"
+    base_url: str = "http://localhost:2004"
     api_key: str = ""
     model: str = "auto"
     combo: Optional[str] = None
@@ -447,7 +447,7 @@ class BirouterA2A(BaseLLM):
 
 # Usage
 llm = BirouterA2A(
-    base_url="http://localhost:20128",
+    base_url="http://localhost:2004",
     api_key="your-key",
     model="auto",
     combo="fast-coding",
@@ -469,7 +469,7 @@ import (
 	"net/http"
 )
 
-const baseURL = "http://localhost:20128"
+const baseURL = "http://localhost:2004"
 const apiKey = "your-api-key"
 
 type JsonRpcRequest struct {

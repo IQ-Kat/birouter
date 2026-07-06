@@ -52,7 +52,7 @@ test("Qiniu accepts any model id via passthrough models (DeepSeek/Claude/Kimi be
   assert.equal(isValidModel("qiniu", "kimi-k2"), true);
 });
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-qiniu-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-qiniu-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

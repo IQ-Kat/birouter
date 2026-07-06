@@ -6,7 +6,7 @@ export function registerRestart(program) {
   program
     .command("restart")
     .description(t("restart.description"))
-    .option("--port <port>", t("serve.port"), "20128")
+    .option("--port <port>", t("serve.port"), "2004")
     .action(async (opts) => {
       const exitCode = await runRestartCommand(opts);
       if (exitCode !== 0) process.exit(exitCode);

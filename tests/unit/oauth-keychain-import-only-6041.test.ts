@@ -13,7 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-oauth-6041-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-oauth-6041-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -32,7 +32,7 @@ test.after(async () => {
 });
 
 function get(provider: string, action: string) {
-  const request = new Request(`http://localhost:20128/api/oauth/${provider}/${action}`);
+  const request = new Request(`http://localhost:2004/api/oauth/${provider}/${action}`);
   return route.GET(request, { params: Promise.resolve({ provider, action }) });
 }
 
@@ -61,7 +61,7 @@ test("#6041 other keychain OAuth actions for zed are also handled gracefully", a
 });
 
 test("#6041 POST /oauth/zed/exchange is also guarded (no 500)", async () => {
-  const request = new Request("http://localhost:20128/api/oauth/zed/exchange", {
+  const request = new Request("http://localhost:2004/api/oauth/zed/exchange", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),

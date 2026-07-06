@@ -24,7 +24,7 @@ const { default: ExportCodeModal } =
 
 const BASE_STATE = {
   endpoint: "chat.completions" as const,
-  baseUrl: "http://localhost:20128",
+  baseUrl: "http://localhost:2004",
   model: "openai/gpt-4o",
   systemPrompt: "You are helpful.",
   messages: [{ role: "user" as const, content: "Hello" }],

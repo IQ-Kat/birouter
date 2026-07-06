@@ -2,7 +2,7 @@
  * Regression test for #6197 — default app log path must resolve under DATA_DIR,
  * not process.cwd().
  *
- * The globally-installed `omniroute` CLI runs from an arbitrary working directory
+ * The globally-installed `birouter` CLI runs from an arbitrary working directory
  * (whatever the user's shell happens to be in), so anchoring the default log file
  * to `process.cwd()` means file logging silently writes to (or fails under) a
  * directory unrelated to the app's data home. The `.env.example` docs promise the
@@ -16,8 +16,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import os from "node:os";
-import { getAppLogFilePath } from "@/lib/logEnv";
-import { resolveDataDir } from "@/lib/dataPaths";
+import { getAppLogFilePath } from "../../src/lib/logEnv";
+import { resolveDataDir } from "../../src/lib/dataPaths";
 
 function withEnv(overrides: Record<string, string | undefined>, fn: () => void) {
   const keys = Object.keys(overrides);
@@ -38,7 +38,7 @@ function withEnv(overrides: Record<string, string | undefined>, fn: () => void) 
 }
 
 test("getAppLogFilePath: default anchors to DATA_DIR, not process.cwd()", () => {
-  const dataDir = path.join(os.tmpdir(), "omni-log-6197");
+  const dataDir = path.join(os.tmpdir(), "bi-log-6197");
   withEnv({ DATA_DIR: dataDir, APP_LOG_FILE_PATH: undefined }, () => {
     const resolved = getAppLogFilePath();
     assert.ok(

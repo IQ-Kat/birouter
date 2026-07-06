@@ -96,7 +96,7 @@ LABEL org.opencontainers.image.title="birouter" \
   org.opencontainers.image.licenses="MIT"
 
 ENV NODE_ENV=production
-ENV PORT=20128
+ENV PORT=2004
 ENV HOSTNAME=0.0.0.0
 ENV BIROUTER_MEMORY_MB=1024
 ENV NODE_OPTIONS="--max-old-space-size=${BIROUTER_MEMORY_MB}"
@@ -131,7 +131,7 @@ COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
 # COPYs so it covers files originally owned by root in the builder stage.
 RUN chown -R node:node /app
 
-EXPOSE 20128
+EXPOSE 2004
 
 # Drop to non-root before ENTRYPOINT/CMD so every derived stage (runner-cli,
 # runner-web) also runs as a non-root user unless they explicitly switch back.

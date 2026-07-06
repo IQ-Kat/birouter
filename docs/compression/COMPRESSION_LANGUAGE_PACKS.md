@@ -81,13 +81,13 @@ used when Caveman compresses message text.
 Available packs can be queried with:
 
 ```bash
-curl http://localhost:20128/api/compression/language-packs
+curl http://localhost:2004/api/compression/language-packs
 ```
 
 The preview endpoint accepts language config overrides:
 
 ```bash
-curl -X POST http://localhost:20128/api/compression/preview \
+curl -X POST http://localhost:2004/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{
     "mode": "standard",

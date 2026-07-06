@@ -33,7 +33,7 @@ async function writeCodexConfig(opts: {
   const configPath = path.join(tmpDir, "config.toml");
 
   const tomlContent = opts.hasBirouter
-    ? `[openai]\nbase_url = "http://localhost:20128/v1"\napi_key_env = "OPENAI_API_KEY"\n`
+    ? `[openai]\nbase_url = "http://localhost:2004/v1"\napi_key_env = "OPENAI_API_KEY"\n`
     : `[openai]\nbase_url = "https://api.openai.com/v1"\n`;
 
   await fs.writeFile(configPath, tomlContent, "utf-8");
@@ -51,7 +51,7 @@ async function writeCodexConfig(opts: {
 test("claude: returns 'configured' when ANTHROPIC_BASE_URL is set", async () => {
   const configPath = await writeTempFile(
     "settings.json",
-    JSON.stringify({ env: { ANTHROPIC_BASE_URL: "http://localhost:20128" } })
+    JSON.stringify({ env: { ANTHROPIC_BASE_URL: "http://localhost:2004" } })
   );
   const result = await checkToolConfigStatus("claude", configPath);
   assert.equal(result, "configured");
@@ -95,7 +95,7 @@ test("qwen: returns 'configured' when modelProviders has Birouter URL", async ()
   const configPath = await writeTempFile(
     "qwen.json",
     JSON.stringify({
-      modelProviders: [{ apiBase: "http://localhost:20128/v1", name: "birouter" }],
+      modelProviders: [{ apiBase: "http://localhost:2004/v1", name: "birouter" }],
     })
   );
   const result = await checkToolConfigStatus("qwen", configPath);
@@ -113,7 +113,7 @@ test("qwen: returns 'not_configured' when modelProviders is missing", async () =
 test("hermes: returns 'configured' when config contains Birouter", async () => {
   const configPath = await writeTempFile(
     "hermes.toml",
-    `[openai]\nbase_url = "http://localhost:20128/v1"\n`
+    `[openai]\nbase_url = "http://localhost:2004/v1"\n`
   );
   const result = await checkToolConfigStatus("hermes", configPath);
   assert.equal(result, "configured");
@@ -133,7 +133,7 @@ test("hermes: returns 'not_configured' when config points elsewhere", async () =
 test("droid: returns 'configured' when JSON config contains sk_birouter marker", async () => {
   const configPath = await writeTempFile(
     "droid.json",
-    JSON.stringify({ apiKey: "sk_birouter_somekey", baseUrl: "http://localhost:20128/v1" })
+    JSON.stringify({ apiKey: "sk_birouter_somekey", baseUrl: "http://localhost:2004/v1" })
   );
   const result = await checkToolConfigStatus("droid", configPath);
   assert.equal(result, "configured");
@@ -153,7 +153,7 @@ test("cline: returns 'configured' when openAiBaseUrl is set with openai provider
     "cline.json",
     JSON.stringify({
       actModeApiProvider: "openai",
-      openAiBaseUrl: "http://localhost:20128/v1",
+      openAiBaseUrl: "http://localhost:2004/v1",
     })
   );
   const result = await checkToolConfigStatus("cline", configPath);

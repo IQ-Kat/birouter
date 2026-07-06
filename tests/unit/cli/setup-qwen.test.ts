@@ -3,16 +3,16 @@ import assert from "node:assert/strict";
 import { resolveQwenTarget, buildQwenSettings } from "../../../bin/cli/commands/setup-qwen.mjs";
 
 test("resolveQwenTarget ensures /v1", () => {
-  assert.equal(resolveQwenTarget({ remote: "http://vps:20128" }).baseUrl, "http://vps:20128/v1");
+  assert.equal(resolveQwenTarget({ remote: "http://vps:2004" }).baseUrl, "http://vps:2004/v1");
 });
 test("resolveQwenTarget: explicit --api-key wins", () => {
-  assert.equal(resolveQwenTarget({ remote: "http://x:20128", apiKey: "sk-x" }).apiKey, "sk-x");
+  assert.equal(resolveQwenTarget({ remote: "http://x:2004", apiKey: "sk-x" }).apiKey, "sk-x");
 });
 test("buildQwenSettings adds an openai modelProvider (baseUrl /v1, envKey), sets model", () => {
-  const s = buildQwenSettings({}, { baseUrl: "http://vps:20128/v1", model: "glm/glm-5.2" });
+  const s = buildQwenSettings({}, { baseUrl: "http://vps:2004/v1", model: "glm/glm-5.2" });
   const p = s.modelProviders.find((x) => x.id === "birouter");
   assert.equal(p.authType, "openai");
-  assert.equal(p.baseUrl, "http://vps:20128/v1");
+  assert.equal(p.baseUrl, "http://vps:2004/v1");
   assert.equal(p.envKey, "BIROUTER_API_KEY");
   assert.equal(s.model, "glm/glm-5.2");
   assert.equal(s.selectedProvider, "birouter");

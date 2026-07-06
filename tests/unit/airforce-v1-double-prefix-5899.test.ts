@@ -14,7 +14,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-5899-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-5899-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -37,7 +37,7 @@ test("#5899 openai gateway baseUrl ending in /v1/chat/completions never probes /
 
   const requestedUrls: string[] = [];
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = (async (url: string | URL | Request) => {
     const u = String(url);
     requestedUrls.push(u);
     // The correctly-stripped candidate must be the one that serves models.
@@ -49,12 +49,13 @@ test("#5899 openai gateway baseUrl ending in /v1/chat/completions never probes /
       return new Response(null, { status: 308, headers: { location: u } });
     }
     return new Response("not found", { status: 404 });
-  };
+  }) as unknown as typeof fetch;
 
   try {
+    const conn = connection! as { id: string };
     await modelsRoute.GET(
-      new Request(`http://localhost/api/providers/${connection.id}/models?refresh=true`),
-      { params: { id: connection.id } }
+      new Request(`http://localhost/api/providers/${conn.id}/models?refresh=true`),
+      { params: { id: conn.id } }
     );
   } finally {
     globalThis.fetch = originalFetch;

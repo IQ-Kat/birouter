@@ -75,18 +75,18 @@ test("postIngestEntry posts to the ingest path with a bearer token and returns t
     return { ok: true };
   };
 
-  const ok = await postIngestEntry("http://localhost:20128", "tok123", { id: "x" }, fakeFetch);
+  const ok = await postIngestEntry("http://localhost:2004", "tok123", { id: "x" }, fakeFetch);
 
   assert.equal(ok, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, `http://localhost:20128${INGEST_PATH}`);
+  assert.equal(calls[0].url, `http://localhost:2004${INGEST_PATH}`);
   assert.equal(calls[0].opts.headers.Authorization, "Bearer tok123");
   assert.equal(calls[0].opts.method, "POST");
 });
 
 test("postIngestEntry returns false without a token and never calls fetch", async () => {
   let called = false;
-  const ok = await postIngestEntry("http://localhost:20128", "", { id: "x" }, async () => {
+  const ok = await postIngestEntry("http://localhost:2004", "", { id: "x" }, async () => {
     called = true;
     return { ok: true };
   });
@@ -95,14 +95,14 @@ test("postIngestEntry returns false without a token and never calls fetch", asyn
 });
 
 test("postIngestEntry swallows fetch errors (never throws)", async () => {
-  const ok = await postIngestEntry("http://localhost:20128", "tok", { id: "x" }, async () => {
+  const ok = await postIngestEntry("http://localhost:2004", "tok", { id: "x" }, async () => {
     throw new Error("network down");
   });
   assert.equal(ok, false);
 });
 
 test("postIngestEntry returns false on a non-2xx response", async () => {
-  const ok = await postIngestEntry("http://localhost:20128", "tok", { id: "x" }, async () => ({
+  const ok = await postIngestEntry("http://localhost:2004", "tok", { id: "x" }, async () => ({
     ok: false,
   }));
   assert.equal(ok, false);

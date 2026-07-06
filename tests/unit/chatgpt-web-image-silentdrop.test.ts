@@ -1,6 +1,6 @@
 // Regression guard for the escalated mesh-bot report: a user generated an
 // image via the ChatGPT Web provider; the image WAS produced upstream but
-// OmniRoute returned `502 "ChatGPT Web completed without returning image
+// Birouter returned `502 "ChatGPT Web completed without returning image
 // markdown"` — i.e. the silent-drop path where an image_asset_pointer existed
 // but resolution failed, and the handler reported it as "no image made".
 //
@@ -13,7 +13,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-cgptweb-silentdrop-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "birouter-cgptweb-silentdrop-"));
 
 const { detectImageResolutionFailure } = await import("../../open-sse/executors/chatgpt-web.ts");
 const { handleChatGptWebImageGeneration } =
@@ -48,7 +48,12 @@ test("detectImageResolutionFailure: true only when a pointer existed but none re
 });
 
 test("handler surfaces a specific 502 when the image was generated but not retrievable", async () => {
-  const res = await handleChatGptWebImageGeneration({
+  const res: {
+    success: boolean;
+    status?: number;
+    error?: string;
+    data?: { data: Array<{ url?: string }> };
+  } = await handleChatGptWebImageGeneration({
     ...baseArgs,
     executorFactory: () =>
       fakeExecutor({
@@ -60,15 +65,20 @@ test("handler surfaces a specific 502 when the image was generated but not retri
   assert.equal(res.status, 502);
   // must NOT be the misleading "completed without returning image markdown"
   assert.ok(
-    !/completed without returning image markdown/i.test(res.error),
+    !/completed without returning image markdown/i.test(res.error ?? ""),
     `expected specific retrieval error, got: ${res.error}`
   );
   // must clearly say the image was generated but could not be retrieved
-  assert.match(res.error, /could not (be )?retriev|generated an image but/i);
+  assert.match(res.error ?? "", /could not (be )?retriev|generated an image but/i);
 });
 
 test("handler keeps the generic 502 when no image was generated at all", async () => {
-  const res = await handleChatGptWebImageGeneration({
+  const res: {
+    success: boolean;
+    status?: number;
+    error?: string;
+    data?: { data: Array<{ url?: string }> };
+  } = await handleChatGptWebImageGeneration({
     ...baseArgs,
     executorFactory: () =>
       fakeExecutor({
@@ -77,12 +87,17 @@ test("handler keeps the generic 502 when no image was generated at all", async (
   });
   assert.equal(res.success, false);
   assert.equal(res.status, 502);
-  assert.match(res.error, /completed without returning image markdown/i);
+  assert.match(res.error ?? "", /completed without returning image markdown/i);
 });
 
 test("handler returns success when the executor produced image markdown", async () => {
   const url = "/v1/chatgpt-web/image/abcdef0123456789";
-  const res = await handleChatGptWebImageGeneration({
+  const res: {
+    success: boolean;
+    status?: number;
+    error?: string;
+    data?: { data: Array<{ url?: string }> };
+  } = await handleChatGptWebImageGeneration({
     ...baseArgs,
     executorFactory: () =>
       fakeExecutor({
@@ -90,6 +105,6 @@ test("handler returns success when the executor produced image markdown", async 
       }),
   });
   assert.equal(res.success, true);
-  assert.equal(res.data.data.length, 1);
-  assert.equal(res.data.data[0].url, url);
+  assert.equal(res.data!.data.length, 1);
+  assert.equal(res.data!.data[0].url, url);
 });

@@ -1,4 +1,4 @@
-const DEFAULT_BIROUTER_BASE_URL = "http://localhost:20128";
+const DEFAULT_BIROUTER_BASE_URL = "http://localhost:2004";
 
 type BirouterBaseUrlEnv = {
   BIROUTER_BASE_URL?: string;

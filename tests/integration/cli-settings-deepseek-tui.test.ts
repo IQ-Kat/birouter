@@ -75,7 +75,7 @@ test("deepseek-tui-settings POST: 400 when model is missing", async () => {
     new Request("http://localhost/api/cli-tools/deepseek-tui-settings", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ baseUrl: "http://localhost:20128", apiKey: "sk-test" }),
+      body: JSON.stringify({ baseUrl: "http://localhost:2004", apiKey: "sk-test" }),
     })
   );
   assert.equal(res.status, 400, `Expected 400, got ${res.status}`);
@@ -94,7 +94,7 @@ test("deepseek-tui-settings POST: writes config.toml with valid body", async () 
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test-deepseek-key",
           model: "deepseek-coder-v2",
         }),
@@ -108,7 +108,7 @@ test("deepseek-tui-settings POST: writes config.toml with valid body", async () 
       if (fs.existsSync(configPath)) {
         const content = fs.readFileSync(configPath, "utf-8");
         assert.ok(content.includes("managed by Birouter"), "Config should have Birouter marker");
-        assert.ok(content.includes("http://localhost:20128"), "Config should contain base URL");
+        assert.ok(content.includes("http://localhost:2004"), "Config should contain base URL");
         assert.ok(content.includes("[openai]"), "Config should have [openai] section");
       }
     }
@@ -130,7 +130,7 @@ test("deepseek-tui-settings DELETE: removes config file", async () => {
     fs.mkdirSync(configDir, { recursive: true });
     fs.writeFileSync(
       path.join(configDir, "config.toml"),
-      '# managed by Birouter (plan 14)\n[openai]\nbase_url = "http://localhost:20128"\n'
+      '# managed by Birouter (plan 14)\n[openai]\nbase_url = "http://localhost:2004"\n'
     );
 
     const res = await DELETE(

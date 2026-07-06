@@ -20,7 +20,7 @@ function buildEnv(overrides = {}) {
     CLOUD_URL: "https://cloud.example",
     NEXT_PUBLIC_CLOUD_URL: "https://public-cloud.example",
     NEXT_PUBLIC_BASE_URL: "https://app.example",
-    BIROUTER_PORT: "20128",
+    BIROUTER_PORT: "2004",
     API_PORT: "21128",
     DASHBOARD_PORT: "22128",
     ...overrides,

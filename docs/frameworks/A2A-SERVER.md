@@ -18,7 +18,7 @@ Tasks are tracked by `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, default 5-m
 ## Agent Discovery
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 Returns the Agent Card describing Birouter's capabilities, skills, and authentication requirements.
@@ -52,7 +52,7 @@ A2A is controlled by the **Endpoints → A2A** toggle and is disabled by default
 Sends a message to a skill and waits for the complete response.
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{
@@ -93,7 +93,7 @@ curl -X POST http://localhost:20128/a2a \
 Same as `message/send` but returns Server-Sent Events for real-time streaming.
 
 ```bash
-curl -N -X POST http://localhost:20128/a2a \
+curl -N -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{
@@ -120,7 +120,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 ### `tasks/get` — Query Task Status
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
@@ -129,7 +129,7 @@ curl -X POST http://localhost:20128/a2a \
 ### `tasks/cancel` — Cancel a Task
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_KEY" \
   -d '{"jsonrpc":"2.0","id":"3","method":"tasks/cancel","params":{"taskId":"TASK_UUID"}}'
@@ -257,7 +257,7 @@ submitted → working → completed
 ```python
 import requests
 
-resp = requests.post("http://localhost:20128/a2a", json={
+resp = requests.post("http://localhost:2004/a2a", json={
     "jsonrpc": "2.0", "id": "1",
     "method": "message/send",
     "params": {
@@ -274,7 +274,7 @@ print(result["metadata"]["routing_explanation"])
 ### TypeScript (fetch)
 
 ```typescript
-const resp = await fetch("http://localhost:20128/a2a", {
+const resp = await fetch("http://localhost:2004/a2a", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",

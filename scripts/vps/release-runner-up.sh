@@ -3,7 +3,7 @@
 # de release usar runners dedicados (anti-fila). Falha => o caller cai no GitHub-hosted.
 #
 # Uso:  scripts/vps/release-runner-up.sh [timeout_seg]
-# Saída: exit 0 + seta a repo-var USE_VPS_RUNNER=true  quando >=1 runner omni-release online
+# Saída: exit 0 + seta a repo-var USE_VPS_RUNNER=true  quando >=1 runner Bi-release online
 #        exit 1 + seta USE_VPS_RUNNER=false            em qualquer falha/timeout (fallback)
 #
 # Pré-requisitos no host que roda o /generate-release:
@@ -14,8 +14,8 @@ set -uo pipefail
 PVE_HOST="${PVE_HOST:-192.168.0.100}"   # Proxmox host
 VPS_HOST="${VPS_HOST:-192.168.0.113}"   # a VM dos runners
 VM_ID="${VM_ID:-113}"
-REPO="${REPO:-diegosouzapw/OmniRoute}"
-LABEL="${RUNNER_LABEL:-omni-release}"
+REPO="${REPO:-iq-kat/Birouter}"
+LABEL="${RUNNER_LABEL:-bi-release}"
 TIMEOUT="${1:-120}"
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=8"
 

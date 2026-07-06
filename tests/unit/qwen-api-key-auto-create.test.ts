@@ -78,7 +78,7 @@ test("Qwen guide-settings POST creates valid DB-backed key (no keyId)", async ()
     method: "POST",
     headers: { "Content-Type": "application/json", cookie },
     body: JSON.stringify({
-      baseUrl: "http://localhost:20128/v1",
+      baseUrl: "http://localhost:2004/v1",
       model: "qwen3-coder-flash",
       // No keyId provided - should auto-create
     }),
@@ -95,7 +95,7 @@ test("Qwen guide-settings POST creates valid DB-backed key (no keyId)", async ()
   assert.ok(content.security?.auth?.apiKey, "Should have an API key");
   assert.equal(
     content.security?.auth?.baseUrl,
-    "http://localhost:20128/v1",
+    "http://localhost:2004/v1",
     "Should have base URL"
   );
   assert.equal(content.model?.name, "qwen3-coder-flash", "Should have model name");
@@ -129,7 +129,7 @@ test("Qwen guide-settings POST with keyId uses existing key", async () => {
     method: "POST",
     headers: { "Content-Type": "application/json", cookie },
     body: JSON.stringify({
-      baseUrl: "http://localhost:20128/v1",
+      baseUrl: "http://localhost:2004/v1",
       model: "qwen3-coder-plus",
       keyId: row.id,
     }),
@@ -148,6 +148,6 @@ test("Qwen guide-settings POST with keyId uses existing key", async () => {
     existingKey,
     "Should use existing key when keyId provided"
   );
-  assert.equal(content.security?.auth?.baseUrl, "http://localhost:20128/v1");
+  assert.equal(content.security?.auth?.baseUrl, "http://localhost:2004/v1");
   assert.equal(content.model?.name, "qwen3-coder-plus");
 });

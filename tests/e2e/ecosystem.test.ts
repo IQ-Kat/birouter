@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeAll } from "vitest";
 
-const BASE_URL = process.env.BIROUTER_BASE_URL || "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_BASE_URL || "http://localhost:2004";
 const API_KEY = process.env.BIROUTER_API_KEY || "";
 const REQUEST_TIMEOUT_MS = Number(process.env.ECOSYSTEM_REQUEST_TIMEOUT_MS || 30000);
 const TEST_TIMEOUT_MS = Number(process.env.ECOSYSTEM_TEST_TIMEOUT_MS || 30000);

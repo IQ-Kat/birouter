@@ -11,7 +11,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-suggested-models-route-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-suggested-models-route-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -57,7 +57,7 @@ test("GET suggested-models: returns sorted+shaped suggestions for type=image", a
   });
 
   const response = await route.GET(
-    new Request("http://localhost:20128/api/v1/providers/suggested-models?type=image")
+    new Request("http://localhost:2004/api/v1/providers/suggested-models?type=image")
   );
   const body = (await response.json()) as {
     object: string;
@@ -89,7 +89,7 @@ test("GET suggested-models: respects sortBy=likes and limit", async () => {
 
   const response = await route.GET(
     new Request(
-      "http://localhost:20128/api/v1/providers/suggested-models?type=image&sortBy=likes&limit=2"
+      "http://localhost:2004/api/v1/providers/suggested-models?type=image&sortBy=likes&limit=2"
     )
   );
   const body = (await response.json()) as { data: Array<{ id: string }> };
@@ -102,7 +102,7 @@ test("GET suggested-models: respects sortBy=likes and limit", async () => {
 
 test("GET suggested-models: rejects an unsupported type with a 400 and no stack leak", async () => {
   const response = await route.GET(
-    new Request("http://localhost:20128/api/v1/providers/suggested-models?type=video")
+    new Request("http://localhost:2004/api/v1/providers/suggested-models?type=video")
   );
   const body = (await response.json()) as { error: { message: string } };
 
@@ -116,7 +116,7 @@ test("GET suggested-models: upstream failure surfaces a sanitized 502 (no raw er
   mockFetchOnce({ ok: false, status: 503, text: "upstream unavailable" });
 
   const response = await route.GET(
-    new Request("http://localhost:20128/api/v1/providers/suggested-models?type=image")
+    new Request("http://localhost:2004/api/v1/providers/suggested-models?type=image")
   );
   const body = (await response.json()) as { error: { message: string } };
 
@@ -133,7 +133,7 @@ test("GET suggested-models: a thrown fetch error never leaks err.stack/err.messa
   }) as typeof fetch;
 
   const response = await route.GET(
-    new Request("http://localhost:20128/api/v1/providers/suggested-models?type=image")
+    new Request("http://localhost:2004/api/v1/providers/suggested-models?type=image")
   );
   const body = (await response.json()) as { error: { message: string } };
 

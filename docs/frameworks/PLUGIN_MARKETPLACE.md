@@ -110,14 +110,14 @@ The `GET /api/plugins` `status` filter accepts one of
 ### List installed plugins
 
 ```bash
-curl http://localhost:20128/api/plugins \
+curl http://localhost:2004/api/plugins \
   -H "Cookie: auth_token=..."
 ```
 
 ### Install from a local path
 
 ```bash
-curl -X POST http://localhost:20128/api/plugins \
+curl -X POST http://localhost:2004/api/plugins \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{ "path": "/absolute/path/to/my-plugin" }'
@@ -131,14 +131,14 @@ installed plugin row.
 ### Browse the marketplace
 
 ```bash
-curl http://localhost:20128/api/plugins/marketplace \
+curl http://localhost:2004/api/plugins/marketplace \
   -H "Cookie: auth_token=..."
 ```
 
 ### Update plugin config
 
 ```bash
-curl -X PUT http://localhost:20128/api/plugins/my-plugin/config \
+curl -X PUT http://localhost:2004/api/plugins/my-plugin/config \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{ "config": { "level": "debug", "maxItems": 100 } }'

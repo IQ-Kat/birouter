@@ -65,7 +65,7 @@ test("isAlwaysProtectedPath: ordinary settings routes are not always protected",
 
 test("isLoopbackHost: recognises localhost, 127.0.0.1, ::1", () => {
   assert.equal(isLoopbackHost("localhost"), true);
-  assert.equal(isLoopbackHost("localhost:20128"), true);
+  assert.equal(isLoopbackHost("localhost:2004"), true);
   assert.equal(isLoopbackHost("127.0.0.1"), true);
   assert.equal(isLoopbackHost("127.0.0.1:3000"), true);
   assert.equal(isLoopbackHost("[::1]"), true);
@@ -90,7 +90,7 @@ function makeCtx(
       headers: new Headers(headers),
       cookies: { get: () => undefined },
       nextUrl: { pathname: path },
-      url: `http://localhost:20128${path}`,
+      url: `http://localhost:2004${path}`,
       ...requestExtras,
     },
     classification: {

@@ -138,12 +138,12 @@ export async function handleChatGptWebImageGeneration({
 
     const urls = extractMarkdownImageUrls(content);
     if (urls.length === 0) {
-      // Distinguish "image was generated upstream but OmniRoute could not
+      // Distinguish "image was generated upstream but Birouter could not
       // retrieve it" (executor flagged the unresolved asset pointer) from
       // "no image was produced at all" — the former is our bug/limitation,
       // not a failed prompt, so the message must not read as "no image made".
       const error = imageResolutionFailed
-        ? `ChatGPT Web generated an image but OmniRoute could not retrieve it (the image asset could not be downloaded — the URL may have expired or ChatGPT changed its image delivery format). Please retry; if it persists, report it. Assistant text: ${content.slice(0, 200)}`
+        ? `ChatGPT Web generated an image but Birouter could not retrieve it (the image asset could not be downloaded — the URL may have expired or ChatGPT changed its image delivery format). Please retry; if it persists, report it. Assistant text: ${content.slice(0, 200)}`
         : `ChatGPT Web completed without returning image markdown: ${content.slice(0, 300)}`;
       return saveImageErrorResult({
         provider,

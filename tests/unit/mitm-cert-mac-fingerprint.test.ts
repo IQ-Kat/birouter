@@ -14,7 +14,7 @@ const FINGERPRINT_WITH_COLONS = "AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89
 const MAC_SECURITY_OUTPUT = [
   "keychain: /Library/Keychains/System.keychain",
   "SHA-1 hash: ABCDEF0123456789ABCDEF0123456789ABCDEF01",
-  '"labl"<blob>="OmniRoute MITM Root CA"',
+  '"labl"<blob>="Birouter MITM Root CA"',
 ].join("\n");
 
 test("macCertOutputHasFingerprint matches colon-less security output against a colon-separated fingerprint", () => {

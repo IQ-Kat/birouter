@@ -23,7 +23,7 @@ function EvalWatchApp({ runId, suiteId, baseUrl, apiKey, onExit }) {
   const [done, setDone] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
-  const fetchUrl = `${baseUrl ?? "http://localhost:20128"}/api/evals/${runId}`;
+  const fetchUrl = `${baseUrl ?? "http://localhost:2004"}/api/evals/${runId}`;
   const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
 
   useEffect(() => {

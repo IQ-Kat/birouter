@@ -60,7 +60,7 @@ beforeEach(() => {
               default: {
                 model: "openai/gpt-4o",
                 provider: "birouter",
-                base_url: "http://localhost:20128",
+                base_url: "http://localhost:2004",
               },
             },
           }),
@@ -90,7 +90,7 @@ function renderExpandedCard() {
       <HermesAgentToolCard
         tool={{ name: "Hermes Agent", description: "Hermes Agent" }}
         isExpanded={true}
-        baseUrl="http://localhost:20128"
+        baseUrl="http://localhost:2004"
         apiKeys={[{ id: "key-1" }]}
         activeProviders={[]}
         batchStatus={null}

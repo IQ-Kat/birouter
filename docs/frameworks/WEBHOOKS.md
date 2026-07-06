@@ -147,7 +147,7 @@ on listing pages. Use the `[id]` GET when you actually need the secret.
 ### Create webhook
 
 ```bash
-curl -X POST http://localhost:20128/api/webhooks \
+curl -X POST http://localhost:2004/api/webhooks \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -164,7 +164,7 @@ it in the response.
 ### Test webhook
 
 ```bash
-curl -X POST http://localhost:20128/api/webhooks/<id>/test \
+curl -X POST http://localhost:2004/api/webhooks/<id>/test \
   -H "Cookie: auth_token=..."
 ```
 

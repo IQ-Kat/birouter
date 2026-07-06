@@ -52,8 +52,8 @@ your laptop                              remote Birouter (VPS)
 
 ```bash
 birouter connect 192.168.0.15
-# Management password for http://192.168.0.15:20128: ********
-# ✔ Connected to http://192.168.0.15:20128 — context '192.168.0.15' (scope: admin)
+# Management password for http://192.168.0.15:2004: ********
+# ✔ Connected to http://192.168.0.15:2004 — context '192.168.0.15' (scope: admin)
 ```
 
 The password flow mints an **admin** token by default (you hold the password, so
@@ -146,12 +146,12 @@ loopback callback resolves back to the server through the tunnel:
 
 ```bash
 # On your LOCAL machine:
-ssh -L 20128:localhost:20128 user@your-vps
-# then open http://localhost:20128 in your LOCAL browser and connect Antigravity
-# normally — the 127.0.0.1:20128/callback redirect now reaches the VPS via SSH.
+ssh -L 2004:localhost:2004 user@your-vps
+# then open http://localhost:2004 in your LOCAL browser and connect Antigravity
+# normally — the 127.0.0.1:2004/callback redirect now reaches the VPS via SSH.
 ```
 
-Because you reach the dashboard as `localhost:20128`, the Google consent
+Because you reach the dashboard as `localhost:2004`, the Google consent
 completes and the callback is delivered to the server through the same tunnel —
 no blob needed. Keep the tunnel open until the connection shows as active.
 
@@ -220,7 +220,7 @@ context, or `--remote <url> --api-key <key>`):
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
-birouter setup-opencode --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+birouter setup-opencode --remote http://192.168.0.15:2004 --api-key oma_live_xxx
 birouter setup-opencode --only glm,kimi        # keep only matching models
 opencode -m birouter/glm/glm-5.2 "..."          # export BIROUTER_API_KEY first
 ```
@@ -245,8 +245,8 @@ birouter contexts current         # the active server, auth status, scope
 
 ```text
   | Name    | Base URL                  | Auth  | Scope | Description
-● | vps     | http://100.67.86.91:20128 | token | admin | Remote Birouter (…)
-  | default | http://localhost:20128    | ✗     |       |
+● | vps     | http://100.67.86.91:2004 | token | admin | Remote Birouter (…)
+  | default | http://localhost:2004    | ✗     |       |
 ```
 
 **Switch servers** — every subsequent command follows the active context:
@@ -262,7 +262,7 @@ birouter tokens list              #   (runs against the local server)
 **Add a context manually** (instead of `connect`), inspect, or rename:
 
 ```bash
-birouter contexts add staging --url https://staging.example.com:20128 \
+birouter contexts add staging --url https://staging.example.com:2004 \
   --access-token oma_live_xxxx --scope write --description "staging box"
 birouter contexts show staging    # full details for one context
 birouter contexts rename staging stg

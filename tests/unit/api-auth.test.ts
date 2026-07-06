@@ -384,7 +384,7 @@ function managementRequest(bearerKey?: string) {
 }
 
 function managementCliRequest(token: string) {
-  const request = new Request("http://localhost:20128/api/combos", {
+  const request = new Request("http://localhost:2004/api/combos", {
     headers: { [CLI_TOKEN_HEADER]: token },
   });
   return Object.assign(request, { ip: "127.0.0.1" }) as Request;

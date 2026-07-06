@@ -16,7 +16,7 @@ async function captureStdout(fn: () => Promise<void>): Promise<string> {
   return chunks.join("");
 }
 
-function makeCmd(baseUrl = "http://localhost:20128") {
+function makeCmd(baseUrl = "http://localhost:2004") {
   return { optsWithGlobals: () => ({ baseUrl }) };
 }
 
@@ -47,27 +47,27 @@ test("RESOURCES inclui todos os recursos principais", async () => {
 });
 
 test("URL base dashboard é /dashboard quando sem recurso", () => {
-  const base = "http://localhost:20128";
+  const base = "http://localhost:2004";
   const url = `${base}/dashboard`;
   assert.ok(url.includes("/dashboard"));
 });
 
 test("URL de logs com ID usa ?request= param", () => {
-  const base = "http://localhost:20128";
+  const base = "http://localhost:2004";
   const id = "req-abc-123";
   const url = `${base}/dashboard/logs?request=${encodeURIComponent(id)}`;
   assert.ok(url.includes("request=req-abc-123"));
 });
 
 test("URL de combo com nome usa path /dashboard/combos/<name>", () => {
-  const base = "http://localhost:20128";
+  const base = "http://localhost:2004";
   const name = "fast-combo";
   const url = `${base}/dashboard/combos/${encodeURIComponent(name)}`;
   assert.ok(url.includes("/dashboard/combos/fast-combo"));
 });
 
 test("URL de settings com section usa path /dashboard/settings/<section>", () => {
-  const base = "http://localhost:20128";
+  const base = "http://localhost:2004";
   const section = "memory";
   const url = `${base}/dashboard/settings/${encodeURIComponent(section)}`;
   assert.ok(url.includes("/dashboard/settings/memory"));

@@ -7,7 +7,7 @@
  * (`codex --profile glm52`) without editing config files by hand.
  *
  * Primary use-case: configure a local Codex CLI to use models from a VPS.
- *   birouter setup-codex --remote http://100.67.86.91:20128 --api-key sk-xxx
+ *   birouter setup-codex --remote http://100.67.86.91:2004 --api-key sk-xxx
  *
  * The command is idempotent: re-running updates existing profile files in place.
  */
@@ -298,7 +298,7 @@ export async function syncCodexProfilesFromModels(models, opts = {}) {
  * @returns {Promise<number>}
  */
 export async function runSetupCodexCommand(opts = {}) {
-  const port = Number(opts.port ?? process.env.PORT ?? 20128) || 20128;
+  const port = Number(opts.port ?? process.env.PORT ?? 2004) || 2004;
   const baseUrl = (opts.remote ?? `http://localhost:${port}`).replace(/\/v1$/, "");
   const apiKey = opts.apiKey ?? opts["api-key"] ?? process.env.BIROUTER_API_KEY ?? "";
   const codexHome = opts.codexHome ?? opts["codex-home"] ?? join(os.homedir(), ".codex");
@@ -365,10 +365,10 @@ export function registerSetupCodex(program) {
       "Fetch the live model catalog from Birouter (local or remote VPS) and generate " +
         "~/.codex/<name>.config.toml profiles for each supported model"
     )
-    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "2004")
     .option(
       "--remote <url>",
-      "Remote Birouter URL, e.g. http://100.67.86.91:20128 — fetches models from there"
+      "Remote Birouter URL, e.g. http://100.67.86.91:2004 — fetches models from there"
     )
     .option(
       "--api-key <key>",

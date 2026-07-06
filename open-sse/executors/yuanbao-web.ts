@@ -42,7 +42,7 @@ const USER_AGENT =
 
 const DEFAULT_MODEL = "deepseek-v3";
 
-// OmniRoute model id -> Yuanbao internal chatModelId + optional supportFunctions.
+// Birouter model id -> Yuanbao internal chatModelId + optional supportFunctions.
 const MODEL_MAP: Record<string, { chatModelId: string; supportFunctions?: string[] }> = {
   "deepseek-v3": { chatModelId: "deep_seek_v3" },
   "deepseek-r1": { chatModelId: "deep_seek" },

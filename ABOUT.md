@@ -8,13 +8,13 @@ Birouter is a unified AI proxy/router — route any LLM through one endpoint wit
 
 ## Latest Updates
 
-### v3.8.40 — Latest
+### v3.8.46 — Latest
 
 - 237 provider entries
 - 94 MCP tools
 - 30 MCP scopes
 - 6 A2A skills
-- 298 open-sse services
+- 134 open-sse services
 - 17 routing strategies
 - 42 i18n locales
 

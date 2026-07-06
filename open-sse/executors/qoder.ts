@@ -351,7 +351,7 @@ export class QoderExecutor extends BaseExecutor {
         response: createQoderErrorResponse({
           status: 502,
           message:
-            `Qoder CLI (qodercli) was not found on the OmniRoute host (${run.error}). ` +
+            `Qoder CLI (qodercli) was not found on the Birouter host (${run.error}). ` +
             "Install it from https://qoder.com or set CLI_QODER_BIN to its path.",
           code: "cli_not_found",
         }),

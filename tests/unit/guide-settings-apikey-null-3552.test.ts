@@ -10,7 +10,7 @@ import { guideSettingsSaveSchema } from "../../src/shared/validation/schemas.ts"
 
 test("#3552 apiKey: null is accepted and normalized to undefined", () => {
   const r = guideSettingsSaveSchema.safeParse({
-    baseUrl: "http://localhost:20128/v1",
+    baseUrl: "http://localhost:2004/v1",
     apiKey: null,
     model: "cx/gpt-5.5",
   });

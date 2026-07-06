@@ -13,7 +13,7 @@
  *
  * Ported from upstream 9router#931 (thanks @mugnimaestra) — original stored
  * a global singleton keyed by the raw API key string; this port keys by
- * `apiKeyInfo.id` (OmniRoute never threads the raw key value down to
+ * `apiKeyInfo.id` (Birouter never threads the raw key value down to
  * `chatCore`) and follows the module-Map + `unref()` cleanup-timer pattern
  * used across `open-sse/services/`.
  */

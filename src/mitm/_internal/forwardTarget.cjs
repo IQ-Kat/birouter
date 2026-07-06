@@ -37,7 +37,7 @@ function isCloudcodeEnvelope(body) {
 
 /**
  * Resolve the forward URL + the format the IDE expects back. `baseUrl` is the
- * router base (e.g. http://localhost:20128); trailing slashes are trimmed.
+ * router base (e.g. http://localhost:2004); trailing slashes are trimmed.
  */
 function resolveForwardTarget(baseUrl, body) {
   const base = String(baseUrl || "").replace(/\/+$/, "");

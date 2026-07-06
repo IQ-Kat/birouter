@@ -73,7 +73,7 @@ echo "      Build done."
 
 echo "[2/8] Validating runner-base (no CLIs)"
 docker rm -f "${BASE_CONTAINER}" >/dev/null 2>&1 || true
-docker run -d --name "${BASE_CONTAINER}" -p "${BASE_PORT}:20128" --env-file "${ENV_FILE}" "${BASE_IMAGE}" >/tmp/birouter_cli_runtime_base.cid
+docker run -d --name "${BASE_CONTAINER}" -p "${BASE_PORT}:2004" --env-file "${ENV_FILE}" "${BASE_IMAGE}" >/tmp/birouter_cli_runtime_base.cid
 wait_ready "${BASE_PORT}" || { echo "      FAIL: base container did not become ready"; exit 1; }
 
 for tool in codex claude droid openclaw; do
@@ -100,7 +100,7 @@ done
 
 echo "[3/8] Validating runner-cli (codex/claude/droid/openclaw preinstalled)"
 docker rm -f "${CLI_CONTAINER}" >/dev/null 2>&1 || true
-docker run -d --name "${CLI_CONTAINER}" -p "${CLI_PORT}:20128" --env-file "${ENV_FILE}" "${CLI_IMAGE}" >/tmp/birouter_cli_runtime_cli.cid
+docker run -d --name "${CLI_CONTAINER}" -p "${CLI_PORT}:2004" --env-file "${ENV_FILE}" "${CLI_IMAGE}" >/tmp/birouter_cli_runtime_cli.cid
 wait_ready "${CLI_PORT}" || { echo "      FAIL: cli container did not become ready"; exit 1; }
 
 for tool in codex claude droid; do
@@ -142,7 +142,7 @@ EOF
 chmod +x "${TMP_HOST_BIN_DIR}/codex"
 
 docker rm -f "${HOST_CONTAINER}" >/dev/null 2>&1 || true
-docker run -d --name "${HOST_CONTAINER}" -p "${HOST_PORT}:20128" \
+docker run -d --name "${HOST_CONTAINER}" -p "${HOST_PORT}:2004" \
   --env-file "${ENV_FILE}" \
   -e CLI_MODE=host \
   -e CLI_EXTRA_PATHS=/host-cli/bin \
@@ -159,7 +159,7 @@ assert_equals "host-mount runtimeMode" "host" "${HOST_RUNTIME_MODE}"
 
 echo "[5/8] Validating write policy blocking (CLI_ALLOW_CONFIG_WRITES=false)"
 docker rm -f "${WRITE_BLOCK_CONTAINER}" >/dev/null 2>&1 || true
-docker run -d --name "${WRITE_BLOCK_CONTAINER}" -p "${WRITE_BLOCK_PORT}:20128" \
+docker run -d --name "${WRITE_BLOCK_CONTAINER}" -p "${WRITE_BLOCK_PORT}:2004" \
   --env-file "${ENV_FILE}" \
   -e CLI_ALLOW_CONFIG_WRITES=false \
   "${CLI_IMAGE}" >/tmp/birouter_cli_runtime_write_block.cid
@@ -169,7 +169,7 @@ WRITE_BLOCK_POST_CODE="$(
   curl -sS -o /tmp/birouter_cli_runtime_write_block_post.json -w '%{http_code}' \
     -X POST "http://127.0.0.1:${WRITE_BLOCK_PORT}/api/cli-tools/codex-settings" \
     -H 'Content-Type: application/json' \
-    --data '{"baseUrl":"http://localhost:20128","apiKey":"sk_test_key","model":"cc/claude-opus-4-6"}'
+    --data '{"baseUrl":"http://localhost:2004","apiKey":"sk_test_key","model":"cc/claude-opus-4-6"}'
 )"
 WRITE_BLOCK_DELETE_CODE="$(
   curl -sS -o /tmp/birouter_cli_runtime_write_block_delete.json -w '%{http_code}' \
@@ -181,7 +181,7 @@ assert_equals "write-block DELETE codex-settings" "403" "${WRITE_BLOCK_DELETE_CO
 echo "[6/8] Validating write policy allow + CLI_CONFIG_HOME mount"
 TMP_WRITE_HOME="$(mktemp -d)"
 docker rm -f "${WRITE_ALLOW_CONTAINER}" >/dev/null 2>&1 || true
-docker run -d --name "${WRITE_ALLOW_CONTAINER}" -p "${WRITE_ALLOW_PORT}:20128" \
+docker run -d --name "${WRITE_ALLOW_CONTAINER}" -p "${WRITE_ALLOW_PORT}:2004" \
   --env-file "${ENV_FILE}" \
   -e CLI_ALLOW_CONFIG_WRITES=true \
   -e CLI_CONFIG_HOME=/host-home \
@@ -193,7 +193,7 @@ WRITE_ALLOW_POST_CODE="$(
   curl -sS -o /tmp/birouter_cli_runtime_write_allow_post.json -w '%{http_code}' \
     -X POST "http://127.0.0.1:${WRITE_ALLOW_PORT}/api/cli-tools/codex-settings" \
     -H 'Content-Type: application/json' \
-    --data '{"baseUrl":"http://localhost:20128","apiKey":"sk_test_key","model":"cc/claude-opus-4-6"}'
+    --data '{"baseUrl":"http://localhost:2004","apiKey":"sk_test_key","model":"cc/claude-opus-4-6"}'
 )"
 assert_equals "write-allow POST codex-settings" "200" "${WRITE_ALLOW_POST_CODE}"
 
@@ -219,7 +219,7 @@ EOF
 chmod 644 "${TMP_BAD_BIN_DIR}/codex"
 
 docker rm -f "${REGRESSION_CONTAINER}" >/dev/null 2>&1 || true
-docker run -d --name "${REGRESSION_CONTAINER}" -p "${REGRESSION_PORT}:20128" \
+docker run -d --name "${REGRESSION_CONTAINER}" -p "${REGRESSION_PORT}:2004" \
   --env-file "${ENV_FILE}" \
   -e CLI_CODEX_BIN=/host-bad/codex \
   -v "${TMP_BAD_BIN_DIR}:/host-bad:ro" \

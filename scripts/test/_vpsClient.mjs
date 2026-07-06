@@ -27,7 +27,7 @@ import { randomUUID } from "node:crypto";
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
-const BASE_URL = process.env.COMBO_LIVE_BASE_URL ?? "http://192.168.0.15:20128";
+const BASE_URL = process.env.COMBO_LIVE_BASE_URL ?? "http://192.168.0.15:2004";
 const API_KEY = process.env.COMBO_LIVE_API_KEY ?? null;
 const VPS_SSH_HOST = "root@192.168.0.15";
 const VPS_DB_PATH = "/root/.birouter/storage.sqlite";

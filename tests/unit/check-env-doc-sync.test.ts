@@ -36,7 +36,7 @@ test("parseEnvExampleVars: ignores prose", () => {
   const text = `
 # This file documents env vars. Don't put values here.
 Some narrative paragraph mentions PORT and DATA_DIR in passing.
-PORT=20128
+PORT=2004
 `;
   const vars = parseEnvExampleVars(text);
   assert.deepEqual([...vars].sort(), ["PORT"]);

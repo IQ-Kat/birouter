@@ -13,7 +13,7 @@ const ROOT = join(__dirname, "..", "..");
 
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_SETTLE_MS = 2_000;
-const DEFAULT_URL = "http://127.0.0.1:20128/login";
+const DEFAULT_URL = "http://127.0.0.1:2004/login";
 export const LINUX_EXECUTABLE_NAMES = ["birouter-desktop", "birouter", "Birouter"];
 export const FATAL_LOG_PATTERNS = [
   /Cannot find module/i,

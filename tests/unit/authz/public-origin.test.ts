@@ -50,7 +50,7 @@ after(() => {
 describe("public origin resolution", () => {
   it("uses configured public base URLs before the internal request URL", () => {
     process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test/app/";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions");
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions");
 
     assert.deepEqual(resolvePublicOrigin(request), {
       origin: "https://gateway.example.test",
@@ -68,11 +68,11 @@ describe("public origin resolution", () => {
   });
 
   it("preserves configured source priority when it equals the request URL", () => {
-    process.env.NEXT_PUBLIC_BASE_URL = "http://birouter:20128/app";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions");
+    process.env.NEXT_PUBLIC_BASE_URL = "http://birouter:2004/app";
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions");
 
     assert.deepEqual(resolvePublicOrigin(request), {
-      origin: "http://birouter:20128",
+      origin: "http://birouter:2004",
       source: "configured",
     });
   });
@@ -80,7 +80,7 @@ describe("public origin resolution", () => {
   it("accepts all configured public origins while resolving the highest-priority one", () => {
     process.env.BIROUTER_PUBLIC_BASE_URL = "https://assets.example.test/images";
     process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test/app";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: { origin: "https://gateway.example.test" },
     });
 
@@ -99,15 +99,15 @@ describe("public origin resolution", () => {
   });
 
   it("keeps the internal request URL as an accepted candidate", () => {
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions");
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions");
 
     assert.deepEqual(getPublicOriginCandidates(request), [
-      { origin: "http://birouter:20128", source: "request-url" },
+      { origin: "http://birouter:2004", source: "request-url" },
     ]);
   });
 
   it("does not trust spoofed forwarded headers by default", () => {
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         origin: "https://attacker.example",
         "x-forwarded-host": "attacker.example",
@@ -121,7 +121,7 @@ describe("public origin resolution", () => {
 
   it("fails closed for unknown proxy trust mode values", () => {
     process.env.BIROUTER_TRUST_PROXY = "flase";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         ...stampedPeer("127.0.0.1"),
         origin: "https://gateway.example.test",
@@ -136,7 +136,7 @@ describe("public origin resolution", () => {
 
   it("can trust forwarded headers from a token-stamped loopback proxy when explicitly enabled", () => {
     process.env.BIROUTER_TRUST_PROXY = "true";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         ...stampedPeer("127.0.0.1"),
         origin: "https://gateway.example.test",
@@ -152,7 +152,7 @@ describe("public origin resolution", () => {
   it("does not allow trusted forwarded headers to widen a configured public origin", () => {
     process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test";
     process.env.BIROUTER_TRUST_PROXY = "true";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         ...stampedPeer("127.0.0.1"),
         origin: "https://evil.example.test",
@@ -172,7 +172,7 @@ describe("public origin resolution", () => {
 
   it("does not derive trusted forwarded origin from the raw host header", () => {
     process.env.BIROUTER_TRUST_PROXY = "true";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         ...stampedPeer("127.0.0.1"),
         host: "gateway.example.test",
@@ -192,7 +192,7 @@ describe("public origin resolution", () => {
 
   it("rejects malformed forwarded origins even when proxy trust is enabled", () => {
     process.env.BIROUTER_TRUST_PROXY = "true";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         ...stampedPeer("127.0.0.1"),
         origin: "https://gateway.example.test",
@@ -206,7 +206,7 @@ describe("public origin resolution", () => {
 
   it("rejects cross-site fetch metadata before origin candidate matching", () => {
     process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test";
-    const request = new Request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    const request = new Request("http://birouter:2004/api/providers/health-autopilot/actions", {
       headers: {
         origin: "https://gateway.example.test",
         "sec-fetch-site": "cross-site",
@@ -222,20 +222,20 @@ describe("public origin resolution", () => {
 
 describe("direct LAN/loopback host origin (#5340)", () => {
   it("accepts a direct LAN-IP host even when a localhost public base URL is configured", () => {
-    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:20128";
-    const request = new Request("http://birouter:20128/api/keys", {
+    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:2004";
+    const request = new Request("http://birouter:2004/api/keys", {
       method: "POST",
       headers: {
         ...stampedPeer("192.168.0.50"),
-        host: "192.168.0.15:20128",
-        origin: "http://192.168.0.15:20128",
+        host: "192.168.0.15:2004",
+        origin: "http://192.168.0.15:2004",
         "sec-fetch-site": "same-origin",
       },
     });
 
     assert.equal(
       getPublicOriginCandidates(request).some(
-        (candidate) => candidate.origin === "http://192.168.0.15:20128"
+        (candidate) => candidate.origin === "http://192.168.0.15:2004"
       ),
       true
     );
@@ -243,12 +243,12 @@ describe("direct LAN/loopback host origin (#5340)", () => {
   });
 
   it("accepts a direct loopback-IP host with no configured public origin", () => {
-    const request = new Request("http://birouter:20128/api/keys", {
+    const request = new Request("http://birouter:2004/api/keys", {
       method: "POST",
       headers: {
         ...stampedPeer("127.0.0.1"),
-        host: "127.0.0.1:20128",
-        origin: "http://127.0.0.1:20128",
+        host: "127.0.0.1:2004",
+        origin: "http://127.0.0.1:2004",
       },
     });
 
@@ -258,19 +258,19 @@ describe("direct LAN/loopback host origin (#5340)", () => {
   it("rejects a DNS-rebinding domain host even when the peer is loopback", () => {
     // evil.example rebinds to a loopback socket; the Host header carries the
     // attacker domain, which classifies as remote → no trusted candidate.
-    const request = new Request("http://birouter:20128/api/keys", {
+    const request = new Request("http://birouter:2004/api/keys", {
       method: "POST",
       headers: {
         ...stampedPeer("127.0.0.1"),
-        host: "evil.example:20128",
-        origin: "http://evil.example:20128",
+        host: "evil.example:2004",
+        origin: "http://evil.example:2004",
         "sec-fetch-site": "same-origin",
       },
     });
 
     assert.equal(
       getPublicOriginCandidates(request).some(
-        (candidate) => candidate.origin === "http://evil.example:20128"
+        (candidate) => candidate.origin === "http://evil.example:2004"
       ),
       false
     );
@@ -278,12 +278,12 @@ describe("direct LAN/loopback host origin (#5340)", () => {
   });
 
   it("does not widen the origin for a remote peer even when the Host is a LAN IP", () => {
-    const request = new Request("http://birouter:20128/api/keys", {
+    const request = new Request("http://birouter:2004/api/keys", {
       method: "POST",
       headers: {
         ...stampedPeer("203.0.113.7"),
-        host: "192.168.0.15:20128",
-        origin: "http://192.168.0.15:20128",
+        host: "192.168.0.15:2004",
+        origin: "http://192.168.0.15:2004",
         "sec-fetch-site": "same-origin",
       },
     });
@@ -292,11 +292,11 @@ describe("direct LAN/loopback host origin (#5340)", () => {
   });
 
   it("does not trust the Host header when the peer stamp is absent", () => {
-    const request = new Request("http://birouter:20128/api/keys", {
+    const request = new Request("http://birouter:2004/api/keys", {
       method: "POST",
       headers: {
-        host: "192.168.0.15:20128",
-        origin: "http://192.168.0.15:20128",
+        host: "192.168.0.15:2004",
+        origin: "http://192.168.0.15:2004",
         "sec-fetch-site": "same-origin",
       },
     });
@@ -305,12 +305,12 @@ describe("direct LAN/loopback host origin (#5340)", () => {
   });
 
   it("pins the protocol to the connection — a mismatched https origin is rejected", () => {
-    const request = new Request("http://birouter:20128/api/keys", {
+    const request = new Request("http://birouter:2004/api/keys", {
       method: "POST",
       headers: {
         ...stampedPeer("192.168.0.50"),
-        host: "192.168.0.15:20128",
-        origin: "https://192.168.0.15:20128",
+        host: "192.168.0.15:2004",
+        origin: "https://192.168.0.15:2004",
         "sec-fetch-site": "same-origin",
       },
     });

@@ -38,7 +38,7 @@ class FakeSysTray {
 }
 
 const opts = {
-  port: 20128,
+  port: 2004,
   onQuit: () => {},
   onOpenDashboard: () => {},
   onShowLogs: () => {},

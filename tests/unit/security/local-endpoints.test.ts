@@ -41,7 +41,7 @@ test("isLocalRequestAllowed: allows loopback host + empty xff (browser dev path)
   const prevToken = process.env.BIROUTER_LOCAL_ENDPOINTS_TOKEN;
   delete process.env.NODE_ENV;
   delete process.env.BIROUTER_LOCAL_ENDPOINTS_TOKEN;
-  setHeaders({ host: "localhost:20128" });
+  setHeaders({ host: "localhost:2004" });
   try {
     const out = isLocalRequestAllowed();
     assert.equal(out.allowed, true, `expected allowed, got: ${JSON.stringify(out)}`);
@@ -55,7 +55,7 @@ test("isLocalRequestAllowed: allows loopback host + empty xff (browser dev path)
 test("isLocalRequestAllowed: allows IPv4 loopback host 127.0.0.1", () => {
   const prevNodeEnv = process.env.NODE_ENV;
   delete process.env.NODE_ENV;
-  setHeaders({ host: "127.0.0.1:20128" });
+  setHeaders({ host: "127.0.0.1:2004" });
   try {
     const out = isLocalRequestAllowed();
     assert.equal(out.allowed, true);
@@ -68,7 +68,7 @@ test("isLocalRequestAllowed: allows IPv4 loopback host 127.0.0.1", () => {
 test("isLocalRequestAllowed: allows IPv6 loopback host [::1]", () => {
   const prevNodeEnv = process.env.NODE_ENV;
   delete process.env.NODE_ENV;
-  setHeaders({ host: "[::1]:20128" });
+  setHeaders({ host: "[::1]:2004" });
   try {
     const out = isLocalRequestAllowed();
     assert.equal(out.allowed, true);

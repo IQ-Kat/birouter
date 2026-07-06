@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { generateAuthData } from "../../src/lib/oauth/providers.ts";
 import PROVIDERS from "../../src/lib/oauth/providers/index.ts";
 
-const REDIRECT = "http://127.0.0.1:20128/callback";
+const REDIRECT = "http://127.0.0.1:2004/callback";
 
 for (const providerId of ["antigravity", "agy"]) {
   test(`${providerId}: no PKCE + no openid in the auth URL (matches working 9router flow)`, () => {
@@ -70,7 +70,7 @@ test("antigravity.exchangeToken never forwards code_verifier (no PKCE → no inv
         tokenUrl: "https://oauth2.googleapis.com/token",
       },
       "the-code",
-      "http://127.0.0.1:20128/callback",
+      "http://127.0.0.1:2004/callback",
       "should-be-ignored-verifier"
     );
   } finally {

@@ -10,7 +10,7 @@ export function registerRepl(program) {
     .option("--resume <session>", t("repl.resume"))
     .action(async (opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
-      const port = globalOpts.port ? parseInt(String(globalOpts.port), 10) : 20128;
+      const port = globalOpts.port ? parseInt(String(globalOpts.port), 10) : 2004;
       const baseUrl = globalOpts.baseUrl ?? `http://localhost:${port}`;
       const apiKey = globalOpts.apiKey ?? null;
       const { runRepl } = await import("../tui/Repl.jsx");

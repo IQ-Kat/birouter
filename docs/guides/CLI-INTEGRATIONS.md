@@ -31,7 +31,7 @@ per-tool deep dives:
 
 Every command honours the **active context** (set with `birouter connect`, see
 [Remote Mode](./REMOTE-MODE.md)) or explicit `--remote <url> --api-key <key>` flags.
-"Local vs remote" below means: with no flags it targets `http://localhost:20128`;
+"Local vs remote" below means: with no flags it targets `http://localhost:2004`;
 with `--remote` (or an active remote context) it fetches the catalog from that
 server and writes the config locally.
 
@@ -67,7 +67,7 @@ Notes on flags (verified in the command source):
   model auto-discovery: Cline, Kilo, Roo, Goose, Qwen, Aider. Those tools
   also accept `--yes` for non-interactive runs (which then requires `--model`).
   `setup-opencode` takes `--model` to set the default top-level model.
-- `--port <port>` — local Birouter port (default `20128`, ignored when `--remote`
+- `--port <port>` — local Birouter port (default `2004`, ignored when `--remote`
   is set). Present on all `setup-*` and both launchers.
 - The two launchers (`launch`, `launch-codex`) accept `--profile <name>` to select
   a profile written by `setup-claude` / `setup-codex`, plus pass-through args for
@@ -82,7 +82,7 @@ Notes on flags (verified in the command source):
 
 ## Local usage
 
-With Birouter running on `localhost:20128`, just run the setup command for your
+With Birouter running on `localhost:2004`, just run the setup command for your
 tool. The catalog is fetched from the local server.
 
 ```bash
@@ -124,16 +124,16 @@ catalog is fetched from the remote; the config is written on your local machine.
 
 ```bash
 # OpenCode against a remote VPS, keep only glm/kimi models
-birouter setup-opencode --remote http://192.168.0.15:20128 --api-key oma_live_xxx \
+birouter setup-opencode --remote http://192.168.0.15:2004 --api-key oma_live_xxx \
   --only glm,kimi
 opencode -m birouter/glm/glm-5.2 "..."   # export BIROUTER_API_KEY first
 
 # Codex profiles from a remote catalog
-birouter setup-codex --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+birouter setup-codex --remote http://192.168.0.15:2004 --api-key oma_live_xxx
 
 # Launch a CLI straight against the remote
-birouter launch       --remote http://192.168.0.15:20128 --api-key oma_live_xxx
-birouter launch-codex --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+birouter launch       --remote http://192.168.0.15:2004 --api-key oma_live_xxx
+birouter launch-codex --remote http://192.168.0.15:2004 --api-key oma_live_xxx
 ```
 
 Instead of passing `--remote`/`--api-key` every time, log in once and let the

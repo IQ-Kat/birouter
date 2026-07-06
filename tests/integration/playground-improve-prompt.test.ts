@@ -26,7 +26,7 @@ process.env.REQUIRE_API_KEY = "false";
 
 const { POST, OPTIONS } = await import("../../src/app/api/playground/improve-prompt/route.ts");
 
-const BASE_URL = "http://localhost:20128";
+const BASE_URL = "http://localhost:2004";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -263,7 +263,7 @@ test("upstream network error is sanitized", async () => {
   const originalFetch = globalThis.fetch;
   try {
     globalThis.fetch = (async () => {
-      throw new Error("ECONNREFUSED connect ECONNREFUSED 127.0.0.1:20128");
+      throw new Error("ECONNREFUSED connect ECONNREFUSED 127.0.0.1:2004");
     }) as typeof fetch;
 
     const res = await POST(postRequest({ prompt: "Hello", model: "gpt-4o-mini" }));

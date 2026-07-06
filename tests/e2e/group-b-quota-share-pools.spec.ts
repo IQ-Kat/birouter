@@ -47,7 +47,7 @@ test.describe("Group B — Quota Share Pools", () => {
 
   test("quota-share page exists and returns 200", async ({ page }) => {
     const response = await page.goto(
-      "http://localhost:20128/dashboard/costs/quota-share",
+      "http://localhost:2004/dashboard/costs/quota-share",
       { waitUntil: "domcontentloaded" }
     );
     expect(response?.status()).not.toBe(404);

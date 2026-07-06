@@ -66,8 +66,8 @@ function buildTraeAuthorizeUrl(callbackUrl: string, traceId: string): string {
 
 type TraeAuthModalProps = {
   isOpen: boolean;
-  onSuccess?: () => void;
-  onClose: () => void;
+  onSuccessAction?: () => void;
+  onCloseAction: () => void;
   reauthConnection?: unknown;
 };
 
@@ -81,8 +81,8 @@ type TraeAuthModalProps = {
  */
 export default function TraeAuthModal({
   isOpen,
-  onSuccess,
-  onClose,
+  onSuccessAction,
+  onCloseAction,
   reauthConnection: _,
 }: TraeAuthModalProps) {
   const [accessToken, setAccessToken] = useState("");
@@ -129,15 +129,15 @@ export default function TraeAuthModal({
       if (!traceIdRef.current || m.loginTraceId !== traceIdRef.current) return;
       setAuthorizing(false);
       if (m.success) {
-        onSuccess?.();
-        onClose();
+        onSuccessAction?.();
+        onCloseAction();
       } else {
         setError(m.error || "Authorization failed");
       }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [isOpen, onSuccess, onClose]);
+  }, [isOpen, onSuccessAction, onCloseAction]);
 
   const handleAuthorizeWithBrowser = () => {
     setError(null);
@@ -199,8 +199,8 @@ export default function TraeAuthModal({
           typeof data.error === "string" ? data.error : data.error?.message || "Import failed"
         );
       }
-      onSuccess?.();
-      onClose();
+      onSuccessAction?.();
+      onCloseAction();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -209,7 +209,7 @@ export default function TraeAuthModal({
   };
 
   return (
-    <Modal isOpen={isOpen} title="Connect Trae SOLO" onClose={onClose}>
+    <Modal isOpen={isOpen} title="Connect Trae SOLO" onClose={onCloseAction}>
       <div className="flex flex-col gap-4">
         {/* Primary path: browser-based OAuth via trae.ai/authorization */}
         <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
@@ -324,7 +324,7 @@ export default function TraeAuthModal({
           <Button onClick={handleImportToken} fullWidth disabled={importing || !accessToken.trim()}>
             {importing ? "Importing…" : "Import Token"}
           </Button>
-          <Button onClick={onClose} variant="ghost" fullWidth>
+          <Button onClick={onCloseAction} variant="ghost" fullWidth>
             Cancel
           </Button>
         </div>

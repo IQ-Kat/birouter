@@ -211,23 +211,23 @@ header, where `<source>` is one of `request-header`, `routing-override`, `active
 
 ```bash
 # Get compression settings
-curl http://localhost:20128/api/settings/compression
+curl http://localhost:2004/api/settings/compression
 
 # Update compression settings
-curl -X PUT http://localhost:20128/api/settings/compression \
+curl -X PUT http://localhost:2004/api/settings/compression \
   -H "Content-Type: application/json" \
   -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
 # Preview a specific RTK/stacked payload
-curl -X POST http://localhost:20128/api/compression/preview \
+curl -X POST http://localhost:2004/api/compression/preview \
   -H "Content-Type: application/json" \
   -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
 # List RTK filter packs
-curl http://localhost:20128/api/context/rtk/filters
+curl http://localhost:2004/api/context/rtk/filters
 
 # Test RTK directly with optional command metadata
-curl -X POST http://localhost:20128/api/context/rtk/test \
+curl -X POST http://localhost:2004/api/context/rtk/test \
   -H "Content-Type: application/json" \
   -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
 ```

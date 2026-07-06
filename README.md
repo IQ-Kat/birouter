@@ -185,7 +185,7 @@
 ┌──────────────────────────────────────────────────────────┐
 │        Your IDE / CLI  (Claude Code, Cursor, Cline…)       │
 └─────────────────────────┬──────────────────────────────────┘
-                          │ http://localhost:20128/v1
+                          │ http://localhost:2004/v1
                           ▼
 ┌──────────────────────────────────────────────────────────┐
 │                  Birouter — Smart Router                  │
@@ -355,7 +355,7 @@ Result: 4 layers of fallback = zero downtime
 
 # 🤖 Compatible CLIs & Coding Agents
 
-> One config — `http://localhost:20128/v1` — and **every** AI IDE or CLI runs on free & low-cost models.
+> One config — `http://localhost:2004/v1` — and **every** AI IDE or CLI runs on free & low-cost models.
 
 <div align="center">
 <table>
@@ -503,7 +503,7 @@ Result: 4 layers of fallback = zero downtime
 ### ⌨️ A real CLI (not just `start`)
 
 ```bash
-birouter               # serve gateway + dashboard (port 20128)
+birouter               # serve gateway + dashboard (port 2004)
 birouter chat          # interactive TUI chat client (slash: /model /combo /skill /memory)
 birouter setup         # guided first-run wizard
 birouter doctor        # diagnose providers, ports, native deps
@@ -535,16 +535,16 @@ Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopb
 
 Expose Birouter over **MCP** or **A2A** and any capable agent gets the keys to the whole gateway — routing, providers, combos, cache, compression, memory — autonomously.
 
-| Protocol           | Endpoint                                        | Use it for                                             |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------ |
-| 🧰 **MCP (stdio)** | `birouter --mcp`                                | Plug into Claude Desktop, Cursor, any MCP client       |
-| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **95 tools**, 30 scopes, full audit trail |
-| 📡 **MCP (SSE)**   | `http://localhost:20128/api/mcp/sse`            | Streaming MCP transport                                |
-| 🤝 **A2A**         | `http://localhost:20128/.well-known/agent.json` | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills       |
+| Protocol           | Endpoint                                       | Use it for                                             |
+| ------------------ | ---------------------------------------------- | ------------------------------------------------------ |
+| 🧰 **MCP (stdio)** | `birouter --mcp`                               | Plug into Claude Desktop, Cursor, any MCP client       |
+| 🌊 **MCP (HTTP)**  | `http://localhost:2004/api/mcp/stream`         | Remote MCP — **95 tools**, 30 scopes, full audit trail |
+| 📡 **MCP (SSE)**   | `http://localhost:2004/api/mcp/sse`            | Streaming MCP transport                                |
+| 🤝 **A2A**         | `http://localhost:2004/.well-known/agent.json` | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills       |
 
 ```bash
 # Give Claude Code the full Birouter toolset over MCP:
-claude mcp add-server birouter --type http --url http://localhost:20128/api/mcp/stream
+claude mcp add-server birouter --type http --url http://localhost:2004/api/mcp/stream
 ```
 
 <sub>📖 [MCP Server](docs/frameworks/MCP-SERVER.md) · [A2A Server](docs/frameworks/A2A-SERVER.md) · [Agent Protocols](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)</sub>
@@ -651,7 +651,7 @@ npm install -g birouter
 birouter
 ```
 
-Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
+Dashboard at `http://localhost:2004` · API at `http://localhost:2004/v1`.
 
 **2) Connect a FREE provider (no signup)**
 
@@ -660,7 +660,7 @@ Dashboard → **Providers** → connect **Kiro AI** (free Claude, ~50 credits/mo
 **3) Point your coding tool**
 
 ```txt
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  [copy from Dashboard → Endpoints]
 Model:    auto            (zero-config smart routing — or any provider/model)
 ```
@@ -668,7 +668,7 @@ Model:    auto            (zero-config smart routing — or any provider/model)
 **4) Verify it's working**
 
 ```bash
-curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
+curl http://localhost:2004/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
 You should see your connected models listed. 🎉 That's it — start coding, and Birouter auto-routes & falls back for you.
@@ -676,12 +676,12 @@ You should see your connected models listed. 🎉 That's it — start coding, an
 If your client cannot send custom headers, Birouter also exposes tokenized compatibility aliases:
 
 ```txt
-OpenAI catalog:   http://localhost:20128/vscode/YOUR_KEY/
-OpenAI models:    http://localhost:20128/vscode/YOUR_KEY/models
-OpenAI chat:      http://localhost:20128/vscode/YOUR_KEY/chat/completions
-OpenAI responses: http://localhost:20128/vscode/YOUR_KEY/responses
-Ollama chat:      http://localhost:20128/vscode/YOUR_KEY/api/chat
-Ollama tags:      http://localhost:20128/vscode/YOUR_KEY/api/tags
+OpenAI catalog:   http://localhost:2004/vscode/YOUR_KEY/
+OpenAI models:    http://localhost:2004/vscode/YOUR_KEY/models
+OpenAI chat:      http://localhost:2004/vscode/YOUR_KEY/chat/completions
+OpenAI responses: http://localhost:2004/vscode/YOUR_KEY/responses
+Ollama chat:      http://localhost:2004/vscode/YOUR_KEY/api/chat
+Ollama tags:      http://localhost:2004/vscode/YOUR_KEY/api/tags
 ```
 
 Use these only for clients that cannot attach `Authorization: Bearer ...`. Header auth remains the preferred mode.
@@ -694,14 +694,14 @@ Use these only for clients that cannot attach `Authorization: Bearer ...`. Heade
 
 ```bash
 docker run -d --name birouter --restart unless-stopped --stop-timeout 40 \
-  -p 20128:20128 -v birouter-data:/app/data IQ-Kat/birouter:latest
+  -p 2004:2004 -v birouter-data:/app/data IQ-Kat/birouter:latest
 ```
 
 **🛠️ From source**
 
 ```bash
 cp .env.example .env && npm install
-PORT=20128 npm run dev
+PORT=2004 npm run dev
 ```
 
 **📦 pnpm**
@@ -894,7 +894,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 | Env var           | Default       | Purpose                          |
 | ----------------- | ------------- | -------------------------------- |
-| `PORT`            | `20128`       | API + dashboard port             |
+| `PORT`            | `2004`        | API + dashboard port             |
 | `REQUIRE_API_KEY` | `false`       | Require API key for all requests |
 | `DATA_DIR`        | `~/.birouter` | Database & config storage        |
 

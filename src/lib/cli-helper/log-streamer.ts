@@ -12,7 +12,7 @@ export interface LogStream {
 }
 
 export function createLogStream(options: LogStreamOptions = {}): LogStream {
-  const baseUrl = options.baseUrl || "http://localhost:20128";
+  const baseUrl = options.baseUrl || "http://localhost:2004";
   const filters = options.filters || [];
   const follow = options.follow ?? false;
   const timeout = options.timeout || 30000;

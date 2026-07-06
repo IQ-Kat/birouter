@@ -16,7 +16,7 @@ cost tracking, model switching, and request logging across every tool.
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
            ▼  (all point to Birouter)
-    http://YOUR_SERVER:20128/v1
+    http://YOUR_SERVER:2004/v1
            │
            ▼  (Birouter routes to the right provider)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
@@ -123,16 +123,16 @@ Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
 
 ```bash
 # Birouter Universal Endpoint
-export OPENAI_BASE_URL="http://localhost:20128/v1"
+export OPENAI_BASE_URL="http://localhost:2004/v1"
 export OPENAI_API_KEY="sk-your-birouter-key"
-export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
+export ANTHROPIC_BASE_URL="http://localhost:2004/v1"
 export ANTHROPIC_API_KEY="sk-your-birouter-key"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
+export GEMINI_BASE_URL="http://localhost:2004/v1"
 export GEMINI_API_KEY="sk-your-birouter-key"
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+> For a **remote server** replace `localhost:2004` with the server IP or domain,
+> e.g. `http://192.168.0.15:2004`.
 
 ---
 
@@ -142,12 +142,12 @@ export GEMINI_API_KEY="sk-your-birouter-key"
 
 ```bash
 # Via CLI:
-claude config set --global api-base-url http://localhost:20128/v1
+claude config set --global api-base-url http://localhost:2004/v1
 
 # Or create ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
-  "apiBaseUrl": "http://localhost:20128/v1",
+  "apiBaseUrl": "http://localhost:2004/v1",
   "apiKey": "sk-your-birouter-key"
 }
 EOF
@@ -163,7 +163,7 @@ EOF
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
 apiKey: sk-your-birouter-key
-apiBaseUrl: http://localhost:20128/v1
+apiBaseUrl: http://localhost:2004/v1
 EOF
 ```
 
@@ -176,7 +176,7 @@ EOF
 ```bash
 mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
 [provider.openai]
-base_url = "http://localhost:20128/v1"
+base_url = "http://localhost:2004/v1"
 api_key = "sk-your-birouter-key"
 EOF
 ```
@@ -193,14 +193,14 @@ EOF
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
-  "openAiBaseUrl": "http://localhost:20128/v1",
+  "openAiBaseUrl": "http://localhost:2004/v1",
   "openAiApiKey": "sk-your-birouter-key"
 }
 EOF
 ```
 
 **VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:2004/v1`
 
 Or use the Birouter dashboard → **CLI Tools → Cline → Apply Config**.
 
@@ -211,14 +211,14 @@ Or use the Birouter dashboard → **CLI Tools → Cline → Apply Config**.
 **CLI mode:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-birouter-key
+kilocode --api-base http://localhost:2004/v1 --api-key sk-your-birouter-key
 ```
 
 **VS Code settings:**
 
 ```json
 {
-  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+  "kilo-code.openAiBaseUrl": "http://localhost:2004/v1",
   "kilo-code.apiKey": "sk-your-birouter-key"
 }
 ```
@@ -236,7 +236,7 @@ models:
   - name: Birouter
     provider: openai
     model: auto
-    apiBase: http://localhost:20128/v1
+    apiBase: http://localhost:2004/v1
     apiKey: sk-your-birouter-key
     default: true
 ```
@@ -267,7 +267,7 @@ Qwen Code supports OpenAI-compatible API endpoints via environment variables or 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
 OPENAI_API_KEY="sk-your-birouter-key"
-OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_BASE_URL="http://localhost:2004/v1"
 OPENAI_MODEL="auto"
 EOF
 ```
@@ -279,7 +279,7 @@ EOF
 {
   "env": {
     "OPENAI_API_KEY": "sk-your-birouter-key",
-    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+    "OPENAI_BASE_URL": "http://localhost:2004/v1"
   },
   "modelProviders": {
     "openai": [
@@ -287,7 +287,7 @@ EOF
         "id": "birouter-default",
         "name": "Birouter (Auto)",
         "envKey": "OPENAI_API_KEY",
-        "baseUrl": "http://localhost:20128/v1"
+        "baseUrl": "http://localhost:2004/v1"
       }
     ]
   }
@@ -297,13 +297,13 @@ EOF
 **Option 3: Inline CLI flags**
 
 ```bash
-OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_BASE_URL="http://localhost:2004/v1" \
 OPENAI_API_KEY="sk-your-birouter-key" \
 OPENAI_MODEL="auto" \
 qwen
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain.
+> For a **remote server** replace `localhost:2004` with the server IP or domain.
 
 **Test:** `qwen "say hello"`
 
@@ -323,7 +323,7 @@ Via GUI: **Settings → Models → OpenAI API Key**
 
 The Birouter dashboard automates configuration for most tools:
 
-1. Go to `http://localhost:20128/dashboard/cli-tools`
+1. Go to `http://localhost:2004/dashboard/cli-tools`
 2. Expand any tool card
 3. Select your API key from the dropdown
 4. Click **Apply Config** (if tool is detected as installed)
@@ -336,7 +336,7 @@ The Birouter dashboard automates configuration for most tools:
 **Droid** and **OpenClaw** are AI agents built directly into Birouter — no installation needed.
 They run as internal routes and use Birouter's model routing automatically.
 
-- Access: `http://localhost:20128/dashboard/agents`
+- Access: `http://localhost:2004/dashboard/agents`
 - Configure: same combos and providers as all other tools
 - No API key or CLI install required
 
@@ -373,7 +373,7 @@ They run as internal routes and use Birouter's model routing automatically.
 
 ```bash
 # Install all CLIs and configure for Birouter (replace with your key and server URL)
-BIROUTER_URL="http://localhost:20128/v1"
+BIROUTER_URL="http://localhost:2004/v1"
 BIROUTER_KEY="sk-your-birouter-key"
 
 npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code

@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # নির্ভরতাগুলি ইনস্টল করুন (auto-generates .env from .env.example)
-npm run dev                    # ডেভ সার্ভার http://localhost:20128 এ
+npm run dev                    # ডেভ সার্ভার http://localhost:2004 এ
 npm run build                  # প্রোডাকশন বিল্ড (Next.js 16 standalone)
 npm run lint                   # ESLint (0 ত্রুটি প্রত্যাশিত; সতর্কতা পূর্ব-বিদ্যমান)
 npm run typecheck:core         # TypeScript পরীক্ষা (পরিষ্কার হওয়া উচিত)
@@ -363,7 +363,7 @@ git push -u origin feat/your-feature
 - **রানটাইম**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES মডিউল
 - **টাইপস্ক্রিপ্ট**: 5.9+, লক্ষ্য ES2022, মডিউল esnext, রেজোলিউশন bundler
 - **পথ অ্যালিয়াস**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **ডিফল্ট পোর্ট**: 20128 (API + ড্যাশবোর্ড একই পোর্টে)
+- **ডিফল্ট পোর্ট**: 2004 (API + ড্যাশবোর্ড একই পোর্টে)
 - **ডেটা ডিরেক্টরি**: `DATA_DIR` env var, ডিফল্ট `~/.birouter/`
 - **মূল env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - সেটআপ: `cp .env.example .env` তারপর `JWT_SECRET` (`openssl rand -base64 48`) এবং `API_KEY_SECRET` (`openssl rand -hex 32`) তৈরি করুন

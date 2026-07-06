@@ -95,7 +95,7 @@ const IGNORE_FROM_CODE = new Set([
   "BIROUTER_DISABLE_CLI_TOKEN",
   // Gated combo live-smoke harness (scripts/test/_vpsClient.mjs) — override the VPS HTTP
   // smoke target host/key. Test/CI-only signals with safe defaults
-  // ("http://192.168.0.15:20128" / null), never Birouter runtime config (#5151).
+  // ("http://192.168.0.15:2004" / null), never Birouter runtime config (#5151).
   "COMBO_LIVE_BASE_URL",
   "COMBO_LIVE_API_KEY",
   // update-notifier opt-out for the CLI binary.

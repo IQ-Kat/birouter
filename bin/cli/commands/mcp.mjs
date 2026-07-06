@@ -175,7 +175,7 @@ export function registerMcp(program) {
 }
 
 async function runMcpStream(tool, args, globalOpts) {
-  const baseUrl = globalOpts.baseUrl ?? "http://localhost:20128";
+  const baseUrl = globalOpts.baseUrl ?? "http://localhost:2004";
   const apiKey = globalOpts.apiKey ?? "";
   const res = await fetch(`${baseUrl}/api/mcp/stream`, {
     method: "POST",

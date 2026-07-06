@@ -7,7 +7,7 @@ import { FREE_MODEL_BUDGETS } from "@birouter/open-sse/config/freeModelCatalog.d
 // Kiro's upstream (`generateAssistantResponse`) returns 400 "Invalid model.
 // Please select a different model" for any model id it does not recognize. The
 // registry must therefore expose ONLY ids Kiro actually serves. These ids were
-// fabricated (copied from OmniRoute's own Anthropic catalog) and live-verified
+// fabricated (copied from Birouter's own Anthropic catalog) and live-verified
 // to 400 on the VPS — they must never reappear. Regression guard for the kiro
 // cluster (#6112/#6113/#6099).
 const FABRICATED_KIRO_IDS = [

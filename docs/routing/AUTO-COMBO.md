@@ -49,7 +49,7 @@ Any valid `auto/<category>[:<tier>]` resolves on demand; a curated subset is adv
 
 ```bash
 # Any IDE or CLI tool that supports OpenAI format
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  <your-endpoint-key>
 
 # In your code/config, set model to:
@@ -162,7 +162,7 @@ absent.
 
 ```bash
 # Force the fastest profile and cap this request at $0.05
-curl -sS http://localhost:20128/v1/chat/completions \
+curl -sS http://localhost:2004/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
   -H "X-OmniRoute-Budget: 0.05" \
@@ -237,7 +237,7 @@ Defaults live in `FUSION_DEFAULTS` (`open-sse/services/fusion.ts`).
 ### Example
 
 ```bash
-curl -X POST http://localhost:20128/api/combos \
+curl -X POST http://localhost:2004/api/combos \
   -H "Authorization: Bearer <key>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -294,13 +294,13 @@ For discovery, `GET /api/combos/auto` lists every variant with its resolved cand
 
 ```bash
 # Zero-config usage (no combo creation)
-curl -X POST http://localhost:20128/v1/chat/completions \
+curl -X POST http://localhost:2004/v1/chat/completions \
   -H "Authorization: Bearer <key>" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/coding","messages":[{"role":"user","content":"Hello"}]}'
 
 # Persisted auto combo via the regular combos endpoint
-curl -X POST http://localhost:20128/api/combos \
+curl -X POST http://localhost:2004/api/combos \
   -H "Content-Type: application/json" \
   -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
 ```

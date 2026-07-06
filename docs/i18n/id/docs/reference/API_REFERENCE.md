@@ -369,7 +369,7 @@ Transkripsi file audio menggunakan Deepgram atau AssemblyAI.
 **Permintaan:**
 
 ```bash
-curl -X POST http://localhost:20128/v1/audio/transcriptions \
+curl -X POST http://localhost:2004/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@recording.mp3" \
   -F "model=deepgram/nova-3"

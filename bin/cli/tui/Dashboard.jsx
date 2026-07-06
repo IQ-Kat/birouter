@@ -59,7 +59,7 @@ function DashboardApp({ port, baseUrl, apiKey, onExit }) {
   );
 }
 
-export async function startInteractiveTui({ port = 20128, baseUrl, apiKey } = {}) {
+export async function startInteractiveTui({ port = 2004, baseUrl, apiKey } = {}) {
   const resolvedUrl = baseUrl ?? `http://localhost:${port}`;
   return new Promise((resolve) => {
     const { unmount, waitUntilExit } = render(

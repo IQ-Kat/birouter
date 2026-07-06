@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
@@ -12,7 +12,7 @@ test("provider manifest URL uses explicit env override", () => {
   process.env.BIROUTER_PROVIDER_MANIFEST_URL = "http://sidecar.local/manifest.json";
   try {
     assert.equal(
-      resolveProviderPluginManifestUrl("http://127.0.0.1:20128"),
+      resolveProviderPluginManifestUrl("http://127.0.0.1:2004"),
       "http://sidecar.local/manifest.json"
     );
   } finally {
@@ -26,13 +26,13 @@ test("provider manifest URL uses explicit env override", () => {
 
 test("provider manifest URL derives from request origin", () => {
   assert.equal(
-    resolveProviderPluginManifestUrl("http://127.0.0.1:20128/"),
-    "http://127.0.0.1:20128/api/v1/provider-plugin-manifest"
+    resolveProviderPluginManifestUrl("http://127.0.0.1:2004/"),
+    "http://127.0.0.1:2004/api/v1/provider-plugin-manifest"
   );
 });
 
 test("provider manifest header exposes stable header name", () => {
-  assert.deepEqual(getProviderPluginManifestHeader("http://localhost:20128"), {
-    [PROVIDER_PLUGIN_MANIFEST_HEADER]: "http://localhost:20128/api/v1/provider-plugin-manifest",
+  assert.deepEqual(getProviderPluginManifestHeader("http://localhost:2004"), {
+    [PROVIDER_PLUGIN_MANIFEST_HEADER]: "http://localhost:2004/api/v1/provider-plugin-manifest",
   });
 });

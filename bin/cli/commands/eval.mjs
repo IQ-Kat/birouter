@@ -150,7 +150,7 @@ export async function runEvalRun(suiteId, opts, cmd) {
       await startEvalWatchTui({
         runId: run.id,
         suiteId: opts.suite,
-        baseUrl: globalOpts.baseUrl ?? "http://localhost:20128",
+        baseUrl: globalOpts.baseUrl ?? "http://localhost:2004",
         apiKey: globalOpts.apiKey ?? process.env.BIROUTER_API_KEY,
       });
     } else {

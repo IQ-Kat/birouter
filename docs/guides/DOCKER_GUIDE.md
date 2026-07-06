@@ -32,7 +32,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -48,7 +48,7 @@ docker run -d \
   --restart unless-stopped \
   --stop-timeout 40 \
   --env-file .env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -113,7 +113,7 @@ For an isolated production snapshot running alongside dev, use `docker-compose.p
 | Detail                 | Value                                                                              |
 | ---------------------- | ---------------------------------------------------------------------------------- |
 | File                   | `docker-compose.prod.yml`                                                          |
-| Default dashboard port | `PROD_DASHBOARD_PORT=20130` (mapped to internal `${DASHBOARD_PORT:-20128}`)        |
+| Default dashboard port | `PROD_DASHBOARD_PORT=20130` (mapped to internal `${DASHBOARD_PORT:-2004}`)         |
 | Default API port       | `PROD_API_PORT=20131`                                                              |
 | Image                  | `birouter:prod` (built from `runner-cli` target)                                   |
 | Redis container        | `birouter-redis-prod` (`redis:8.6.2`, dedicated `redis-prod-data` volume)          |
@@ -152,7 +152,7 @@ docker build --target runner-base -t birouter:base .
 docker build --target runner-cli  -t birouter:cli  .
 ```
 
-Defaults exported by `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `NODE_OPTIONS=--max-old-space-size=512`, `DATA_DIR=/app/data`, `BIROUTER_MIGRATIONS_DIR=/app/migrations`.
+Defaults exported by `runner-base`: `PORT=2004`, `HOSTNAME=0.0.0.0`, `NODE_OPTIONS=--max-old-space-size=512`, `DATA_DIR=/app/data`, `BIROUTER_MIGRATIONS_DIR=/app/migrations`.
 
 Memory behavior in Docker:
 
@@ -172,7 +172,7 @@ Beyond the defaults documented in [ENVIRONMENT.md](../reference/ENVIRONMENT.md),
 | `REDIS_PORT`                  | Host-side port for the bundled Redis container                                                      | `6379`                   |
 | `AUTO_UPDATE_HOST_REPO_DIR`   | Host path mounted into `cli` profile at `/workspace/birouter` for self-update workflows             | `.` (current directory)  |
 | `BIROUTER_MEMORY_MB`          | Runtime Node heap ceiling for the Docker standalone server; overrides the image fallback above      | `512`                    |
-| `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (20128) and API (20129)                                        | `20128` / `20129`        |
+| `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (2004) and API (20129)                                         | `2004` / `20129`         |
 | `PROD_DASHBOARD_PORT`         | Host-side dashboard port for `docker-compose.prod.yml`                                              | `20130`                  |
 | `CLIPROXYAPI_PORT`            | Host-side port for the `cliproxyapi` sidecar                                                        | `8317`                   |
 
@@ -189,11 +189,11 @@ services:
     volumes:
       - birouter-data:/app/data
     environment:
-      - PORT=20128
+      - PORT=2004
       # Browser-facing origin for OAuth callbacks, dashboard links, and generated public URLs.
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
       # Internal server-to-server URL for scheduled jobs / self-fetches.
-      - BASE_URL=http://birouter:20128
+      - BASE_URL=http://birouter:2004
       - AUTH_COOKIE_SECURE=true
 
   caddy:
@@ -203,7 +203,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:20128
+    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:2004
 
 volumes:
   birouter-data:
@@ -245,7 +245,7 @@ Multi-platform manifest: `linux/amd64` + `linux/arm64` native (Apple Silicon, AW
 - **SQLite WAL Mode:** `docker stop` should be allowed to finish so Birouter can checkpoint the latest changes back into `storage.sqlite`. The bundled Compose files already set a 40s stop grace period. If you run the image directly, keep `--stop-timeout 40`.
 - **`DISABLE_SQLITE_AUTO_BACKUP`:** Set to `true` if backups are managed externally.
 - **Data Persistence:** Always mount a volume to `/app/data` to persist your database, keys, and configurations across container restarts.
-- **Port Configuration:** Override `PORT` environment variable to change the default `20128` port.
+- **Port Configuration:** Override `PORT` environment variable to change the default `2004` port.
 
 ## See Also
 

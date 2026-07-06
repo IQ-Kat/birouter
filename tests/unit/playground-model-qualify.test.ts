@@ -29,3 +29,9 @@ test("qualifyPlaygroundModel returns the model unchanged without a providerId", 
   assert.equal(qualifyPlaygroundModel("moonshotai/kimi-k2.6", ""), "moonshotai/kimi-k2.6");
   assert.equal(qualifyPlaygroundModel("", "nim"), "");
 });
+
+test("qualifyPlaygroundModel handles custom models correctly", () => {
+  assert.equal(qualifyPlaygroundModel("my-custom-model-1", "openai"), "openai/my-custom-model-1");
+  assert.equal(qualifyPlaygroundModel("my-custom-model-1", ""), "my-custom-model-1");
+});
+

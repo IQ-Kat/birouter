@@ -90,7 +90,7 @@ services:
       # - "${HOME}/Library/Application Support/Zed:/host-zed-config:ro"
     environment:
       # Future: ZED_CONFIG_PATH=/host-zed-config
-      PORT: "20128"
+      PORT: "2004"
 ```
 
 Note: a `ZED_CONFIG_PATH` environment variable override is not yet implemented. This

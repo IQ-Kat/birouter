@@ -162,7 +162,7 @@ Built applications are placed in `dist-electron/`:
 
 | Variable             | Default      | Description                       |
 | -------------------- | ------------ | --------------------------------- |
-| `BIROUTER_PORT`      | `20128`      | Server port                       |
+| `BIROUTER_PORT`      | `2004`       | Server port                       |
 | `BIROUTER_MEMORY_MB` | `512`        | Node.js heap limit (64–16384 MB)  |
 | `NODE_ENV`           | `production` | Set to `development` for dev mode |
 
@@ -231,7 +231,7 @@ Place your icons in `assets/`:
 
 ### App Won't Start
 
-1. Check if port 20128 is available: `lsof -i :20128`
+1. Check if port 2004 is available: `lsof -i :2004`
 2. Check console logs for `[Electron]` prefix
 3. Verify the build output exists in `.build/next/standalone`
 

@@ -233,7 +233,7 @@ Before shipping any release that includes embedded services changes, verify:
 ### Fresh-DB boot (catches migration collisions — added after v3.8.4 hotfix)
 
 - [ ] `DATA_DIR=$(mktemp -d) npm start &` — wait 10 s for boot
-- [ ] `curl -s http://127.0.0.1:20128/api/services/9router/status | jq '.tool'` returns `"9router"` (NOT 404, NOT 500). Confirms migration `071_services.sql` applied + row seeded.
+- [ ] `curl -s http://127.0.0.1:2004/api/services/9router/status | jq '.tool'` returns `"9router"` (NOT 404, NOT 500). Confirms migration `071_services.sql` applied + row seeded.
 - [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(version_manager);" | grep -E "provider_expose|logs_buffer_path|last_sync_at"` returns 3 rows.
 - [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(webhooks);" | grep -E "kind|metadata_encrypted"` returns 2 rows (validates `070_webhooks_kind_metadata.sql` applied).
 - [ ] `node --import tsx/esm --test tests/unit/db/no-migration-collisions.test.ts` passes — guards against future collisions.
@@ -260,8 +260,8 @@ Before shipping any release that includes embedded services changes, verify:
 
 ### Security regression
 
-- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/9router/start` returns `403 LOCAL_ONLY`
-- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/cliproxy/start` returns `403 LOCAL_ONLY`
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:2004/api/services/9router/start` returns `403 LOCAL_ONLY`
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:2004/api/services/cliproxy/start` returns `403 LOCAL_ONLY`
 - [ ] Error responses from `/api/services/*` do not contain `err.stack` or absolute file paths
 
 ## v3.8.0+ checks
@@ -286,8 +286,8 @@ Before shipping any v3.8.x release, verify these additional items:
       optionals, so without this the worker would load llmlingua-2 against the root's transformers
       and the SLM tier would silently fail-open.
 - [ ] `birouter status` works with no `.env` (CLI token path, loopback only)
-- [ ] `curl http://localhost:20128/api/shutdown` returns 401 (always-protected route)
-- [ ] `curl -H "host: evil.com" http://localhost:20128/api/mcp/sse` returns 401 (loopback guard)
+- [ ] `curl http://localhost:2004/api/shutdown` returns 401 (always-protected route)
+- [ ] `curl -H "host: evil.com" http://localhost:2004/api/mcp/sse` returns 401 (loopback guard)
 - [ ] SQLite runtime resolves to `bundled` on first run (bundled binary valid for platform)
 - [ ] SQLite runtime falls back to `runtime` when `node_modules/better-sqlite3` is deleted
 - [ ] Smart MCP filter compresses real `playwright-mcp browser_snapshot` output (≥50% reduction)

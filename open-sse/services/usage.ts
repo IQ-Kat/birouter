@@ -317,7 +317,7 @@ async function getXiaomiMimoUsage(connectionId: string) {
  *
  * xAI has no public per-account quota API (the billing console at console.x.ai
  * requires a session cookie, not an API key), so — exactly like the Xiaomi
- * MiMo self-track pattern above — OmniRoute sums the tokens it itself routed
+ * MiMo self-track pattern above — Birouter sums the tokens it itself routed
  * to this connection (from `usage_history`) instead of calling an upstream
  * endpoint. Unlike Xiaomi MiMo, xAI has no fixed monthly cap, so the
  * aggregate is reported as `unlimited: true` with `remaining: 100` — this
@@ -332,7 +332,7 @@ async function getXaiUsage(connectionId: string) {
     const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
     const used = getMonthlyProviderTokensForConnection("xai", connectionId);
     return {
-      plan: "xAI / Grok (OmniRoute-tracked)",
+      plan: "xAI / Grok (Birouter-tracked)",
       quotas: {
         monthly: {
           used,

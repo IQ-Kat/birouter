@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 const INGEST_TOKEN = "test-ingest-token-1234567890";
 process.env.INSPECTOR_INTERNAL_INGEST_TOKEN = INGEST_TOKEN;
 
-const INGEST_URL = "http://localhost:20128/api/tools/traffic-inspector/internal/ingest";
+const INGEST_URL = "http://localhost:2004/api/tools/traffic-inspector/internal/ingest";
 
 test("ingest masks bearer tokens / secrets before they enter the buffer", async () => {
   const { POST } = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");

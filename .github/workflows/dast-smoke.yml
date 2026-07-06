@@ -27,13 +27,13 @@ jobs:
         run: npm run build:cli
       - name: Start Birouter
         env:
-          PORT: "20128"
+          PORT: "2004"
           INJECTION_GUARD_MODE: block
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
           for _ in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo up; break; fi
+            if curl -sf http://localhost:2004/api/monitoring/health >/dev/null; then echo up; break; fi
             sleep 2
           done
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -42,13 +42,13 @@ jobs:
       - run: pip install schemathesis
       - name: Schemathesis smoke (high-risk endpoints, blocking)
         run: |
-          schemathesis run docs/openapi.yaml --url http://localhost:20128 \
+          schemathesis run docs/openapi.yaml --url http://localhost:2004 \
             --include-path-regex '^/v1/(chat/completions|models)$|^/api/(auth|keys)' \
             --max-examples 8 --workers 4 --checks all --max-response-time 30 \
             --request-timeout 20 --suppress-health-check all --no-color
       - name: promptfoo injection-guard (blocking)
         env:
-          BIROUTER_URL: http://localhost:20128
+          BIROUTER_URL: http://localhost:2004
           BIROUTER_API_KEY: not-needed-blocked-before-upstream
         run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
       - name: Stop server

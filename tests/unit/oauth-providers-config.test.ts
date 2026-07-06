@@ -337,7 +337,7 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
 // can surface a clear "configure it" message — it previously THREW, which the route
 // swallowed into an opaque "Internal server error" 500 at the Add Connection step.
 test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfigured (#3861)", () => {
-  const redirectUri = "http://localhost:20128/callback";
+  const redirectUri = "http://localhost:2004/callback";
   const unconfigured = PROVIDERS["gitlab-duo"].buildAuthUrl(
     { ...GITLAB_DUO_CONFIG, clientId: "" },
     redirectUri,
@@ -357,7 +357,7 @@ test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfi
 test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://localhost:20128/callback",
+    "http://localhost:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com/",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
@@ -371,7 +371,7 @@ test("custom Google OAuth credentials switch Antigravity remote callbacks to NEX
 test("custom Google OAuth callbacks preserve the requested callback path and query", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/auth/callback?source=popup",
+    "http://127.0.0.1:2004/auth/callback?source=popup",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com/base",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
@@ -383,7 +383,7 @@ test("custom Google OAuth callbacks preserve the requested callback path and que
 });
 
 test("custom Google OAuth credentials switch IPv6 loopback callbacks to public base URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:20128/callback", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:2004/callback", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
@@ -393,7 +393,7 @@ test("custom Google OAuth credentials switch IPv6 loopback callbacks to public b
 });
 
 test("custom Google OAuth callbacks default root loopback paths to callback path", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:20128", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:2004", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
@@ -405,26 +405,26 @@ test("custom Google OAuth callbacks default root loopback paths to callback path
 test("Google OAuth callbacks stay on loopback when custom credentials are incomplete", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
     }
   );
 
-  assert.equal(redirectUri, "http://127.0.0.1:20128/callback");
+  assert.equal(redirectUri, "http://127.0.0.1:2004/callback");
 });
 
 test("Google OAuth callbacks stay on localhost when no custom credentials are configured", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://localhost:20128/callback",
+    "http://localhost:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     }
   );
 
-  assert.equal(redirectUri, "http://localhost:20128/callback");
+  assert.equal(redirectUri, "http://localhost:2004/callback");
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {

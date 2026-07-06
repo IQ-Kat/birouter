@@ -64,7 +64,7 @@ const NEXT_SERVER_PATH = path.join(RESOURCES_PATH, "app");
 let mainWindow = null;
 let tray = null;
 let nextServer = null;
-let serverPort = 20128;
+let serverPort = 2004;
 let isServerStopped = false;
 
 const getServerUrl = () => `http://localhost:${serverPort}`;
@@ -304,7 +304,7 @@ function setupContentSecurityPolicy() {
     // React/Next.js needs 'unsafe-eval' only for source maps + HMR in development.
     // Gate it on the real dev flag (isDev = NODE_ENV==="development" || !app.isPackaged),
     // NOT on the request URL: a packaged production build still talks to its embedded
-    // server on localhost:20128, so a URL-substring check would silently grant
+    // server on localhost:2004, so a URL-substring check would silently grant
     // 'unsafe-eval' in production and open a code-injection vector via XSS.
     const scriptSrc = isDev
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
@@ -458,7 +458,7 @@ function createTray() {
       submenu: [
         { label: `Port: ${serverPort}`, enabled: false },
         { type: "separator" },
-        { label: "20128", click: () => changePort(20128) },
+        { label: "2004", click: () => changePort(2004) },
         { label: "3000", click: () => changePort(3000) },
         { label: "8080", click: () => changePort(8080) },
       ],

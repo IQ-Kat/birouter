@@ -43,12 +43,12 @@ Auto-Combo Engine secara dinamis memilih penyedia/model terbaik untuk setiap per
 
 ```bash
 # Create auto-combo
-curl -X POST http://localhost:20128/api/combos/auto \
+curl -X POST http://localhost:2004/api/combos/auto \
   -H "Content-Type: application/json" \
   -d '{"id":"my-auto","name":"Auto Coder","candidatePool":["anthropic","google","openai"],"modePack":"ship-fast"}'
 
 # List auto-combos
-curl http://localhost:20128/api/combos/auto
+curl http://localhost:2004/api/combos/auto
 ```
 
 ## Kesesuaian Tugas

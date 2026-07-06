@@ -173,7 +173,7 @@ function requestUrlProtocol(request: Request): "http" | "https" {
 
 /**
  * Direct (no-proxy) LAN/loopback access (#5340). When the dashboard is reached
- * over a private-network host — e.g. `http://192.168.0.15:20128` instead of the
+ * over a private-network host — e.g. `http://192.168.0.15:2004` instead of the
  * configured `localhost` base URL — Next.js standalone reports the internal bind
  * host in `request.url`, so the browser's same-origin `Origin` matches no
  * candidate and every mutation is rejected with INVALID_ORIGIN.
@@ -243,7 +243,7 @@ export function resolvePublicOrigin(request: Request): PublicOriginCandidate {
   const requestOrigin = requestUrlOrigin(request);
   if (requestOrigin) return { origin: requestOrigin, source: "request-url" };
 
-  return { origin: "http://localhost:20128", source: "request-url" };
+  return { origin: "http://localhost:2004", source: "request-url" };
 }
 
 export function validateBrowserMutationOrigin(request: Request): BrowserMutationOriginVerdict {

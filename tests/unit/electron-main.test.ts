@@ -158,7 +158,7 @@ describe("Electron URL Validation", () => {
   });
 
   it("should allow localhost URLs", () => {
-    assert.equal(validateExternalUrl("http://localhost:20128/dashboard").allowed, true);
+    assert.equal(validateExternalUrl("http://localhost:2004/dashboard").allowed, true);
   });
 
   it("should allow URLs with paths and query params", () => {
@@ -245,7 +245,7 @@ describe("IPC Channel Validation", () => {
 
 describe("Server Port Management", () => {
   it("should have valid default port", () => {
-    const DEFAULT_PORT = 20128;
+    const DEFAULT_PORT = 2004;
     assert.ok(DEFAULT_PORT > 0 && DEFAULT_PORT <= 65535);
   });
 
@@ -253,7 +253,7 @@ describe("Server Port Management", () => {
     function isValidPort(port) {
       return Number.isFinite(port) && port > 0 && port <= 65535;
     }
-    assert.equal(isValidPort(20128), true);
+    assert.equal(isValidPort(2004), true);
     assert.equal(isValidPort(3000), true);
     assert.equal(isValidPort(8080), true);
     assert.equal(isValidPort(0), false);
@@ -263,8 +263,8 @@ describe("Server Port Management", () => {
   });
 
   it("should generate correct server URL", () => {
-    const port = 20128;
-    assert.equal(`http://localhost:${port}`, "http://localhost:20128");
+    const port = 2004;
+    assert.equal(`http://localhost:${port}`, "http://localhost:2004");
   });
 });
 

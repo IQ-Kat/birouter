@@ -6,12 +6,12 @@ export function registerDashboard(program) {
     .command("dashboard")
     .description(t("dashboard.description"))
     .option("--url", t("dashboard.urlOnly"))
-    .option("--port <port>", "Port the server is running on", "20128")
+    .option("--port <port>", "Port the server is running on", "2004")
     .option("--tui", t("dashboard.tui") || "Open interactive TUI dashboard (terminal UI)")
     .action(async (opts, cmd) => {
       if (opts.tui) {
         const globalOpts = cmd.optsWithGlobals();
-        const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
+        const port = opts.port ? parseInt(String(opts.port), 10) : 2004;
         const baseUrl = globalOpts.baseUrl ?? `http://localhost:${port}`;
         const apiKey = globalOpts.apiKey ?? null;
         const { startInteractiveTui } = await import("../tui/Dashboard.jsx");
@@ -24,7 +24,7 @@ export function registerDashboard(program) {
 }
 
 export async function runDashboardCommand(opts = {}) {
-  const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
+  const port = opts.port ? parseInt(String(opts.port), 10) : 2004;
   const dashboardUrl = `http://localhost:${port}`;
 
   if (opts.url) {

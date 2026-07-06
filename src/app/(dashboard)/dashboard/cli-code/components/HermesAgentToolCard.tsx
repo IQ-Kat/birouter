@@ -254,7 +254,7 @@ export default function HermesAgentToolCard({
     }
     return (
       info?.provider === "birouter" ||
-      (info?.base_url || "").includes("20128") ||
+      (info?.base_url || "").includes("2004") ||
       (info?.base_url || "").includes("localhost")
     );
   }).length;
@@ -359,7 +359,7 @@ export default function HermesAgentToolCard({
               } else if (current) {
                 const isBi =
                   current?.provider === "birouter" ||
-                  (current?.base_url || "").includes("20128") ||
+                  (current?.base_url || "").includes("2004") ||
                   (current?.base_url || "").includes("localhost");
 
                 if (isBi) {

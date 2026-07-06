@@ -8,7 +8,7 @@
 // user-facing reply; the prefix must stay hidden.
 //
 // Ported from decolua/9router#1310 by Noé Rivera. Same algorithm, adapted
-// to OmniRoute's StreamCtx-based pipeline so streaming + non-streaming
+// to Birouter's StreamCtx-based pipeline so streaming + non-streaming
 // share the accumulation path.
 
 const COMPOSER_THINK_END = "</think>";

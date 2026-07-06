@@ -52,7 +52,7 @@ systemctl --user start birouter
 
 ```bash
 systemctl --user status birouter
-curl http://localhost:20128/v1/models
+curl http://localhost:2004/v1/models
 ```
 
 To follow logs:

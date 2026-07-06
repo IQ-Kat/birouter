@@ -153,7 +153,7 @@ The proxy registry is a SQLite table (`proxy_registry`) that stores all your pro
 **Via API:**
 
 ```bash
-curl -X POST http://localhost:20128/api/v1/management/proxies \
+curl -X POST http://localhost:2004/api/v1/management/proxies \
   -H "Content-Type: application/json" \
   -d '{
     "name": "US Proxy",
@@ -169,7 +169,7 @@ curl -X POST http://localhost:20128/api/v1/management/proxies \
 ### Updating a Proxy
 
 ```bash
-curl -X PATCH http://localhost:20128/api/v1/management/proxies \
+curl -X PATCH http://localhost:2004/api/v1/management/proxies \
   -H "Content-Type: application/json" \
   -d '{
     "id": "proxy-uuid-here",
@@ -184,33 +184,33 @@ curl -X PATCH http://localhost:20128/api/v1/management/proxies \
 
 ```bash
 # Fails if proxy is assigned to any scope
-curl -X DELETE "http://localhost:20128/api/v1/management/proxies?id=proxy-uuid"
+curl -X DELETE "http://localhost:2004/api/v1/management/proxies?id=proxy-uuid"
 
 # Force delete (removes assignments too)
-curl -X DELETE "http://localhost:20128/api/v1/management/proxies?id=proxy-uuid&force=1"
+curl -X DELETE "http://localhost:2004/api/v1/management/proxies?id=proxy-uuid&force=1"
 ```
 
 ### Listing Proxies
 
 ```bash
-curl "http://localhost:20128/api/v1/management/proxies?limit=50&offset=0"
+curl "http://localhost:2004/api/v1/management/proxies?limit=50&offset=0"
 ```
 
 ### Assigning Proxies to Scopes
 
 ```bash
 # Assign to global scope
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -H "Content-Type: application/json" \
   -d '{"level": "global", "proxy": {"type":"http","host":"proxy.example.com","port":8080}}'
 
 # Assign to a specific provider
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -H "Content-Type: application/json" \
   -d '{"level": "provider", "id": "openai", "proxy": {"type":"socks5","host":"socks.example.com","port":1080}}'
 
 # Assign to a specific connection/key
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -H "Content-Type: application/json" \
   -d '{"level": "key", "id": "connection-uuid", "proxy": {"type":"http","host":"key-proxy.com","port":3128}}'
 ```
@@ -220,7 +220,7 @@ curl -X PUT http://localhost:20128/api/settings/proxy \
 Check which proxy would be used for a given connection:
 
 ```bash
-curl "http://localhost:20128/api/settings/proxy?resolve=connection-uuid"
+curl "http://localhost:2004/api/settings/proxy?resolve=connection-uuid"
 ```
 
 Returns the resolved proxy with its level (`account`, `provider`, or `global`) and source.
@@ -230,7 +230,7 @@ Returns the resolved proxy with its level (`account`, `provider`, or `global`) a
 Assign one proxy to multiple providers or connections at once:
 
 ```bash
-curl -X POST http://localhost:20128/api/v1/management/proxies/bulk-assign \
+curl -X POST http://localhost:2004/api/v1/management/proxies/bulk-assign \
   -H "Content-Type: application/json" \
   -d '{
     "scope": "provider",
@@ -294,7 +294,7 @@ Birouter integrates with the **[1proxy](https://1proxy-api.aitradepulse.com)** c
 
 ```bash
 # Trigger sync
-curl -X POST http://localhost:20128/api/settings/oneproxy \
+curl -X POST http://localhost:2004/api/settings/oneproxy \
   -H "Content-Type: application/json" \
   -d '{}'
 
@@ -306,16 +306,16 @@ curl -X POST http://localhost:20128/api/settings/oneproxy \
 
 ```bash
 # Filter by protocol
-curl "http://localhost:20128/api/settings/oneproxy?protocol=socks5"
+curl "http://localhost:2004/api/settings/oneproxy?protocol=socks5"
 
 # Filter by country
-curl "http://localhost:20128/api/settings/oneproxy?countryCode=US"
+curl "http://localhost:2004/api/settings/oneproxy?countryCode=US"
 
 # Filter by minimum quality score
-curl "http://localhost:20128/api/settings/oneproxy?minQuality=80"
+curl "http://localhost:2004/api/settings/oneproxy?minQuality=80"
 
 # Combine filters
-curl "http://localhost:20128/api/settings/oneproxy?protocol=http&countryCode=DE&minQuality=70"
+curl "http://localhost:2004/api/settings/oneproxy?protocol=http&countryCode=DE&minQuality=70"
 ```
 
 ### Proxy Quality Scores
@@ -341,16 +341,16 @@ Quality scores are dynamically adjusted:
 
 ```bash
 # Rotate by quality (best proxy first) — default
-curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
+curl -X POST http://localhost:2004/api/settings/oneproxy/rotate \
   -H "Content-Type: application/json" \
   -d '{"strategy": "quality"}'
 
 # Random rotation
-curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
+curl -X POST http://localhost:2004/api/settings/oneproxy/rotate \
   -d '{"strategy": "random"}'
 
 # Sequential (least recently validated first)
-curl -X POST http://localhost:20128/api/settings/oneproxy/rotate \
+curl -X POST http://localhost:2004/api/settings/oneproxy/rotate \
   -d '{"strategy": "sequential"}'
 ```
 
@@ -366,10 +366,10 @@ The 1proxy sync has a built-in circuit breaker:
 
 ```bash
 # Delete a single 1proxy proxy
-curl -X DELETE "http://localhost:20128/api/settings/oneproxy?id=proxy-uuid"
+curl -X DELETE "http://localhost:2004/api/settings/oneproxy?id=proxy-uuid"
 
 # Clear ALL 1proxy proxies (manual proxies are untouched)
-curl -X DELETE "http://localhost:20128/api/settings/oneproxy?clearAll=1"
+curl -X DELETE "http://localhost:2004/api/settings/oneproxy?clearAll=1"
 ```
 
 ---
@@ -421,7 +421,7 @@ For providers that use the CLIProxyAPI pattern, Birouter supports three upstream
 Configure per-provider:
 
 ```bash
-curl -X PUT "http://localhost:20128/api/upstream-proxy/openai" \
+curl -X PUT "http://localhost:2004/api/upstream-proxy/openai" \
   -H "Content-Type: application/json" \
   -d '{"mode": "native", "enabled": true}'
 ```
@@ -548,7 +548,7 @@ Check the resolution order:
 Check the sync status:
 
 ```bash
-curl "http://localhost:20128/api/settings/oneproxy?action=status"
+curl "http://localhost:2004/api/settings/oneproxy?action=status"
 ```
 
 If `consecutiveFailures >= 5`, the circuit breaker has tripped. Restart the server to reset, or wait for manual reset.
@@ -687,7 +687,7 @@ For every request through a configured proxy, Birouter records:
 ```bash
 # Recent proxy events
 curl -H "Authorization: Bearer $BIROUTER_KEY" \
-  "http://localhost:20128/api/usage/proxy-logs?limit=100"
+  "http://localhost:2004/api/usage/proxy-logs?limit=100"
 ```
 
 The real endpoint is `/api/usage/proxy-logs` (see `src/app/api/usage/proxy-logs/route.ts`). This endpoint supports:

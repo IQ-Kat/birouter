@@ -53,17 +53,17 @@ model: "auto/cheap"     # Cheapest option
 
 ```bash
 # General chat — balanced
-curl http://localhost:20128/v1/chat/completions \
+curl http://localhost:2004/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 
 # Code generation — quality-first
-curl http://localhost:20128/v1/chat/completions \
+curl http://localhost:2004/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/coding","messages":[{"role":"user","content":"Write a Python function"}]}'
 
 # Quick answer — speed-first
-curl http://localhost:20128/v1/chat/completions \
+curl http://localhost:2004/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/fast","messages":[{"role":"user","content":"What is 2+2?"}]}'
 ```

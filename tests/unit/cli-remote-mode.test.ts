@@ -55,12 +55,12 @@ test("getBaseUrl reads baseUrl from the active context (canonical schema)", asyn
     version: 1,
     currentContext: "vps",
     contexts: {
-      default: { baseUrl: "http://localhost:20128", apiKey: null },
-      vps: { baseUrl: "https://vps.example.com:20128", accessToken: "oma_live_x", scope: "write" },
+      default: { baseUrl: "http://localhost:2004", apiKey: null },
+      vps: { baseUrl: "https://vps.example.com:2004", accessToken: "oma_live_x", scope: "write" },
     },
   });
   const { getBaseUrl } = await import("../../bin/cli/api.mjs");
-  assert.equal(getBaseUrl(), "https://vps.example.com:20128");
+  assert.equal(getBaseUrl(), "https://vps.example.com:2004");
 });
 
 test("getBaseUrl honors the --context override", async () => {
@@ -68,22 +68,22 @@ test("getBaseUrl honors the --context override", async () => {
     version: 1,
     currentContext: "default",
     contexts: {
-      default: { baseUrl: "http://localhost:20128", apiKey: null },
-      staging: { baseUrl: "http://staging:20128", apiKey: null },
+      default: { baseUrl: "http://localhost:2004", apiKey: null },
+      staging: { baseUrl: "http://staging:2004", apiKey: null },
     },
   });
   const { getBaseUrl } = await import("../../bin/cli/api.mjs");
-  assert.equal(getBaseUrl({ context: "staging" }), "http://staging:20128");
+  assert.equal(getBaseUrl({ context: "staging" }), "http://staging:2004");
 });
 
 test("getBaseUrl is backward-compatible with the legacy profiles schema", async () => {
   writeConfig({
     version: 1,
     activeProfile: "old",
-    profiles: { old: { baseUrl: "http://legacy:20128" } },
+    profiles: { old: { baseUrl: "http://legacy:2004" } },
   });
   const { getBaseUrl } = await import("../../bin/cli/api.mjs");
-  assert.equal(getBaseUrl(), "http://legacy:20128");
+  assert.equal(getBaseUrl(), "http://legacy:2004");
 });
 
 test("getBaseUrl: opts.baseUrl wins over the active context", async () => {
@@ -195,7 +195,7 @@ test("buildHeaders: ambient BIROUTER_API_KEY is the fallback when no context cre
   writeConfig({
     version: 1,
     currentContext: "default",
-    contexts: { default: { baseUrl: "http://localhost:20128", apiKey: null } },
+    contexts: { default: { baseUrl: "http://localhost:2004", apiKey: null } },
   });
   const prev = process.env.BIROUTER_API_KEY;
   process.env.BIROUTER_API_KEY = "sk-ambient-inference-key";

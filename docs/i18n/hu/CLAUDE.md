@@ -10,7 +10,7 @@ Ez a fájl útmutatást nyújt a Claude Code (claude.ai/code) számára, amikor 
 
 ```bash
 npm install                    # Függőségek telepítése (automatikusan generálja a .env fájlt a .env.example-ból)
-npm run dev                    # Fejlesztői szerver a http://localhost:20128 címen
+npm run dev                    # Fejlesztői szerver a http://localhost:2004 címen
 npm run build                  # Termelési build (Next.js 16 önálló)
 npm run lint                   # ESLint (0 hiba várható; figyelmeztetések már meglévők)
 npm run typecheck:core         # TypeScript ellenőrzés (tiszta kell legyen)
@@ -382,7 +382,7 @@ git push -u origin feat/your-feature
 - **Futtatás**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, cél ES2022, modul esnext, felbontás bundler
 - **Útvonal aliasok**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Alapértelmezett port**: 20128 (API + dashboard ugyanazon a porton)
+- **Alapértelmezett port**: 2004 (API + dashboard ugyanazon a porton)
 - **Adatkönyvtár**: `DATA_DIR` környezeti változó, alapértelmezett: `~/.birouter/`
 - **Kulcs környezeti változók**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Beállítás: `cp .env.example .env`, majd generálj `JWT_SECRET`-et (`openssl rand -base64 48`) és `API_KEY_SECRET`-et (`openssl rand -hex 32`)

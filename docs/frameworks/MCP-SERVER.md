@@ -183,15 +183,15 @@ Configure your Notion integration token from the **Context Sources** tab in the 
 
 ```bash
 # Set token
-curl -X POST http://localhost:20128/api/settings/notion \
+curl -X POST http://localhost:2004/api/settings/notion \
   -H "Content-Type: application/json" \
   -d '{"token": "ntn_..."}'
 
 # Check status
-curl http://localhost:20128/api/settings/notion
+curl http://localhost:2004/api/settings/notion
 
 # Disconnect
-curl -X DELETE http://localhost:20128/api/settings/notion
+curl -X DELETE http://localhost:2004/api/settings/notion
 ```
 
 | Tool                         | Scopes         | Description                                                    |
@@ -304,7 +304,7 @@ Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full 
 
 | Variable                               | Default                            | Purpose                                                                                                                  |
 | :------------------------------------- | :--------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| `BIROUTER_BASE_URL`                    | `http://localhost:20128`           | Base URL the MCP server uses when calling Birouter internal APIs                                                         |
+| `BIROUTER_BASE_URL`                    | `http://localhost:2004`            | Base URL the MCP server uses when calling Birouter internal APIs                                                         |
 | `BIROUTER_API_KEY`                     | (empty)                            | API key forwarded as `Authorization: Bearer` to internal API calls                                                       |
 | `BIROUTER_MCP_ENFORCE_SCOPES`          | `false` (only `"true"` enables it) | When enabled, missing scopes deny tool calls and log `scope_denied:<reason>` in audit log                                |
 | `BIROUTER_MCP_SCOPES`                  | (empty)                            | Comma-separated allowlist of scopes considered "available" by default (used when caller does not provide its own scopes) |

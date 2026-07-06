@@ -42,7 +42,7 @@ When creating _any_ validation tests or one-off logic scripts, default to using 
 
 ## 4. Local development access
 
-The dashboard is reachable at the operator's chosen URL/port (default `http://localhost:20128`). Credentials are operator-specific:
+The dashboard is reachable at the operator's chosen URL/port (default `http://localhost:2004`). Credentials are operator-specific:
 
 - **Initial admin password** is read from the `INITIAL_PASSWORD` env var on first install (defaults to `CHANGEME` in `.env.example`; rotate immediately after first login).
 - **Local VPS / shared dev environments**: ask the operator for the URL and current credentials — they live in their personal vault, NOT in this repo.

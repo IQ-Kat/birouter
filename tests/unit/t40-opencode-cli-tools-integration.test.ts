@@ -59,30 +59,30 @@ test("T40: OpenCode config path resolves per-platform", () => {
 
 test("T40: OpenCode config generator includes endpoint and selected API key", () => {
   const providerConfig = buildOpenCodeProviderConfig({
-    baseUrl: "http://localhost:20128/v1/",
+    baseUrl: "http://localhost:2004/v1/",
     apiKey: "sk_test_opencode",
     model: "claude-sonnet-4-5-thinking",
   });
-  assert.equal(providerConfig.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(providerConfig.options.baseURL, "http://localhost:2004/v1");
   assert.equal(providerConfig.options.apiKey, "sk_test_opencode");
   assert.ok(providerConfig.models["claude-sonnet-4-5-thinking"]);
 
   const mergedConfig = mergeOpenCodeConfig(
     { provider: { custom: { name: "Custom Provider" } } },
     {
-      baseUrl: "http://localhost:20128/v1",
+      baseUrl: "http://localhost:2004/v1",
       apiKey: "sk_test_opencode",
       model: "claude-sonnet-4-5-thinking",
     }
   );
   assert.ok(mergedConfig.provider.custom);
-  assert.equal(mergedConfig.provider.birouter.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(mergedConfig.provider.birouter.options.baseURL, "http://localhost:2004/v1");
   assert.equal(mergedConfig.provider.birouter.options.apiKey, "sk_test_opencode");
 });
 
 test("T40: OpenCode config document uses current provider schema", () => {
   const configDocument = buildOpenCodeConfigDocument({
-    baseUrl: "http://localhost:20128/v1/",
+    baseUrl: "http://localhost:2004/v1/",
     apiKey: "sk_test_opencode",
     models: ["cc/claude-sonnet-4-20250514", "gg/gemini-2.5-pro"],
     modelLabels: {
@@ -94,7 +94,7 @@ test("T40: OpenCode config document uses current provider schema", () => {
   assert.equal(configDocument.$schema, "https://opencode.ai/config.json");
   assert.ok(configDocument.provider.birouter);
   assert.equal(configDocument.provider.birouter.npm, "@ai-sdk/openai-compatible");
-  assert.equal(configDocument.provider.birouter.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(configDocument.provider.birouter.options.baseURL, "http://localhost:2004/v1");
   assert.equal(configDocument.provider.birouter.options.apiKey, "sk_test_opencode");
   assert.deepEqual(Object.keys(configDocument.provider.birouter.models), [
     "cc/claude-sonnet-4-20250514",
@@ -110,7 +110,7 @@ test("T40: OpenCode config document uses current provider schema", () => {
 
 test("T40: OpenCode explicit multi-model selection overrides fallback defaults", () => {
   const providerConfig = buildOpenCodeProviderConfig({
-    baseUrl: "http://localhost:20128/v1/",
+    baseUrl: "http://localhost:2004/v1/",
     apiKey: "sk_test_opencode",
     models: ["custom/provider-a", "custom/provider-b"],
     modelLabels: {
@@ -141,7 +141,7 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.b
       },
     },
     {
-      baseUrl: "http://localhost:20128/v1",
+      baseUrl: "http://localhost:2004/v1",
       apiKey: "sk_test_opencode",
       models: ["cx/gpt-5.4"],
       modelLabels: { "cx/gpt-5.4": "GPT-5.4" },

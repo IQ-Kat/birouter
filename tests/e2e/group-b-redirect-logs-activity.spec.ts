@@ -16,7 +16,7 @@ test.describe("Group B — /logs/activity redirect", () => {
   }) => {
     // Follow redirects and verify the final URL is /dashboard/activity
     const response = await page.goto(
-      "http://localhost:20128/dashboard/logs/activity",
+      "http://localhost:2004/dashboard/logs/activity",
       { waitUntil: "domcontentloaded" }
     );
 
@@ -32,7 +32,7 @@ test.describe("Group B — /logs/activity redirect", () => {
   }) => {
     // Make a non-follow-redirect request to verify the redirect status code.
     const response = await request.get(
-      "http://localhost:20128/dashboard/logs/activity",
+      "http://localhost:2004/dashboard/logs/activity",
       {
         maxRedirects: 0,
       }

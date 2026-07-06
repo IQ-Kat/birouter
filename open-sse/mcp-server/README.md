@@ -28,7 +28,7 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
                               │  HTTP (internal)
                               ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│                    Birouter Gateway (port 20128)                 │
+│                    Birouter Gateway (port 2004)                 │
 │        /v1/chat/completions  /api/combos  /api/usage  ...        │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -41,7 +41,7 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
 
 ```bash
 # Required: Birouter base URL
-export BIROUTER_BASE_URL="http://localhost:20128"
+export BIROUTER_BASE_URL="http://localhost:2004"
 
 # Optional: API key for authenticated access
 export BIROUTER_API_KEY="your-api-key"
@@ -64,7 +64,7 @@ Add to your MCP client configuration:
       "command": "node",
       "args": ["path/to/birouter/open-sse/mcp-server/server.ts"],
       "env": {
-        "BIROUTER_BASE_URL": "http://localhost:20128",
+        "BIROUTER_BASE_URL": "http://localhost:2004",
         "BIROUTER_API_KEY": "your-key"
       }
     }
@@ -81,7 +81,7 @@ Add to your MCP client configuration:
       "command": "npx",
       "args": ["tsx", "open-sse/mcp-server/server.ts"],
       "env": {
-        "BIROUTER_BASE_URL": "http://localhost:20128"
+        "BIROUTER_BASE_URL": "http://localhost:2004"
       }
     }
   }
@@ -98,7 +98,7 @@ Add to your MCP client configuration:
         "command": "npx",
         "args": ["tsx", "open-sse/mcp-server/server.ts"],
         "env": {
-          "BIROUTER_BASE_URL": "http://localhost:20128"
+          "BIROUTER_BASE_URL": "http://localhost:2004"
         }
       }
     }
@@ -183,7 +183,7 @@ async def main():
         command="npx",
         args=["tsx", "open-sse/mcp-server/server.ts"],
         env={
-            "BIROUTER_BASE_URL": "http://localhost:20128",
+            "BIROUTER_BASE_URL": "http://localhost:2004",
             "BIROUTER_API_KEY": "your-key",
         },
     )
@@ -246,7 +246,7 @@ async function main() {
     command: "npx",
     args: ["tsx", "open-sse/mcp-server/server.ts"],
     env: {
-      BIROUTER_BASE_URL: "http://localhost:20128",
+      BIROUTER_BASE_URL: "http://localhost:2004",
       BIROUTER_API_KEY: "your-key",
     },
   });
@@ -353,7 +353,7 @@ func routeRequest(baseURL, model, prompt string) (string, error) {
 }
 
 func main() {
-    base := "http://localhost:20128"
+    base := "http://localhost:2004"
 
     health, _ := callTool(base, "health", nil)
     fmt.Println("Health:", health)

@@ -22,7 +22,7 @@ Create chat completion
 OpenAI-compatible chat completions endpoint. Routes to configured providers.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/chat/completions \
+curl -X POST https://localhost:2004/api/v1/chat/completions \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -35,7 +35,7 @@ Chat completion over WebSocket (handshake + upgrade)
 OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:"request", id, payload:{model, messages}}` to start a completion and `{type:"cancel", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.
 
 ```bash
-curl https://localhost:20128/api/v1/ws \
+curl https://localhost:2004/api/v1/ws \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -46,7 +46,7 @@ Create chat completion (provider-specific)
 Routes to a specific provider by name.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/providers/{provider}/chat/completions \
+curl -X POST https://localhost:2004/api/v1/providers/{provider}/chat/completions \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -59,7 +59,7 @@ Ollama-compatible chat endpoint
 Provides compatibility with Ollama's /api/chat format.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/api/chat \
+curl -X POST https://localhost:2004/api/v1/api/chat \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -72,7 +72,7 @@ Create message (Anthropic-compatible)
 Anthropic Messages API endpoint. Routes to Claude providers.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/messages \
+curl -X POST https://localhost:2004/api/v1/messages \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -83,7 +83,7 @@ curl -X POST https://localhost:20128/api/v1/messages \
 Count tokens for a message
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/messages/count_tokens \
+curl -X POST https://localhost:2004/api/v1/messages/count_tokens \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -96,7 +96,7 @@ Create response (OpenAI Responses API)
 OpenAI Responses API endpoint.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/responses \
+curl -X POST https://localhost:2004/api/v1/responses \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -107,7 +107,7 @@ curl -X POST https://localhost:20128/api/v1/responses \
 Create embeddings
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/embeddings \
+curl -X POST https://localhost:2004/api/v1/embeddings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -118,7 +118,7 @@ curl -X POST https://localhost:20128/api/v1/embeddings \
 Create embeddings (provider-specific)
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/providers/{provider}/embeddings \
+curl -X POST https://localhost:2004/api/v1/providers/{provider}/embeddings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -129,7 +129,7 @@ curl -X POST https://localhost:20128/api/v1/providers/{provider}/embeddings \
 Generate images
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/images/generations \
+curl -X POST https://localhost:2004/api/v1/images/generations \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -140,7 +140,7 @@ curl -X POST https://localhost:20128/api/v1/images/generations \
 Generate images (provider-specific)
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/providers/{provider}/images/generations \
+curl -X POST https://localhost:2004/api/v1/providers/{provider}/images/generations \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -153,7 +153,7 @@ Generate speech audio
 Text-to-speech endpoint. Routes to configured TTS providers.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/audio/speech \
+curl -X POST https://localhost:2004/api/v1/audio/speech \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -166,7 +166,7 @@ Transcribe audio
 Audio-to-text transcription endpoint.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/audio/transcriptions \
+curl -X POST https://localhost:2004/api/v1/audio/transcriptions \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -179,7 +179,7 @@ Create moderation
 Content moderation endpoint. Routes to configured moderation providers.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/moderations \
+curl -X POST https://localhost:2004/api/v1/moderations \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -192,7 +192,7 @@ Rerank documents
 Document reranking endpoint.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/rerank \
+curl -X POST https://localhost:2004/api/v1/rerank \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -205,7 +205,7 @@ API v1 root endpoint
 Returns basic API info and status.
 
 ```bash
-curl https://localhost:20128/api/v1 \
+curl https://localhost:2004/api/v1 \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -216,7 +216,7 @@ List models for a specific provider
 Returns only models for the selected provider with provider prefix removed from each model id.
 
 ```bash
-curl https://localhost:20128/api/v1/providers/{provider}/models \
+curl https://localhost:2004/api/v1/providers/{provider}/models \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -227,7 +227,7 @@ Document OCR
 Mistral OCR–compatible document OCR endpoint. Accepts a JSON body referencing a document/image and returns extracted text. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/ocr \
+curl -X POST https://localhost:2004/api/v1/ocr \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -240,7 +240,7 @@ Translate audio to English
 OpenAI Whisper–compatible audio translation (multipart/form-data). Unlike `/api/v1/audio/transcriptions`, output is always English regardless of the source language. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.
 
 ```bash
-curl -X POST https://localhost:20128/api/v1/audio/translations \
+curl -X POST https://localhost:2004/api/v1/audio/translations \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -253,7 +253,7 @@ Suggested media models
 Read-only server-side proxy to the public HuggingFace Hub models search API, used by the dashboard to suggest models for a media provider kind without exposing an HF token client-side. Never accepts or returns credentials.
 
 ```bash
-curl https://localhost:20128/api/v1/providers/suggested-models \
+curl https://localhost:2004/api/v1/providers/suggested-models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -264,7 +264,7 @@ Provider plugin manifest
 Returns the manifest describing installed provider plugins.
 
 ```bash
-curl https://localhost:20128/api/v1/provider-plugin-manifest \
+curl https://localhost:2004/api/v1/provider-plugin-manifest \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

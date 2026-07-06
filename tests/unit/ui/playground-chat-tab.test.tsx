@@ -69,7 +69,7 @@ const { default: ChatTab } = await import(
 function makeConfig(systemPrompt = "You are a helpful assistant.") {
   return {
     endpoint: "chat.completions" as const,
-    baseUrl: "http://localhost:20128",
+    baseUrl: "http://localhost:2004",
     model: "openai/gpt-4o",
     systemPrompt,
     params: { ...DEFAULT_PARAMS },

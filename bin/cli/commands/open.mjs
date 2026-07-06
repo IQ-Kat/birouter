@@ -27,7 +27,7 @@ export function registerOpen(program) {
     .option("--url", t("open.url"))
     .action(async (resource, id, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
-      const baseUrl = globalOpts.baseUrl || "http://localhost:20128";
+      const baseUrl = globalOpts.baseUrl || "http://localhost:2004";
       let path = "/dashboard";
 
       if (resource) {

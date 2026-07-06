@@ -234,7 +234,7 @@
     "stopping": "Stopping server (PID {pid})...",
     "stopped": "Server stopped.",
     "notRunning": "Server is not running.",
-    "port": "Port to listen on (default: 20128)",
+    "port": "Port to listen on (default: 2004)",
     "no_open": "Do not open browser automatically",
     "daemon": "Run server as a background daemon",
     "log": "Show server logs inline",

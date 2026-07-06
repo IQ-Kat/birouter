@@ -247,8 +247,8 @@ test("API_SKILL_IDS first entry is bi-auth", () => {
   assert.equal(API_SKILL_IDS[0], "bi-auth");
 });
 
-test("API_SKILL_IDS last entry is omni-github-skills", () => {
-  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "omni-github-skills");
+test("API_SKILL_IDS last entry is bi-github-skills", () => {
+  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "bi-github-skills");
 });
 
 test("CLI_SKILL_IDS first entry is cli-serve", () => {

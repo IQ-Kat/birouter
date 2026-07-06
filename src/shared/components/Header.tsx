@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 const subscribePlatform = () => () => {};
@@ -12,6 +12,7 @@ const getPlatformIsMac = () => {
 const getPlatformIsMacServer = () => false;
 import ThemeToggle from "./ThemeToggle";
 import TokenHealthBadge from "./TokenHealthBadge";
+import AboutModal from "./AboutModal";
 import DegradationBadge from "./DegradationBadge";
 import LanguageSelector from "./LanguageSelector";
 import ProviderIcon from "./ProviderIcon";
@@ -36,7 +37,9 @@ const isE2EMode = process.env.NEXT_PUBLIC_BIROUTER_E2E_MODE === "1";
 
 // Map sidebar item id → header description i18n key
 // "bi-skills" is an extended key for the /dashboard/bi-skills route (graceful fallback during deploy)
-const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId | "bi-skills", string>> = {
+const HEADER_DESCRIPTIONS: Partial<
+  Record<HideableSidebarItemId | "bi-skills" | "settings", string>
+> = {
   home: "homeDescription",
   endpoints: "endpointDescription",
   "api-manager": "apiManagerDescription",
@@ -128,8 +131,8 @@ function getSidebarItem(pathname: string): SidebarItemDefinition | undefined {
 }
 
 type HeaderProps = {
-  onMenuClick?: () => void;
-  onOpenCommandPalette?: () => void;
+  onMenuClickAction?: () => void;
+  onOpenCommandPaletteAction?: () => void;
   showMenuButton?: boolean;
 };
 
@@ -175,8 +178,8 @@ function usePageInfo(pathname: string | null): PageInfo {
 }
 
 export default function Header({
-  onMenuClick,
-  onOpenCommandPalette,
+  onMenuClickAction,
+  onOpenCommandPaletteAction,
   showMenuButton = true,
 }: HeaderProps) {
   const isMac = useSyncExternalStore(subscribePlatform, getPlatformIsMac, getPlatformIsMacServer);
@@ -189,6 +192,24 @@ export default function Header({
     isElectron &&
     typeof window !== "undefined" &&
     (window as any).electronAPI?.platform === "darwin";
+
+  const [showMenu, setShowMenu] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
 
   const handleLogout = async () => {
     try {
@@ -213,7 +234,7 @@ export default function Header({
       <div className="flex items-center gap-3 lg:hidden">
         {showMenuButton && (
           <button
-            onClick={onMenuClick}
+            onClick={onMenuClickAction}
             className="text-text-main hover:text-primary transition-colors"
           >
             <span className="material-symbols-outlined">menu</span>
@@ -242,11 +263,11 @@ export default function Header({
 
       {/* Right actions */}
       <div className="flex items-center gap-3 ml-auto">
-        {onOpenCommandPalette && (
+        {onOpenCommandPaletteAction && (
           <>
             <button
               type="button"
-              onClick={onOpenCommandPalette}
+              onClick={onOpenCommandPaletteAction}
               className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/10 bg-bg-subtle text-text-muted hover:text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors"
               title="Quick navigation (⌘K / Ctrl+K)"
               aria-label="Open quick navigation"
@@ -259,7 +280,7 @@ export default function Header({
             </button>
             <button
               type="button"
-              onClick={onOpenCommandPalette}
+              onClick={onOpenCommandPaletteAction}
               className="md:hidden p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               aria-label="Open quick navigation"
             >
@@ -271,14 +292,47 @@ export default function Header({
         <ThemeToggle />
         {!isE2EMode && <DegradationBadge />}
         {!isE2EMode && <TokenHealthBadge />}
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
-          title={t("logout")}
-        >
-          <span className="material-symbols-outlined">logout</span>
-        </button>
+
+        {/* Grid menu with dropdown */}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setShowMenu((prev) => !prev)}
+            className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+            title="Menu"
+            aria-haspopup="true"
+            aria-expanded={showMenu}
+          >
+            <span className="material-symbols-outlined">grid_view</span>
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-0 mt-2 w-40 rounded-xl border border-black/5 bg-surface p-1 shadow-lg dark:border-white/5 transition-all duration-200 z-50">
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowAbout(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">info</span>
+                <span>{typeof t.has === "function" && t.has("about") ? t("about") : "About"}</span>
+              </button>
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  void handleLogout();
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+                <span>{t("logout")}</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
     </header>
   );
 }

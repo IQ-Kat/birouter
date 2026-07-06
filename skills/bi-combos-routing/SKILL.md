@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 List routing combos
 
 ```bash
-curl https://localhost:20128/api/combos \
+curl https://localhost:2004/api/combos \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -29,7 +29,7 @@ curl https://localhost:20128/api/combos \
 Create routing combo
 
 ```bash
-curl -X POST https://localhost:20128/api/combos \
+curl -X POST https://localhost:2004/api/combos \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -40,7 +40,7 @@ curl -X POST https://localhost:20128/api/combos \
 Update combo
 
 ```bash
-curl -X PATCH https://localhost:20128/api/combos/{id} \
+curl -X PATCH https://localhost:2004/api/combos/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -51,7 +51,7 @@ curl -X PATCH https://localhost:20128/api/combos/{id} \
 Delete combo
 
 ```bash
-curl -X DELETE https://localhost:20128/api/combos/{id} \
+curl -X DELETE https://localhost:2004/api/combos/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -60,7 +60,7 @@ curl -X DELETE https://localhost:20128/api/combos/{id} \
 Get combo metrics
 
 ```bash
-curl https://localhost:20128/api/combos/metrics \
+curl https://localhost:2004/api/combos/metrics \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -69,7 +69,7 @@ curl https://localhost:20128/api/combos/metrics \
 Test a combo configuration
 
 ```bash
-curl -X POST https://localhost:20128/api/combos/test \
+curl -X POST https://localhost:2004/api/combos/test \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -82,7 +82,7 @@ List fallback chains
 Returns all registered fallback chains for model routing.
 
 ```bash
-curl https://localhost:20128/api/fallback/chains \
+curl https://localhost:2004/api/fallback/chains \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -93,7 +93,7 @@ Create fallback chain
 Registers a fallback routing chain for a model.
 
 ```bash
-curl -X POST https://localhost:20128/api/fallback/chains \
+curl -X POST https://localhost:2004/api/fallback/chains \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -104,7 +104,7 @@ curl -X POST https://localhost:20128/api/fallback/chains \
 Delete fallback chain
 
 ```bash
-curl -X DELETE https://localhost:20128/api/fallback/chains \
+curl -X DELETE https://localhost:2004/api/fallback/chains \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

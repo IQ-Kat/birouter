@@ -53,7 +53,7 @@ Confirmed from `electron/package.json`:
 
 | Script                            | Purpose                                                                    |
 | --------------------------------- | -------------------------------------------------------------------------- |
-| `npm run electron:dev`            | Starts `npm run dev` + waits for `localhost:20128` + launches Electron     |
+| `npm run electron:dev`            | Starts `npm run dev` + waits for `localhost:2004` + launches Electron      |
 | `npm run electron:build`          | Builds Next.js then runs `electron-builder` for the current OS             |
 | `npm run electron:build:win`      | Builds Windows NSIS installer + portable (x64)                             |
 | `npm run electron:build:mac`      | Builds macOS DMG (Intel + Apple Silicon)                                   |
@@ -145,7 +145,7 @@ Highlights:
 - `waitForServer()` polls the URL up to 30 s before showing the window (no blank screen on cold start).
 - `stdio: "pipe"` captures stdout/stderr; ready phrases (`Ready` / `listening`) emit `server-status: running` over IPC.
 - `before-quit` waits up to 5 s for graceful SIGTERM (WAL checkpoint) then sends SIGKILL.
-- Port switcher in the tray (`20128`, `3000`, `8080`) stops and restarts the server, then reloads the BrowserWindow.
+- Port switcher in the tray (`2004`, `3000`, `8080`) stops and restarts the server, then reloads the BrowserWindow.
 
 ## Zero-config Secret Bootstrap
 
@@ -214,7 +214,7 @@ npm run electron:smoke:packaged
 
 - Auto-discovers the packaged binary in `electron/dist-electron/` for the current platform.
 - Launches with isolated `HOME`/`APPDATA`/`XDG_*` directories so it doesn't touch developer data.
-- Polls `http://127.0.0.1:20128/login` for HTTP 200 within 45 s.
+- Polls `http://127.0.0.1:2004/login` for HTTP 200 within 45 s.
 - Watches stderr/stdout for fatal patterns (`Cannot find module`, `MODULE_NOT_FOUND`, `ERR_DLOPEN_FAILED`, `Failed to start server`, etc.).
 - Waits 2 s of stable runtime after readiness, then issues SIGTERM and waits for the port to free.
 - In CI, automatically passes `--no-sandbox --disable-gpu` (and `--disable-dev-shm-usage` on Linux).
@@ -260,14 +260,14 @@ Releases are published to GitHub Releases (`IQ-Kat/birouter`), which is also whe
 
 ## Troubleshooting
 
-| Symptom                                                         | Fix                                                                         |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `Cannot find module 'better-sqlite3'` after Electron major bump | `cd electron && npm rebuild`                                                |
-| `ERR_DLOPEN_FAILED` for native module                           | Re-run `prepare:bundle` and verify ABI matches Electron's Node              |
-| Window appears blank on Linux                                   | Confirm Next.js server actually bound to PORT (check `[Server]` logs)       |
-| macOS notarization stalls                                       | Ensure `APPLE_*` vars are exported, not just in `.env`                      |
-| Windows SmartScreen warning                                     | Sign with EV cert, or users right-click → "Run anyway"                      |
-| Smoke test fails with port-in-use                               | Stop any local dev server on 20128 before running `electron:smoke:packaged` |
+| Symptom                                                         | Fix                                                                        |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `Cannot find module 'better-sqlite3'` after Electron major bump | `cd electron && npm rebuild`                                               |
+| `ERR_DLOPEN_FAILED` for native module                           | Re-run `prepare:bundle` and verify ABI matches Electron's Node             |
+| Window appears blank on Linux                                   | Confirm Next.js server actually bound to PORT (check `[Server]` logs)      |
+| macOS notarization stalls                                       | Ensure `APPLE_*` vars are exported, not just in `.env`                     |
+| Windows SmartScreen warning                                     | Sign with EV cert, or users right-click → "Run anyway"                     |
+| Smoke test fails with port-in-use                               | Stop any local dev server on 2004 before running `electron:smoke:packaged` |
 
 ## See Also
 

@@ -7,12 +7,12 @@ import {
 } from "../../../bin/cli/commands/setup-continue.mjs";
 
 test("buildContinueModels emits provider:openai + apiBase + secret ref + roles", () => {
-  const models = buildContinueModels(["glm/glm-5.2"], "http://vps:20128/v1");
+  const models = buildContinueModels(["glm/glm-5.2"], "http://vps:2004/v1");
   assert.equal(models.length, 1);
   const m = models[0];
   assert.equal(m.provider, "openai");
   assert.equal(m.model, "glm/glm-5.2");
-  assert.equal(m.apiBase, "http://vps:20128/v1");
+  assert.equal(m.apiBase, "http://vps:2004/v1");
   assert.equal(m.apiKey, "${{ secrets.BIROUTER_API_KEY }}");
   assert.ok(m.roles.includes("chat") && m.roles.includes("edit") && m.roles.includes("apply"));
 });
@@ -36,15 +36,15 @@ test("mergeContinueConfig replaces prior Birouter models, keeps others", () => {
         model: "llama3",
         apiBase: "http://localhost:11434",
       },
-      { name: "old bi", provider: "openai", model: "x", apiBase: "http://vps:20128/v1" },
+      { name: "old bi", provider: "openai", model: "x", apiBase: "http://vps:2004/v1" },
     ],
   };
-  const fresh = buildContinueModels(["glm/glm-5.2"], "http://vps:20128/v1");
-  const merged = mergeContinueConfig(existing, fresh, "http://vps:20128/v1");
+  const fresh = buildContinueModels(["glm/glm-5.2"], "http://vps:2004/v1");
+  const merged = mergeContinueConfig(existing, fresh, "http://vps:2004/v1");
   // kept the ollama model; dropped the old bi one (same apiBase); added the new
   const apiBases = merged.models.map((m) => m.apiBase);
   assert.ok(merged.models.some((m) => m.provider === "ollama"));
-  assert.equal(merged.models.filter((m) => m.apiBase === "http://vps:20128/v1").length, 1);
+  assert.equal(merged.models.filter((m) => m.apiBase === "http://vps:2004/v1").length, 1);
   assert.equal(merged.name, "My Config", "preserves existing top-level keys");
 });
 
@@ -60,11 +60,11 @@ test("mergeContinueConfig sets defaults on an empty config", () => {
 
 test("resolveContinueTarget ensures /v1 on apiBase", () => {
   assert.equal(
-    resolveContinueTarget({ remote: "http://vps:20128" }).apiBase,
-    "http://vps:20128/v1"
+    resolveContinueTarget({ remote: "http://vps:2004" }).apiBase,
+    "http://vps:2004/v1"
   );
   assert.equal(
-    resolveContinueTarget({ remote: "http://vps:20128/v1/" }).apiBase,
-    "http://vps:20128/v1"
+    resolveContinueTarget({ remote: "http://vps:2004/v1/" }).apiBase,
+    "http://vps:2004/v1"
   );
 });

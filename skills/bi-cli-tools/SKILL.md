@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 List CLI tool backups
 
 ```bash
-curl https://localhost:20128/api/cli-tools/backups \
+curl https://localhost:2004/api/cli-tools/backups \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -29,7 +29,7 @@ curl https://localhost:20128/api/cli-tools/backups \
 Create CLI tool backup
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/backups \
+curl -X POST https://localhost:2004/api/cli-tools/backups \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -40,7 +40,7 @@ curl -X POST https://localhost:20128/api/cli-tools/backups \
 Get runtime status for a CLI tool
 
 ```bash
-curl https://localhost:20128/api/cli-tools/runtime/{toolId} \
+curl https://localhost:2004/api/cli-tools/runtime/{toolId} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -49,7 +49,7 @@ curl https://localhost:20128/api/cli-tools/runtime/{toolId} \
 Get guide settings for a tool
 
 ```bash
-curl https://localhost:20128/api/cli-tools/guide-settings/{toolId} \
+curl https://localhost:2004/api/cli-tools/guide-settings/{toolId} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -58,7 +58,7 @@ curl https://localhost:20128/api/cli-tools/guide-settings/{toolId} \
 Get Antigravity MITM proxy settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/antigravity-mitm \
+curl https://localhost:2004/api/cli-tools/antigravity-mitm \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -67,7 +67,7 @@ curl https://localhost:20128/api/cli-tools/antigravity-mitm \
 Update Antigravity MITM proxy settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/antigravity-mitm \
+curl -X POST https://localhost:2004/api/cli-tools/antigravity-mitm \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -78,7 +78,7 @@ curl -X POST https://localhost:20128/api/cli-tools/antigravity-mitm \
 Reset Antigravity MITM proxy settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/antigravity-mitm \
+curl -X DELETE https://localhost:2004/api/cli-tools/antigravity-mitm \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -87,7 +87,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/antigravity-mitm \
 Get Antigravity MITM alias configuration
 
 ```bash
-curl https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
+curl https://localhost:2004/api/cli-tools/antigravity-mitm/alias \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -96,7 +96,7 @@ curl https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
 Update Antigravity MITM alias configuration
 
 ```bash
-curl -X PUT https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
+curl -X PUT https://localhost:2004/api/cli-tools/antigravity-mitm/alias \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -107,7 +107,7 @@ curl -X PUT https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
 Get Claude CLI settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/claude-settings \
+curl https://localhost:2004/api/cli-tools/claude-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -116,7 +116,7 @@ curl https://localhost:20128/api/cli-tools/claude-settings \
 Apply Claude CLI settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/claude-settings \
+curl -X POST https://localhost:2004/api/cli-tools/claude-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -127,7 +127,7 @@ curl -X POST https://localhost:20128/api/cli-tools/claude-settings \
 Reset Claude CLI settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/claude-settings \
+curl -X DELETE https://localhost:2004/api/cli-tools/claude-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -136,7 +136,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/claude-settings \
 Get Cline CLI settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/cline-settings \
+curl https://localhost:2004/api/cli-tools/cline-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -145,7 +145,7 @@ curl https://localhost:20128/api/cli-tools/cline-settings \
 Apply Cline CLI settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/cline-settings \
+curl -X POST https://localhost:2004/api/cli-tools/cline-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -156,7 +156,7 @@ curl -X POST https://localhost:20128/api/cli-tools/cline-settings \
 Reset Cline CLI settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/cline-settings \
+curl -X DELETE https://localhost:2004/api/cli-tools/cline-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -165,7 +165,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/cline-settings \
 Get Codex profiles
 
 ```bash
-curl https://localhost:20128/api/cli-tools/codex-profiles \
+curl https://localhost:2004/api/cli-tools/codex-profiles \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -174,7 +174,7 @@ curl https://localhost:20128/api/cli-tools/codex-profiles \
 Create Codex profile
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/codex-profiles \
+curl -X POST https://localhost:2004/api/cli-tools/codex-profiles \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -185,7 +185,7 @@ curl -X POST https://localhost:20128/api/cli-tools/codex-profiles \
 Update Codex profile
 
 ```bash
-curl -X PUT https://localhost:20128/api/cli-tools/codex-profiles \
+curl -X PUT https://localhost:2004/api/cli-tools/codex-profiles \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -196,7 +196,7 @@ curl -X PUT https://localhost:20128/api/cli-tools/codex-profiles \
 Delete Codex profile
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/codex-profiles \
+curl -X DELETE https://localhost:2004/api/cli-tools/codex-profiles \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -205,7 +205,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/codex-profiles \
 Get Codex CLI settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/codex-settings \
+curl https://localhost:2004/api/cli-tools/codex-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -214,7 +214,7 @@ curl https://localhost:20128/api/cli-tools/codex-settings \
 Apply Codex CLI settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/codex-settings \
+curl -X POST https://localhost:2004/api/cli-tools/codex-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -225,7 +225,7 @@ curl -X POST https://localhost:20128/api/cli-tools/codex-settings \
 Reset Codex CLI settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/codex-settings \
+curl -X DELETE https://localhost:2004/api/cli-tools/codex-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -234,7 +234,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/codex-settings \
 Get Droid CLI settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/droid-settings \
+curl https://localhost:2004/api/cli-tools/droid-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -243,7 +243,7 @@ curl https://localhost:20128/api/cli-tools/droid-settings \
 Apply Droid CLI settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/droid-settings \
+curl -X POST https://localhost:2004/api/cli-tools/droid-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -254,7 +254,7 @@ curl -X POST https://localhost:20128/api/cli-tools/droid-settings \
 Reset Droid CLI settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/droid-settings \
+curl -X DELETE https://localhost:2004/api/cli-tools/droid-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -263,7 +263,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/droid-settings \
 Get Kilo CLI settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/kilo-settings \
+curl https://localhost:2004/api/cli-tools/kilo-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -272,7 +272,7 @@ curl https://localhost:20128/api/cli-tools/kilo-settings \
 Apply Kilo CLI settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/kilo-settings \
+curl -X POST https://localhost:2004/api/cli-tools/kilo-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -283,7 +283,7 @@ curl -X POST https://localhost:20128/api/cli-tools/kilo-settings \
 Reset Kilo CLI settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/kilo-settings \
+curl -X DELETE https://localhost:2004/api/cli-tools/kilo-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -292,7 +292,7 @@ curl -X DELETE https://localhost:20128/api/cli-tools/kilo-settings \
 Get OpenClaw CLI settings
 
 ```bash
-curl https://localhost:20128/api/cli-tools/openclaw-settings \
+curl https://localhost:2004/api/cli-tools/openclaw-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -301,7 +301,7 @@ curl https://localhost:20128/api/cli-tools/openclaw-settings \
 Apply OpenClaw CLI settings
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/openclaw-settings \
+curl -X POST https://localhost:2004/api/cli-tools/openclaw-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -312,78 +312,78 @@ curl -X POST https://localhost:20128/api/cli-tools/openclaw-settings \
 Reset OpenClaw CLI settings
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/openclaw-settings \
+curl -X DELETE https://localhost:2004/api/cli-tools/openclaw-settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### GET /api/cli-tools/crush-settings
 
-Read Crush CLI OmniRoute config
+Read Crush CLI Birouter config
 
-Local-only. Reads the OmniRoute provider block in Crush's config.
+Local-only. Reads the Birouter provider block in Crush's config.
 
 ```bash
-curl https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl https://localhost:2004/api/cli-tools/crush-settings \
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### POST /api/cli-tools/crush-settings
 
-Write Crush CLI OmniRoute config
+Write Crush CLI Birouter config
 
-Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config.
+Local-only. Registers Birouter as an `openai-compat` provider in Crush's config.
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl -X POST https://localhost:2004/api/cli-tools/crush-settings \
+  -H "Authorization: Bearer $BIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
 ### DELETE /api/cli-tools/crush-settings
 
-Remove OmniRoute from Crush CLI config
+Remove Birouter from Crush CLI config
 
-Local-only. Removes the OmniRoute provider block from Crush's config.
+Local-only. Removes the Birouter provider block from Crush's config.
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl -X DELETE https://localhost:2004/api/cli-tools/crush-settings \
+  -H "Authorization: Bearer $BIROUTE_TOKEN"
 ```
 
 ### GET /api/cli-tools/codewhale-settings
 
-Read CodeWhale CLI OmniRoute config
+Read CodeWhale CLI Birouter config
 
-Local-only. Reads the OmniRoute config block from `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy fallback).
+Local-only. Reads the Birouter config block from `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy fallback).
 
 ```bash
-curl https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl https://localhost:2004/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $BIROUTE_TOKEN"
 ```
 
 ### POST /api/cli-tools/codewhale-settings
 
-Write CodeWhale CLI OmniRoute config
+Write CodeWhale CLI Birouter config
 
-Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
+Local-only. Writes the Birouter config block in CodeWhale TOML format.
 
 ```bash
-curl -X POST https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl -X POST https://localhost:2004/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $BIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
 ### DELETE /api/cli-tools/codewhale-settings
 
-Remove OmniRoute from CodeWhale CLI config
+Remove Birouter from CodeWhale CLI config
 
-Local-only. Removes the OmniRoute config block from CodeWhale's config.
+Local-only. Removes the Birouter config block from CodeWhale's config.
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl -X DELETE https://localhost:2004/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $BIROUTE_TOKEN"
 ```
 
 ## Payloads

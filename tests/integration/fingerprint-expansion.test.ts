@@ -13,7 +13,7 @@ import { MockUpstreamServer, buildCompletion } from "../e2e/helpers/mockUpstream
 // Seeds a mimocode connection with 3 fingerprints, creates a round-robin combo,
 // and verifies that requests route through the combo successfully.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fingerprint-e2e-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "biroute-fingerprint-e2e-"));
 const DASHBOARD_PORT = await getFreePort();
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -117,7 +117,7 @@ async function waitForServer(
     if (logs.exitInfo) {
       throw new Error(
         [
-          `OmniRoute exited before it became ready (code=${logs.exitInfo.code}, signal=${logs.exitInfo.signal})`,
+          `Birouter exited before it became ready (code=${logs.exitInfo.code}, signal=${logs.exitInfo.signal})`,
           "--- stdout ---",
           ...logs.stdoutLines.slice(-40),
           "--- stderr ---",
@@ -138,7 +138,7 @@ async function waitForServer(
   }
   throw new Error(
     [
-      `Timed out waiting for OmniRoute to start: ${lastError}`,
+      `Timed out waiting for Birouter to start: ${lastError}`,
       "--- stdout ---",
       ...logs.stdoutLines.slice(-40),
       "--- stderr ---",

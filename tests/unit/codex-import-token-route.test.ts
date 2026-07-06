@@ -11,7 +11,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-import-token-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-codex-import-token-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -43,7 +43,7 @@ test.after(async () => {
 });
 
 async function postImportToken(body: unknown) {
-  const request = new Request("http://localhost:20128/api/oauth/codex/import-token", {
+  const request = new Request("http://localhost:2004/api/oauth/codex/import-token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -115,7 +115,7 @@ test("import-token: undecodable token IS accepted when an explicit name is suppl
 });
 
 test("import-token: malformed JSON body is rejected with 400", async () => {
-  const request = new Request("http://localhost:20128/api/oauth/codex/import-token", {
+  const request = new Request("http://localhost:2004/api/oauth/codex/import-token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: "{not json",

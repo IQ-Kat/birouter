@@ -10,7 +10,7 @@ let mod: typeof import("@/lib/db/discoveryResults");
 let core: typeof import("@/lib/db/core");
 
 before(async () => {
-  tmpDataDir = mkdtempSync(join(tmpdir(), "omniroute-discovery-"));
+  tmpDataDir = mkdtempSync(join(tmpdir(), "birouter-discovery-"));
   process.env.DATA_DIR = tmpDataDir;
   core = await import("@/lib/db/core");
   core.resetDbInstance();

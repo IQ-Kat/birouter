@@ -1,4 +1,4 @@
-﻿import { spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,13 +18,13 @@ import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const _pkg = JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "package.json"), "utf8"));
 
-// URL scheme for the "Birouter is running" banner — flipped to https when
+// URL scheme for the "Birouter is running" banner � flipped to https when
 // opt-in TLS (#5242) is active. Process-scoped: one `serve` run = one scheme.
 let urlScheme = "http";
 const ROOT = join(__dirname, "..", "..", "..");
 // The standalone bundle ships in `dist/` (since the build-output-isolation
 // refactor). Fall back to the legacy `app/` location so an upgrade over a
-// partially-replaced install — or a package built before the rename — still
+// partially-replaced install � or a package built before the rename � still
 // boots. Backward-compatible by design: every deployed runtime keeps its path.
 const APP_DIR = existsSync(join(ROOT, "dist", "server.js"))
   ? join(ROOT, "dist")
@@ -70,7 +70,7 @@ export async function runServe(opts = {}) {
   const { getNodeRuntimeSupport, getNodeRuntimeWarning } =
     await import("../../nodeRuntimeSupport.mjs");
 
-  const port = parsePort(opts.port ?? process.env.PORT ?? "20128", 20128);
+  const port = parsePort(opts.port ?? process.env.PORT ?? "2004", 2004);
   const apiPort = parsePort(process.env.API_PORT ?? String(port), port);
   const dashboardPort = parsePort(process.env.DASHBOARD_PORT ?? String(port), port);
   const noOpen = opts.open === false;
@@ -88,7 +88,7 @@ export async function runServe(opts = {}) {
   const nodeSupport = getNodeRuntimeSupport();
   if (!nodeSupport.nodeCompatible) {
     const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
-    console.warn(`\x1b[33m  ⚠  Warning: You are running Node.js ${process.versions.node}.
+    console.warn(`\x1b[33m  ?  Warning: You are running Node.js ${process.versions.node}.
      ${runtimeWarning}
 
      Supported secure runtimes: ${nodeSupport.supportedDisplay}
@@ -102,7 +102,7 @@ export async function runServe(opts = {}) {
   const serverJs = existsSync(serverWsJs) ? serverWsJs : join(APP_DIR, "server.js");
 
   if (!existsSync(serverJs)) {
-    console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);
+    console.error("\x1b[31m? Server not found at:\x1b[0m", serverJs);
     console.error("  The package may not have been built correctly.");
     console.error("");
     const nodeExec = process.execPath || "";
@@ -110,13 +110,13 @@ export async function runServe(opts = {}) {
     const isNvm = nodeExec.includes(".nvm") || nodeExec.includes("nvm");
     if (isMise) {
       console.error(
-        "  \x1b[33m⚠ mise detected:\x1b[0m If you installed via `npm install -g birouter`,"
+        "  \x1b[33m? mise detected:\x1b[0m If you installed via `npm install -g birouter`,"
       );
       console.error("    try: \x1b[36mnpx birouter@latest\x1b[0m  (downloads a fresh copy)");
       console.error("    or:  \x1b[36mmise exec -- npx birouter\x1b[0m");
     } else if (isNvm) {
       console.error(
-        "  \x1b[33m⚠ nvm detected:\x1b[0m Try reinstalling after loading the correct Node version:"
+        "  \x1b[33m? nvm detected:\x1b[0m Try reinstalling after loading the correct Node version:"
       );
       console.error("    \x1b[36mnvm use --lts && npm install -g birouter\x1b[0m");
     } else {
@@ -136,7 +136,7 @@ export async function runServe(opts = {}) {
   );
   if (existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
     console.error(
-      "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
+      "\x1b[31m? better-sqlite3 native module is incompatible with this platform.\x1b[0m"
     );
     console.error(`  Run: cd ${APP_DIR} && npm rebuild better-sqlite3`);
     console.error(
@@ -149,7 +149,7 @@ export async function runServe(opts = {}) {
     process.exit(1);
   }
 
-  console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
+  console.log(`  \x1b[2m? Starting server...\x1b[0m\n`);
 
   // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
   // [512, 4096]) instead of a fixed 512MB, which OOM-crashed boxes with plenty
@@ -170,7 +170,7 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    // #6194: POSIX shells (bash/zsh) auto-set HOSTNAME to the machine name — the
+    // #6194: POSIX shells (bash/zsh) auto-set HOSTNAME to the machine name � the
     // .env loader (first-wins) can never override it. Ignore HOSTNAME when it
     // matches the OS-reported hostname (the auto-set signature). BIROUTER_SERVER_HOST
     // takes precedence; legacy HOSTNAME values that don't match os.hostname() are
@@ -182,8 +182,8 @@ export async function runServe(opts = {}) {
       "0.0.0.0",
     NODE_ENV: "production",
     // #5238: preserve a user-set NODE_OPTIONS (incl. their own
-    // `--max-old-space-size=…`) instead of clobbering it with the calibrated
-    // default — mirror the Electron/standalone launchers.
+    // `--max-old-space-size=�`) instead of clobbering it with the calibrated
+    // default � mirror the Electron/standalone launchers.
     NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
     ...(tlsCert ? { BIROUTER_TLS_CERT: tlsCert } : {}),
     ...(tlsKey ? { BIROUTER_TLS_KEY: tlsKey } : {}),
@@ -238,7 +238,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   });
   writePidFile("server", server.pid);
   server.unref();
-  console.log(`\x1b[32m✔ Birouter started in background (PID: ${server.pid})\x1b[0m`);
+  console.log(`\x1b[32m? Birouter started in background (PID: ${server.pid})\x1b[0m`);
   console.log(`  \x1b[1mDashboard:\x1b[0m  ${urlScheme}://localhost:${dashboardPort}`);
   console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
@@ -271,19 +271,19 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   server.stderr.on("data", (data) => process.stderr.write(data));
 
   server.on("error", (err) => {
-    console.error("\x1b[31m✖ Failed to start server:\x1b[0m", err.message);
+    console.error("\x1b[31m? Failed to start server:\x1b[0m", err.message);
     process.exit(1);
   });
 
   server.on("exit", (code) => {
     if (code !== 0 && code !== null) {
-      console.error(`\x1b[31m✖ Server exited with code ${code}\x1b[0m`);
+      console.error(`\x1b[31m? Server exited with code ${code}\x1b[0m`);
     }
     process.exit(code ?? 0);
   });
 
   const shutdown = () => {
-    console.log("\n\x1b[33m⏹ Shutting down Birouter...\x1b[0m");
+    console.log("\n\x1b[33m? Shutting down Birouter...\x1b[0m");
     cleanupPidFile("server");
     server.kill("SIGTERM");
     setTimeout(() => {
@@ -389,7 +389,7 @@ async function maybeStartTray(port, apiPort, supervisor) {
       _killTray = killTray;
     }
   } catch (err) {
-    // tray is optional — do not fail the server, but surface why it failed so
+    // tray is optional � do not fail the server, but surface why it failed so
     // "--tray shows nothing" is diagnosable instead of silent (#4605).
     process.stderr.write(`[birouter][tray] failed to start: ${err?.message ?? String(err)}\n`);
   }
@@ -404,7 +404,7 @@ async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
       : "0.0";
 
   console.log(`
-  \x1b[32m✔ Birouter is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
+  \x1b[32m? Birouter is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
 
   \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
   \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1
@@ -420,7 +420,7 @@ async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
       const open = await import("open");
       await open.default(dashboardUrl);
     } catch {
-      // open is optional — skip if unavailable
+      // open is optional � skip if unavailable
     }
   }
 }

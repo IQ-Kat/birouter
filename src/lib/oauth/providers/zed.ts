@@ -4,7 +4,7 @@ import { ZED_CONFIG } from "../constants/oauth";
  * Zed IDE credential bridge — import_token flow only.
  *
  * Zed stores AI provider API keys (Anthropic, OpenAI, Google, …) in the OS
- * keychain. OmniRoute reads them via POST /api/providers/zed/import (keychain)
+ * keychain. Birouter reads them via POST /api/providers/zed/import (keychain)
  * or POST /api/providers/zed/manual-import (Docker / paste fallback).
  *
  * There is no standard OAuth browser flow for "zed" itself.  Registering it

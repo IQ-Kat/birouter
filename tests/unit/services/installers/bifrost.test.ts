@@ -5,8 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { execSync } from "node:child_process";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bifrost-installer-"));
-const FAKE_BIN_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bifrost-fake-bin-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-bifrost-installer-"));
+const FAKE_BIN_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-bifrost-fake-bin-"));
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";

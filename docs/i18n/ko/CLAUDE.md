@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # 의존성 설치 (.env.example에서 .env 자동 생성)
-npm run dev                    # http://localhost:20128에서 개발 서버 실행
+npm run dev                    # http://localhost:2004에서 개발 서버 실행
 npm run build                  # 프로덕션 빌드 (Next.js 16 독립형)
 npm run lint                   # ESLint (0 오류 예상; 경고는 기존)
 npm run typecheck:core         # TypeScript 검사 (깨끗해야 함)
@@ -361,7 +361,7 @@ git push -u origin feat/your-feature
 - **런타임**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES 모듈
 - **TypeScript**: 5.9+, 대상 ES2022, 모듈 esnext, 해상도 번들러
 - **경로 별칭**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **기본 포트**: 20128 (API + 대시보드 동일 포트)
+- **기본 포트**: 2004 (API + 대시보드 동일 포트)
 - **데이터 디렉토리**: `DATA_DIR` 환경 변수, 기본값 `~/.birouter/`
 - **주요 환경 변수**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - 설정: `cp .env.example .env` 후 `JWT_SECRET` (`openssl rand -base64 48`) 및 `API_KEY_SECRET` (`openssl rand -hex 32`) 생성

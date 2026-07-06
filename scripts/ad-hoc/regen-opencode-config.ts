@@ -8,7 +8,7 @@
  */
 import { generateOpencodeConfig } from "../src/lib/cli-helper/config-generator/opencode.ts";
 
-const baseURL = process.env.BIROUTER_URL ?? "http://localhost:20128";
+const baseURL = process.env.BIROUTER_URL ?? "http://localhost:2004";
 const apiKey = process.env.BIROUTER_KEY ?? process.env.OPENCODE_API_KEY ?? "";
 
 if (!apiKey) {

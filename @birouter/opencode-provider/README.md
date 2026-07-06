@@ -43,7 +43,7 @@ import { writeFileSync } from "node:fs";
 import { buildBirouterOpenCodeConfig } from "@birouter/opencode-provider";
 
 const config = buildBirouterOpenCodeConfig({
-  baseURL: "http://localhost:20128", // or your Birouter deployment URL
+  baseURL: "http://localhost:2004", // or your Birouter deployment URL
   apiKey: process.env.BIROUTER_API_KEY ?? "sk_birouter",
 });
 
@@ -60,7 +60,7 @@ The resulting `opencode.json`:
       "npm": "@ai-sdk/openai-compatible",
       "name": "Birouter",
       "options": {
-        "baseURL": "http://localhost:20128/v1",
+        "baseURL": "http://localhost:2004/v1",
         "apiKey": "sk_birouter",
       },
       "models": {
@@ -80,7 +80,7 @@ The resulting `opencode.json`:
 import { createBirouterProvider } from "@birouter/opencode-provider";
 
 const provider = createBirouterProvider({
-  baseURL: "http://localhost:20128",
+  baseURL: "http://localhost:2004",
   apiKey: process.env.BIROUTER_API_KEY!,
 });
 
@@ -126,7 +126,7 @@ Exported for completeness. Strips trailing `/`, deduplicates a trailing `/v1`, a
 import { createBirouterProvider } from "@birouter/opencode-provider";
 
 createBirouterProvider({
-  baseURL: "http://localhost:20128",
+  baseURL: "http://localhost:2004",
   apiKey: "sk_birouter",
   models: ["auto", "claude-opus-4-8", "gpt-5.5"],
   modelLabels: {

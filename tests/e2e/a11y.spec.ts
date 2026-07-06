@@ -30,7 +30,7 @@
  *   /login                — public auth gate (a11y critical for users)
  *   /dashboard/settings   — settings (redirects to /dashboard/settings/general)
  *
- * Run locally (requires the app running on localhost:20128):
+ * Run locally (requires the app running on localhost:2004):
  *   npx playwright test tests/e2e/a11y.spec.ts --headed
  */
 

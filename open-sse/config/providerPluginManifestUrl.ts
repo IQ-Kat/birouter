@@ -1,4 +1,4 @@
-﻿export const PROVIDER_PLUGIN_MANIFEST_HEADER = "X-Birouter-Provider-Manifest-Url";
+export const PROVIDER_PLUGIN_MANIFEST_HEADER = "X-Birouter-Provider-Manifest-Url";
 export const PROVIDER_PLUGIN_MANIFEST_PATH = "/api/v1/provider-plugin-manifest";
 
 function trimTrailingSlash(value: string): string {
@@ -14,7 +14,7 @@ export function resolveProviderPluginManifestUrl(origin?: string | null): string
   }
 
   const host = process.env.HOST || "127.0.0.1";
-  const port = process.env.PORT || process.env.DASHBOARD_PORT || process.env.API_PORT || "20128";
+  const port = process.env.PORT || process.env.DASHBOARD_PORT || process.env.API_PORT || "2004";
   const protocol = process.env.BIROUTER_PUBLIC_PROTOCOL || "http";
   return `${protocol}://${host}:${port}${PROVIDER_PLUGIN_MANIFEST_PATH}`;
 }

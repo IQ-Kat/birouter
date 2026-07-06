@@ -14,12 +14,12 @@ const DEFAULT_HOST = "127.0.0.1";
 
 /**
  * Default origins allowed to open a WebSocket against the local dashboard.
- * These match the loopback HTTP listener at port 20128.
+ * These match the loopback HTTP listener at port 2004.
  */
 export const DEFAULT_ALLOWED_ORIGINS: readonly string[] = Object.freeze([
-  "http://127.0.0.1:20128",
-  "http://localhost:20128",
-  "http://[::1]:20128",
+  "http://127.0.0.1:2004",
+  "http://localhost:2004",
+  "http://[::1]:2004",
 ]);
 
 /**

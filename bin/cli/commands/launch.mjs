@@ -33,7 +33,7 @@ export function buildClaudeEnv(baseEnv, baseUrlOrPort, authToken, opts = {}) {
   // Claude Code wants the ROOT URL (it appends /v1/messages itself) — no /v1 here.
   let baseUrl;
   if (typeof baseUrlOrPort === "number" || /^\d+$/.test(String(baseUrlOrPort))) {
-    baseUrl = `http://localhost:${Number(baseUrlOrPort) || 20128}`;
+    baseUrl = `http://localhost:${Number(baseUrlOrPort) || 2004}`;
   } else {
     baseUrl = stripTrailingSlash(String(baseUrlOrPort)).replace(/\/v1$/, "");
   }
@@ -74,7 +74,7 @@ export function resolveLaunchTarget(opts = {}) {
     }
     baseUrl = fromCtx
       ? stripTrailingSlash(fromCtx).replace(/\/v1$/, "")
-      : `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
+      : `http://localhost:${Number(opts.port ?? process.env.PORT ?? 2004) || 2004}`;
   }
 
   let authToken = opts.token ?? opts.apiKey ?? opts["api-key"];
@@ -140,7 +140,7 @@ export function registerLaunch(program) {
     .description(
       t("launch.description") || "Launch Claude Code pointed at Birouter (local or remote)"
     )
-    .option("--port <port>", t("serve.port") || "Proxy port", "20128")
+    .option("--port <port>", t("serve.port") || "Proxy port", "2004")
     .option("--remote <url>", "Remote Birouter base URL (overrides --port and the active context)")
     .option(
       "--profile <name>",

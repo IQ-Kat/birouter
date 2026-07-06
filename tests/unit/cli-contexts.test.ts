@@ -64,10 +64,10 @@ test("resolveActiveContext aceita override pontual", async () => {
   const { resolveActiveContext, loadContexts, saveContexts } =
     await import("../../bin/cli/contexts.mjs");
   const cfg = loadContexts();
-  cfg.contexts.staging = { baseUrl: "http://staging:20128", apiKey: null };
+  cfg.contexts.staging = { baseUrl: "http://staging:2004", apiKey: null };
   saveContexts(cfg);
   const ctx = resolveActiveContext("staging");
-  assert.equal(ctx.baseUrl, "http://staging:20128");
+  assert.equal(ctx.baseUrl, "http://staging:2004");
 });
 
 test("contexts.mjs (commands) pode ser importado sem erro", async () => {

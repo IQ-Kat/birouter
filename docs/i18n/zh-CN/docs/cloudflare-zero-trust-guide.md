@@ -10,7 +10,7 @@
 
 我们通过 PM2 以 **Split-Port** 模式启动了 OmniRoute：
 
-- **端口 `20128`：** 仅运行 **API** `/v1`。
+- **端口 `2004`：** 仅运行 **API** `/v1`。
 - **端口 `20129`：** 仅运行可视化管理 **Dashboard**。
 
 此外，内部服务要求 `REQUIRE_API_KEY=true`，这意味着任何代理程序都必须发送在管理面板 API Keys 标签页中生成的有效 "Bearer Token" 才能访问 API 端点。
@@ -44,7 +44,7 @@
 - **Subdomain：** `api`
 - **Domain：** `yourdomain.com`（选择您的实际域名）
 - **Service Type：** `HTTP`
-- **URL：** `127.0.0.1:20128` _（API 内部端口）_
+- **URL：** `127.0.0.1:2004` _（API 内部端口）_
 
 ### 路由 2：Zero Trust 管理面板（封闭）
 

@@ -6,7 +6,7 @@ const { buildCurl, escSq } =
 
 test("buildCurl — generates correct cURL for chat completion", () => {
   const result = buildCurl({
-    endpoint: "http://localhost:20128/api/v1/chat/completions",
+    endpoint: "http://localhost:2004/api/v1/chat/completions",
     method: "POST",
     headers: {
       Authorization: "Bearer sk-test-123",
@@ -24,14 +24,14 @@ test("buildCurl — generates correct cURL for chat completion", () => {
   assert.ok(result.includes("Bearer sk-test-123"), "should include the API key");
   assert.ok(result.includes("gpt-4o"), "should include model in body");
   assert.ok(
-    result.includes("http://localhost:20128/api/v1/chat/completions"),
+    result.includes("http://localhost:2004/api/v1/chat/completions"),
     "should include endpoint"
   );
 });
 
 test("buildCurl — generates correct cURL for embedding", () => {
   const result = buildCurl({
-    endpoint: "http://localhost:20128/api/v1/embeddings",
+    endpoint: "http://localhost:2004/api/v1/embeddings",
     headers: {
       Authorization: "Bearer sk-embed",
       "Content-Type": "application/json",
@@ -50,7 +50,7 @@ test("buildCurl — generates correct cURL for embedding", () => {
 
 test("buildCurl — escapes single quotes in string values", () => {
   const result = buildCurl({
-    endpoint: "http://localhost:20128/api/v1/embeddings",
+    endpoint: "http://localhost:2004/api/v1/embeddings",
     headers: {
       Authorization: "Bearer sk-test",
       "Content-Type": "application/json",

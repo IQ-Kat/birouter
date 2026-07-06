@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # تثبيت التبعيات (توليد .env تلقائيًا من .env.example)
-npm run dev                    # خادم التطوير على http://localhost:20128
+npm run dev                    # خادم التطوير على http://localhost:2004
 npm run build                  # بناء الإنتاج (Next.js 16 مستقل)
 npm run lint                   # ESLint (0 أخطاء متوقعة؛ التحذيرات موجودة مسبقًا)
 npm run typecheck:core         # فحص TypeScript (يجب أن يكون نظيفًا)
@@ -368,7 +368,7 @@ git push -u origin feat/your-feature
 - **وقت التشغيل**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25، وحدات ES
 - **TypeScript**: 5.9+، الهدف ES2022، الوحدة esnext، دقة المجمع
 - **أسماء المسارات**: `@/*` → `src/`، `@birouter/open-sse` → `open-sse/`، `@birouter/open-sse/*` → `open-sse/*`
-- **المنفذ الافتراضي**: 20128 (API + لوحة التحكم على نفس المنفذ)
+- **المنفذ الافتراضي**: 2004 (API + لوحة التحكم على نفس المنفذ)
 - **دليل البيانات**: متغير البيئة `DATA_DIR`، الافتراضي هو `~/.birouter/`
 - **المتغيرات البيئية الرئيسية**: `PORT`، `JWT_SECRET`، `API_KEY_SECRET`، `INITIAL_PASSWORD`، `REQUIRE_API_KEY`، `APP_LOG_LEVEL`
 - الإعداد: `cp .env.example .env` ثم توليد `JWT_SECRET` (`openssl rand -base64 48`) و `API_KEY_SECRET` (`openssl rand -hex 32`)

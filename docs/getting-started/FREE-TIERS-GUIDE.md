@@ -83,7 +83,7 @@ Then use `model: "auto"` and Birouter will:
 
 ### Step 1: Open the Dashboard
 
-Go to `http://localhost:20128` in your browser.
+Go to `http://localhost:2004` in your browser.
 
 ### Step 2: Go to Providers
 

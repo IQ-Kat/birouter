@@ -94,7 +94,7 @@ export function NinerouterInstallWizard() {
             disabled={installing}
           />
           <p className="mt-1 text-xs text-text-muted">
-            Birouter uses port 20128. Keep 9Router on a different port (default 20130).
+            Birouter uses port 2004. Keep 9Router on a different port (default 20130).
           </p>
         </div>
 

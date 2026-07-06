@@ -108,7 +108,7 @@ MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
 OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # 生产环境必需：Codex Responses WS 桥接使用
 
 # === 应用 ===
-PORT=20128
+PORT=2004
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
@@ -118,7 +118,7 @@ REQUIRE_API_KEY=false
 
 # === URL（替换为你的域名）===
 # 计划任务 / 内部自调用所使用的内部服务端到服务端 URL。
-BASE_URL=http://127.0.0.1:20128
+BASE_URL=http://127.0.0.1:2004
 # OAuth 回调、控制台链接及同源校验所面向浏览器的 URL。
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 # 可选：显式覆盖生成的公开资源 URL。
@@ -141,7 +141,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --env-file /opt/birouter/.env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -153,7 +153,7 @@ docker ps | grep birouter
 docker logs birouter --tail 20
 ```
 
-应显示：`[DB] SQLite database ready` 和 `listening on port 20128`。
+应显示：`[DB] SQLite database ready` 和 `listening on port 2004`。
 
 ---
 
@@ -209,7 +209,7 @@ server {
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://127.0.0.1:20128;
+        proxy_pass http://127.0.0.1:2004;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -298,7 +298,7 @@ docker pull IQ-Kat/birouter:latest
 docker stop birouter && docker rm birouter
 docker run -d --name birouter --restart unless-stopped \
   --env-file /opt/birouter/.env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -379,9 +379,9 @@ fail2ban-client status sshd
 ### 阻止直接访问 Docker 端口
 
 ```bash
-# 阻止外部直接访问 20128 端口
-iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
-iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
+# 阻止外部直接访问 2004 端口
+iptables -I DOCKER-USER -p tcp --dport 2004 -j DROP
+iptables -I DOCKER-USER -i lo -p tcp --dport 2004 -j ACCEPT
 
 # 持久化规则
 apt install -y iptables-persistent
@@ -408,9 +408,9 @@ npx wrangler deploy
 
 ## 端口汇总
 
-| 端口  | 服务        | 访问方式              |
-| ----- | ----------- | --------------------- |
-| 22    | SSH         | 公开（配合 fail2ban） |
-| 80    | nginx HTTP  | 跳转 → HTTPS          |
-| 443   | nginx HTTPS | 通过 Cloudflare 代理  |
-| 20128 | OmniRoute   | 仅本地（通过 nginx）  |
+| 端口 | 服务        | 访问方式              |
+| ---- | ----------- | --------------------- |
+| 22   | SSH         | 公开（配合 fail2ban） |
+| 80   | nginx HTTP  | 跳转 → HTTPS          |
+| 443  | nginx HTTPS | 通过 Cloudflare 代理  |
+| 2004 | OmniRoute   | 仅本地（通过 nginx）  |

@@ -22,7 +22,7 @@ primary_region = 'sin'
   auto_extend_size_limit = '10GB'
 
 [http_service]
-  internal_port = 20128
+  internal_port = 2004
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true

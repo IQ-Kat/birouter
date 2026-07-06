@@ -42,7 +42,7 @@ describe("MCP Essential Tools", () => {
         json: async () => ({ status: "healthy", uptime: 1000, circuitBreakers: [] }),
       });
 
-      const response = await mockFetch("http://localhost:20128/api/monitoring/health");
+      const response = await mockFetch("http://localhost:2004/api/monitoring/health");
       const data = await response.json();
       expect(data.status).toBe("healthy");
       expect(data).toHaveProperty("uptime");
@@ -50,7 +50,7 @@ describe("MCP Essential Tools", () => {
 
     it("should handle API failure gracefully", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Connection refused"));
-      await expect(mockFetch("http://localhost:20128/api/monitoring/health")).rejects.toThrow();
+      await expect(mockFetch("http://localhost:2004/api/monitoring/health")).rejects.toThrow();
     });
   });
 
@@ -66,7 +66,7 @@ describe("MCP Essential Tools", () => {
         }),
       });
 
-      const response = await mockFetch("http://localhost:20128/api/usage/quota");
+      const response = await mockFetch("http://localhost:2004/api/usage/quota");
       const data = await response.json();
       expect(data.providers).toHaveLength(2);
       expect(data.providers[0].provider).toBe("anthropic");
@@ -80,7 +80,7 @@ describe("MCP Essential Tools", () => {
         }),
       });
 
-      const response = await mockFetch("http://localhost:20128/api/usage/quota?provider=anthropic");
+      const response = await mockFetch("http://localhost:2004/api/usage/quota?provider=anthropic");
       const data = await response.json();
       expect(data.providers).toHaveLength(1);
     });
@@ -96,7 +96,7 @@ describe("MCP Essential Tools", () => {
         ],
       });
 
-      const response = await mockFetch("http://localhost:20128/api/combos");
+      const response = await mockFetch("http://localhost:2004/api/combos");
       const data = await response.json();
       expect(Array.isArray(data)).toBe(true);
       expect(data[0]).toHaveProperty("id");
@@ -115,7 +115,7 @@ describe("MCP Essential Tools", () => {
         }),
       });
 
-      const response = await mockFetch("http://localhost:20128/v1/chat/completions", {
+      const response = await mockFetch("http://localhost:2004/v1/chat/completions", {
         method: "POST",
         body: JSON.stringify({ model: "auto", messages: [{ role: "user", content: "hi" }] }),
       });
@@ -135,7 +135,7 @@ describe("MCP Essential Tools", () => {
         }),
       });
 
-      const response = await mockFetch("http://localhost:20128/api/usage/analytics?period=session");
+      const response = await mockFetch("http://localhost:2004/api/usage/analytics?period=session");
       const data = await response.json();
       expect(data).toHaveProperty("totalCost");
       expect(data).toHaveProperty("requestCount");

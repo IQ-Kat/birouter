@@ -29,7 +29,7 @@ npm install -g birouter
 birouter
 ```
 
-Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
+Dashboard opens at `http://localhost:2004` and API base URL is `http://localhost:2004/v1`.
 
 ### pnpm
 
@@ -53,7 +53,7 @@ The [AUR package](https://aur.archlinux.org/packages/birouter-bin) installs Biro
 
 ```bash
 npm install
-PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
+PORT=2004 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
 > **Note:** `npm install` auto-generates `.env` from `.env.example` on first run. Subsequent installs will not overwrite an existing `.env`, so customizations are preserved. To re-seed, delete `.env` before re-running.
@@ -92,7 +92,7 @@ Combined with env vars (`INITIAL_PASSWORD`, `BIROUTER_WS_BRIDGE_SECRET`, etc.), 
 
 | Command                | Description                                                    |
 | ---------------------- | -------------------------------------------------------------- |
-| `birouter`             | Start server (`PORT=20128`, API and dashboard on same port)    |
+| `birouter`             | Start server (`PORT=2004`, API and dashboard on same port)     |
 | `birouter setup`       | Guided CLI onboarding for password and first provider          |
 | `birouter doctor`      | Run local health checks without starting the server            |
 | `birouter providers`   | Discover, list, validate, and test providers from CLI          |
@@ -147,7 +147,7 @@ birouter providers validate
 ### 2) Point Your Coding Tool
 
 ```txt
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
@@ -155,10 +155,10 @@ Model:    if/kimi-k2-thinking (or any provider/model prefix)
 If your editor cannot send `Authorization: Bearer ...`, use the tokenized compatibility base instead:
 
 ```txt
-Base URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/
-Models URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/models
-Chat URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/chat/completions
-Ollama Tags URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/api/tags
+Base URL: http://localhost:2004/api/v1/vscode/YOUR_KEY/
+Models URL: http://localhost:2004/api/v1/vscode/YOUR_KEY/models
+Chat URL: http://localhost:2004/api/v1/vscode/YOUR_KEY/chat/completions
+Ollama Tags URL: http://localhost:2004/api/v1/vscode/YOUR_KEY/api/tags
 ```
 
 Works with Claude Code, Codex CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
@@ -224,7 +224,7 @@ npm run test:protocols:e2e
 **Claude Code:**
 
 ```bash
-claude mcp add-server birouter --type http --url http://localhost:20128/api/mcp/stream
+claude mcp add-server birouter --type http --url http://localhost:2004/api/mcp/stream
 ```
 
 **Cursor / Cline:**
@@ -250,13 +250,13 @@ Add to your MCP settings:
 Verify the Agent Card:
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 Send a task:
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":"quickstart","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Give me a short quota summary."}]}}'
 ```
@@ -313,8 +313,8 @@ If you run Birouter behind Nginx, Caddy, Cloudflare, or another reverse proxy, m
 Run API and Dashboard on separate ports for advanced scenarios (reverse proxy, container networking):
 
 ```bash
-PORT=20128 DASHBOARD_PORT=20129 birouter
-# API:       http://localhost:20128/v1
+PORT=2004 DASHBOARD_PORT=20129 birouter
+# API:       http://localhost:2004/v1
 # Dashboard: http://localhost:20129
 ```
 
@@ -392,7 +392,7 @@ do_install() {
 
 	cat > "${WRKDIR}/birouter" <<'EOF'
 #!/bin/sh
-export PORT="${PORT:-20128}"
+export PORT="${PORT:-2004}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/birouter}"
 export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"

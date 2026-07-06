@@ -43,7 +43,7 @@ OmniRoute 常见问题及解决方案。
 | 问题                                                | 解决方案                                                                                                                                          |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 首次登录无法使用                                    | 在 `.env` 中设置 `INITIAL_PASSWORD`（无硬编码默认值）                                                                                             |
-| 仪表盘打开的端口不对                                | 设置 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                |
+| 仪表盘打开的端口不对                                | 设置 `PORT=2004` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:2004`                                                                                  |
 | 没有日志写入磁盘                                    | 设置 `APP_LOG_TO_FILE=true` 并确认已启用调用日志捕获                                                                                              |
 | EACCES: permission denied                           | 设置 `DATA_DIR=/path/to/writable/dir` 覆盖 `~/.omniroute`                                                                                         |
 | 路由策略无法保存                                    | 更新至最新 v3.x 版本（早期版本中已修复 settings 持久化的 Zod Schema 问题）                                                                        |
@@ -182,7 +182,7 @@ OmniRoute 会自动刷新 Token。如果问题持续：
 
 ### 云端同步错误
 
-1. 验证 `BASE_URL` 指向你正在运行的实例（例如 `http://localhost:20128`）
+1. 验证 `BASE_URL` 指向你正在运行的实例（例如 `http://localhost:2004`）
 2. 验证 `CLOUD_URL` 指向你的云端端点（例如 `https://omniroute.dev`）
 3. 保持 `NEXT_PUBLIC_*` 值与服务器端值一致
 
@@ -206,7 +206,7 @@ OmniRoute 会自动刷新 Token。如果问题持续：
 
 ### CLI 工具显示未安装
 
-1. 检查运行时字段：`curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+1. 检查运行时字段：`curl http://localhost:2004/api/cli-tools/runtime/codex | jq`
 2. 便携模式：使用镜像目标 `runner-cli`（内嵌 CLI）
 3. 主机挂载模式：设置 `CLI_EXTRA_PATHS` 并以只读方式挂载主机 bin 目录
 4. 如果 `installed=true` 且 `runnable=false`：二进制文件已找到但健康检查失败
@@ -214,9 +214,9 @@ OmniRoute 会自动刷新 Token。如果问题持续：
 ### 快速运行时验证
 
 ```bash
-curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
 ```
 
 ---
@@ -242,10 +242,10 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ```bash
 # 健康仪表盘
-http://localhost:20128/dashboard/health
+http://localhost:2004/dashboard/health
 
 # API 健康检查
-curl http://localhost:20128/api/monitoring/health
+curl http://localhost:2004/api/monitoring/health
 ```
 
 ### 运行时存储

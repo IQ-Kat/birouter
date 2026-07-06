@@ -316,8 +316,8 @@ Validates a WebSocket upgrade handshake and returns the wire protocol example me
 ### Responses API over WebSocket (codex only)
 
 ```bash
-# Same host:port as the HTTP API (default 20128); upgrade the connection:
-wscat -c "ws://localhost:20128/v1/responses?api_key=<BIROUTER_API_KEY>"
+# Same host:port as the HTTP API (default 2004); upgrade the connection:
+wscat -c "ws://localhost:2004/v1/responses?api_key=<BIROUTER_API_KEY>"
 # (or: -H "Authorization: Bearer <BIROUTER_API_KEY>")
 
 # First frame MUST be response.create:
@@ -358,7 +358,7 @@ model_provider = "birouter"
 
 [model_providers.birouter]
 name = "Birouter (WS)"
-base_url = "http://localhost:20128/v1"   # no trailing slash; the WS URL is derived (use https/wss in production)
+base_url = "http://localhost:2004/v1"   # no trailing slash; the WS URL is derived (use https/wss in production)
 wire_api = "responses"                    # only supported value since Feb 2026
 supports_websockets = true                # enables the Responses-over-WS transport
 env_key = "BIROUTER_API_KEY"             # holds the Birouter API key (Bearer)
@@ -641,7 +641,7 @@ Transcribe audio files using Deepgram or AssemblyAI.
 **Request:**
 
 ```bash
-curl -X POST http://localhost:20128/v1/audio/transcriptions \
+curl -X POST http://localhost:2004/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@recording.mp3" \
   -F "model=deepgram/nova-3"
@@ -865,7 +865,7 @@ Cloud agent tasks (Claude Code, Codex Cloud, OpenHands, etc.) executed remotely 
 
 ```bash
 # Create a Claude Code cloud task
-curl -X POST http://localhost:20128/api/v1/agents/tasks \
+curl -X POST http://localhost:2004/api/v1/agents/tasks \
   -H "Authorization: Bearer your-management-key" \
   -H "Content-Type: application/json" \
   -d '{"providerId":"claude-code-cloud","prompt":"Fix the failing test","source":{"repo":"...","branch":"..."}}'
@@ -908,13 +908,13 @@ Birouter exposes three independent temporary-failure mechanisms; the management 
 
 ```bash
 # Clear a single model lockout
-curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
+curl -X DELETE http://localhost:2004/api/resilience/model-cooldowns \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{"provider":"openai","model":"gpt-4o-mini"}'
 
 # Wipe every lockout
-curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
+curl -X DELETE http://localhost:2004/api/resilience/model-cooldowns \
   -H "Cookie: auth_token=..." \
   -d '{"all":true}'
 ```

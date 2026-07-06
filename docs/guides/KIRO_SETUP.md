@@ -103,7 +103,7 @@ Enterprise users who operate in a non-default AWS region can specify the region 
 importing via the Import Token API:
 
 ```bash
-curl -X POST http://localhost:20128/api/oauth/kiro/import \
+curl -X POST http://localhost:2004/api/oauth/kiro/import \
   -H "Content-Type: application/json" \
   -d '{"refreshToken": "aorAAAAAG...", "region": "eu-west-1"}'
 ```

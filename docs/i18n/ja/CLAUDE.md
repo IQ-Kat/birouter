@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # 依存関係をインストール（.env.example から .env を自動生成）
-npm run dev                    # http://localhost:20128 での開発サーバー
+npm run dev                    # http://localhost:2004 での開発サーバー
 npm run build                  # プロダクションビルド（Next.js 16 スタンドアロン）
 npm run lint                   # ESLint（エラーは0件予想; 警告は既存）
 npm run typecheck:core         # TypeScript チェック（クリーンであるべき）
@@ -365,7 +365,7 @@ git push -u origin feat/your-feature
 - **ランタイム**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, ターゲット ES2022, モジュール esnext, 解決バンドラー
 - **パスエイリアス**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **デフォルトポート**: 20128 (API + ダッシュボードが同じポート)
+- **デフォルトポート**: 2004 (API + ダッシュボードが同じポート)
 - **データディレクトリ**: `DATA_DIR` 環境変数、デフォルトは `~/.birouter/`
 - **主要環境変数**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - セットアップ: `cp .env.example .env` その後 `JWT_SECRET` を生成 (`openssl rand -base64 48`) と `API_KEY_SECRET` (`openssl rand -hex 32`)

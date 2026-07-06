@@ -11,7 +11,7 @@
 import { NextResponse } from "next/server";
 
 const PACKAGE_VERSION = process.env.npm_package_version || "1.8.1";
-const BASE_URL = process.env.BIROUTER_BASE_URL || "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_BASE_URL || "http://localhost:2004";
 
 /**
  * GET /.well-known/agent.json

@@ -282,7 +282,7 @@ describe("Preload openExternal Security", () => {
 
   const SAFE_URLS = [
     "https://github.com",
-    "http://localhost:20128",
+    "http://localhost:2004",
     "https://birouter.dev/docs",
     "https://example.com/path?q=1&p=2#section",
   ];

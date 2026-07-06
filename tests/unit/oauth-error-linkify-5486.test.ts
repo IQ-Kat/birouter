@@ -11,12 +11,12 @@ test("#5486 linkifies the GitLab Duo applications URL in the setup error", () =>
   const msg =
     "GitLab Duo OAuth is not configured. Register an OAuth application at " +
     "https://gitlab.com/-/profile/applications with redirect URI " +
-    "http://localhost:20128/callback and scopes then restart.";
+    "http://localhost:2004/callback and scopes then restart.";
   const segs = linkifyText(msg);
   const links = segs.filter((s) => s.href);
   assert.equal(links.length, 2, "both URLs must become links");
   assert.equal(links[0].href, "https://gitlab.com/-/profile/applications");
-  assert.equal(links[1].href, "http://localhost:20128/callback");
+  assert.equal(links[1].href, "http://localhost:2004/callback");
   // Reassembling the segment texts must reproduce the original message verbatim.
   assert.equal(segs.map((s) => s.text).join(""), msg);
 });

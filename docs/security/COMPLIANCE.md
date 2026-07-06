@@ -134,7 +134,7 @@ into an in-memory set for hot-path lookups.
 
 ```bash
 # Create a no-log key (management auth required)
-curl -X POST http://localhost:20128/api/keys \
+curl -X POST http://localhost:2004/api/keys \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{"name": "Privacy key", "noLog": true}'
@@ -178,7 +178,7 @@ The response is a JSON array. Pagination metadata is returned in headers:
 `x-total-count`, `x-page-limit`, `x-page-offset`.
 
 ```bash
-curl "http://localhost:20128/api/compliance/audit-log?action=provider.credentials&from=2026-05-01" \
+curl "http://localhost:2004/api/compliance/audit-log?action=provider.credentials&from=2026-05-01" \
   -H "Cookie: auth_token=..."
 ```
 

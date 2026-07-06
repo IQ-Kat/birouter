@@ -127,7 +127,7 @@ async function renderExpanded() {
         activeProviders={[]}
         modelMappings={{}}
         onModelMappingChange={() => {}}
-        baseUrl="http://localhost:20128"
+        baseUrl="http://localhost:2004"
         hasActiveProviders={false}
         apiKeys={[]}
         cloudEnabled={false}

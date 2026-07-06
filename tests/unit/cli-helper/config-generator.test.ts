@@ -7,7 +7,7 @@ describe("config-generator", () => {
   describe("validateBaseUrl", () => {
     it("accepts http URLs", async () => {
       const mod = await import("../../../src/lib/cli-helper/config-generator/index.ts");
-      assert.strictEqual(mod.validateBaseUrl("http://localhost:20128"), true);
+      assert.strictEqual(mod.validateBaseUrl("http://localhost:2004"), true);
     });
 
     it("accepts https URLs", async () => {
@@ -26,12 +26,12 @@ describe("config-generator", () => {
       const { assertSafeCatalogUrl } =
         await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
       // The catalog source IS the user's own Birouter — localhost must stay allowed.
-      assert.doesNotThrow(() => assertSafeCatalogUrl("http://localhost:20128/v1/models"));
-      assert.doesNotThrow(() => assertSafeCatalogUrl("http://127.0.0.1:20128/v1/models"));
+      assert.doesNotThrow(() => assertSafeCatalogUrl("http://localhost:2004/v1/models"));
+      assert.doesNotThrow(() => assertSafeCatalogUrl("http://127.0.0.1:2004/v1/models"));
       // Returns the validated, re-parsed URL (taint-severed value the caller fetches).
-      const safe = assertSafeCatalogUrl("http://localhost:20128/v1/models");
+      const safe = assertSafeCatalogUrl("http://localhost:2004/v1/models");
       assert.ok(safe instanceof URL);
-      assert.equal(safe.href, "http://localhost:20128/v1/models");
+      assert.equal(safe.href, "http://localhost:2004/v1/models");
     });
 
     it("allows a public Birouter Cloud target", async () => {
@@ -67,7 +67,7 @@ describe("config-generator", () => {
 
     it("returns error for empty apiKey", async () => {
       const result = await generator.generateConfig("claude", {
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "",
       });
       assert.strictEqual(result.success, false);
@@ -77,7 +77,7 @@ describe("config-generator", () => {
     it("returns success for valid claude config", async () => {
       // This may fail if the claude generator has issues - just ensure error handling works
       const result = await generator.generateConfig("claude", {
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test",
       });
       // Either success or error (if generator missing), but check structure is correct
@@ -87,7 +87,7 @@ describe("config-generator", () => {
 
     it("returns success for valid hermes config", async () => {
       const result = await generator.generateConfig("hermes", {
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test",
         model: "gpt-5.4-mini",
       });
@@ -102,7 +102,7 @@ describe("config-generator", () => {
 
     it("returns error for unknown tool", async () => {
       const result = await generator.generateConfig("unknown-tool-xyz", {
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-xxx",
       });
       assert.strictEqual(result.success, false);
@@ -113,7 +113,7 @@ describe("config-generator", () => {
   describe("generateAllConfigs", () => {
     it("returns array of GenerateResult for all tools", async () => {
       const results = await generator.generateAllConfigs({
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-xxx",
       });
       assert.ok(Array.isArray(results));
@@ -144,7 +144,7 @@ describe("config-generator", () => {
       const hermesAgent =
         await import("../../../src/lib/cli-helper/config-generator/hermes-agent.ts");
       const result = await hermesAgent.generateHermesAgentConfig({
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test-birouter",
         selections: [
           { role: "default", model: "gpt-4o" },
@@ -163,7 +163,7 @@ describe("config-generator", () => {
       const hermesAgent =
         await import("../../../src/lib/cli-helper/config-generator/hermes-agent.ts");
       const result = await hermesAgent.generateHermesAgentConfig({
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test",
         selections: [
           { role: "compression", model: "test-model" },
@@ -191,7 +191,7 @@ describe("config-generator", () => {
       const hermesAgent =
         await import("../../../src/lib/cli-helper/config-generator/hermes-agent.ts");
       const result = await hermesAgent.generateHermesAgentConfig({
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test",
         selections: [
           { role: "default", model: "model-default" },
@@ -213,7 +213,7 @@ describe("config-generator", () => {
       const hermesAgent =
         await import("../../../src/lib/cli-helper/config-generator/hermes-agent.ts");
       const result = await hermesAgent.generateHermesAgentConfig({
-        baseUrl: "http://localhost:20128",
+        baseUrl: "http://localhost:2004",
         apiKey: "sk-test",
         selections: [{ role: "default", model: "new-model" }],
       });
@@ -278,7 +278,7 @@ describe("config-generator", () => {
         const { generateOpencodeConfig } =
           await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
@@ -299,7 +299,7 @@ describe("config-generator", () => {
         const { generateOpencodeConfig } =
           await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
@@ -324,7 +324,7 @@ describe("config-generator", () => {
         const { generateOpencodeConfig } =
           await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);
@@ -350,7 +350,7 @@ describe("config-generator", () => {
         let threw = false;
         try {
           await generateOpencodeConfig({
-            baseUrl: "http://localhost:20128",
+            baseUrl: "http://localhost:2004",
             apiKey: "sk-test",
           });
         } catch (e) {
@@ -372,7 +372,7 @@ describe("config-generator", () => {
         const { generateOpencodeConfig } =
           await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test",
           model: "MASTER",
         });
@@ -392,7 +392,7 @@ describe("config-generator", () => {
         const { generateOpencodeConfig } =
           await import("../../../src/lib/cli-helper/config-generator/opencode.ts");
         const out = await generateOpencodeConfig({
-          baseUrl: "http://localhost:20128",
+          baseUrl: "http://localhost:2004",
           apiKey: "sk-test",
         });
         const cfg = JSON.parse(out);

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 // Regression guard for #4287: the dashboard is frequently served over plain HTTP
-// on a LAN IP (e.g. http://192.168.0.15:20128). In a non-secure browsing context
+// on a LAN IP (e.g. http://192.168.0.15:2004). In a non-secure browsing context
 // `window.crypto.randomUUID` is undefined in several browsers (it is gated to
 // secure contexts), so any client code that called `crypto.randomUUID()` threw a
 // TypeError and broke the dashboard. The fix installs a small polyfill in the

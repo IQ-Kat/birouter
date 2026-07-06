@@ -136,6 +136,8 @@ export function LlmChatCard({
 
   const [internalSelectedKey, setInternalSelectedKey] = useState<string>("");
   const [internalModel, setInternalModel] = useState<string>(initialModel ?? "");
+  const [customModelName, setCustomModelName] = useState<string>("");
+
   const selectedKey = selectedKeyProp ?? internalSelectedKey;
   const setSelectedKey = useCallback(
     (k: string) => {
@@ -162,7 +164,9 @@ export function LlmChatCard({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const firstModel = models[0]?.id ?? "";
-  const effectiveModel = model || firstModel || initialModel || "";
+  const isCustom = model === "__custom_model__";
+  const modelOptions = models.length > 0 ? models : initialModel ? [{ id: initialModel }] : [];
+  const effectiveModel = isCustom ? customModelName : model || firstModel || initialModel || "";
   // Auto-prefix model with providerId to avoid Birouter "Ambiguous model"
   // rejection when the same id is registered under multiple providers. This
   // also covers vendor-namespaced ids (e.g. `moonshotai/kimi-k2.6`) that already
@@ -189,7 +193,7 @@ export function LlmChatCard({
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
-    if (!trimmed || streaming) return;
+    if (!trimmed || streaming || (isCustom && !customModelName.trim())) return;
 
     const userMsg: Message = { role: "user", content: trimmed };
     const assistantMsg: Message = { role: "assistant", content: "", model: qualifiedModel };
@@ -325,7 +329,17 @@ export function LlmChatCard({
       // Refocus textarea so user can keep typing
       requestAnimationFrame(() => textareaRef.current?.focus());
     }
-  }, [input, streaming, selectedKey, keys, providerId, qualifiedModel, messages]);
+  }, [
+    input,
+    streaming,
+    selectedKey,
+    keys,
+    providerId,
+    qualifiedModel,
+    messages,
+    isCustom,
+    customModelName,
+  ]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -363,8 +377,6 @@ export function LlmChatCard({
     });
   }, [onControlsChange, handleClear, messages.length, streaming]);
 
-  const modelOptions = models.length > 0 ? models : initialModel ? [{ id: initialModel }] : [];
-
   return (
     <div
       className={cn(
@@ -389,7 +401,17 @@ export function LlmChatCard({
                   {m.id}
                 </option>
               ))}
+              <option value="__custom_model__">Custom Model...</option>
             </select>
+            {isCustom && (
+              <input
+                type="text"
+                value={customModelName}
+                onChange={(e) => setCustomModelName(e.target.value)}
+                placeholder="Model name..."
+                className="min-w-0 flex-1 rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
+              />
+            )}
           </div>
           {/* Key select */}
           {keys.length > 0 && (
@@ -534,7 +556,7 @@ export function LlmChatCard({
           <button
             type="button"
             onClick={() => void handleSend()}
-            disabled={!input.trim()}
+            disabled={!input.trim() || (isCustom && !customModelName.trim())}
             title={t("send")}
             className="size-8 flex items-center justify-center rounded-md bg-primary text-white hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
           >

@@ -40,7 +40,7 @@ export function EmbeddingExampleCard({ providerId }: Props) {
 
   const curlSnippet = buildCurl({
     endpoint:
-      (typeof window !== "undefined" ? window.location.origin : "http://localhost:20128") +
+      (typeof window !== "undefined" ? window.location.origin : "http://localhost:2004") +
       ENDPOINT_PATH,
     headers: {
       Authorization: `Bearer ${apiKey || "<your-api-key>"}`,

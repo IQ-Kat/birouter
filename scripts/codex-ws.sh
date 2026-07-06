@@ -42,7 +42,7 @@
 set -euo pipefail
 
 # ---- Configuração (com defaults seguros) ------------------------------------
-BIROUTER_WS_BASE="${BIROUTER_WS_BASE:-http://127.0.0.1:20128/v1}"  # base do Birouter local
+BIROUTER_WS_BASE="${BIROUTER_WS_BASE:-http://127.0.0.1:2004/v1}"  # base do Birouter local
 BIROUTER_WS_MODEL="${BIROUTER_WS_MODEL:-gpt-5.5}"                  # id PURO (sem "codex/")
 CODEX_WS_HOME="${CODEX_WS_HOME:-$HOME/.codex-ws}"                    # CODEX_HOME isolado da Cloud
 

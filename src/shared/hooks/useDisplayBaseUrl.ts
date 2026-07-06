@@ -16,7 +16,7 @@ function normalizeUrl(value?: string): string | null {
  * Resolution chain:
  *   1. NEXT_PUBLIC_BASE_URL (env, trimmed + slash-normalized) — wins if set.
  *   2. window.location.origin after client mount — when env is unset.
- *   3. DEFAULT_DISPLAY_BASE_URL ("http://localhost:20128") — SSR / first render fallback.
+ *   3. DEFAULT_DISPLAY_BASE_URL ("http://localhost:2004") — SSR / first render fallback.
  *
  * DISPLAY ONLY — do NOT use this hook for OAuth `redirect_uri`.
  * OAuth callers must read `process.env.NEXT_PUBLIC_BASE_URL` directly to avoid

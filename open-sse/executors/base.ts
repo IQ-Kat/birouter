@@ -204,7 +204,7 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
 }
 
 /**
- * Strip the OmniRoute provider prefix from versioned built-in tool model
+ * Strip the Birouter provider prefix from versioned built-in tool model
  * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
  * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
  * the real Claude CLI sends a bare model id there, never a prefixed one, so a

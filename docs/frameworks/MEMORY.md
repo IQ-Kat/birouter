@@ -860,7 +860,7 @@ Summarization is **manual / opt-in** — the `autoSummarize` setting is `false` 
 default, so nothing is compacted automatically. Trigger it via the API:
 
 ```bash
-curl -X POST http://localhost:20128/api/memory/summarize \
+curl -X POST http://localhost:2004/api/memory/summarize \
   -H "Authorization: Bearer $BIROUTER_KEY"
 ```
 
@@ -875,6 +875,6 @@ To leave it off, simply keep `autoSummarize` at its default (`false`).
 
 ```bash
 # Cron-style: summarize at 3am daily
-0 3 * * * curl -X POST http://localhost:20128/api/memory/summarize \
+0 3 * * * curl -X POST http://localhost:2004/api/memory/summarize \
   -H "Authorization: Bearer $BIROUTER_KEY"
 ```

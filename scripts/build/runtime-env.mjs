@@ -90,7 +90,7 @@ export function buildNodeHeapArgs(env = process.env, memoryLimit) {
  *        Defaults to process.env. Pass bootstrap `merged` so project `.env` PORT applies before spawn.
  */
 export function resolveRuntimePorts(fromEnv = process.env) {
-  const basePort = parsePort(fromEnv.PORT || "20128", 20128);
+  const basePort = parsePort(fromEnv.PORT || "2004", 2004);
   const apiPort = parsePort(fromEnv.API_PORT || String(basePort), basePort);
   const dashboardPort = parsePort(fromEnv.DASHBOARD_PORT || String(basePort), basePort);
 

@@ -27,7 +27,7 @@ const INITIAL_METRICS: StreamMetrics = {
 
 const INITIAL_CONFIG: ConfigState = {
   endpoint: "chat.completions",
-  baseUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:20128",
+  baseUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:2004",
   model: "",
   systemPrompt: "You are a helpful assistant.",
   params: DEFAULT_PARAMS,

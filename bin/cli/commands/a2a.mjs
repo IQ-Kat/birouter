@@ -209,7 +209,7 @@ export function registerA2a(program) {
     .description(t("a2a.tasks.stream.description"))
     .action(async (id, opts, cmd) => {
       const globalOpts = cmd.optsWithGlobals();
-      const baseUrl = globalOpts.baseUrl ?? "http://localhost:20128";
+      const baseUrl = globalOpts.baseUrl ?? "http://localhost:2004";
       const apiKey = globalOpts.apiKey ?? "";
       const res = await fetch(`${baseUrl}/api/a2a/tasks/${id}?stream=true`, {
         headers: {

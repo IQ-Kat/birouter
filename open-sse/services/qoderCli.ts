@@ -78,7 +78,7 @@ export function getQoderCliWorkspace(): string {
 }
 
 /**
- * Isolated `--config-dir` for OmniRoute-driven qodercli runs. Keeping it separate
+ * Isolated `--config-dir` for Birouter-driven qodercli runs. Keeping it separate
  * from the operator's own `~/.qoder` avoids polluting an interactive qodercli
  * session and lets each PAT authenticate via `QODER_PERSONAL_ACCESS_TOKEN`
  * without clobbering a browser login. Override with `QODER_CLI_CONFIG_DIR`.
@@ -244,7 +244,7 @@ export async function runQoderCli(options: QoderCliRunOptions): Promise<QoderCli
     "json",
     "--model",
     level,
-    // Disable all built-in tools — OmniRoute only wants a plain LM reply, never
+    // Disable all built-in tools — Birouter only wants a plain LM reply, never
     // file-system access or command execution from the proxied CLI.
     "--tools",
     "",
@@ -306,7 +306,7 @@ export function parseQoderCliModelNames(stdout: string): string[] {
 }
 
 /**
- * Resolve an OmniRoute model id to the exact value to pass to `qodercli -m`.
+ * Resolve an Birouter model id to the exact value to pass to `qodercli -m`.
  * Pure (no I/O) so it can be unit-tested against a captured model list.
  *
  * Preference order:
@@ -945,7 +945,7 @@ export async function validateQoderCliPat({
     return {
       valid: false,
       error:
-        `Qoder CLI (qodercli) was not found on the OmniRoute host (${run.error}). ` +
+        `Qoder CLI (qodercli) was not found on the Birouter host (${run.error}). ` +
         "Install it from https://qoder.com or point CLI_QODER_BIN at the binary. " +
         "PAT auth is driven through the local qodercli binary.",
       unsupported: false,
@@ -956,7 +956,7 @@ export async function validateQoderCliPat({
     return {
       valid: false,
       error:
-        "qodercli timed out while validating the token. Check network/proxy access from the OmniRoute host.",
+        "qodercli timed out while validating the token. Check network/proxy access from the Birouter host.",
       unsupported: false,
     };
   }

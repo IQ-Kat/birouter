@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
+npm run dev                    # Dev server at http://localhost:2004
 npm run build                  # Production build (Next.js 16 standalone)
 npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
 npm run typecheck:core         # TypeScript check (should be clean)
@@ -484,7 +484,7 @@ list` shows worktrees you didn't create, leave them alone. End every session wit
 - **Bun (build/dev script runner only)**: Bun `1.3.10` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression`. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the published runtime, or the test runners — those stay on Node. Any new Bun-invoking script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those 5 scripts with `bun: not found`).
 - **TypeScript**: 6.0+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Default port**: 20128 (API + dashboard on same port)
+- **Default port**: 2004 (API + dashboard on same port)
 - **Data directory**: `DATA_DIR` env var, defaults to `~/.birouter/`
 - **Key env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Setup: `cp .env.example .env` then generate `JWT_SECRET` (`openssl rand -base64 48`) and `API_KEY_SECRET` (`openssl rand -hex 32`)

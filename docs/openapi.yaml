@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: OmniRoute API
+  title: Birouter API
   version: 3.8.46
   description: |
     Birouter is a local-first AI API proxy router. It provides an OpenAI-compatible
@@ -8,7 +8,7 @@ info:
     failover, and usage tracking.
 
     ## Base URLs
-    - **Local**: `http://localhost:20128`
+    - **Local**: `http://localhost:2004`
 
     ## Authentication
     All proxy endpoints require a Bearer token (API key managed via the dashboard).
@@ -19,7 +19,7 @@ info:
     name: MIT
 
 servers:
-  - url: http://localhost:20128
+  - url: http://localhost:2004
     description: Local development
 
 tags:
@@ -3579,7 +3579,7 @@ paths:
       tags: [Embedded Services]
       summary: Toggle Mux auto-start
       description: >-
-        When enabled, Mux starts automatically on the next OmniRoute boot.
+        When enabled, Mux starts automatically on the next Birouter boot.
         **LOCAL_ONLY** — loopback only.
       requestBody:
         required: true
@@ -3696,7 +3696,7 @@ paths:
       tags: [Embedded Services]
       summary: Toggle Bifrost auto-start
       description: >-
-        When enabled, Bifrost starts automatically on the next OmniRoute boot.
+        When enabled, Bifrost starts automatically on the next Birouter boot.
         **LOCAL_ONLY** — loopback only.
       requestBody:
         required: true
@@ -5542,7 +5542,7 @@ paths:
       description: >-
         Mistral OCR–compatible document OCR endpoint. Accepts a JSON body
         referencing a document/image and returns extracted text. Success
-        responses carry the `X-OmniRoute-*` cost-telemetry headers.
+        responses carry the `X-Birouter-*` cost-telemetry headers.
       security:
         - BearerAuth: []
       requestBody:
@@ -5574,7 +5574,7 @@ paths:
         OpenAI Whisper–compatible audio translation (multipart/form-data).
         Unlike `/api/v1/audio/transcriptions`, output is always English
         regardless of the source language. Success responses carry the
-        `X-OmniRoute-*` cost-telemetry headers.
+        `X-Birouter-*` cost-telemetry headers.
       security:
         - BearerAuth: []
       requestBody:
@@ -5687,8 +5687,8 @@ paths:
     get:
       tags:
         - CLI Tools
-      summary: Read Crush CLI OmniRoute config
-      description: Local-only. Reads the OmniRoute provider block in Crush's config.
+      summary: Read Crush CLI Birouter config
+      description: Local-only. Reads the Birouter provider block in Crush's config.
       x-internal: true
       responses:
         "200":
@@ -5696,8 +5696,8 @@ paths:
     post:
       tags:
         - CLI Tools
-      summary: Write Crush CLI OmniRoute config
-      description: Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config.
+      summary: Write Crush CLI Birouter config
+      description: Local-only. Registers Birouter as an `openai-compat` provider in Crush's config.
       x-internal: true
       responses:
         "200":
@@ -5705,8 +5705,8 @@ paths:
     delete:
       tags:
         - CLI Tools
-      summary: Remove OmniRoute from Crush CLI config
-      description: Local-only. Removes the OmniRoute provider block from Crush's config.
+      summary: Remove Birouter from Crush CLI config
+      description: Local-only. Removes the Birouter provider block from Crush's config.
       x-internal: true
       responses:
         "200":
@@ -5715,9 +5715,9 @@ paths:
     get:
       tags:
         - CLI Tools
-      summary: Read CodeWhale CLI OmniRoute config
+      summary: Read CodeWhale CLI Birouter config
       description: >-
-        Local-only. Reads the OmniRoute config block from
+        Local-only. Reads the Birouter config block from
         `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy
         fallback).
       x-internal: true
@@ -5727,8 +5727,8 @@ paths:
     post:
       tags:
         - CLI Tools
-      summary: Write CodeWhale CLI OmniRoute config
-      description: Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
+      summary: Write CodeWhale CLI Birouter config
+      description: Local-only. Writes the Birouter config block in CodeWhale TOML format.
       x-internal: true
       responses:
         "200":
@@ -5736,8 +5736,8 @@ paths:
     delete:
       tags:
         - CLI Tools
-      summary: Remove OmniRoute from CodeWhale CLI config
-      description: Local-only. Removes the OmniRoute config block from CodeWhale's config.
+      summary: Remove Birouter from CodeWhale CLI config
+      description: Local-only. Removes the Birouter config block from CodeWhale's config.
       x-internal: true
       responses:
         "200":

@@ -26,7 +26,7 @@ const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElemen
 function makeConfig() {
   return {
     endpoint: "chat.completions" as const,
-    baseUrl: "http://localhost:20128",
+    baseUrl: "http://localhost:2004",
     model: "openai/gpt-4o",
     systemPrompt: "You are a helpful assistant.",
     params: { ...DEFAULT_PARAMS },

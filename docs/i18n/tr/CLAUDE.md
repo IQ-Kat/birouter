@@ -10,7 +10,7 @@ Bu dosya, bu depoda kod çalıştırırken Claude Code (claude.ai/code) için re
 
 ```bash
 npm install                    # Bağımlılıkları yükle (otomatik olarak .env.example'dan .env oluşturur)
-npm run dev                    # Geliştirme sunucusu http://localhost:20128
+npm run dev                    # Geliştirme sunucusu http://localhost:2004
 npm run build                  # Üretim derlemesi (Next.js 16 bağımsız)
 npm run lint                   # ESLint (0 hata bekleniyor; uyarılar önceden mevcut)
 npm run typecheck:core         # TypeScript kontrolü (temiz olmalı)
@@ -361,7 +361,7 @@ git push -u origin feat/your-feature
 - **Çalışma Zamanı**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modülleri
 - **TypeScript**: 5.9+, hedef ES2022, modül esnext, çözümleyici paketleyici
 - **Yol takma adları**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Varsayılan port**: 20128 (API + kontrol paneli aynı portta)
+- **Varsayılan port**: 2004 (API + kontrol paneli aynı portta)
 - **Veri dizini**: `DATA_DIR` env değişkeni, varsayılan olarak `~/.birouter/`
 - **Ana env değişkenleri**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Kurulum: `cp .env.example .env` ardından `JWT_SECRET` (`openssl rand -base64 48`) ve `API_KEY_SECRET` (`openssl rand -hex 32`) oluşturun

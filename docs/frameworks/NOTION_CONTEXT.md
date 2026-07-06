@@ -49,15 +49,15 @@ dashboard (`ObsidianSourceCard`'s sibling `NotionSourceCard`), or via the settin
 
 ```bash
 # Save + validate the integration token (POST validates by issuing a test search)
-curl -X POST http://localhost:20128/api/settings/notion \
+curl -X POST http://localhost:2004/api/settings/notion \
   -H "Content-Type: application/json" \
   -d '{"token":"ntn_xxx"}'
 
 # Check connection status
-curl http://localhost:20128/api/settings/notion
+curl http://localhost:2004/api/settings/notion
 
 # Disconnect (clears the stored token)
-curl -X DELETE http://localhost:20128/api/settings/notion
+curl -X DELETE http://localhost:2004/api/settings/notion
 ```
 
 All three methods require dashboard authentication (`isAuthenticated`). On `POST`,

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const BASE_URL = "http://localhost:20128";
+const BASE_URL = "http://localhost:2004";
 
 test("contract: /api/v1 OPTIONS exposes CORS and allowed methods", async () => {
   const { OPTIONS } = await import("../../src/app/api/v1/route.ts");

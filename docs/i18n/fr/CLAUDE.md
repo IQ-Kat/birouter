@@ -10,7 +10,7 @@ Ce fichier fournit des conseils à Claude Code (claude.ai/code) lors de l'utilis
 
 ```bash
 npm install                    # Installer les dépendances (génère automatiquement .env à partir de .env.example)
-npm run dev                    # Serveur de développement à http://localhost:20128
+npm run dev                    # Serveur de développement à http://localhost:2004
 npm run build                  # Construction de production (Next.js 16 autonome)
 npm run lint                   # ESLint (0 erreurs attendues ; les avertissements sont préexistants)
 npm run typecheck:core         # Vérification TypeScript (doit être propre)
@@ -386,7 +386,7 @@ git push -u origin feat/your-feature
 - **Runtime** : Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript** : 5.9+, cible ES2022, module esnext, résolution bundler
 - **Alias de chemin** : `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Port par défaut** : 20128 (API + tableau de bord sur le même port)
+- **Port par défaut** : 2004 (API + tableau de bord sur le même port)
 - **Répertoire de données** : variable d'environnement `DATA_DIR`, par défaut `~/.birouter/`
 - **Variables d'environnement clés** : `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Configuration : `cp .env.example .env` puis générez `JWT_SECRET` (`openssl rand -base64 48`) et `API_KEY_SECRET` (`openssl rand -hex 32`)

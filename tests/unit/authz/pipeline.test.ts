@@ -1,4 +1,4 @@
-﻿import test from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -144,27 +144,27 @@ test("runAuthzPipeline redirects unauthenticated /home/* nested paths to login (
 test("runAuthzPipeline prefixes the root-to-dashboard redirect with basePath when set", async () => {
   await forceAuthRequired();
 
-  const req = new NextRequest("http://localhost/omniroute/", {
-    nextConfig: { basePath: "/omniroute" },
+  const req = new NextRequest("http://localhost/birouter/", {
+    nextConfig: { basePath: "/birouter" },
   });
 
   const response = await pipeline.runAuthzPipeline(req, { enforce: true });
 
   assert.equal(response.status, 307);
-  assert.equal(response.headers.get("location"), "http://localhost/omniroute/dashboard");
+  assert.equal(response.headers.get("location"), "http://localhost/birouter/dashboard");
 });
 
 test("runAuthzPipeline prefixes the dashboard login redirect with basePath when set", async () => {
   await forceAuthRequired();
 
-  const req = new NextRequest("http://localhost/omniroute/dashboard", {
-    nextConfig: { basePath: "/omniroute" },
+  const req = new NextRequest("http://localhost/birouter/dashboard", {
+    nextConfig: { basePath: "/birouter" },
   });
 
   const response = await pipeline.runAuthzPipeline(req, { enforce: true });
 
   assert.equal(response.status, 307);
-  assert.equal(response.headers.get("location"), "http://localhost/omniroute/login");
+  assert.equal(response.headers.get("location"), "http://localhost/birouter/login");
   assert.equal(response.headers.get("x-birouter-route-class"), "MANAGEMENT");
 });
 
@@ -352,7 +352,7 @@ test("runAuthzPipeline accepts dashboard mutations from configured public origin
   process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test";
 
   const response = await pipeline.runAuthzPipeline(
-    request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    request("http://birouter:2004/api/providers/health-autopilot/actions", {
       method: "POST",
       headers: {
         cookie: await dashboardCookie(),
@@ -372,11 +372,11 @@ test("runAuthzPipeline rejects dashboard mutations from dynamic public origins w
   await forceAuthRequired();
 
   const response = await pipeline.runAuthzPipeline(
-    request("http://127.0.0.1:20128/api/settings", {
+    request("http://127.0.0.1:2004/api/settings", {
       method: "PATCH",
       headers: {
         cookie: await dashboardCookie(),
-        host: "127.0.0.1:20128",
+        host: "127.0.0.1:2004",
         origin: "https://random-tunnel.example.test",
         "content-type": "application/json",
         "sec-fetch-site": "same-origin",
@@ -396,7 +396,7 @@ test("runAuthzPipeline accepts dashboard mutations from dynamic public origins w
 
   const cookie = await dashboardCookie();
   const issued = csrf.issueDashboardCsrfToken(
-    request("http://127.0.0.1:20128/api/auth/csrf", {
+    request("http://127.0.0.1:2004/api/auth/csrf", {
       headers: { cookie },
     })
   );
@@ -410,11 +410,11 @@ test("runAuthzPipeline accepts dashboard mutations from dynamic public origins w
     ["DELETE", "/api/webhooks/webhook-1"],
   ] as const) {
     const response = await pipeline.runAuthzPipeline(
-      request(`http://127.0.0.1:20128${path}`, {
+      request(`http://127.0.0.1:2004${path}`, {
         method,
         headers: {
           cookie,
-          host: "127.0.0.1:20128",
+          host: "127.0.0.1:2004",
           origin: "https://random-tunnel.example.test",
           "content-type": "application/json",
           [dashboardCsrfConstants.DASHBOARD_CSRF_HEADER]: issued.token,
@@ -435,18 +435,18 @@ test("runAuthzPipeline does not let CSRF bypass cross-site fetch metadata", asyn
 
   const cookie = await dashboardCookie();
   const issued = csrf.issueDashboardCsrfToken(
-    request("http://127.0.0.1:20128/api/auth/csrf", {
+    request("http://127.0.0.1:2004/api/auth/csrf", {
       headers: { cookie },
     })
   );
   assert.ok(issued);
 
   const response = await pipeline.runAuthzPipeline(
-    request("http://127.0.0.1:20128/api/settings", {
+    request("http://127.0.0.1:2004/api/settings", {
       method: "PATCH",
       headers: {
         cookie,
-        host: "127.0.0.1:20128",
+        host: "127.0.0.1:2004",
         origin: "https://random-tunnel.example.test",
         "content-type": "application/json",
         [dashboardCsrfConstants.DASHBOARD_CSRF_HEADER]: issued.token,
@@ -467,7 +467,7 @@ test("runAuthzPipeline rejects dashboard mutations from invalid browser origin",
   process.env.NEXT_PUBLIC_BASE_URL = "https://gateway.example.test";
 
   const response = await pipeline.runAuthzPipeline(
-    request("http://birouter:20128/api/providers/health-autopilot/actions", {
+    request("http://birouter:2004/api/providers/health-autopilot/actions", {
       method: "POST",
       headers: {
         cookie: await dashboardCookie(),
@@ -505,7 +505,7 @@ test("runAuthzPipeline answers OPTIONS /v1/models preflight with Allow-Origin (#
   assert.equal(response.headers.get("x-birouter-route-class"), "CLIENT_API");
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), "http://localhost");
   assert.match(response.headers.get("Vary") || "", /Origin/);
-  // Token-auth surface — must NOT advertise credentials with the echoed origin.
+  // Token-auth surface � must NOT advertise credentials with the echoed origin.
   assert.equal(response.headers.get("Access-Control-Allow-Credentials"), null);
 });
 
@@ -541,7 +541,7 @@ test("runAuthzPipeline keeps MANAGEMENT OPTIONS fail-closed for arbitrary origin
 
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("x-birouter-route-class"), "MANAGEMENT");
-  // Management surface is cookie-authed → no permissive origin echo.
+  // Management surface is cookie-authed ? no permissive origin echo.
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
 });
 

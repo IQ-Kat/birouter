@@ -24,19 +24,19 @@ jobs:
       - name: Start Birouter (block mode)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-          PORT: "20128"
+          PORT: "2004"
           INJECTION_GUARD_MODE: block
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo up; break; fi
+            if curl -sf http://localhost:2004/api/monitoring/health >/dev/null; then echo up; break; fi
             sleep 2
           done
       - name: promptfoo guard-validation
         run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
         env:
-          BIROUTER_URL: http://localhost:20128
+          BIROUTER_URL: http://localhost:2004
           BIROUTER_API_KEY: not-needed-blocked-before-upstream
       - name: Stop server
         if: always()
@@ -78,12 +78,12 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-          PORT: "20128"
+          PORT: "2004"
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo up; break; fi
+            if curl -sf http://localhost:2004/api/monitoring/health >/dev/null; then echo up; break; fi
             sleep 2
           done
       - uses: actions/setup-python@v6
@@ -95,7 +95,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.PROMPTFOO_PROVIDER_KEY }}
-          OPENAI_BASE_URL: http://localhost:20128/v1
+          OPENAI_BASE_URL: http://localhost:2004/v1
         run: garak --model_type openai --model_name gpt-4o-mini --probes promptinject,dan,leakreplay --report_prefix garak-birouter || true
       - name: Stop server
         if: always() && steps.gate.outputs.run == 'true'

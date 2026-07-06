@@ -49,7 +49,7 @@ OpenRouter 风格的后缀将**什么类型的路由**（类别）与**如何优
 
 ```bash
 # 任何支持 OpenAI 格式的 IDE 或 CLI 工具
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  <your-endpoint-key>
 
 # 在代码/配置中，将 model 设置为：
@@ -201,7 +201,7 @@ OmniRoute 的 Combo 引擎支持 **17 种路由策略**（声明在 `src/shared/
 ### 示例
 
 ```bash
-curl -X POST http://localhost:20128/api/combos \
+curl -X POST http://localhost:2004/api/combos \
   -H "Authorization: Bearer <key>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -258,13 +258,13 @@ Auto Combo 引擎不需要预定义的 Combo。相反，`open-sse/services/autoC
 
 ```bash
 # 零配置用法（无需创建 Combo）
-curl -X POST http://localhost:20128/v1/chat/completions \
+curl -X POST http://localhost:2004/v1/chat/completions \
   -H "Authorization: Bearer <key>" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/coding","messages":[{"role":"user","content":"Hello"}]}'
 
 # 通过常规 Combo 端点创建持久化 Auto Combo
-curl -X POST http://localhost:20128/api/combos \
+curl -X POST http://localhost:2004/api/combos \
   -H "Content-Type: application/json" \
   -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
 ```

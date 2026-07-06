@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # 安裝依賴（從 .env.example 自動生成 .env）
-npm run dev                    # 開發伺服器在 http://localhost:20128
+npm run dev                    # 開發伺服器在 http://localhost:2004
 npm run build                  # 生產構建（Next.js 16 獨立版）
 npm run lint                   # ESLint（預期 0 個錯誤；警告為先前存在）
 npm run typecheck:core         # TypeScript 檢查（應為乾淨）
@@ -366,7 +366,7 @@ git push -u origin feat/your-feature
 - **運行時**：Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**：5.9+，目標 ES2022，模塊 esnext，解析器 bundler
 - **路徑別名**：`@/*` → `src/`，`@birouter/open-sse` → `open-sse/`，`@birouter/open-sse/*` → `open-sse/*`
-- **默認埠**：20128（API + 儀錶板在同一埠）
+- **默認埠**：2004（API + 儀錶板在同一埠）
 - **數據目錄**：`DATA_DIR` 環境變量，默認為 `~/.birouter/`
 - **關鍵環境變量**：`PORT`、`JWT_SECRET`、`API_KEY_SECRET`、`INITIAL_PASSWORD`、`REQUIRE_API_KEY`、`APP_LOG_LEVEL`
 - 設置：`cp .env.example .env` 然後生成 `JWT_SECRET` (`openssl rand -base64 48`) 和 `API_KEY_SECRET` (`openssl rand -hex 32`)

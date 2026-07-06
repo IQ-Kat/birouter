@@ -14,7 +14,7 @@
  *     ```ts
  *     import { buildBirouterOpenCodeConfig } from "@birouter/opencode-provider";
  *     const config = buildBirouterOpenCodeConfig({
- *       baseURL: "http://localhost:20128",
+ *       baseURL: "http://localhost:2004",
  *       apiKey: "sk_birouter",
  *     });
  *     // config -> { $schema, provider: { birouter: { npm, name, options, models } } }
@@ -349,7 +349,7 @@ export function buildBirouterOpenCodeConfig(
  * ```ts
  * const existing = JSON.parse(readFileSync("opencode.json", "utf8"));
  * const updated = mergeIntoExistingConfig(existing, {
- *   baseURL: "http://localhost:20128",
+ *   baseURL: "http://localhost:2004",
  *   apiKey: "sk_birouter",
  *   model: "claude-sonnet-4-5-thinking",
  * });
@@ -523,9 +523,9 @@ export interface BirouterLiveModel {
  *
  * @example
  * ```ts
- * const models = await fetchLiveModels("http://localhost:20128", "sk_birouter");
+ * const models = await fetchLiveModels("http://localhost:2004", "sk_birouter");
  * const config = buildBirouterOpenCodeConfig({
- *   baseURL: "http://localhost:20128",
+ *   baseURL: "http://localhost:2004",
  *   apiKey: "sk_birouter",
  *   models,                    // BirouterLiveModel[] — contextLength auto-extracted
  *   modelLabels: Object.fromEntries(models.map((m) => [m.id, m.name])),

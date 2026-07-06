@@ -7,7 +7,7 @@ import path from "node:path";
 const ROOT = process.cwd();
 const REPORTS_DIR = path.join(ROOT, "docs", "reports");
 const DATE = new Date().toISOString().slice(0, 10);
-const BASE_URL = process.env.QA_BASE_URL || "http://localhost:20128";
+const BASE_URL = process.env.QA_BASE_URL || "http://localhost:2004";
 const REPORT_SUFFIX = process.env.QA_REPORT_SUFFIX ? `-${process.env.QA_REPORT_SUFFIX}` : "";
 
 const DEFAULT_LOCALES = ["es", "fr", "de", "ja", "ar"];

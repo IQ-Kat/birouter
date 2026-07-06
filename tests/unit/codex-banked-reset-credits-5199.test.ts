@@ -1,7 +1,7 @@
 /**
  * Regression test for Codex "banked reset credits" (issue #5199).
  *
- * DISPLAY ONLY: OmniRoute already calls the ChatGPT backend
+ * DISPLAY ONLY: Birouter already calls the ChatGPT backend
  * `/backend-api/wham/usage` endpoint for quota tracking. Some eligibility-gated
  * accounts additionally expose `rate_limit_reset_credits.available_count` (a
  * count of extra rate-limit resets banked on the account) and, optionally,

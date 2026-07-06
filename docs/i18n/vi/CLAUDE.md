@@ -10,7 +10,7 @@ Tệp này cung cấp hướng dẫn cho Claude Code (claude.ai/code) khi làm v
 
 ```bash
 npm install                    # Cài đặt deps (tự động tạo .env từ .env.example)
-npm run dev                    # Máy chủ phát triển tại http://localhost:20128
+npm run dev                    # Máy chủ phát triển tại http://localhost:2004
 npm run build                  # Xây dựng sản phẩm (Next.js 16 độc lập)
 npm run lint                   # ESLint (0 lỗi mong đợi; cảnh báo là có sẵn trước)
 npm run typecheck:core         # Kiểm tra TypeScript (nên sạch)
@@ -388,7 +388,7 @@ git push -u origin feat/your-feature
 - **Thời gian chạy**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, mục tiêu ES2022, mô-đun esnext, giải quyết bundler
 - **Biểu thức đường dẫn**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Cổng mặc định**: 20128 (API + bảng điều khiển trên cùng một cổng)
+- **Cổng mặc định**: 2004 (API + bảng điều khiển trên cùng một cổng)
 - **Thư mục dữ liệu**: biến môi trường `DATA_DIR`, mặc định là `~/.birouter/`
 - **Các biến môi trường chính**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Thiết lập: `cp .env.example .env` sau đó tạo `JWT_SECRET` (`openssl rand -base64 48`) và `API_KEY_SECRET` (`openssl rand -hex 32`)

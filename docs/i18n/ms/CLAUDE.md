@@ -10,7 +10,7 @@ Fail ini memberikan panduan kepada Claude Code (claude.ai/code) apabila bekerja 
 
 ```bash
 npm install                    # Pasang deps (auto-generate .env dari .env.example)
-npm run dev                    # Pelayan dev di http://localhost:20128
+npm run dev                    # Pelayan dev di http://localhost:2004
 npm run build                  # Pembinaan pengeluaran (Next.js 16 standalone)
 npm run lint                   # ESLint (0 ralat dijangka; amaran adalah sedia ada)
 npm run typecheck:core         # Semakan TypeScript (seharusnya bersih)
@@ -383,7 +383,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Modul ES
 - **TypeScript**: 5.9+, sasaran ES2022, modul esnext, resolusi bundler
 - **Alias laluan**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Port lalai**: 20128 (API + papan pemuka pada port yang sama)
+- **Port lalai**: 2004 (API + papan pemuka pada port yang sama)
 - **Direktori data**: `DATA_DIR` env var, lalai kepada `~/.birouter/`
 - **Variabel env utama**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Persediaan: `cp .env.example .env` kemudian hasilkan `JWT_SECRET` (`openssl rand -base64 48`) dan `API_KEY_SECRET` (`openssl rand -hex 32`)

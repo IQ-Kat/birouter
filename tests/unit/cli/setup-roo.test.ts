@@ -7,16 +7,16 @@ import {
 } from "../../../bin/cli/commands/setup-roo.mjs";
 
 test("resolveRooTarget ensures /v1 on the base URL", () => {
-  assert.equal(resolveRooTarget({ remote: "http://vps:20128" }).baseUrl, "http://vps:20128/v1");
+  assert.equal(resolveRooTarget({ remote: "http://vps:2004" }).baseUrl, "http://vps:2004/v1");
 });
 test("resolveRooTarget: explicit --api-key wins", () => {
-  assert.equal(resolveRooTarget({ remote: "http://x:20128", apiKey: "sk-x" }).apiKey, "sk-x");
+  assert.equal(resolveRooTarget({ remote: "http://x:2004", apiKey: "sk-x" }).apiKey, "sk-x");
 });
 test("buildRooImport produces an openai-compatible provider profile (baseUrl /v1, model)", () => {
-  const d = buildRooImport({ baseUrl: "http://vps:20128/v1", apiKey: "k", model: "glm/glm-5.2" });
+  const d = buildRooImport({ baseUrl: "http://vps:2004/v1", apiKey: "k", model: "glm/glm-5.2" });
   const cfg = d.providerProfiles.apiConfigs.Birouter;
   assert.equal(cfg.apiProvider, "openai");
-  assert.equal(cfg.openAiBaseUrl, "http://vps:20128/v1");
+  assert.equal(cfg.openAiBaseUrl, "http://vps:2004/v1");
   assert.equal(cfg.openAiModelId, "glm/glm-5.2");
   assert.equal(d.providerProfiles.currentApiConfigName, "Birouter");
 });

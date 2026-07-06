@@ -258,7 +258,7 @@ Cost: $0 forever!
 
 ```
 Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:2004/v1
   OpenAI API Key: [from birouter dashboard]
   Model: cc/claude-opus-4-7
 ```
@@ -270,7 +270,7 @@ Settings → Models → Advanced:
 ```json
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_BASE_URL": "http://localhost:2004",
     "ANTHROPIC_AUTH_TOKEN": "your-omniroute-api-key"
   }
 }
@@ -281,7 +281,7 @@ Settings → Models → Advanced:
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:2004"
 export OPENAI_API_KEY="your-birouter-api-key"
 codex "your prompt"
 ```
@@ -300,7 +300,7 @@ codex "your prompt"
   "models": {
     "providers": {
       "birouter": {
-        "baseUrl": "http://localhost:20128/v1",
+        "baseUrl": "http://localhost:2004/v1",
         "apiKey": "your-birouter-api-key",
         "api": "openai-completions",
         "models": [{ "id": "if/kimi-k2", "name": "kimi-k2" }]
@@ -316,7 +316,7 @@ codex "your prompt"
 
 ```
 Provider: OpenAI Compatible
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key: [from dashboard]
 Model: cc/claude-opus-4-7
 ```
@@ -364,10 +364,10 @@ cd Birouter && npm install && npm run build
 export JWT_SECRET="your-secure-secret-change-this"
 export INITIAL_PASSWORD="your-password"
 export DATA_DIR="/var/lib/birouter"
-export PORT="20128"
+export PORT="2004"
 export HOSTNAME="0.0.0.0"
 export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
+export NEXT_PUBLIC_BASE_URL="http://localhost:2004"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
@@ -418,7 +418,7 @@ module.exports = {
 docker build -t birouter:cli .
 
 # Portable mode (recommended)
-docker run -d --name birouter -p 20128:20128 --env-file ./.env -v birouter-data:/app/data birouter:cli
+docker run -d --name birouter -p 2004:2004 --env-file ./.env -v birouter-data:/app/data birouter:cli
 ```
 
 关于集成了 CLI 二进制文件的主机集成模式，请参阅主文档中的 Docker 章节。
@@ -507,7 +507,7 @@ do_install() {
 
 	cat > "${WRKDIR}/birouter" <<'EOF'
 #!/bin/sh
-export PORT="${PORT:-20128}"
+export PORT="${PORT:-2004}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/birouter}"
 export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
@@ -530,10 +530,10 @@ post_install() {
 | `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT 签名密钥（**生产环境必须修改**）                                   |
 | `INITIAL_PASSWORD`                      | `CHANGEME`                           | 首次登录密码                                                           |
 | `DATA_DIR`                              | `~/.omniroute`                       | 数据目录（数据库、用量、日志）                                         |
-| `PORT`                                  | 框架默认                             | 服务端口（示例中使用 `20128`）                                         |
+| `PORT`                                  | 框架默认                             | 服务端口（示例中使用 `2004`）                                          |
 | `HOSTNAME`                              | 框架默认                             | 绑定主机（Docker 默认为 `0.0.0.0`）                                    |
 | `NODE_ENV`                              | 运行时默认                           | 部署时设为 `production`                                                |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | 面向前端和服务器公开的基础 URL（替代旧版 `BASE_URL`）                  |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:2004`              | 面向前端和服务器公开的基础 URL（替代旧版 `BASE_URL`）                  |
 | `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud Sync 端点基础 URL（替代旧版 `CLOUD_URL`）                        |
 | `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | 生成 API Key 的 HMAC 密钥                                              |
 | `REQUIRE_API_KEY`                       | `false`                              | 对 `/v1/*` 强制使用 Bearer API Key                                     |
@@ -619,12 +619,12 @@ post_install() {
 
 ```bash
 # Via API
-curl -X POST http://localhost:20128/api/provider-models \
+curl -X POST http://localhost:2004/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# List: curl http://localhost:2004/api/provider-models?provider=openai
+# Remove: curl -X DELETE "http://localhost:2004/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
 或使用 Dashboard：**Providers → [Provider] → Custom Models**。
@@ -639,9 +639,9 @@ curl -X POST http://localhost:20128/api/provider-models \
 将请求直接路由到特定服务商，并附带模型校验：
 
 ```bash
-POST http://localhost:20128/v1/providers/openai/chat/completions
-POST http://localhost:20128/v1/providers/openai/embeddings
-POST http://localhost:20128/v1/providers/fireworks/images/generations
+POST http://localhost:2004/v1/providers/openai/chat/completions
+POST http://localhost:2004/v1/providers/openai/embeddings
+POST http://localhost:2004/v1/providers/fireworks/images/generations
 ```
 
 服务商前缀在缺失时自动添加。模型不匹配返回 `400`。
@@ -650,15 +650,15 @@ POST http://localhost:20128/v1/providers/fireworks/images/generations
 
 ```bash
 # Set global proxy
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
 # Per-provider proxy
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
 # Test proxy
-curl -X POST http://localhost:20128/api/settings/proxy/test \
+curl -X POST http://localhost:2004/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
@@ -667,7 +667,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 ### 模型目录 API
 
 ```bash
-curl http://localhost:20128/api/models/catalog
+curl http://localhost:2004/api/models/catalog
 ```
 
 按服务商分组返回模型，并标注类型（`chat`、`embedding`、`image`）。
@@ -834,13 +834,13 @@ OmniRoute 通过五个组件实现服务商级容灾：
 
 ```bash
 # API: Export database
-curl -o backup.sqlite http://localhost:20128/api/db-backups/export
+curl -o backup.sqlite http://localhost:2004/api/db-backups/export
 
 # API: Export all (full archive)
-curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
+curl -o backup.tar.gz http://localhost:2004/api/db-backups/exportAll
 
 # API: Import database
-curl -X POST http://localhost:20128/api/db-backups/import \
+curl -X POST http://localhost:2004/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
@@ -883,12 +883,12 @@ General 标签页不再重复显示只读的日志和缓存说明。数据库保
 
 ```bash
 # API: Set a budget
-curl -X POST http://localhost:20128/api/usage/budget \
+curl -X POST http://localhost:2004/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
 # API: Get current budget status
-curl http://localhost:20128/api/usage/budget
+curl http://localhost:2004/api/usage/budget
 ```
 
 **费用追踪：** 每次请求记录 Token 用量并使用定价表计算费用。在 **Dashboard → Usage** 中按服务商、模型和 API Key 查看明细。
@@ -905,7 +905,7 @@ Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
 # Example with curl
-curl -X POST http://localhost:20128/v1/audio/transcriptions \
+curl -X POST http://localhost:2004/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=deepgram/nova-3"
@@ -998,7 +998,7 @@ OmniRoute 内置了一个**得分驱动的自动路由器**，可跨所有已连
 示例：
 
 ```bash
-curl -X POST http://localhost:20128/v1/chat/completions \
+curl -X POST http://localhost:2004/v1/chat/completions \
   -H "Authorization: Bearer $OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1018,8 +1018,8 @@ OmniRoute 同时是一个 **MCP 服务端**（Model Context Protocol）和一个
 
 ### MCP 传输方式
 
-- **SSE**: `http://localhost:20128/api/mcp/sse`
-- **Streamable HTTP**: `http://localhost:20128/api/mcp/stream`
+- **SSE**: `http://localhost:2004/api/mcp/sse`
+- **Streamable HTTP**: `http://localhost:2004/api/mcp/stream`
 - **stdio**: `omniroute --mcp`（适用于偏好 stdio 的 IDE 插件）
 
 ### 连接 Claude Desktop
@@ -1039,7 +1039,7 @@ OmniRoute 同时是一个 **MCP 服务端**（Model Context Protocol）和一个
 
 ### 连接 Cursor / Continue / VS Code MCP
 
-使用 SSE URL `http://localhost:20128/api/mcp/sse` 和在 **Dashboard → API Keys** 中生成的 Bearer API Key。
+使用 SSE URL `http://localhost:2004/api/mcp/sse` 和在 **Dashboard → API Keys** 中生成的 Bearer API Key。
 
 ### 权限域
 
@@ -1105,24 +1105,24 @@ OmniRoute 集成了云编程代理（**OpenAI Codex Cloud**、**Devin**、**Jule
 
 ```bash
 # List providers
-curl http://localhost:20128/api/providers \
+curl http://localhost:2004/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 
 # Add a provider connection
-curl -X POST http://localhost:20128/api/providers \
+curl -X POST http://localhost:2004/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
 # Create a combo
-curl -X POST http://localhost:20128/api/combos \
+curl -X POST http://localhost:2004/api/combos \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
 # List/create API keys
-curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
-curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+curl http://localhost:2004/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
+curl -X POST http://localhost:2004/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
@@ -1204,9 +1204,9 @@ npm run build:linux    # Linux (.AppImage)
 
 ### 环境变量
 
-| 变量                  | 默认值  | 说明                              |
-| --------------------- | ------- | --------------------------------- |
-| `OMNIROUTE_PORT`      | `20128` | 服务端端口                        |
-| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js 堆内存上限（64–16384 MB） |
+| 变量                  | 默认值 | 说明                              |
+| --------------------- | ------ | --------------------------------- |
+| `OMNIROUTE_PORT`      | `2004` | 服务端端口                        |
+| `OMNIROUTE_MEMORY_MB` | `512`  | Node.js 堆内存上限（64–16384 MB） |
 
 📖 完整文档：[`electron/README.md`](../../electron/README.md)

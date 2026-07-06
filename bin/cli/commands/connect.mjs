@@ -48,7 +48,7 @@ async function readErrorMessage(res) {
 }
 
 export async function runConnectCommand(host, opts = {}) {
-  const baseUrl = normalizeBaseUrl(host, opts.port || "20128");
+  const baseUrl = normalizeBaseUrl(host, opts.port || "2004");
   if (!baseUrl) {
     printError("A host is required, e.g. birouter connect 192.168.0.15");
     return 2;
@@ -123,7 +123,7 @@ export function registerConnect(program) {
     .description(
       t("connect.description") || "Connect to a remote Birouter server and enter remote mode"
     )
-    .option("--port <port>", "Server port when the host has none", "20128")
+    .option("--port <port>", "Server port when the host has none", "2004")
     .option("--key <token>", "Use a pre-generated scoped access token (skips the password prompt)")
     .option("--name <name>", "Context name to save (default: derived from host)")
     .option("--scope <scope>", "Requested scope for the password flow (read|write|admin)")

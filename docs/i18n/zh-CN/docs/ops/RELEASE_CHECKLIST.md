@@ -233,7 +233,7 @@ npm run build:release
 ### 首次数据库启动（捕获迁移冲突 — 自 v3.8.4 hotfix 后新增）
 
 - [ ] `DATA_DIR=$(mktemp -d) npm start &` — 等待 10 秒启动
-- [ ] `curl -s http://127.0.0.1:20128/api/services/9router/status | jq '.tool'` 返回 `"9router"`（不是 404、不是 500）。确认迁移 `071_services.sql` 已应用 + 行已写入。
+- [ ] `curl -s http://127.0.0.1:2004/api/services/9router/status | jq '.tool'` 返回 `"9router"`（不是 404、不是 500）。确认迁移 `071_services.sql` 已应用 + 行已写入。
 - [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(version_manager);" | grep -E "provider_expose|logs_buffer_path|last_sync_at"` 返回 3 行。
 - [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(webhooks);" | grep -E "kind|metadata_encrypted"` 返回 2 行（验证 `070_webhooks_kind_metadata.sql` 已应用）。
 - [ ] `node --import tsx/esm --test tests/unit/db/no-migration-collisions.test.ts` 通过 — 防止未来冲突。
@@ -260,8 +260,8 @@ npm run build:release
 
 ### 安全回归测试
 
-- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/9router/start` 返回 `403 LOCAL_ONLY`
-- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:20128/api/services/cliproxy/start` 返回 `403 LOCAL_ONLY`
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:2004/api/services/9router/start` 返回 `403 LOCAL_ONLY`
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" http://localhost:2004/api/services/cliproxy/start` 返回 `403 LOCAL_ONLY`
 - [ ] `/api/services/*` 的错误响应不包含 `err.stack` 或绝对文件路径
 
 ## v3.8.0+ 检查项
@@ -286,8 +286,8 @@ npm run build:release
       可选依赖，否则 Worker 会基于根目录的 transformers 加载 llmlingua-2，
       SLM 层将静默失效。
 - [ ] `omniroute status` 在无 `.env` 的情况下正常工作（CLI Token 路径，仅 loopback）
-- [ ] `curl http://localhost:20128/api/shutdown` 返回 401（始终受保护的路由）
-- [ ] `curl -H "host: evil.com" http://localhost:20128/api/mcp/sse` 返回 401（loopback 防护）
+- [ ] `curl http://localhost:2004/api/shutdown` 返回 401（始终受保护的路由）
+- [ ] `curl -H "host: evil.com" http://localhost:2004/api/mcp/sse` 返回 401（loopback 防护）
 - [ ] SQLite 运行时首次运行时解析为 `bundled`（内嵌二进制文件对当前平台有效）
 - [ ] 删除 `node_modules/better-sqlite3` 后 SQLite 运行时回退到 `runtime`
 - [ ] 智能 MCP 过滤器压缩真实 `playwright-mcp browser_snapshot` 输出（压缩率 ≥50%）

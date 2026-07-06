@@ -814,7 +814,7 @@ flowchart LR
     end
 
     subgraph ContainerOrProcess[Birouter Runtime]
-        Next[Next.js Server\nPORT=20128]
+        Next[Next.js Server\nPORT=2004]
         Core[SSE Core + Executors]
         MainDB[(storage.sqlite)]
         UsageDB[(usage tables + log artifacts)]
@@ -1162,4 +1162,4 @@ flowchart LR
 - 启动服务并验证：
 - `GET /api/settings`
 - `GET /api/v1/models`
-- 当 `PORT=20128` 时，CLI 目标基 URL 应为 `http://<host>:20128/v1`
+- 当 `PORT=2004` 时，CLI 目标基 URL 应为 `http://<host>:2004/v1`

@@ -225,7 +225,7 @@ The `POST /api/skills/executions` endpoint returns HTTP `503` with `{ error: "Sk
 ### Example: install a custom skill
 
 ```bash
-curl -X POST http://localhost:20128/api/skills/install \
+curl -X POST http://localhost:2004/api/skills/install \
   -H "Authorization: Bearer $BIROUTER_MGMT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

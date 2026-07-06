@@ -25,7 +25,7 @@ tool_output_token_limit        = 32768    # history storage cap per tool call
 
 [model_providers.birouter]
 name                 = "Birouter"
-base_url             = "http://<YOUR_HOST>:20128/v1"
+base_url             = "http://<YOUR_HOST>:2004/v1"
 env_key              = "BIROUTER_API_KEY"
 requires_openai_auth = false
 wire_api             = "responses"
@@ -38,11 +38,11 @@ export BIROUTER_API_KEY="<YOUR_KEY>"
 
 > **Common host options**
 >
-> | Access        | URL                           |
-> | ------------- | ----------------------------- |
-> | Local network | `http://192.168.0.1:20128/v1` |
-> | Tailscale     | `http://100.x.x.x:20128/v1`   |
-> | Loopback      | `http://localhost:20128/v1`   |
+> | Access        | URL                          |
+> | ------------- | ---------------------------- |
+> | Local network | `http://192.168.0.1:2004/v1` |
+> | Tailscale     | `http://100.x.x.x:2004/v1`   |
+> | Loopback      | `http://localhost:2004/v1`   |
 
 ---
 
@@ -225,14 +225,14 @@ codex -p chat     # cx/gpt-5.5, no effort set (server default)
 If you run Birouter on a VPS, you can auto-generate profile files from the live model catalog:
 
 ```bash
-# From a VPS (uses local Birouter on port 20128)
+# From a VPS (uses local Birouter on port 2004)
 birouter setup-codex
 
 # From any machine — point at your VPS
-birouter setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
+birouter setup-codex --remote http://100.x.x.x:2004 --api-key sk-xxx
 
 # Preview without writing files
-birouter setup-codex --remote http://100.x.x.x:20128 --dry-run
+birouter setup-codex --remote http://100.x.x.x:2004 --dry-run
 
 # Only generate GLM and Kimi profiles
 birouter setup-codex --only glm,kimi
@@ -252,14 +252,14 @@ Birouter can also **auto-sync** these same profile files after a successful prov
 Health-checks your Birouter instance before launching Codex:
 
 ```bash
-# Launch against local Birouter (default port 20128)
+# Launch against local Birouter (default port 2004)
 birouter launch-codex
 
 # Launch with a specific profile
 birouter launch-codex --profile kimi-k27
 
 # Launch against a remote VPS
-birouter launch-codex --remote http://100.x.x.x:20128/v1 --api-key sk-xxx
+birouter launch-codex --remote http://100.x.x.x:2004/v1 --api-key sk-xxx
 
 # Pass extra args to codex
 birouter launch-codex --profile glm52 -- --yolo "fix this bug"
@@ -299,7 +299,7 @@ service_tier = "fast"   # "fast" | "flex"
 
 ```toml
 [model_providers.birouter]
-base_url             = "http://100.x.x.x:20128/v1"
+base_url             = "http://100.x.x.x:2004/v1"
 env_key              = "BIROUTER_API_KEY"
 requires_openai_auth = false
 
@@ -333,11 +333,11 @@ region  = "us-east-1"
 
 ```toml
 [model_providers.birouter-main]
-base_url = "http://192.168.0.1:20128/v1"
+base_url = "http://192.168.0.1:2004/v1"
 env_key  = "BIROUTER_API_KEY"
 
 [model_providers.birouter-tailscale]
-base_url = "http://100.x.x.x:20128/v1"
+base_url = "http://100.x.x.x:2004/v1"
 env_key  = "BIROUTER_API_KEY"
 ```
 

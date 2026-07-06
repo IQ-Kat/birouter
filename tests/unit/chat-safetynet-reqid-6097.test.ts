@@ -28,7 +28,7 @@ import path from "node:path";
 // asserts the redirect completes (200 + real upstream dispatch) instead of throwing.
 // WITHOUT the fix it fails: 502 with the "reqId is not defined" body and zero fetches.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chat-safetynet-6097-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-chat-safetynet-6097-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -89,13 +89,13 @@ test("#6097 safety-net combo redirect does not throw ReferenceError: reqId is no
   });
 
   const fetchCalls: string[] = [];
-  globalThis.fetch = async (url: any) => {
+  globalThis.fetch = (async (url: any) => {
     fetchCalls.push(String(url));
     return Response.json({
       id: "chatcmpl-safetynet-6097",
       choices: [{ message: { role: "assistant", content: "OK" } }],
     });
-  };
+  }) as unknown as typeof fetch;
 
   const request = new Request("http://localhost/v1/chat/completions", {
     method: "POST",

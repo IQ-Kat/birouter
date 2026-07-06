@@ -10,7 +10,7 @@ Tento súbor poskytuje pokyny pre Claude Code (claude.ai/code) pri práci s kód
 
 ```bash
 npm install                    # Nainštalujte závislosti (automaticky generuje .env z .env.example)
-npm run dev                    # Vývojový server na http://localhost:20128
+npm run dev                    # Vývojový server na http://localhost:2004
 npm run build                  # Produkčná zostava (Next.js 16 samostatne)
 npm run lint                   # ESLint (očakáva sa 0 chýb; varovania sú predchádzajúce)
 npm run typecheck:core         # Kontrola TypeScript (mala by byť čistá)
@@ -387,7 +387,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES moduly
 - **TypeScript**: 5.9+, cieľ ES2022, modul esnext, rozlíšenie bundler
 - **Cestné aliasy**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Predvolený port**: 20128 (API + dashboard na rovnakom porte)
+- **Predvolený port**: 2004 (API + dashboard na rovnakom porte)
 - **Adresár dát**: `DATA_DIR` env var, predvolene `~/.birouter/`
 - **Kľúčové env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Nastavenie: `cp .env.example .env` potom vygenerujte `JWT_SECRET` (`openssl rand -base64 48`) a `API_KEY_SECRET` (`openssl rand -hex 32`)

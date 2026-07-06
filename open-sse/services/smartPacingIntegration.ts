@@ -48,8 +48,8 @@ function extractPacingSettings(
   return {
     smartPacingEnabled: enabled === true || enabled === false ? enabled : undefined,
     smartPacingMode: mode === "off" || mode === "auto" || mode === "human-sim" ? mode : undefined,
-    smartPacingProviderProfiles: settings.smartPacingProviderProfiles as
-      Record<string, any> | undefined,
+    smartPacingProviderProfiles:
+      settings.smartPacingProviderProfiles as SmartPacingSettings["smartPacingProviderProfiles"],
   };
 }
 

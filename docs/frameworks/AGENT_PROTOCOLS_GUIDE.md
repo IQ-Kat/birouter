@@ -105,7 +105,7 @@ Body shape for POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts
   "binary": "/usr/local/bin/cursor",
   "versionCommand": "--version",
   "providerAlias": "cursor",
-  "spawnArgs": ["--api-base", "http://localhost:20128"],
+  "spawnArgs": ["--api-base", "http://localhost:2004"],
   "protocol": "stdio"
 }
 ```
@@ -180,7 +180,7 @@ Both have "long-running tasks" but at different layers:
 ### Discover Birouter's A2A capabilities
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 Returns the Agent Card with all 5 skills, transports, and version.
@@ -188,7 +188,7 @@ Returns the Agent Card with all 5 skills, transports, and version.
 ### Call Birouter as an A2A agent
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -204,14 +204,14 @@ curl -X POST http://localhost:20128/a2a \
 ### List installed CLI agents via ACP
 
 ```bash
-curl http://localhost:20128/api/acp/agents \
+curl http://localhost:2004/api/acp/agents \
   -H "Authorization: Bearer <api-key>"
 ```
 
 ### Add a custom CLI agent
 
 ```bash
-curl -X POST http://localhost:20128/api/acp/agents \
+curl -X POST http://localhost:2004/api/acp/agents \
   -H "Authorization: Bearer <api-key>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -227,7 +227,7 @@ curl -X POST http://localhost:20128/api/acp/agents \
 ### Submit a Cloud Agent task
 
 ```bash
-curl -X POST http://localhost:20128/api/v1/agents/tasks \
+curl -X POST http://localhost:2004/api/v1/agents/tasks \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -241,7 +241,7 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
 ### Poll cloud task status
 
 ```bash
-curl http://localhost:20128/api/v1/agents/tasks/<task-id> \
+curl http://localhost:2004/api/v1/agents/tasks/<task-id> \
   -H "Cookie: auth_token=..."
 ```
 

@@ -4,7 +4,7 @@
  *
  * Ported from decolua/9router PR #2272 (usage-reset concern only — the
  * connection bulk-delete half of that PR is intentionally not ported;
- * OmniRoute already has a native bulk-delete for connections).
+ * Birouter already has a native bulk-delete for connections).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -16,7 +16,7 @@ let tempDir: string;
 let originalDataDir: string | undefined;
 
 function setup() {
-  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-reset-test-"));
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-usage-reset-test-"));
   originalDataDir = process.env.DATA_DIR;
   process.env.DATA_DIR = tempDir;
 }

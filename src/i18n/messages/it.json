@@ -2278,7 +2278,7 @@
           },
           "3": {
             "title": "Base URL",
-            "desc": "http://127.0.0.1:20128/v1"
+            "desc": "http://127.0.0.1:2004/v1"
           },
           "4": {
             "title": "API Key",
@@ -3457,7 +3457,7 @@
       "cleanupSuccess": "__MISSING__:{count} point(s) removed",
       "cleanupFailed": "__MISSING__:Cleanup failed",
       "banner": "Vector store Tier 2 — un'alternativa esterna e scalabile al sqlite-vec integrato (Tier 1). Attivalo solo se hai un insieme di memorie molto grande o vuoi memoria condivisa tra istanze; la maggior parte degli utenti sta bene con sqlite-vec. Quando attivato diventa lo store primario e fa automaticamente fallback a sqlite-vec se non raggiungibile.",
-      "collectionHelp": "Qualsiasi nome — OmniRoute lo crea al primo utilizzo",
+      "collectionHelp": "Qualsiasi nome — Birouter lo crea al primo utilizzo",
       "embeddingModelHelp": "Imposta automaticamente la dimensione del vettore al primo utilizzo. Le memorie esistenti non vengono popolate retroattivamente, e cambiare modello dopo aver inserito dati richiede una nuova collezione.",
       "hostHelp": "Docker locale: http://localhost:6333 · Qdrant Cloud: l'URL del tuo cluster"
     },
@@ -6114,7 +6114,7 @@
     "redisLauncherContainer": "Container",
     "redisLauncherDesc": "Avvia con un clic un container Redis 7 (Podman o Docker) per cache risposte, tracciamento quote e rate limiting.",
     "redisLauncherError": "Errore: {message}",
-    "redisLauncherHint": "Equivalente a eseguire `omniroute redis up`. Il container si chiama `omniroute-redis` e ascolta su 127.0.0.1:6379.",
+    "redisLauncherHint": "Equivalente a eseguire `Birouter redis up`. Il container si chiama `Birouter-redis` e ascolta su 127.0.0.1:6379.",
     "redisLauncherLaunch": "Avvia Redis",
     "redisLauncherLaunching": "Avvio in corso...",
     "redisLauncherReachable": "Raggiungibile",

@@ -73,7 +73,7 @@ function makeTool(overrides: Partial<CliCatalogEntry> = {}): CliCatalogEntry {
 function makeBatchStatus(overrides: Partial<ToolBatchStatus> = {}): ToolBatchStatus {
   return {
     detection: { installed: true, runnable: true, version: "1.2.3" },
-    config: { status: "configured", endpoint: "http://localhost:20128", lastConfiguredAt: null },
+    config: { status: "configured", endpoint: "http://localhost:2004", lastConfiguredAt: null },
     ...overrides,
   };
 }

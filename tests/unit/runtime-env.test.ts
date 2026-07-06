@@ -32,11 +32,11 @@ test("runtime env helpers normalize runtime ports and conflicting color flags", 
   assert.deepEqual(
     runtimeEnv.withRuntimePortEnv(
       { NODE_ENV: "test" },
-      { basePort: 20128, apiPort: 21128, dashboardPort: 22128 }
+      { basePort: 2004, apiPort: 21128, dashboardPort: 22128 }
     ),
     {
       NODE_ENV: "test",
-      BIROUTER_PORT: "20128",
+      BIROUTER_PORT: "2004",
       PORT: "22128",
       DASHBOARD_PORT: "22128",
       API_PORT: "21128",

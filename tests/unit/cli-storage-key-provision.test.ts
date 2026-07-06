@@ -29,7 +29,7 @@ test("storage key: real commands DO provision (preserves #1622 persistence)", ()
   assert.equal(shouldProvisionStorageKey(argv("serve")), true);
   assert.equal(shouldProvisionStorageKey(argv("keys", "list")), true);
   assert.equal(shouldProvisionStorageKey(argv("providers")), true);
-  assert.equal(shouldProvisionStorageKey(argv("serve", "--port", "20128")), true);
+  assert.equal(shouldProvisionStorageKey(argv("serve", "--port", "2004")), true);
   // global --lang option before a real command must not suppress provisioning
   assert.equal(shouldProvisionStorageKey(argv("--lang", "en", "serve")), true);
 });

@@ -5,7 +5,7 @@ import { cliModelConfigSchema } from "../../src/shared/validation/schemas.ts";
 
 test("cliModelConfigSchema accepts Codex xhigh reasoning effort", () => {
   const result = cliModelConfigSchema.safeParse({
-    baseUrl: "http://localhost:20128/api/v1",
+    baseUrl: "http://localhost:2004/api/v1",
     apiKey: "sk_birouter",
     model: "gpt-5.5",
     reasoningEffort: "xhigh",

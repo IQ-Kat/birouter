@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Authenticate user
 
 ```bash
-curl -X POST https://localhost:20128/api/auth/login \
+curl -X POST https://localhost:2004/api/auth/login \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -31,7 +31,7 @@ curl -X POST https://localhost:20128/api/auth/login \
 Log out
 
 ```bash
-curl -X POST https://localhost:20128/api/auth/logout \
+curl -X POST https://localhost:2004/api/auth/logout \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -52,7 +52,7 @@ auto-fallback, RTK token saver, MCP server, A2A agents.
 ## Setup
 
 ```bash
-export BIROUTER_URL="http://localhost:20128"      # or VPS / tunnel URL
+export BIROUTER_URL="http://localhost:2004"      # or VPS / tunnel URL
 export BIROUTER_KEY="sk-..."                       # from Dashboard → API Keys
 ```
 

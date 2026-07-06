@@ -67,7 +67,7 @@ Docker example:
 ```bash
 docker run -d --name birouter \
   --restart unless-stopped \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   -e ENABLE_CC_COMPATIBLE_PROVIDER=true \
   IQ-Kat/birouter:latest
@@ -105,7 +105,7 @@ key (`sk-...`). The connection's `test_status` should turn `active`.
 Reference the model using your provider's prefix as the namespace:
 
 ```bash
-curl -X POST http://localhost:20128/v1/chat/completions \
+curl -X POST http://localhost:2004/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "agentrouter/claude-opus-4-6",

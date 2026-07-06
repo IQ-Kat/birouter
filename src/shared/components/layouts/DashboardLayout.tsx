@@ -87,7 +87,7 @@ export default function DashboardLayout({ children }) {
       <div className="dashboard-sidebar-desktop">
         <Sidebar
           collapsed={collapsed}
-          onToggleCollapse={handleToggleCollapse}
+          onToggleCollapseAction={handleToggleCollapse}
           isMacElectron={isMacElectron}
         />
       </div>
@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} isMacElectron={isMacElectron} />
+        <Sidebar onCloseAction={() => setSidebarOpen(false)} isMacElectron={isMacElectron} />
       </div>
 
       {/* Main content */}
@@ -107,8 +107,8 @@ export default function DashboardLayout({ children }) {
         className="relative flex min-h-0 flex-1 min-w-0 flex-col transition-colors duration-300"
       >
         <Header
-          onMenuClick={() => setSidebarOpen(true)}
-          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+          onMenuClickAction={() => setSidebarOpen(true)}
+          onOpenCommandPaletteAction={() => setCommandPaletteOpen(true)}
         />
         {!isE2EMode && <MaintenanceBanner />}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 sm:p-6 lg:p-10">

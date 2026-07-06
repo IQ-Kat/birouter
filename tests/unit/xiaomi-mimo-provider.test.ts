@@ -54,7 +54,7 @@ test("xiaomi-mimo executor appends /chat/completions for regional base URLs", ()
       providerSpecificData: {
         baseUrl: "https://token-plan-sgp.xiaomimimo.com/v1",
       },
-    }),
+    } as { providerSpecificData: { baseUrl: string } }),
     "https://token-plan-sgp.xiaomimimo.com/v1/chat/completions"
   );
 
@@ -63,7 +63,7 @@ test("xiaomi-mimo executor appends /chat/completions for regional base URLs", ()
       providerSpecificData: {
         baseUrl: "https://token-plan-cn.xiaomimimo.com/v1/chat/completions",
       },
-    }),
+    } as { providerSpecificData: { baseUrl: string } }),
     "https://token-plan-cn.xiaomimimo.com/v1/chat/completions"
   );
 });

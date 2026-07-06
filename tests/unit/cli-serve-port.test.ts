@@ -11,7 +11,7 @@ function parsePort(value: string | undefined, fallback: number): number {
 }
 
 function resolvePort(optsPort: string | undefined, envPort: string | undefined): number {
-  return parsePort(optsPort ?? envPort ?? "20128", 20128);
+  return parsePort(optsPort ?? envPort ?? "2004", 2004);
 }
 
 test("serve port: uses --port flag when explicitly provided", () => {
@@ -24,24 +24,24 @@ test("serve port: falls back to PORT env var when --port is not provided", () =>
   assert.equal(port, 20129);
 });
 
-test("serve port: falls back to 20128 when neither --port nor PORT env var is set", () => {
+test("serve port: falls back to 2004 when neither --port nor PORT env var is set", () => {
   const port = resolvePort(undefined, undefined);
-  assert.equal(port, 20128);
+  assert.equal(port, 2004);
 });
 
-test("serve port: invalid --port falls back to 20128", () => {
+test("serve port: invalid --port falls back to 2004", () => {
   const port = resolvePort("abc", undefined);
-  assert.equal(port, 20128);
+  assert.equal(port, 2004);
 });
 
-test("serve port: port 0 is invalid, falls back to 20128", () => {
+test("serve port: port 0 is invalid, falls back to 2004", () => {
   const port = resolvePort("0", undefined);
-  assert.equal(port, 20128);
+  assert.equal(port, 2004);
 });
 
-test("serve port: port > 65535 is invalid, falls back to 20128", () => {
+test("serve port: port > 65535 is invalid, falls back to 2004", () => {
   const port = resolvePort("70000", undefined);
-  assert.equal(port, 20128);
+  assert.equal(port, 2004);
 });
 
 test("serve command: --port option has no Commander default", async () => {

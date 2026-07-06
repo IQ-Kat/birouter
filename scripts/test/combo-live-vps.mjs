@@ -3,7 +3,7 @@
  *
  * Phase-3 VPS HTTP scenario driver for Birouter combo routing.
  * Exercises 6 strategies (priority / round-robin / weighted / cost-optimized /
- * fusion / auto) against the live server at 192.168.0.15:20128.
+ * fusion / auto) against the live server at 192.168.0.15:2004.
  *
  * Usage:
  *   node scripts/test/combo-live-vps.mjs

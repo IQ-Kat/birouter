@@ -54,7 +54,7 @@ export function resolveProviderApiKey(model: string, explicitKey?: string): stri
  *      registered in Birouter (`google/gemini-2.0-flash`,
  *      `openrouter/...`, etc.) instead of being limited to OpenAI/Anthropic.
  *   2. `OPENAI_API_URL` env var (legacy)
- *   3. Birouter self-loop (`http://localhost:20128/v1`) — auto-detected when
+ *   3. Birouter self-loop (`http://localhost:2004/v1`) — auto-detected when
  *      the model uses a known Birouter-internal provider (e.g. `kr/`, `if/`,
  *      `pol/`, `groq/`, etc.) instead of a direct OpenAI/Anthropic endpoint.
  *   4. `https://api.openai.com/v1` (fallback when the model is `openai/*` or
@@ -73,7 +73,7 @@ export function resolveVisionBridgeBaseUrl(model?: string): string {
   // When the model has a non-standard provider prefix (not openai/ or
   // anthropic/), it can only be resolved through Birouter's own router,
   // not through a direct OpenAI/Anthropic endpoint. Use the operator-configured
-  // port via BIROUTER_PORT / PORT env vars, falling back to the default 20128.
+  // port via BIROUTER_PORT / PORT env vars, falling back to the default 2004.
   if (model && model.includes("/")) {
     const provider = model.split("/")[0].toLowerCase();
     if (provider !== "openai" && provider !== "anthropic") {

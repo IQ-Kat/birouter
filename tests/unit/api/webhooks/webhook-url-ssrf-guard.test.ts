@@ -49,7 +49,7 @@ function jsonRequest(url: string, method: string, body: unknown): Request {
 describe("POST /api/webhooks — SSRF guard on create", () => {
   it("rejects custom webhook pointing to 127.0.0.1", async () => {
     const req = jsonRequest("http://localhost/api/webhooks", "POST", {
-      url: "http://127.0.0.1:20128/api/v1/management/proxies",
+      url: "http://127.0.0.1:2004/api/v1/management/proxies",
       kind: "custom",
     });
     const res = await webhooksRoute.POST(req);

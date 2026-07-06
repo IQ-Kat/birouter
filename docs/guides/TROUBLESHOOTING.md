@@ -43,7 +43,7 @@ Common problems and solutions for Birouter.
 | Problem                                             | Solution                                                                                                                                               |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | First login not working                             | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                                                                                |
-| Dashboard opens on wrong port                       | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                     |
+| Dashboard opens on wrong port                       | Set `PORT=2004` and `NEXT_PUBLIC_BASE_URL=http://localhost:2004`                                                                                       |
 | No logs written to disk                             | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                      |
 | EACCES: permission denied                           | Set `DATA_DIR=/path/to/writable/dir` to override `~/.birouter`                                                                                         |
 | Routing strategy not saving                         | Update to the latest v3.x release (Zod schema fix for settings persistence shipped in earlier versions)                                                |
@@ -192,7 +192,7 @@ see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ### Cloud Sync Errors
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:2004`)
 2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://birouter.dev`)
 3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
@@ -216,7 +216,7 @@ see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ### CLI Tool Shows Not Installed
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+1. Check runtime fields: `curl http://localhost:2004/api/cli-tools/runtime/codex | jq`
 2. For portable mode: use image target `runner-cli` (bundled CLIs)
 3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
 4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
@@ -224,9 +224,9 @@ see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 ### Quick Runtime Validation
 
 ```bash
-curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
 ```
 
 ---
@@ -256,10 +256,10 @@ stream chunk payloads, or tune `CALL_LOG_PIPELINE_MAX_SIZE_KB` to change the art
 
 ```bash
 # Health dashboard
-http://localhost:20128/dashboard/health
+http://localhost:2004/dashboard/health
 
 # API health check
-curl http://localhost:20128/api/monitoring/health
+curl http://localhost:2004/api/monitoring/health
 ```
 
 ### Runtime Storage

@@ -42,7 +42,7 @@ Path aliases (`tsconfig.json`):
 - `@birouter/open-sse` → `open-sse/index.ts`
 - `@birouter/open-sse/*` → `open-sse/*`
 
-Default HTTP port: **`20128`** (API and dashboard share the same process). Data
+Default HTTP port: **`2004`** (API and dashboard share the same process). Data
 directory is `DATA_DIR` env var, defaulting to `~/.birouter/`.
 
 ---

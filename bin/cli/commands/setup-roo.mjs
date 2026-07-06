@@ -32,7 +32,7 @@ export function resolveRooTarget(opts = {}) {
     } catch {
       /* none */
     }
-    if (!root) root = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
+    if (!root) root = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 2004) || 2004}`;
   }
   let apiKey = opts.apiKey ?? opts["api-key"];
   if (!apiKey) {
@@ -179,8 +179,8 @@ export function registerSetupRoo(program) {
     .description(
       "Configure Roo Code for Birouter: write a Roo import JSON + autoImport pointer + print UI steps"
     )
-    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:20128")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "2004")
+    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:2004")
     .option("--api-key <key>", "Birouter API key (defaults to BIROUTER_API_KEY env var)")
     .option("--model <id>", "Model id for Roo (required unless picked interactively)")
     .option("--import-path <path>", "Roo import JSON path (default: ~/.birouter/roo-settings.json)")

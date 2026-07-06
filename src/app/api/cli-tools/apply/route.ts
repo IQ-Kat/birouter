@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     const { toolId, baseUrl, apiKey, model, dryRun } = parsed.data;
 
     const result = await generateConfig(toolId, {
-      baseUrl: baseUrl || "http://localhost:20128/v1",
+      baseUrl: baseUrl || "http://localhost:2004/v1",
       apiKey,
       model,
     });

@@ -116,7 +116,7 @@ Pricing data is auto-synced from LiteLLM via the `/api/pricing/sync` endpoint (t
 
 ```bash
 # Manual trigger
-curl -X POST http://localhost:20128/api/pricing/sync
+curl -X POST http://localhost:2004/api/pricing/sync
 ```
 
 For models with no pricing data, Birouter falls back to **estimating cost** using internal average rates (sourced from LiteLLM's pricing data).

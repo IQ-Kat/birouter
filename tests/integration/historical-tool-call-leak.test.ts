@@ -6,7 +6,7 @@
  * never reproduces leaky annotation text in its output.
  *
  * Uses same env vars as tests/manual/gemini.http:
- *   BIROUTER_URL             — base URL (default http://localhost:20128)
+ *   BIROUTER_URL             — base URL (default http://localhost:2004)
  *   BIROUTER_API_KEY         — API key for auth
  *   TEST_THINKING_GEMINI_MODEL — thinking model override, skipped if unset
  */
@@ -15,7 +15,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const API_KEY = process.env.BIROUTER_API_KEY;
-const BASE_URL = process.env.BIROUTER_URL || "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_URL || "http://localhost:2004";
 const MODEL = "default";
 const THINKING_MODEL = process.env.TEST_THINKING_GEMINI_MODEL || "gemini/gemini-2.5-flash";
 const NUM_HISTORICAL_ROUNDS = 15;

@@ -1585,7 +1585,7 @@ type ImageResolver = (
  * — so the assistant text carries no image markdown. Lets callers surface an
  * accurate "generated but not retrievable" error instead of the misleading
  * "no image was produced". Escalated mesh report: image visible in the ChatGPT
- * chat but returned to OmniRoute as a bare "completed without image markdown".
+ * chat but returned to Birouter as a bare "completed without image markdown".
  */
 export function detectImageResolutionFailure(pointerCount: number, resolvedCount: number): boolean {
   return pointerCount > 0 && resolvedCount === 0;
@@ -2160,7 +2160,7 @@ function derivePublicBaseUrl(
   if (headerBase) return headerBase;
   if (configuredBase) return configuredBase;
 
-  return `http://localhost:${process.env.PORT || 20128}`;
+  return `http://localhost:${process.env.PORT || 2004}`;
 }
 
 // ─── Image asset resolution ────────────────────────────────────────────────

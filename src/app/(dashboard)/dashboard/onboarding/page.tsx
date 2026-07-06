@@ -49,7 +49,7 @@ export default function OnboardingWizard() {
       if (typeof window === "undefined") return;
       const protocol = window.location.protocol;
       const hostname = window.location.hostname;
-      const effectiveApiPort = apiPort || 20128;
+      const effectiveApiPort = apiPort || 2004;
       setApiEndpoint(`${protocol}//${hostname}:${effectiveApiPort}/api/v1`);
     };
 

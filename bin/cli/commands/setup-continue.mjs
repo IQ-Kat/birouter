@@ -32,7 +32,7 @@ export function resolveContinueTarget(opts = {}) {
     } catch {
       /* none */
     }
-    if (!root) root = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
+    if (!root) root = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 2004) || 2004}`;
   }
   let apiKey = opts.apiKey ?? opts["api-key"];
   if (!apiKey) {
@@ -166,8 +166,8 @@ export function registerSetupContinue(program) {
     .description(
       "Generate ~/.continue/config.yaml (Continue / cn CLI) from the Birouter model catalog"
     )
-    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:20128")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "2004")
+    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:2004")
     .option("--api-key <key>", "Birouter API key (defaults to BIROUTER_API_KEY env var)")
     .option("--only <patterns>", "Comma-separated substrings — keep only matching model IDs")
     .option("--config-path <path>", "config.yaml path (default: ~/.continue/config.yaml)")

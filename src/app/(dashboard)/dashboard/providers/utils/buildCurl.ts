@@ -7,7 +7,7 @@
  */
 
 export interface CurlOptions {
-  /** Full URL, e.g. http://localhost:20128/api/v1/embeddings */
+  /** Full URL, e.g. http://localhost:2004/api/v1/embeddings */
   endpoint: string;
   /** HTTP method (default: POST) */
   method?: string;
@@ -31,7 +31,7 @@ function escSq(s: string): string {
  *
  * @example
  * buildCurl({
- *   endpoint: "http://localhost:20128/api/v1/embeddings",
+ *   endpoint: "http://localhost:2004/api/v1/embeddings",
  *   headers: { Authorization: "Bearer sk-123", "Content-Type": "application/json" },
  *   body: { model: "text-embedding-3-small", input: "Hello world" },
  * })

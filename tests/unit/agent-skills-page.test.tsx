@@ -146,7 +146,7 @@ beforeEach(() => {
   });
   // Mock window.location.origin
   Object.defineProperty(window, "location", {
-    value: { origin: "http://localhost:20128" },
+    value: { origin: "http://localhost:2004" },
     configurable: true,
   });
   // Mock window.confirm

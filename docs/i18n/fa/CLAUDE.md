@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # نصب وابستگی‌ها (به‌طور خودکار .env را از .env.example تولید می‌کند)
-npm run dev                    # سرور توسعه در http://localhost:20128
+npm run dev                    # سرور توسعه در http://localhost:2004
 npm run build                  # ساخت تولید (نسخه مستقل Next.js 16)
 npm run lint                   # ESLint (انتظار می‌رود 0 خطا؛ هشدارها از قبل وجود دارند)
 npm run typecheck:core         # بررسی TypeScript (باید تمیز باشد)
@@ -366,7 +366,7 @@ git push -u origin feat/your-feature
 - **زمان اجرا**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25، ماژول‌های ES
 - **TypeScript**: 5.9+، هدف ES2022، ماژول esnext، حل‌گر بسته
 - **آلیاس‌های مسیر**: `@/*` → `src/`، `@birouter/open-sse` → `open-sse/`، `@birouter/open-sse/*` → `open-sse/*`
-- **پورت پیش‌فرض**: 20128 (API + داشبورد در همان پورت)
+- **پورت پیش‌فرض**: 2004 (API + داشبورد در همان پورت)
 - **دایرکتوری داده**: متغیر محیطی `DATA_DIR`، به طور پیش‌فرض به `~/.birouter/`
 - **متغیرهای کلیدی محیط**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - راه‌اندازی: `cp .env.example .env` سپس `JWT_SECRET` (`openssl rand -base64 48`) و `API_KEY_SECRET` (`openssl rand -hex 32`) را تولید کنید.

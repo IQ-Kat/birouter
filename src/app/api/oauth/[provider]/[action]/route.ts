@@ -174,7 +174,7 @@ export async function GET(
           error:
             "GitLab Duo OAuth is not configured. Register an OAuth application at " +
             "https://gitlab.com/-/profile/applications with redirect URI " +
-            'http://localhost:20128/callback and scopes "ai_features read_user", then set ' +
+            'http://localhost:2004/callback and scopes "ai_features read_user", then set ' +
             "GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart.",
         });
       }

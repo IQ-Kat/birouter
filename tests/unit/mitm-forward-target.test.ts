@@ -7,7 +7,7 @@ const { resolveForwardTarget, isCloudcodeEnvelope, CHAT_PATH, ANTIGRAVITY_PATH }
   "../../src/mitm/_internal/forwardTarget.cjs"
 );
 
-const BASE = "http://localhost:20128";
+const BASE = "http://localhost:2004";
 
 test("cloudcode envelope routes to the antigravity endpoint", () => {
   const body = {
@@ -30,8 +30,8 @@ test("plain OpenAI body routes to chat/completions", () => {
 });
 
 test("base url trailing slash is trimmed", () => {
-  const t = resolveForwardTarget("http://localhost:20128/", { messages: [] });
-  assert.equal(t.url, `http://localhost:20128${CHAT_PATH}`);
+  const t = resolveForwardTarget("http://localhost:2004/", { messages: [] });
+  assert.equal(t.url, `http://localhost:2004${CHAT_PATH}`);
 });
 
 test("non-envelope shapes are not misclassified as cloudcode", () => {

@@ -298,8 +298,8 @@ GET /v1/ws?handshake=1
 ### 通过 WebSocket 的 Responses API（仅限 codex）
 
 ```bash
-# 与 HTTP API 相同的主机:端口（默认 20128）；升级连接：
-wscat -c "ws://localhost:20128/v1/responses?api_key=<OMNIROUTE_API_KEY>"
+# 与 HTTP API 相同的主机:端口（默认 2004）；升级连接：
+wscat -c "ws://localhost:2004/v1/responses?api_key=<OMNIROUTE_API_KEY>"
 # (或： -H "Authorization: Bearer <OMNIROUTE_API_KEY>")
 
 # 第一帧必须是 response.create：
@@ -324,7 +324,7 @@ model_provider = "omniroute"
 
 [model_providers.omniroute]
 name = "OmniRoute (WS)"
-base_url = "http://localhost:20128/v1"   # 不要加尾部斜杠；WS URL 由此派生（生产环境使用 https/wss）
+base_url = "http://localhost:2004/v1"   # 不要加尾部斜杠；WS URL 由此派生（生产环境使用 https/wss）
 wire_api = "responses"                    # 自 2026 年 2 月起仅支持该值
 supports_websockets = true                # 启用 Responses-over-WS 传输
 env_key = "OMNIROUTE_API_KEY"             # 持有 OmniRoute API Key（Bearer）
@@ -604,7 +604,7 @@ Content-Type: multipart/form-data
 **请求：**
 
 ```bash
-curl -X POST http://localhost:20128/v1/audio/transcriptions \
+curl -X POST http://localhost:2004/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@recording.mp3" \
   -F "model=deepgram/nova-3"
@@ -828,7 +828,7 @@ Cloud Agent 任务（Claude Code、Codex Cloud、OpenHands 等）代表 OmniRout
 
 ```bash
 # 创建 Claude Code 云任务
-curl -X POST http://localhost:20128/api/v1/agents/tasks \
+curl -X POST http://localhost:2004/api/v1/agents/tasks \
   -H "Authorization: Bearer your-management-key" \
   -H "Content-Type: application/json" \
   -d '{"providerId":"claude-code-cloud","prompt":"Fix the failing test","source":{"repo":"...","branch":"..."}}'
@@ -871,13 +871,13 @@ OmniRoute 公开三个独立的临时故障机制；以下管理端点允许管�
 
 ```bash
 # 清除单个模型锁定
-curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
+curl -X DELETE http://localhost:2004/api/resilience/model-cooldowns \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{"provider":"openai","model":"gpt-4o-mini"}'
 
 # 清除所有锁定
-curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
+curl -X DELETE http://localhost:2004/api/resilience/model-cooldowns \
   -H "Cookie: auth_token=..." \
   -d '{"all":true}'
 ```

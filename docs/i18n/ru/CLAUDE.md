@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # Установка зависимостей (автоматически генерирует .env из .env.example)
-npm run dev                    # Сервер разработки на http://localhost:20128
+npm run dev                    # Сервер разработки на http://localhost:2004
 npm run build                  # Продакшн сборка (Next.js 16 standalone)
 npm run lint                   # ESLint (ожидается 0 ошибок; предупреждения уже существуют)
 npm run typecheck:core         # Проверка TypeScript (должна быть чистой)
@@ -386,7 +386,7 @@ git push -u origin feat/your-feature
 - **Время выполнения**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Модули
 - **TypeScript**: 5.9+, целевой ES2022, модуль esnext, разрешение bundler
 - **Псевдонимы путей**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Порт по умолчанию**: 20128 (API + панель управления на одном порту)
+- **Порт по умолчанию**: 2004 (API + панель управления на одном порту)
 - **Директория данных**: переменная окружения `DATA_DIR`, по умолчанию `~/.birouter/`
 - **Ключевые переменные окружения**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Настройка: `cp .env.example .env`, затем сгенерируйте `JWT_SECRET` (`openssl rand -base64 48`) и `API_KEY_SECRET` (`openssl rand -hex 32`)

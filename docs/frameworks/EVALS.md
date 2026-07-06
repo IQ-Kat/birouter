@@ -128,7 +128,7 @@ part of the public proxy surface.
 ### Running a suite
 
 ```bash
-curl -X POST http://localhost:20128/api/evals \
+curl -X POST http://localhost:2004/api/evals \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -151,7 +151,7 @@ Optional fields:
 ### Creating a custom suite
 
 ```bash
-curl -X POST http://localhost:20128/api/evals/suites \
+curl -X POST http://localhost:2004/api/evals/suites \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{

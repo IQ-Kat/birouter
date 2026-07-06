@@ -185,12 +185,12 @@ Omitting `value` removes the override (restoring env / default).
 
 ```bash
 # Set a DB override
-curl -X PUT http://localhost:20128/api/settings/feature-flags \
+curl -X PUT http://localhost:2004/api/settings/feature-flags \
   -H "Content-Type: application/json" \
   -d '{"key":"REQUIRE_API_KEY","value":"true"}'
 
 # Remove the override (no "value")
-curl -X PUT http://localhost:20128/api/settings/feature-flags \
+curl -X PUT http://localhost:2004/api/settings/feature-flags \
   -H "Content-Type: application/json" \
   -d '{"key":"REQUIRE_API_KEY"}'
 ```

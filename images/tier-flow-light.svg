@@ -22,7 +22,7 @@
 
   <!-- Arrow down to router -->
   <line x1="400" y1="122" x2="400" y2="150" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrow-light)"/>
-  <text x="420" y="140" font-size="9" fill="#9ca3af">localhost:20128/v1</text>
+  <text x="420" y="140" font-size="9" fill="#9ca3af">localhost:2004/v1</text>
 
   <!-- Router box -->
   <rect x="200" y="152" width="400" height="72" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>

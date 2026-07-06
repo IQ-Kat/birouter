@@ -14,7 +14,7 @@ import {
  *
  * Upstream's diff patched `openaiToClaudeRequestForAntigravity` in
  * `open-sse/translator/request/openai-to-claude.ts`, which has ZERO callers in
- * OmniRoute (dead code). The live Antigravity Claude dispatch path converts to
+ * Birouter (dead code). The live Antigravity Claude dispatch path converts to
  * Gemini `contents` (`role: "user"/"model"`) in `AntigravityExecutor.transformRequest`
  * via `sanitizeAntigravityGeminiRequest` — this test drives THAT function end-to-end.
  */

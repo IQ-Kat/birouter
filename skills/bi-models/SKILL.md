@@ -22,7 +22,7 @@ List available models
 Returns all models available across configured providers.
 
 ```bash
-curl https://localhost:20128/api/v1/models \
+curl https://localhost:2004/api/v1/models \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -31,7 +31,7 @@ curl https://localhost:20128/api/v1/models \
 List models (management)
 
 ```bash
-curl https://localhost:20128/api/models \
+curl https://localhost:2004/api/models \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -40,7 +40,7 @@ curl https://localhost:20128/api/models \
 Create or update a model alias
 
 ```bash
-curl -X POST https://localhost:20128/api/models/alias \
+curl -X POST https://localhost:2004/api/models/alias \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -51,7 +51,7 @@ curl -X POST https://localhost:20128/api/models/alias \
 Get full model catalog
 
 ```bash
-curl https://localhost:20128/api/models/catalog \
+curl https://localhost:2004/api/models/catalog \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

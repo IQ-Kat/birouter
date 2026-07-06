@@ -10,7 +10,7 @@ Hii faili inatoa mwongozo kwa Claude Code (claude.ai/code) unapofanya kazi na ms
 
 ```bash
 npm install                    # Sakinisha deps (inasanifisha .env kutoka .env.example)
-npm run dev                    # Seva ya maendeleo katika http://localhost:20128
+npm run dev                    # Seva ya maendeleo katika http://localhost:2004
 npm run build                  # Ujenzi wa uzalishaji (Next.js 16 standalone)
 npm run lint                   # ESLint (makosa 0 yanatarajiwa; onyo ni ya awali)
 npm run typecheck:core         # Ukaguzi wa TypeScript (inapaswa kuwa safi)
@@ -384,7 +384,7 @@ git push -u origin feat/your-feature
 - **Muda wa kukimbia**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Moduli za ES
 - **TypeScript**: 5.9+, lengo ES2022, moduli esnext, ufumbuzi wa bundler
 - **Majina ya njia**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Bandari ya kawaida**: 20128 (API + dashibodi kwenye bandari moja)
+- **Bandari ya kawaida**: 2004 (API + dashibodi kwenye bandari moja)
 - **Direktori ya data**: `DATA_DIR` env var, inarudiwa kwa `~/.birouter/`
 - **Vigezo muhimu vya env**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Mipangilio: `cp .env.example .env` kisha tengeneza `JWT_SECRET` (`openssl rand -base64 48`) na `API_KEY_SECRET` (`openssl rand -hex 32`)

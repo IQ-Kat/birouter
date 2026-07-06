@@ -41,7 +41,7 @@ test("resolvePublicCred returns a valid Google client ID for antigravity_id", ()
 test("antigravity with default public credentials keeps loopback redirect URI", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: DEFAULT_ANTIGRAVITY_CLIENT_ID,
@@ -51,13 +51,13 @@ test("antigravity with default public credentials keeps loopback redirect URI", 
 
   assert.equal(
     redirectUri,
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     "must stay on loopback when using built-in credentials"
   );
 });
 
 test("agy provider with default antigravity credentials keeps loopback redirect URI", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:20128/callback", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:2004/callback", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: DEFAULT_ANTIGRAVITY_CLIENT_ID,
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "GOCSPX-SomeDefaultSecret",
@@ -65,7 +65,7 @@ test("agy provider with default antigravity credentials keeps loopback redirect 
 
   assert.equal(
     redirectUri,
-    "http://localhost:20128/callback",
+    "http://localhost:2004/callback",
     "agy must inherit antigravity default credential detection"
   );
 });
@@ -77,7 +77,7 @@ test("agy provider with default antigravity credentials keeps loopback redirect 
 test("antigravity with custom credentials switches loopback to public base URL", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
@@ -89,7 +89,7 @@ test("antigravity with custom credentials switches loopback to public base URL",
 });
 
 test("agy with custom credentials switches loopback to public base URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:20128/callback", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("agy", "http://localhost:2004/callback", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-agy.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-agy-secret",
@@ -105,7 +105,7 @@ test("agy with custom credentials switches loopback to public base URL", () => {
 test("antigravity with only client ID (no secret) keeps loopback", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
@@ -115,7 +115,7 @@ test("antigravity with only client ID (no secret) keeps loopback", () => {
 
   assert.equal(
     redirectUri,
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     "incomplete credentials must not trigger override"
   );
 });
@@ -123,7 +123,7 @@ test("antigravity with only client ID (no secret) keeps loopback", () => {
 test("antigravity with blank/whitespace client ID keeps loopback", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "   ",
@@ -133,7 +133,7 @@ test("antigravity with blank/whitespace client ID keeps loopback", () => {
 
   assert.equal(
     redirectUri,
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     "blank credentials must not trigger override"
   );
 });
@@ -141,17 +141,17 @@ test("antigravity with blank/whitespace client ID keeps loopback", () => {
 test("no env object at all keeps loopback", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {}
   );
 
-  assert.equal(redirectUri, "http://127.0.0.1:20128/callback");
+  assert.equal(redirectUri, "http://127.0.0.1:2004/callback");
 });
 
 test("no public base URL configured keeps loopback even with custom credentials", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       // No NEXT_PUBLIC_BASE_URL or BIROUTER_PUBLIC_BASE_URL
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
@@ -161,7 +161,7 @@ test("no public base URL configured keeps loopback even with custom credentials"
 
   assert.equal(
     redirectUri,
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     "no public base URL means nowhere to redirect — stay on loopback"
   );
 });
@@ -171,25 +171,25 @@ test("no public base URL configured keeps loopback even with custom credentials"
 // ---------------------------------------------------------------------------
 
 test("non-Google provider returns redirect URI unchanged regardless of env", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("claude", "http://localhost:20128/callback", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("claude", "http://localhost:2004/callback", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
   });
 
-  assert.equal(redirectUri, "http://localhost:20128/callback");
+  assert.equal(redirectUri, "http://localhost:2004/callback");
 });
 
 test("unknown provider returns redirect URI unchanged", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "some-unknown-provider",
-    "http://localhost:20128/callback",
+    "http://localhost:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     }
   );
 
-  assert.equal(redirectUri, "http://localhost:20128/callback");
+  assert.equal(redirectUri, "http://localhost:2004/callback");
 });
 
 // ---------------------------------------------------------------------------
@@ -219,7 +219,7 @@ test("already-remote redirect URI is not overridden even with custom credentials
 // ---------------------------------------------------------------------------
 
 test("custom credentials override IPv6 loopback [::1] for antigravity", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:20128/callback", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:2004/callback", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
@@ -235,7 +235,7 @@ test("custom credentials override IPv6 loopback [::1] for antigravity", () => {
 test("custom callback path is preserved when overriding loopback", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/auth/callback",
+    "http://127.0.0.1:2004/auth/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
@@ -249,7 +249,7 @@ test("custom callback path is preserved when overriding loopback", () => {
 test("query string is preserved when overriding loopback", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback?source=popup&nonce=abc",
+    "http://127.0.0.1:2004/callback?source=popup&nonce=abc",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
@@ -261,7 +261,7 @@ test("query string is preserved when overriding loopback", () => {
 });
 
 test("root path defaults to /callback when overriding loopback", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:20128/", {
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:2004/", {
     NEXT_PUBLIC_BASE_URL: "https://birouter.example.com",
     ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
     ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-secret",
@@ -277,7 +277,7 @@ test("root path defaults to /callback when overriding loopback", () => {
 test("trailing slash on NEXT_PUBLIC_BASE_URL is stripped", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       NEXT_PUBLIC_BASE_URL: "https://birouter.example.com/",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",
@@ -295,7 +295,7 @@ test("trailing slash on NEXT_PUBLIC_BASE_URL is stripped", () => {
 test("BIROUTER_PUBLIC_BASE_URL is used as fallback when NEXT_PUBLIC_BASE_URL is absent", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
-    "http://127.0.0.1:20128/callback",
+    "http://127.0.0.1:2004/callback",
     {
       BIROUTER_PUBLIC_BASE_URL: "https://fallback.example.com",
       ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-id.apps.googleusercontent.com",

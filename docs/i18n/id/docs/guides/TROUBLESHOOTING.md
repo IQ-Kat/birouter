@@ -13,7 +13,7 @@ Masalah umum dan solusinya untuk Birouter.
 | Masalah                                             | Solusi                                                                                                                                                                    |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Login pertama tidak berfungsi                       | Atur `INITIAL_PASSWORD` di `.env` (tidak ada nilai default yang dikodekan langsung)                                                                                       |
-| Dashboard terbuka di port yang salah                | Atur `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                       |
+| Dashboard terbuka di port yang salah                | Atur `PORT=2004` dan `NEXT_PUBLIC_BASE_URL=http://localhost:2004`                                                                                                         |
 | Tidak ada log yang ditulis ke disk                  | Atur `APP_LOG_TO_FILE=true` dan pastikan pengambilan log panggilan diaktifkan                                                                                             |
 | EACCES: permission denied                           | Atur `DATA_DIR=/path/to/writable/dir` untuk mengganti `~/.birouter`                                                                                                       |
 | Strategi routing tidak tersimpan                    | Perbarui ke v1.4.11+ (perbaikan skema Zod untuk persistensi pengaturan)                                                                                                   |
@@ -136,7 +136,7 @@ Birouter memperbarui token secara otomatis. Jika masalah berlanjut:
 
 ### Error Sinkronisasi Cloud
 
-1. Pastikan `BASE_URL` mengarah ke instans yang sedang berjalan (misalnya, `http://localhost:20128`)
+1. Pastikan `BASE_URL` mengarah ke instans yang sedang berjalan (misalnya, `http://localhost:2004`)
 2. Pastikan `CLOUD_URL` mengarah ke endpoint cloud Anda (misalnya, `https://birouter.dev`)
 3. Jaga agar nilai `NEXT_PUBLIC_*` selaras dengan nilai sisi server
 
@@ -160,7 +160,7 @@ Birouter memperbarui token secara otomatis. Jika masalah berlanjut:
 
 ### Alat CLI Menampilkan Belum Terinstal
 
-1. Periksa kolom runtime: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+1. Periksa kolom runtime: `curl http://localhost:2004/api/cli-tools/runtime/codex | jq`
 2. Untuk mode portabel: gunakan target image `runner-cli` (CLI yang sudah dibundel)
 3. Untuk mode mount host: atur `CLI_EXTRA_PATHS` dan mount direktori bin host sebagai read-only
 4. Jika `installed=true` dan `runnable=false`: biner ditemukan tetapi gagal healthcheck
@@ -168,9 +168,9 @@ Birouter memperbarui token secara otomatis. Jika masalah berlanjut:
 ### Validasi Runtime Cepat
 
 ```bash
-curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:2004/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
 ```
 
 ---
@@ -197,10 +197,10 @@ diaktifkan di pengaturan.
 
 ```bash
 # Health dashboard
-http://localhost:20128/dashboard/health
+http://localhost:2004/dashboard/health
 
 # API health check
-curl http://localhost:20128/api/monitoring/health
+curl http://localhost:2004/api/monitoring/health
 ```
 
 ### Penyimpanan Runtime

@@ -588,7 +588,7 @@ flowchart LR
     end
 
     subgraph ContainerOrProcess[Birouter Runtime]
-        Next[Next.js Server\nPORT=20128]
+        Next[Next.js Server\nPORT=2004]
         Core[SSE Core + Executors]
         MainDB[(storage.sqlite)]
         UsageDB[(usage tables + log artifacts)]
@@ -886,4 +886,4 @@ Variabel lingkungan yang aktif digunakan oleh kode:
 - Mulai layanan dan verifikasi:
 - `GET /api/settings`
 - `GET /api/v1/models`
-- URL dasar target CLI harus `http://<host>:20128/v1` ketika `PORT=20128`
+- URL dasar target CLI harus `http://<host>:2004/v1` ketika `PORT=2004`

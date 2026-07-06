@@ -26,16 +26,16 @@ import {
 } from "../src/index.ts";
 
 test("normalizeBaseURL preserves a bare host:port", () => {
-  assert.equal(normalizeBaseURL("http://localhost:20128"), "http://localhost:20128/v1");
+  assert.equal(normalizeBaseURL("http://localhost:2004"), "http://localhost:2004/v1");
 });
 
 test("normalizeBaseURL strips trailing slashes", () => {
-  assert.equal(normalizeBaseURL("http://localhost:20128////"), "http://localhost:20128/v1");
+  assert.equal(normalizeBaseURL("http://localhost:2004////"), "http://localhost:2004/v1");
 });
 
 test("normalizeBaseURL deduplicates an existing /v1 suffix", () => {
-  assert.equal(normalizeBaseURL("http://localhost:20128/v1"), "http://localhost:20128/v1");
-  assert.equal(normalizeBaseURL("http://localhost:20128/v1/"), "http://localhost:20128/v1");
+  assert.equal(normalizeBaseURL("http://localhost:2004/v1"), "http://localhost:2004/v1");
+  assert.equal(normalizeBaseURL("http://localhost:2004/v1/"), "http://localhost:2004/v1");
 });
 
 test("normalizeBaseURL rejects empty input", () => {
@@ -59,20 +59,20 @@ test("createBirouterProvider validates required fields", () => {
 
 test("createBirouterProvider produces the OpenCode-compatible shape", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
 
   assert.equal(provider.npm, BIROUTER_PROVIDER_NPM);
   assert.equal(provider.name, "Birouter");
-  assert.equal(provider.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(provider.options.baseURL, "http://localhost:2004/v1");
   assert.equal(provider.options.apiKey, "sk_birouter");
   assert.equal(typeof provider.models, "object");
 });
 
 test("createBirouterProvider seeds the default model catalog", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
 
@@ -87,7 +87,7 @@ test("createBirouterProvider seeds the default model catalog", () => {
 
 test("createBirouterProvider honours a custom models list and labels", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: ["auto", "claude-opus-4-7"],
     modelLabels: { auto: "Auto-Combo", "claude-opus-4-7": "Opus 4.7" },
@@ -100,7 +100,7 @@ test("createBirouterProvider honours a custom models list and labels", () => {
 
 test("createBirouterProvider deduplicates and trims model ids", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: ["  auto  ", "auto", "", "claude-opus-4-7"],
   });
@@ -109,7 +109,7 @@ test("createBirouterProvider deduplicates and trims model ids", () => {
 
 test("createBirouterProvider honours displayName override", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     displayName: "Local Birouter",
   });
@@ -118,18 +118,18 @@ test("createBirouterProvider honours displayName override", () => {
 
 test("buildBirouterOpenCodeConfig wraps the provider with the OpenCode schema", () => {
   const doc = buildBirouterOpenCodeConfig({
-    baseURL: "http://localhost:20128/v1",
+    baseURL: "http://localhost:2004/v1",
     apiKey: "sk_birouter",
   });
 
   assert.equal(doc.$schema, OPENCODE_CONFIG_SCHEMA);
   assert.equal(typeof doc.provider.birouter, "object");
-  assert.equal(doc.provider.birouter.options.baseURL, "http://localhost:20128/v1");
+  assert.equal(doc.provider.birouter.options.baseURL, "http://localhost:2004/v1");
 });
 
 test("config document is JSON-serialisable", () => {
   const doc = buildBirouterOpenCodeConfig({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
   const round = JSON.parse(JSON.stringify(doc));
@@ -138,7 +138,7 @@ test("config document is JSON-serialisable", () => {
 
 test("buildBirouterOpenCodeConfig emits model and small_model prefixed with provider key", () => {
   const doc = buildBirouterOpenCodeConfig({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     model: "claude-sonnet-4-5-thinking",
     smallModel: "gemini-3-flash",
@@ -149,7 +149,7 @@ test("buildBirouterOpenCodeConfig emits model and small_model prefixed with prov
 
 test("buildBirouterOpenCodeConfig omits model and small_model when not supplied", () => {
   const doc = buildBirouterOpenCodeConfig({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
   assert.equal(doc.model, undefined);
@@ -160,7 +160,7 @@ test("buildBirouterOpenCodeConfig omits model and small_model when not supplied"
 
 test("buildBirouterOpenCodeConfig ignores blank model strings", () => {
   const doc = buildBirouterOpenCodeConfig({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     model: "   ",
     smallModel: "",
@@ -178,7 +178,7 @@ test("mergeIntoExistingConfig preserves existing provider entries", () => {
     keybinds: { submit: "enter" },
   };
   const result = mergeIntoExistingConfig(existing, {
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
   assert.ok("anthropic" in (result.provider as Record<string, unknown>));
@@ -210,7 +210,7 @@ test("mergeIntoExistingConfig writes model and small_model when supplied", () =>
   const result = mergeIntoExistingConfig(
     {},
     {
-      baseURL: "http://localhost:20128",
+      baseURL: "http://localhost:2004",
       apiKey: "sk_birouter",
       model: "claude-sonnet-4-5-thinking",
       smallModel: "gemini-3-flash",
@@ -223,7 +223,7 @@ test("mergeIntoExistingConfig writes model and small_model when supplied", () =>
 test("mergeIntoExistingConfig does not add model keys when not supplied", () => {
   const result = mergeIntoExistingConfig(
     {},
-    { baseURL: "http://localhost:20128", apiKey: "sk_birouter" }
+    { baseURL: "http://localhost:2004", apiKey: "sk_birouter" }
   );
   assert.ok(!("model" in result));
   assert.ok(!("small_model" in result));
@@ -414,7 +414,7 @@ test("BIROUTER_DEFAULT_MODEL_CONTEXT_LENGTHS covers every default model id", () 
 
 test("createBirouterProvider emits limit.context on default model entries", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
   const entry = provider.models["cc/claude-opus-4-8"];
@@ -425,7 +425,7 @@ test("createBirouterProvider emits limit.context on default model entries", () =
 
 test("createBirouterProvider omits limit.context for unknown model ids", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: ["completely-unknown-model"],
   });
@@ -440,7 +440,7 @@ test("createBirouterProvider reads contextLength from a live model entry for ids
   // OpenCode silently fell back to its 128K internal default. A live model
   // entry carrying `contextLength` must now surface as `limit.context`.
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: [{ id: "completely-unknown-model", contextLength: 262_144 }],
   });
@@ -457,7 +457,7 @@ test("createBirouterProvider: a live model contextLength wins over the static de
   // a different contextLength must take precedence (live > modelContextLengths >
   // static defaults).
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: [{ id: "cc/claude-opus-4-8", contextLength: 524_288 }],
   });
@@ -466,7 +466,7 @@ test("createBirouterProvider: a live model contextLength wins over the static de
 
 test("createBirouterProvider serialises limit.context to JSON", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
   const round = JSON.parse(JSON.stringify(provider));
@@ -513,7 +513,7 @@ test("BIROUTER_DEFAULT_MODEL_CAPABILITIES covers every default model id", () => 
 
 test("createBirouterProvider emits default capability flags inline with the model entry", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
   });
   const entry = provider.models["cc/claude-opus-4-8"];
@@ -526,7 +526,7 @@ test("createBirouterProvider emits default capability flags inline with the mode
 
 test("createBirouterProvider modelCapabilities overrides defaults and merges per id", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     modelCapabilities: {
       "cc/claude-opus-4-7": { reasoning: false, label: "Opus (no thinking)" },
@@ -541,7 +541,7 @@ test("createBirouterProvider modelCapabilities overrides defaults and merges per
 
 test("createBirouterProvider applies capability overrides to non-default model ids", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: ["custom-model"],
     modelCapabilities: {
@@ -558,7 +558,7 @@ test("createBirouterProvider applies capability overrides to non-default model i
 
 test("createBirouterProvider modelLabels still works when modelCapabilities omits label", () => {
   const provider = createBirouterProvider({
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:2004",
     apiKey: "sk_birouter",
     models: ["claude-opus-4-5-thinking"],
     modelLabels: { "claude-opus-4-5-thinking": "Opus 4.5 (legacy label)" },

@@ -4,7 +4,7 @@
  * Verifies:
  *  1. Every ID in API_SKILL_IDS + CLI_SKILL_IDS has a skills/<id>/SKILL.md on disk.
  *  2. Each SKILL.md has valid frontmatter (name + description) and body ≥ 100 chars.
- *  3. MCP tool omniroute_agent_skills_list handler returns 44 entries.
+ *  3. MCP tool birouter_agent_skills_list handler returns 44 entries.
  *  4. A2A skill list-capabilities returns 1 artifact with 44 lines.
  *
  * Does NOT spin up a server — tests handlers directly via imports.

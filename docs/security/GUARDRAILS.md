@@ -311,7 +311,7 @@ dispatch) has two jobs:
   previous instructions…", DAN-style jailbreaks) asserts the response carries
   `error.code === "SECURITY_001"`, i.e. the guard actually rejected the request.
 - **`garak` (advisory)** — runs garak `--probes promptinject,dan,leakreplay`
-  against a local Birouter instance (`http://localhost:20128/v1`). Gated on a
+  against a local Birouter instance (`http://localhost:2004/v1`). Gated on a
   provider secret (`PROMPTFOO_PROVIDER_KEY`); skips gracefully and is suffixed
   `|| true`, so it reports without failing CI.
 

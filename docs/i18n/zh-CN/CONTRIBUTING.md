@@ -4,7 +4,7 @@
 
 ---
 
-感谢你对 OmniRoute 的关注！本文档将引导你从零开始参与项目贡献。
+感谢你对 Birouter 的关注！本文档将引导你从零开始参与项目贡献。
 
 ---
 
@@ -37,13 +37,13 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 开发环境关键变量：
 
-| 变量                   | 开发环境默认值           | 说明          |
-| ---------------------- | ------------------------ | ------------- |
-| `PORT`                 | `20128`                  | 服务器端口    |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | 前端 Base URL |
-| `JWT_SECRET`           | （通过上方命令生成）     | JWT 签名密钥  |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | 首次登录密码  |
-| `APP_LOG_LEVEL`        | `info`                   | 日志详细级别  |
+| 变量                   | 开发环境默认值          | 说明          |
+| ---------------------- | ----------------------- | ------------- |
+| `PORT`                 | `2004`                  | 服务器端口    |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:2004` | 前端 Base URL |
+| `JWT_SECRET`           | （通过上方命令生成）    | JWT 签名密钥  |
+| `INITIAL_PASSWORD`     | `CHANGEME`              | 首次登录密码  |
+| `APP_LOG_LEVEL`        | `info`                  | 日志详细级别  |
 
 ### 控制台设置
 
@@ -70,7 +70,7 @@ npm run start
 npm run build:release   # rm -rf .build dist && build + 写入 dist/BUILD_SHA
 
 # 常用端口配置
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=2004 NEXT_PUBLIC_BASE_URL=http://localhost:2004 npm run dev
 ```
 
 ### 构建产物布局
@@ -93,14 +93,14 @@ npm run build
 `npm run build:release` 会额外清理上述两个目录，并写入
 `dist/BUILD_SHA`（= `git rev-parse --short HEAD`）作为部署完整性哨兵。
 
-> **VPS 部署说明：** 远程镜像目录 `/usr/lib/node_modules/omniroute/app/`
+> **VPS 部署说明：** 远程镜像目录 `/usr/lib/node_modules/Birouter/app/`
 > 保持不变。部署脚本会将 `dist/` 的内容 rsync 到该目录中。
 > 仅仓库内的构建输出路径发生了变动（`app/` → `dist/`）。
 
 默认地址：
 
-- **控制台**：`http://localhost:20128/dashboard`
-- **API**：`http://localhost:20128/v1`
+- **控制台**：`http://localhost:2004/dashboard`
+- **API**：`http://localhost:2004/v1`
 
 ---
 
@@ -256,7 +256,7 @@ src/                        # TypeScript（.ts / .tsx）
 │   └── validation/         # Zod v4 Schema
 └── sse/                    # SSE 代理流水线
 
-open-sse/                   # @omniroute/open-sse 工作区
+open-sse/                   # @Birouter/open-sse 工作区
 ├── executors/              # 14 个服务商专用请求执行器
 ├── handlers/               # 11 个请求处理器（chat、responses、embeddings、images 等）
 ├── mcp-server/             # MCP Server（25 个工具、3 种传输、10 个权限域）
@@ -278,7 +278,7 @@ tests/
 docs/
 ├── adr/                     # 架构决策记录
 ├── architecture/            # 系统架构与容灾
-├── comparison/              # OmniRoute 与竞品对比
+├── comparison/              # Birouter 与竞品对比
 ├── compression/             # 压缩指南与规则
 ├── dev/                     # 开发指南
 ├── diagrams/                # 架构图
@@ -369,5 +369,5 @@ VPS 部署时，请使用 `npm run build:release`（而非 `npm run build`）—
 - **API 参考**：参见 [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **安全文档**：[`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)、[`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)、[`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)、[`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **运维文档**：[`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **问题反馈**：[github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **问题反馈**：[github.com/diegosouzapw/Birouter/issues](https://github.com/diegosouzapw/Birouter/issues)
 - **架构决策记录**：参见 `docs/adr/` 目录

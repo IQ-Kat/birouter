@@ -138,13 +138,13 @@ function buildFtsRows(apiKeyId: string, config: FtsColConfig): MemoryRow[] {
 
 // Loopback rerank URL — localhost only, never routed over the network.
 // nosemgrep: javascript.lang.security.audit.non-literal-regexp.non-literal-regexp
-const RERANK_LOOPBACK_URL = "http://127.0.0.1:20128/v1/rerank";
+const RERANK_LOOPBACK_URL = "http://127.0.0.1:2004/v1/rerank";
 
 /**
  * Apply reranking via /v1/rerank (loopback-only) if rerankEnabled + rerankProviderModel is set.
  * Returns reordered array (or original order on any error — rerank failure never fails retrieval).
  *
- * Security note: the URL is a hardcoded loopback address (127.0.0.1:20128) — it never
+ * Security note: the URL is a hardcoded loopback address (127.0.0.1:2004) — it never
  * carries sensitive data over a network link. HTTP is safe for loopback-only IPC.
  * nosemgrep: javascript.lang.security.detect-non-literal-url
  */

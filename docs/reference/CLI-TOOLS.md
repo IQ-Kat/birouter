@@ -27,7 +27,7 @@ CLI Code's / CLI Agents (consumption flow):
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose / ...
            │
            ▼  (all point to Birouter)
-    http://YOUR_SERVER:20128/v1
+    http://YOUR_SERVER:2004/v1
            │
            ▼  (Birouter routes to the right provider)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
@@ -312,7 +312,7 @@ cargo install smelt  # Rust-based
 
 ### Step 3 — Configure via Dashboard
 
-1. Go to `http://localhost:20128/dashboard/cli-code`
+1. Go to `http://localhost:2004/dashboard/cli-code`
 2. Find your tool in the grid
 3. Click the card to open the tool detail page
 4. Select your API key and base URL
@@ -324,16 +324,16 @@ cargo install smelt  # Rust-based
 
 ```bash
 # Birouter Universal Endpoint
-export OPENAI_BASE_URL="http://localhost:20128/v1"
+export OPENAI_BASE_URL="http://localhost:2004/v1"
 export OPENAI_API_KEY="sk-your-birouter-key"
-export ANTHROPIC_BASE_URL="http://localhost:20128"
+export ANTHROPIC_BASE_URL="http://localhost:2004"
 export ANTHROPIC_AUTH_TOKEN="sk-your-birouter-key"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
+export GEMINI_BASE_URL="http://localhost:2004/v1"
 export GEMINI_API_KEY="sk-your-birouter-key"
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://<your-server-ip>:20128`.
+> For a **remote server** replace `localhost:2004` with the server IP or domain,
+> e.g. `http://<your-server-ip>:2004`.
 
 ---
 
@@ -346,7 +346,7 @@ export GEMINI_API_KEY="sk-your-birouter-key"
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_BASE_URL": "http://localhost:2004",
     "ANTHROPIC_AUTH_TOKEN": "sk-your-birouter-key"
   }
 }
@@ -365,7 +365,7 @@ Use the unified Anthropic gateway root for Claude Code. Do not append `/v1` here
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
 apiKey: sk-your-birouter-key
-apiBaseUrl: http://localhost:20128/v1
+apiBaseUrl: http://localhost:2004/v1
 EOF
 ```
 
@@ -384,7 +384,7 @@ mkdir -p ~/.config/opencode && cat > ~/.config/opencode/opencode.json << EOF
       "npm": "@ai-sdk/openai-compatible",
       "name": "Birouter",
       "options": {
-        "baseURL": "http://localhost:20128/v1",
+        "baseURL": "http://localhost:2004/v1",
         "apiKey": "sk-your-birouter-key"
       },
       "models": {
@@ -413,14 +413,14 @@ EOF
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
-  "openAiBaseUrl": "http://localhost:20128/v1",
+  "openAiBaseUrl": "http://localhost:2004/v1",
   "openAiApiKey": "sk-your-birouter-key"
 }
 EOF
 ```
 
 **VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:2004/v1`
 
 Or use the Birouter dashboard → **CLI Tools → Cline → Apply Config**.
 
@@ -431,14 +431,14 @@ Or use the Birouter dashboard → **CLI Tools → Cline → Apply Config**.
 **CLI mode:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-birouter-key
+kilocode --api-base http://localhost:2004/v1 --api-key sk-your-birouter-key
 ```
 
 **VS Code settings:**
 
 ```json
 {
-  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+  "kilo-code.openAiBaseUrl": "http://localhost:2004/v1",
   "kilo-code.apiKey": "sk-your-birouter-key"
 }
 ```
@@ -456,7 +456,7 @@ models:
   - name: Birouter
     provider: openai
     model: auto
-    apiBase: http://localhost:20128/v1
+    apiBase: http://localhost:2004/v1
     apiKey: sk-your-birouter-key
     default: true
 ```
@@ -484,8 +484,8 @@ Use this when VS Code Insiders is configured for custom endpoint models and you 
     "name": "Birouter Auto",
     "family": "gpt-4",
     "version": "1.0.0",
-    "url": "http://localhost:20128/api/v1/vscode/sk-your-birouter-key/chat/completions",
-    "modelsUrl": "http://localhost:20128/api/v1/vscode/sk-your-birouter-key/models",
+    "url": "http://localhost:2004/api/v1/vscode/sk-your-birouter-key/chat/completions",
+    "modelsUrl": "http://localhost:2004/api/v1/vscode/sk-your-birouter-key/models",
     "requestFormat": "openai-chat-completions",
     "contextWindow": 256000,
     "maxOutputTokens": 32768,
@@ -535,7 +535,7 @@ Qwen Code supports OpenAI-compatible API endpoints via environment variables or 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
 OPENAI_API_KEY="sk-your-birouter-key"
-OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_BASE_URL="http://localhost:2004/v1"
 OPENAI_MODEL="auto"
 EOF
 ```
@@ -549,7 +549,7 @@ EOF
     "auth": {
       "selectedType": "openai",
       "apiKey": "sk-your-birouter-key",
-      "baseUrl": "http://localhost:20128/v1"
+      "baseUrl": "http://localhost:2004/v1"
     }
   },
   "model": {
@@ -561,13 +561,13 @@ EOF
 **Option 3: Inline CLI flags**
 
 ```bash
-OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_BASE_URL="http://localhost:2004/v1" \
 OPENAI_API_KEY="sk-your-birouter-key" \
 OPENAI_MODEL="auto" \
 qwen
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain.
+> For a **remote server** replace `localhost:2004` with the server IP or domain.
 
 ---
 
@@ -576,7 +576,7 @@ qwen
 The `birouter` binary provides commands for server lifecycle, setup, diagnostics, and provider management. Entry point: `bin/birouter.mjs`.
 
 ```bash
-birouter                              # Start server (default port 20128)
+birouter                              # Start server (default port 2004)
 birouter setup                        # Interactive setup wizard
 birouter doctor                       # Check config, DB, ports, runtime
 birouter providers list               # Configured provider connections
@@ -691,7 +691,7 @@ birouter completion                   # Generate shell completion
 | Flag                | Description                                            |
 | ------------------- | ------------------------------------------------------ |
 | `--no-open`         | Don't auto-open the browser on start                   |
-| `--port <n>`        | Override the API port (default 20128)                  |
+| `--port <n>`        | Override the API port (default 2004)                   |
 | `--mcp`             | Run as MCP server over stdio (for IDEs)                |
 | `--non-interactive` | CI mode (no prompts; reads from env/flags)             |
 | `--json`            | Machine-readable JSON output (doctor, providers, etc.) |
@@ -717,12 +717,12 @@ Ready-to-paste examples with a tokenized Birouter URL:
 ```txt
 Token example: sk-a3ab3c080beaee3a-69f4a4-070d71af
 
-Standard OpenAI base: http://localhost:20128/v1
-VS Code models: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
-VS Code chat: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/chat/completions
-VS Code responses: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
-Ollama tags: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/tags
-Ollama chat: http://localhost:20128/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/chat
+Standard OpenAI base: http://localhost:2004/v1
+VS Code models: http://localhost:2004/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/models
+VS Code chat: http://localhost:2004/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/chat/completions
+VS Code responses: http://localhost:2004/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/responses
+Ollama tags: http://localhost:2004/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/tags
+Ollama chat: http://localhost:2004/api/v1/vscode/sk-a3ab3c080beaee3a-69f4a4-070d71af/api/chat
 ```
 
 ---

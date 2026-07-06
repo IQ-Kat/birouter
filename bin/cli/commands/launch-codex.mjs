@@ -51,7 +51,7 @@ export function resolveCodexTarget(opts = {}) {
     }
     baseUrl = fromCtx
       ? stripTrailingSlash(fromCtx).replace(/\/v1$/, "")
-      : `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
+      : `http://localhost:${Number(opts.port ?? process.env.PORT ?? 2004) || 2004}`;
   }
 
   let authToken = opts.apiKey ?? opts["api-key"];
@@ -164,10 +164,10 @@ export function registerLaunchCodex(program) {
     .description(
       t("launchCodex.description") || "Launch Codex CLI pointed at Birouter (local or remote VPS)"
     )
-    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "2004")
     .option(
       "--remote <url>",
-      "Remote Birouter base URL, e.g. http://192.168.0.15:20128 (overrides --port + context)"
+      "Remote Birouter base URL, e.g. http://192.168.0.15:2004 (overrides --port + context)"
     )
     .option("--profile <name>", "Codex profile to activate (passed as --profile <name>)")
     .option("-p, --p <name>", "Alias for --profile")

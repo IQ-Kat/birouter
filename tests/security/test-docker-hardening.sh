@@ -26,7 +26,7 @@ echo "[2/6] Starting test container: ${CONTAINER_NAME} on :${HOST_PORT}"
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 docker run -d \
   --name "${CONTAINER_NAME}" \
-  -p "${HOST_PORT}:20128" \
+  -p "${HOST_PORT}:2004" \
   --env-file "${ENV_FILE}" \
   -e REQUIRE_API_KEY=true \
   -e AUTH_COOKIE_SECURE=true \

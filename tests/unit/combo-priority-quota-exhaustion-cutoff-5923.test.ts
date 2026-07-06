@@ -22,7 +22,7 @@ import path from "node:path";
  * provider, and the healthy one must remain fully eligible).
  */
 const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-quota-cutoff-priority-5923-")
+  path.join(os.tmpdir(), "birouter-quota-cutoff-priority-5923-")
 );
 process.env.DATA_DIR = TEST_DATA_DIR;
 

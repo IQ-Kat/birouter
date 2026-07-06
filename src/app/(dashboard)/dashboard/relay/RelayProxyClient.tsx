@@ -196,7 +196,7 @@ export default function RelayProxyClient() {
           <h2 className="text-sm font-semibold">Usage</h2>
           <p className="text-xs text-text-muted">Send requests to your relay endpoint:</p>
           <pre className="text-xs bg-surface/50 border border-border rounded-lg p-3 overflow-x-auto">
-            {`curl http://localhost:20128/v1/relay/chat/completions \\
+            {`curl http://localhost:2004/v1/relay/chat/completions \\
   -H "Authorization: Bearer relay_..." \\
   -H "Content-Type: application/json" \\
   -d '{"model":"claude-sonnet-4","messages":[{"role":"user","content":"Hello"}]}'`}

@@ -152,7 +152,7 @@ _Hubungkan IDE atau alat CLI berbasis AI apa pun melalui Birouter — gateway AP
     </tr>
   </table>
 
-<sub>📡 Semua agen terhubung melalui <code>http://localhost:20128/v1</code> atau <code>http://cloud.Birouter.online/v1</code> — satu konfigurasi, model dan kuota tak terbatas</sub>
+<sub>📡 Semua agen terhubung melalui <code>http://localhost:2004/v1</code> atau <code>http://cloud.Birouter.online/v1</code> — satu konfigurasi, model dan kuota tak terbatas</sub>
 
 ---
 
@@ -202,7 +202,7 @@ Perintah ini menghasilkan `system-info.txt` berisi versi Node.js, versi Birouter
 │  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:2004/v1
        ↓
 ┌─────────────────────────────────────────┐
 │           Birouter (Router Cerdas)       │
@@ -252,7 +252,7 @@ OpenAI menggunakan satu format, Claude (Anthropic) menggunakan format lain, Gemi
 
 **Cara Birouter menyelesaikannya:**
 
-- **Endpoint Terpadu** — Satu `http://localhost:20128/v1` berfungsi sebagai proxy untuk semua 100+ penyedia
+- **Endpoint Terpadu** — Satu `http://localhost:2004/v1` berfungsi sebagai proxy untuk semua 100+ penyedia
 - **Translasi Format** — Otomatis dan transparan: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Sanitasi Respons** — Menghapus field non-standar (`x_groq`, `usage_breakdown`, `service_tier`) yang merusak OpenAI SDK v1.83+
 - **Normalisasi Peran** — Mengonversi `developer` → `system` untuk penyedia non-OpenAI; `system` → `user` untuk GLM/ERNIE
@@ -331,19 +331,19 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 <details>
 <summary><b>🔧 7. "Mengonfigurasi setiap alat AI membosankan dan berulang"</b></summary>
 
-**Cara OmniRoute menyelesaikannya:**
+**Cara Birouter menyelesaikannya:**
 
 - **Dashboard Alat CLI** — Halaman khusus dengan pengaturan satu klik untuk Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **Generator Konfigurasi GitHub Copilot** — Menghasilkan `chatLanguageModels.json` untuk VS Code dengan pemilihan model massal
 - **Wizard Orientasi** — Pengaturan terpandu 4 langkah untuk pengguna pertama kali
-- **Satu endpoint, semua model** — Konfigurasi `http://localhost:20128/v1` sekali, akses 100+ penyedia
+- **Satu endpoint, semua model** — Konfigurasi `http://localhost:2004/v1` sekali, akses 100+ penyedia
 
 </details>
 
 <details>
 <summary><b>🔑 8. "Mengelola token OAuth dari beberapa penyedia adalah mimpi buruk"</b></summary>
 
-**Cara OmniRoute menyelesaikannya:**
+**Cara Birouter menyelesaikannya:**
 
 - **Refresh Token Otomatis** — Token OAuth diperbarui di latar belakang sebelum kedaluwarsa
 - **OAuth Multi-Akun** — Beberapa akun per penyedia melalui ekstraksi token JWT/ID
@@ -739,7 +739,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | 3    | Connect **Qwen** (Device Code)                         | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
 | 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                  |
 
-**Arahkan IDE/CLI apa pun ke:** `http://localhost:20128/v1` · Kunci API: `any-string` · Selesai.
+**Arahkan IDE/CLI apa pun ke:** `http://localhost:2004/v1` · Kunci API: `any-string` · Selesai.
 
 > **Cakupan ekstra opsional (juga gratis):** Kunci API Groq (gratis 30 RPM), NVIDIA NIM (gratis 40 RPM, 70+ model), Cerebras (1 juta tok/hari), kunci API LongCat (50 juta token/hari!), Cloudflare Workers AI (10 ribu neuron/hari, 50+ model).
 
@@ -759,7 +759,7 @@ birouter
 > birouter
 > ```
 
-Dasbor terbuka di `http://localhost:20128` dan URL dasar API adalah `http://localhost:20128/v1`.
+Dasbor terbuka di `http://localhost:2004` dan URL dasar API adalah `http://localhost:2004/v1`.
 
 #### Arch Linux (AUR)
 
@@ -770,19 +770,19 @@ yay -S birouter-bin
 systemctl --user enable --now birouter.service
 ```
 
-| Command                 | Description                                                     |
-| ----------------------- | --------------------------------------------------------------- |
-| `omniroute`             | Mulai server (`PORT=20128`, API dan dasbor pada port yang sama) |
-| `omniroute --port 3000` | Set canonical/API port to 3000                                  |
-| `omniroute --mcp`       | Mulai server MCP (stdio transport)                              |
-| `omniroute --no-open`   | Don't auto-open browser                                         |
-| `omniroute --help`      | Show help                                                       |
+| Command                | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| `Birouter`             | Mulai server (`PORT=2004`, API dan dasbor pada port yang sama) |
+| `Birouter --port 3000` | Set canonical/API port to 3000                                 |
+| `Birouter --mcp`       | Mulai server MCP (stdio transport)                             |
+| `Birouter --no-open`   | Don't auto-open browser                                        |
+| `Birouter --help`      | Show help                                                      |
 
 Optional split-port mode:
 
 ```bash
-PORT=20128 DASHBOARD_PORT=20129 birouter
-# API:       http://localhost:20128/v1
+PORT=2004 DASHBOARD_PORT=20129 birouter
+# API:       http://localhost:2004/v1
 # Dashboard: http://localhost:20129
 ```
 
@@ -792,7 +792,7 @@ Saat Anda tidak lagi memerlukan Birouter, kami menyediakan dua skrip cepat untuk
 
 | Command                  | Action                                                                                       |
 | ------------------------ | -------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **menyimpan DB dan konfigurasi Anda** di `~/.omniroute`.    |
+| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **menyimpan DB dan konfigurasi Anda** di `~/.Birouter`.     |
 | `npm run uninstall:full` | Menghapus aplikasi DAN secara permanen **menghapus semua konfigurasi, kunci, dan database**. |
 
 > Catatan: Untuk menjalankan perintah ini, navigasikan ke folder proyek Birouter (jika Anda mengkloningnya) dan jalankan. Alternatifnya, jika diinstal secara global, Anda cukup menjalankan `npm uninstall -g birouter`.
@@ -804,7 +804,7 @@ Untuk sebagian besar penerapan, Anda hanya memerlukan:
 | Variable                 | Default                       | Purpose                                                                                                                                                                      |
 | ------------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REQUEST_TIMEOUT_MS`     | `600000`                      | Garis dasar bersama untuk batas waktu mulai respons upstream, batas waktu Undici yang tersembunyi, permintaan sidik jari TLS, dan batas waktu permintaan/proksi jembatan API |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Kesenjangan maksimum antara potongan streaming sebelum OmniRoute membatalkan aliran SSE                                                                                      |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Kesenjangan maksimum antara potongan streaming sebelum Birouter membatalkan aliran SSE                                                                                       |
 
 Kompatibilitas mundur dipertahankan: `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, dan var batas waktu per lapisan lainnya yang ada masih berfungsi dan menggantikan garis dasar bersama.
 
@@ -845,7 +845,7 @@ waktu tunggu juga lebih tinggi daripada waktu tunggu aliran/pengambilan Birouter
 ### 3) Arahkan alat pengkodean Anda ke Birouter
 
 ```txt
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
@@ -866,11 +866,11 @@ Kemudian sambungkan klien MCP Anda melalui `stdio` dan uji alat seperti:
 **A2A (untuk alur kerja agen-ke-agen):**
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":"quickstart","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Give me a short quota summary."}]}}'
 ```
@@ -888,7 +888,7 @@ Suite ini memvalidasi alur klien MCP dan A2A yang sebenarnya terhadap aplikasi y
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
+PORT=2004 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
 <details>
@@ -982,7 +982,7 @@ do_install() {
 
 	cat > "${WRKDIR}/birouter" <<'EOF'
 #!/bin/sh
-export PORT="${PORT:-20128}"
+export PORT="${PORT:-2004}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/birouter}"
 export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
@@ -1011,7 +1011,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -1027,7 +1027,7 @@ docker run -d \
   --restart unless-stopped \
   --stop-timeout 40 \
   --env-file .env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -1068,7 +1068,7 @@ services:
     volumes:
       - birouter-data:/app/data
     environment:
-      - PORT=20128
+      - PORT=2004
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
 
   caddy:
@@ -1078,7 +1078,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:20128
+    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:2004
 
 volumes:
   birouter-data:
@@ -1586,13 +1586,13 @@ API yang berguna untuk otomatisasi:
 Temukan agennya:
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 Send a task:
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":"setup-a2a","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Summarize quota status."}]}}'
 ```
@@ -1851,7 +1851,7 @@ Cost: $0 forever!
 
 ```
 Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:2004/v1
   OpenAI API Key: [from Birouter dashboard]
   Model: cc/claude-opus-4-7
 ```
@@ -1863,7 +1863,7 @@ Gunakan halaman **Alat CLI** di dasbor untuk konfigurasi sekali klik, atau edit 
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:2004"
 export OPENAI_API_KEY="your-birouter-api-key"
 
 codex "your prompt"
@@ -1884,7 +1884,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
   "models": {
     "providers": {
       "birouter": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:2004/v1",
         "apiKey": "sk_birouter",
         "api": "openai-completions"
       }
@@ -1900,7 +1900,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 ```
 Settings → API Configuration:
   Provider: OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:2004/v1
   API Key: [from Birouter dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -1925,7 +1925,7 @@ opencode
       "npm": "@ai-sdk/openai-compatible",
       "name": "Birouter",
       "options": {
-        "baseURL": "http://localhost:20128/v1"
+        "baseURL": "http://localhost:2004/v1"
       },
       "models": {
         "cc/claude-sonnet-4-20250514": { "name": "Claude Sonnet 4" },
@@ -2015,7 +2015,7 @@ opencode
 
 > **⚠️ Penting bagi pengguna yang menjalankan Birouter di VPS, Docker, atau server jarak jauh mana pun**
 
-Kredensial OAuth yang disertakan dalam OmniRoute didaftarkan **hanya untuk `localhost`**. Saat Anda mengakses OmniRoute di server jarak jauh (misalnya `https://omniroute.myserver.com`), Google menolak autentikasi dengan:
+Kredensial OAuth yang disertakan dalam Birouter didaftarkan **hanya untuk `localhost`**. Saat Anda mengakses Birouter di server jarak jauh (misalnya `https://Birouter.myserver.com`), Google menolak autentikasi dengan:
 
 ```
 Error 400: redirect_uri_mismatch
@@ -2045,7 +2045,7 @@ Di kolom **"URI pengalihan resmi"**, tambahkan:
 https://your-server.com/callback
 ```
 
-> Ganti `your-server.com` dengan domain atau IP server Anda (sertakan port jika diperlukan, misalnya `http://45.33.32.156:20128/callback`).
+> Ganti `your-server.com` dengan domain atau IP server Anda (sertakan port jika diperlukan, misalnya `http://45.33.32.156:2004/callback`).
 
 **4. Simpan dan salin kredensial**
 

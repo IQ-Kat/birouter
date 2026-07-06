@@ -54,7 +54,7 @@ npx birouter
 The dashboard listens on:
 
 ```text
-http://localhost:20128
+http://localhost:2004
 ```
 
 Open that URL in the Android browser. If you run clients inside Termux, use the same host and port as the OpenAI-compatible base URL.
@@ -98,13 +98,13 @@ ip addr show wlan0
 Then open the dashboard from another device:
 
 ```text
-http://PHONE_IP:20128
+http://PHONE_IP:2004
 ```
 
 For example:
 
 ```text
-http://192.168.1.50:20128
+http://192.168.1.50:2004
 ```
 
 Keep the phone and client on the same trusted network. If you expose Birouter outside the phone, enable API keys and dashboard authentication.
@@ -148,7 +148,7 @@ npx -y birouter@latest
 Check what is listening on the default port:
 
 ```bash
-ss -ltnp | grep 20128
+ss -ltnp | grep 2004
 ```
 
 Stop the old process:
@@ -162,7 +162,7 @@ pkill -f birouter
 Verify both devices are on the same WiFi network, then test from Termux:
 
 ```bash
-curl http://localhost:20128
+curl http://localhost:2004
 ```
 
 If local access works but LAN access does not, check Android hotspot/WiFi isolation and any firewall or VPN profile on the phone.

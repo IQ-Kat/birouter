@@ -108,7 +108,7 @@ export class ServerSupervisor {
     // immediately produced the EADDRINUSE cascade that exhausted the restart budget. Wait
     // (bounded) for the port to free up before respawning.
     setTimeout(async () => {
-      await waitUntilPortFree(process.env.PORT || 20128);
+      await waitUntilPortFree(process.env.PORT || 2004);
       this.start();
     }, delay);
   }

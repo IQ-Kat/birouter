@@ -20,6 +20,6 @@ Saat membuat _tes validasi_ atau skrip logika sekali pakai, default ke penggunaa
 
 ## 2. Kredensial Dashboard VPS
 
-| Lingkungan | URL                       | Kata Sandi |
-| ---------- | ------------------------- | ---------- |
-| VPS Lokal  | http://192.168.0.15:20128 | 123456     |
+| Lingkungan | URL                      | Kata Sandi |
+| ---------- | ------------------------ | ---------- |
+| VPS Lokal  | http://192.168.0.15:2004 | 123456     |

@@ -152,7 +152,7 @@ _Connect any AI-powered IDE or CLI tool through Birouter — free API gateway fo
     </tr>
   </table>
 
-<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.Birouter.online/v1</code> — one config, unlimited models and quota</sub>
+<sub>📡 All agents connect via <code>http://localhost:2004/v1</code> or <code>http://cloud.Birouter.online/v1</code> — one config, unlimited models and quota</sub>
 
 ---
 
@@ -202,7 +202,7 @@ This generates a `system-info.txt` with your Node.js version, Birouter version, 
 │  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:2004/v1
        ↓
 ┌─────────────────────────────────────────┐
 │           Birouter (Smart Router)        │
@@ -252,7 +252,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 **How Birouter solves it:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
+- **Unified Endpoint** — A single `http://localhost:2004/v1` serves as proxy for all 100+ providers
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
 - **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
@@ -336,7 +336,7 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
 - **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 100+ providers
+- **One endpoint, all models** — Configure `http://localhost:2004/v1` once, access 100+ providers
 
 </details>
 
@@ -742,7 +742,7 @@ Outcome: deep fallback depth for deadline-critical workloads
 | 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
 | 4    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
 
-**Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
+**Point any IDE/CLI to:** `http://localhost:2004/v1` · API Key: `any-string` · Done.
 
 > **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
 
@@ -762,7 +762,7 @@ birouter
 > birouter
 > ```
 
-Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
+Dashboard opens at `http://localhost:2004` and API base URL is `http://localhost:2004/v1`.
 
 #### Arch Linux (AUR)
 
@@ -773,19 +773,19 @@ yay -S birouter-bin
 systemctl --user enable --now birouter.service
 ```
 
-| Command                | Description                                                 |
-| ---------------------- | ----------------------------------------------------------- |
-| `birouter`             | Start server (`PORT=20128`, API and dashboard on same port) |
-| `birouter --port 3000` | Set canonical/API port to 3000                              |
-| `birouter --mcp`       | Start MCP server (stdio transport)                          |
-| `birouter --no-open`   | Don't auto-open browser                                     |
-| `birouter --help`      | Show help                                                   |
+| Command                | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `birouter`             | Start server (`PORT=2004`, API and dashboard on same port) |
+| `birouter --port 3000` | Set canonical/API port to 3000                             |
+| `birouter --mcp`       | Start MCP server (stdio transport)                         |
+| `birouter --no-open`   | Don't auto-open browser                                    |
+| `birouter --help`      | Show help                                                  |
 
 Optional split-port mode:
 
 ```bash
-PORT=20128 DASHBOARD_PORT=20129 birouter
-# API:       http://localhost:20128/v1
+PORT=2004 DASHBOARD_PORT=20129 birouter
+# API:       http://localhost:2004/v1
 # Dashboard: http://localhost:20129
 ```
 
@@ -848,7 +848,7 @@ timeouts are also higher than your Birouter stream/fetch timeouts.
 ### 3) Point your coding tool to Birouter
 
 ```txt
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
@@ -869,11 +869,11 @@ Then connect your MCP client over `stdio` and test tools like:
 **A2A (for agent-to-agent workflows):**
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":"quickstart","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Give me a short quota summary."}]}}'
 ```
@@ -891,7 +891,7 @@ This suite validates real MCP and A2A client flows against a running app.
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
+PORT=2004 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
 <details>
@@ -985,7 +985,7 @@ do_install() {
 
 	cat > "${WRKDIR}/birouter" <<'EOF'
 #!/bin/sh
-export PORT="${PORT:-20128}"
+export PORT="${PORT:-2004}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/birouter}"
 export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
@@ -1014,7 +1014,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --stop-timeout 40 \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -1030,7 +1030,7 @@ docker run -d \
   --restart unless-stopped \
   --stop-timeout 40 \
   --env-file .env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -1071,7 +1071,7 @@ services:
     volumes:
       - birouter-data:/app/data
     environment:
-      - PORT=20128
+      - PORT=2004
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
 
   caddy:
@@ -1081,7 +1081,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:20128
+    command: caddy reverse-proxy --from https://your-domain.com --to http://birouter:2004
 
 volumes:
   birouter-data:
@@ -1589,13 +1589,13 @@ Useful APIs for automation:
 Discover the agent:
 
 ```bash
-curl http://localhost:20128/.well-known/agent.json
+curl http://localhost:2004/.well-known/agent.json
 ```
 
 Send a task:
 
 ```bash
-curl -X POST http://localhost:20128/a2a \
+curl -X POST http://localhost:2004/a2a \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":"setup-a2a","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Summarize quota status."}]}}'
 ```
@@ -1854,7 +1854,7 @@ Cost: $0 forever!
 
 ```
 Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:2004/v1
   OpenAI API Key: [from Birouter dashboard]
   Model: cc/claude-opus-4-7
 ```
@@ -1866,7 +1866,7 @@ Use the **CLI Tools** page in the dashboard for one-click configuration, or edit
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:2004"
 export OPENAI_API_KEY="your-birouter-api-key"
 
 codex "your prompt"
@@ -1887,7 +1887,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
   "models": {
     "providers": {
       "birouter": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:2004/v1",
         "apiKey": "sk_birouter",
         "api": "openai-completions"
       }
@@ -1903,7 +1903,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 ```
 Settings → API Configuration:
   Provider: OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:2004/v1
   API Key: [from Birouter dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -1928,7 +1928,7 @@ opencode
       "npm": "@ai-sdk/openai-compatible",
       "name": "Birouter",
       "options": {
-        "baseURL": "http://localhost:20128/v1"
+        "baseURL": "http://localhost:2004/v1"
       },
       "models": {
         "cc/claude-sonnet-4-20250514": { "name": "Claude Sonnet 4" },
@@ -2048,7 +2048,7 @@ In the **"Authorized redirect URIs"** field, add:
 https://your-server.com/callback
 ```
 
-> Replace `your-server.com` with your server's domain or IP (include the port if needed, e.g. `http://45.33.32.156:20128/callback`).
+> Replace `your-server.com` with your server's domain or IP (include the port if needed, e.g. `http://45.33.32.156:2004/callback`).
 
 **4. Save and copy the credentials**
 
@@ -2130,7 +2130,7 @@ No campo **"Authorized redirect URIs"**, adicione:
 https://seu-servidor.com/callback
 ```
 
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:2004/callback`).
 
 **4. Salve e copie as credenciais**
 

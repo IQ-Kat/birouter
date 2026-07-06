@@ -13,7 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-models-test-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-models-test-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -31,7 +31,7 @@ test.after(async () => {
 
 function post(body: unknown, rawText?: string) {
   return route.POST(
-    new Request("http://localhost:20128/api/models/test", {
+    new Request("http://localhost:2004/api/models/test", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: rawText !== undefined ? rawText : JSON.stringify(body),

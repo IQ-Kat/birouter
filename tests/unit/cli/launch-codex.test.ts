@@ -37,10 +37,10 @@ test("buildCodexEnv does not mutate the input env", () => {
 });
 
 test("buildCodexProviderArgs defines the birouter provider inline (works without config.toml)", () => {
-  const args = buildCodexProviderArgs("http://vps:20128");
+  const args = buildCodexProviderArgs("http://vps:2004");
   const joined = args.join(" ");
   assert.ok(joined.includes('model_provider="birouter"'));
-  assert.ok(joined.includes('model_providers.birouter.base_url="http://vps:20128/v1"'));
+  assert.ok(joined.includes('model_providers.birouter.base_url="http://vps:2004/v1"'));
   assert.ok(joined.includes('model_providers.birouter.env_key="BIROUTER_API_KEY"'));
   assert.ok(joined.includes('model_providers.birouter.wire_api="responses"'));
   assert.ok(joined.includes("model_providers.birouter.requires_openai_auth=false"));
@@ -49,11 +49,11 @@ test("buildCodexProviderArgs defines the birouter provider inline (works without
 });
 
 test("resolveCodexTarget: --remote wins and /v1 is stripped from the root", () => {
-  const { baseUrl } = resolveCodexTarget({ remote: "http://vps:20128/v1" });
-  assert.equal(baseUrl, "http://vps:20128");
+  const { baseUrl } = resolveCodexTarget({ remote: "http://vps:2004/v1" });
+  assert.equal(baseUrl, "http://vps:2004");
 });
 
 test("resolveCodexTarget: explicit --api-key wins", () => {
-  const { authToken } = resolveCodexTarget({ remote: "http://x:20128", apiKey: "tok-explicit" });
+  const { authToken } = resolveCodexTarget({ remote: "http://x:2004", apiKey: "tok-explicit" });
   assert.equal(authToken, "tok-explicit");
 });

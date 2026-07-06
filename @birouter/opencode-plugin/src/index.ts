@@ -2968,7 +2968,7 @@ export function createBirouterProviderHook(
  * Ported from Alph4d0g's `opencode-birouter-auth@1.2.1` `createFetchInterceptor`
  * (their `dist/src/plugin.js:477-516`) with these intentional deviations:
  *
- *   - **`baseURL` is required** here (no `localhost:20128/v1` fallback). T-04
+ *   - **`baseURL` is required** here (no `localhost:2004/v1` fallback). T-04
  *     callers always have an authoritative baseURL (from plugin opts or
  *     auth.json); a silent local default would be a footgun.
  *   - **Content-Type defaulting is gated on `init.body` presence**. Their

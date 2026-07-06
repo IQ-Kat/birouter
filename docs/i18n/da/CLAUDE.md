@@ -10,7 +10,7 @@ Denne fil giver vejledning til Claude Code (claude.ai/code) når der arbejdes me
 
 ```bash
 npm install                    # Installer afhængigheder (auto-genererer .env fra .env.example)
-npm run dev                    # Dev server på http://localhost:20128
+npm run dev                    # Dev server på http://localhost:2004
 npm run build                  # Produktionsbygning (Next.js 16 standalone)
 npm run lint                   # ESLint (0 fejl forventet; advarsler er forudgående)
 npm run typecheck:core         # TypeScript tjek (skal være rent)
@@ -389,7 +389,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduler
 - **TypeScript**: 5.9+, mål ES2022, modul esnext, opløsning bundler
 - **Sti aliaser**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Standardport**: 20128 (API + dashboard på samme port)
+- **Standardport**: 2004 (API + dashboard på samme port)
 - **Data katalog**: `DATA_DIR` miljøvariabel, standard til `~/.birouter/`
 - **Nøgle miljøvariabler**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Opsætning: `cp .env.example .env` og generer derefter `JWT_SECRET` (`openssl rand -base64 48`) og `API_KEY_SECRET` (`openssl rand -hex 32`)

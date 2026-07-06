@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 // Regression for port of decolua/9router#2311 (PR #2318): OpenAI Responses-API-only
 // fields must be stripped before forwarding to a Chat Completions upstream, otherwise
 // strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject with HTTP 400
-// "Unsupported parameter(s): ...". OmniRoute already strips `client_metadata`,
+// "Unsupported parameter(s): ...". Birouter already strips `client_metadata`,
 // `background`, and `safety_identifier`; `truncation` was the remaining gap.
 const { openaiResponsesToOpenAIRequest } =
   await import("../../open-sse/translator/request/openai-responses.ts");

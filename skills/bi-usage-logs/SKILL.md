@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Get usage analytics
 
 ```bash
-curl https://localhost:20128/api/usage/analytics \
+curl https://localhost:2004/api/usage/analytics \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -29,7 +29,7 @@ curl https://localhost:20128/api/usage/analytics \
 Get call logs
 
 ```bash
-curl https://localhost:20128/api/usage/call-logs \
+curl https://localhost:2004/api/usage/call-logs \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -38,7 +38,7 @@ curl https://localhost:20128/api/usage/call-logs \
 Get a specific call log
 
 ```bash
-curl https://localhost:20128/api/usage/call-logs/{id} \
+curl https://localhost:2004/api/usage/call-logs/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -47,7 +47,7 @@ curl https://localhost:20128/api/usage/call-logs/{id} \
 Get usage for a specific connection
 
 ```bash
-curl https://localhost:20128/api/usage/{connectionId} \
+curl https://localhost:2004/api/usage/{connectionId} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -56,7 +56,7 @@ curl https://localhost:20128/api/usage/{connectionId} \
 Get usage history
 
 ```bash
-curl https://localhost:20128/api/usage/history \
+curl https://localhost:2004/api/usage/history \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -65,7 +65,7 @@ curl https://localhost:20128/api/usage/history \
 Get usage logs
 
 ```bash
-curl https://localhost:20128/api/usage/logs \
+curl https://localhost:2004/api/usage/logs \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -74,7 +74,7 @@ curl https://localhost:20128/api/usage/logs \
 Get proxy logs
 
 ```bash
-curl https://localhost:20128/api/usage/proxy-logs \
+curl https://localhost:2004/api/usage/proxy-logs \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -83,7 +83,7 @@ curl https://localhost:20128/api/usage/proxy-logs \
 Get request logs
 
 ```bash
-curl https://localhost:20128/api/usage/request-logs \
+curl https://localhost:2004/api/usage/request-logs \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -94,7 +94,7 @@ Get usage budget status
 Returns current budget limits and consumption.
 
 ```bash
-curl https://localhost:20128/api/usage/budget \
+curl https://localhost:2004/api/usage/budget \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -105,7 +105,7 @@ Configure usage budget
 Set or update budget limits for usage tracking.
 
 ```bash
-curl -X POST https://localhost:20128/api/usage/budget \
+curl -X POST https://localhost:2004/api/usage/budget \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'

@@ -10,7 +10,7 @@ Tämä tiedosto tarjoaa ohjeita Claude Code (claude.ai/code) käytettäessä koo
 
 ```bash
 npm install                    # Asenna riippuvuudet (automaattisesti luo .env .env.example:sta)
-npm run dev                    # Kehityspalvelin osoitteessa http://localhost:20128
+npm run dev                    # Kehityspalvelin osoitteessa http://localhost:2004
 npm run build                  # Tuotantorakennus (Next.js 16 standalone)
 npm run lint                   # ESLint (0 virhettä odotettavissa; varoitukset ovat ennestään olemassa)
 npm run typecheck:core         # TypeScript-tarkistus (pitäisi olla puhdas)
@@ -386,7 +386,7 @@ git push -u origin feat/your-feature
 - **Suoritusaika**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduulit
 - **TypeScript**: 5.9+, kohde ES2022, moduuli esnext, resoluutio bundler
 - **Polkualias**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Oletusportti**: 20128 (API + dashboard samalla portilla)
+- **Oletusportti**: 2004 (API + dashboard samalla portilla)
 - **Tietohakemisto**: `DATA_DIR` ympäristömuuttuja, oletuksena `~/.birouter/`
 - **Avain ympäristömuuttujat**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Asetus: `cp .env.example .env` ja sitten luo `JWT_SECRET` (`openssl rand -base64 48`) ja `API_KEY_SECRET` (`openssl rand -hex 32`)

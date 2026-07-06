@@ -9,7 +9,7 @@ import path from "node:path";
 // has rejected known-too-small targets and a known-capacity target remains,
 // unknown-context targets must not survive over it.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-context-filter-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-combo-context-filter-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 

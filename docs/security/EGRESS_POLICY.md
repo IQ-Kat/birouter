@@ -100,7 +100,7 @@ The `family` field is part of the proxy registry create/update payloads, validat
 
 ```bash
 # Create an IPv6-only proxy
-curl -X POST http://localhost:20128/api/v1/management/proxies \
+curl -X POST http://localhost:2004/api/v1/management/proxies \
   -H "Content-Type: application/json" \
   -d '{
     "name": "IPv6 egress",
@@ -111,7 +111,7 @@ curl -X POST http://localhost:20128/api/v1/management/proxies \
   }'
 
 # Change an existing proxy to IPv4-only
-curl -X PATCH http://localhost:20128/api/v1/management/proxies \
+curl -X PATCH http://localhost:2004/api/v1/management/proxies \
   -H "Content-Type: application/json" \
   -d '{ "id": "proxy-uuid-here", "family": "ipv4" }'
 ```

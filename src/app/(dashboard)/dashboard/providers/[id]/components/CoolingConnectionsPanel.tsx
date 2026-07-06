@@ -9,7 +9,7 @@
  * Why this exists: Fix A (per-account 429 cascade not persisting) writes the
  * cooldown to `provider_connections.rate_limited_until` so the cascade
  * survives the request boundary and process restart. Without a visible
- * indicator the user has no way to see "OmniRoute learned that this key is
+ * indicator the user has no way to see "Birouter learned that this key is
  * exhausted — and for how long". This panel makes the lesson visible.
  *
  * Acceptance criteria (Issue #1, fix scope D):
@@ -62,8 +62,8 @@ export default function CoolingConnectionsPanel(props: CoolingConnectionsPanelPr
         </h3>
       </div>
       <p className="mb-3 text-xs text-muted-foreground">
-        These connections returned a 429 (rate-limit) on their last request. OmniRoute will skip
-        them until the timer expires — no manual disable required.
+        These connections returned a 429 (rate-limit) on their last request. Birouter will skip them
+        until the timer expires — no manual disable required.
       </p>
       <ul className="space-y-1">
         {cooling.map((c) => {

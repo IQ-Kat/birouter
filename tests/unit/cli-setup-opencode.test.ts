@@ -49,7 +49,7 @@ function readConfig() {
 // (same pattern as tests/unit/cli/setup-claude.test.ts, #6019/#6021).
 const _console = { log: console.log, info: console.info, warn: console.warn };
 
-describe("omniroute setup opencode", () => {
+describe("birouter setup opencode", () => {
   before(() => {
     console.log = () => {};
     console.info = () => {};
@@ -72,7 +72,7 @@ describe("omniroute setup opencode", () => {
     const r = await runSetupOpenCodeCommand({
       configDir: CONFIG_DIR,
       // Commander turns `--base-url` into `baseUrl` — the runner must accept it.
-      baseUrl: "http://10.0.0.5:20128",
+      baseURL: "http://10.0.0.5:2004",
       nonInteractive: true,
     });
     assert.equal(r.exitCode, 0);
@@ -85,11 +85,11 @@ describe("omniroute setup opencode", () => {
     assert.ok(Array.isArray(cfg.plugin));
     assert.equal(cfg.plugin.length, 1);
     const [modulePath, options] = cfg.plugin[0];
-    assert.equal(modulePath, "./plugins/omniroute/dist/index.js");
-    assert.equal(options.providerId, "omniroute");
+    assert.equal(modulePath, "./plugins/birouter/dist/index.js");
+    assert.equal(options.providerId, "birouter");
     assert.equal(
       options.baseURL,
-      "http://10.0.0.5:20128",
+      "http://10.0.0.5:2004",
       "--base-url flag must reach the registered entry"
     );
   });
@@ -97,20 +97,20 @@ describe("omniroute setup opencode", () => {
   it("is idempotent: re-running updates the entry in place instead of duplicating it", async () => {
     const r = await runSetupOpenCodeCommand({
       configDir: CONFIG_DIR,
-      baseUrl: "http://10.0.0.9:20128",
+      baseURL: "http://10.0.0.9:2004",
       nonInteractive: true,
     });
     assert.equal(r.exitCode, 0);
 
     const cfg = readConfig();
-    const omniEntries = cfg.plugin.filter(
+    const biEntries = cfg.plugin.filter(
       (p: unknown) =>
-        Array.isArray(p) && (p[1] as { providerId?: string })?.providerId === "omniroute"
+        Array.isArray(p) && (p[1] as { providerId?: string })?.providerId === "birouter"
     );
-    assert.equal(omniEntries.length, 1, "re-run must not duplicate the entry");
+    assert.equal(biEntries.length, 1, "re-run must not duplicate the entry");
     assert.equal(
-      omniEntries[0][1].baseURL,
-      "http://10.0.0.9:20128",
+      biEntries[0][1].baseURL,
+      "http://10.0.0.9:2004",
       "re-run updates baseURL in place"
     );
   });

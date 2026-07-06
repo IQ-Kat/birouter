@@ -40,7 +40,7 @@ primary_region = 'sin'
   app = 'node run-standalone.mjs'
 
 [http_service]
-  internal_port = 20128
+  internal_port = 2004
 
 [env]
   TZ = "Asia/Shanghai"

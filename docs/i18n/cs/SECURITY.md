@@ -160,7 +160,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --read-only \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   -e JWT_SECRET="$(openssl rand -base64 48)" \
   -e API_KEY_SECRET="$(openssl rand -hex 32)" \

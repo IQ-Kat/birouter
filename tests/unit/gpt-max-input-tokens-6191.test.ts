@@ -10,7 +10,7 @@ import path from "node:path";
 // pin the distinct-input-cap behavior and guard the contextLength fallback for
 // models that do NOT declare an explicit maxInputTokens.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-gpt-input-cap-6191-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-gpt-input-cap-6191-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");

@@ -15,9 +15,9 @@ import os from "node:os";
 import path from "node:path";
 
 const { AuggieExecutor, buildAuggiePrompt, resolveAuggieBin, resolveAuggieModel } =
-  await import("@birouter/open-sse/executors/auggie");
+  await import("../../open-sse/executors/auggie");
 
-const TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-auggie-test-"));
+const TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-auggie-test-"));
 
 /** Write an executable shell script and return its absolute path. */
 function writeFakeBin(name: string, script: string): string {
@@ -373,7 +373,7 @@ test("execute() aborts a long-running CLI process instead of hanging (streaming)
 
 // ─── refreshCredentials() is a no-op ────────────────────────────────────────
 
-test("refreshCredentials() is a no-op (auggie has no OmniRoute-managed credentials)", async () => {
+test("refreshCredentials() is a no-op (auggie has no Birouter-managed credentials)", async () => {
   const executor = new AuggieExecutor();
   const result = await executor.refreshCredentials({} as never);
   assert.equal(result, null);

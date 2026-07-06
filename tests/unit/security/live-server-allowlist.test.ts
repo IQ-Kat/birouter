@@ -64,7 +64,7 @@ describe("buildAllowedOrigins", () => {
     assert.equal(out.has("https://dash.example.com"), true);
     assert.equal(out.has("https://other.example.com"), true);
     // Defaults remain.
-    assert.equal(out.has("http://localhost:20128"), true);
+    assert.equal(out.has("http://localhost:2004"), true);
   });
 });
 
@@ -83,8 +83,8 @@ describe("buildAllowedHosts", () => {
 
 describe("originHost", () => {
   it("returns host and hostname for a valid URL", () => {
-    assert.deepEqual(originHost("http://100.96.135.160:20128"), {
-      host: "100.96.135.160:20128",
+    assert.deepEqual(originHost("http://100.96.135.160:2004"), {
+      host: "100.96.135.160:2004",
       hostname: "100.96.135.160",
     });
   });
@@ -96,23 +96,23 @@ describe("originHost", () => {
 
 describe("originHostMatches", () => {
   it("returns false when the allow-list is empty", () => {
-    assert.equal(originHostMatches("http://100.96.135.160:20128", new Set()), false);
+    assert.equal(originHostMatches("http://100.96.135.160:2004", new Set()), false);
   });
 
   it("matches by exact host:port", () => {
-    const allow = new Set(["100.96.135.160:20128"]);
-    assert.equal(originHostMatches("http://100.96.135.160:20128", allow), true);
+    const allow = new Set(["100.96.135.160:2004"]);
+    assert.equal(originHostMatches("http://100.96.135.160:2004", allow), true);
   });
 
   it("matches by bare hostname regardless of port", () => {
     const allow = new Set(["100.96.135.160"]);
-    assert.equal(originHostMatches("http://100.96.135.160:20128", allow), true);
+    assert.equal(originHostMatches("http://100.96.135.160:2004", allow), true);
     assert.equal(originHostMatches("http://100.96.135.160:55555", allow), true);
   });
 
   it("returns false for a non-matching host", () => {
     const allow = new Set(["100.96.135.160"]);
-    assert.equal(originHostMatches("http://10.0.0.5:20128", allow), false);
+    assert.equal(originHostMatches("http://10.0.0.5:2004", allow), false);
   });
 
   it("returns false for an unparseable origin", () => {
@@ -123,13 +123,13 @@ describe("originHostMatches", () => {
 
 describe("isOriginAllowed", () => {
   it("rejects any non-loopback origin by default", () => {
-    assert.equal(isOriginAllowed("http://100.96.135.160:20128", EMPTY_ENV), false);
+    assert.equal(isOriginAllowed("http://100.96.135.160:2004", EMPTY_ENV), false);
   });
 
   it("accepts the default loopback origins", () => {
-    assert.equal(isOriginAllowed("http://127.0.0.1:20128", EMPTY_ENV), true);
-    assert.equal(isOriginAllowed("http://localhost:20128", EMPTY_ENV), true);
-    assert.equal(isOriginAllowed("http://[::1]:20128", EMPTY_ENV), true);
+    assert.equal(isOriginAllowed("http://127.0.0.1:2004", EMPTY_ENV), true);
+    assert.equal(isOriginAllowed("http://localhost:2004", EMPTY_ENV), true);
+    assert.equal(isOriginAllowed("http://[::1]:2004", EMPTY_ENV), true);
   });
 
   it("accepts an Origin matching LIVE_WS_ALLOWED_ORIGINS", () => {
@@ -139,18 +139,18 @@ describe("isOriginAllowed", () => {
 
   it("accepts a Tailscale Origin when LIVE_WS_ALLOWED_HOSTS is set", () => {
     const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160" };
-    assert.equal(isOriginAllowed("http://100.96.135.160:20128", env), true);
+    assert.equal(isOriginAllowed("http://100.96.135.160:2004", env), true);
   });
 
   it("accepts a Tailscale Origin matched by host:port when LIVE_WS_ALLOWED_HOSTS is set", () => {
-    const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160:20128" };
-    assert.equal(isOriginAllowed("http://100.96.135.160:20128", env), true);
+    const env = { ...EMPTY_ENV, LIVE_WS_ALLOWED_HOSTS: "100.96.135.160:2004" };
+    assert.equal(isOriginAllowed("http://100.96.135.160:2004", env), true);
   });
 
   it("does NOT accept a Tailscale Origin when LIVE_WS_ALLOWED_HOSTS is unset", () => {
     // Critical security invariant: without explicit opt-in, the LAN/Tailscale
     // surface is closed even though the listener is reachable.
-    assert.equal(isOriginAllowed("http://100.96.135.160:20128", EMPTY_ENV), false);
+    assert.equal(isOriginAllowed("http://100.96.135.160:2004", EMPTY_ENV), false);
   });
 
   it("rejects a missing Origin when bound to LAN (0.0.0.0)", () => {

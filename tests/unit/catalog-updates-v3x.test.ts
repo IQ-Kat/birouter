@@ -50,7 +50,7 @@ test("NVIDIA catalog includes the verified 2026 additions and GPT OSS 20B alias 
 test("Fable 5 catalog exposes claude-fable-5 in cc — but NOT via Kiro (fabricated)", () => {
   // claude-fable-5 is a real Claude flagship served by the Claude Code (cc) channel,
   // but Kiro's upstream never served it — it had been copied verbatim into the Kiro
-  // registry from OmniRoute's own Anthropic catalog and returned upstream 400
+  // registry from Birouter's own Anthropic catalog and returned upstream 400
   // "Invalid model". #6170 removed the fabricated Kiro copy.
   const ccIds = new Set(getModelsByProviderId("cc").map((m) => m.id));
   assert.ok(ccIds.has("claude-fable-5"), "cc must expose claude-fable-5");
@@ -91,7 +91,7 @@ test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox
 
 test("Kiro catalog does NOT expose Claude Opus (fabricated — Kiro upstream has no Opus)", () => {
   // Kiro's real upstream never served any Opus model; the Opus 4.8/4.7/4.6 ids had been
-  // copied into the Kiro registry from OmniRoute's Anthropic catalog and returned upstream
+  // copied into the Kiro registry from Birouter's Anthropic catalog and returned upstream
   // 400 "Invalid model. Please select a different model". #6170 removed them.
   const ids = new Set(getModelsByProviderId("kiro").map((model) => model.id));
 

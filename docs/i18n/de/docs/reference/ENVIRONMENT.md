@@ -91,7 +91,7 @@ Birouter uses **SQLite** (via `better-sqlite3`) for all persistence. These varia
 
 | Variable              | Default      | Source File                | Description                                                                            |
 | --------------------- | ------------ | -------------------------- | -------------------------------------------------------------------------------------- |
-| `PORT`                | `20128`      | `src/lib/runtime/ports.ts` | Primary port for both Dashboard UI and API endpoints (single-port mode).               |
+| `PORT`                | `2004`       | `src/lib/runtime/ports.ts` | Primary port for both Dashboard UI and API endpoints (single-port mode).               |
 | `API_PORT`            | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the `/v1/*` proxy API on this separate port.                          |
 | `API_HOST`            | `0.0.0.0`    | `src/lib/runtime/ports.ts` | Bind address for the API port.                                                         |
 | `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the Dashboard UI on this separate port.                               |
@@ -104,16 +104,16 @@ Birouter uses **SQLite** (via `better-sqlite3`) for all persistence. These varia
 
 ```
 ┌─────────────────────────── Single Port (default) ──────────────────────────┐
-│  PORT=20128                                                                 │
-│  → Dashboard: http://localhost:20128                                        │
-│  → API:       http://localhost:20128/v1/chat/completions                    │
+│  PORT=2004                                                                 │
+│  → Dashboard: http://localhost:2004                                        │
+│  → API:       http://localhost:2004/v1/chat/completions                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────── Split Ports ─────────────────────────────────────┐
-│  DASHBOARD_PORT=20128                                                       │
+│  DASHBOARD_PORT=2004                                                       │
 │  API_PORT=20129                                                             │
 │  API_HOST=0.0.0.0                                                           │
-│  → Dashboard: http://localhost:20128                                        │
+│  → Dashboard: http://localhost:2004                                        │
 │  → API:       http://0.0.0.0:20129/v1/chat/completions                     │
 │  Use case: Expose API to LAN while restricting Dashboard to localhost.      │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -192,14 +192,14 @@ Birouter provides a two-layer defense: request-side injection scanning and respo
 
 ## 7. URLs & Cloud Sync
 
-| Variable                | Default                  | Source File                                 | Description                                                                                                     |
-| ----------------------- | ------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `BASE_URL`              | `http://localhost:20128` | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`.                                               |
-| `CLOUD_URL`             | _(empty)_                | `src/lib/cloudSync.ts`                      | Cloud relay endpoint URL (premium feature).                                                                     |
-| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                  | `src/lib/cloudSync.ts`                      | HTTP timeout for cloud sync requests.                                                                           |
-| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:20128` | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links. **Must match your public URL behind reverse proxy.** |
-| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_                | Client-side                                 | Client-side mirror of `CLOUD_URL`.                                                                              |
-| `NEXT_PUBLIC_APP_URL`   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                     |
+| Variable                | Default                 | Source File                                 | Description                                                                                                     |
+| ----------------------- | ----------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `BASE_URL`              | `http://localhost:2004` | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`.                                               |
+| `CLOUD_URL`             | _(empty)_               | `src/lib/cloudSync.ts`                      | Cloud relay endpoint URL (premium feature).                                                                     |
+| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                 | `src/lib/cloudSync.ts`                      | HTTP timeout for cloud sync requests.                                                                           |
+| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:2004` | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links. **Must match your public URL behind reverse proxy.** |
+| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_               | Client-side                                 | Client-side mirror of `CLOUD_URL`.                                                                              |
+| `NEXT_PUBLIC_APP_URL`   | _(unset)_               | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                     |
 
 > [!IMPORTANT]
 > When deploying behind a reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **must** be set to your public URL (e.g., `https://birouter.example.com`). Without this, OAuth callbacks will fail because the redirect_uri won't match.
@@ -591,7 +591,7 @@ Allow users to report issues directly from the Dashboard.
 JWT_SECRET=$(openssl rand -base64 48)
 API_KEY_SECRET=$(openssl rand -hex 32)
 INITIAL_PASSWORD=dev123
-PORT=20128
+PORT=2004
 NODE_ENV=development
 ```
 
@@ -603,13 +603,13 @@ API_KEY_SECRET=<generated>
 INITIAL_PASSWORD=<generated>
 STORAGE_ENCRYPTION_KEY=<generated>
 DATA_DIR=/data
-PORT=20128
+PORT=2004
 API_PORT=20129
 NODE_ENV=production
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
 NEXT_PUBLIC_BASE_URL=https://birouter.example.com
-BASE_URL=http://localhost:20128
+BASE_URL=http://localhost:2004
 BIROUTER_MEMORY_MB=512
 CORS_ORIGIN=https://your-frontend.example.com
 ```
@@ -631,11 +631,11 @@ APP_LOG_TO_FILE=false
 JWT_SECRET=<generated>
 API_KEY_SECRET=<generated>
 STORAGE_ENCRYPTION_KEY=<generated>
-PORT=20128
+PORT=2004
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
 NEXT_PUBLIC_BASE_URL=https://birouter.example.com
-BASE_URL=http://127.0.0.1:20128
+BASE_URL=http://127.0.0.1:2004
 CORS_ORIGIN=https://birouter.example.com
 ENABLE_TLS_FINGERPRINT=true
 CLI_COMPAT_ALL=1

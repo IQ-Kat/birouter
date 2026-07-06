@@ -52,7 +52,7 @@ export async function runStopCommand(opts = {}) {
     }
   }
 
-  const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
+  const port = opts.port ? parseInt(String(opts.port), 10) : 2004;
   if (pid === null) {
     console.log(t("stop.portFallback"));
     await killByPort(port);

@@ -47,9 +47,9 @@ test.after(() => {
 
 test("Command Code auth assist start/callback/status/apply keeps state hash and key private", async () => {
   const startResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/start", {
       method: "POST",
-      headers: { origin: "http://localhost:20128" },
+      headers: { origin: "http://localhost:2004" },
     })
   );
   assert.equal(startResponse.status, 200);
@@ -67,7 +67,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
   assert.equal(startBody.mode, "manual");
 
   const optionsResponse = await callbackRoute.OPTIONS(
-    new Request("http://localhost:20128/api/providers/command-code/auth/callback", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/callback", {
       method: "OPTIONS",
       headers: {
         origin: "https://commandcode.ai",
@@ -89,7 +89,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
 
   const callbackResponse = await callbackRoute.POST(
     jsonRequest(
-      "http://localhost:20128/api/providers/command-code/auth/callback",
+      "http://localhost:2004/api/providers/command-code/auth/callback",
       {
         apiKey: "cc_test_secret",
         state: startBody.state,
@@ -106,7 +106,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
 
   const statusResponse = await statusRoute.GET(
     new Request(
-      `http://localhost:20128/api/providers/command-code/auth/status?state=${encodeURIComponent(
+      `http://localhost:2004/api/providers/command-code/auth/status?state=${encodeURIComponent(
         startBody.state
       )}`
     )
@@ -119,7 +119,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
   assert.ok(!("stateHash" in statusBody));
 
   const applyResponse = await applyRoute.POST(
-    jsonRequest("http://localhost:20128/api/providers/command-code/auth/apply", {
+    jsonRequest("http://localhost:2004/api/providers/command-code/auth/apply", {
       state: startBody.state,
       name: "Command Code Studio",
       setDefault: true,
@@ -139,7 +139,7 @@ test("Command Code auth assist start/callback/status/apply keeps state hash and 
   assert.equal(connections[0].apiKey, "cc_test_secret");
 
   const secondApplyResponse = await applyRoute.POST(
-    jsonRequest("http://localhost:20128/api/providers/command-code/auth/apply", {
+    jsonRequest("http://localhost:2004/api/providers/command-code/auth/apply", {
       state: startBody.state,
     })
   );
@@ -150,9 +150,9 @@ test("Command Code auth assist keeps auth URL callback on CLI localhost contract
   process.env.BIROUTER_PUBLIC_BASE_URL = "https://birouter.example.com/base-path";
 
   const startResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/start", {
       method: "POST",
-      headers: { origin: "http://localhost:20128" },
+      headers: { origin: "http://localhost:2004" },
     })
   );
   assert.equal(startResponse.status, 200);
@@ -166,9 +166,9 @@ test("Command Code auth assist keeps auth URL callback on CLI localhost contract
 test("Command Code auth assist allows only configured CLI callback port range", async () => {
   process.env.COMMAND_CODE_CALLBACK_PORT = "5962";
   const configuredPortResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/start", {
       method: "POST",
-      headers: { origin: "http://localhost:20128" },
+      headers: { origin: "http://localhost:2004" },
     })
   );
   const configuredPortBody = await configuredPortResponse.json();
@@ -178,11 +178,11 @@ test("Command Code auth assist allows only configured CLI callback port range", 
   );
 
   resetDb();
-  process.env.COMMAND_CODE_CALLBACK_PORT = "20128";
+  process.env.COMMAND_CODE_CALLBACK_PORT = "2004";
   const invalidPortResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/start", {
       method: "POST",
-      headers: { origin: "http://localhost:20128" },
+      headers: { origin: "http://localhost:2004" },
     })
   );
   const invalidPortBody = await invalidPortResponse.json();
@@ -194,9 +194,9 @@ test("Command Code auth assist allows only configured CLI callback port range", 
   resetDb();
   process.env.COMMAND_CODE_CALLBACK_PORT = "5962abc";
   const partialPortResponse = await startRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/start", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/start", {
       method: "POST",
-      headers: { origin: "http://localhost:20128" },
+      headers: { origin: "http://localhost:2004" },
     })
   );
   const partialPortBody = await partialPortResponse.json();
@@ -209,7 +209,7 @@ test("Command Code auth assist allows only configured CLI callback port range", 
 test("Command Code callback rejects disallowed origins and oversized bodies", async () => {
   const disallowed = await callbackRoute.POST(
     jsonRequest(
-      "http://localhost:20128/api/providers/command-code/auth/callback",
+      "http://localhost:2004/api/providers/command-code/auth/callback",
       { apiKey: "secret", state: "x".repeat(32) },
       { origin: "https://evil.example" }
     )
@@ -219,7 +219,7 @@ test("Command Code callback rejects disallowed origins and oversized bodies", as
   assert.equal(disallowed.headers.get("access-control-allow-origin"), null);
 
   const tooLarge = await callbackRoute.POST(
-    new Request("http://localhost:20128/api/providers/command-code/auth/callback", {
+    new Request("http://localhost:2004/api/providers/command-code/auth/callback", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "https://commandcode.ai" },
       body: JSON.stringify({ apiKey: "x".repeat(11 * 1024), state: "s".repeat(64) }),

@@ -69,7 +69,7 @@ function makeBatchStatusMap(overrides: Partial<ToolBatchStatusMap> = {}): ToolBa
   for (const id of AGENT_IDS) {
     base[id] = {
       detection: { installed: true, runnable: true, version: "1.0.0" },
-      config: { status: "configured", endpoint: "http://localhost:20128", lastConfiguredAt: null },
+      config: { status: "configured", endpoint: "http://localhost:2004", lastConfiguredAt: null },
     };
   }
   return { ...base, ...overrides };

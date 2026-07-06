@@ -85,7 +85,7 @@ Birouter/
 | **docker-compose.yml**                      | Dev compose with 4 profiles (base, cli, host, cliproxyapi) + redis sidecar               |
 | **docker-compose.prod.yml**                 | Production compose (port 20130, redis, named volumes)                                    |
 | **.dockerignore**                           | Files excluded from Docker context                                                       |
-| **fly.toml**                                | Fly.io deployment config (region `sin`, port 20128, /data volume)                        |
+| **fly.toml**                                | Fly.io deployment config (region `sin`, port 2004, /data volume)                         |
 | **.env.example**                            | Template env file (auto-copied to `.env` on first install)                               |
 | **.gitignore**                              | Git ignore patterns                                                                      |
 | **.npmignore**                              | npm publish exclusion list                                                               |

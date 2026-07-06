@@ -17,7 +17,7 @@ npm install -g birouter
 ### Option B: Docker
 
 ```bash
-docker run -d --name birouter -p 20128:20128 IQ-Kat/birouter:latest
+docker run -d --name birouter -p 2004:2004 IQ-Kat/birouter:latest
 ```
 
 ### Option C: From Source
@@ -37,7 +37,7 @@ npm run dev
 birouter
 ```
 
-Birouter starts at `http://localhost:20128`. The dashboard opens automatically.
+Birouter starts at `http://localhost:2004`. The dashboard opens automatically.
 
 ---
 
@@ -47,7 +47,7 @@ You can use Birouter **without paying anything** by connecting a free provider.
 
 ### Option A: Kiro (Free Claude — No Credit Card)
 
-1. Open the dashboard at `http://localhost:20128`
+1. Open the dashboard at `http://localhost:2004`
 2. Go to **Providers** → **Add Provider**
 3. Select **Kiro AI**
 4. Click **Connect** (no API key needed!)
@@ -55,7 +55,7 @@ You can use Birouter **without paying anything** by connecting a free provider.
 
 ### Option B: OpenCode Free (No Auth)
 
-1. Open the dashboard at `http://localhost:20128`
+1. Open the dashboard at `http://localhost:2004`
 2. Go to **Providers** → **Add Provider**
 3. Select **OpenCode Free**
 4. Click **Connect** (no API key needed!)
@@ -63,7 +63,7 @@ You can use Birouter **without paying anything** by connecting a free provider.
 
 ### Option C: Pollinations (No Key Needed)
 
-1. Open the dashboard at `http://localhost:20128`
+1. Open the dashboard at `http://localhost:2004`
 2. Go to **Providers** → **Add Provider**
 3. Select **Pollinations**
 4. Click **Connect** (no API key needed!)
@@ -76,7 +76,7 @@ You can use Birouter **without paying anything** by connecting a free provider.
 In your IDE or CLI tool, set:
 
 ```
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  [copy from Dashboard → Endpoints]
 Model:    auto
 ```
@@ -88,7 +88,7 @@ That's it! Your IDE now uses Birouter with automatic provider selection.
 ## Step 5: Verify It Works
 
 ```bash
-curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
+curl http://localhost:2004/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
 You should see your connected models listed.
@@ -120,7 +120,7 @@ Birouter itself is **free and open-source**. You only pay for the providers you 
 
 ### "Can I use it with Claude Code / Cursor / Copilot?"
 
-**Yes!** Birouter works with any tool that supports OpenAI format. Just set the base URL to `http://localhost:20128/v1`. See the [CLI Tools Guide](../reference/CLI-TOOLS.md) for specific setup instructions.
+**Yes!** Birouter works with any tool that supports OpenAI format. Just set the base URL to `http://localhost:2004/v1`. See the [CLI Tools Guide](../reference/CLI-TOOLS.md) for specific setup instructions.
 
 ### "What if a provider goes down?"
 

@@ -9,7 +9,7 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/{cloudflaredTunnel,ngrokTunnel,tailscaleTunnel}.ts`, `src/app/api/tunnels/`
 > **Last updated:** 2026-06-28 — v3.8.40
 
-Birouter can expose its local server (`http://localhost:20128`) to the public
+Birouter can expose its local server (`http://localhost:2004`) to the public
 internet via three tunnel backends. This is useful for:
 
 - OAuth callbacks from cloud providers (Antigravity, Gemini, Cursor) that need a
@@ -61,17 +61,17 @@ required.
 
 ```bash
 # Enable
-curl -X POST http://localhost:20128/api/tunnels/cloudflared \
+curl -X POST http://localhost:2004/api/tunnels/cloudflared \
   -H "Content-Type: application/json" \
   -H "Cookie: auth_token=..." \
   -d '{"action":"enable"}'
 
 # Status
-curl http://localhost:20128/api/tunnels/cloudflared \
+curl http://localhost:2004/api/tunnels/cloudflared \
   -H "Cookie: auth_token=..."
 
 # Disable
-curl -X POST http://localhost:20128/api/tunnels/cloudflared \
+curl -X POST http://localhost:2004/api/tunnels/cloudflared \
   -H "Content-Type: application/json" \
   -H "Cookie: auth_token=..." \
   -d '{"action":"disable"}'
@@ -107,23 +107,23 @@ If neither is configured, status returns `phase: "needs_auth"`.
 
 ```bash
 # Enable (uses NGROK_AUTHTOKEN from env)
-curl -X POST http://localhost:20128/api/tunnels/ngrok \
+curl -X POST http://localhost:2004/api/tunnels/ngrok \
   -H "Content-Type: application/json" \
   -H "Cookie: auth_token=..." \
   -d '{"action":"enable"}'
 
 # Enable with inline token
-curl -X POST http://localhost:20128/api/tunnels/ngrok \
+curl -X POST http://localhost:2004/api/tunnels/ngrok \
   -H "Content-Type: application/json" \
   -H "Cookie: auth_token=..." \
   -d '{"action":"enable","authToken":"2abc..."}'
 
 # Status
-curl http://localhost:20128/api/tunnels/ngrok \
+curl http://localhost:2004/api/tunnels/ngrok \
   -H "Cookie: auth_token=..."
 
 # Disable
-curl -X POST http://localhost:20128/api/tunnels/ngrok \
+curl -X POST http://localhost:2004/api/tunnels/ngrok \
   -H "Content-Type: application/json" \
   -H "Cookie: auth_token=..." \
   -d '{"action":"disable"}'
@@ -177,10 +177,10 @@ requireTailscaleAuth`).
 Example enable:
 
 ```bash
-curl -X POST http://localhost:20128/api/tunnels/tailscale/enable \
+curl -X POST http://localhost:2004/api/tunnels/tailscale/enable \
   -H "Content-Type: application/json" \
   -H "Cookie: auth_token=..." \
-  -d '{"sudoPassword":"<linux-pwd>","port":20128}'
+  -d '{"sudoPassword":"<linux-pwd>","port":2004}'
 ```
 
 If Funnel is not enabled in the admin console, the response includes

@@ -7,8 +7,8 @@ import path from "node:path";
 // DefaultExecutor transitively touches the DB layer (provider/key rotation
 // lookups) at import/call time. Point DATA_DIR at an isolated temp dir
 // BEFORE importing it so these tests never read/write the operator's real
-// ~/.omniroute database (see CLAUDE.md "Database Handles in Tests").
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-client-identity-"));
+// ~/.birouter database (see CLAUDE.md "Database Handles in Tests").
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-client-identity-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const {
@@ -75,7 +75,10 @@ test("a selected profile's headers land in providerSpecificData.customHeaders", 
   // picks a profile from the <Select>: merge the preset onto the existing
   // customHeaders record before persisting the node/connection.
   const profileHeaders = getClientIdentityProfileHeaders("codex-cli");
-  const providerSpecificData = {
+  const providerSpecificData: {
+    baseUrl: string;
+    customHeaders: Record<string, string>;
+  } = {
     baseUrl: "https://proxy.example.com/v1",
     customHeaders: { ...profileHeaders, "X-Operator-Set": "keep-me" },
   };
@@ -145,13 +148,13 @@ test("DefaultExecutor.execute sends the selected profile's headers for a compati
   const originalFetch = globalThis.fetch;
   let capturedHeaders: Record<string, string> = {};
 
-  globalThis.fetch = async (_url: string | URL | Request, init: RequestInit = {}) => {
+  globalThis.fetch = (async (_url: string | URL | Request, init: RequestInit = {}) => {
     capturedHeaders = (init.headers as Record<string, string>) || {};
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  };
+  }) as unknown as typeof fetch;
 
   try {
     await executor.execute({

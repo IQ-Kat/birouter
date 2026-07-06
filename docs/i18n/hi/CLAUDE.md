@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # निर्भरता स्थापित करें (auto-generates .env from .env.example)
-npm run dev                    # http://localhost:20128 पर विकास सर्वर
+npm run dev                    # http://localhost:2004 पर विकास सर्वर
 npm run build                  # उत्पादन निर्माण (Next.js 16 standalone)
 npm run lint                   # ESLint (0 त्रुटियाँ अपेक्षित; चेतावनियाँ पूर्व-निर्धारित हैं)
 npm run typecheck:core         # TypeScript जांच (स्वच्छ होनी चाहिए)
@@ -361,7 +361,7 @@ git push -u origin feat/your-feature
 - **रनटाइम**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES मॉड्यूल
 - **TypeScript**: 5.9+, लक्ष्य ES2022, मॉड्यूल esnext, समाधान बंडलर
 - **पथ उपनाम**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **डिफ़ॉल्ट पोर्ट**: 20128 (API + डैशबोर्ड एक ही पोर्ट पर)
+- **डिफ़ॉल्ट पोर्ट**: 2004 (API + डैशबोर्ड एक ही पोर्ट पर)
 - **डेटा निर्देशिका**: `DATA_DIR` env var, डिफ़ॉल्ट रूप से `~/.birouter/`
 - **मुख्य env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - सेटअप: `cp .env.example .env` फिर `JWT_SECRET` (`openssl rand -base64 48`) और `API_KEY_SECRET` (`openssl rand -hex 32`) उत्पन्न करें

@@ -67,7 +67,7 @@ export default function SearchToolsClient() {
   // Build export state from current config (passed to TopBar for ExportCodeModal)
   const exportState: PlaygroundState = {
     endpoint: activeTab === "scrape" ? "web.fetch" : "search",
-    baseUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:20128",
+    baseUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:2004",
     searchProvider: configState.provider,
     searchType: configState.searchType,
     fetchFormat: configState.fetchFormat as PlaygroundState["fetchFormat"],
@@ -92,7 +92,12 @@ export default function SearchToolsClient() {
       {/* Main area: tab content + config pane */}
       <div className="flex flex-1 overflow-hidden">
         {/* Tab content */}
-        <div className="flex-1 overflow-y-auto" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+        <div
+          className="flex-1 overflow-y-auto"
+          role="tabpanel"
+          id={`tabpanel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
+        >
           {activeTab === "search" && (
             <SearchTab
               configState={configState}

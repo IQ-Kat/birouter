@@ -1,17 +1,17 @@
-ï»¿/**
- * Feature #6122 â€” root-less / no-sudo mode for the MITM cert-trust path.
+/**
+ * Feature #6122 — root-less / no-sudo mode for the MITM cert-trust path.
  *
- * OmniRoute funnels every privileged MITM command through the single choke
+ * Birouter funnels every privileged MITM command through the single choke
  * point `execFileWithPassword("sudo", ["-S", ...], password)`, which strips the
  * leading `sudo -S` when running as root or when `sudo` is not on PATH. This
- * feature adds a third opt-out trigger â€” the `BIROUTER_NO_SUDO` env flag â€” so
- * OmniRoute starts cleanly in a root-less / user-namespace deployment where
+ * feature adds a third opt-out trigger — the `BIROUTER_NO_SUDO` env flag — so
+ * Birouter starts cleanly in a root-less / user-namespace deployment where
  * `/usr/bin/sudo` exists but must not be used.
  *
  * These tests assert the RESOLVED argv (via the pure `resolveSudoSpawn` seam)
  * WITHOUT spawning a real `sudo`: with the flag ON the leading `sudo`/`-S`
  * tokens are dropped and no password is written to stdin; with the flag OFF
- * (and non-root + sudo available) the `sudo -S â€¦` argv is preserved.
+ * (and non-root + sudo available) the `sudo -S …` argv is preserved.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -75,13 +75,13 @@ test("resolveSudoSpawn: a non-sudo command is never touched, regardless of the f
   try {
     const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
       "certutil",
-      ["-A", "-n", "OmniRoute"],
+      ["-A", "-n", "Birouter"],
       NON_ROOT_WITH_SUDO
     );
     assert.equal(stripSudo, false);
     assert.equal(needsPassword, false);
     assert.equal(finalCommand, "certutil");
-    assert.deepEqual(finalArgs, ["-A", "-n", "OmniRoute"]);
+    assert.deepEqual(finalArgs, ["-A", "-n", "Birouter"]);
   } finally {
     if (prev === undefined) delete process.env.BIROUTER_NO_SUDO;
     else process.env.BIROUTER_NO_SUDO = prev;

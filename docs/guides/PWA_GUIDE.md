@@ -22,7 +22,7 @@ A Progressive Web App turns the Birouter web dashboard into something that looks
 
 ### Android (Chrome)
 
-1. Open the Birouter dashboard in Chrome: `http://YOUR_IP:20128`
+1. Open the Birouter dashboard in Chrome: `http://YOUR_IP:2004`
 2. Chrome will show an **"Add Birouter to Home screen"** banner automatically, or:
    - Tap the **⋮** menu (three dots) → **"Add to Home screen"** or **"Install app"**
 3. Confirm the prompt
@@ -30,7 +30,7 @@ A Progressive Web App turns the Birouter web dashboard into something that looks
 
 ### iOS (Safari)
 
-1. Open the Birouter dashboard in Safari: `http://YOUR_IP:20128`
+1. Open the Birouter dashboard in Safari: `http://YOUR_IP:2004`
 2. Tap the **Share** button (box with arrow)
 3. Scroll down and tap **"Add to Home Screen"**
 4. Name it (defaults to "Birouter") and tap **Add**
@@ -145,7 +145,7 @@ Located at `src/shared/components/PwaRegister.tsx`, this client component:
 When running Birouter on Android via Termux, the PWA works seamlessly:
 
 1. Start Birouter in Termux: `npx birouter`
-2. Open Chrome on the same phone: `http://localhost:20128`
+2. Open Chrome on the same phone: `http://localhost:2004`
 3. Install the PWA via "Add to Home Screen"
 4. The PWA connects to the local Termux server — everything runs on-device
 
@@ -155,7 +155,7 @@ This combination means your Android phone is both the **server** (Termux) and th
 
 Install the PWA on any device that has browser access to your Birouter server:
 
-- **Another phone/tablet**: Navigate to `http://PHONE_IP:20128` and install the PWA
+- **Another phone/tablet**: Navigate to `http://PHONE_IP:2004` and install the PWA
 - **Laptop**: Open Chrome/Edge and install it as a desktop PWA
 - **Smart TV with browser**: Access the dashboard fullscreen
 

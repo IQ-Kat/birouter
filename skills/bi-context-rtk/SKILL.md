@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Get RTK compression settings
 
 ```bash
-curl https://localhost:20128/api/context/rtk/config \
+curl https://localhost:2004/api/context/rtk/config \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -29,7 +29,7 @@ curl https://localhost:20128/api/context/rtk/config \
 Update RTK compression settings
 
 ```bash
-curl -X PUT https://localhost:20128/api/context/rtk/config \
+curl -X PUT https://localhost:2004/api/context/rtk/config \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -40,7 +40,7 @@ curl -X PUT https://localhost:20128/api/context/rtk/config \
 List RTK filters and load diagnostics
 
 ```bash
-curl https://localhost:20128/api/context/rtk/filters \
+curl https://localhost:2004/api/context/rtk/filters \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -49,7 +49,7 @@ curl https://localhost:20128/api/context/rtk/filters \
 Run RTK compression preview for text
 
 ```bash
-curl -X POST https://localhost:20128/api/context/rtk/test \
+curl -X POST https://localhost:2004/api/context/rtk/test \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -60,7 +60,7 @@ curl -X POST https://localhost:20128/api/context/rtk/test \
 Read retained redacted RTK raw output
 
 ```bash
-curl https://localhost:20128/api/context/rtk/raw-output/{id} \
+curl https://localhost:2004/api/context/rtk/raw-output/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

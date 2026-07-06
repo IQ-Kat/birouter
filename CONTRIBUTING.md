@@ -33,13 +33,13 @@ echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 
 Key variables for development:
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| Variable               | Development Default     | Description           |
+| ---------------------- | ----------------------- | --------------------- |
+| `PORT`                 | `2004`                  | Server port           |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:2004` | Base URL for frontend |
+| `JWT_SECRET`           | (generate above)        | JWT signing secret    |
+| `INITIAL_PASSWORD`     | `CHANGEME`              | First login password  |
+| `APP_LOG_LEVEL`        | `info`                  | Log verbosity level   |
 
 ### Dashboard Settings
 
@@ -66,7 +66,7 @@ npm run start
 npm run build:release   # rm -rf .build dist && build + writes dist/BUILD_SHA
 
 # Common port configuration
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=2004 NEXT_PUBLIC_BASE_URL=http://localhost:2004 npm run dev
 ```
 
 ### Build Output Layout
@@ -95,8 +95,8 @@ npm run build
 
 Default URLs:
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
+- **Dashboard**: `http://localhost:2004/dashboard`
+- **API**: `http://localhost:2004/v1`
 
 ---
 

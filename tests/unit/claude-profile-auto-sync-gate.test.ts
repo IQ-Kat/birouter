@@ -25,7 +25,7 @@ function restoreEnv(snap: Record<string, string | undefined>): void {
 }
 
 function mockSyncRequest(): Request {
-  return new Request("http://127.0.0.1:20128/api/providers/openai/sync-models", { method: "POST" });
+  return new Request("http://127.0.0.1:2004/api/providers/openai/sync-models", { method: "POST" });
 }
 
 test("Claude auto-sync is OFF by default (flag unset) — returns disabled, never fetches or writes", async () => {

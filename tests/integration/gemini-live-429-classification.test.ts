@@ -11,7 +11,7 @@
  * provide the definitive coverage of classification logic.
  *
  * Env vars:
- *   BIROUTER_URL                 — base URL (default http://localhost:20128)
+ *   BIROUTER_URL                 — base URL (default http://localhost:2004)
  *   BIROUTER_API_KEY             — API key for auth (REQUIRED)
  *   TEST_GEMINI_RPM_MODEL         — RPM model (default gemini/gemma-4-31b-it)
  *   TEST_GEMINI_RPD_MODEL         — RPD model (default gemini/gemini-2.5-flash)
@@ -21,7 +21,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const API_KEY = process.env.BIROUTER_API_KEY;
-const BASE_URL = process.env.BIROUTER_URL || "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_URL || "http://localhost:2004";
 const RPM_MODEL = process.env.TEST_GEMINI_RPM_MODEL || "gemini/gemma-4-31b-it";
 const RPD_MODEL = process.env.TEST_GEMINI_RPD_MODEL || "gemini/gemini-2.5-flash";
 

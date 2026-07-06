@@ -17,7 +17,7 @@ let _config = {
 };
 
 // Persistence (#6131): the config used to live in memory only, so every restart
-// (i.e. every OmniRoute update) reset it to Disabled + empty lists. It is now
+// (i.e. every Birouter update) reset it to Disabled + empty lists. It is now
 // persisted to the key_value table (namespace 'ipFilter', key 'config') and
 // lazily loaded on first access. better-sqlite3 is synchronous, so both the load
 // and the save stay in the sync hot path without extra startup wiring. tempBans

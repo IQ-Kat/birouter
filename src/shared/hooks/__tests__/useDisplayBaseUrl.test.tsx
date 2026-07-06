@@ -121,7 +121,7 @@ describe("useDisplayBaseUrl", () => {
     vi.stubEnv("NEXT_PUBLIC_BASE_URL", "");
 
     // Stub window.location with trailing slash on origin
-    vi.stubGlobal("location", { origin: "http://192.168.13.62:20128/" });
+    vi.stubGlobal("location", { origin: "http://192.168.13.62:2004/" });
 
     const { useDisplayBaseUrl } = await import("../useDisplayBaseUrl");
 
@@ -139,7 +139,7 @@ describe("useDisplayBaseUrl", () => {
     });
 
     expect(container.querySelector('[data-testid="value"]')?.textContent).toBe(
-      "http://192.168.13.62:20128"
+      "http://192.168.13.62:2004"
     );
   });
 

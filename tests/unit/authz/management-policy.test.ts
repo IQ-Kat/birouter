@@ -321,7 +321,7 @@ test("LOCAL_ONLY manage-scope bypass: loopback + no Bearer → allow (local CLI 
 
   const policy = await loadPolicy();
   const out = await policy.evaluate(
-    ctx(new Headers({ host: "localhost:20128" }), "GET", "/api/mcp/stream", {
+    ctx(new Headers({ host: "localhost:2004" }), "GET", "/api/mcp/stream", {
       socket: { remoteAddress: "127.0.0.1" },
     })
   );

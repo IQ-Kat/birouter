@@ -1,4 +1,4 @@
-ï»¿// Regression for #6131 (Part B â€” enforcement): the IP blacklist was never wired
+// Regression for #6131 (Part B — enforcement): the IP blacklist was never wired
 // into the request pipeline, so blacklisted IPs were not actually blocked. This
 // locks that runAuthzPipeline blocks a blacklisted client IP with 403 before the
 // route policy runs, allows a clean IP through to the normal auth outcome, and
@@ -10,7 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ipenforce-6131-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-ipenforce-6131-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.JWT_SECRET = "test-secret-6131";
 
@@ -78,7 +78,7 @@ test("#6131 disabled filter never blocks (even a listed IP)", async () => {
   assert.equal(await isIpBlocked(res), false, "disabled filter must not block");
 });
 
-test("#6131 loopback is exempt â€” operator can't lock themselves out locally", async () => {
+test("#6131 loopback is exempt — operator can't lock themselves out locally", async () => {
   process.env.BIROUTER_PEER_STAMP_TOKEN = "stamp-tok";
   ipFilter.configureIPFilter({ enabled: true, mode: "blacklist" });
   ipFilter.addToBlacklist(BLOCKED);

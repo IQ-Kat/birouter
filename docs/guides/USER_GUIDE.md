@@ -265,7 +265,7 @@ Cost: $0 forever!
 
 ```
 Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:2004/v1
   OpenAI API Key: [from birouter dashboard]
   Model: cc/claude-opus-4-7
 ```
@@ -277,7 +277,7 @@ Edit `~/.claude/settings.json`:
 ```json
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_BASE_URL": "http://localhost:2004",
     "ANTHROPIC_AUTH_TOKEN": "your-birouter-api-key"
   }
 }
@@ -288,7 +288,7 @@ Use the Claude-compatible root endpoint here. Do not append `/v1` to `ANTHROPIC_
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:2004"
 export OPENAI_API_KEY="your-birouter-api-key"
 codex "your prompt"
 ```
@@ -307,7 +307,7 @@ Edit `~/.openclaw/openclaw.json`:
   "models": {
     "providers": {
       "birouter": {
-        "baseUrl": "http://localhost:20128/v1",
+        "baseUrl": "http://localhost:2004/v1",
         "apiKey": "your-birouter-api-key",
         "api": "openai-completions",
         "models": [{ "id": "if/kimi-k2", "name": "kimi-k2" }]
@@ -323,7 +323,7 @@ Edit `~/.openclaw/openclaw.json`:
 
 ```
 Provider: OpenAI Compatible
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key: [from dashboard]
 Model: cc/claude-opus-4-7
 ```
@@ -371,10 +371,10 @@ cd Birouter && npm install && npm run build
 export JWT_SECRET="your-secure-secret-change-this"
 export INITIAL_PASSWORD="your-password"
 export DATA_DIR="/var/lib/birouter"
-export PORT="20128"
+export PORT="2004"
 export HOSTNAME="0.0.0.0"
 export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
+export NEXT_PUBLIC_BASE_URL="http://localhost:2004"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
@@ -425,7 +425,7 @@ module.exports = {
 docker build -t birouter:cli .
 
 # Portable mode (recommended)
-docker run -d --name birouter -p 20128:20128 --env-file ./.env -v birouter-data:/app/data birouter:cli
+docker run -d --name birouter -p 2004:2004 --env-file ./.env -v birouter-data:/app/data birouter:cli
 ```
 
 For host-integrated mode with CLI binaries, see the Docker section in the main docs.
@@ -514,7 +514,7 @@ do_install() {
 
 	cat > "${WRKDIR}/birouter" <<'EOF'
 #!/bin/sh
-export PORT="${PORT:-20128}"
+export PORT="${PORT:-2004}"
 export DATA_DIR="${DATA_DIR:-${XDG_DATA_HOME:-${HOME}/.local/share}/birouter}"
 export APP_LOG_TO_FILE="${APP_LOG_TO_FILE:-false}"
 mkdir -p "${DATA_DIR}"
@@ -537,10 +537,10 @@ post_install() {
 | `JWT_SECRET`                            | `birouter-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
 | `INITIAL_PASSWORD`                      | `CHANGEME`                          | First login password                                                                                      |
 | `DATA_DIR`                              | `~/.birouter`                       | Data directory (db, usage, logs)                                                                          |
-| `PORT`                                  | framework default                   | Service port (`20128` in examples)                                                                        |
+| `PORT`                                  | framework default                   | Service port (`2004` in examples)                                                                         |
 | `HOSTNAME`                              | framework default                   | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
 | `NODE_ENV`                              | runtime default                     | Set `production` for deploy                                                                               |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`            | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:2004`             | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
 | `NEXT_PUBLIC_CLOUD_URL`                 | `https://birouter.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
 | `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`     | HMAC secret for generated API keys                                                                        |
 | `REQUIRE_API_KEY`                       | `false`                             | Enforce Bearer API key on `/v1/*`                                                                         |
@@ -626,12 +626,12 @@ Add any model ID to any provider without waiting for an app update:
 
 ```bash
 # Via API
-curl -X POST http://localhost:20128/api/provider-models \
+curl -X POST http://localhost:2004/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# List: curl http://localhost:2004/api/provider-models?provider=openai
+# Remove: curl -X DELETE "http://localhost:2004/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
 Or use Dashboard: **Providers → [Provider] → Custom Models**.
@@ -646,9 +646,9 @@ Notes:
 Route requests directly to a specific provider with model validation:
 
 ```bash
-POST http://localhost:20128/v1/providers/openai/chat/completions
-POST http://localhost:20128/v1/providers/openai/embeddings
-POST http://localhost:20128/v1/providers/fireworks/images/generations
+POST http://localhost:2004/v1/providers/openai/chat/completions
+POST http://localhost:2004/v1/providers/openai/embeddings
+POST http://localhost:2004/v1/providers/fireworks/images/generations
 ```
 
 The provider prefix is auto-added if missing. Mismatched models return `400`.
@@ -657,15 +657,15 @@ The provider prefix is auto-added if missing. Mismatched models return `400`.
 
 ```bash
 # Set global proxy
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
 # Per-provider proxy
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:2004/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
 # Test proxy
-curl -X POST http://localhost:20128/api/settings/proxy/test \
+curl -X POST http://localhost:2004/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
@@ -674,7 +674,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 ### Model Catalog API
 
 ```bash
-curl http://localhost:20128/api/models/catalog
+curl http://localhost:2004/api/models/catalog
 ```
 
 Returns models grouped by provider with types (`chat`, `embedding`, `image`).
@@ -841,13 +841,13 @@ Manage database backups in **Dashboard → Settings → System & Storage**.
 
 ```bash
 # API: Export database
-curl -o backup.sqlite http://localhost:20128/api/db-backups/export
+curl -o backup.sqlite http://localhost:2004/api/db-backups/export
 
 # API: Export all (full archive)
-curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
+curl -o backup.tar.gz http://localhost:2004/api/db-backups/exportAll
 
 # API: Import database
-curl -X POST http://localhost:20128/api/db-backups/import \
+curl -X POST http://localhost:2004/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
@@ -893,12 +893,12 @@ Access via **Dashboard → Costs**.
 
 ```bash
 # API: Set a budget
-curl -X POST http://localhost:20128/api/usage/budget \
+curl -X POST http://localhost:2004/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
 # API: Get current budget status
-curl http://localhost:20128/api/usage/budget
+curl http://localhost:2004/api/usage/budget
 ```
 
 **Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
@@ -915,7 +915,7 @@ Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
 # Example with curl
-curl -X POST http://localhost:20128/v1/audio/transcriptions \
+curl -X POST http://localhost:2004/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=deepgram/nova-3"
@@ -1018,7 +1018,7 @@ Birouter ships with a **score-driven auto-router** that picks the best model for
 Example:
 
 ```bash
-curl -X POST http://localhost:20128/v1/chat/completions \
+curl -X POST http://localhost:2004/v1/chat/completions \
   -H "Authorization: Bearer $BIROUTER_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1038,8 +1038,8 @@ Birouter is both an **MCP server** (Model Context Protocol) and an **A2A server*
 
 ### MCP transports
 
-- **SSE**: `http://localhost:20128/api/mcp/sse`
-- **Streamable HTTP**: `http://localhost:20128/api/mcp/stream`
+- **SSE**: `http://localhost:2004/api/mcp/sse`
+- **Streamable HTTP**: `http://localhost:2004/api/mcp/stream`
 - **stdio**: `birouter --mcp` (for IDE plugins that prefer stdio)
 
 ### Connect Claude Desktop
@@ -1059,7 +1059,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 
 ### Connect Cursor / Continue / VS Code MCP
 
-Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Keys**.
+Use the SSE URL `http://localhost:2004/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Keys**.
 
 ### Scopes
 
@@ -1125,24 +1125,24 @@ Generate the key in **Dashboard → API Keys → New Key → Scope: manage**, th
 
 ```bash
 # List providers
-curl http://localhost:20128/api/providers \
+curl http://localhost:2004/api/providers \
   -H "Authorization: Bearer $BIROUTER_MANAGE_KEY"
 
 # Add a provider connection
-curl -X POST http://localhost:20128/api/providers \
+curl -X POST http://localhost:2004/api/providers \
   -H "Authorization: Bearer $BIROUTER_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
 # Create a combo
-curl -X POST http://localhost:20128/api/combos \
+curl -X POST http://localhost:2004/api/combos \
   -H "Authorization: Bearer $BIROUTER_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
 # List/create API keys
-curl http://localhost:20128/api/keys -H "Authorization: Bearer $BIROUTER_MANAGE_KEY"
-curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $BIROUTER_MANAGE_KEY" \
+curl http://localhost:2004/api/keys -H "Authorization: Bearer $BIROUTER_MANAGE_KEY"
+curl -X POST http://localhost:2004/api/keys -H "Authorization: Bearer $BIROUTER_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
@@ -1226,7 +1226,7 @@ Output → `electron/dist-electron/`
 
 | Variable             | Default | Description                      |
 | -------------------- | ------- | -------------------------------- |
-| `BIROUTER_PORT`      | `20128` | Server port                      |
+| `BIROUTER_PORT`      | `2004`  | Server port                      |
 | `BIROUTER_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
 
 📖 Full documentation: [`electron/README.md`](../../electron/README.md)

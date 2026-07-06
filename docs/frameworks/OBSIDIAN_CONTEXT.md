@@ -60,15 +60,15 @@ Endpoint dashboard (`ObsidianSourceCard`), or via the settings REST API.
 
 ```bash
 # Save + validate the Local REST API token (POST validates via a status check)
-curl -X POST http://localhost:20128/api/settings/obsidian \
+curl -X POST http://localhost:2004/api/settings/obsidian \
   -H "Content-Type: application/json" \
   -d '{"token":"<obsidian-rest-api-key>","baseUrl":"http://127.0.0.1:27123"}'
 
 # Check connection status (returns connected, hasToken, baseUrl, vaultPath)
-curl http://localhost:20128/api/settings/obsidian
+curl http://localhost:2004/api/settings/obsidian
 
 # Disconnect (clears the stored token)
-curl -X DELETE http://localhost:20128/api/settings/obsidian
+curl -X DELETE http://localhost:2004/api/settings/obsidian
 ```
 
 All methods require dashboard authentication. `POST` rejects any URL on port `27124`
@@ -82,15 +82,15 @@ local vault directory and mints a random WebDAV username/password pair:
 
 ```bash
 # Enable WebDAV sync for a vault directory (mints username/password)
-curl -X POST http://localhost:20128/api/settings/obsidian/webdav \
+curl -X POST http://localhost:2004/api/settings/obsidian/webdav \
   -H "Content-Type: application/json" \
   -d '{"vaultPath":"/home/me/MyVault"}'
 
 # Get WebDAV sync status (credentials returned only while enabled)
-curl http://localhost:20128/api/settings/obsidian/webdav
+curl http://localhost:2004/api/settings/obsidian/webdav
 
 # Disable WebDAV sync (clears credentials + managed .stignore)
-curl -X DELETE http://localhost:20128/api/settings/obsidian/webdav
+curl -X DELETE http://localhost:2004/api/settings/obsidian/webdav
 ```
 
 ### Per-API-key context source (optional)

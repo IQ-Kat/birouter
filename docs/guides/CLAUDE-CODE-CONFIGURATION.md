@@ -18,7 +18,7 @@ with per-model profiles, mirroring the Codex setup.
 birouter launch
 
 # Against a remote Birouter (after `birouter connect <host>`, this is automatic)
-birouter launch --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+birouter launch --remote http://192.168.0.15:2004 --api-key oma_live_xxx
 
 # Generate per-model profiles, then launch one
 birouter setup-claude            # writes ~/.claude/profiles/<name>/settings.json
@@ -67,7 +67,7 @@ profile per model at `~/.claude/profiles/<name>/settings.json`, reusing the
   "model": "glm/glm-5.2",
   "effortLevel": "xhigh",
   "env": {
-    "ANTHROPIC_BASE_URL": "http://192.168.0.15:20128",
+    "ANTHROPIC_BASE_URL": "http://192.168.0.15:2004",
     "ANTHROPIC_MODEL": "glm/glm-5.2",
     "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "190000",
@@ -95,7 +95,7 @@ changes your active/default Claude config, auth, or the `~/.claude/settings.json
 birouter setup-claude
 
 # Remote VPS (bakes the VPS URL into every profile)
-birouter setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
+birouter setup-claude --remote http://192.168.0.15:2004 --api-key oma_live_xxx
 
 # Only some providers
 birouter setup-claude --only glm,kimi

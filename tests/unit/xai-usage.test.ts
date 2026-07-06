@@ -3,7 +3,7 @@
  *
  * xAI (Grok) has no public per-account quota API (the billing console at
  * console.x.ai requires a session cookie, not an API key), so — exactly like
- * the Xiaomi MiMo self-track pattern — OmniRoute self-tracks it: it sums the
+ * the Xiaomi MiMo self-track pattern — Birouter self-tracks it: it sums the
  * tokens it routed to the connection from `usage_history` and surfaces them
  * as a cumulative, uncapped ("unlimited") usage figure on the quota
  * dashboard. These tests cover the aggregation helper + the fetcher shape,
@@ -17,7 +17,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 // DATA_DIR must be set before any module that opens the DB is imported.
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "omni-xai-usage-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "bi-xai-usage-"));
 process.env.DATA_DIR = TMP;
 
 const core = await import("../../src/lib/db/core.ts");

@@ -49,7 +49,7 @@ export interface ToolDefinition {
 /** Estado completo capturável pelo Playground (subset de campos por endpoint). */
 export interface PlaygroundState {
   endpoint: PlaygroundEndpoint;
-  baseUrl: string; // ex.: "http://localhost:20128"
+  baseUrl: string; // ex.: "http://localhost:2004"
   model?: string; // não aplicável a web.fetch
   systemPrompt?: string;
   messages?: ChatMessage[]; // chat/completions

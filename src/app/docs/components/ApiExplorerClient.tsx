@@ -89,7 +89,7 @@ const EXAMPLE_BODIES: Record<string, string> = {
 
 export function ApiExplorerClient() {
   const [selected, setSelected] = useState<OpenApiEndpoint | null>(null);
-  const [baseUrl, setBaseUrl] = useState("http://localhost:20128");
+  const [baseUrl, setBaseUrl] = useState("http://localhost:2004");
   const [apiKey, setApiKey] = useState("");
   const [requestBody, setRequestBody] = useState("");
   const [response, setResponse] = useState<string | null>(null);
@@ -122,7 +122,7 @@ export function ApiExplorerClient() {
         opts.body = requestBody;
       }
 
-      // Strip the leading /api so callers can paste `http://localhost:20128`
+      // Strip the leading /api so callers can paste `http://localhost:2004`
       // as the base URL without doubling the prefix. The OpenAPI spec uses
       // `/api/v1/...` because that is the Next.js route; the runtime client
       // hits the same path.

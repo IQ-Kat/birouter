@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # சார்புகளை நிறுவவும் (.env.example இலிருந்து .env ஐ தானாக உருவாக்குகிறது)
-npm run dev                    # http://localhost:20128 இல் டெவ் சர்வர்
+npm run dev                    # http://localhost:2004 இல் டெவ் சர்வர்
 npm run build                  # உற்பத்தி கட்டமைப்பு (Next.js 16 தனித்தனி)
 npm run lint                   # ESLint (0 பிழைகள் எதிர்பார்க்கப்படுகின்றன; எச்சரிக்கைகள் முன்னதாகவே உள்ளன)
 npm run typecheck:core         # TypeScript சரிபார்ப்பு (சுத்தமாக இருக்க வேண்டும்)
@@ -363,7 +363,7 @@ git push -u origin feat/your-feature
 - **இயக்க நேரம்**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, இலக்கு ES2022, மாடுல் esnext, தீர்வு bundler
 - **பாதை அலியாஸ்**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **இயல்புநிலை போர்ட்**: 20128 (API + dashboard ஒரே போர்டில்)
+- **இயல்புநிலை போர்ட்**: 2004 (API + dashboard ஒரே போர்டில்)
 - **தரவியல் அடைவு**: `DATA_DIR` env var, இயல்பாக `~/.birouter/`
 - **முக்கிய env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - அமைப்பு: `cp .env.example .env` பின்னர் `JWT_SECRET` (`openssl rand -base64 48`) மற்றும் `API_KEY_SECRET` (`openssl rand -hex 32`) உருவாக்கவும்

@@ -376,13 +376,13 @@ test("ChatGptWebExecutor sets correct provider name", () => {
 test("Image URL base: BIROUTER_PUBLIC_BASE_URL wins and strips accidental /v1", async () => {
   await withEnv(
     {
-      BIROUTER_PUBLIC_BASE_URL: " http://192.168.107.55:20128/v1/ ",
-      NEXT_PUBLIC_BASE_URL: "http://localhost:20128",
+      BIROUTER_PUBLIC_BASE_URL: " http://192.168.107.55:2004/v1/ ",
+      NEXT_PUBLIC_BASE_URL: "http://localhost:2004",
     },
     async () => {
       assert.equal(
-        __derivePublicBaseUrlForTesting({ host: "localhost:20128" }),
-        "http://192.168.107.55:20128"
+        __derivePublicBaseUrlForTesting({ host: "localhost:2004" }),
+        "http://192.168.107.55:2004"
       );
     }
   );
@@ -391,13 +391,13 @@ test("Image URL base: BIROUTER_PUBLIC_BASE_URL wins and strips accidental /v1", 
 test("Image URL base: local NEXT_PUBLIC_BASE_URL does not mask LAN Host header", async () => {
   await withEnv(
     {
-      NEXT_PUBLIC_BASE_URL: "http://localhost:20128",
-      BASE_URL: "http://localhost:20128",
+      NEXT_PUBLIC_BASE_URL: "http://localhost:2004",
+      BASE_URL: "http://localhost:2004",
     },
     async () => {
       assert.equal(
-        __derivePublicBaseUrlForTesting({ host: "192.168.107.55:20128" }),
-        "http://192.168.107.55:20128"
+        __derivePublicBaseUrlForTesting({ host: "192.168.107.55:2004" }),
+        "http://192.168.107.55:2004"
       );
     }
   );
@@ -407,7 +407,7 @@ test("Image URL base: forwarded headers override raw Host", async () => {
   await withEnv({}, async () => {
     assert.equal(
       __derivePublicBaseUrlForTesting({
-        host: "localhost:20128",
+        host: "localhost:2004",
         "x-forwarded-host": "bi.example.com",
         "x-forwarded-proto": "https",
       }),
@@ -2620,8 +2620,8 @@ test("Image gen: signed URL bytes are cached and exposed via /v1/chatgpt-web/ima
 
   await withEnv(
     {
-      BIROUTER_PUBLIC_BASE_URL: "http://192.168.107.55:20128/v1",
-      NEXT_PUBLIC_BASE_URL: "http://localhost:20128",
+      BIROUTER_PUBLIC_BASE_URL: "http://192.168.107.55:2004/v1",
+      NEXT_PUBLIC_BASE_URL: "http://localhost:2004",
     },
     async () => {
       try {
@@ -2642,7 +2642,7 @@ test("Image gen: signed URL bytes are cached and exposed via /v1/chatgpt-web/ima
         // see open-sse/services/chatgptImageCache.ts and the matching route
         // in src/app/api/v1/chatgpt-web/image/[id]/route.ts.
         const m = content.match(
-          /!\[image\]\((http:\/\/192\.168\.107\.55:20128\/v1\/chatgpt-web\/image\/([a-f0-9]+))\)/
+          /!\[image\]\((http:\/\/192\.168\.107\.55:2004\/v1\/chatgpt-web\/image\/([a-f0-9]+))\)/
         );
         assert.ok(m, `expected URL-style markdown, got: ${content.slice(0, 200)}`);
         assert.equal(calls.signed, 1, "fetched signed URL once");
@@ -2710,7 +2710,7 @@ test("Image edit: cached Birouter image URL continues the saved ChatGPT conversa
     conversationId: "conv-image-1",
     parentMessageId: "msg-image-1",
   });
-  const imageUrl = `http://192.168.107.55:20128/v1/chatgpt-web/image/${imageId}`;
+  const imageUrl = `http://192.168.107.55:2004/v1/chatgpt-web/image/${imageId}`;
   const m = installMockFetch();
   try {
     const executor = new ChatGptWebExecutor();
@@ -2750,7 +2750,7 @@ test("Image edit: Open WebUI image context suppresses duplicate edit continuatio
     conversationId: "conv-image-2",
     parentMessageId: "msg-image-2",
   });
-  const imageUrl = `http://192.168.107.55:20128/v1/chatgpt-web/image/${imageId}`;
+  const imageUrl = `http://192.168.107.55:2004/v1/chatgpt-web/image/${imageId}`;
   const m = installMockFetch();
   try {
     const executor = new ChatGptWebExecutor();

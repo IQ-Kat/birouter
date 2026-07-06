@@ -173,7 +173,7 @@ def main():
     )
     parser.add_argument(
         "--api-url",
-        default="http://localhost:20128/v1",
+        default="http://localhost:2004/v1",
         help="Base URL of Birouter or target provider",
     )
     parser.add_argument("--api-key", default="sk-test", help="API Key for the provider")

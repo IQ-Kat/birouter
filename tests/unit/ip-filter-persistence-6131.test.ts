@@ -1,5 +1,5 @@
 // Regression for #6131: the IP filter config lived in memory only, so every
-// restart (i.e. every OmniRoute update) reset it to Disabled + empty lists and
+// restart (i.e. every Birouter update) reset it to Disabled + empty lists and
 // blacklisted IPs were never actually blocked. This locks the fix:
 //   1. configure/blacklist persists to the DB and survives a simulated restart;
 //   2. after the restart the blacklisted IP is still blocked by checkIP.
@@ -9,7 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-ipfilter-6131-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-ipfilter-6131-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -28,7 +28,7 @@ test.beforeEach(() => {
   ipFilter.resetIPFilter();
 });
 
-// Simulate an OmniRoute restart: the module's in-memory state is wiped (as it
+// Simulate an Birouter restart: the module's in-memory state is wiped (as it
 // would be on a fresh import) but the DB file persists — exactly what happens
 // across an update/restart.
 function simulateRestart() {

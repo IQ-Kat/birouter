@@ -36,7 +36,7 @@ export function getBaseUrl(opts = {}) {
     // Config read failures are not fatal — fall through to default.
   }
 
-  const port = process.env.PORT || "20128";
+  const port = process.env.PORT || "2004";
   return `http://localhost:${port}`;
 }
 

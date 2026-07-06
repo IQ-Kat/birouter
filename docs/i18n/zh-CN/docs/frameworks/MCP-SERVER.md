@@ -175,15 +175,15 @@ Claude Desktop、Cursor、Cline 及其他兼容 MCP 客户端的配置，参见 
 
 ```bash
 # 设置 Token
-curl -X POST http://localhost:20128/api/settings/notion \
+curl -X POST http://localhost:2004/api/settings/notion \
   -H "Content-Type: application/json" \
   -d '{"token": "ntn_..."}'
 
 # 检查状态
-curl http://localhost:20128/api/settings/notion
+curl http://localhost:2004/api/settings/notion
 
 # 断开连接
-curl -X DELETE http://localhost:20128/api/settings/notion
+curl -X DELETE http://localhost:2004/api/settings/notion
 ```
 
 | 工具                         | 权限域         | 描述                                  |
@@ -286,7 +286,7 @@ MCP 工具通过 API Key 权限域进行认证。权限域执行集中在 `open-
 
 | 变量                                    | 默认值                      | 用途                                                                       |
 | :-------------------------------------- | :-------------------------- | :------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`    | MCP 服务器调用 OmniRoute 内部 API 时使用的基础 URL                         |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:2004`     | MCP 服务器调用 OmniRoute 内部 API 时使用的基础 URL                         |
 | `OMNIROUTE_API_KEY`                     | （空）                      | 转发为 `Authorization: Bearer` 给内部 API 调用的 API Key                   |
 | `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`（仅 `"true"` 启用） | 启用后，缺少权限域时拒绝工具调用并在审计日志中记录 `scope_denied:<reason>` |
 | `OMNIROUTE_MCP_SCOPES`                  | （空）                      | 逗号分隔的权限域白名单，视为默认"可用"（当调用方不提供自身权限域时使用）   |

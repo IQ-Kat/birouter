@@ -20,6 +20,6 @@ When creating _any_ validation tests or one-off logic scripts, default to using 
 
 ## 2. VPS Dashboard Credentials
 
-| Environment | URL                       | Password |
-| ----------- | ------------------------- | -------- |
-| Local VPS   | http://192.168.0.15:20128 | 123456   |
+| Environment | URL                      | Password |
+| ----------- | ------------------------ | -------- |
+| Local VPS   | http://192.168.0.15:2004 | 123456   |

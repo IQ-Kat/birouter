@@ -346,7 +346,7 @@ Cache is invalidated on every write to the corresponding table.
 birouter backup create --name pre-migration
 
 # Or via the API
-curl -X PUT http://localhost:20128/api/db-backups \
+curl -X PUT http://localhost:2004/api/db-backups \
   -H "Authorization: Bearer $MANAGEMENT_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "pre-migration"}'
@@ -366,7 +366,7 @@ The backup file includes:
 birouter restore pre-migration
 
 # Via API
-curl -X POST http://localhost:20128/api/db-backups/restore \
+curl -X POST http://localhost:2004/api/db-backups/restore \
   -H "Authorization: Bearer $MANAGEMENT_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "pre-migration"}'

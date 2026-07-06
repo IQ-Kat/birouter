@@ -43,8 +43,8 @@ export type ProviderErrorRuleMatch = {
 // every model on the same provider until the 5h window resets.
 //
 // Scope note: `scope: "connection"` (not "provider") is correct because the
-// upstream quota is per-account, and a single OmniRoute provider entry maps to
-// one user account. Multiple OmniRoute connections under the same provider
+// upstream quota is per-account, and a single Birouter provider entry maps to
+// one user account. Multiple Birouter connections under the same provider
 // name mean the user has multiple upstream accounts — locking at the provider
 // level would disable every one of them when only one is exhausted. See
 // Issue #2 (Monthly quota exhausted treated as transient 429).
@@ -159,16 +159,18 @@ export function getProviderErrorRuleMatch(
   if (!rules) return null;
   // Normalize headers: accept either a `Headers` object (from `fetch()`) or
   // a plain record. Provider rules access headers via plain object indexing.
-  const safeHeaders: Record<string, string> = !headers
-    ? {}
-    : typeof (headers as Headers).get === "function"
-      ? Object.fromEntries((headers as Headers).entries())
-      : Object.fromEntries(
-          Object.entries(headers as Record<string, string>).map(([key, value]) => [
-            key.toLowerCase(),
-            value,
-          ])
-        );
+  const safeHeaders: Record<string, string> = {};
+  if (headers) {
+    if (typeof (headers as Headers).get === "function") {
+      (headers as Headers).forEach((value, key) => {
+        safeHeaders[key.toLowerCase()] = value;
+      });
+    } else {
+      for (const [key, value] of Object.entries(headers as Record<string, string>)) {
+        safeHeaders[key.toLowerCase()] = value;
+      }
+    }
+  }
   for (const rule of rules) {
     const match = rule.match({ status, headers: safeHeaders, body });
     if (match) return match;

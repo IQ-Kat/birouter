@@ -13,7 +13,7 @@ export const MODEL_MAP: Record<string, string> = {
   "gpt-5-3": "gpt-5-3",
   "gpt-5-3-mini": "gpt-5-3-mini",
 
-  // Public OmniRoute dot-form ids exposed by the provider catalog.
+  // Public Birouter dot-form ids exposed by the provider catalog.
   "gpt-5.5-pro": "gpt-5-5-pro",
   "gpt-5.5-pro-extended": "gpt-5-5-pro",
   "gpt-5.5-thinking": "gpt-5-5-thinking",
@@ -53,7 +53,7 @@ export const THINKING_CAPABLE_SLUGS: ReadonlySet<string> = new Set(
  * (the server accepts it but the routing-time read picks the wrong knob).
  *
  * Three branches because the input can arrive in three shapes:
- *   1. OmniRoute dot-form id (`gpt-5.4-thinking-mini`) — every thinking
+ *   1. Birouter dot-form id (`gpt-5.4-thinking-mini`) — every thinking
  *      variant carries the literal "thinking" substring here.
  *   2. Resolved chatgpt.com slug containing "thinking" (`gpt-5-5-thinking`).
  *   3. Resolved chatgpt.com slug that drops the substring under abbreviation

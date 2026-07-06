@@ -135,7 +135,7 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
  * @returns {Promise<number>}
  */
 export async function runSetupClaudeCommand(opts = {}) {
-  const port = Number(opts.port ?? process.env.PORT ?? 20128) || 20128;
+  const port = Number(opts.port ?? process.env.PORT ?? 2004) || 2004;
   const baseUrl = (opts.remote ?? `http://localhost:${port}`)
     .replace(/\/+$/, "")
     .replace(/\/v1$/, "");
@@ -203,8 +203,8 @@ export function registerSetupClaude(program) {
       "Fetch the live model catalog from Birouter (local or remote VPS) and generate " +
         "~/.claude/profiles/<name>/ Claude Code profiles (CLAUDE_CONFIG_DIR) for each model"
     )
-    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:20128")
+    .option("--port <port>", "Local Birouter port (ignored when --remote is set)", "2004")
+    .option("--remote <url>", "Remote Birouter URL, e.g. http://192.168.0.15:2004")
     .option("--api-key <key>", "Birouter API key (defaults to BIROUTER_API_KEY env var)")
     .option("--claude-home <dir>", "Claude home dir (default: ~/.claude)")
     .option(

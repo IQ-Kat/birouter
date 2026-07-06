@@ -11,7 +11,7 @@ const RAW = JSON.stringify({
     birouter: {
       name: "Birouter",
       npm: "@ai-sdk/openai-compatible",
-      options: { baseURL: "http://vps:20128/v1", apiKey: "sk-secret-literal" },
+      options: { baseURL: "http://vps:2004/v1", apiKey: "sk-secret-literal" },
       models: {
         "glm/glm-5.2": { name: "glm/glm-5.2", limit: { context: 131072, output: 32768 } },
         "kmc/kimi-k2.7": { name: "kmc/kimi-k2.7", limit: { context: 131072 } },
@@ -26,7 +26,7 @@ test("postProcessOpencodeConfig replaces the literal API key with an env ref (no
   assert.equal(json.includes("sk-secret-literal"), false);
   const cfg = JSON.parse(json);
   assert.equal(cfg.provider.birouter.options.apiKey, "{env:BIROUTER_API_KEY}");
-  assert.equal(cfg.provider.birouter.options.baseURL, "http://vps:20128/v1");
+  assert.equal(cfg.provider.birouter.options.baseURL, "http://vps:2004/v1");
 });
 
 test("postProcessOpencodeConfig keeps all models by default", () => {
@@ -51,11 +51,11 @@ test("postProcessOpencodeConfig preserves $schema, provider name and npm", () =>
 });
 
 test("resolveOpencodeTarget: --remote wins and trailing slashes are trimmed", () => {
-  const { baseUrl } = resolveOpencodeTarget({ remote: "http://vps:20128/" });
-  assert.equal(baseUrl, "http://vps:20128");
+  const { baseUrl } = resolveOpencodeTarget({ remote: "http://vps:2004/" });
+  assert.equal(baseUrl, "http://vps:2004");
 });
 
 test("resolveOpencodeTarget: explicit --api-key wins", () => {
-  const { apiKey } = resolveOpencodeTarget({ remote: "http://x:20128", apiKey: "sk-explicit" });
+  const { apiKey } = resolveOpencodeTarget({ remote: "http://x:2004", apiKey: "sk-explicit" });
   assert.equal(apiKey, "sk-explicit");
 });

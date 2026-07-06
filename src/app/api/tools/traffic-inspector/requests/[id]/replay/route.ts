@@ -15,7 +15,7 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-const BIROUTER_BASE = process.env.BIROUTER_BASE_URL ?? "http://127.0.0.1:20128";
+const BIROUTER_BASE = process.env.BIROUTER_BASE_URL ?? "http://127.0.0.1:2004";
 
 export async function POST(_request: Request, { params }: Params): Promise<Response> {
   const { id } = await params;

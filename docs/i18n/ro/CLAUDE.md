@@ -10,7 +10,7 @@ Acest fișier oferă îndrumări pentru Claude Code (claude.ai/code) atunci cân
 
 ```bash
 npm install                    # Instalează dependențele (generează automat .env din .env.example)
-npm run dev                    # Server de dezvoltare la http://localhost:20128
+npm run dev                    # Server de dezvoltare la http://localhost:2004
 npm run build                  # Build de producție (Next.js 16 standalone)
 npm run lint                   # ESLint (0 erori așteptate; avertizările sunt preexistente)
 npm run typecheck:core         # Verificare TypeScript (ar trebui să fie curat)
@@ -385,7 +385,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Module ES
 - **TypeScript**: 5.9+, target ES2022, modul esnext, rezolvare bundler
 - **Aliasuri de cale**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Port implicit**: 20128 (API + dashboard pe același port)
+- **Port implicit**: 2004 (API + dashboard pe același port)
 - **Director de date**: `DATA_DIR` variabilă de mediu, implicit `~/.birouter/`
 - **Variabile de mediu cheie**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Configurare: `cp .env.example .env` apoi generează `JWT_SECRET` (`openssl rand -base64 48`) și `API_KEY_SECRET` (`openssl rand -hex 32`)

@@ -112,7 +112,7 @@ async function renderExpanded() {
         isExpanded={true}
         onToggle={() => {}}
         activeProviders={[]}
-        baseUrl="http://localhost:20128"
+        baseUrl="http://localhost:2004"
         hasActiveProviders={false}
         apiKeys={[]}
         cloudEnabled={false}

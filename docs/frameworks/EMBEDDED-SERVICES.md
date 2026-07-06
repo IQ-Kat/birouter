@@ -36,28 +36,28 @@ Four services are embedded as of v3.8.44:
 
 | Service         | npm package                                    | Default port | Purpose                                                                                                        |
 | --------------- | ---------------------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                                      |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                  |
+| **9Router**     | `9router`                                      |    20130     | AI router that Birouter can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                   |
 | **CLIProxyAPI** | `@anthropic/cli-proxy` (via `cliproxy` binary) |     auto     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire           |
 | **Mux**         | `mux` (headless `mux server`)                  |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying). |
 | **Bifrost**     | `@maximhq/bifrost`                             |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                     |
 
 All four follow the same supervisory model:
 
-- OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
-- OmniRoute spawns and monitors them as child processes
-- OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime (where applicable)
+- Birouter installs them under `DATA_DIR/services/{name}/` (isolated from Birouter's own `package.json`)
+- Birouter spawns and monitors them as child processes
+- Birouter injects an ephemeral API key into the child's environment and rotates it without downtime (where applicable)
 - All management routes (`/api/services/*`) are **LOCAL_ONLY** — accessible only from loopback (hard rule #17)
 
 ### Key decisions (from design plan)
 
-| Decision                              | Value                                                                    |
-| ------------------------------------- | ------------------------------------------------------------------------ |
-| Dashboard access to 9Router native UI | Reverse proxy at `/dashboard/providers/services/9router/embed/*`         |
-| Installation mechanism                | `npm install {package}` via `execFile` (no shell interpolation)          |
-| Consumption mode                      | Provider registered as `9router/{sub}/{model}` in routing engine         |
-| API key management                    | OmniRoute generates, encrypts at-rest (AES-256-GCM), and injects via env |
-| Dashboard location                    | `/dashboard/providers/services` (three tabs)                             |
-| Auto-start                            | Toggle per service, default OFF                                          |
+| Decision                              | Value                                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------- |
+| Dashboard access to 9Router native UI | Reverse proxy at `/dashboard/providers/services/9router/embed/*`        |
+| Installation mechanism                | `npm install {package}` via `execFile` (no shell interpolation)         |
+| Consumption mode                      | Provider registered as `9router/{sub}/{model}` in routing engine        |
+| API key management                    | Birouter generates, encrypts at-rest (AES-256-GCM), and injects via env |
+| Dashboard location                    | `/dashboard/providers/services` (three tabs)                            |
+| Auto-start                            | Toggle per service, default OFF                                         |
 
 ---
 
@@ -542,7 +542,7 @@ matrix.
 ### API key injection
 
 9Router and Mux require an API key/bearer token for their own HTTP endpoints.
-OmniRoute:
+Birouter:
 
 1. Generates a key via `crypto.randomBytes(32).toString("base64url")` with a
    service-specific prefix (`nr_` for 9Router, `mx_` for Mux).
@@ -736,7 +736,7 @@ startup times, increase `healthIntervalMs` to 5000 and `stopTimeoutMs` to 30 000
 3. The port is configurable per service in `bootstrap.ts` via the `port` field.
 
 **Note:** 9Router defaults to port 20130 specifically to avoid colliding with
-Birouter's default port 20128.
+Birouter's default port 2004.
 
 ---
 
@@ -808,7 +808,7 @@ or local server where Birouter is deployed, not a remote cloud provider.
 
 **Q: How do I debug the supervisor?**
 
-1. Tail the SSE log stream: `curl -N http://localhost:20128/api/services/9router/logs`.
+1. Tail the SSE log stream: `curl -N http://localhost:2004/api/services/9router/logs`.
 2. Check structured logs in Birouter's pino output filtered by
    `service:supervisor` namespace.
 3. Inspect the DB row: `sqlite3 ~/.birouter/birouter.db "SELECT * FROM version_manager WHERE tool='9router'"`.

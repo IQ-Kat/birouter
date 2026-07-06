@@ -10,7 +10,7 @@
 
 ```bash
 npm install                    # deps સ્થાપિત કરો (.auto-generates .env from .env.example)
-npm run dev                    # ડેવ સર્વર http://localhost:20128 પર
+npm run dev                    # ડેવ સર્વર http://localhost:2004 પર
 npm run build                  # ઉત્પાદન બિલ્ડ (Next.js 16 standalone)
 npm run lint                   # ESLint (0 ભૂલો અપેક્ષિત; ચેતવણીઓ પૂર્વ-અસ્તિત્વમાં છે)
 npm run typecheck:core         # TypeScript ચેક (સફળ હોવું જોઈએ)
@@ -361,7 +361,7 @@ git push -u origin feat/your-feature
 - **રનટાઇમ**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **ટાઇપસ્ક્રિપ્ટ**: 5.9+, લક્ષ્ય ES2022, મોડ્યુલ esnext, રિઝોલ્યુશન બંડલર
 - **પાથ એલિયાસ**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **ડિફોલ્ટ પોર્ટ**: 20128 (API + ડેશબોર્ડ એક જ પોર્ટ પર)
+- **ડિફોલ્ટ પોર્ટ**: 2004 (API + ડેશબોર્ડ એક જ પોર્ટ પર)
 - **ડેટા ડિરેક્ટરી**: `DATA_DIR` env var, ડિફોલ્ટ `~/.birouter/`
 - **કી env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - સેટઅપ: `cp .env.example .env` પછી `JWT_SECRET` (`openssl rand -base64 48`) અને `API_KEY_SECRET` (`openssl rand -hex 32`) જનરેટ કરો

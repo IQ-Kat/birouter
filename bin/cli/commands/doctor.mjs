@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
@@ -246,7 +246,7 @@ function checkPort(port, label) {
 }
 
 async function checkPorts() {
-  const port = parsePort(process.env.PORT || "20128", 20128);
+  const port = parsePort(process.env.PORT || "2004", 2004);
   const apiPort = parsePort(process.env.API_PORT || String(port), port);
   const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
   const checks = await Promise.all([
@@ -370,7 +370,7 @@ function resolveLivenessUrl(options = {}) {
   const explicitUrl = options.livenessUrl || process.env.BIROUTER_DOCTOR_LIVENESS_URL;
   if (explicitUrl) return explicitUrl;
 
-  const port = parsePort(process.env.PORT || "20128", 20128);
+  const port = parsePort(process.env.PORT || "2004", 2004);
   const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
   const host = String(options.livenessHost || process.env.BIROUTER_DOCTOR_HOST || "127.0.0.1")
     .trim()
@@ -415,7 +415,7 @@ async function checkServerLiveness(options = {}) {
     parsed.hash = "";
     fallbackUrl = parsed.toString();
   } catch {
-    const port = parsePort(process.env.PORT || "20128", 20128);
+    const port = parsePort(process.env.PORT || "2004", 2004);
     const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
     const host = String(options.livenessHost || process.env.BIROUTER_DOCTOR_HOST || "127.0.0.1")
       .trim()

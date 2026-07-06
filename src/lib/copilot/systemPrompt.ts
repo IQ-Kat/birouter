@@ -144,7 +144,7 @@ Cache, compression, 1proxy, memory, skills tools
 | Variable | Description | Default |
 |----------|-------------|---------|
 | DATA_DIR | Data directory | ~/.birouter/ |
-| PORT | HTTP server port | 20128 |
+| PORT | HTTP server port | 2004 |
 | REQUIRE_API_KEY | Force API key auth | false |
 | CREDENTIAL_HEALTH_CHECK_INTERVAL | Health check interval (ms) | 300000 |
 | CREDENTIAL_HEALTH_CACHE_TTL | Credential cache TTL (ms) | 300000 |

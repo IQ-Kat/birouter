@@ -3,7 +3,7 @@
  *
  * Plan 21 F5 — retrieval.ts: rerank path.
  *
- * The rerank path in applyRerank() calls POST 127.0.0.1:20128/v1/rerank.
+ * The rerank path in applyRerank() calls POST 127.0.0.1:2004/v1/rerank.
  * Since we cannot mock global fetch (ESM namespace sealed), we test the
  * observable behavior:
  *

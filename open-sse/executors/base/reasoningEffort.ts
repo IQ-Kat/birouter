@@ -45,7 +45,7 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
     supportsClaudeMaxEffort(model);
   // opencode-go proxies DeepSeek with the native DeepSeek API contract, which
   // accepts {high, max} literally. Without this opt-in, max would be
-  // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
+  // normalized to xhigh (the Birouter-internal top tier) and rejected by the
   // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
   // (pi#4055) is the documented inverse and expects xhigh, not max.
   // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
@@ -96,7 +96,7 @@ export function sanitizeReasoningEffortForProvider(
   }
 
   // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
-  // ONLY as {high, max} (its own top tier is literally "max"). OmniRoute's internal
+  // ONLY as {high, max} (its own top tier is literally "max"). Birouter's internal
   // scale is low|medium|high|xhigh where xhigh is the top, so map onto DeepSeek's
   // vocabulary: xhigh → max (top→top), low|medium → high (below the enum floor).
   // high/max pass through unchanged. Without this, the claude→openai translator's

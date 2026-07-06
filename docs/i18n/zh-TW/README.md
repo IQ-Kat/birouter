@@ -185,7 +185,7 @@
 ┌──────────────────────────────────────────────────────────┐
 │        Your IDE / CLI  (Claude Code, Cursor, Cline…)       │
 └─────────────────────────┬──────────────────────────────────┘
-                          │ http://localhost:20128/v1
+                          │ http://localhost:2004/v1
                           ▼
 ┌──────────────────────────────────────────────────────────┐
 │                  Birouter — Smart Router                  │
@@ -313,7 +313,7 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> 一個設定 — `http://localhost:20128/v1` — **每個** AI IDE 或 CLI 都可以在免費和低成本模型上執行。
+> 一個設定 — `http://localhost:2004/v1` — **每個** AI IDE 或 CLI 都可以在免費和低成本模型上執行。
 
 <div align="center">
 <table>
@@ -426,7 +426,7 @@ Result: 4 layers of fallback = zero downtime
 ### ⌨️ 真正的 CLI（不僅僅是 `start`）
 
 ```bash
-birouter               # 啟動閘道 + 儀表板（埠口 20128）
+birouter               # 啟動閘道 + 儀表板（埠口 2004）
 birouter chat          # 互動式 TUI 聊天客戶端（斜線指令：/model /combo /skill /memory）
 birouter setup         # 引導式首次執行精靈
 birouter doctor        # 診斷供應商、埠口、原生依賴
@@ -458,16 +458,16 @@ birouter contexts use default            # ← 切換回本地伺服器
 
 透過 **MCP** 或 **A2A** 公開 Birouter，任何有能力的代理即可取得整個閘道的金鑰 — 路由、供應商、Combo、快取、壓縮、記憶 — 自主運作。
 
-| 協定                | 端點                                            | 用途                                          |
-| ------------------- | ----------------------------------------------- | --------------------------------------------- |
-| 🧰 **MCP（stdio）** | `birouter --mcp`                                | 接入 Claude Desktop、Cursor 等 MCP 客戶端     |
-| 🌊 **MCP（HTTP）**  | `http://localhost:20128/api/mcp/stream`         | 遠端 MCP — **87 工具**、30 範圍、完整稽核軌跡 |
-| 📡 **MCP（SSE）**   | `http://localhost:20128/api/mcp/sse`            | 串流 MCP 傳輸                                 |
-| 🤝 **A2A**          | `http://localhost:20128/.well-known/agent.json` | 代理間通訊，**JSON-RPC 2.0** + SSE，6 技能    |
+| 協定                | 端點                                           | 用途                                          |
+| ------------------- | ---------------------------------------------- | --------------------------------------------- |
+| 🧰 **MCP（stdio）** | `birouter --mcp`                               | 接入 Claude Desktop、Cursor 等 MCP 客戶端     |
+| 🌊 **MCP（HTTP）**  | `http://localhost:2004/api/mcp/stream`         | 遠端 MCP — **87 工具**、30 範圍、完整稽核軌跡 |
+| 📡 **MCP（SSE）**   | `http://localhost:2004/api/mcp/sse`            | 串流 MCP 傳輸                                 |
+| 🤝 **A2A**          | `http://localhost:2004/.well-known/agent.json` | 代理間通訊，**JSON-RPC 2.0** + SSE，6 技能    |
 
 ```bash
 # 將完整 Birouter 工具集透過 MCP 提供給 Claude Code：
-claude mcp add-server birouter --type http --url http://localhost:20128/api/mcp/stream
+claude mcp add-server birouter --type http --url http://localhost:2004/api/mcp/stream
 ```
 
 <sub>📖 [MCP Server](../../frameworks/MCP-SERVER.md) · [A2A Server](../../frameworks/A2A-SERVER.md) · [Agent Protocols](../../frameworks/AGENT_PROTOCOLS_GUIDE.md)</sub>
@@ -571,7 +571,7 @@ npm install -g birouter
 birouter
 ```
 
-儀表板：`http://localhost:20128` · API：`http://localhost:20128/v1`
+儀表板：`http://localhost:2004` · API：`http://localhost:2004/v1`
 
 **2) 連接免費供應商（無需註冊）**
 
@@ -580,7 +580,7 @@ birouter
 **3) 設定您的編碼工具**
 
 ```txt
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:2004/v1
 API Key:  [從儀表板 → Endpoints 複製]
 Model:    auto            （零設定智慧路由 — 或任何供應商/模型）
 ```
@@ -588,7 +588,7 @@ Model:    auto            （零設定智慧路由 — 或任何供應商/模型
 **4) 驗證是否正常運作**
 
 ```bash
-curl http://localhost:20128/v1/models -H "Authorization: Bearer ***"
+curl http://localhost:2004/v1/models -H "Authorization: Bearer ***"
 ```
 
 您應該會看到已連接的模型列表。🎉 就是這樣 — 開始編碼，Birouter 會自動路由和備援。
@@ -596,12 +596,12 @@ curl http://localhost:20128/v1/models -H "Authorization: Bearer ***"
 如果您的客戶端無法傳送自訂標頭，Birouter 也提供令牌化的相容別名：
 
 ```txt
-OpenAI catalog:   http://localhost:20128/vscode/YOUR_KEY/
-OpenAI models:    http://localhost:20128/vscode/YOUR_KEY/models
-OpenAI chat:      http://localhost:20128/vscode/YOUR_KEY/chat/completions
-OpenAI responses: http://localhost:20128/vscode/YOUR_KEY/responses
-Ollama chat:      http://localhost:20128/vscode/YOUR_KEY/api/chat
-Ollama tags:      http://localhost:20128/vscode/YOUR_KEY/api/tags
+OpenAI catalog:   http://localhost:2004/vscode/YOUR_KEY/
+OpenAI models:    http://localhost:2004/vscode/YOUR_KEY/models
+OpenAI chat:      http://localhost:2004/vscode/YOUR_KEY/chat/completions
+OpenAI responses: http://localhost:2004/vscode/YOUR_KEY/responses
+Ollama chat:      http://localhost:2004/vscode/YOUR_KEY/api/chat
+Ollama tags:      http://localhost:2004/vscode/YOUR_KEY/api/tags
 ```
 
 僅在客戶端無法附加 `Authorization: Bearer ***` 時使用這些。標頭驗證仍是首選模式。
@@ -614,14 +614,14 @@ Ollama tags:      http://localhost:20128/vscode/YOUR_KEY/api/tags
 
 ```bash
 docker run -d --name birouter --restart unless-stopped --stop-timeout 40 \
-  -p 20128:20128 -v birouter-data:/app/data IQ-Kat/birouter:latest
+  -p 2004:2004 -v birouter-data:/app/data IQ-Kat/birouter:latest
 ```
 
 **🛠️ 從原始碼建構**
 
 ```bash
 cp .env.example .env && npm install
-PORT=20128 npm run dev
+PORT=2004 npm run dev
 ```
 
 **📦 pnpm**
@@ -796,7 +796,7 @@ podman compose --profile base up -d
 
 | 環境變數          | 預設值        | 用途                      |
 | ----------------- | ------------- | ------------------------- |
-| `PORT`            | `20128`       | API + 儀表板埠口          |
+| `PORT`            | `2004`        | API + 儀表板埠口          |
 | `REQUIRE_API_KEY` | `false`       | 要求所有請求使用 API 金鑰 |
 | `DATA_DIR`        | `~/.birouter` | 資料庫和設定儲存位置      |
 

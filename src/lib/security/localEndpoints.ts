@@ -55,7 +55,7 @@ export function isLocalRequestAllowed(): { allowed: true } | { allowed: false; r
     const host = headers.get("host") ?? "";
     const fwd = headers.get("x-forwarded-for") ?? "";
     // Accept the bracketed IPv6 host form browsers send in the Host header
-    // (`[::1]:20128`) alongside bare `::1`, `localhost`, and `127.0.0.1`.
+    // (`[::1]:2004`) alongside bare `::1`, `localhost`, and `127.0.0.1`.
     const isLoopbackHost = /^(localhost|127\.0\.0\.1|::1|\[::1\])(:\d+)?$/.test(host);
     const isLoopbackFwd =
       fwd === "" || /^127\.|^::1$|^localhost$/.test(fwd.split(",")[0]?.trim() ?? "");

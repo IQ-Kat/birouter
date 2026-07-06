@@ -10,7 +10,7 @@
 
 Birouter solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
 
-**Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
+**Key value:** One endpoint (`http://localhost:2004/v1`), unlimited models, zero downtime, minimal cost.
 
 **Current version:** 3.8.43
 

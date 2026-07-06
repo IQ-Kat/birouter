@@ -63,7 +63,7 @@ test("b.ai accepts any model id via passthrough models (GPT/Claude/Gemini/Kimi/G
   assert.equal(isValidModel("bai", "kimi-k2.5"), true);
 });
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-bai-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-bai-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -99,7 +99,7 @@ test("b.ai import fetches the live /v1/models catalog", async () => {
 
   let fetched = false;
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = (async (url: string | URL | Request) => {
     if (String(url) === BAI_MODELS_URL) {
       fetched = true;
       return Response.json({
@@ -108,12 +108,13 @@ test("b.ai import fetches the live /v1/models catalog", async () => {
       });
     }
     return new Response("not found", { status: 404 });
-  };
+  }) as unknown as typeof fetch;
 
   try {
+    const conn = connection! as { id: string };
     const response = await modelsRoute.GET(
-      new Request(`http://localhost/api/providers/${connection.id}/models?refresh=true`),
-      { params: { id: connection.id } }
+      new Request(`http://localhost/api/providers/${conn.id}/models?refresh=true`),
+      { params: { id: conn.id } }
     );
     assert.equal(response.status, 200);
     const body = (await response.json()) as ModelsBody;
@@ -138,12 +139,14 @@ test("b.ai import falls back to an empty local catalog when live fetch fails", a
   });
 
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("bad gateway", { status: 502 });
+  globalThis.fetch = (async () =>
+    new Response("bad gateway", { status: 502 })) as unknown as typeof fetch;
 
   try {
+    const conn = connection! as { id: string };
     const response = await modelsRoute.GET(
-      new Request(`http://localhost/api/providers/${connection.id}/models?refresh=true`),
-      { params: { id: connection.id } }
+      new Request(`http://localhost/api/providers/${conn.id}/models?refresh=true`),
+      { params: { id: conn.id } }
     );
     assert.equal(response.status, 200);
     const body = (await response.json()) as ModelsBody;

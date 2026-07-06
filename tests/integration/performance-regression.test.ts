@@ -232,7 +232,7 @@ describe("Performance: memory API route handler (1000 records)", () => {
   it(`should handle GET /api/memory?limit=50 in <${THRESHOLD_API_ROUTE_MS}ms`, async () => {
     // Create a mock Request object for the route handler
     const request = new Request(
-      `http://localhost:20128/api/memory?limit=50&apiKeyId=${TEST_API_KEY_ID}`,
+      `http://localhost:2004/api/memory?limit=50&apiKeyId=${TEST_API_KEY_ID}`,
       {
         method: "GET",
         headers: { authorization: `Bearer ${managementApiKey}` },

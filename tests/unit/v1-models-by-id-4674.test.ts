@@ -66,7 +66,7 @@ test("findModelById tolerates a non-array catalog", () => {
 });
 
 test("handleGetModelById returns 200 JSON for an existing model", async () => {
-  const req = new Request("http://localhost:20128/v1/models/gpt-5");
+  const req = new Request("http://localhost:2004/v1/models/gpt-5");
   const res = await handleGetModelById(req, "gpt-5", listResponse);
   assert.equal(res.status, 200);
   assert.match(res.headers.get("content-type") || "", /application\/json/);
@@ -76,7 +76,7 @@ test("handleGetModelById returns 200 JSON for an existing model", async () => {
 });
 
 test("handleGetModelById returns 404 JSON (not HTML) for an unknown model", async () => {
-  const req = new Request("http://localhost:20128/v1/models/ghost");
+  const req = new Request("http://localhost:2004/v1/models/ghost");
   const res = await handleGetModelById(req, "ghost", listResponse);
   assert.equal(res.status, 404);
   // The whole point of #4674: never serve the HTML dashboard here.
@@ -89,7 +89,7 @@ test("handleGetModelById returns 404 JSON (not HTML) for an unknown model", asyn
 });
 
 test("handleGetModelById propagates an upstream auth/error response unchanged", async () => {
-  const req = new Request("http://localhost:20128/v1/models/gpt-5");
+  const req = new Request("http://localhost:2004/v1/models/gpt-5");
   const rejection = async () =>
     Response.json({ error: { message: "unauthorized" } }, { status: 401 });
   const res = await handleGetModelById(req, "gpt-5", rejection);

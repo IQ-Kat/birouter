@@ -58,7 +58,7 @@ async function testOne(provider, model, baseUrl, apiKey) {
 }
 
 function ProvidersTestAllApp({ providers, baseUrl, apiKey, concurrency = 4, onExit }) {
-  const resolved = `${baseUrl ?? "http://localhost:20128"}`;
+  const resolved = `${baseUrl ?? "http://localhost:2004"}`;
 
   const [rows, setRows] = useState(() =>
     providers.map((p, i) => ({

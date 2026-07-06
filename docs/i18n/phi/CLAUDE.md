@@ -10,7 +10,7 @@ This file ay nagbibigay ng gabay sa Claude Code (claude.ai/code) kapag nagtatrab
 
 ```bash
 npm install                    # Mag-install ng deps (auto-generates .env mula sa .env.example)
-npm run dev                    # Dev server sa http://localhost:20128
+npm run dev                    # Dev server sa http://localhost:2004
 npm run build                  # Production build (Next.js 16 standalone)
 npm run lint                   # ESLint (0 errors ang inaasahan; warnings ay pre-existing)
 npm run typecheck:core         # TypeScript check (dapat ay malinis)
@@ -385,7 +385,7 @@ git push -u origin feat/your-feature
 - **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@birouter/open-sse` → `open-sse/`, `@birouter/open-sse/*` → `open-sse/*`
-- **Default port**: 20128 (API + dashboard sa parehong port)
+- **Default port**: 2004 (API + dashboard sa parehong port)
 - **Data directory**: `DATA_DIR` env var, default sa `~/.birouter/`
 - **Key env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
 - Setup: `cp .env.example .env` pagkatapos ay bumuo ng `JWT_SECRET` (`openssl rand -base64 48`) at `API_KEY_SECRET` (`openssl rand -hex 32`)

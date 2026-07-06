@@ -220,10 +220,10 @@ test("buildCloudflaredChildEnv injects discovered CA paths when the parent env o
 });
 
 test("getCloudflaredStartArgs keeps protocol selection out of argv", () => {
-  assert.deepEqual(getCloudflaredStartArgs("http://127.0.0.1:20128"), [
+  assert.deepEqual(getCloudflaredStartArgs("http://127.0.0.1:2004"), [
     "tunnel",
     "--url",
-    "http://127.0.0.1:20128",
+    "http://127.0.0.1:2004",
     "--no-autoupdate",
   ]);
 });
@@ -254,7 +254,7 @@ test("getCloudflaredTunnelStatus resets stale runtime state from a previous serv
           pid: process.pid,
           publicUrl: "https://stale.trycloudflare.com",
           apiUrl: "https://stale.trycloudflare.com/v1",
-          targetUrl: "http://127.0.0.1:20128",
+          targetUrl: "http://127.0.0.1:2004",
           status: "running",
           lastError:
             "failed to sufficiently increase receive buffer size (was: 208 kiB, wanted: 7168 kiB, got: 416 kiB)",

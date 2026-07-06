@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Regression test for #6162 (liveness portion): `omniroute doctor` reported
+// Regression test for #6162 (liveness portion): `Birouter doctor` reported
 // "Server liveness: Server responded with HTTP 401" on healthy installs
 // because /api/health and /api/health/degradation both require the management
 // token. The doctor called them without auth → 401 → WARN, even when the

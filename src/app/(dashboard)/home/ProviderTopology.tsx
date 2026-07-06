@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
@@ -9,19 +9,10 @@ import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
 import { edgeStyle } from "@/shared/components/flow/edgeStyles";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
+import BirouterLogo from "@/shared/components/BirouterLogo";
 
 const FE_ACTIVE_TIMEOUT_MS = 60_000;
 const FE_ACTIVE_TICK_MS = 1_000;
-
-// Rings: [capacity, rx, ry]. Each successive ring fits ~6 more nodes.
-const RINGS: [number, number, number][] = [
-  [8, 210, 132],
-  [14, 370, 233],
-  [20, 530, 334],
-  [26, 690, 435],
-  [32, 850, 536],
-  [38, 1010, 637],
-];
 
 type ProviderConfig = { color?: string; name?: string; textIcon?: string };
 
@@ -129,7 +120,7 @@ function RouterNode({ data }: { data: RouterNodeData }) {
       />
 
       <div className="flex items-center justify-center size-7 rounded-md bg-primary/15 shrink-0">
-        <span className="material-symbols-outlined text-primary text-[16px]">route</span>
+        <BirouterLogo size={16} className="text-primary" />
       </div>
       <span className="text-sm font-bold text-primary">Birouter</span>
       {data.activeCount > 0 && (
@@ -141,9 +132,22 @@ function RouterNode({ data }: { data: RouterNodeData }) {
   );
 }
 
+function OrbitNode({ data }: { data: { rx: number; ry: number } }) {
+  return (
+    <div
+      className="border border-dashed border-black/15 dark:border-white/15 pointer-events-none rounded-full"
+      style={{
+        width: `${data.rx * 2}px`,
+        height: `${data.ry * 2}px`,
+      }}
+    />
+  );
+}
+
 const nodeTypes: NodeTypes = {
   provider: ProviderNode as any,
   router: RouterNode as any,
+  orbit: OrbitNode as any,
 };
 
 type ProviderEntry = { id?: string; provider: string; name?: string };
@@ -183,63 +187,68 @@ function buildLayout(
 
   if (providers.length === 0) return { nodes, edges };
 
-  // Sort: active → error → last-used → rest (alpha within groups)
+  // Sort alphabetically to maintain a stable layout in real time,
+  // preventing nodes from jumping or swapping positions as status updates.
   const sorted = [...providers].sort((a, b) => {
     const aId = a.provider.toLowerCase();
     const bId = b.provider.toLowerCase();
-    const rank = (id: string) => {
-      if (activeSet.has(id)) return 0;
-      if (errorSet.has(id)) return 1;
-      if (lastSet.has(id)) return 2;
-      return 3;
-    };
-    const d = rank(aId) - rank(bId);
-    return d !== 0 ? d : aId.localeCompare(bId); // teknik sıralama: ASCII kasıtlı
+    return aId.localeCompare(bId);
   });
 
-  let provIdx = 0;
-  for (let ri = 0; ri < RINGS.length && provIdx < sorted.length; ri++) {
-    const [cap, rx, ry] = RINGS[ri];
-    const count = Math.min(cap, sorted.length - provIdx);
+  const count = sorted.length;
+  const baseRy = 132;
+  // Dynamic vertical radius to adjust for the number of nodes so they don't overlap,
+  // while keeping them all on a single ellipse.
+  const ry = Math.max(baseRy, count * 20);
+  const rx = ry * 1.6; // Match the desktop container's widescreen aspect ratio (1.6:1)
 
-    for (let i = 0; i < count; i++) {
-      const p = sorted[provIdx++];
-      const pid = p.provider.toLowerCase();
-      const active = activeSet.has(pid);
-      const error = !active && errorSet.has(pid);
-      const last = !active && !error && lastSet.has(pid);
-      const config = getProviderConfig(p.provider);
-      const nodeId = `provider-${p.provider}`;
+  // Push a single background orbit circle
+  nodes.push({
+    id: "orbit-0",
+    type: "orbit",
+    position: { x: -rx, y: -ry },
+    data: { rx, ry },
+    draggable: false,
+    selectable: false,
+  });
 
-      const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
-      const cx = rx * Math.cos(angle);
-      const cy = ry * Math.sin(angle);
-      const { sourceHandle, targetHandle } = getHandles(angle, cx);
+  for (let i = 0; i < count; i++) {
+    const p = sorted[i];
+    const pid = p.provider.toLowerCase();
+    const active = activeSet.has(pid);
+    const error = !active && errorSet.has(pid);
+    const last = !active && !error && lastSet.has(pid);
+    const config = getProviderConfig(p.provider);
+    const nodeId = `provider-${p.provider}`;
 
-      nodes.push({
-        id: nodeId,
-        type: "provider",
-        position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
-        data: {
-          label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
-          color: config.color || "#6b7280",
-          providerId: p.provider,
-          active,
-          error,
-        } satisfies ProviderNodeData,
-        draggable: false,
-      });
+    const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
+    const cx = rx * Math.cos(angle);
+    const cy = ry * Math.sin(angle);
+    const { sourceHandle, targetHandle } = getHandles(angle, cx);
 
-      edges.push({
-        id: `e-${nodeId}`,
-        source: "router",
-        sourceHandle,
-        target: nodeId,
-        targetHandle,
-        animated: active,
-        style: edgeStyle(active, last, error),
-      });
-    }
+    nodes.push({
+      id: nodeId,
+      type: "provider",
+      position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
+      data: {
+        label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
+        color: config.color || "#6b7280",
+        providerId: p.provider,
+        active,
+        error,
+      } satisfies ProviderNodeData,
+      draggable: false,
+    });
+
+    edges.push({
+      id: `e-${nodeId}`,
+      source: "router",
+      sourceHandle,
+      target: nodeId,
+      targetHandle,
+      animated: active,
+      style: edgeStyle(active, last, error) as CSSProperties,
+    });
   }
 
   return { nodes, edges };

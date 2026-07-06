@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Regression test for #6162: published `omniroute doctor` failed with
+// Regression test for #6162: published `Birouter doctor` failed with
 // "Could not run CLI tool checks: Cannot find package '@/shared'" because
 // src/lib/cli-helper/*.ts files imported `@/shared/...` aliases that the
 // CLI runtime (tsx + ESM `import()`) cannot resolve. Fix: replace

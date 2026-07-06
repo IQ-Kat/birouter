@@ -37,7 +37,7 @@ const { default: BuildTab } = await import(
 
 const BASE_CONFIG = {
   endpoint: "chat.completions" as const,
-  baseUrl: "http://localhost:20128",
+  baseUrl: "http://localhost:2004",
   model: "openai/gpt-4o",
   systemPrompt: "You are helpful.",
   params: { ...DEFAULT_PARAMS },

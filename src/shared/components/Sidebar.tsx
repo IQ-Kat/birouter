@@ -42,9 +42,9 @@ type SidebarGlyphStyle = CSSProperties & {
 };
 
 type SidebarProps = {
-  onClose?: () => void;
+  onCloseAction?: () => void;
   collapsed?: boolean;
-  onToggleCollapse?: () => void;
+  onToggleCollapseAction?: () => void;
   isMacElectron?: boolean;
 };
 
@@ -68,9 +68,9 @@ function saveToStorage(key: string, value: unknown) {
 }
 
 export default function Sidebar({
-  onClose,
+  onCloseAction,
   collapsed = false,
-  onToggleCollapse,
+  onToggleCollapseAction,
   isMacElectron = false,
 }: SidebarProps) {
   const getIconStyle = (itemId: string): SidebarGlyphStyle => {
@@ -397,7 +397,16 @@ export default function Sidebar({
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-sm font-medium">{item.label}</span>
             {item.subtitle && (
-              <span className="truncate text-[10px] text-text-muted/60">{item.subtitle}</span>
+              <span
+                className={cn(
+                  "truncate text-[10px] transition-all duration-300 ease-in-out origin-top",
+                  active
+                    ? "max-h-4 opacity-100 mt-0.5 scale-y-100 text-primary/70"
+                    : "max-h-0 opacity-0 scale-y-0 overflow-hidden text-text-muted/60 group-hover:max-h-4 group-hover:opacity-100 group-hover:mt-0.5 group-hover:scale-y-100"
+                )}
+              >
+                {item.subtitle}
+              </span>
             )}
           </div>
         )}
@@ -415,7 +424,7 @@ export default function Sidebar({
           href={item.href}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={onClose}
+          onClick={onCloseAction}
           className={className}
           {...sharedProps}
         >
@@ -428,7 +437,7 @@ export default function Sidebar({
       <Link
         key={item.href}
         href={item.href}
-        onClick={onClose}
+        onClick={onCloseAction}
         className={className}
         {...sharedProps}
       >
@@ -454,7 +463,7 @@ export default function Sidebar({
           {t("skipToContent")}
         </a>
 
-        {(onToggleCollapse || !isMacElectron) && (
+        {(onToggleCollapseAction || !isMacElectron) && (
           <div
             className={cn(
               "flex items-center gap-2 pb-2",
@@ -471,9 +480,9 @@ export default function Sidebar({
               </>
             )}
             {!collapsed && <div className="flex-1" />}
-            {onToggleCollapse && (
+            {onToggleCollapseAction && (
               <button
-                onClick={onToggleCollapse}
+                onClick={onToggleCollapseAction}
                 title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}

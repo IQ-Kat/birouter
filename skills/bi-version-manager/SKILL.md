@@ -22,7 +22,7 @@ Install 9Router from npm
 Installs the `9router` npm package under DATA_DIR/services/9router/. Uses execFile (no shell interpolation — hard rule #13). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/install \
+curl -X POST https://localhost:2004/api/services/9router/install \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -35,7 +35,7 @@ Start 9Router
 Spawns the 9Router process. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/start \
+curl -X POST https://localhost:2004/api/services/9router/start \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -48,7 +48,7 @@ Stop 9Router
 Gracefully stops 9Router (SIGTERM → 15 s → SIGKILL). Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/stop \
+curl -X POST https://localhost:2004/api/services/9router/stop \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -61,7 +61,7 @@ Restart 9Router
 Equivalent to stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/restart \
+curl -X POST https://localhost:2004/api/services/9router/restart \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -74,7 +74,7 @@ Update 9Router to a newer npm version
 Stops the service (if running), installs the newer npm version, then restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/update \
+curl -X POST https://localhost:2004/api/services/9router/update \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -87,7 +87,7 @@ Rotate the 9Router API key
 Generates a new API key, encrypts it at-rest, and restarts the service to apply it. The plaintext key is never returned. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/rotate-key \
+curl -X POST https://localhost:2004/api/services/9router/rotate-key \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -100,7 +100,7 @@ Get 9Router status
 Returns combined live supervisor state and DB metadata. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/9router/status \
+curl https://localhost:2004/api/services/9router/status \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -111,7 +111,7 @@ Toggle 9Router auto-start
 When enabled, 9Router starts automatically on the next Birouter boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/auto-start \
+curl -X POST https://localhost:2004/api/services/9router/auto-start \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -124,7 +124,7 @@ Install CLIProxyAPI from npm
 Installs the CLIProxyAPI package under DATA_DIR/services/cliproxy/. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/install \
+curl -X POST https://localhost:2004/api/services/cliproxy/install \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -137,7 +137,7 @@ Start CLIProxyAPI
 Spawns the CLIProxyAPI process. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/start \
+curl -X POST https://localhost:2004/api/services/cliproxy/start \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -150,7 +150,7 @@ Stop CLIProxyAPI
 Gracefully stops CLIProxyAPI. Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/stop \
+curl -X POST https://localhost:2004/api/services/cliproxy/stop \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -163,7 +163,7 @@ Restart CLIProxyAPI
 stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/restart \
+curl -X POST https://localhost:2004/api/services/cliproxy/restart \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -176,7 +176,7 @@ Update CLIProxyAPI to a newer npm version
 Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/update \
+curl -X POST https://localhost:2004/api/services/cliproxy/update \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -189,7 +189,7 @@ Get CLIProxyAPI status
 Returns live supervisor state and DB metadata (no apiKeyMasked — CLIProxyAPI does not use an injected API key). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/cliproxy/status \
+curl https://localhost:2004/api/services/cliproxy/status \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -200,7 +200,7 @@ Toggle CLIProxyAPI auto-start
 When enabled, CLIProxyAPI starts automatically on the next Birouter boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/auto-start \
+curl -X POST https://localhost:2004/api/services/cliproxy/auto-start \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -213,7 +213,7 @@ Install Mux from npm
 Installs the `mux` npm package (coder/mux — local agent-orchestration daemon) under DATA_DIR/services/mux/. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/install \
+curl -X POST https://localhost:2004/api/services/mux/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -226,7 +226,7 @@ Start Mux
 Spawns `mux server --host 127.0.0.1 --port <port>`. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/start \
+curl -X POST https://localhost:2004/api/services/mux/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -239,7 +239,7 @@ Stop Mux
 Gracefully stops Mux. Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/stop \
+curl -X POST https://localhost:2004/api/services/mux/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -252,7 +252,7 @@ Restart Mux
 stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/restart \
+curl -X POST https://localhost:2004/api/services/mux/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -265,7 +265,7 @@ Update Mux to a newer npm version
 Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/update \
+curl -X POST https://localhost:2004/api/services/mux/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -278,7 +278,7 @@ Get Mux status
 Returns live supervisor state and DB metadata. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/mux/status \
+curl https://localhost:2004/api/services/mux/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -289,7 +289,7 @@ Toggle Mux auto-start
 When enabled, Mux starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/auto-start \
+curl -X POST https://localhost:2004/api/services/mux/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -302,7 +302,7 @@ Install Bifrost
 Installs the `@maximhq/bifrost` npm package under DATA_DIR/services/bifrost/. The package downloads the Go binary on first run. Accepts an optional `version` field (semver or `latest`). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/install \
+curl -X POST https://localhost:2004/api/services/bifrost/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -315,7 +315,7 @@ Start Bifrost
 Starts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/start \
+curl -X POST https://localhost:2004/api/services/bifrost/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -328,7 +328,7 @@ Stop Bifrost
 Stops the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/stop \
+curl -X POST https://localhost:2004/api/services/bifrost/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -341,7 +341,7 @@ Restart Bifrost
 Restarts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/restart \
+curl -X POST https://localhost:2004/api/services/bifrost/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -354,7 +354,7 @@ Update Bifrost
 Updates Bifrost to the latest npm version. Stops the running process, installs the new version, and restarts if it was previously running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/update \
+curl -X POST https://localhost:2004/api/services/bifrost/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -367,7 +367,7 @@ Get Bifrost status
 Returns live and DB status for the supervised Bifrost service. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/bifrost/status \
+curl https://localhost:2004/api/services/bifrost/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -378,7 +378,7 @@ Toggle Bifrost auto-start
 When enabled, Bifrost starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/auto-start \
+curl -X POST https://localhost:2004/api/services/bifrost/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -391,7 +391,7 @@ Stream service logs via SSE
 Returns a Server-Sent Events stream from the service's in-memory ring buffer (5 MB, circular). Sends a `snapshot` event with historical lines first, then live `log` events, plus a `heartbeat` every 15 s. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/{name}/logs \
+curl https://localhost:2004/api/services/{name}/logs \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

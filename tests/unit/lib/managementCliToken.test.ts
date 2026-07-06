@@ -39,7 +39,7 @@ function makeCtx(headers: Record<string, string>, requestExtras: Record<string, 
       headers: new Headers(headers),
       cookies: { get: () => undefined },
       nextUrl: { pathname: "/api/settings" },
-      url: "http://localhost:20128/api/settings",
+      url: "http://localhost:2004/api/settings",
       ...requestExtras,
     },
     classification: {

@@ -11,7 +11,7 @@
  *
  * Authentication:
  *   None. Auggie delegates auth entirely to the user's local `auggie login`
- *   session — OmniRoute never sees or stores credentials for this provider.
+ *   session — Birouter never sees or stores credentials for this provider.
  *   The connection is registered `noAuth: true` and `refreshCredentials()` is
  *   a no-op (nothing to refresh).
  *
@@ -220,7 +220,7 @@ export class AuggieExecutor extends BaseExecutor {
     return null;
   }
 
-  /** No-op — auggie has no OmniRoute-managed credentials to refresh. */
+  /** No-op — auggie has no Birouter-managed credentials to refresh. */
   async refreshCredentials(
     _credentials: ProviderCredentials
   ): Promise<Partial<ProviderCredentials> | null> {
@@ -241,7 +241,7 @@ export class AuggieExecutor extends BaseExecutor {
 
     // Argument-injection defense: never forward an unvalidated model into the argv.
     const modelResolution = resolveAuggieModel(model);
-    if (!modelResolution.ok) {
+    if (modelResolution.ok === false) {
       const response = wantsStream
         ? buildAuggieSseError(modelResolution.error)
         : errorResponse(400, modelResolution.error);

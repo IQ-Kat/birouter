@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Preview compression for a message payload
 
 ```bash
-curl -X POST https://localhost:20128/api/compression/preview \
+curl -X POST https://localhost:2004/api/compression/preview \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -31,7 +31,7 @@ curl -X POST https://localhost:20128/api/compression/preview \
 List Caveman compression language packs
 
 ```bash
-curl https://localhost:20128/api/compression/language-packs \
+curl https://localhost:2004/api/compression/language-packs \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -40,7 +40,7 @@ curl https://localhost:20128/api/compression/language-packs \
 List Caveman compression rule metadata
 
 ```bash
-curl https://localhost:20128/api/compression/rules \
+curl https://localhost:2004/api/compression/rules \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

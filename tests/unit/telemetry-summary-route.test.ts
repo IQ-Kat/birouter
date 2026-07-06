@@ -23,7 +23,7 @@ test("telemetry summary route includes totalRequests alias plus session/quota mo
   });
 
   const response = await GET(
-    new Request("http://localhost:20128/api/telemetry/summary?windowMs=600000")
+    new Request("http://localhost:2004/api/telemetry/summary?windowMs=600000")
   );
   const payload = (await response.json()) as any;
 

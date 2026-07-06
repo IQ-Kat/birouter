@@ -47,7 +47,7 @@ test.describe("Group B — Activity Feed", () => {
   });
 
   test("activity page exists and returns 200", async ({ page }) => {
-    const response = await page.goto("http://localhost:20128/dashboard/activity", {
+    const response = await page.goto("http://localhost:2004/dashboard/activity", {
       waitUntil: "domcontentloaded",
     });
     // After login redirect the page should settle on activity or login

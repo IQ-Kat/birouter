@@ -103,7 +103,7 @@ STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
 
 # === App ===
-PORT=20128
+PORT=2004
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
@@ -133,7 +133,7 @@ docker run -d \
   --name birouter \
   --restart unless-stopped \
   --env-file /opt/birouter/.env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -145,7 +145,7 @@ docker ps | grep birouter
 docker logs birouter --tail 20
 ```
 
-Seharusnya menampilkan: `[DB] SQLite database ready` dan `listening on port 20128`.
+Seharusnya menampilkan: `[DB] SQLite database ready` dan `listening on port 2004`.
 
 ---
 
@@ -201,7 +201,7 @@ server {
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://127.0.0.1:20128;
+        proxy_pass http://127.0.0.1:2004;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -289,7 +289,7 @@ docker pull IQ-Kat/birouter:latest
 docker stop birouter && docker rm birouter
 docker run -d --name birouter --restart unless-stopped \
   --env-file /opt/birouter/.env \
-  -p 20128:20128 \
+  -p 2004:2004 \
   -v birouter-data:/app/data \
   IQ-Kat/birouter:latest
 ```
@@ -370,9 +370,9 @@ fail2ban-client status sshd
 ### Blokir akses langsung ke port Docker
 
 ```bash
-# Prevent direct external access to port 20128
-iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
-iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
+# Prevent direct external access to port 2004
+iptables -I DOCKER-USER -p tcp --dport 2004 -j DROP
+iptables -I DOCKER-USER -i lo -p tcp --dport 2004 -j ACCEPT
 
 # Persist the rules
 apt install -y iptables-persistent
@@ -399,9 +399,9 @@ Lihat dokumentasi lengkap di [birouterCloud/README.md](../birouterCloud/README.m
 
 ## Ringkasan Port
 
-| Port  | Layanan     | Akses                           |
-| ----- | ----------- | ------------------------------- |
-| 22    | SSH         | Publik (dengan fail2ban)        |
-| 80    | nginx HTTP  | Redirect → HTTPS                |
-| 443   | nginx HTTPS | Melalui Cloudflare Proxy        |
-| 20128 | Birouter    | Hanya localhost (melalui nginx) |
+| Port | Layanan     | Akses                           |
+| ---- | ----------- | ------------------------------- |
+| 22   | SSH         | Publik (dengan fail2ban)        |
+| 80   | nginx HTTP  | Redirect → HTTPS                |
+| 443  | nginx HTTPS | Melalui Cloudflare Proxy        |
+| 2004 | Birouter    | Hanya localhost (melalui nginx) |

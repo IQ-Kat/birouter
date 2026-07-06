@@ -8,7 +8,7 @@
  *
  * Ported from upstream 9router#931 (thanks @mugnimaestra) — the original
  * exposed a flat `GET /api/keys/devices` listing every key; this route
- * follows the OmniRoute `[id]` sub-resource convention (see
+ * follows the Birouter `[id]` sub-resource convention (see
  * `src/app/api/keys/[id]/usage-limits/route.ts`) and requires management
  * auth like every other `/api/keys/[id]/*` route.
  *

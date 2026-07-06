@@ -11,7 +11,7 @@ import type { ToolBatchStatusMap } from "@/shared/types/cliBatchStatus";
 const MOCK_DATA: ToolBatchStatusMap = {
   claude: {
     detection: { installed: true, runnable: true, version: "1.0.0" },
-    config: { status: "configured", endpoint: "http://localhost:20128", lastConfiguredAt: null },
+    config: { status: "configured", endpoint: "http://localhost:2004", lastConfiguredAt: null },
   },
   codex: {
     detection: { installed: false, runnable: false },

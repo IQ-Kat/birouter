@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOCAL_BASE_URL="${LOCAL_BASE_URL:-http://127.0.0.1:20128}"
+LOCAL_BASE_URL="${LOCAL_BASE_URL:-http://127.0.0.1:2004}"
 CLOUD_BASE_URL="${CLOUD_BASE_URL:-https://birouter.com/v1}"
 MODEL="${MODEL:-kr/claude-sonnet-4.5}"
 STREAM_MODE="${STREAM_MODE:-false}"

@@ -16,7 +16,7 @@ pelacakan biaya, pergantian model, dan pencatatan permintaan di semua alat.
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
            ▼  (semua mengarah ke Birouter)
-    http://YOUR_SERVER:20128/v1
+    http://YOUR_SERVER:2004/v1
            │
            ▼  (Birouter meneruskan ke penyedia yang tepat)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
@@ -123,16 +123,16 @@ Tambahkan ke `~/.bashrc` (atau `~/.zshrc`), lalu jalankan `source ~/.bashrc`:
 
 ```bash
 # Birouter Universal Endpoint
-export OPENAI_BASE_URL="http://localhost:20128/v1"
+export OPENAI_BASE_URL="http://localhost:2004/v1"
 export OPENAI_API_KEY="sk-your-birouter-key"
-export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
+export ANTHROPIC_BASE_URL="http://localhost:2004/v1"
 export ANTHROPIC_API_KEY="sk-your-birouter-key"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
+export GEMINI_BASE_URL="http://localhost:2004/v1"
 export GEMINI_API_KEY="sk-your-birouter-key"
 ```
 
-> Untuk **server jarak jauh**, ganti `localhost:20128` dengan IP atau domain server,
-> misalnya `http://192.168.0.15:20128`.
+> Untuk **server jarak jauh**, ganti `localhost:2004` dengan IP atau domain server,
+> misalnya `http://192.168.0.15:2004`.
 
 ---
 
@@ -142,12 +142,12 @@ export GEMINI_API_KEY="sk-your-birouter-key"
 
 ```bash
 # Melalui CLI:
-claude config set --global api-base-url http://localhost:20128/v1
+claude config set --global api-base-url http://localhost:2004/v1
 
 # Atau buat ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
-  "apiBaseUrl": "http://localhost:20128/v1",
+  "apiBaseUrl": "http://localhost:2004/v1",
   "apiKey": "sk-your-birouter-key"
 }
 EOF
@@ -163,7 +163,7 @@ EOF
 mkdir -p ~/.codex && cat > ~/.codex/config.yaml << EOF
 model: auto
 apiKey: sk-your-birouter-key
-apiBaseUrl: http://localhost:20128/v1
+apiBaseUrl: http://localhost:2004/v1
 EOF
 ```
 
@@ -176,7 +176,7 @@ EOF
 ```bash
 mkdir -p ~/.config/opencode && cat > ~/.config/opencode/config.toml << EOF
 [provider.openai]
-base_url = "http://localhost:20128/v1"
+base_url = "http://localhost:2004/v1"
 api_key = "sk-your-birouter-key"
 EOF
 ```
@@ -193,14 +193,14 @@ EOF
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 {
   "apiProvider": "openai",
-  "openAiBaseUrl": "http://localhost:20128/v1",
+  "openAiBaseUrl": "http://localhost:2004/v1",
   "openAiApiKey": "sk-your-birouter-key"
 }
 EOF
 ```
 
 **Mode VS Code:**
-Pengaturan ekstensi Cline → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+Pengaturan ekstensi Cline → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:2004/v1`
 
 Atau gunakan dashboard Birouter → **CLI Tools → Cline → Apply Config**.
 
@@ -211,14 +211,14 @@ Atau gunakan dashboard Birouter → **CLI Tools → Cline → Apply Config**.
 **Mode CLI:**
 
 ```bash
-kilocode --api-base http://localhost:20128/v1 --api-key sk-your-birouter-key
+kilocode --api-base http://localhost:2004/v1 --api-key sk-your-birouter-key
 ```
 
 **Pengaturan VS Code:**
 
 ```json
 {
-  "kilo-code.openAiBaseUrl": "http://localhost:20128/v1",
+  "kilo-code.openAiBaseUrl": "http://localhost:2004/v1",
   "kilo-code.apiKey": "sk-your-birouter-key"
 }
 ```
@@ -236,7 +236,7 @@ models:
   - name: Birouter
     provider: openai
     model: auto
-    apiBase: http://localhost:20128/v1
+    apiBase: http://localhost:2004/v1
     apiKey: sk-your-birouter-key
     default: true
 ```
@@ -267,7 +267,7 @@ Qwen Code mendukung endpoint API yang kompatibel dengan OpenAI melalui variabel 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
 OPENAI_API_KEY="sk-your-birouter-key"
-OPENAI_BASE_URL="http://localhost:20128/v1"
+OPENAI_BASE_URL="http://localhost:2004/v1"
 OPENAI_MODEL="auto"
 EOF
 ```
@@ -279,7 +279,7 @@ EOF
 {
   "env": {
     "OPENAI_API_KEY": "sk-your-birouter-key",
-    "OPENAI_BASE_URL": "http://localhost:20128/v1"
+    "OPENAI_BASE_URL": "http://localhost:2004/v1"
   },
   "modelProviders": {
     "openai": [
@@ -287,7 +287,7 @@ EOF
         "id": "birouter-default",
         "name": "Birouter (Auto)",
         "envKey": "OPENAI_API_KEY",
-        "baseUrl": "http://localhost:20128/v1"
+        "baseUrl": "http://localhost:2004/v1"
       }
     ]
   }
@@ -297,13 +297,13 @@ EOF
 **Opsi 3: Flag CLI langsung**
 
 ```bash
-OPENAI_BASE_URL="http://localhost:20128/v1" \
+OPENAI_BASE_URL="http://localhost:2004/v1" \
 OPENAI_API_KEY="sk-your-birouter-key" \
 OPENAI_MODEL="auto" \
 qwen
 ```
 
-> Untuk **server jarak jauh**, ganti `localhost:20128` dengan IP atau domain server.
+> Untuk **server jarak jauh**, ganti `localhost:2004` dengan IP atau domain server.
 
 **Uji:** `qwen "say hello"`
 
@@ -323,7 +323,7 @@ Melalui GUI: **Settings → Models → OpenAI API Key**
 
 Dashboard Birouter mengotomatiskan konfigurasi untuk sebagian besar alat:
 
-1. Buka `http://localhost:20128/dashboard/cli-tools`
+1. Buka `http://localhost:2004/dashboard/cli-tools`
 2. Perluas kartu alat mana pun
 3. Pilih API key Anda dari menu tarik-turun
 4. Klik **Apply Config** (jika alat terdeteksi telah terinstal)
@@ -336,7 +336,7 @@ Dashboard Birouter mengotomatiskan konfigurasi untuk sebagian besar alat:
 **Droid** dan **OpenClaw** adalah agen AI yang dibangun langsung ke dalam Birouter — tidak perlu instalasi.
 Keduanya berjalan sebagai rute internal dan menggunakan perutean model Birouter secara otomatis.
 
-- Akses: `http://localhost:20128/dashboard/agents`
+- Akses: `http://localhost:2004/dashboard/agents`
 - Konfigurasi: combo dan penyedia yang sama seperti semua alat lainnya
 - Tidak memerlukan API key atau instalasi CLI
 
@@ -373,7 +373,7 @@ Keduanya berjalan sebagai rute internal dan menggunakan perutean model Birouter 
 
 ```bash
 # Instal semua CLI dan konfigurasi untuk Birouter (ganti dengan kunci dan URL server Anda)
-BIROUTER_URL="http://localhost:20128/v1"
+BIROUTER_URL="http://localhost:2004/v1"
 BIROUTER_KEY="sk-your-birouter-key"
 
 npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code

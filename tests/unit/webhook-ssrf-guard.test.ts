@@ -22,7 +22,7 @@ import { deliverWebhook } from "../../src/lib/webhookDispatcher.ts";
 
 const BLOCKED_URLS = [
   "http://127.0.0.1/internal",
-  "http://localhost:20128/api/admin",
+  "http://localhost:2004/api/admin",
   "http://0.0.0.0:8080/",
   "http://[::1]/v1/admin",
   "http://169.254.169.254/latest/meta-data/", // AWS IMDS

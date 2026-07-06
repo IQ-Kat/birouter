@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const API_KEY = process.env.BIROUTER_API_KEY;
-const BASE_URL = process.env.BIROUTER_URL || "http://localhost:20128";
+const BASE_URL = process.env.BIROUTER_URL || "http://localhost:2004";
 const MODEL = "default";
 
 const skip = !API_KEY ? "BIROUTER_API_KEY not set — skipping live test" : undefined;

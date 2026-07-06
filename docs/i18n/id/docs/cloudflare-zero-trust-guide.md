@@ -10,7 +10,7 @@ Panduan ini mendokumentasikan standar infrastruktur jaringan terbaik untuk menga
 
 Kami mengaktifkan Birouter dalam mode **Split-Port** melalui PM2:
 
-- **Port \`20128\`:** Menjalankan **hanya API** `/v1`.
+- **Port \`2004\`:** Menjalankan **hanya API** `/v1`.
 - **Port \`20129\`:** Menjalankan **hanya Dashboard** Administratif visual.
 
 Selain itu, layanan internal memerlukan `REQUIRE_API_KEY=true`, yang berarti tidak ada agen yang dapat menggunakan endpoint API tanpa mengirimkan "Bearer Token" yang sah yang dihasilkan dari tab API Keys di Panel.
@@ -44,7 +44,7 @@ Masih di layar Tunnel yang baru dibuat, buka tab **Public Hostnames** dan tambah
 - **Subdomain:** `api`
 - **Domain:** `domainanda.com` (pilih domain nyata Anda)
 - **Service Type:** `HTTP`
-- **URL:** `127.0.0.1:20128` _(Port internal API)_
+- **URL:** `127.0.0.1:2004` _(Port internal API)_
 
 ### Rute 2: Panel Zero Trust (Tertutup)
 

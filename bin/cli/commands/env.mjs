@@ -16,8 +16,8 @@ const BIROUTER_ENV_VARS = [
 ];
 
 const ENV_DEFAULTS = {
-  PORT: "20128",
-  DASHBOARD_PORT: "20128",
+  PORT: "2004",
+  DASHBOARD_PORT: "2004",
   DATA_DIR: "~/.birouter",
   NODE_ENV: "production",
 };

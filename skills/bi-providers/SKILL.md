@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 List provider connections
 
 ```bash
-curl https://localhost:20128/api/providers \
+curl https://localhost:2004/api/providers \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -29,7 +29,7 @@ curl https://localhost:20128/api/providers \
 Create provider connection
 
 ```bash
-curl -X POST https://localhost:20128/api/providers \
+curl -X POST https://localhost:2004/api/providers \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -40,7 +40,7 @@ curl -X POST https://localhost:20128/api/providers \
 Get provider connection
 
 ```bash
-curl https://localhost:20128/api/providers/{id} \
+curl https://localhost:2004/api/providers/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -49,7 +49,7 @@ curl https://localhost:20128/api/providers/{id} \
 Update provider connection
 
 ```bash
-curl -X PATCH https://localhost:20128/api/providers/{id} \
+curl -X PATCH https://localhost:2004/api/providers/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -60,7 +60,7 @@ curl -X PATCH https://localhost:20128/api/providers/{id} \
 Delete provider connection
 
 ```bash
-curl -X DELETE https://localhost:20128/api/providers/{id} \
+curl -X DELETE https://localhost:2004/api/providers/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -69,7 +69,7 @@ curl -X DELETE https://localhost:20128/api/providers/{id} \
 Test provider connection
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/test \
+curl -X POST https://localhost:2004/api/providers/{id}/test \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -80,7 +80,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/test \
 List models for a provider
 
 ```bash
-curl https://localhost:20128/api/providers/{id}/models \
+curl https://localhost:2004/api/providers/{id}/models \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -89,7 +89,7 @@ curl https://localhost:20128/api/providers/{id}/models \
 Test multiple providers at once
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/test-batch \
+curl -X POST https://localhost:2004/api/providers/test-batch \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -100,7 +100,7 @@ curl -X POST https://localhost:20128/api/providers/test-batch \
 Validate provider credentials
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/validate \
+curl -X POST https://localhost:2004/api/providers/validate \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -111,7 +111,7 @@ curl -X POST https://localhost:20128/api/providers/validate \
 Get client-side provider info
 
 ```bash
-curl https://localhost:20128/api/providers/client \
+curl https://localhost:2004/api/providers/client \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -120,7 +120,7 @@ curl https://localhost:20128/api/providers/client \
 Import an Antigravity CLI (agy) token file as an `agy` connection
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/import \
+curl -X POST https://localhost:2004/api/providers/agy-auth/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -131,7 +131,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/import \
 Bulk-import multiple Antigravity CLI (agy) token files (up to 50)
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/import-bulk \
+curl -X POST https://localhost:2004/api/providers/agy-auth/import-bulk \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -142,7 +142,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/import-bulk \
 Extract `.json` token files from an uploaded ZIP for agy bulk import
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/zip-extract \
+curl -X POST https://localhost:2004/api/providers/agy-auth/zip-extract \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -153,7 +153,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/zip-extract \
 Auto-detect and import the local Antigravity CLI (agy) login from disk
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/apply-local \
+curl -X POST https://localhost:2004/api/providers/agy-auth/apply-local \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -164,7 +164,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/apply-local \
 List provider nodes
 
 ```bash
-curl https://localhost:20128/api/provider-nodes \
+curl https://localhost:2004/api/provider-nodes \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -173,7 +173,7 @@ curl https://localhost:20128/api/provider-nodes \
 Create provider node
 
 ```bash
-curl -X POST https://localhost:20128/api/provider-nodes \
+curl -X POST https://localhost:2004/api/provider-nodes \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -184,7 +184,7 @@ curl -X POST https://localhost:20128/api/provider-nodes \
 Update provider node
 
 ```bash
-curl -X PATCH https://localhost:20128/api/provider-nodes/{id} \
+curl -X PATCH https://localhost:2004/api/provider-nodes/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -195,7 +195,7 @@ curl -X PATCH https://localhost:20128/api/provider-nodes/{id} \
 Delete provider node
 
 ```bash
-curl -X DELETE https://localhost:20128/api/provider-nodes/{id} \
+curl -X DELETE https://localhost:2004/api/provider-nodes/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -204,7 +204,7 @@ curl -X DELETE https://localhost:20128/api/provider-nodes/{id} \
 Validate a provider node
 
 ```bash
-curl -X POST https://localhost:20128/api/provider-nodes/validate \
+curl -X POST https://localhost:2004/api/provider-nodes/validate \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -215,7 +215,7 @@ curl -X POST https://localhost:20128/api/provider-nodes/validate \
 List provider models
 
 ```bash
-curl https://localhost:20128/api/provider-models \
+curl https://localhost:2004/api/provider-models \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -232,7 +232,7 @@ See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.y
 Rotate / refresh OAuth tokens or re-validate credentials for a provider connection. Useful after token expiration or when credentials need to be renewed without deleting the connection.
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/refresh \
+curl -X POST https://localhost:2004/api/providers/{id}/refresh \
   -H "Authorization: Bearer $BIROUTER_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -243,7 +243,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/refresh \
 Retrieve aggregated usage and performance metrics for all provider connections (request counts, error rates, latency percentiles, token usage). Used by dashboards and Auto-Combo scoring.
 
 ```bash
-curl https://localhost:20128/api/provider-metrics \
+curl https://localhost:2004/api/provider-metrics \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -270,7 +270,7 @@ curl https://localhost:20128/api/provider-metrics \
 Returns a health-matrix view of all providers with per-connection status, circuit-breaker state, and cooldown expiry. Useful for debugging routing decisions.
 
 ```bash
-curl https://localhost:20128/api/providers/health-matrix \
+curl https://localhost:2004/api/providers/health-matrix \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 

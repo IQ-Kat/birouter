@@ -91,7 +91,7 @@ Birouter menggunakan **SQLite** (melalui `better-sqlite3`) untuk semua persisten
 
 | Variable              | Default      | Source File                | Deskripsi                                                                                |
 | --------------------- | ------------ | -------------------------- | ---------------------------------------------------------------------------------------- |
-| `PORT`                | `20128`      | `src/lib/runtime/ports.ts` | Port utama untuk Dashboard UI dan endpoint API (mode port tunggal).                      |
+| `PORT`                | `2004`       | `src/lib/runtime/ports.ts` | Port utama untuk Dashboard UI dan endpoint API (mode port tunggal).                      |
 | `API_PORT`            | _(unset)_    | `src/lib/runtime/ports.ts` | Jika diatur, menyajikan API proxy `/v1/*` pada port terpisah ini.                        |
 | `API_HOST`            | `0.0.0.0`    | `src/lib/runtime/ports.ts` | Alamat bind untuk port API.                                                              |
 | `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Jika diatur, menyajikan Dashboard UI pada port terpisah ini.                             |
@@ -104,16 +104,16 @@ Birouter menggunakan **SQLite** (melalui `better-sqlite3`) untuk semua persisten
 
 ```
 ┌─────────────────────────── Port Tunggal (default) ─────────────────────────┐
-│  PORT=20128                                                                 │
-│  → Dashboard: http://localhost:20128                                        │
-│  → API:       http://localhost:20128/v1/chat/completions                    │
+│  PORT=2004                                                                 │
+│  → Dashboard: http://localhost:2004                                        │
+│  → API:       http://localhost:2004/v1/chat/completions                    │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────── Port Terpisah ───────────────────────────────────┐
-│  DASHBOARD_PORT=20128                                                       │
+│  DASHBOARD_PORT=2004                                                       │
 │  API_PORT=20129                                                             │
 │  API_HOST=0.0.0.0                                                           │
-│  → Dashboard: http://localhost:20128                                        │
+│  → Dashboard: http://localhost:2004                                        │
 │  → API:       http://0.0.0.0:20129/v1/chat/completions                     │
 │  Kasus penggunaan: Ekspos API ke LAN sambil membatasi Dashboard ke localhost.│
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -192,14 +192,14 @@ Birouter menyediakan pertahanan dua lapis: pemindaian injeksi di sisi permintaan
 
 ## 7. URL & Sinkronisasi Cloud
 
-| Variable                | Default                  | Source File                                 | Deskripsi                                                                                                             |
-| ----------------------- | ------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `BASE_URL`              | `http://localhost:20128` | `src/lib/cloudSync.ts`                      | URL sisi server untuk pekerjaan sinkronisasi internal memanggil `/api/sync/cloud`.                                    |
-| `CLOUD_URL`             | _(empty)_                | `src/lib/cloudSync.ts`                      | URL endpoint relay cloud (fitur premium).                                                                             |
-| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                  | `src/lib/cloudSync.ts`                      | Batas waktu HTTP untuk permintaan sinkronisasi cloud.                                                                 |
-| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:20128` | OAuth, Dashboard, sync                      | URL publik untuk redirect_uri OAuth, tautan Dashboard. **Harus cocok dengan URL publik Anda di balik reverse proxy.** |
-| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_                | Client-side                                 | Cerminan sisi klien dari `CLOUD_URL`.                                                                                 |
-| `NEXT_PUBLIC_APP_URL`   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Fallback legacy untuk `NEXT_PUBLIC_BASE_URL`.                                                                         |
+| Variable                | Default                 | Source File                                 | Deskripsi                                                                                                             |
+| ----------------------- | ----------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `BASE_URL`              | `http://localhost:2004` | `src/lib/cloudSync.ts`                      | URL sisi server untuk pekerjaan sinkronisasi internal memanggil `/api/sync/cloud`.                                    |
+| `CLOUD_URL`             | _(empty)_               | `src/lib/cloudSync.ts`                      | URL endpoint relay cloud (fitur premium).                                                                             |
+| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                 | `src/lib/cloudSync.ts`                      | Batas waktu HTTP untuk permintaan sinkronisasi cloud.                                                                 |
+| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:2004` | OAuth, Dashboard, sync                      | URL publik untuk redirect_uri OAuth, tautan Dashboard. **Harus cocok dengan URL publik Anda di balik reverse proxy.** |
+| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_               | Client-side                                 | Cerminan sisi klien dari `CLOUD_URL`.                                                                                 |
+| `NEXT_PUBLIC_APP_URL`   | _(unset)_               | `src/shared/services/cloudSyncScheduler.ts` | Fallback legacy untuk `NEXT_PUBLIC_BASE_URL`.                                                                         |
 
 > [!IMPORTANT]
 > Saat melakukan deployment di balik reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **harus** diatur ke URL publik Anda (misalnya, `https://birouter.example.com`). Tanpa ini, callback OAuth akan gagal karena redirect_uri tidak akan cocok.
@@ -591,7 +591,7 @@ Memungkinkan pengguna melaporkan masalah langsung dari Dashboard.
 JWT_SECRET=$(openssl rand -base64 48)
 API_KEY_SECRET=$(openssl rand -hex 32)
 INITIAL_PASSWORD=dev123
-PORT=20128
+PORT=2004
 NODE_ENV=development
 ```
 
@@ -603,13 +603,13 @@ API_KEY_SECRET=<generated>
 INITIAL_PASSWORD=<generated>
 STORAGE_ENCRYPTION_KEY=<generated>
 DATA_DIR=/data
-PORT=20128
+PORT=2004
 API_PORT=20129
 NODE_ENV=production
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
 NEXT_PUBLIC_BASE_URL=https://birouter.example.com
-BASE_URL=http://localhost:20128
+BASE_URL=http://localhost:2004
 BIROUTER_MEMORY_MB=512
 CORS_ORIGIN=https://your-frontend.example.com
 ```
@@ -631,11 +631,11 @@ APP_LOG_TO_FILE=false
 JWT_SECRET=<generated>
 API_KEY_SECRET=<generated>
 STORAGE_ENCRYPTION_KEY=<generated>
-PORT=20128
+PORT=2004
 AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=true
 NEXT_PUBLIC_BASE_URL=https://birouter.example.com
-BASE_URL=http://127.0.0.1:20128
+BASE_URL=http://127.0.0.1:2004
 CORS_ORIGIN=https://birouter.example.com
 ENABLE_TLS_FINGERPRINT=true
 CLI_COMPAT_ALL=1

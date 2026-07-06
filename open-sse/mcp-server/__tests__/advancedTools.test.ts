@@ -32,7 +32,7 @@ describe("MCP Advanced Tools", () => {
         ],
       });
 
-      const response = await mockFetch("http://localhost:20128/api/combos");
+      const response = await mockFetch("http://localhost:2004/api/combos");
       const combos = await response.json();
       expect(combos).toHaveLength(1);
       expect(combos[0].models).toHaveLength(2);
@@ -76,7 +76,7 @@ describe("MCP Advanced Tools", () => {
         ],
       });
 
-      const response = await mockFetch("http://localhost:20128/api/combos");
+      const response = await mockFetch("http://localhost:2004/api/combos");
       const combos = await response.json();
       const combo = combos.find((c: { id?: string }) => c.id === "test-combo");
       expect(combo).toBeDefined();
@@ -96,7 +96,7 @@ describe("MCP Advanced Tools", () => {
         }),
       });
 
-      const response = await mockFetch("http://localhost:20128/api/usage/analytics");
+      const response = await mockFetch("http://localhost:2004/api/usage/analytics");
       const data = await response.json();
       expect(data).toHaveProperty("provider");
       expect(data).toHaveProperty("requests");
@@ -131,7 +131,7 @@ describe("MCP Advanced Tools", () => {
         }),
       });
 
-      const response = await mockFetch("http://localhost:20128/api/usage/analytics?period=session");
+      const response = await mockFetch("http://localhost:2004/api/usage/analytics?period=session");
       const data = await response.json();
       expect(data).toHaveProperty("sessionStart");
       expect(data).toHaveProperty("requestCount");

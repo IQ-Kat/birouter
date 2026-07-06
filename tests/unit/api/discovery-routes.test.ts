@@ -1,4 +1,4 @@
-﻿import { describe, test, before, after } from "node:test";
+import { describe, test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -22,7 +22,7 @@ function req(method: string, url: string, body?: unknown): Request {
 }
 
 before(async () => {
-  tmpDataDir = mkdtempSync(join(tmpdir(), "omniroute-discovery-routes-"));
+  tmpDataDir = mkdtempSync(join(tmpdir(), "birouter-discovery-routes-"));
   process.env.DATA_DIR = tmpDataDir;
   delete process.env.REQUIRE_API_KEY;
   process.env.BIROUTER_DISABLE_AUTH = "1";

@@ -25,7 +25,7 @@ const {
 } = await import("../../open-sse/services/githubCopilotModels.ts");
 
 // A representative slice of a real Copilot /models response. The upstream list
-// includes selectable chat models plus utility/legacy models; OmniRoute imports
+// includes selectable chat models plus utility/legacy models; Birouter imports
 // only the curated allowlist.
 const MOCK_COPILOT_MODELS_RESPONSE = {
   data: [

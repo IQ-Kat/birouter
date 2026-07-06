@@ -8,7 +8,7 @@ import { dirname, resolve } from "node:path";
 // Error" screen (Minified React error #31). The handler POSTs /api/system/version
 // (a loopback-only auto-update endpoint) and, on a non-OK JSON response, did:
 //     notify.error(data.error || "Failed to start update.");
-// OmniRoute's error envelope is `{ error: { code, message, correlation_id } }`, so
+// Birouter's error envelope is `{ error: { code, message, correlation_id } }`, so
 // `data.error` is an OBJECT. notify.error rendered that object as a React child →
 // React #31 crash. The fix funnels the body through extractApiErrorMessage() (the
 // same helper introduced in #5340) so a string always reaches the toast.

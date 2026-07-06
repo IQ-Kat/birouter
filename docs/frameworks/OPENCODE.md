@@ -24,7 +24,7 @@ Recommended for end users. Ships with Birouter. Writes `opencode.json` in place.
 ```bash
 # After installing Birouter (npm i -g @birouter/cli or local clone)
 birouter config opencode \
-  --baseUrl http://localhost:20128 \
+  --baseUrl http://localhost:2004 \
   --apiKey "$BIROUTER_API_KEY"
 ```
 
@@ -40,7 +40,7 @@ Resulting file (default model catalog):
       "npm": "@ai-sdk/openai-compatible",
       "name": "Birouter",
       "options": {
-        "baseURL": "http://localhost:20128/v1",
+        "baseURL": "http://localhost:2004/v1",
         "apiKey": "<your-key>",
       },
       "models": {
@@ -69,7 +69,7 @@ import { writeFileSync } from "node:fs";
 import { buildBirouterOpenCodeConfig } from "@birouter/opencode-provider";
 
 const config = buildBirouterOpenCodeConfig({
-  baseURL: "http://localhost:20128",
+  baseURL: "http://localhost:2004",
   apiKey: process.env.BIROUTER_API_KEY ?? "sk_birouter",
   // Optional: override the model catalog exposed to OpenCode
   models: ["auto", "claude-opus-4-7", "gpt-5.5"],
@@ -124,12 +124,12 @@ You can override via `models: [...]`. Recommended additions:
 
 The helper accepts both forms and emits exactly one `/v1`:
 
-| Input                          | Output (`options.baseURL`)  |
-| ------------------------------ | --------------------------- |
-| `http://localhost:20128`       | `http://localhost:20128/v1` |
-| `http://localhost:20128/`      | `http://localhost:20128/v1` |
-| `http://localhost:20128/v1`    | `http://localhost:20128/v1` |
-| `http://localhost:20128/v1///` | `http://localhost:20128/v1` |
+| Input                         | Output (`options.baseURL`) |
+| ----------------------------- | -------------------------- |
+| `http://localhost:2004`       | `http://localhost:2004/v1` |
+| `http://localhost:2004/`      | `http://localhost:2004/v1` |
+| `http://localhost:2004/v1`    | `http://localhost:2004/v1` |
+| `http://localhost:2004/v1///` | `http://localhost:2004/v1` |
 
 This deduplication is **the most common breakage** seen in older configs. If you have an `opencode.json` from before v3.8.0 that points at `/v1/v1/...`, re-run the generator or call `createBirouterProvider` again.
 

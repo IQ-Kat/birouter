@@ -22,7 +22,7 @@ Get memory settings
 Returns the extended memory settings including 7 new fields added in plan 21 (embeddingSource, embeddingProviderModel, transformersEnabled, staticEnabled, rerankEnabled, rerankProviderModel, vectorStore).
 
 ```bash
-curl https://localhost:20128/api/settings/memory \
+curl https://localhost:2004/api/settings/memory \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -33,7 +33,7 @@ Update memory settings
 Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`.
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/memory \
+curl -X PUT https://localhost:2004/api/settings/memory \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -46,7 +46,7 @@ Get Qdrant settings
 Returns current Qdrant configuration. The `apiKey` field is never returned raw — use `hasApiKey` / `apiKeyMasked` instead.
 
 ```bash
-curl https://localhost:20128/api/settings/qdrant \
+curl https://localhost:2004/api/settings/qdrant \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -57,7 +57,7 @@ Update Qdrant settings
 Update Qdrant configuration. Pass `apiKey: ""` to remove the stored key. Schema: `QdrantSettingsUpdateSchema`.
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/qdrant \
+curl -X PUT https://localhost:2004/api/settings/qdrant \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -70,7 +70,7 @@ Qdrant health probe
 Performs a liveness check against the configured Qdrant instance. Returns latency and any connection error (sanitized — no stack traces).
 
 ```bash
-curl https://localhost:20128/api/settings/qdrant/health \
+curl https://localhost:2004/api/settings/qdrant/health \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -81,7 +81,7 @@ Qdrant semantic search test
 Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`.
 
 ```bash
-curl -X POST https://localhost:20128/api/settings/qdrant/search \
+curl -X POST https://localhost:2004/api/settings/qdrant/search \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -94,7 +94,7 @@ Clean up expired Qdrant points
 Removes Qdrant points for memories that have expired or exceeded the configured retention window.
 
 ```bash
-curl -X POST https://localhost:20128/api/settings/qdrant/cleanup \
+curl -X POST https://localhost:2004/api/settings/qdrant/cleanup \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -107,7 +107,7 @@ List Qdrant embedding models
 Returns the list of embedding models available for use with Qdrant.
 
 ```bash
-curl https://localhost:20128/api/settings/qdrant/embedding-models \
+curl https://localhost:2004/api/settings/qdrant/embedding-models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -116,7 +116,7 @@ curl https://localhost:20128/api/settings/qdrant/embedding-models \
 Get application settings
 
 ```bash
-curl https://localhost:20128/api/settings \
+curl https://localhost:2004/api/settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -125,7 +125,7 @@ curl https://localhost:20128/api/settings \
 Update settings
 
 ```bash
-curl -X PATCH https://localhost:20128/api/settings \
+curl -X PATCH https://localhost:2004/api/settings \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -138,7 +138,7 @@ Clear request log history
 Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact files under `DATA_DIR/call_logs`.
 
 ```bash
-curl -X POST https://localhost:20128/api/settings/purge-request-history \
+curl -X POST https://localhost:2004/api/settings/purge-request-history \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -149,7 +149,7 @@ curl -X POST https://localhost:20128/api/settings/purge-request-history \
 Get global compression settings
 
 ```bash
-curl https://localhost:20128/api/settings/compression \
+curl https://localhost:2004/api/settings/compression \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -158,7 +158,7 @@ curl https://localhost:20128/api/settings/compression \
 Update global compression settings
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/compression \
+curl -X PUT https://localhost:2004/api/settings/compression \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -169,7 +169,7 @@ curl -X PUT https://localhost:20128/api/settings/compression \
 Get the MCP tool-output accessibility (trimming) config
 
 ```bash
-curl https://localhost:20128/api/settings/compression/mcp-accessibility \
+curl https://localhost:2004/api/settings/compression/mcp-accessibility \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -180,7 +180,7 @@ Update the MCP tool-output accessibility (trimming) config
 Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-tail reserve) are folded back to the safe defaults server-side, so the response reflects the effective config.
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/compression/mcp-accessibility \
+curl -X PUT https://localhost:2004/api/settings/compression/mcp-accessibility \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -196,7 +196,7 @@ are sent upstream.
 Requires a dashboard management session cookie when management auth is enabled.
 
 ```bash
-curl https://localhost:20128/api/settings/payload-rules \
+curl https://localhost:2004/api/settings/payload-rules \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -210,7 +210,7 @@ on writes and normalized to `defaultRaw` in responses/runtime state.
 Requires a dashboard management session cookie when management auth is enabled.
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/payload-rules \
+curl -X PUT https://localhost:2004/api/settings/payload-rules \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -221,7 +221,7 @@ curl -X PUT https://localhost:20128/api/settings/payload-rules \
 Get combo default settings
 
 ```bash
-curl https://localhost:20128/api/settings/combo-defaults \
+curl https://localhost:2004/api/settings/combo-defaults \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -230,7 +230,7 @@ curl https://localhost:20128/api/settings/combo-defaults \
 Get proxy settings
 
 ```bash
-curl https://localhost:20128/api/settings/proxy \
+curl https://localhost:2004/api/settings/proxy \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -239,7 +239,7 @@ curl https://localhost:20128/api/settings/proxy \
 Update proxy settings
 
 ```bash
-curl -X PATCH https://localhost:20128/api/settings/proxy \
+curl -X PATCH https://localhost:2004/api/settings/proxy \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -250,7 +250,7 @@ curl -X PATCH https://localhost:20128/api/settings/proxy \
 Test proxy connection
 
 ```bash
-curl -X POST https://localhost:20128/api/settings/proxy/test \
+curl -X POST https://localhost:2004/api/settings/proxy/test \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -261,7 +261,7 @@ curl -X POST https://localhost:20128/api/settings/proxy/test \
 Toggle login requirement
 
 ```bash
-curl -X POST https://localhost:20128/api/settings/require-login \
+curl -X POST https://localhost:2004/api/settings/require-login \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -274,7 +274,7 @@ Get IP filter configuration
 Returns the current IP filter settings including blacklist, whitelist, and temp bans.
 
 ```bash
-curl https://localhost:20128/api/settings/ip-filter \
+curl https://localhost:2004/api/settings/ip-filter \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -285,7 +285,7 @@ Update IP filter configuration
 Configure IP filtering with blacklist/whitelist modes, add/remove individual IPs, and manage temp bans.
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/ip-filter \
+curl -X PUT https://localhost:2004/api/settings/ip-filter \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -298,7 +298,7 @@ Get system prompt configuration
 Returns the current system prompt injection settings.
 
 ```bash
-curl https://localhost:20128/api/settings/system-prompt \
+curl https://localhost:2004/api/settings/system-prompt \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -307,7 +307,7 @@ curl https://localhost:20128/api/settings/system-prompt \
 Update system prompt configuration
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/system-prompt \
+curl -X PUT https://localhost:2004/api/settings/system-prompt \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -320,7 +320,7 @@ Get thinking budget configuration
 Returns the current thinking/reasoning budget settings for AI models.
 
 ```bash
-curl https://localhost:20128/api/settings/thinking-budget \
+curl https://localhost:2004/api/settings/thinking-budget \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -329,7 +329,7 @@ curl https://localhost:20128/api/settings/thinking-budget \
 Update thinking budget configuration
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/thinking-budget \
+curl -X PUT https://localhost:2004/api/settings/thinking-budget \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -342,7 +342,7 @@ List Ollama-compatible model tags
 Returns models in Ollama /api/tags format for Ollama client compatibility
 
 ```bash
-curl https://localhost:20128/api/tags \
+curl https://localhost:2004/api/tags \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -353,7 +353,7 @@ Get current quota store driver settings
 Redis URL is masked in the response (shows only scheme+host).
 
 ```bash
-curl https://localhost:20128/api/settings/quota-store \
+curl https://localhost:2004/api/settings/quota-store \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -362,7 +362,7 @@ curl https://localhost:20128/api/settings/quota-store \
 Update quota store driver settings
 
 ```bash
-curl -X PUT https://localhost:20128/api/settings/quota-store \
+curl -X PUT https://localhost:2004/api/settings/quota-store \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -375,7 +375,7 @@ Purge usage history
 Dashboard-only. Purges stored usage-history records.
 
 ```bash
-curl -X POST https://localhost:20128/api/settings/purge-usage-history \
+curl -X POST https://localhost:2004/api/settings/purge-usage-history \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'

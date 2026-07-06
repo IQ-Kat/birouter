@@ -20,7 +20,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 List API keys
 
 ```bash
-curl https://localhost:20128/api/keys \
+curl https://localhost:2004/api/keys \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -29,7 +29,7 @@ curl https://localhost:20128/api/keys \
 Create API key
 
 ```bash
-curl -X POST https://localhost:20128/api/keys \
+curl -X POST https://localhost:2004/api/keys \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -40,8 +40,8 @@ curl -X POST https://localhost:20128/api/keys \
 Get API key
 
 ```bash
-curl https://localhost:20128/api/keys/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl https://localhost:2004/api/keys/{id} \
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### PATCH /api/keys/{id}
@@ -49,8 +49,8 @@ curl https://localhost:20128/api/keys/{id} \
 Update API key
 
 ```bash
-curl -X PATCH https://localhost:20128/api/keys/{id} \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl -X PATCH https://localhost:2004/api/keys/{id} \
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -60,7 +60,7 @@ curl -X PATCH https://localhost:20128/api/keys/{id} \
 Delete API key
 
 ```bash
-curl -X DELETE https://localhost:20128/api/keys/{id} \
+curl -X DELETE https://localhost:2004/api/keys/{id} \
   -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
@@ -71,8 +71,8 @@ List devices for an API key
 Lists the distinct devices (masked IP + User-Agent fingerprints) tracked for an API key by the in-memory device tracker. IPs are masked before storage; the route never sees the raw client IP.
 
 ```bash
-curl https://localhost:20128/api/keys/{id}/devices \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+curl https://localhost:2004/api/keys/{id}/devices \
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ## Payloads

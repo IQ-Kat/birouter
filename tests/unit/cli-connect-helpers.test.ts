@@ -4,25 +4,25 @@ import { normalizeBaseUrl, hostLabel } from "../../bin/cli/commands/connect.mjs"
 import { profileNameFromModel } from "../../bin/cli/commands/configure.mjs";
 
 test("normalizeBaseUrl: bare host gets http:// and the default port", () => {
-  assert.equal(normalizeBaseUrl("192.168.0.15", "20128"), "http://192.168.0.15:20128");
+  assert.equal(normalizeBaseUrl("192.168.0.15", "2004"), "http://192.168.0.15:2004");
 });
 
 test("normalizeBaseUrl: host with explicit port keeps it", () => {
-  assert.equal(normalizeBaseUrl("192.168.0.15:9000", "20128"), "http://192.168.0.15:9000");
+  assert.equal(normalizeBaseUrl("192.168.0.15:9000", "2004"), "http://192.168.0.15:9000");
 });
 
 test("normalizeBaseUrl: full https URL is preserved as origin", () => {
-  assert.equal(normalizeBaseUrl("https://bi.example.com", "20128"), "https://bi.example.com");
-  assert.equal(normalizeBaseUrl("http://host:1234/path", "20128"), "http://host:1234");
+  assert.equal(normalizeBaseUrl("https://bi.example.com", "2004"), "https://bi.example.com");
+  assert.equal(normalizeBaseUrl("http://host:1234/path", "2004"), "http://host:1234");
 });
 
 test("normalizeBaseUrl: empty input returns empty string", () => {
-  assert.equal(normalizeBaseUrl("", "20128"), "");
+  assert.equal(normalizeBaseUrl("", "2004"), "");
 });
 
 test("hostLabel strips scheme and port", () => {
-  assert.equal(hostLabel("https://bi.example.com:20128"), "bi.example.com");
-  assert.equal(hostLabel("192.168.0.15:20128"), "192.168.0.15");
+  assert.equal(hostLabel("https://bi.example.com:2004"), "bi.example.com");
+  assert.equal(hostLabel("192.168.0.15:2004"), "192.168.0.15");
   assert.equal(hostLabel("http://10.0.0.1"), "10.0.0.1");
 });
 

@@ -14,7 +14,7 @@ Image=localhost/birouter:base
 ContainerName=birouter
 
 Network=birouter.network
-PublishPort=20128:20128
+PublishPort=2004:2004
 PublishPort=20129:20129
 
 Volume=birouter.volume:/app/data:Z
@@ -23,8 +23,8 @@ Volume=birouter.volume:/app/data:Z
 # Volume=/home/USER/code/docker/Birouter/data:/app/data:Z
 
 Environment=DATA_DIR=/app/data
-Environment=PORT=20128
-Environment=DASHBOARD_PORT=20128
+Environment=PORT=2004
+Environment=DASHBOARD_PORT=2004
 Environment=API_PORT=20129
 Environment=API_HOST=0.0.0.0
 Environment=REDIS_URL=redis://redis:6379

@@ -64,12 +64,12 @@ jobs:
             # re-runs whatever script path was saved earlier; after the build-output
             # reorg (app/ -> dist/, .next -> .build/next) a process pinned to the old
             # app/server-ws.mjs path can no longer start, and the node process dies
-            # while PM2 still reports "online" — so the box never binds :20128.
+            # while PM2 still reports "online" — so the box never binds :2004.
             # Always launch via the `birouter` bin so .env is loaded and the dist/
             # layout is resolved correctly.
             echo "=== (Re)creating PM2 process via bin ==="
             pm2 delete birouter 2>/dev/null || true
-            pm2 start birouter --name birouter -- --port 20128
+            pm2 start birouter --name birouter -- --port 2004
             pm2 save
 
             # Health gate: fail the deploy unless the box actually reports healthy.
@@ -80,7 +80,7 @@ jobs:
             echo "=== Health Check (gates the deploy) ==="
             ok=0
             for i in $(seq 1 36); do
-              BODY=$(curl -sf -m 5 http://localhost:20128/api/monitoring/health 2>/dev/null || true)
+              BODY=$(curl -sf -m 5 http://localhost:2004/api/monitoring/health 2>/dev/null || true)
               if printf '%s' "$BODY" | grep -q '"status":"healthy"'; then
                 ok=1
                 echo "✅ /api/monitoring/health -> healthy (attempt $i) — version $INSTALLED_VERSION"

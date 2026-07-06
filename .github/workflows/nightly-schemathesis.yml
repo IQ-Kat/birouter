@@ -25,12 +25,12 @@ jobs:
       - name: Start Birouter (background)
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-          PORT: "20128"
+          PORT: "2004"
         run: |
           node dist/server.js > server.log 2>&1 &
           echo $! > server.pid
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo "server up"; break; fi
+            if curl -sf http://localhost:2004/api/monitoring/health >/dev/null; then echo "server up"; break; fi
             sleep 2
           done
       - uses: actions/setup-python@v6
@@ -46,7 +46,7 @@ jobs:
         continue-on-error: true
         run: |
           schemathesis run docs/openapi.yaml \
-            --url http://localhost:20128 \
+            --url http://localhost:2004 \
             --max-examples 20 \
             --workers 4 \
             --checks all \

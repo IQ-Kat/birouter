@@ -15,7 +15,9 @@ export async function confirm(msg) {
   // "unsettled top-level await" at exit. Decline cleanly instead and point at the
   // non-interactive escape hatch so scripted callers fail safe rather than hang.
   if (!process.stdin.isTTY) {
-    process.stderr.write(`${msg} [y/N] (non-interactive stdin — declined; pass --yes to confirm)\n`);
+    process.stderr.write(
+      `${msg} [y/N] (non-interactive stdin — declined; pass --yes to confirm)\n`
+    );
     return false;
   }
   const readline = await import("node:readline");
@@ -254,7 +256,7 @@ export function registerContexts(program) {
         if (typeof name !== "string" || !name) continue;
         const c = raw && typeof raw === "object" ? /** @type {Record<string,unknown>} */ (raw) : {};
         cfg.contexts[name] = {
-          baseUrl: typeof c.baseUrl === "string" ? c.baseUrl : "http://localhost:20128",
+          baseUrl: typeof c.baseUrl === "string" ? c.baseUrl : "http://localhost:2004",
           accessToken: typeof c.accessToken === "string" ? c.accessToken : undefined,
           apiKey: typeof c.apiKey === "string" ? c.apiKey : null,
           scope: typeof c.scope === "string" ? c.scope : undefined,

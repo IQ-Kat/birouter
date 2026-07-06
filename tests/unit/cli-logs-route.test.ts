@@ -157,7 +157,7 @@ test("log-streamer.ts calls /api/cli-tools/logs (correct URL, not the missing ro
   }) as typeof fetch;
 
   try {
-    const { stream, stop } = createLogStream({ baseUrl: "http://localhost:20128" });
+    const { stream, stop } = createLogStream({ baseUrl: "http://localhost:2004" });
     const reader = stream.getReader();
     // Consume until done (mock stream closes immediately)
     await reader.read().catch(() => {});
@@ -196,7 +196,7 @@ test("log-streamer forwards auth headers to fetch (regression: 401 against authe
 
   try {
     const { stream, stop } = createLogStream({
-      baseUrl: "http://localhost:20128",
+      baseUrl: "http://localhost:2004",
       headers: { authorization: "Bearer test-token" },
     });
     const reader = stream.getReader();

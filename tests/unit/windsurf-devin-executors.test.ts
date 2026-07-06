@@ -265,7 +265,7 @@ test("devin-cli provider: generateAuthData returns no authUrl", () => {
 import { GET as oauthGet, POST as oauthPost } from "@/app/api/oauth/[provider]/[action]/route";
 
 test("OAuth route: GET windsurf/start-callback-server returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/windsurf/start-callback-server";
+  const url = "http://localhost:2004/api/oauth/windsurf/start-callback-server";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
     params: Promise.resolve({ provider: "windsurf", action: "start-callback-server" }),
@@ -276,7 +276,7 @@ test("OAuth route: GET windsurf/start-callback-server returns 410 Gone", async (
 });
 
 test("OAuth route: GET devin-cli/authorize returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/devin-cli/authorize";
+  const url = "http://localhost:2004/api/oauth/devin-cli/authorize";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
     params: Promise.resolve({ provider: "devin-cli", action: "authorize" }),
@@ -287,7 +287,7 @@ test("OAuth route: GET devin-cli/authorize returns 410 Gone", async () => {
 });
 
 test("OAuth route: GET windsurf/poll-callback returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/windsurf/poll-callback";
+  const url = "http://localhost:2004/api/oauth/windsurf/poll-callback";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
     params: Promise.resolve({ provider: "windsurf", action: "poll-callback" }),
@@ -296,7 +296,7 @@ test("OAuth route: GET windsurf/poll-callback returns 410 Gone", async () => {
 });
 
 test("OAuth route: POST windsurf/poll-callback returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/windsurf/poll-callback";
+  const url = "http://localhost:2004/api/oauth/windsurf/poll-callback";
   const request = new Request(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -309,7 +309,7 @@ test("OAuth route: POST windsurf/poll-callback returns 410 Gone", async () => {
 });
 
 test("OAuth route: GET codex/authorize is NOT retired (regression check)", async () => {
-  const url = "http://localhost:20128/api/oauth/codex/authorize";
+  const url = "http://localhost:2004/api/oauth/codex/authorize";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
     params: Promise.resolve({ provider: "codex", action: "authorize" }),

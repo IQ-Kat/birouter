@@ -7,7 +7,7 @@ set -uo pipefail
 
 PVE_HOST="${PVE_HOST:-192.168.0.100}"
 VM_ID="${VM_ID:-113}"
-REPO="${REPO:-diegosouzapw/OmniRoute}"
+REPO="${REPO:-iq-kat/Birouter}"
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=8"
 
 # 1) Volta o CI para ubuntu-latest ANTES de derrubar a VM (evita jobs presos).

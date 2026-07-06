@@ -30,7 +30,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "agent-bridge",
   "traffic-inspector",
   "discovery",
-  // OmniProxy > Integrations
+  // BiProxy > Integrations
   "api-endpoints",
   "webhooks",
   // BiProxy — proxy

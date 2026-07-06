@@ -37,7 +37,7 @@ test.after(async () => {
 });
 
 async function postPaste(provider: string, body: unknown) {
-  const request = new Request(`http://localhost:20128/api/oauth/${provider}/paste-credentials`, {
+  const request = new Request(`http://localhost:2004/api/oauth/${provider}/paste-credentials`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

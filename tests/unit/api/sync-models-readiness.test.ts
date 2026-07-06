@@ -25,7 +25,7 @@ test("self-fetch retries with backoff and succeeds on attempt 3", async () => {
     return new Response(JSON.stringify({ models: [] }), { status: 200 });
   };
 
-  const result = await selfFetchWithRetry("http://127.0.0.1:20128/api/providers/conn-1/models", {
+  const result = await selfFetchWithRetry("http://127.0.0.1:2004/api/providers/conn-1/models", {
     fetch: fetchMock,
     maxRetries: 5,
     backoffMs: 5,
@@ -54,7 +54,7 @@ test("self-fetch falls back to in-process route after maxRetries failures", asyn
     return new Response(JSON.stringify({ models: [{ id: "in-proc-model" }] }), { status: 200 });
   };
 
-  const result = await selfFetchWithRetry("http://127.0.0.1:20128/api/providers/conn-2/models", {
+  const result = await selfFetchWithRetry("http://127.0.0.1:2004/api/providers/conn-2/models", {
     fetch: fetchMock,
     maxRetries: 3,
     backoffMs: 5,
@@ -86,7 +86,7 @@ test("self-fetch returns HTTP error responses immediately without retrying", asy
     };
     const inProcMock = async () => new Response(JSON.stringify({ models: [] }), { status: 200 });
 
-    const res = await selfFetchWithRetry("http://127.0.0.1:20128/api/providers/conn-3/models", {
+    const res = await selfFetchWithRetry("http://127.0.0.1:2004/api/providers/conn-3/models", {
       fetch: fetchMock,
       maxRetries: 5,
       backoffMs: 5,
@@ -107,7 +107,7 @@ test("self-fetch returns HTTP error responses immediately without retrying", asy
     };
     const inProcMock = async () => new Response(JSON.stringify({ models: [] }), { status: 200 });
 
-    const res = await selfFetchWithRetry("http://127.0.0.1:20128/api/providers/conn-4/models", {
+    const res = await selfFetchWithRetry("http://127.0.0.1:2004/api/providers/conn-4/models", {
       fetch: fetchMock,
       maxRetries: 5,
       backoffMs: 5,
@@ -201,7 +201,7 @@ test("selfFetchWithRetry with gate: 17 concurrent callers produce one probe + on
 
   await Promise.all(
     Array.from({ length: 17 }, (_, i) =>
-      selfFetchWithRetry("http://127.0.0.1:20128/api/providers/conn-" + i + "/models", {
+      selfFetchWithRetry("http://127.0.0.1:2004/api/providers/conn-" + i + "/models", {
         fetch: mockFetch,
         maxRetries: 3,
         backoffMs: 5,
@@ -232,7 +232,7 @@ test("sanity: without readiness gate, 17 callers retry independently (amplificat
 
   await Promise.all(
     Array.from({ length: 17 }, (_, i) =>
-      selfFetchWithRetry("http://127.0.0.1:20128/api/providers/conn-" + i + "/models", {
+      selfFetchWithRetry("http://127.0.0.1:2004/api/providers/conn-" + i + "/models", {
         fetch: mockFetch,
         maxRetries: 5,
         backoffMs: 5,

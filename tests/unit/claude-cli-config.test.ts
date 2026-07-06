@@ -8,9 +8,9 @@ import {
 
 describe("claudeCliConfig", () => {
   it("keeps the unified Claude gateway root without forcing /v1", () => {
-    assert.equal(normalizeClaudeBaseUrl("http://localhost:20128"), "http://localhost:20128");
-    assert.equal(normalizeClaudeBaseUrl("http://localhost:20128/"), "http://localhost:20128");
-    assert.equal(normalizeClaudeBaseUrl("http://localhost:20128/v1"), "http://localhost:20128/v1");
+    assert.equal(normalizeClaudeBaseUrl("http://localhost:2004"), "http://localhost:2004");
+    assert.equal(normalizeClaudeBaseUrl("http://localhost:2004/"), "http://localhost:2004");
+    assert.equal(normalizeClaudeBaseUrl("http://localhost:2004/v1"), "http://localhost:2004/v1");
   });
 
   it("prefers a stored auth token but can read legacy api key config", () => {

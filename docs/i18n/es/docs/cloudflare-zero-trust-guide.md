@@ -10,7 +10,7 @@ Este guia documenta o padrão ouro de infraestrutura de rede para proteger o **B
 
 Nós ativamos o Birouter em modo **Split-Port** através do PM2:
 
-- **Porta \`20128\`:** Roda **apenas a API** `/v1`.
+- **Porta \`2004\`:** Roda **apenas a API** `/v1`.
 - **Porta \`20129\`:** Roda **apenas o Dashboard** Administrativo visual.
 
 Além disso, o serviço interno exige \`REQUIRE_API_KEY=true\`, o que significa que nenhum agente pode consumir os endpoints da API sem enviar um "Bearer Token" legítimo gerado na aba API Keys do Painel.
@@ -44,7 +44,7 @@ Ainda na tela do Tunnel recém-criado, vá para a aba **Public Hostnames** e adi
 - **Subdomain:** \`api\`
 - **Domain:** \`seuglobal.com.br\` (escolha seu domínio real)
 - **Service Type:** \`HTTP\`
-- **URL:** \`127.0.0.1:20128\` _(Porta interna da API)_
+- **URL:** \`127.0.0.1:2004\` _(Porta interna da API)_
 
 ### Rota 2: Painel Zero Trust (Fechado)
 
