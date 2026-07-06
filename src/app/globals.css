@@ -485,19 +485,46 @@ select option {
   color: var(--color-text-main);
 }
 
-/* ReactFlow Controls (zoom +/- buttons) dark mode theming */
+/* ReactFlow Controls (zoom +/- buttons) dark/light mode theming */
+.react-flow__controls {
+  box-shadow: var(--shadow-soft) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background-color: var(--color-surface) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
 .react-flow__controls-button {
-  background-color: var(--color-surface);
-  border-bottom-color: var(--color-border);
-  fill: var(--color-text-main);
+  background-color: var(--color-surface) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-main) !important;
+  fill: var(--color-text-main) !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
 }
 
 .react-flow__controls-button:hover {
-  background-color: var(--color-bg-subtle);
+  background-color: var(--color-bg-subtle) !important;
+  color: var(--color-primary) !important;
 }
 
 .react-flow__controls-button svg {
-  fill: var(--color-text-main);
+  fill: var(--color-text-main) !important;
+  transition: fill 0.2s ease !important;
+}
+
+.react-flow__controls-button:hover svg {
+  fill: var(--color-primary) !important;
 }
 
 /* Desktop sidebar visibility must not depend on Tailwind's hidden/lg:flex cascade
