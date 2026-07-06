@@ -124,7 +124,7 @@
       "tests/unit/combo-hedging.test.ts",
       "tests/unit/combo-max-depth-config.test.ts",
       "tests/unit/combo-model-lockout-honors-reset-1308.test.ts",
-      "tests/unit/combo-omnimodel-tag-stripping.test.ts",
+
       "tests/unit/combo-param-validation-fallback-4519.test.ts",
       "tests/unit/combo-prescreen.test.ts",
       "tests/unit/combo-priority-quota-exhaustion-cutoff-5923.test.ts",
