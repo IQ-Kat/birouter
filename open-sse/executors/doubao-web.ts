@@ -48,8 +48,11 @@ function parseJsonRecord(raw: string): JsonRecord | null {
 }
 
 function randomNumericId(length = 19): string {
-  let id = String(Math.floor(Math.random() * 9) + 1);
-  while (id.length < length) id += String(Math.floor(Math.random() * 10));
+  // crypto-backed (CodeQL js/insecure-randomness): a synthetic device/web id,
+  // not a secret — but crypto.getRandomValues costs the same and closes the alert.
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(length));
+  let id = String((bytes[0] % 9) + 1);
+  for (let i = 1; i < length; i += 1) id += String(bytes[i] % 10);
   return id;
 }
 

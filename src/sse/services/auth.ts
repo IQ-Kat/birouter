@@ -1991,13 +1991,12 @@ export async function markAccountUnavailable(
               ? "rate_limited"
               : "server_error";
 
-      // #5976: Gemini (and other per-model-quota providers) have model-level rate
-      // limits, not global. A 500 server error is intermittent and NOT model-specific
-      // — recording a model lockout here blocks the sibling model from being tried
-      // by both the combo retry loop (isModelLocked check) and the credential
-      // resolver. Skip model lockout for server errors; only lock for 404 (model
-      // genuinely missing) and 429 (rate limit / quota exhaustion).
-      if (status >= 500) {
+      // #5976: a bare 500 is intermittent and NOT model-specific — skip
+      // lockout/cooldown ONLY for the exact 500 (the contract its own tests pin:
+      // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
+      // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
+      // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
+      if (status === 500) {
         updateProviderConnection(connectionId, {
           lastErrorType: reason,
           lastError: `Model ${model} ${reason}`,
@@ -2307,10 +2306,7 @@ export async function clearRecoveredProviderState(
 ): Promise<{ applied: boolean }> {
   if (!credentials?.connectionId) return { applied: false };
   if (expectedState) {
-    const applied = await clearConnectionErrorIfUnchanged(
-      credentials.connectionId,
-      expectedState
-    );
+    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
     if (!applied) {
       log.info(
         "AUTH",
