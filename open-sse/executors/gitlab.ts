@@ -10,6 +10,13 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import {
+  buildStreamingResponse,
+  buildJsonCompletion,
+  buildToolJsonCompletion,
+  buildToolStreamingResponse,
+} from "./gitlabResponses.ts";
 import {
   buildGitLabDirectGatewayUrl,
   buildGitLabOAuthEndpoints,
@@ -20,9 +27,18 @@ import {
   type GitLabDirectAccessDetails,
 } from "@/lib/oauth/gitlab";
 
+type OpenAIToolCall = {
+  id?: string;
+  type?: string;
+  function?: { name?: string; arguments?: string };
+};
+
 type OpenAIMessage = {
   role?: string;
   content?: unknown;
+  tool_calls?: OpenAIToolCall[];
+  tool_call_id?: string;
+  name?: string;
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -63,33 +79,104 @@ function extractTextContent(content: unknown): string {
     .trim();
 }
 
-function buildPrompt(messages: OpenAIMessage[] | undefined): string {
-  if (!Array.isArray(messages)) return "";
+/**
+ * GitLab code_suggestions is a single-prompt completion API (no chat roles), so the
+ * OpenAI message array must be flattened to text.
+ *
+ * Simple conversations keep the legacy shape (system instructions + latest user message).
+ * But when the array carries a **tool exchange** — an assistant with `tool_calls` or a
+ * `tool` result message — the full conversation is serialized instead, folding each tool
+ * result back keyed by its `tool_call_id`. Without this, `buildPrompt` dropped the
+ * assistant/tool turns and re-derived a byte-identical turn-1 prompt, so the model kept
+ * re-emitting the same `<tool>` call forever (#6220). Complements the tool_call emission
+ * added in #6051.
+ */
+function hasToolExchange(messages: OpenAIMessage[]): boolean {
+  return messages.some((message) => {
+    const role = String(message?.role || "user").toLowerCase();
+    if (role === "tool") return true;
+    return (
+      role === "assistant" && Array.isArray(message?.tool_calls) && message.tool_calls.length > 0
+    );
+  });
+}
 
+/** Legacy flatten: system instructions + the latest user message. */
+function buildSimplePrompt(messages: OpenAIMessage[]): string {
   const systemParts: string[] = [];
   const userParts: string[] = [];
-
   for (const message of messages) {
     const role = String(message?.role || "user").toLowerCase();
     const text = extractTextContent(message?.content);
     if (!text) continue;
-
     if (role === "system" || role === "developer") {
       systemParts.push(text);
-      continue;
-    }
-
-    if (role === "user") {
+    } else if (role === "user") {
       userParts.push(text);
     }
   }
-
   const latestUserPrompt = userParts.at(-1) || "";
-  if (!systemParts.length) {
-    return latestUserPrompt;
-  }
-
+  if (!systemParts.length) return latestUserPrompt;
   return `System instructions:\n${systemParts.join("\n\n")}\n\n${latestUserPrompt}`.trim();
+}
+
+/** Render an assistant turn (its text plus any tool calls) for the tool-exchange prompt. */
+function renderAssistantTurn(message: OpenAIMessage, text: string): string | null {
+  const lines: string[] = [];
+  if (text) lines.push(text);
+  for (const tc of Array.isArray(message?.tool_calls) ? message.tool_calls : []) {
+    const id = tc?.id ? ` [${tc.id}]` : "";
+    lines.push(
+      `Called tool ${tc?.function?.name || "tool"}${id} with arguments: ${tc?.function?.arguments ?? ""}`
+    );
+  }
+  return lines.length ? `Assistant: ${lines.join("\n")}` : null;
+}
+
+/** Render one message as a labeled conversation line for the tool-exchange prompt. */
+function renderConversationTurn(message: OpenAIMessage, role: string, text: string): string | null {
+  if (role === "user") return text ? `User: ${text}` : null;
+  if (role === "assistant") return renderAssistantTurn(message, text);
+  if (role === "tool") {
+    const id = message?.tool_call_id ? ` for ${message.tool_call_id}` : "";
+    const name = message?.name ? ` (${message.name})` : "";
+    return `Tool result${name}${id}: ${text}`;
+  }
+  return null;
+}
+
+/** Serialize the full turn history so the model sees the tool result (#6220). */
+function buildToolExchangePrompt(messages: OpenAIMessage[]): string {
+  const systemParts: string[] = [];
+  const convo: string[] = [];
+  for (const message of messages) {
+    const role = String(message?.role || "user").toLowerCase();
+    const text = extractTextContent(message?.content);
+    if (role === "system" || role === "developer") {
+      if (text) systemParts.push(text);
+      continue;
+    }
+    const line = renderConversationTurn(message, role, text);
+    if (line) convo.push(line);
+  }
+  const header = systemParts.length ? `System instructions:\n${systemParts.join("\n\n")}\n\n` : "";
+  return `${header}${convo.join(
+    "\n\n"
+  )}\n\nContinue the response using the tool result above; do not repeat the tool call.`.trim();
+}
+
+/**
+ * GitLab code_suggestions is a single-prompt completion API (no chat roles), so the
+ * OpenAI message array must be flattened to text. Simple conversations keep the legacy
+ * shape; a tool exchange (assistant `tool_calls` or a `tool` result) serializes the full
+ * conversation so the model continues instead of re-emitting the same `<tool>` call
+ * forever (#6220). Complements the tool_call emission added in #6051.
+ */
+export function buildPrompt(messages: OpenAIMessage[] | undefined): string {
+  if (!Array.isArray(messages)) return "";
+  return hasToolExchange(messages)
+    ? buildToolExchangePrompt(messages)
+    : buildSimplePrompt(messages);
 }
 
 function toOpenAIError(status: number, message: string): Response {
@@ -107,101 +194,6 @@ function toOpenAIError(status: number, message: string): Response {
     }),
     {
       status,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-}
-
-function buildSseChunk(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n\n`;
-}
-
-function buildStreamingResponse(
-  content: string,
-  model: string,
-  id: string,
-  created: number
-): Response {
-  const encoder = new TextEncoder();
-
-  const body = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          buildSseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [{ index: 0, delta: { role: "assistant" }, finish_reason: null }],
-          })
-        )
-      );
-
-      if (content) {
-        controller.enqueue(
-          encoder.encode(
-            buildSseChunk({
-              id,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [{ index: 0, delta: { content }, finish_reason: null }],
-            })
-          )
-        );
-      }
-
-      controller.enqueue(
-        encoder.encode(
-          buildSseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
-          })
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
-    },
-  });
-
-  return new Response(body, {
-    status: 200,
-    headers: { "Content-Type": "text/event-stream" },
-  });
-}
-
-function buildJsonCompletion(
-  content: string,
-  model: string,
-  id: string,
-  created: number
-): Response {
-  const estimated = Math.max(1, Math.ceil(content.length / 4));
-  return new Response(
-    JSON.stringify({
-      id,
-      object: "chat.completion",
-      created,
-      model,
-      choices: [
-        {
-          index: 0,
-          message: { role: "assistant", content },
-          finish_reason: "stop",
-        },
-      ],
-      usage: {
-        prompt_tokens: estimated,
-        completion_tokens: estimated,
-        total_tokens: estimated * 2,
-      },
-    }),
-    {
-      status: 200,
       headers: { "Content-Type": "application/json" },
     }
   );
@@ -572,9 +564,20 @@ export class GitlabExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const prompt = buildPrompt(
-      (input.body as Record<string, unknown>)?.messages as OpenAIMessage[]
+    const bodyObj = (input.body as Record<string, unknown>) || {};
+    const rawMessages = (bodyObj.messages as OpenAIMessage[]) || [];
+
+    // Emulate OpenAI tool calling for GitLab Duo (which has no native function
+    // calling). When `tools` are present we serialize the tool contract into the
+    // prompt and parse `<tool>{...}</tool>` blocks back out of the completion text
+    // into OpenAI `tool_calls` — the same web-tool-emulation idiom used by the
+    // qwen-web / duckduckgo-web executors (#6051).
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages as Array<{ role: string; content: unknown }>
     );
+
+    const prompt = buildPrompt(effectiveMessages as OpenAIMessage[]);
     if (!prompt) {
       return {
         response: toOpenAIError(400, "GitLab Duo requires at least one user message"),
@@ -598,7 +601,7 @@ export class GitlabExecutor extends BaseExecutor {
 
     const transformedBody = this.transformRequest(
       input.model,
-      (input.body as Record<string, unknown>) || {},
+      { ...bodyObj, messages: effectiveMessages },
       false,
       activeCredentials
     );
@@ -684,6 +687,24 @@ export class GitlabExecutor extends BaseExecutor {
     const resolvedModel = resolveResponseModel(payload, input.model);
     const responseId = `chatcmpl-gitlab-${randomUUID()}`;
     const created = Math.floor(Date.now() / 1000);
+
+    if (hasTools) {
+      const {
+        content: toolContent,
+        toolCalls,
+        finishReason,
+      } = buildToolAwareResult(content, requestedTools, "gitlab");
+      const message: Record<string, unknown> = { role: "assistant", content: toolContent };
+      if (toolCalls) {
+        message.tool_calls = toolCalls;
+        message.content = null;
+      }
+      const response = input.stream
+        ? buildToolStreamingResponse(message, finishReason, resolvedModel, responseId, created)
+        : buildToolJsonCompletion(message, finishReason, resolvedModel, responseId, created);
+      return { response, url: activeTarget.url, headers: requestHeaders, transformedBody };
+    }
+
     const response = input.stream
       ? buildStreamingResponse(content, resolvedModel, responseId, created)
       : buildJsonCompletion(content, resolvedModel, responseId, created);

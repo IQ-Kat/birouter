@@ -10,11 +10,11 @@ Last updated: 2026-06-28
 
 Birouter integrates with three categories of CLI tools spread across three dedicated dashboard pages:
 
-| Page           | Route                   | Concept                                                                 | Count        |
-| -------------- | ----------------------- | ----------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at Birouter (Client → CLI → Birouter → Provider) | 19           |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at Birouter (same flow, broader scope)      | 6            |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs that Birouter spawns as backend via stdio/ACP (reverse flow)       | see registry |
+| Page           | Route                   | Concept                                                                   | Count        |
+| -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 20           |
+| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
+| **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
 Legacy routes redirect via 308: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
 
@@ -90,7 +90,7 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 
 ---
 
-## 1. CLI Code's Catalog (19 tools)
+## 1. CLI Code's Catalog (20 tools)
 
 Tools that support custom base URL and appear in `/dashboard/cli-code`:
 
@@ -107,6 +107,7 @@ Tools that support custom base URL and appear in `/dashboard/cli-code`:
 | forge        | ForgeCode            | Antinomy HQ         | full           | custom         | true         |
 | jcode        | jcode                | 1jehuang (OSS)      | full           | custom         | false        |
 | deepseek-tui | DeepSeek TUI         | Hunter Bown (OSS)   | full           | custom         | false        |
+| codewhale    | CodeWhale            | Hmbown (OSS)        | full           | custom         | false        |
 | opencode     | OpenCode             | Anomaly (ex-SST)    | full           | guide          | true         |
 | droid        | Factory Droid        | Factory AI          | partial        | guide          | false        |
 | copilot      | GitHub Copilot CLI   | GitHub/MS           | full           | custom         | false        |
@@ -193,13 +194,14 @@ interface ToolBatchStatus {
 
 New tools with `configType: "custom"` have dedicated settings API routes:
 
-| Route                                       | Tool                           |
-| ------------------------------------------- | ------------------------------ |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)        |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)        |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL) |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                          |
-| `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
+| Route                                       | Tool                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                          |
+| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                          |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                           |
+| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                            |
+| `POST /api/cli-tools/pi-settings`           | Pi coding agent                                                  |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 

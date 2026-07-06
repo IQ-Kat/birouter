@@ -1,7 +1,7 @@
 {
-  "name": "@birouter/open-sse",
-  "version": "3.8.43",
-  "description": "Express SSE sidecar for Birouter — handles streaming, protocol translation, and provider orchestration",
+  "name": "@omniroute/open-sse",
+  "version": "3.8.45",
+  "description": "Express SSE sidecar for OmniRoute — handles streaming, protocol translation, and provider orchestration",
   "type": "module",
   "main": "index.js",
   "types": "types.d.ts",

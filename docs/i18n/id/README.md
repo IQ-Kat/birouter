@@ -331,7 +331,7 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 <details>
 <summary><b>🔧 7. "Mengonfigurasi setiap alat AI membosankan dan berulang"</b></summary>
 
-**Cara Birouter menyelesaikannya:**
+**Cara OmniRoute menyelesaikannya:**
 
 - **Dashboard Alat CLI** — Halaman khusus dengan pengaturan satu klik untuk Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **Generator Konfigurasi GitHub Copilot** — Menghasilkan `chatLanguageModels.json` untuk VS Code dengan pemilihan model massal
@@ -343,7 +343,7 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 <details>
 <summary><b>🔑 8. "Mengelola token OAuth dari beberapa penyedia adalah mimpi buruk"</b></summary>
 
-**Cara Birouter menyelesaikannya:**
+**Cara OmniRoute menyelesaikannya:**
 
 - **Refresh Token Otomatis** — Token OAuth diperbarui di latar belakang sebelum kedaluwarsa
 - **OAuth Multi-Akun** — Beberapa akun per penyedia melalui ekstraksi token JWT/ID
@@ -770,13 +770,13 @@ yay -S birouter-bin
 systemctl --user enable --now birouter.service
 ```
 
-| Command                | Description                                                     |
-| ---------------------- | --------------------------------------------------------------- |
-| `birouter`             | Mulai server (`PORT=20128`, API dan dasbor pada port yang sama) |
-| `birouter --port 3000` | Set canonical/API port to 3000                                  |
-| `birouter --mcp`       | Mulai server MCP (stdio transport)                              |
-| `birouter --no-open`   | Don't auto-open browser                                         |
-| `birouter --help`      | Show help                                                       |
+| Command                 | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
+| `omniroute`             | Mulai server (`PORT=20128`, API dan dasbor pada port yang sama) |
+| `omniroute --port 3000` | Set canonical/API port to 3000                                  |
+| `omniroute --mcp`       | Mulai server MCP (stdio transport)                              |
+| `omniroute --no-open`   | Don't auto-open browser                                         |
+| `omniroute --help`      | Show help                                                       |
 
 Optional split-port mode:
 
@@ -792,7 +792,7 @@ Saat Anda tidak lagi memerlukan Birouter, kami menyediakan dua skrip cepat untuk
 
 | Command                  | Action                                                                                       |
 | ------------------------ | -------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **menyimpan DB dan konfigurasi Anda** di `~/.birouter`.     |
+| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **menyimpan DB dan konfigurasi Anda** di `~/.omniroute`.    |
 | `npm run uninstall:full` | Menghapus aplikasi DAN secara permanen **menghapus semua konfigurasi, kunci, dan database**. |
 
 > Catatan: Untuk menjalankan perintah ini, navigasikan ke folder proyek Birouter (jika Anda mengkloningnya) dan jalankan. Alternatifnya, jika diinstal secara global, Anda cukup menjalankan `npm uninstall -g birouter`.
@@ -804,7 +804,7 @@ Untuk sebagian besar penerapan, Anda hanya memerlukan:
 | Variable                 | Default                       | Purpose                                                                                                                                                                      |
 | ------------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REQUEST_TIMEOUT_MS`     | `600000`                      | Garis dasar bersama untuk batas waktu mulai respons upstream, batas waktu Undici yang tersembunyi, permintaan sidik jari TLS, dan batas waktu permintaan/proksi jembatan API |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Kesenjangan maksimum antara potongan streaming sebelum Birouter membatalkan aliran SSE                                                                                       |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Kesenjangan maksimum antara potongan streaming sebelum OmniRoute membatalkan aliran SSE                                                                                      |
 
 Kompatibilitas mundur dipertahankan: `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, dan var batas waktu per lapisan lainnya yang ada masih berfungsi dan menggantikan garis dasar bersama.
 
@@ -1248,7 +1248,7 @@ Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whis
 | `LongCat-Flash-Chat`          | `lc/`  | 500K tokens         | Multi-turn chat                       |
 | `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens         | Reasoning / CoT                       |
 | `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens         | Jan 2026 version                      |
-| `LongCat-Flash-Bi-2603`       | `lc/`  | 500K tokens         | Multimodal                            |
+| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens         | Multimodal                            |
 
 > 100% gratis saat dalam versi beta publik. Daftar di [longcat.chat](https://longcat.chat) dengan email atau telepon. Reset setiap hari pukul 00:00 UTC.
 
@@ -2015,7 +2015,7 @@ opencode
 
 > **⚠️ Penting bagi pengguna yang menjalankan Birouter di VPS, Docker, atau server jarak jauh mana pun**
 
-Kredensial OAuth yang disertakan dalam Birouter didaftarkan **hanya untuk `localhost`**. Saat Anda mengakses Birouter di server jarak jauh (misalnya `https://birouter.myserver.com`), Google menolak autentikasi dengan:
+Kredensial OAuth yang disertakan dalam OmniRoute didaftarkan **hanya untuk `localhost`**. Saat Anda mengakses OmniRoute di server jarak jauh (misalnya `https://omniroute.myserver.com`), Google menolak autentikasi dengan:
 
 ```
 Error 400: redirect_uri_mismatch
@@ -2093,92 +2093,6 @@ Jika Anda tidak ingin menyiapkan kredensial Anda sendiri saat ini, Anda masih da
 > Ini berfungsi karena kode otorisasi di URL valid terlepas dari apakah halaman pengalihan dimuat.
 
 ---
-
-<details>
-<summary><b>🇧🇷 Versão em Português</b></summary>
-
-As credenciais OAuth embutidas no Birouter estão cadastradas **apenas para `localhost`**. Quando você acessa o Birouter em um servidor remoto (ex: `https://birouter.meuservidor.com`), o Google rejeita a autenticação com:
-
-```
-Error 400: redirect_uri_mismatch
-```
-
-#### Solução: Configure suas próprias credenciais OAuth
-
-Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
-
-#### Passo a passo
-
-**1. Acesse o Google Cloud Console**
-
-Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
-
-**2. Inilah ID Klien OAuth 2.0 yang baru**
-
-- Klik pada **"+ Buat Kredensial"** → **"ID klien OAuth"**
-- Tip aplikasi: **"Aplikasi web"**
-- Nama: nama escolha qualquer (misal: `Birouter Remote`)
-
-**3. Adicione as Authorized Redirect URIs**
-
-No campo **"Authorized redirect URIs"**, adicione:
-
-```
-https://seu-servidor.com/callback
-```
-
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
-
-**4. Salve e copie as credenciais**
-
-Kemudian, Google menampilkan **ID Klien** dan **Rahasia Klien**.
-
-**5. Configure as variáveis de ambiente**
-
-No seu `.env` (ou nas variáveis de ambiente do Docker):
-
-```bash
-# Para Antigravity:
-ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-
-GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-```
-
-**6. Reinicie o Birouter**
-
-```bash
-# Se usando npm:
-npm run dev
-
-# Se usando Docker:
-docker restart birouter
-```
-
-**7. Tente conectar novamente**
-
-Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
-
----
-
-#### Workaround temporário (sem configurar credenciais próprias)
-
-Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
-
-1. O Birouter abrirá a URL de autorização do Google
-2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
-3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do Birouter
-5. Clique em **"Connect"**
-
-> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
-</details>
-
----
-
-</details>
 
 ## 🛠️ Stack Teknologi
 

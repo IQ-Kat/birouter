@@ -18,8 +18,8 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@birouter/open-sse": ["./open-sse"],
-      "@birouter/open-sse/*": ["./open-sse/*"]
+      "@omniroute/open-sse": ["./open-sse"],
+      "@omniroute/open-sse/*": ["./open-sse/*"]
     },
     "plugins": [
       {
@@ -44,6 +44,9 @@
   ],
   "exclude": [
     "node_modules",
+    "electron/node_modules",
+    "electron/dist-electron",
+    ".build",
     "open-sse",
     "dist",
     "coverage",

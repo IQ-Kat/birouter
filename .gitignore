@@ -232,7 +232,4 @@ birouter.md
 
 # mise configuration
 mise.toml
-
-# Temporary backup folders
-temp-birouter-js/
-
+_artifacts/

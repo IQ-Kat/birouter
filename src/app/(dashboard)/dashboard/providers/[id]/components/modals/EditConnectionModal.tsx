@@ -23,6 +23,7 @@ import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage
 import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
   isBaseUrlConfigurableProvider,
+  isBaseUrlOverrideEligibleProvider,
   getProviderBaseUrlDefault,
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
@@ -153,7 +154,18 @@ export default function EditConnectionModal({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
 
-  const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
+  // #6147 — built-in providers can opt in to an advanced base-URL override.
+  // OAuth connections are excluded: their save path does not persist
+  // providerSpecificData.baseUrl.
+  const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
+  const isBaseUrlOverrideEligible =
+    connection?.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+  const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
+    () =>
+      typeof connection?.providerSpecificData?.baseUrl === "string" &&
+      connection.providerSpecificData.baseUrl.trim().length > 0
+  );
+  const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const isBedrock = provider === "bedrock";
@@ -164,8 +176,7 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isAntigravity = provider === "antigravity";
-  const supportsGoogleProjectId = isAntigravity;
+  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -431,7 +442,7 @@ export default function EditConnectionModal({
         overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
       updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
 
-      if (supportsGoogleProjectId) {
+      if (isAntigravityFamily) {
         updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
@@ -442,12 +453,18 @@ export default function EditConnectionModal({
 
       let validatedBaseUrl = null;
       if (usesBaseUrl) {
-        const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
-        if (checked.error) {
-          setSaveError(checked.error);
-          return;
+        // #6147 — an opt-in override left blank clears it (no default to fall
+        // back to). Configurable providers keep their existing default-fallback.
+        if (!isConfigurableBaseUrl && !formData.baseUrl.trim()) {
+          validatedBaseUrl = null;
+        } else {
+          const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
+          if (checked.error) {
+            setSaveError(checked.error);
+            return;
+          }
+          validatedBaseUrl = checked.value;
         }
-        validatedBaseUrl = checked.value;
       }
 
       if (!isOAuth && formData.apiKey) {
@@ -505,7 +522,7 @@ export default function EditConnectionModal({
           defaultRegion,
           isGlm,
           isCloudflare,
-          supportsGoogleProjectId,
+          isAntigravityFamily,
           trimmedCloudCodeProjectId,
           isGooglePse,
           isCcCompatible,
@@ -530,11 +547,11 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (supportsGoogleProjectId) {
+        if (isAntigravityFamily) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
-      if (isAntigravity) {
+      if (isAntigravityFamily) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(updates.providerSpecificData || {}),
@@ -685,22 +702,20 @@ export default function EditConnectionModal({
           t={t}
           editMode
         />
-        {supportsGoogleProjectId && (
+        {isAntigravityFamily && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            {isAntigravity && (
-              <Select
-                label={t("antigravityClientProfileLabel")}
-                value={formData.antigravityClientProfile}
-                options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label: t(option.labelKey),
-                }))}
-                onChange={(e) =>
-                  setFormData({ ...formData, antigravityClientProfile: e.target.value })
-                }
-                hint={t("antigravityClientProfileHint")}
-              />
-            )}
+            <Select
+              label={t("antigravityClientProfileLabel")}
+              value={formData.antigravityClientProfile}
+              options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey),
+              }))}
+              onChange={(e) =>
+                setFormData({ ...formData, antigravityClientProfile: e.target.value })
+              }
+              hint={t("antigravityClientProfileHint")}
+            />
             <Input
               label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}
@@ -940,13 +955,33 @@ export default function EditConnectionModal({
           </>
         )}
 
+        {/* #6147 — opt-in "Advanced → override base URL" for eligible built-ins */}
+        {!usesBaseUrl && isBaseUrlOverrideEligible && (
+          <button
+            type="button"
+            onClick={() => setShowBaseUrlOverride(true)}
+            className="self-start text-xs text-primary hover:underline"
+          >
+            {providerText(t, "overrideBaseUrlAdvanced", "Advanced: override base URL")}
+          </button>
+        )}
+
         {usesBaseUrl && (
           <Input
             label={t("baseUrlLabel")}
             value={formData.baseUrl}
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
             placeholder={getProviderBaseUrlPlaceholder(provider)}
-            hint={getProviderBaseUrlHint(provider, t)}
+            hint={
+              getProviderBaseUrlHint(provider, t) ||
+              (isBaseUrlOverrideEligible
+                ? providerText(
+                    t,
+                    "overrideBaseUrlHint",
+                    "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default."
+                  )
+                : undefined)
+            }
           />
         )}
 

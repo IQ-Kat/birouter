@@ -40,12 +40,27 @@ function readConfig() {
   return JSON.parse(fs.readFileSync(path.join(CONFIG_DIR, "opencode.json"), "utf8"));
 }
 
-describe("birouter setup opencode", () => {
+// #5959-class deflake: the command under test prints CLI progress with multi-byte
+// glyphs (printInfo/printSuccess "✔"/printError "✖" via console.log). Under the
+// node:test runner those stdout writes interleave with the child's V8-serialized
+// report frames and can corrupt the stream ("Unable to deserialize cloned data
+// due to invalid or unsupported version"). No test here asserts on stdout, so
+// silence the stdout-writing console methods for the duration of this file
+// (same pattern as tests/unit/cli/setup-claude.test.ts, #6019/#6021).
+const _console = { log: console.log, info: console.info, warn: console.warn };
+
+describe("omniroute setup opencode", () => {
   before(() => {
+    console.log = () => {};
+    console.info = () => {};
+    console.warn = () => {};
     makeFakePluginDist();
   });
 
   after(() => {
+    console.log = _console.log;
+    console.info = _console.info;
+    console.warn = _console.warn;
     try {
       fs.rmSync(FIXTURE_ROOT, { recursive: true, force: true });
     } catch {
@@ -70,8 +85,8 @@ describe("birouter setup opencode", () => {
     assert.ok(Array.isArray(cfg.plugin));
     assert.equal(cfg.plugin.length, 1);
     const [modulePath, options] = cfg.plugin[0];
-    assert.equal(modulePath, "./plugins/birouter/dist/index.js");
-    assert.equal(options.providerId, "birouter");
+    assert.equal(modulePath, "./plugins/omniroute/dist/index.js");
+    assert.equal(options.providerId, "omniroute");
     assert.equal(
       options.baseURL,
       "http://10.0.0.5:20128",
@@ -88,13 +103,13 @@ describe("birouter setup opencode", () => {
     assert.equal(r.exitCode, 0);
 
     const cfg = readConfig();
-    const biEntries = cfg.plugin.filter(
+    const omniEntries = cfg.plugin.filter(
       (p: unknown) =>
-        Array.isArray(p) && (p[1] as { providerId?: string })?.providerId === "birouter"
+        Array.isArray(p) && (p[1] as { providerId?: string })?.providerId === "omniroute"
     );
-    assert.equal(biEntries.length, 1, "re-run must not duplicate the entry");
+    assert.equal(omniEntries.length, 1, "re-run must not duplicate the entry");
     assert.equal(
-      biEntries[0][1].baseURL,
+      omniEntries[0][1].baseURL,
       "http://10.0.0.9:20128",
       "re-run updates baseURL in place"
     );

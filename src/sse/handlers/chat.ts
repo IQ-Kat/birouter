@@ -17,14 +17,18 @@ import {
   isDailyQuotaExhausted,
 } from "@birouter/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
-import { resolveBareModelToConnectionDefault } from "@birouter/open-sse/services/model.ts";
-import { errorResponse } from "@birouter/open-sse/utils/error.ts";
-import { acceptHeaderForcesStream } from "@birouter/open-sse/utils/aiSdkCompat.ts";
-import { isSelfInflictedUpstreamTimeout } from "@birouter/open-sse/handlers/chatCore/cooldownClassification.ts";
-import { applyNoThinkingAlias } from "@birouter/open-sse/utils/noThinkingAlias.ts";
-import { handleComboChat } from "@birouter/open-sse/services/combo.ts";
-import { resolveComboConfig } from "@birouter/open-sse/services/comboConfig.ts";
-import { injectHandoffIntoBody } from "@birouter/open-sse/services/contextHandoff.ts";
+import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
+import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
+import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
+import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import {
+  resolveRequestModePack,
+  parseRequestBudgetCap,
+} from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
+import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
+import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
   HTTP_STATUS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
@@ -52,6 +56,7 @@ import { updateCombo } from "@/lib/db/combos";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   getCachedSettings,
   getCombos,
   getCombosCacheVersion,
@@ -209,10 +214,11 @@ const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 export async function handleChat(
   request: any,
   clientRawRequest: any = null,
-  preParsedBody: any = null
+  preParsedBody: any = null,
+  correlationId?: string
 ) {
   // Pipeline: Start request telemetry
-  const reqId = generateRequestId();
+  const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
 
   let body;
@@ -645,8 +651,17 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
+    // Per-request Auto-Combo controls (#6023 / #6024 / #6025): steer an `auto`
+    // combo on this single request without mutating its stored config.
+    const requestModeHeader = request.headers.get("x-omniroute-mode")?.trim() || null;
+    const requestBudgetHeader = request.headers.get("x-omniroute-budget")?.trim() || null;
+    const perRequestMode = resolveRequestModePack(requestModeHeader);
+    const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
     const relayOptions =
-      combo.strategy === "context-relay" || bypassProviderQuotaPolicy
+      combo.strategy === "context-relay" ||
+      bypassProviderQuotaPolicy ||
+      perRequestMode.override ||
+      perRequestBudgetCap !== undefined
         ? {
             ...(combo.strategy === "context-relay"
               ? {
@@ -655,6 +670,8 @@ export async function handleChat(
                 }
               : {}),
             ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+            ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
+            ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
           }
         : undefined;
     telemetry.endPhase();
@@ -702,6 +719,7 @@ export async function handleChat(
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
             correlationId: reqId,
+            modelPinned: (target as any)?.modelPinned ?? false,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -933,7 +951,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
-      correlationId: reqId,
+      correlationId: runtimeOptions?.correlationId ?? null,
     });
   }
 
@@ -1272,6 +1290,7 @@ async function handleSingleModelChat(
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
+        modelPinned: runtimeOptions?.modelPinned ?? false,
       });
       if (telemetry) telemetry.endPhase();
 
@@ -1624,6 +1643,21 @@ async function handleSingleModelChat(
           requestRetryLastCooldownMs = cooldownMs;
         }
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
+        // #6219: evict the sticky session pin when the pinned account fails over,
+        // otherwise the next request re-pins the same throttled account until
+        // restart. Guarded by connection match so a pin for a different (healthy)
+        // account is left intact.
+        if (runtimeOptions.sessionAffinityKey) {
+          try {
+            evictSessionAccountAffinityForConnection(
+              runtimeOptions.sessionAffinityKey,
+              provider,
+              credentials.connectionId
+            );
+          } catch {
+            // best-effort: selection also excludes this connection for the current retry.
+          }
+        }
         excludedConnectionIds.add(credentials.connectionId);
         lastError = result.error;
         lastStatus = result.status;

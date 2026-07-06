@@ -65,9 +65,7 @@ interface StickyEntry {
  * Injectable saturation fetcher seam (for unit tests).
  * Returns HeadroomSaturation or undefined when unknown.
  */
-export type SaturationFetcher = (
-  connectionId: string
-) => Promise<HeadroomSaturation | undefined>;
+export type SaturationFetcher = (connectionId: string) => Promise<HeadroomSaturation | undefined>;
 
 // ─── Saturation fetcher seam ─────────────────────────────────────────────────
 
@@ -189,6 +187,26 @@ export function clearStickyBinding(messageHash: string): void {
 /** Reset the entire store (for testing). */
 export function clearAllStickyBindings(): void {
   stickyMap.clear();
+}
+
+/**
+ * #6168: resolve the session-stickiness opt-out for a combo request.
+ *
+ * Precedence (mirrors the `stickyRoundRobinLimit` resolution in combo.ts):
+ *   per-combo `config.disableSessionStickiness` (boolean) →
+ *   global `settings.disableSessionStickiness` (boolean) →
+ *   default `false`.
+ *
+ * Default `false` preserves the #3825 prompt-cache/504 fix — only an explicit
+ * `true` at either level disables stickiness.
+ */
+export function resolveDisableSessionStickiness(
+  config: Record<string, unknown> | null | undefined,
+  settings: Record<string, unknown> | null | undefined
+): boolean {
+  const perCombo = config?.disableSessionStickiness;
+  if (typeof perCombo === "boolean") return perCombo;
+  return settings?.disableSessionStickiness === true;
 }
 
 // ─── Core: apply stickiness to an ordered target list ────────────────────────

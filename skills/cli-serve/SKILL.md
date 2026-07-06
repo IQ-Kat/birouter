@@ -56,6 +56,8 @@ birouter restart
 - `--max-restarts <n>`
 - `--tray`
 - `--no-tray`
+- `--tls-cert <path>`
+- `--tls-key <path>`
 
 **Example:**
 

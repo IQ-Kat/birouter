@@ -1,7 +1,7 @@
 {
-  "name": "birouter-desktop",
-  "version": "3.8.43",
-  "description": "Birouter Desktop Application",
+  "name": "omniroute-desktop",
+  "version": "3.8.45",
+  "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
     "name": "Birouter Team",

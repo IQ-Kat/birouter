@@ -42,6 +42,14 @@ birouter autostart enable
 birouter autostart disable
 ```
 
+### `autostart toggle`
+
+**Example:**
+
+```bash
+omniroute autostart toggle
+```
+
 ### `autostart status`
 
 **Example:**
