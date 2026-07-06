@@ -1,5 +1,5 @@
 {
-  "$schema": "https://stryker-mutator.io/schemas/stryker-schema.json",
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "_comment": [
     "Mutation testing for the ~8 critical modules (Task 11 \u2014 Fase 7).",
     "NIGHTLY ONLY \u2014 DO NOT run on every PR. Mutation testing is expensive:",

@@ -19,7 +19,7 @@ env:
   # CI must never mutate the runner's OS trust store (2026-07-05: a cert-flow
   # test installed a fake PEM on a persistent self-hosted runner and broke all
   # system TLS). Belt-and-suspenders with tests/_setup/isolateDataDir.ts.
-  OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
+  BIROUTER_SKIP_SYSTEM_TRUST: "1"
   CI_NODE_VERSION: "24"
   CI_NODE_24_VERSION: "24"
   CI_NODE_26_VERSION: "26"
@@ -545,7 +545,7 @@ jobs:
       # the Turbopack artifact end-to-end.
       - run: npm run build
         env:
-          OMNIROUTE_USE_TURBOPACK: "1"
+          BIROUTER_USE_TURBOPACK: "1"
       - name: Archive Next.js build for downstream jobs
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
