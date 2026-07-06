@@ -1,4 +1,4 @@
-// Regression for #6131 (Part B — enforcement): the IP blacklist was never wired
+// Regression for #6131 (Part B ï¿½ enforcement): the IP blacklist was never wired
 // into the request pipeline, so blacklisted IPs were not actually blocked. This
 // locks that runAuthzPipeline blocks a blacklisted client IP with 403 before the
 // route policy runs, allows a clean IP through to the normal auth outcome, and
@@ -78,7 +78,7 @@ test("#6131 disabled filter never blocks (even a listed IP)", async () => {
   assert.equal(await isIpBlocked(res), false, "disabled filter must not block");
 });
 
-test("#6131 loopback is exempt — operator can't lock themselves out locally", async () => {
+test("#6131 loopback is exempt ï¿½ operator can't lock themselves out locally", async () => {
   process.env.BIROUTER_PEER_STAMP_TOKEN = "stamp-tok";
   ipFilter.configureIPFilter({ enabled: true, mode: "blacklist" });
   ipFilter.addToBlacklist(BLOCKED);

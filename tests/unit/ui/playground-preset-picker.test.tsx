@@ -8,12 +8,10 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-const { DEFAULT_PARAMS } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders"
-);
-const { default: PresetPicker } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/PresetPicker"
-);
+const { DEFAULT_PARAMS } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders");
+const { default: PresetPicker } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/PresetPicker");
 
 function setInputValue(el: HTMLInputElement | HTMLTextAreaElement, value: string) {
   const nativeSetter =
@@ -54,7 +52,7 @@ function buildFetchMock(presets = MOCK_PRESETS) {
         new Response(JSON.stringify({ presets }), {
           status: 200,
           headers: { "content-type": "application/json" },
-        }),
+        })
       );
     }
 
@@ -72,7 +70,7 @@ function buildFetchMock(presets = MOCK_PRESETS) {
         new Response(JSON.stringify(newPreset), {
           status: 201,
           headers: { "content-type": "application/json" },
-        }),
+        })
       );
     }
 
@@ -86,10 +84,7 @@ function buildFetchMock(presets = MOCK_PRESETS) {
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
-function renderPicker(
-  config = BASE_CONFIG,
-  setConfig = vi.fn(),
-): HTMLDivElement {
+function renderPicker(config = BASE_CONFIG, setConfig = vi.fn()): HTMLDivElement {
   const el = document.createElement("div");
   document.body.appendChild(el);
   const root = createRoot(el);
@@ -142,9 +137,13 @@ describe("PresetPicker", () => {
     });
 
     // Find and click the preset load button
-    const loadBtn = el.querySelector("[aria-label='Load preset \"My preset\"']") as HTMLButtonElement;
+    const loadBtn = el.querySelector(
+      "[aria-label='Load preset \"My preset\"']"
+    ) as HTMLButtonElement;
     if (loadBtn) {
-      await act(async () => { loadBtn.click(); });
+      await act(async () => {
+        loadBtn.click();
+      });
       expect(setConfig).toHaveBeenCalledTimes(1);
       const newConfig = setConfig.mock.calls[0][0] as typeof BASE_CONFIG;
       expect(newConfig.model).toBe("anthropic/claude-3-opus");
@@ -156,7 +155,9 @@ describe("PresetPicker", () => {
     const el = renderPicker();
 
     const saveBtn = el.querySelector("[aria-label='savePreset']") as HTMLButtonElement;
-    await act(async () => { saveBtn.click(); });
+    await act(async () => {
+      saveBtn.click();
+    });
 
     // Modal should appear
     const modal = el.querySelector("[role='dialog']");
@@ -171,7 +172,9 @@ describe("PresetPicker", () => {
 
     // Open modal
     const saveBtn = el.querySelector("[aria-label='savePreset']") as HTMLButtonElement;
-    await act(async () => { saveBtn.click(); });
+    await act(async () => {
+      saveBtn.click();
+    });
 
     // Enter name
     const nameInput = el.querySelector("input[type='text']") as HTMLInputElement;
@@ -179,7 +182,9 @@ describe("PresetPicker", () => {
 
     // Submit
     const submitBtn = el.querySelector("[role='dialog'] button:last-child") as HTMLButtonElement;
-    await act(async () => { submitBtn.click(); });
+    await act(async () => {
+      submitBtn.click();
+    });
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
@@ -199,11 +204,15 @@ describe("PresetPicker", () => {
     const el = renderPicker();
 
     const saveBtn = el.querySelector("[aria-label='savePreset']") as HTMLButtonElement;
-    await act(async () => { saveBtn.click(); });
+    await act(async () => {
+      saveBtn.click();
+    });
 
     // Submit without entering a name
     const submitBtn = el.querySelector("[role='dialog'] button:last-child") as HTMLButtonElement;
-    await act(async () => { submitBtn.click(); });
+    await act(async () => {
+      submitBtn.click();
+    });
 
     expect(el.textContent).toContain("nameRequired");
   });

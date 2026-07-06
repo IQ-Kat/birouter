@@ -93,11 +93,7 @@ test("Qwen guide-settings POST creates valid DB-backed key (no keyId)", async ()
 
   assert.equal(content.security?.auth?.selectedType, "openai", "Should use openai auth type");
   assert.ok(content.security?.auth?.apiKey, "Should have an API key");
-  assert.equal(
-    content.security?.auth?.baseUrl,
-    "http://localhost:2004/v1",
-    "Should have base URL"
-  );
+  assert.equal(content.security?.auth?.baseUrl, "http://localhost:2004/v1", "Should have base URL");
   assert.equal(content.model?.name, "qwen3-coder-flash", "Should have model name");
 
   const apiKey = content.security.auth.apiKey;

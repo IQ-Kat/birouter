@@ -59,10 +59,7 @@ test("mergeContinueConfig sets defaults on an empty config", () => {
 });
 
 test("resolveContinueTarget ensures /v1 on apiBase", () => {
-  assert.equal(
-    resolveContinueTarget({ remote: "http://vps:2004" }).apiBase,
-    "http://vps:2004/v1"
-  );
+  assert.equal(resolveContinueTarget({ remote: "http://vps:2004" }).apiBase, "http://vps:2004/v1");
   assert.equal(
     resolveContinueTarget({ remote: "http://vps:2004/v1/" }).apiBase,
     "http://vps:2004/v1"

@@ -59,9 +59,7 @@ test.describe("Group B — Activity Feed", () => {
     await gotoDashboardRoute(page, "/dashboard/activity");
 
     // The page header should be visible (h1 or title element)
-    const heading = page
-      .locator("h1, [data-testid='activity-title']")
-      .first();
+    const heading = page.locator("h1, [data-testid='activity-title']").first();
     await expect(heading).toBeVisible({ timeout: 15000 });
 
     // ActivityFeed renders <div role="status"> (empty state) or a
@@ -72,7 +70,7 @@ test.describe("Group B — Activity Feed", () => {
     // the dashboard redirected to login without rendering the feed.
     const feedContainer = page.locator(
       "[data-testid='activity-feed'], [data-testid='activity-empty-state']," +
-      " .activity-feed, [role='status'], [role='list'], ul.divide-y, div.divide-y"
+        " .activity-feed, [role='status'], [role='list'], ul.divide-y, div.divide-y"
     );
     await expect(feedContainer.first()).toBeVisible({ timeout: 15000 });
   });

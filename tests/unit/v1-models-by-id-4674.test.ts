@@ -1,10 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  findModelById,
-  handleGetModelById,
-} from "@/app/api/v1/models/modelById";
+import { findModelById, handleGetModelById } from "@/app/api/v1/models/modelById";
 
 // #4674 — GET /v1/models/{model} previously had no route handler, so the request
 // fell through to the Next.js catch-all and returned the HTML dashboard instead of

@@ -43,10 +43,7 @@ test("buildKiloVscodeSettings sets kilocode.customProvider + defaultModel, prese
 
 test("resolveKiloTarget ensures /v1 on the base URL (Kilo wants it)", () => {
   assert.equal(resolveKiloTarget({ remote: "http://vps:2004" }).baseUrl, "http://vps:2004/v1");
-  assert.equal(
-    resolveKiloTarget({ remote: "http://vps:2004/v1/" }).baseUrl,
-    "http://vps:2004/v1"
-  );
+  assert.equal(resolveKiloTarget({ remote: "http://vps:2004/v1/" }).baseUrl, "http://vps:2004/v1");
 });
 
 test("resolveKiloTarget: explicit --api-key wins", () => {

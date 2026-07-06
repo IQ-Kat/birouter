@@ -1,17 +1,17 @@
 /**
- * Feature #6122 — root-less / no-sudo mode for the MITM cert-trust path.
+ * Feature #6122 ï¿½ root-less / no-sudo mode for the MITM cert-trust path.
  *
  * Birouter funnels every privileged MITM command through the single choke
  * point `execFileWithPassword("sudo", ["-S", ...], password)`, which strips the
  * leading `sudo -S` when running as root or when `sudo` is not on PATH. This
- * feature adds a third opt-out trigger — the `BIROUTER_NO_SUDO` env flag — so
+ * feature adds a third opt-out trigger ï¿½ the `BIROUTER_NO_SUDO` env flag ï¿½ so
  * Birouter starts cleanly in a root-less / user-namespace deployment where
  * `/usr/bin/sudo` exists but must not be used.
  *
  * These tests assert the RESOLVED argv (via the pure `resolveSudoSpawn` seam)
  * WITHOUT spawning a real `sudo`: with the flag ON the leading `sudo`/`-S`
  * tokens are dropped and no password is written to stdin; with the flag OFF
- * (and non-root + sudo available) the `sudo -S …` argv is preserved.
+ * (and non-root + sudo available) the `sudo -S ï¿½` argv is preserved.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";

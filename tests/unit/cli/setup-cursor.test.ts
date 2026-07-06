@@ -1,10 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { resolveCursorTarget, buildCursorInstructions } from "../../../bin/cli/commands/setup-cursor.mjs";
+import {
+  resolveCursorTarget,
+  buildCursorInstructions,
+} from "../../../bin/cli/commands/setup-cursor.mjs";
 
 test("resolveCursorTarget ensures /v1 (Cursor appends /chat/completions)", () => {
   assert.equal(resolveCursorTarget({ remote: "http://vps:2004" }).apiBase, "http://vps:2004/v1");
-  assert.equal(resolveCursorTarget({ remote: "http://vps:2004/v1/" }).apiBase, "http://vps:2004/v1");
+  assert.equal(
+    resolveCursorTarget({ remote: "http://vps:2004/v1/" }).apiBase,
+    "http://vps:2004/v1"
+  );
 });
 
 test("resolveCursorTarget: explicit --api-key wins", () => {
@@ -12,7 +18,10 @@ test("resolveCursorTarget: explicit --api-key wins", () => {
 });
 
 test("buildCursorInstructions includes the base URL, /v1 note, and model samples", () => {
-  const txt = buildCursorInstructions({ apiBase: "http://vps:2004/v1", models: ["glm/glm-5.2", "kmc/kimi-k2.7"] });
+  const txt = buildCursorInstructions({
+    apiBase: "http://vps:2004/v1",
+    models: ["glm/glm-5.2", "kmc/kimi-k2.7"],
+  });
   assert.ok(txt.includes("http://vps:2004/v1"));
   assert.ok(txt.includes("Override OpenAI Base URL"));
   assert.ok(txt.includes("glm/glm-5.2"));

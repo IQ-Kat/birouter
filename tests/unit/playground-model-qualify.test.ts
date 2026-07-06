@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { qualifyPlaygroundModel } = await import(
-  "../../src/app/(dashboard)/dashboard/media-providers/components/LlmChatCard.tsx"
-);
+const { qualifyPlaygroundModel } =
+  await import("../../src/app/(dashboard)/dashboard/media-providers/components/LlmChatCard.tsx");
 
 // #3050 — vendor-namespaced model ids already contain a "/", so the old
 // `.includes("/")` heuristic skipped the provider prefix and the request was
@@ -21,7 +20,10 @@ test("qualifyPlaygroundModel prefixes a bare model", () => {
 });
 
 test("qualifyPlaygroundModel does not double-prefix an already-qualified model", () => {
-  assert.equal(qualifyPlaygroundModel("nim/moonshotai/kimi-k2.6", "nim"), "nim/moonshotai/kimi-k2.6");
+  assert.equal(
+    qualifyPlaygroundModel("nim/moonshotai/kimi-k2.6", "nim"),
+    "nim/moonshotai/kimi-k2.6"
+  );
   assert.equal(qualifyPlaygroundModel("nim", "nim"), "nim");
 });
 
@@ -34,4 +36,3 @@ test("qualifyPlaygroundModel handles custom models correctly", () => {
   assert.equal(qualifyPlaygroundModel("my-custom-model-1", "openai"), "openai/my-custom-model-1");
   assert.equal(qualifyPlaygroundModel("my-custom-model-1", ""), "my-custom-model-1");
 });
-

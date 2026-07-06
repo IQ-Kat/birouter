@@ -505,7 +505,7 @@ test("runAuthzPipeline answers OPTIONS /v1/models preflight with Allow-Origin (#
   assert.equal(response.headers.get("x-birouter-route-class"), "CLIENT_API");
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), "http://localhost");
   assert.match(response.headers.get("Vary") || "", /Origin/);
-  // Token-auth surface — must NOT advertise credentials with the echoed origin.
+  // Token-auth surface ï¿½ must NOT advertise credentials with the echoed origin.
   assert.equal(response.headers.get("Access-Control-Allow-Credentials"), null);
 });
 
