@@ -1,4 +1,4 @@
-// Regression for #6131 (Part B — enforcement): the IP blacklist was never wired
+﻿// Regression for #6131 (Part B — enforcement): the IP blacklist was never wired
 // into the request pipeline, so blacklisted IPs were not actually blocked. This
 // locks that runAuthzPipeline blocks a blacklisted client IP with 403 before the
 // route policy runs, allows a clean IP through to the normal auth outcome, and
@@ -18,13 +18,13 @@ const core = await import("../../../src/lib/db/core.ts");
 const ipFilter = await import("../../../open-sse/services/ipFilter.ts");
 const pipeline = await import("../../../src/server/authz/pipeline.ts");
 
-const ORIGINAL_STAMP_TOKEN = process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+const ORIGINAL_STAMP_TOKEN = process.env.BIROUTER_PEER_STAMP_TOKEN;
 
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_STAMP_TOKEN === undefined) delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
-  else process.env.OMNIROUTE_PEER_STAMP_TOKEN = ORIGINAL_STAMP_TOKEN;
+  if (ORIGINAL_STAMP_TOKEN === undefined) delete process.env.BIROUTER_PEER_STAMP_TOKEN;
+  else process.env.BIROUTER_PEER_STAMP_TOKEN = ORIGINAL_STAMP_TOKEN;
 });
 
 test.beforeEach(() => {
@@ -32,7 +32,7 @@ test.beforeEach(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   ipFilter.resetIPFilter();
-  delete process.env.OMNIROUTE_PEER_STAMP_TOKEN;
+  delete process.env.BIROUTER_PEER_STAMP_TOKEN;
 });
 
 const BLOCKED = "203.0.113.9";
@@ -79,7 +79,7 @@ test("#6131 disabled filter never blocks (even a listed IP)", async () => {
 });
 
 test("#6131 loopback is exempt — operator can't lock themselves out locally", async () => {
-  process.env.OMNIROUTE_PEER_STAMP_TOKEN = "stamp-tok";
+  process.env.BIROUTER_PEER_STAMP_TOKEN = "stamp-tok";
   ipFilter.configureIPFilter({ enabled: true, mode: "blacklist" });
   ipFilter.addToBlacklist(BLOCKED);
 

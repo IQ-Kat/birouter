@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
@@ -417,7 +417,7 @@ async function checkServerLiveness(options = {}) {
   } catch {
     const port = parsePort(process.env.PORT || "20128", 20128);
     const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
-    const host = String(options.livenessHost || process.env.OMNIROUTE_DOCTOR_HOST || "127.0.0.1")
+    const host = String(options.livenessHost || process.env.BIROUTER_DOCTOR_HOST || "127.0.0.1")
       .trim()
       .replace(/^https?:\/\//, "")
       .replace(/\/.*$/, "");

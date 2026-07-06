@@ -1,4 +1,4 @@
-/**
+﻿/**
  * quotaFetchThrottle.ts — global min-interval throttle for upstream quota fetches (#6009).
  *
  * Problem: when many accounts on one IP fetch provider quota, firing all the
@@ -85,7 +85,7 @@ export class MinIntervalThrottle {
 export function resolveQuotaFetchMinIntervalMs(
   env: Record<string, string | undefined> = process.env
 ): number {
-  const raw = env.OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS;
+  const raw = env.BIROUTER_QUOTA_FETCH_MIN_INTERVAL_MS;
   if (raw === undefined || raw === null || raw.trim() === "") return DEFAULT_MIN_INTERVAL_MS;
   const n = Number(raw.trim());
   if (!Number.isFinite(n) || n < 0) return DEFAULT_MIN_INTERVAL_MS;

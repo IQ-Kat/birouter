@@ -1,5 +1,5 @@
 import { CORS_HEADERS } from "@/shared/utils/cors";
-import { generateProviderPluginManifest } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
+import { generateProviderPluginManifest } from "@birouter/open-sse/config/providerPluginManifestRegistry.ts";
 
 const JSON_HEADERS = {
   ...CORS_HEADERS,

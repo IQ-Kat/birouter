@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Feature #6122 — root-less / no-sudo mode for the MITM cert-trust path.
  *
  * OmniRoute funnels every privileged MITM command through the single choke
  * point `execFileWithPassword("sudo", ["-S", ...], password)`, which strips the
  * leading `sudo -S` when running as root or when `sudo` is not on PATH. This
- * feature adds a third opt-out trigger — the `OMNIROUTE_NO_SUDO` env flag — so
+ * feature adds a third opt-out trigger — the `BIROUTER_NO_SUDO` env flag — so
  * OmniRoute starts cleanly in a root-less / user-namespace deployment where
  * `/usr/bin/sudo` exists but must not be used.
  *
@@ -21,9 +21,9 @@ import { isNoSudoEnv, resolveSudoSpawn } from "../../src/mitm/systemCommands.ts"
 // the exact environment the feature targets (sudo present, must be skipped).
 const NON_ROOT_WITH_SUDO = { root: false, sudoAvailable: true } as const;
 
-test("resolveSudoSpawn: with OMNIROUTE_NO_SUDO=1, strips `sudo -S` and needs no password", () => {
-  const prev = process.env.OMNIROUTE_NO_SUDO;
-  process.env.OMNIROUTE_NO_SUDO = "1";
+test("resolveSudoSpawn: with BIROUTER_NO_SUDO=1, strips `sudo -S` and needs no password", () => {
+  const prev = process.env.BIROUTER_NO_SUDO;
+  process.env.BIROUTER_NO_SUDO = "1";
   try {
     const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
       "sudo",
@@ -39,14 +39,14 @@ test("resolveSudoSpawn: with OMNIROUTE_NO_SUDO=1, strips `sudo -S` and needs no 
     // Password is only piped when `sudo -S` is actually spawned.
     assert.equal(needsPassword, false);
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-    else process.env.OMNIROUTE_NO_SUDO = prev;
+    if (prev === undefined) delete process.env.BIROUTER_NO_SUDO;
+    else process.env.BIROUTER_NO_SUDO = prev;
   }
 });
 
 test("resolveSudoSpawn: with the flag OFF + non-root + sudo available, preserves `sudo -S`", () => {
-  const prev = process.env.OMNIROUTE_NO_SUDO;
-  delete process.env.OMNIROUTE_NO_SUDO;
+  const prev = process.env.BIROUTER_NO_SUDO;
+  delete process.env.BIROUTER_NO_SUDO;
   try {
     const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
       "sudo",
@@ -64,14 +64,14 @@ test("resolveSudoSpawn: with the flag OFF + non-root + sudo available, preserves
     ]);
     assert.equal(needsPassword, true);
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-    else process.env.OMNIROUTE_NO_SUDO = prev;
+    if (prev === undefined) delete process.env.BIROUTER_NO_SUDO;
+    else process.env.BIROUTER_NO_SUDO = prev;
   }
 });
 
 test("resolveSudoSpawn: a non-sudo command is never touched, regardless of the flag", () => {
-  const prev = process.env.OMNIROUTE_NO_SUDO;
-  process.env.OMNIROUTE_NO_SUDO = "1";
+  const prev = process.env.BIROUTER_NO_SUDO;
+  process.env.BIROUTER_NO_SUDO = "1";
   try {
     const { finalCommand, finalArgs, stripSudo, needsPassword } = resolveSudoSpawn(
       "certutil",
@@ -83,13 +83,13 @@ test("resolveSudoSpawn: a non-sudo command is never touched, regardless of the f
     assert.equal(finalCommand, "certutil");
     assert.deepEqual(finalArgs, ["-A", "-n", "OmniRoute"]);
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-    else process.env.OMNIROUTE_NO_SUDO = prev;
+    if (prev === undefined) delete process.env.BIROUTER_NO_SUDO;
+    else process.env.BIROUTER_NO_SUDO = prev;
   }
 });
 
 test("isNoSudoEnv: truthiness matrix matches isTruthyEnvFlag semantics", () => {
-  const prev = process.env.OMNIROUTE_NO_SUDO;
+  const prev = process.env.BIROUTER_NO_SUDO;
   const cases: Array<[string | undefined, boolean]> = [
     ["1", true],
     ["true", true],
@@ -106,20 +106,20 @@ test("isNoSudoEnv: truthiness matrix matches isTruthyEnvFlag semantics", () => {
   ];
   try {
     for (const [value, expected] of cases) {
-      if (value === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-      else process.env.OMNIROUTE_NO_SUDO = value;
-      assert.equal(isNoSudoEnv(), expected, `OMNIROUTE_NO_SUDO=${JSON.stringify(value)}`);
+      if (value === undefined) delete process.env.BIROUTER_NO_SUDO;
+      else process.env.BIROUTER_NO_SUDO = value;
+      assert.equal(isNoSudoEnv(), expected, `BIROUTER_NO_SUDO=${JSON.stringify(value)}`);
     }
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-    else process.env.OMNIROUTE_NO_SUDO = prev;
+    if (prev === undefined) delete process.env.BIROUTER_NO_SUDO;
+    else process.env.BIROUTER_NO_SUDO = prev;
   }
 });
 
 test("resolveSudoSpawn: env flag alone (no overrides) drives stripping on non-root sudo host", () => {
   // Exercises the real env-reading default path (noSudo defaults to isNoSudoEnv()).
-  const prev = process.env.OMNIROUTE_NO_SUDO;
-  process.env.OMNIROUTE_NO_SUDO = "yes";
+  const prev = process.env.BIROUTER_NO_SUDO;
+  process.env.BIROUTER_NO_SUDO = "yes";
   try {
     const { finalCommand, stripSudo } = resolveSudoSpawn(
       "sudo",
@@ -131,7 +131,7 @@ test("resolveSudoSpawn: env flag alone (no overrides) drives stripping on non-ro
     assert.equal(stripSudo, true);
     assert.equal(finalCommand, "true");
   } finally {
-    if (prev === undefined) delete process.env.OMNIROUTE_NO_SUDO;
-    else process.env.OMNIROUTE_NO_SUDO = prev;
+    if (prev === undefined) delete process.env.BIROUTER_NO_SUDO;
+    else process.env.BIROUTER_NO_SUDO = prev;
   }
 });

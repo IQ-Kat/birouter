@@ -1,4 +1,4 @@
-import { getSupervisor } from "@/lib/services/registry";
+﻿import { getSupervisor } from "@/lib/services/registry";
 
 export type RelayRoutingBackend = "ts" | "bifrost" | "auto";
 
@@ -44,7 +44,7 @@ export function getBifrostRoutingConfig(
 
   return {
     baseUrl: resolvedBaseUrl,
-    apiKey: env.BIFROST_API_KEY || env.OMNIROUTE_BIFROST_KEY || undefined,
+    apiKey: env.BIFROST_API_KEY || env.BIROUTER_BIFROST_KEY || undefined,
     timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000,
     streamingEnabled: env.BIFROST_STREAMING_ENABLED !== "0",
     enabled: env.BIFROST_ENABLED !== "0",

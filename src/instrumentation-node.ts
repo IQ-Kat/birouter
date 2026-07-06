@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Node.js-only instrumentation logic.
  *
  * Separated from instrumentation.ts so that Turbopack's Edge bundler
@@ -380,7 +380,7 @@ export async function registerNodejs(): Promise<void> {
 
     // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
     // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
-    // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
+    // daemon on import (gated by BIROUTER_ENABLE_LIVE_WS, default ON) — but NOTHING
     // imported it in the packaged standalone/PM2 runtime. Only the unused
     // `server-init.ts` and a dev-only helper script (`scripts/start-ws-server.mjs`)
     // ever pulled it into a module graph, so in the published `omniroute` bin the

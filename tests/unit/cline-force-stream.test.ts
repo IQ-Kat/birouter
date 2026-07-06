@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { REGISTRY } from "@omniroute/open-sse/config/providers/index.ts";
-import { resolveStreamFlag } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
+import { REGISTRY } from "@birouter/open-sse/config/providers/index.ts";
+import { resolveStreamFlag } from "@birouter/open-sse/utils/aiSdkCompat.ts";
 
 // Cline / ClinePass only implement upstream streaming — a non-streaming request
 // returns "generateText is not implemented" / an empty body. They carry

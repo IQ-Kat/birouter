@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Fase 3 / Epic A — OS trust-store install for the TPROXY dynamic CA (decrypt 4b/N).
  *
  * The decrypt capture mode issues per-SNI leaves from a dynamic CA (#4173); the
@@ -78,8 +78,8 @@ export async function installTproxyCa(
   sudoPassword = "",
   deps: Partial<CaTrustDeps> = {}
 ): Promise<void> {
-  if (process.env.OMNIROUTE_SKIP_SYSTEM_TRUST === "1" && deps.run === undefined) {
-    console.log("[tproxy-ca] OMNIROUTE_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
+  if (process.env.BIROUTER_SKIP_SYSTEM_TRUST === "1" && deps.run === undefined) {
+    console.log("[tproxy-ca] BIROUTER_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
     return;
   }
   const d = { ...realDeps, ...deps };
@@ -107,8 +107,8 @@ export async function uninstallTproxyCa(
   sudoPassword = "",
   deps: Partial<CaTrustDeps> = {}
 ): Promise<void> {
-  if (process.env.OMNIROUTE_SKIP_SYSTEM_TRUST === "1" && deps.run === undefined) {
-    console.log("[tproxy-ca] OMNIROUTE_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
+  if (process.env.BIROUTER_SKIP_SYSTEM_TRUST === "1" && deps.run === undefined) {
+    console.log("[tproxy-ca] BIROUTER_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
     return;
   }
   const d = { ...realDeps, ...deps };

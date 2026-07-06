@@ -1,7 +1,7 @@
 import { getAntigravityModelsDiscoveryUrls } from "@birouter/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityHeaders } from "@birouter/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
-import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
+import { filterClinepassModels } from "@birouter/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 export type ProviderModelsConfigEntry = {

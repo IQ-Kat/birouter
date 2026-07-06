@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 
 /**
@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
  * for explicit HOSTNAME values (e.g. Windows CMD/PowerShell users).
  *
  * Resolution order:
- *   1. OMNIROUTE_SERVER_HOST (new dedicated var — always wins)
+ *   1. BIROUTER_SERVER_HOST (new dedicated var — always wins)
  *   2. HOSTNAME if it does NOT match os.hostname() (legacy backward compat)
  *   3. "0.0.0.0" (default)
  */
@@ -21,13 +21,13 @@ function resolveHostname(
   return envServerHost || (envHostname !== machineHostname ? envHostname : undefined) || "0.0.0.0";
 }
 
-// --- OMNIROUTE_SERVER_HOST takes precedence ---
+// --- BIROUTER_SERVER_HOST takes precedence ---
 
-test("serve hostname: OMNIROUTE_SERVER_HOST takes precedence over everything", () => {
+test("serve hostname: BIROUTER_SERVER_HOST takes precedence over everything", () => {
   assert.equal(resolveHostname("127.0.0.1", "myhostname", "myhostname"), "127.0.0.1");
 });
 
-test("serve hostname: OMNIROUTE_SERVER_HOST overrides an explicit HOSTNAME", () => {
+test("serve hostname: BIROUTER_SERVER_HOST overrides an explicit HOSTNAME", () => {
   assert.equal(resolveHostname("192.168.1.100", "10.0.0.1", "myhostname"), "192.168.1.100");
 });
 
@@ -61,12 +61,12 @@ test("serve hostname: falls back to 0.0.0.0 when both are empty strings", () => 
   assert.equal(resolveHostname("", "", "myhostname"), "0.0.0.0");
 });
 
-test("serve hostname: OMNIROUTE_SERVER_HOST empty string falls through to HOSTNAME check", () => {
+test("serve hostname: BIROUTER_SERVER_HOST empty string falls through to HOSTNAME check", () => {
   // Empty string is falsy → falls through; HOSTNAME is auto-set → ignored → 0.0.0.0
   assert.equal(resolveHostname("", "myhostname", "myhostname"), "0.0.0.0");
 });
 
-test("serve hostname: OMNIROUTE_SERVER_HOST empty string with explicit HOSTNAME", () => {
+test("serve hostname: BIROUTER_SERVER_HOST empty string with explicit HOSTNAME", () => {
   // Empty string is falsy → falls through; HOSTNAME != os.hostname() → used
   assert.equal(resolveHostname("", "10.0.0.5", "myhostname"), "10.0.0.5");
 });

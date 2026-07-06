@@ -1,7 +1,7 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { applyStrategyOrdering } from "@omniroute/open-sse/services/combo/applyStrategyOrdering.ts";
+import { applyStrategyOrdering } from "@birouter/open-sse/services/combo/applyStrategyOrdering.ts";
 import { resetDbInstance } from "@/lib/db/core.ts";
 
 // Split guard for Block J Task 3: the non-`auto` strategy-ordering chain

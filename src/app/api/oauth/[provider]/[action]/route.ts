@@ -34,7 +34,7 @@ import {
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
@@ -8,8 +8,8 @@ import {
 } from "../../open-sse/config/providerPluginManifestUrl.ts";
 
 test("provider manifest URL uses explicit env override", () => {
-  const previous = process.env.OMNIROUTE_PROVIDER_MANIFEST_URL;
-  process.env.OMNIROUTE_PROVIDER_MANIFEST_URL = "http://sidecar.local/manifest.json";
+  const previous = process.env.BIROUTER_PROVIDER_MANIFEST_URL;
+  process.env.BIROUTER_PROVIDER_MANIFEST_URL = "http://sidecar.local/manifest.json";
   try {
     assert.equal(
       resolveProviderPluginManifestUrl("http://127.0.0.1:20128"),
@@ -17,9 +17,9 @@ test("provider manifest URL uses explicit env override", () => {
     );
   } finally {
     if (previous === undefined) {
-      delete process.env.OMNIROUTE_PROVIDER_MANIFEST_URL;
+      delete process.env.BIROUTER_PROVIDER_MANIFEST_URL;
     } else {
-      process.env.OMNIROUTE_PROVIDER_MANIFEST_URL = previous;
+      process.env.BIROUTER_PROVIDER_MANIFEST_URL = previous;
     }
   }
 });

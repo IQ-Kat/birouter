@@ -17,18 +17,18 @@ import {
   isDailyQuotaExhausted,
 } from "@birouter/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
-import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
-import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
-import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
-import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { resolveBareModelToConnectionDefault } from "@birouter/open-sse/services/model.ts";
+import { errorResponse } from "@birouter/open-sse/utils/error.ts";
+import { acceptHeaderForcesStream } from "@birouter/open-sse/utils/aiSdkCompat.ts";
+import { isSelfInflictedUpstreamTimeout } from "@birouter/open-sse/handlers/chatCore/cooldownClassification.ts";
+import { applyNoThinkingAlias } from "@birouter/open-sse/utils/noThinkingAlias.ts";
+import { handleComboChat } from "@birouter/open-sse/services/combo.ts";
 import {
   resolveRequestModePack,
   parseRequestBudgetCap,
-} from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
-import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
-import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
+} from "@birouter/open-sse/services/autoCombo/requestControls.ts";
+import { resolveComboConfig } from "@birouter/open-sse/services/comboConfig.ts";
+import { injectHandoffIntoBody } from "@birouter/open-sse/services/contextHandoff.ts";
 import {
   HTTP_STATUS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,

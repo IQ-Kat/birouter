@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+﻿import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -172,12 +172,12 @@ export async function runServe(opts = {}) {
     API_PORT: String(apiPort),
     // #6194: POSIX shells (bash/zsh) auto-set HOSTNAME to the machine name — the
     // .env loader (first-wins) can never override it. Ignore HOSTNAME when it
-    // matches the OS-reported hostname (the auto-set signature). OMNIROUTE_SERVER_HOST
+    // matches the OS-reported hostname (the auto-set signature). BIROUTER_SERVER_HOST
     // takes precedence; legacy HOSTNAME values that don't match os.hostname() are
     // still honoured for backward compatibility (e.g. Windows CMD/PowerShell users
     // who set HOSTNAME in .env where it is NOT auto-set).
     HOSTNAME:
-      process.env.OMNIROUTE_SERVER_HOST ||
+      process.env.BIROUTER_SERVER_HOST ||
       (process.env.HOSTNAME !== osHostname() ? process.env.HOSTNAME : undefined) ||
       "0.0.0.0",
     NODE_ENV: "production",

@@ -2,7 +2,7 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { generateRequestId } from "@/shared/utils/requestId";
-import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
+import { initTranslators } from "@birouter/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@birouter/open-sse/utils/aiSdkCompat.ts";
 import { withEarlyStreamKeepalive } from "@birouter/open-sse/utils/earlyStreamKeepalive";

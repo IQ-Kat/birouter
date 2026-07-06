@@ -1,4 +1,4 @@
-// Test-only DATA_DIR isolation.
+﻿// Test-only DATA_DIR isolation.
 //
 // Loaded via `node --import ./tests/_setup/isolateDataDir.ts` from the test/mutation
 // invocations (package.json test scripts, stryker.conf.json tap.nodeArgs, the
@@ -40,4 +40,4 @@ if (!process.env.DATA_DIR) {
 // 105-byte PEM into /usr/local/share/ca-certificates and update-ca-certificates
 // baked it into the bundle, breaking ALL system TLS on the VM (2026-07-05).
 // installCert/uninstallCert/installTproxyCa/uninstallTproxyCa no-op under this.
-process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";
+process.env.BIROUTER_SKIP_SYSTEM_TRUST = "1";

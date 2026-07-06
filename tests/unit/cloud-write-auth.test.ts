@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -25,7 +25,7 @@ const credentialsRoute = await import("../../src/app/api/cloud/credentials/updat
 const aliasRoute = await import("../../src/app/api/cloud/models/alias/route.ts");
 
 async function resetStorage() {
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
   delete process.env.ROUTER_API_KEY;
   process.env.INITIAL_PASSWORD = "bootstrap-password";
   process.env.JWT_SECRET = "cloud-write-auth-jwt";

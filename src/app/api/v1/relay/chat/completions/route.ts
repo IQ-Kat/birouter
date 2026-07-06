@@ -25,8 +25,8 @@ import {
   shouldTryBifrostForRequest,
   type BifrostRoutingConfig,
 } from "./routingBackend";
-import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
-import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
+import { getProviderPluginManifestEntryForModel } from "@birouter/open-sse/config/providerPluginManifestRegistry.ts";
+import { getProviderPluginManifestHeader } from "@birouter/open-sse/config/providerPluginManifestUrl.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
 import {
   clearBifrostFailure,

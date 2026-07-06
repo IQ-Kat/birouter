@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 import { RESET_USAGE_HISTORY_PERIODS, resetUsageHistory } from "@/lib/db/cleanup";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";

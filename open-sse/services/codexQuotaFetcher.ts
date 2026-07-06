@@ -1,4 +1,4 @@
-/**
+﻿/**
  * codexQuotaFetcher.ts — Codex Dual-Window Quota Fetcher
  *
  * Implements QuotaFetcher for the Codex provider (quotaPreflight.ts + quotaMonitor.ts).
@@ -232,7 +232,7 @@ export async function fetchCodexQuota(
     // not all hit the provider in the same second (anti-fingerprint / avoids the
     // Codex OAuth revocation reported in router-for-me/CLIProxyAPI#2385). Cache
     // hits above never reach here; this only paces genuine network calls and is
-    // configurable (OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS, 0 = disabled).
+    // configurable (BIROUTER_QUOTA_FETCH_MIN_INTERVAL_MS, 0 = disabled).
     await throttleQuotaFetch();
 
     const response = await fetch(CODEX_USAGE_URL, {

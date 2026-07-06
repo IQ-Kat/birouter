@@ -35,7 +35,7 @@ import { isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   isModelLocked,
-} from "@omniroute/open-sse/services/accountFallback.ts";
+} from "@birouter/open-sse/services/accountFallback.ts";
 import * as log from "../utils/logger";
 
 /** Minimal structural view of a provider connection this module reads. */

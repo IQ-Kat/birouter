@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -138,7 +138,7 @@ test("runAuthzPipeline redirects unauthenticated /home/* nested paths to login (
 });
 
 // PR #1810 (upstream 9router): reverse-proxy subpath deployment via
-// OMNIROUTE_BASE_PATH. Next.js strips the basePath from nextUrl.pathname
+// BIROUTER_BASE_PATH. Next.js strips the basePath from nextUrl.pathname
 // before route classification, so the redirect targets must re-add it via
 // request.nextUrl.basePath to stay inside the deployed subpath.
 test("runAuthzPipeline prefixes the root-to-dashboard redirect with basePath when set", async () => {

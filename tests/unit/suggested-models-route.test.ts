@@ -153,7 +153,7 @@ test("route source: imports and uses buildErrorBody (Hard Rule #12)", async () =
   assert.match(
     src,
     /import \{[^}]*buildErrorBody[^}]*\} from ["']@omniroute\/open-sse\/utils\/error(\.ts)?["']/,
-    "must import buildErrorBody from @omniroute/open-sse/utils/error"
+    "must import buildErrorBody from @birouter/open-sse/utils/error"
   );
   assert.match(src, /buildErrorBody\s*\(/, "must call buildErrorBody() in error responses");
 

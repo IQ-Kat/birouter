@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { REGISTRY } from "@omniroute/open-sse/config/providers/index.ts";
-import { FREE_MODEL_BUDGETS } from "@omniroute/open-sse/config/freeModelCatalog.data.ts";
+import { REGISTRY } from "@birouter/open-sse/config/providers/index.ts";
+import { FREE_MODEL_BUDGETS } from "@birouter/open-sse/config/freeModelCatalog.data.ts";
 
 // Kiro's upstream (`generateAssistantResponse`) returns 400 "Invalid model.
 // Please select a different model" for any model id it does not recognize. The

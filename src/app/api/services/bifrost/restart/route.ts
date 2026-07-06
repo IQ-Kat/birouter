@@ -1,7 +1,7 @@
 import { getServiceRow } from "@/lib/db/versionManager";
 import { getOrInitSupervisor } from "../_lib";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error";
 
 const TOOL = "bifrost";
 

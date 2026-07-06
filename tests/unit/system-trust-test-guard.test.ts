@@ -1,4 +1,4 @@
-// Guard: the test suite must NEVER touch the OS trust store. On 2026-07-05 the
+﻿// Guard: the test suite must NEVER touch the OS trust store. On 2026-07-05 the
 // integration test "POST /cert: installs trust when cert exists" ran the REAL
 // install path on a persistent self-hosted runner and wrote a 105-byte fake PEM
 // into /usr/local/share/ca-certificates — update-ca-certificates then baked the
@@ -6,7 +6,7 @@
 // (curl error 77, apt cert failures, corrupted artifact downloads). Hosted
 // runners are ephemeral, so the same write went unnoticed for months.
 //
-// OMNIROUTE_SKIP_SYSTEM_TRUST=1 (set globally in tests/_setup/isolateDataDir.ts)
+// BIROUTER_SKIP_SYSTEM_TRUST=1 (set globally in tests/_setup/isolateDataDir.ts)
 // makes installCert/uninstallCert no-ops before any filesystem/spawn work.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -17,7 +17,7 @@ import path from "node:path";
 import { installCert } from "../../src/mitm/cert/install.ts";
 
 test("isolateDataDir setup exports the system-trust guard for every test process", () => {
-  assert.equal(process.env.OMNIROUTE_SKIP_SYSTEM_TRUST, "1");
+  assert.equal(process.env.BIROUTER_SKIP_SYSTEM_TRUST, "1");
 });
 
 test("installCert under the guard skips the OS mutation but keeps input contracts", async () => {

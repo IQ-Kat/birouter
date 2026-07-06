@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+﻿import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   getComboModelProvider,
@@ -86,7 +86,7 @@ import {
 } from "../services/compression/engines/mcpAccessibility/constants.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
-import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
+import { resolveBirouterBaseUrl } from "../../src/shared/utils/resolveBirouterBaseUrl.ts";
 import { getMcpModelsCatalog } from "./catalog.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
 
@@ -188,7 +188,7 @@ function getBirouterApiKey(): string {
 }
 
 export async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
-  const url = `${OMNIROUTE_BASE_URL}${path}`;
+  const url = `${BIROUTER_BASE_URL}${path}`;
   const apiKey = getOmniRouteApiKey();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -867,12 +867,12 @@ export function createMcpServer(): McpServer {
   );
 
   server.registerTool(
-    "omniroute_pick_fastest_model",
+    "BIROUTER_pick_fastest_model",
     {
       description: "Picks the fastest reliable provider-model pair from live telemetry.",
       inputSchema: pickFastestModelInput,
     },
-    withScopeEnforcement("omniroute_pick_fastest_model", (args) =>
+    withScopeEnforcement("BIROUTER_pick_fastest_model", (args) =>
       handlePickFastestModel(pickFastestModelInput.parse(args))
     )
   );

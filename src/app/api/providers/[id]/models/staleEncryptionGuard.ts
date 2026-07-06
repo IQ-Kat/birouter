@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
 
 /**
  * #6148 — Stale STORAGE_ENCRYPTION_KEY guard for model-discovery.

@@ -1,15 +1,15 @@
 // Allow large audio/video file uploads — 5min for processing large files (up to 2GB)
 export const maxDuration = 300;
-import { handleAudioTranslation } from "@omniroute/open-sse/handlers/audioTranslation.ts";
+import { handleAudioTranslation } from "@birouter/open-sse/handlers/audioTranslation.ts";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
   parseTranslationModel,
   getTranslationProvider,
   buildDynamicAudioProvider,
   type ProviderNodeRow,
-} from "@omniroute/open-sse/config/audioRegistry.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+} from "@birouter/open-sse/config/audioRegistry.ts";
+import { errorResponse } from "@birouter/open-sse/utils/error.ts";
+import { HTTP_STATUS } from "@birouter/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { getProviderNodes } from "@/lib/localDb";
 import {

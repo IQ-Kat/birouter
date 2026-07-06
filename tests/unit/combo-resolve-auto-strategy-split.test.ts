@@ -1,7 +1,7 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveAutoStrategyOrder } from "@omniroute/open-sse/services/combo/resolveAutoStrategy.ts";
+import { resolveAutoStrategyOrder } from "@birouter/open-sse/services/combo/resolveAutoStrategy.ts";
 import { resetDbInstance } from "@/lib/db/core.ts";
 
 // resolveAutoStrategyOrder loads the LKGP via the DB singleton (dynamic import);

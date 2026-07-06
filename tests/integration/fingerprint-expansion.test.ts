@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -69,11 +69,11 @@ function createServerProcess(dataDir: string, port: number) {
       DISABLE_SQLITE_AUTO_BACKUP: "true",
       INITIAL_PASSWORD: "",
       NEXT_TELEMETRY_DISABLED: "1",
-      OMNIROUTE_DISABLE_BACKGROUND_SERVICES: "true",
-      OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK: "true",
-      OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK: "true",
-      OMNIROUTE_HIDE_HEALTHCHECK_LOGS: "true",
-      OMNIROUTE_E2E_BOOTSTRAP_MODE: "open",
+      BIROUTER_DISABLE_BACKGROUND_SERVICES: "true",
+      BIROUTER_DISABLE_TOKEN_HEALTHCHECK: "true",
+      BIROUTER_DISABLE_LOCAL_HEALTHCHECK: "true",
+      BIROUTER_HIDE_HEALTHCHECK_LOGS: "true",
+      BIROUTER_E2E_BOOTSTRAP_MODE: "open",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

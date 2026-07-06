@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error.ts";
 import {
   resolveHfPipelineTag,
   sortHfSuggestedModels,
   type HfModelSummary,
-} from "@omniroute/open-sse/services/hfModelSuggestions.ts";
+} from "@birouter/open-sse/services/hfModelSuggestions.ts";
 
 /**
  * GET /api/v1/providers/suggested-models?type=image

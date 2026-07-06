@@ -14,7 +14,7 @@ import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db
 import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 const TOOL_ID = "codewhale";
 

@@ -1,4 +1,4 @@
-import { jwtVerify, SignJWT } from "jose";
+﻿import { jwtVerify, SignJWT } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCachedSettings } from "../../lib/db/readCache";
 import { isDraining } from "../../lib/gracefulShutdown";
@@ -9,7 +9,7 @@ import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
 import { validateDashboardCsrfToken } from "./csrf";
 import { classifyStampedPeerLocality } from "./peerStamp";
-import { checkRequestIP } from "@omniroute/open-sse/services/ipFilter.ts";
+import { checkRequestIP } from "@birouter/open-sse/services/ipFilter.ts";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
 import { publicPolicy } from "./policies/public";
@@ -291,7 +291,7 @@ export async function runAuthzPipeline(
   const peerLocality = classifyStampedPeerLocality(
     request.headers.get(PEER_IP_HEADER),
     request.headers.get(VIA_PROXY_HEADER),
-    process.env.OMNIROUTE_PEER_STAMP_TOKEN
+    process.env.BIROUTER_PEER_STAMP_TOKEN
   );
   requestHeaders.set(AUTHZ_HEADER_PEER_LOCALITY, peerLocality);
 

@@ -18,8 +18,8 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getApiKeyById } from "@/lib/db/apiKeys";
-import { getDeviceCount, getDeviceDetails } from "@omniroute/open-sse/services/deviceTracker.ts";
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { getDeviceCount, getDeviceDetails } from "@birouter/open-sse/services/deviceTracker.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 import * as log from "@/sse/utils/logger";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

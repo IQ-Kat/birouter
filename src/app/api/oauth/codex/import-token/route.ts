@@ -3,7 +3,7 @@ import { z } from "zod";
 import { extractCodexAccountInfo } from "@/lib/oauth/services/codexImport";
 import { createProviderConnection } from "@/models";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
-import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "@birouter/open-sse/utils/error.ts";
 
 /**
  * POST /api/oauth/codex/import-token

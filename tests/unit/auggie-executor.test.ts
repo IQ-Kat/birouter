@@ -15,7 +15,7 @@ import os from "node:os";
 import path from "node:path";
 
 const { AuggieExecutor, buildAuggiePrompt, resolveAuggieBin, resolveAuggieModel } =
-  await import("@omniroute/open-sse/executors/auggie");
+  await import("@birouter/open-sse/executors/auggie");
 
 const TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-auggie-test-"));
 

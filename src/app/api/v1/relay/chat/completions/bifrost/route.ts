@@ -31,8 +31,8 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
+import { buildErrorBody } from "@birouter/open-sse/utils/error";
+import { getProviderPluginManifestHeader } from "@birouter/open-sse/config/providerPluginManifestUrl.ts";
 import { z } from "zod";
 import {
   checkIpRateLimit,

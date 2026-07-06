@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Proxy Health Check Scheduler
  *
  * Periodically tests all proxy registry entries and automatically
@@ -15,7 +15,7 @@ import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
 import {
   createProxyDispatcher,
   clearDispatcherCache,
-} from "@omniroute/open-sse/utils/proxyDispatcher";
+} from "@birouter/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
 import { decideProxyHealthAction, type ProxyProbeOutcome } from "./decision.ts";
 
@@ -68,7 +68,7 @@ function isBuildProcess(): boolean {
 }
 
 function isBackgroundServicesDisabled(): boolean {
-  const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
+  const raw = process.env.BIROUTER_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
   return ["1", "true", "yes", "on"].includes(raw.trim().toLowerCase());
 }
