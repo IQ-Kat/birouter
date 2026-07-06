@@ -52,7 +52,7 @@ _Proxy API universal Anda — satu endpoint, 100+ penyedia, tanpa downtime. Kini
 ## 🖼️ Dashboard Utama
 
 <div align="center">
-  <img src="./docs/screenshots/MainBirouter.png" alt="Birouter Dashboard" width="800"/>
+  <img src="/docs/screenshots/MainBirouter.png" alt="Birouter Dashboard" width="800"/>
 </div>
 
 ---
@@ -62,17 +62,17 @@ _Proxy API universal Anda — satu endpoint, 100+ penyedia, tanpa downtime. Kini
 <details>
 <summary><b>Klik untuk melihat tangkapan layar dashboard</b></summary>
 
-| Halaman        | Tangkapan Layar                                   |
-| -------------- | ------------------------------------------------- |
-| **Providers**  | ![Providers](docs/screenshots/01-providers.png)   |
-| **Combos**     | ![Combos](docs/screenshots/02-combos.png)         |
-| **Analytics**  | ![Analytics](docs/screenshots/03-analytics.png)   |
-| **Health**     | ![Health](docs/screenshots/04-health.png)         |
-| **Translator** | ![Translator](docs/screenshots/05-translator.png) |
-| **Settings**   | ![Settings](docs/screenshots/06-settings.png)     |
-| **CLI Tools**  | ![CLI Tools](docs/screenshots/07-cli-tools.png)   |
-| **Usage Logs** | ![Usage](docs/screenshots/08-usage.png)           |
-| **Endpoints**  | ![Endpoints](docs/screenshots/09-endpoint.png)    |
+| Halaman        | Tangkapan Layar                                    |
+| -------------- | -------------------------------------------------- |
+| **Providers**  | ![Providers](/docs/screenshots/01-providers.png)   |
+| **Combos**     | ![Combos](/docs/screenshots/02-combos.png)         |
+| **Analytics**  | ![Analytics](/docs/screenshots/03-analytics.png)   |
+| **Health**     | ![Health](/docs/screenshots/04-health.png)         |
+| **Translator** | ![Translator](/docs/screenshots/05-translator.png) |
+| **Settings**   | ![Settings](/docs/screenshots/06-settings.png)     |
+| **CLI Tools**  | ![CLI Tools](/docs/screenshots/07-cli-tools.png)   |
+| **Usage Logs** | ![Usage](/docs/screenshots/08-usage.png)           |
+| **Endpoints**  | ![Endpoints](/docs/screenshots/09-endpoint.png)    |
 
 </details>
 
@@ -86,35 +86,35 @@ _Hubungkan IDE atau alat CLI berbasis AI apa pun melalui Birouter — gateway AP
     <tr>
       <td align="center" width="110">
         <a href="https://github.com/openclaw/openclaw">
-          <img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
+          <img src="/public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
           <b>OpenClaw</b>
         </a><br/>
         <sub>⭐ 205K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/HKUDS/nanobot">
-          <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
+          <img src="/public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
           <b>NanoBot</b>
         </a><br/>
         <sub>⭐ 20.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/sipeed/picoclaw">
-          <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
+          <img src="/public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
           <b>PicoClaw</b>
         </a><br/>
         <sub>⭐ 14.6K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/zeroclaw-labs/zeroclaw">
-          <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
+          <img src="/public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
           <b>ZeroClaw</b>
         </a><br/>
         <sub>⭐ 9.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/nearai/ironclaw">
-          <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
+          <img src="/public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
           <b>IronClaw</b>
         </a><br/>
         <sub>⭐ 2.1K</sub>
@@ -123,28 +123,28 @@ _Hubungkan IDE atau alat CLI berbasis AI apa pun melalui Birouter — gateway AP
     <tr>
       <td align="center" width="110">
         <a href="https://github.com/anomalyco/opencode">
-          <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
+          <img src="/public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
           <b>OpenCode</b>
         </a><br/>
         <sub>⭐ 106K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/openai/codex">
-          <img src="./public/providers/codex.svg" alt="Codex CLI" width="48"/><br/>
+          <img src="/public/providers/codex.svg" alt="Codex CLI" width="48"/><br/>
           <b>Codex CLI</b>
         </a><br/>
         <sub>⭐ 60.8K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/anthropics/claude-code">
-          <img src="./public/providers/claude.svg" alt="Claude Code" width="48"/><br/>
+          <img src="/public/providers/claude.svg" alt="Claude Code" width="48"/><br/>
           <b>Claude Code</b>
         </a><br/>
         <sub>⭐ 67.3K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
-          <img src="./public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
+          <img src="/public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
         </a><br/>
         <sub>⭐ 15.5K</sub>
