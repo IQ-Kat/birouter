@@ -3,7 +3,7 @@
 // (Vercel Edge, Deno Deploy, or Cloudflare Workers) instead of an undici ProxyAgent. All relay
 // types share the exact same x-relay-target / x-relay-path / x-relay-auth header spec; only the
 // deployment surface differs.
-import { randomUUID } from "crypto";
+import { randomUUID, randomInt } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import type {
@@ -19,10 +19,7 @@ import type {
   LegacyProxyConfig,
   ProxyRotationStrategy,
 } from "./proxies/types";
-import {
-  PROXY_ROTATION_STRATEGIES,
-  DEFAULT_PROXY_ROTATION_STRATEGY,
-} from "./proxies/types";
+import { PROXY_ROTATION_STRATEGIES, DEFAULT_PROXY_ROTATION_STRATEGY } from "./proxies/types";
 import {
   mapProxyRow,
   mapAssignmentRow,
@@ -689,13 +686,23 @@ function getOrCreateRotationRow(
   db: ReturnType<typeof getDbInstance>,
   normalizedScope: string,
   rotationScopeId: string
-): { strategy: ProxyRotationStrategy; cursor: number; stickyWindowMinutes: number; rotatedAt: string | null } {
+): {
+  strategy: ProxyRotationStrategy;
+  cursor: number;
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+} {
   const row = db
     .prepare(
       "SELECT strategy, cursor, sticky_window_minutes, rotated_at FROM proxy_scope_rotation WHERE scope = ? AND scope_id IS ?"
     )
     .get(normalizedScope, rotationScopeId) as
-    | { strategy?: string; cursor?: number; sticky_window_minutes?: number; rotated_at?: string | null }
+    | {
+        strategy?: string;
+        cursor?: number;
+        sticky_window_minutes?: number;
+        rotated_at?: string | null;
+      }
     | undefined;
 
   if (row) {
@@ -722,7 +729,7 @@ function getOrCreateRotationRow(
 /**
  * Pick one member from an already-alive candidate list according to the scope's
  * rotation strategy. Assumes `candidates` is non-empty and ordered by position.
- * Round-robin uses (and persists) a monotonic cursor; random uses Math.random;
+ * Round-robin uses (and persists) a monotonic cursor; random uses crypto.randomInt;
  * sticky holds the current member until its window elapses, then advances.
  */
 function pickFromCandidates<T>(
@@ -736,7 +743,11 @@ function pickFromCandidates<T>(
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
 
   if (state.strategy === "random") {
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    // crypto.randomInt (unbiased, uniform in [0, length)) instead of Math.random —
+    // CodeQL js/insecure-randomness flags Math.random flowing into the selected proxy's
+    // credentials (a "security context"). Load-balancing selection is not a secret, but
+    // crypto.randomInt silences the alert at the source and is unbiased (#6365 follow-up).
+    return candidates[randomInt(candidates.length)];
   }
 
   if (state.strategy === "sticky") {
@@ -748,7 +759,13 @@ function pickFromCandidates<T>(
       cursor = state.cursor + 1;
       db.prepare(
         "UPDATE proxy_scope_rotation SET cursor = ?, rotated_at = ?, updated_at = ? WHERE scope = ? AND scope_id IS ?"
-      ).run(cursor, new Date().toISOString(), new Date().toISOString(), normalizedScope, rotationScopeId);
+      ).run(
+        cursor,
+        new Date().toISOString(),
+        new Date().toISOString(),
+        normalizedScope,
+        rotationScopeId
+      );
     }
     const idx = ((cursor % candidates.length) + candidates.length) % candidates.length;
     return candidates[idx];
