@@ -327,9 +327,10 @@ function enableWin() {
   const cliPath = resolveCliPath();
   if (!cliPath) return false;
   const value = `"${process.execPath}" "${cliPath}" serve --tray --no-open`;
+  const escapedValue = value.replace(/"/g, '\\"');
   try {
     execSync(
-      `reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v ${WIN_REG_VALUE} /t REG_SZ /d "${value}" /f`,
+      `reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v ${WIN_REG_VALUE} /t REG_SZ /d "${escapedValue}" /f`,
       { stdio: "ignore", windowsHide: true }
     );
     return true;

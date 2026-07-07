@@ -235,6 +235,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
     env,
     stdio: "ignore",
     detached: true,
+    windowsHide: true,
   });
   writePidFile("server", server.pid);
   server.unref();
@@ -250,6 +251,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
     cwd: APP_DIR,
     env,
     stdio: "pipe",
+    windowsHide: true,
   });
 
   writePidFile("server", server.pid);
@@ -379,10 +381,7 @@ async function maybeStartTray(port, apiPort, supervisor) {
         supervisor.stop();
       },
       onOpenDashboard: () => open?.(dashboardUrl),
-      onShowLogs: () => {
-        // In-place: open logs stream (best-effort)
-        process.stdout.write(`[birouter][tray] Logs at: ${dashboardUrl}/logs\n`);
-      },
+      onShowLogs: () => open?.(`${dashboardUrl}/logs`),
     });
     if (tray) {
       const { killTray } = await import("../tray/index.mjs");

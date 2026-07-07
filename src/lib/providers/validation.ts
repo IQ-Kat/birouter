@@ -2,7 +2,6 @@ import { getEmbeddingProvider } from "@birouter/open-sse/config/embeddingRegistr
 import { getRerankProvider } from "@birouter/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@birouter/open-sse/config/providerRegistry.ts";
 import {
-  isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isLocalProvider,
   isOpenAICompatibleProvider,
@@ -10,6 +9,7 @@ import {
   providerAllowsOptionalApiKey,
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
+import { isClaudeCodeCompatibleProvider } from "@birouter/open-sse/services/claudeCodeCompatible.ts";
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
@@ -203,11 +203,16 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
   }
 
+  if (isClaudeCodeCompatibleProvider(provider)) {
+    try {
+      return await validateClaudeCodeCompatibleProvider({ provider, apiKey, providerSpecificData });
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
+
   if (isAnthropicCompatibleProvider(provider)) {
     try {
-      if (isClaudeCodeCompatibleProvider(provider)) {
-        return await validateClaudeCodeCompatibleProvider({ apiKey, providerSpecificData });
-      }
       return await validateAnthropicCompatibleProvider({
         apiKey,
         providerSpecificData,

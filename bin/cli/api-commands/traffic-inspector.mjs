@@ -1,4 +1,4 @@
-// AUTO-GENERATED from docs/openapi.yaml. Do not edit.
+// AUTO-GENERATED from D:\Projek\Birouter\router-app\docs\openapi.yaml. Do not edit.
 import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { readFileSync } from "node:fs";

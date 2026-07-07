@@ -45,6 +45,7 @@ export class ServerSupervisor {
       cwd: dirname(this.serverPath),
       env: this.env,
       stdio: showLog ? "inherit" : ["ignore", "ignore", "pipe"],
+      windowsHide: true,
     });
 
     writePidFile("server", this.child.pid);

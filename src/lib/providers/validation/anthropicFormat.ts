@@ -228,20 +228,40 @@ export async function validateAnthropicCompatibleProvider({
 }
 
 export async function validateClaudeCodeCompatibleProvider({
+  provider,
   apiKey,
   providerSpecificData = {},
 }: any) {
-  const baseUrl = normalizeClaudeCodeCompatibleBaseUrl(providerSpecificData.baseUrl);
+  let rawBaseUrl = providerSpecificData.baseUrl;
+  let authHeader = "bearer"; // default for CC Compatible providers
+
+  if (provider) {
+    const { getRegistryEntry } = await import("@birouter/open-sse/config/providerRegistry.ts");
+    const entry = getRegistryEntry(provider);
+    if (entry) {
+      if (!rawBaseUrl && entry.baseUrl) {
+        rawBaseUrl = entry.baseUrl;
+      }
+      if (entry.authHeader) {
+        authHeader = entry.authHeader;
+      }
+    }
+  }
+
+  const baseUrl = normalizeClaudeCodeCompatibleBaseUrl(rawBaseUrl);
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for CC Compatible provider" };
   }
 
   const modelsPath = providerSpecificData?.modelsPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH;
   const chatPath = providerSpecificData?.chatPath || CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH;
-  const defaultHeaders = applyCustomUserAgent(
-    buildClaudeCodeCompatibleHeaders(apiKey, false),
-    providerSpecificData
-  );
+
+  const rawDefaultHeaders = buildClaudeCodeCompatibleHeaders(apiKey, false);
+  if (authHeader === "x-api-key") {
+    delete rawDefaultHeaders["Authorization"];
+    rawDefaultHeaders["x-api-key"] = apiKey;
+  }
+  const defaultHeaders = applyCustomUserAgent(rawDefaultHeaders, providerSpecificData);
 
   try {
     const modelsRes = await validationRead(joinClaudeCodeCompatibleUrl(baseUrl, modelsPath), {
@@ -265,13 +285,17 @@ export async function validateClaudeCodeCompatibleProvider({
   );
   const sessionId = JSON.parse(payload.metadata.user_id as string).session_id;
 
+  const rawChatHeaders = buildClaudeCodeCompatibleHeaders(apiKey, true, sessionId);
+  if (authHeader === "x-api-key") {
+    delete rawChatHeaders["Authorization"];
+    rawChatHeaders["x-api-key"] = apiKey;
+  }
+  const chatHeaders = applyCustomUserAgent(rawChatHeaders, providerSpecificData);
+
   try {
     const messagesRes = await validationWrite(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
       method: "POST",
-      headers: applyCustomUserAgent(
-        buildClaudeCodeCompatibleHeaders(apiKey, true, sessionId),
-        providerSpecificData
-      ),
+      headers: chatHeaders,
       body: JSON.stringify(payload),
     });
 

@@ -10,6 +10,7 @@
   "files": [
     "bin/",
     "dist/",
+    "dist/.build/",
     "@birouter/",
     "open-sse/",
     "src/domain/",
