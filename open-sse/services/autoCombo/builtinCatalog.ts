@@ -1,6 +1,9 @@
 import type { AutoVariant } from "./autoPrefix";
 import { VALID_VARIANTS } from "./autoPrefix";
 import { parseAutoSuffix } from "./suffixComposition";
+import { isValidModelFamily, AUTO_FAMILY_IDS } from "./modelFamily";
+
+export { AUTO_FAMILY_IDS };
 
 /**
  * Built-in `auto/*` catalog → AutoVariant resolution.
@@ -59,8 +62,7 @@ export const AUTO_SUFFIX_VARIANTS: string[] = [
 ];
 
 type ResolvedAutoVariant =
-  | { recognized: true; variant: AutoVariant | undefined }
-  | { recognized: false };
+  { recognized: true; variant: AutoVariant | undefined } | { recognized: false };
 
 export function resolveAutoVariant(modelStr: string, suffix: string): ResolvedAutoVariant {
   if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, modelStr)) {
@@ -78,7 +80,11 @@ export function resolveAutoVariant(modelStr: string, suffix: string): ResolvedAu
  * decide whether an `auto/` model is a valid built-in before materializing it.
  */
 export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boolean {
-  return resolveAutoVariant(modelStr, suffix).recognized || parseAutoSuffix(suffix).valid;
+  return (
+    resolveAutoVariant(modelStr, suffix).recognized ||
+    parseAutoSuffix(suffix).valid ||
+    isValidModelFamily(suffix)
+  );
 }
 
 export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
@@ -100,6 +106,16 @@ export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
       category: parsed.category,
       tier: parsed.tier,
     });
+    virtualCombo.name = modelStr;
+    virtualCombo.id = modelStr;
+    return virtualCombo;
+  }
+
+  // #6453: `auto/<family>` (e.g. auto/glm, auto/minimax, auto/zai, auto/mimo,
+  // auto/gemma, auto/llama, auto/gemini) — spans whatever installed backends
+  // currently expose that model family, degrading gracefully as backends rotate.
+  if (isValidModelFamily(suffix)) {
+    const virtualCombo = await createVirtualAutoCombo(undefined, { family: suffix });
     virtualCombo.name = modelStr;
     virtualCombo.id = modelStr;
     return virtualCombo;

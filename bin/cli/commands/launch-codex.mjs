@@ -19,6 +19,16 @@ const STRIPPED_CODEX_ENV_KEYS = [
 /** Placeholder so codex's `env_key` is always satisfied when the backend is open. */
 const NO_AUTH_SENTINEL = "birouter-no-auth";
 
+// On Windows the `codex` binary is an npm `.cmd` shim that `spawn` cannot resolve
+// without a shell (bare "codex" → ENOENT). Mirror the qodercli Windows fix (#6263):
+// spawn `codex.cmd` through a shell on win32, and the bare binary elsewhere.
+export function resolveCodexSpawn(platform) {
+  if (platform === "win32") {
+    return { command: "codex.cmd", shell: true };
+  }
+  return { command: "codex", shell: undefined };
+}
+
 function stripTrailingSlash(value) {
   let s = String(value);
   let end = s.length;
@@ -142,7 +152,12 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
   const env = buildCodexEnv(process.env, authToken);
 
   return await new Promise((resolve) => {
-    const child = spawn("codex", extraArgs, { env, stdio: "inherit" });
+    const { command: codexLaunch, shell: shellValue } = resolveCodexSpawn(process.platform);
+    const child = spawn(codexLaunch, extraArgs, {
+      env,
+      stdio: "inherit",
+      shell: shellValue,
+    });
     child.on("error", (err) => {
       if (err?.code === "ENOENT") {
         console.error(
@@ -169,6 +184,7 @@ export function registerLaunchCodex(program) {
       "--remote <url>",
       "Remote Birouter base URL, e.g. http://192.168.0.15:2004 (overrides --port + context)"
     )
+
     .option("--profile <name>", "Codex profile to activate (passed as --profile <name>)")
     .option("-p, --p <name>", "Alias for --profile")
     .option(

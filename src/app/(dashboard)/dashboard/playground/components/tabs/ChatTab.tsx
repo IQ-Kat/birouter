@@ -9,6 +9,7 @@ import { useStreamMetrics } from "../../hooks/useStreamMetrics";
 import { getModelPricing } from "@/lib/playground/types";
 import type { ConfigState } from "../StudioConfigPane";
 import type { StreamMetrics } from "@/shared/schemas/playground";
+import { buildReasoningRequestFields } from "../reasoningControls";
 
 interface Message {
   role: "system" | "user" | "assistant";
@@ -52,10 +53,14 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
     if (configState.systemPrompt.trim()) {
       out.push({ role: "system", content: configState.systemPrompt });
     }
-    out.push(...chatMessages.filter((m) => m.role !== "system").map((m) => ({
-      role: m.role,
-      content: m.content,
-    })));
+    out.push(
+      ...chatMessages
+        .filter((m) => m.role !== "system")
+        .map((m) => ({
+          role: m.role,
+          content: m.content,
+        }))
+    );
     return out;
   }
 
@@ -77,134 +82,145 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
     if (p.stop.trim()) body.stop = p.stop;
     if (p.jsonMode) body.response_format = { type: "json_object" };
 
+    // #6241: fold the canonical effort / thinking params onto the body — gated to models that
+    // support thinking (via the resolved reasoning spec) and to valid effort tiers.
+    Object.assign(
+      body,
+      buildReasoningRequestFields(
+        { effort: p.effort, thinking: p.thinking },
+        configState.reasoning ?? { show: false, effortOptions: [] }
+      )
+    );
+
     return body;
   }
 
   const doSend = async (chatMessages: Message[], appendIndex?: number) => {
-      if (!configState.model) {
-        setError("Set a model in the config pane.");
+    if (!configState.model) {
+      setError("Set a model in the config pane.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResponseStatus(null);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const startTime = Date.now();
+
+    streamMetrics.start();
+
+    // If regenerating, replace the last assistant message; otherwise append
+    const targetIndex = appendIndex ?? chatMessages.length;
+    setMessages((prev) => {
+      const next = [...prev];
+      if (appendIndex !== undefined && next[appendIndex]?.role === "assistant") {
+        next[appendIndex] = { role: "assistant", content: "" };
+      } else {
+        next.push({ role: "assistant", content: "" });
+      }
+      return next;
+    });
+
+    try {
+      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+
+      const res = await fetch("/api/v1/chat/completions", {
+        method: "POST",
+        headers: fetchHeaders,
+        body: JSON.stringify(buildRequestBody(chatMessages)),
+        signal: controller.signal,
+      });
+
+      setResponseStatus(res.status);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg: string =
+          (errData as { error?: { message?: string } }).error?.message || `Error ${res.status}`;
+        setError(errMsg);
+        setMessages((prev) => prev.slice(0, targetIndex));
+        setLoading(false);
+        setResponseDuration(Date.now() - startTime);
+        streamMetrics.reset();
         return;
       }
 
-      setLoading(true);
-      setError(null);
-      setResponseStatus(null);
+      let firstChunk = true;
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantResponse = "";
+      let usageData: { prompt_tokens?: number; completion_tokens?: number } | undefined;
 
-      const controller = new AbortController();
-      abortRef.current = controller;
-      const startTime = Date.now();
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      streamMetrics.start();
+          if (firstChunk) {
+            streamMetrics.onFirstChunk();
+            firstChunk = false;
+          }
 
-      // If regenerating, replace the last assistant message; otherwise append
-      const targetIndex = appendIndex ?? chatMessages.length;
-      setMessages((prev) => {
-        const next = [...prev];
-        if (appendIndex !== undefined && next[appendIndex]?.role === "assistant") {
-          next[appendIndex] = { role: "assistant", content: "" };
-        } else {
-          next.push({ role: "assistant", content: "" });
-        }
-        return next;
-      });
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
 
-      try {
-        const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
-
-        const res = await fetch("/api/v1/chat/completions", {
-          method: "POST",
-          headers: fetchHeaders,
-          body: JSON.stringify(buildRequestBody(chatMessages)),
-          signal: controller.signal,
-        });
-
-        setResponseStatus(res.status);
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          const errMsg: string = (errData as { error?: { message?: string } }).error?.message || `Error ${res.status}`;
-          setError(errMsg);
-          setMessages((prev) => prev.slice(0, targetIndex));
-          setLoading(false);
-          setResponseDuration(Date.now() - startTime);
-          streamMetrics.reset();
-          return;
-        }
-
-        let firstChunk = true;
-        const reader = res.body?.getReader();
-        const decoder = new TextDecoder();
-        let assistantResponse = "";
-        let usageData: { prompt_tokens?: number; completion_tokens?: number } | undefined;
-
-        if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            if (firstChunk) {
-              streamMetrics.onFirstChunk();
-              firstChunk = false;
-            }
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
-
-            for (const line of lines) {
-              if (line === "data: [DONE]") continue;
-              if (line.startsWith("data: ")) {
-                try {
-                  const parsed = JSON.parse(line.slice(6)) as {
-                    choices?: Array<{ delta?: { content?: string } }>;
-                    usage?: { prompt_tokens?: number; completion_tokens?: number };
-                  };
-                  const delta = parsed.choices?.[0]?.delta?.content ?? "";
-                  if (delta) {
-                    assistantResponse += delta;
-                    streamMetrics.onChunk(1);
-                    setMessages((prev) => {
-                      const next = [...prev];
-                      const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
-                      next[idx] = { ...next[idx], content: assistantResponse };
-                      return next;
-                    });
-                  }
-                  if (parsed.usage) {
-                    usageData = parsed.usage;
-                  }
-                } catch {
-                  // ignore parse errors for partial chunks
+          for (const line of lines) {
+            if (line === "data: [DONE]") continue;
+            if (line.startsWith("data: ")) {
+              try {
+                const parsed = JSON.parse(line.slice(6)) as {
+                  choices?: Array<{ delta?: { content?: string } }>;
+                  usage?: { prompt_tokens?: number; completion_tokens?: number };
+                };
+                const delta = parsed.choices?.[0]?.delta?.content ?? "";
+                if (delta) {
+                  assistantResponse += delta;
+                  streamMetrics.onChunk(1);
+                  setMessages((prev) => {
+                    const next = [...prev];
+                    const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
+                    next[idx] = { ...next[idx], content: assistantResponse };
+                    return next;
+                  });
                 }
+                if (parsed.usage) {
+                  usageData = parsed.usage;
+                }
+              } catch {
+                // ignore parse errors for partial chunks
               }
             }
           }
         }
-
-        streamMetrics.finish(usageData);
-        // metrics state will update asynchronously; snapshot from refs via computeMetrics directly
-        const metricsSnapshot = streamMetrics.metrics;
-
-        // Attach metrics to the assistant message
-        setMessages((prev) => {
-          const next = [...prev];
-          const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
-          next[idx] = { ...next[idx], metrics: metricsSnapshot };
-          return next;
-        });
-
-        onMetricsUpdate?.(metricsSnapshot);
-      } catch (err: unknown) {
-        const e = err as { name?: string; message?: string };
-        if (e.name === "AbortError") {
-          setError("Request cancelled");
-        } else {
-          setError(e.message ?? "Network error");
-        }
-        streamMetrics.reset();
       }
 
-      setResponseDuration(Date.now() - startTime);
-      setLoading(false);
+      streamMetrics.finish(usageData);
+      // metrics state will update asynchronously; snapshot from refs via computeMetrics directly
+      const metricsSnapshot = streamMetrics.metrics;
+
+      // Attach metrics to the assistant message
+      setMessages((prev) => {
+        const next = [...prev];
+        const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
+        next[idx] = { ...next[idx], metrics: metricsSnapshot };
+        return next;
+      });
+
+      onMetricsUpdate?.(metricsSnapshot);
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e.name === "AbortError") {
+        setError("Request cancelled");
+      } else {
+        setError(e.message ?? "Network error");
+      }
+      streamMetrics.reset();
+    }
+
+    setResponseDuration(Date.now() - startTime);
+    setLoading(false);
   };
 
   const handleSend = async () => {
@@ -264,7 +280,9 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
           {responseStatus !== null && (
             <span
               className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                responseStatus < 400 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                responseStatus < 400
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
               }`}
             >
               {responseStatus}
@@ -316,9 +334,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
                 msg.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
               }`}
             >
-              <span className="text-[10px] text-text-muted uppercase mb-1 px-1">
-                {msg.role}
-              </span>
+              <span className="text-[10px] text-text-muted uppercase mb-1 px-1">{msg.role}</span>
               <div
                 className={`px-4 py-2.5 rounded-2xl text-sm ${
                   msg.role === "user"

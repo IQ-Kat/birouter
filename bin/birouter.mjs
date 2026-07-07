@@ -6,6 +6,7 @@
  * Special bypasses (handled before Commander):
  *   --mcp                     Start MCP server over stdio
  *   reset-encrypted-columns   Recovery tool for broken encrypted credentials
+ *   reset-password            Reset the admin/management password
  *
  * All other commands are routed through Commander (bin/cli/program.mjs).
  */
@@ -214,6 +215,15 @@ if (process.argv.includes("reset-encrypted-columns")) {
   process.exit(exitCode ?? 0);
 }
 
+if (process.argv.includes("reset-password")) {
+  // bin/reset-password.mjs self-executes its `main()` on import and calls
+  // process.exit() on completion/error. Await a never-resolving promise so
+  // control never falls through to Commander (which would then reject
+  // `reset-password` as an unknown command). See #6261.
+  await import(pathToFileURL(join(ROOT, "bin", "reset-password.mjs")).href);
+  await new Promise(() => {});
+}
+
 // ── Launch Menu ──────────────────────────────────────────────────────────
 // When the user types `birouter` without any arguments, show an interactive
 // menu instead of immediately starting the server.
@@ -248,6 +258,7 @@ if (NO_ARGS && !HAS_SERVE_FLAG) {
   } else if (action === "help") {
     process.argv.push("--help");
   }
+}
 }
 
 try {

@@ -97,6 +97,11 @@ test("webFetchInput accepts depth values 0, 1, 2", () => {
   }
 });
 
+test("webFetchInput accepts provider=tinyfish", () => {
+  const parsed = webFetchInput.parse({ url: "https://example.com", provider: "tinyfish" });
+  assert.equal(parsed.provider, "tinyfish");
+});
+
 test("webFetchInput rejects invalid provider", () => {
   assert.throws(
     () => webFetchInput.parse({ url: "https://example.com", provider: "unknown-provider" }),

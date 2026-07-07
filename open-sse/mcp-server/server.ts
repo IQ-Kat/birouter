@@ -1,4 +1,4 @@
-﻿import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   getComboModelProvider,
@@ -578,7 +578,7 @@ async function handleWebSearch(args: {
 
 async function handleWebFetch(args: {
   url: string;
-  provider?: "firecrawl" | "jina-reader" | "tavily-search";
+  provider?: "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish";
   format?: "markdown" | "html" | "links" | "screenshot";
   include_metadata?: boolean;
   depth?: number;
@@ -867,12 +867,12 @@ export function createMcpServer(): McpServer {
   );
 
   server.registerTool(
-    "BIROUTER_pick_fastest_model",
+    "birouter_pick_fastest_model",
     {
       description: "Picks the fastest reliable provider-model pair from live telemetry.",
       inputSchema: pickFastestModelInput,
     },
-    withScopeEnforcement("BIROUTER_pick_fastest_model", (args) =>
+    withScopeEnforcement("birouter_pick_fastest_model", (args) =>
       handlePickFastestModel(pickFastestModelInput.parse(args))
     )
   );

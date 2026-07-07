@@ -21,9 +21,15 @@ test("runBirouterCli: returns CLI-not-found when birouter unavailable", async ()
   const { getCopilotTool } = await import("../../src/lib/copilot/tools.ts");
   const tool = getCopilotTool("runBirouterCli");
   assert.ok(tool);
-  const result = await tool.handler({ command: "health" });
-  assert.ok(
-    result.includes("birouter CLI not found in PATH"),
-    `Expected CLI-not-found message, got: ${result}`
-  );
+  const originalPath = process.env.PATH;
+  try {
+    process.env.PATH = "";
+    const result = await tool.handler({ command: "health" });
+    assert.ok(
+      result.includes("birouter CLI not found in PATH"),
+      `Expected CLI-not-found message, got: ${result}`
+    );
+  } finally {
+    process.env.PATH = originalPath;
+  }
 });

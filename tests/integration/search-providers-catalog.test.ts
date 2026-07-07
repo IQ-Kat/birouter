@@ -52,7 +52,7 @@ const route = await import("../../src/app/api/search/providers/route.ts");
 // linkup, searchapi, youcom, searxng, ollama, zai + duckduckgo-free (added in the
 // v3.8.27 cycle, registry open-sse/config/searchRegistry.ts).
 const EXPECTED_SEARCH_COUNT = 13;
-const EXPECTED_FETCH_COUNT = 3;
+const EXPECTED_FETCH_COUNT = 4;
 const EXPECTED_TOTAL = EXPECTED_SEARCH_COUNT + EXPECTED_FETCH_COUNT;
 
 // ---------------------------------------------------------------------------
@@ -290,6 +290,7 @@ test("search-providers-catalog: fetch providers have correct metadata", async ()
   assert.ok(ids.includes("firecrawl"), "firecrawl must be present");
   assert.ok(ids.includes("jina-reader"), "jina-reader must be present");
   assert.ok(ids.includes("tavily-search"), "tavily-search must be present");
+  assert.ok(ids.includes("tinyfish"), "tinyfish must be present");
 
   const firecrawl = fetchProviders.find((p: { id: string }) => p.id === "firecrawl");
   assert.equal(firecrawl.name, "Firecrawl");
@@ -313,6 +314,14 @@ test("search-providers-catalog: fetch providers have correct metadata", async ()
   const tavily = fetchProviders.find((p: { id: string }) => p.id === "tavily-search");
   assert.equal(tavily.name, "Tavily Extract");
   assert.equal(tavily.costPerQuery, 0.001);
+
+  const tinyfish = fetchProviders.find((p: { id: string }) => p.id === "tinyfish");
+  assert.equal(tinyfish.name, "TinyFish Fetch");
+  assert.equal(tinyfish.costPerQuery, 0);
+  assert.ok(
+    tinyfish.fetchFormats.includes("markdown"),
+    "tinyfish fetchFormats must include markdown"
+  );
 });
 
 test("search-providers-catalog: search providers have correct fields", async () => {

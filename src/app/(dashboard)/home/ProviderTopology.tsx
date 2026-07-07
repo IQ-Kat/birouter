@@ -1,6 +1,5 @@
 "use client";
-
-import { useMemo, useState, useEffect, useRef, type CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
@@ -11,8 +10,15 @@ import { edgeStyle } from "@/shared/components/flow/edgeStyles";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
 import BirouterLogo from "@/shared/components/BirouterLogo";
 
-const FE_ACTIVE_TIMEOUT_MS = 60_000;
-const FE_ACTIVE_TICK_MS = 1_000;
+// Rings: [capacity, rx, ry]. Each successive ring fits ~6 more nodes.
+const RINGS: [number, number, number][] = [
+  [8, 210, 132],
+  [14, 370, 233],
+  [20, 530, 334],
+  [26, 690, 435],
+  [32, 850, 536],
+  [38, 1010, 637],
+];
 
 type ProviderConfig = { color?: string; name?: string; textIcon?: string };
 
@@ -187,68 +193,73 @@ function buildLayout(
 
   if (providers.length === 0) return { nodes, edges };
 
-  // Sort alphabetically to maintain a stable layout in real time,
-  // preventing nodes from jumping or swapping positions as status updates.
+  // Sort: active → error → last-used → rest (alpha within groups)
   const sorted = [...providers].sort((a, b) => {
     const aId = a.provider.toLowerCase();
     const bId = b.provider.toLowerCase();
-    return aId.localeCompare(bId);
+    const rank = (id: string) => {
+      if (activeSet.has(id)) return 0;
+      if (errorSet.has(id)) return 1;
+      if (lastSet.has(id)) return 2;
+      return 3;
+    };
+    const d = rank(aId) - rank(bId);
+    return d !== 0 ? d : aId.localeCompare(bId);
   });
 
-  const count = sorted.length;
-  const baseRy = 132;
-  // Dynamic vertical radius to adjust for the number of nodes so they don't overlap,
-  // while keeping them all on a single ellipse.
-  const ry = Math.max(baseRy, count * 20);
-  const rx = ry * 1.6; // Match the desktop container's widescreen aspect ratio (1.6:1)
+  let provIdx = 0;
+  for (let ri = 0; ri < RINGS.length && provIdx < sorted.length; ri++) {
+    const [cap, rx, ry] = RINGS[ri];
+    const count = Math.min(cap, sorted.length - provIdx);
 
-  // Push a single background orbit circle
-  nodes.push({
-    id: "orbit-0",
-    type: "orbit",
-    position: { x: -rx, y: -ry },
-    data: { rx, ry },
-    draggable: false,
-    selectable: false,
-  });
-
-  for (let i = 0; i < count; i++) {
-    const p = sorted[i];
-    const pid = p.provider.toLowerCase();
-    const active = activeSet.has(pid);
-    const error = !active && errorSet.has(pid);
-    const last = !active && !error && lastSet.has(pid);
-    const config = getProviderConfig(p.provider);
-    const nodeId = `provider-${p.provider}`;
-
-    const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
-    const cx = rx * Math.cos(angle);
-    const cy = ry * Math.sin(angle);
-    const { sourceHandle, targetHandle } = getHandles(angle, cx);
-
+    // Push background orbit circle for this ring
     nodes.push({
-      id: nodeId,
-      type: "provider",
-      position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
-      data: {
-        label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
-        color: config.color || "#6b7280",
-        providerId: p.provider,
-        active,
-        error,
-      } satisfies ProviderNodeData,
+      id: `orbit-${ri}`,
+      type: "orbit",
+      position: { x: -rx, y: -ry },
+      data: { rx, ry },
       draggable: false,
+      selectable: false,
     });
 
-    edges.push({
-      id: `e-${nodeId}`,
-      source: "router",
-      sourceHandle,
-      target: nodeId,
-      targetHandle,
-      animated: active,
-      style: edgeStyle(active, last, error) as CSSProperties,
-    });
+    for (let i = 0; i < count; i++) {
+      const p = sorted[provIdx++];
+      const pid = p.provider.toLowerCase();
+      const active = activeSet.has(pid);
+      const error = !active && errorSet.has(pid);
+      const last = !active && !error && lastSet.has(pid);
+      const config = getProviderConfig(p.provider);
+      const nodeId = `provider-${p.provider}`;
+
+      const angle = -Math.PI / 2 + (2 * Math.PI * i) / count;
+      const cx = rx * Math.cos(angle);
+      const cy = ry * Math.sin(angle);
+      const { sourceHandle, targetHandle } = getHandles(angle, cx);
+
+      nodes.push({
+        id: nodeId,
+        type: "provider",
+        position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
+        data: {
+          label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
+          color: config.color || "#6b7280",
+          providerId: p.provider,
+          active,
+          error,
+        } satisfies ProviderNodeData,
+        draggable: false,
+      });
+
+      edges.push({
+        id: `e-${nodeId}`,
+        source: "router",
+        sourceHandle,
+        target: nodeId,
+        targetHandle,
+        animated: active,
+        style: edgeStyle(active, last, error) as CSSProperties,
+      });
+    }
   }
 
   return { nodes, edges };
@@ -280,43 +291,12 @@ export default function ProviderTopology({
   const lastKey = lastProvider.toLowerCase();
   const errorKey = errorProvider.toLowerCase();
 
-  const rawActiveSet = useMemo(
+  const activeSet = useMemo(
     () => new Set<string>(activeKey ? activeKey.split(",") : []),
     [activeKey]
   );
   const lastSet = useMemo(() => new Set<string>(lastKey ? [lastKey] : []), [lastKey]);
   const errorSet = useMemo(() => new Set<string>(errorKey ? [errorKey] : []), [errorKey]);
-
-  const firstSeenRef = useRef<Record<string, number>>({});
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const seen = firstSeenRef.current;
-    const now = Date.now();
-    for (const p of rawActiveSet) {
-      if (!seen[p]) seen[p] = now;
-    }
-    for (const p of Object.keys(seen)) {
-      if (!rawActiveSet.has(p)) delete seen[p];
-    }
-  }, [rawActiveSet]);
-
-  useEffect(() => {
-    if (rawActiveSet.size === 0) return;
-    const id = setInterval(() => setTick((t) => t + 1), FE_ACTIVE_TICK_MS);
-    return () => clearInterval(id);
-  }, [rawActiveSet]);
-
-  const activeSet = useMemo(() => {
-    const now = Date.now();
-    const filtered = new Set<string>();
-    for (const p of rawActiveSet) {
-      const ts = firstSeenRef.current[p];
-      if (!ts || now - ts < FE_ACTIVE_TIMEOUT_MS) filtered.add(p);
-    }
-    return filtered;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawActiveSet, tick]);
 
   const { nodes, edges } = useMemo(
     () => buildLayout(providers, activeSet, lastSet, errorSet),

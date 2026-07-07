@@ -450,6 +450,8 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
     tool_calling: true,
     reasoning: true,
     thinking: true,
+    supportsThinking: true,
+    effort_tiers: ["none", "low", "medium", "high", "xhigh"],
   });
   assert.equal(defaultModel.url, undefined);
   assert.equal(defaultModel.toolCalling, undefined);
@@ -505,6 +507,8 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
     tool_calling: true,
     reasoning: true,
     thinking: true,
+    supportsThinking: true,
+    effort_tiers: ["none", "low", "medium", "high", "xhigh"],
   });
 });
 

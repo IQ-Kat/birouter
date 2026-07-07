@@ -14,7 +14,7 @@ import {
 import * as log from "@/sse/utils/logger";
 
 // ---------------------------------------------------------------------------
-// Fetch provider metadata (hardcoded — no registry for these 3)
+// Fetch provider metadata (hardcoded — no registry for these 4)
 // ---------------------------------------------------------------------------
 
 interface FetchProviderDef {
@@ -46,6 +46,13 @@ const FETCH_PROVIDERS: FetchProviderDef[] = [
     costPerQuery: 0.001,
     freeMonthlyQuota: 1000,
     fetchFormats: ["markdown", "text"],
+  },
+  {
+    id: "tinyfish",
+    name: "TinyFish Fetch",
+    costPerQuery: 0,
+    freeMonthlyQuota: 0,
+    fetchFormats: ["markdown", "html"],
   },
 ];
 
@@ -144,7 +151,7 @@ export async function GET(request: Request) {
     );
 
     // -----------------------------------------------------------------------
-    // 2. Build fetch providers (3 hardcoded)
+    // 2. Build fetch providers (4 hardcoded)
     // -----------------------------------------------------------------------
     const fetchProviderStatuses = await Promise.all(
       FETCH_PROVIDERS.map((fp) =>
