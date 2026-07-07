@@ -333,6 +333,106 @@ export function assemblePathSanitize(projectRoot, outDir, distDir = ".next") {
 }
 
 /**
+ * Normalize Windows-style backslash paths in the baked nextConfig JSON within
+ * server.js and required-server-files.json.
+ *
+ * When building on Windows, Next.js serializes paths like `"./.build\\next"`
+ * (with escaped backslashes) into the standalone server.js config blob.
+ * On Linux/Android/macOS these backslash separators are invalid and cause the
+ * "Could not find a production build" error.
+ *
+ * This function:
+ * 1. Extracts the `nextConfig = {...}` JSON blob from server.js
+ * 2. Parses it, recursively walks all string values, and replaces `\\` with `/`
+ *    in values that look like file paths (contain `\\` but aren't regex patterns)
+ * 3. Re-serializes and writes back
+ * 4. Does the same for required-server-files.json
+ *
+ * This is always called (not opt-in) because cross-platform compatibility is critical.
+ *
+ * @param {string} outDir  - assembled standalone output directory
+ * @param {string} distDir - relative distDir (e.g. ".build/next")
+ * @returns {number} number of files patched
+ */
+export function normalizeWindowsPaths(outDir, distDir = ".next") {
+  const targets = [
+    { file: path.join(outDir, "server.js"), type: "server.js" },
+    { file: path.join(outDir, distDir, "required-server-files.json"), type: "json" },
+  ];
+
+  /**
+   * Recursively walk an object and normalize backslashes in string values
+   * that look like file paths. Skip regex-pattern strings (htmlLimitedBots, etc.)
+   */
+  function normalizeObj(obj) {
+    if (typeof obj === "string") {
+      // Skip strings that look like regex patterns (contain regex metacharacters
+      // like |, +, ?, *, etc. combined with backslashes used for escaping)
+      if (/[|+?*^$()\[\]]/.test(obj) && /\\[wWdDsS()\[\]|+?*^$]/.test(obj)) {
+        return obj;
+      }
+      // Normalize backslashes to forward slashes in path-like strings
+      if (obj.includes("\\")) {
+        return obj.replace(/\\/g, "/");
+      }
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length; i++) {
+        obj[i] = normalizeObj(obj[i]);
+      }
+      return obj;
+    }
+    if (obj && typeof obj === "object") {
+      for (const key of Object.keys(obj)) {
+        // Skip known regex keys to avoid corrupting regex patterns
+        if (key === "htmlLimitedBots") continue;
+        obj[key] = normalizeObj(obj[key]);
+      }
+      return obj;
+    }
+    return obj;
+  }
+
+  let patchedCount = 0;
+
+  for (const { file, type } of targets) {
+    if (!fsSync.existsSync(file)) continue;
+
+    let content = fsSync.readFileSync(file, "utf8");
+
+    if (type === "server.js") {
+      // Extract the nextConfig JSON blob: `const nextConfig = {...}`
+      const configMatch = content.match(/const\s+nextConfig\s*=\s*(\{[\s\S]*?\})\s*\n/);
+      if (!configMatch) continue;
+
+      try {
+        const config = JSON.parse(configMatch[1]);
+        normalizeObj(config);
+        const normalized = JSON.stringify(config);
+        content = content.replace(configMatch[1], normalized);
+        fsSync.writeFileSync(file, content);
+        patchedCount++;
+      } catch {
+        // JSON parse failed — skip gracefully
+      }
+    } else {
+      // required-server-files.json — normalize the entire JSON
+      try {
+        const json = JSON.parse(content);
+        normalizeObj(json);
+        fsSync.writeFileSync(file, JSON.stringify(json));
+        patchedCount++;
+      } catch {
+        // skip gracefully
+      }
+    }
+  }
+
+  return patchedCount;
+}
+
+/**
  * Strip Turbopack hashed externals from compiled chunks.
  * Even when Turbopack is disabled at build time, some instrumentation chunks
  * may still emit require('package-<16hexchars>') instead of require('package').
@@ -519,6 +619,17 @@ export function assembleStandalone({
   // NOT a literal <outDir>/.next/static. Copying to .next/static leaves the server's
   // static dir empty → every JS/CSS chunk 404s → blank page. Mirror the distDir path.
   copyStaticAndPublic({ distDir, relDistDir, projectRoot, resolvedOutDir });
+
+  // 3.5. Always normalize Windows backslash paths in server.js and
+  // required-server-files.json for cross-platform compatibility.
+  // When building on Windows, Next.js serializes distDir as "./.build\\next"
+  // which is invalid on Linux/Android/macOS.
+  const normalizedCount = normalizeWindowsPaths(resolvedOutDir, relDistDir);
+  if (normalizedCount > 0) {
+    console.log(
+      `[assembleStandalone] Normalised Windows backslash paths in ${normalizedCount} file(s)`
+    );
+  }
 
   // 4. Optionally sanitize abs paths
   if (sanitizePaths) {
