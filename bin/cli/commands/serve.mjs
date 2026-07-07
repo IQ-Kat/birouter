@@ -76,14 +76,12 @@ export async function runServe(opts = {}) {
   const noOpen = opts.open === false;
 
   console.log(`
-\x1b[36m   ____  _                     _
-  |  _ \\(_)               _   | |
-  | |_) |_ _ __ ___  _   | |_ | |_ ___  _ __
-  |  _ <| | '__/ _ \\| | | |  _|| __/ _ \\| '__|
-  | |_) | | | | (_) | |_| | |_ | ||  __/| |
-  |____/|_|_|  \\___/ \\__,_|\\__| \\__\\___||_|
-\x1b[0m`);
-  console.log(`\x1b[2m  v${_pkg.version}\x1b[0m\n`);
+\x1b[36m  ____ ___ ____   ___  _   _ _____ _____ ____  
+ | __ )_ _|  _ \\\\ / _ \\\\| | | |_   _| ____|  _ \\\\ 
+ |  _ \\\\| || |_) | | | | | | | | | |  _| | |_) |
+ | |_) | ||  _ <| |_| | |_| | | | | |___|  _ < 
+ |____/___|_| \\_\\\\___/ \\___/  |_| |_____|_| \\_\\
+\x1b[0m  \x1b[34mv${_pkg.version} · Port ${dashboardPort}\x1b[0m\n`);
 
   const nodeSupport = getNodeRuntimeSupport();
   if (!nodeSupport.nodeCompatible) {
