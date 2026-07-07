@@ -2,6 +2,7 @@
 data/
 **/data/
 **/db.json
+CATATAN.md
 
 # VS Code extension test runtime (large binary, not needed in npm package)
 app/vscode-extension/

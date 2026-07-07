@@ -8,15 +8,11 @@ Birouter is a unified AI proxy/router — route any LLM through one endpoint wit
 
 ## Latest Updates
 
-### v3.8.46 — Latest
+### v3.8.47 — Latest
 
-- 237 provider entries
-- 94 MCP tools
-- 30 MCP scopes
-- 6 A2A skills
-- 134 open-sse services
-- 17 routing strategies
-- 42 i18n locales
+- **New Provider Support**: Add Iamhc AI gateway (`iamhc`) with OpenAI-compatible passthrough models and signup free credits
+- **Tray Mode & Build Fixes**: Improve Windows tray mode, autostart behavior, and clean up npm build file packaging
+- **AgentRouter & Format Fixes**: Fix AgentRouter routing/validation and Anthropic message format translation schemas
 
 ---
 

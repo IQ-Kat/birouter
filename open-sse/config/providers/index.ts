@@ -52,6 +52,7 @@ import { inference_netProvider } from "./registry/inference-net/index.ts";
 import { llm7Provider } from "./registry/llm7/index.ts";
 import { cerebrasProvider } from "./registry/cerebras/index.ts";
 import { charmHyperProvider } from "./registry/charm-hyper/index.ts";
+import { iamhcProvider } from "./registry/iamhc/index.ts";
 import { nubeProvider } from "./registry/nube/index.ts";
 import { clinepassProvider } from "./registry/clinepass/index.ts";
 import { sparkdeskProvider } from "./registry/sparkdesk/index.ts";
@@ -235,6 +236,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   llm7: llm7Provider,
   cerebras: cerebrasProvider,
   "charm-hyper": charmHyperProvider,
+  iamhc: iamhcProvider,
   nube: nubeProvider,
   clinepass: clinepassProvider,
   sparkdesk: sparkdeskProvider,

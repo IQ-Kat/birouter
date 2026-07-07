@@ -264,7 +264,13 @@ export default function ProviderCard({
                     sizes="26px"
                   />
                 ) : (
-                  <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
+                  <ProviderIcon
+                    providerId={provider.id || providerId}
+                    size={24}
+                    type="color"
+                    fallbackText={provider.textIcon}
+                    fallbackColor={provider.color}
+                  />
                 )}
               </div>
               <h3 className="text-sm font-semibold leading-snug flex-1 min-w-0">

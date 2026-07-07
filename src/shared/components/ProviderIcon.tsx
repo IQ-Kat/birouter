@@ -86,6 +86,7 @@ const KNOWN_PNGS = new Set([
   "piapi",
   "predibase",
   "reka",
+  "iamhc",
 ]);
 const KNOWN_SVGS = new Set([
   "apikey",
@@ -226,7 +227,7 @@ const ProviderIcon = memo(function ProviderIcon({
           alt={providerId}
           width={size}
           height={size}
-          style={{ objectFit: "contain" }}
+          style={{ objectFit: "contain", height: "auto" }}
           onError={() => {
             setFailedAssets((current) => ({ ...current, [pngKey]: true }));
           }}
@@ -247,10 +248,36 @@ const ProviderIcon = memo(function ProviderIcon({
           alt={providerId}
           width={size}
           height={size}
-          style={{ objectFit: "contain" }}
+          style={{ objectFit: "contain", height: "auto" }}
           onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
           unoptimized
         />
+      </span>
+    );
+  }
+
+  if (fallbackText) {
+    return (
+      <span
+        className={className}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: size,
+          height: size,
+          fontSize: Math.max(8, Math.round(size * 0.38)),
+          fontWeight: 700,
+          lineHeight: 1,
+          color: "#FFFFFF",
+          backgroundColor: fallbackColor || "#6366F1",
+          borderRadius: "4px",
+          flex: "none",
+          textTransform: "uppercase",
+          ...style,
+        }}
+      >
+        {fallbackText.slice(0, 3)}
       </span>
     );
   }
