@@ -304,7 +304,6 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
  * @returns {number} number of path replacements made
  */
 export function assemblePathSanitize(projectRoot, outDir, distDir = ".next") {
-  const buildRoot = projectRoot.replaceAll("\\", "/"); // normalise for regex safety
   const sanitizeTargets = [
     path.join(outDir, "server.js"),
     // required-server-files.json lives under the distDir (e.g. .build/next), not
@@ -312,13 +311,17 @@ export function assemblePathSanitize(projectRoot, outDir, distDir = ".next") {
     path.join(outDir, distDir, "required-server-files.json"),
   ];
 
+  // Create a regex that matches the projectRoot with any combination of slashes/backslashes
+  // and is case-insensitive (essential on Windows for drive letters).
+  const segments = projectRoot.split(/[\\/]+/);
+  const escapedSegments = segments.map((seg) => seg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const separatorPattern = "(?:[\\\\/]+|(?:\\\\\\\\)+)";
+  const re = new RegExp(escapedSegments.join(separatorPattern), "gi");
+
   let sanitisedCount = 0;
   for (const filePath of sanitizeTargets) {
     if (!fsSync.existsSync(filePath)) continue;
     let content = fsSync.readFileSync(filePath, "utf8");
-    // Escape special regex characters in the path
-    const escaped = buildRoot.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-    const re = new RegExp(escaped, "g");
     const matches = content.match(re);
     if (matches) {
       content = content.replace(re, ".");
