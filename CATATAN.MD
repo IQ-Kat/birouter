@@ -1,1 +1,1 @@
-Versi Upstream yang di ikuti terakhir di Omnirouter : 3.8.46
+Versi Upstream yang di ikuti terakhir di Omnirouter : 3.8.45
