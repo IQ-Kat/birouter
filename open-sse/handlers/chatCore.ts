@@ -3896,7 +3896,9 @@ export async function handleChatCore({
     // Extracts <think> and <thinking> tags into reasoning_content
     // Source format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
     if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
-      translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
+      translatedResponse = sanitizeResponsesApiResponse(
+        translatedResponse
+      ) as typeof translatedResponse;
     } else if (clientResponseFormat === FORMATS.OPENAI) {
       // Port of decolua/9router#517: opt-in `x-birouter-strip-reasoning` header
       // unconditionally drops `reasoning_content` from the final non-streaming
@@ -3907,7 +3909,7 @@ export async function handleChatCore({
       translatedResponse = sanitizeOpenAIResponse(translatedResponse, {
         stripReasoning,
         parseTextualReasoningTags: shouldParseTextualReasoningTags(provider, model),
-      });
+      }) as typeof translatedResponse;
     }
 
     applyClientUsageBuffer(translatedResponse, body, clientResponseFormat);
