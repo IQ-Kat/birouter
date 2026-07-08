@@ -353,7 +353,16 @@ async function ensureLlmlinguaOptionals() {
 async function ensureSqlJsWasm() {
   const distWasmDir = join(ROOT, "dist", "node_modules", "sql.js", "dist");
   const distWasmPath = join(distWasmDir, "sql-wasm.wasm");
-  const rootWasmPath = join(ROOT, "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+
+  // In nested dependency layouts, sql.js is in ROOT/node_modules/sql.js.
+  // In flat dependency layouts (like npx cache or npm install -g), sql.js is a sibling (ROOT/../sql.js).
+  const nestedWasmPath = join(ROOT, "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+  const siblingWasmPath = join(ROOT, "..", "sql.js", "dist", "sql-wasm.wasm");
+
+  let rootWasmPath = nestedWasmPath;
+  if (!existsSync(rootWasmPath) && existsSync(siblingWasmPath)) {
+    rootWasmPath = siblingWasmPath;
+  }
 
   if (!hasStandaloneAppBundle(ROOT)) {
     return; // Only relevant for the packaged dist/ bundle
@@ -364,7 +373,7 @@ async function ensureSqlJsWasm() {
   }
 
   if (!existsSync(rootWasmPath)) {
-    // sql.js isn't installed in root node_modules — skip silently
+    // sql.js isn't installed in any of the resolved paths — skip silently
     return;
   }
 
