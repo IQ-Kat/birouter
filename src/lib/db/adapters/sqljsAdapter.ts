@@ -1,6 +1,7 @@
 // src/lib/db/adapters/sqljsAdapter.ts
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
 
 const SAVE_DEBOUNCE_MS = 100;
@@ -9,6 +10,27 @@ const CHECKPOINT_INTERVAL_MS = 60_000;
 let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
 
 function resolveSqlJsWasmPath(): string {
+  // Resolve the directory of this compiled adapter file so that we can locate
+  // sql-wasm.wasm relative to the package itself. This works for both local dev
+  // (src/) and globally-installed builds (e.g. npm install -g birouter on Termux/VPS)
+  // where process.cwd() is the user's working directory, not the package root.
+  let packageRelativePaths: string[] = [];
+  try {
+    const adapterDir = path.dirname(fileURLToPath(import.meta.url));
+    // Walk up from the adapter file looking for node_modules/sql.js — covers
+    // both src/lib/db/adapters/ (dev) and any dist/ layout (production).
+    let dir = adapterDir;
+    for (let i = 0; i < 10; i++) {
+      const candidate = path.join(dir, "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+      packageRelativePaths.push(candidate);
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  } catch {
+    // import.meta.url unavailable in some CJS contexts — skip gracefully
+  }
+
   const candidatePaths = [
     path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm"),
     path.join(
@@ -20,6 +42,7 @@ function resolveSqlJsWasmPath(): string {
       "dist",
       "sql-wasm.wasm"
     ),
+    ...packageRelativePaths,
   ];
 
   for (const candidatePath of candidatePaths) {
@@ -55,14 +78,26 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
   const buf = filePath !== ":memory:" && fs.existsSync(filePath) ? fs.readFileSync(filePath) : null;
   const db = new SQLLib.Database(buf ? new Uint8Array(buf) : undefined);
 
+  // sql.js operates entirely in WASM memory and exports the full database on every save.
+  // If WAL mode is set (e.g. by birouter's startup PRAGMA), it gets embedded in the exported
+  // file header. On the next startup, sql.js tries to open the file as WAL but has no WAL
+  // file on disk → fails with "out of memory". Force DELETE (classic) journal mode here so
+  // the exported file is always in a format sql.js can reliably read back.
+  db.run("PRAGMA journal_mode = DELETE;");
+
   let dirty = false;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
   let _isOpen = true;
 
   function persist(): void {
     if (filePath === ":memory:") return;
+    if (!_isOpen) return; // Guard: don't call db.export() after close
     const data = db.export();
-    fs.writeFileSync(filePath, Buffer.from(data));
+    // Atomic write: write to a .tmp file first, then rename.
+    // This ensures a Ctrl+C during the write never leaves a partial/corrupt file.
+    const tmpPath = filePath + ".tmp";
+    fs.writeFileSync(tmpPath, Buffer.from(data));
+    fs.renameSync(tmpPath, filePath);
     dirty = false;
   }
 
@@ -160,7 +195,7 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
   }
 
   const flush = (): void => {
-    if (dirty)
+    if (dirty && _isOpen)
       try {
         persist();
       } catch {}

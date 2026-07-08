@@ -342,9 +342,48 @@ async function ensureLlmlinguaOptionals() {
   }
 }
 
+/**
+ * Ensure sql-wasm.wasm is present inside the standalone dist/node_modules so that
+ * the sql.js WASM fallback driver works after a global npm install (e.g. on Termux / VPS)
+ * where better-sqlite3 cannot load its native binary.
+ *
+ * The wasm file is a pure binary asset — it is not included in Next.js's automatic
+ * trace on all platforms, so we copy it explicitly from the root node_modules.
+ */
+async function ensureSqlJsWasm() {
+  const distWasmDir = join(ROOT, "dist", "node_modules", "sql.js", "dist");
+  const distWasmPath = join(distWasmDir, "sql-wasm.wasm");
+  const rootWasmPath = join(ROOT, "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+
+  if (!hasStandaloneAppBundle(ROOT)) {
+    return; // Only relevant for the packaged dist/ bundle
+  }
+
+  if (existsSync(distWasmPath)) {
+    return; // Already in place — nothing to do
+  }
+
+  if (!existsSync(rootWasmPath)) {
+    // sql.js isn't installed in root node_modules — skip silently
+    return;
+  }
+
+  try {
+    mkdirSync(distWasmDir, { recursive: true });
+    copyFileSync(rootWasmPath, distWasmPath);
+    console.log("  ✅ sql-wasm.wasm copied to dist/node_modules/sql.js/dist/\n");
+  } catch (err) {
+    console.warn(`  ⚠️  Could not copy sql-wasm.wasm: ${err.message}`);
+    console.warn(
+      `     Manual fix: mkdir -p "${distWasmDir}" && cp "${rootWasmPath}" "${distWasmPath}"\n`
+    );
+  }
+}
+
 await fixBetterSqliteBinary();
 await fixWreqJsBinary();
 await ensureSwcHelpers();
+await ensureSqlJsWasm();
 await ensureLlmlinguaOptionals();
 await syncProjectEnv();
 
