@@ -447,7 +447,7 @@ export const ZED_CONFIG = {
 // attempt and sends the public key to zed.dev/native_app_signin; Zed
 // encrypts the resulting access token against that public key and redirects
 // the browser to a local "native app" callback
-// (http://127.0.0.1:<port>/?user_id=...&access_token=...). OmniRoute decrypts
+// (http://127.0.0.1:<port>/?user_id=...&access_token=...). Birouter decrypts
 // the token with the matching private key — see open-sse/shared/zedAuth.ts.
 // No client_id/secret/Firebase key is embedded here (Hard Rule #11 does not
 // apply — there is no upstream secret to embed).

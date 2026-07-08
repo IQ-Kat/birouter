@@ -28,7 +28,7 @@ function choiceText(choice: AnyRec): string {
  * When `requestedModel` is provided, the returned `model` echoes the caller's
  * requested identifier rather than the upstream provider's post-routing model
  * string. Legacy OpenAI Completions clients pin cache keys / observability to
- * the model they asked for, and the `x-omniroute-model` response header
+ * the model they asked for, and the `x-Birouter-model` response header
  * already advertises the request-side identifier — the body must match.
  */
 export function toTextCompletionObject(obj: AnyRec, requestedModel?: string): AnyRec {
@@ -106,7 +106,7 @@ export function createTextCompletionStreamTransformer(
  * text-completion shape. Error responses and non-JSON/non-SSE bodies pass through.
  *
  * When `requestedModel` is provided, response `body.model` echoes the caller's
- * requested identifier (matching the `x-omniroute-model` response header).
+ * requested identifier (matching the `x-Birouter-model` response header).
  */
 export async function asTextCompletionResponse(
   res: Response,

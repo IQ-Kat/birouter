@@ -1,5 +1,5 @@
 // Regression guard for issue #6406 — `/v1/models` returned the full catalog
-// unauthenticated but 0 models when an env-var master key (OMNIROUTE_API_KEY /
+// unauthenticated but 0 models when an env-var master key (BIROUTER_API_KEY /
 // ROUTER_API_KEY) was presented. Root cause: `isModelAllowedForKey` denies when
 // `getApiKeyMetadata` returns null, and env-var keys have no DB row.
 // Fix: skip the per-model filter when apiKey has no metadata (env-var master key).
@@ -10,7 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-envkey-6406-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-envkey-6406-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-envkey-secret";
 
@@ -53,7 +53,7 @@ test.after(async () => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  delete process.env.OMNIROUTE_API_KEY;
+  delete process.env.BIROUTER_API_KEY;
 });
 
 test("#6406 env-var master key (no DB metadata) sees the full catalog, not 0 models", async () => {
@@ -70,7 +70,7 @@ test("#6406 env-var master key (no DB metadata) sees the full catalog, not 0 mod
 
   // Env-var master key path — no DB row, so getApiKeyMetadata returns null.
   const envKey = "sk-envkey-6406-master";
-  process.env.OMNIROUTE_API_KEY = envKey;
+  process.env.BIROUTER_API_KEY = envKey;
 
   const authResponse = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models", {

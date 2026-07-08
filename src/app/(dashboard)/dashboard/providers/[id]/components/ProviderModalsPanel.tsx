@@ -26,7 +26,7 @@ import ImportGrokCliAuthModal from "./modals/ImportGrokCliAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
 import { type ImportProgress } from "../hooks/useModelImportHandlers";
-import type { ProviderMessageTranslator } from "../providerPageHelpers";
+import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
 
 interface ProviderInfo {
   name: string;
@@ -221,7 +221,7 @@ export default function ProviderModalsPanel({
     <>
       {showRiskNoticeModal && subscriptionRisk && (
         <RiskNoticeModal
-          variant={(providerInfo.riskNoticeVariant as string) ?? "oauth"}
+          variant={((providerInfo.riskNoticeVariant as string) ?? "oauth") as any}
           providerId={providerId}
           providerName={providerInfo.name}
           onConfirm={handleConfirmRiskNotice}
@@ -234,22 +234,22 @@ export default function ProviderModalsPanel({
             isOpen={showOAuthModal}
             reauthConnection={reauthConnection}
             providerInfo={{ ...providerInfo, id: providerId }}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ) : providerId === "cursor" ? (
           <CursorAuthModal
             isOpen={showOAuthModal}
             reauthConnection={reauthConnection}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ) : providerId === "trae" ? (
           <TraeAuthModal
             isOpen={showOAuthModal}
             reauthConnection={reauthConnection}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ) : (
           <OAuthModal
@@ -257,8 +257,8 @@ export default function ProviderModalsPanel({
             reauthConnection={reauthConnection}
             provider={providerId}
             providerInfo={providerInfo}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ))}
       {providerId === "siliconflow" && (
@@ -287,7 +287,7 @@ export default function ProviderModalsPanel({
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
           isCommandCode={isCommandCode}
-          commandCodeAuthState={commandCodeAuthState}
+          commandCodeAuthState={commandCodeAuthState as any}
           onStartCommandCodeAuth={handleStartCommandCodeAuth}
           onSave={handleSaveApiKey}
           onClose={handleCloseAddApiKeyModal}
@@ -297,10 +297,12 @@ export default function ProviderModalsPanel({
         isOpen={batchDeleteConfirmOpen}
         onClose={() => setBatchDeleteConfirmOpen(false)}
         onConfirm={handleBatchDeleteConfirm}
-        title={t("batchDeleteConfirmTitle", "Delete connections")}
-        message={t("batchDeleteConfirm", { count: selectedIds.size })}
-        confirmText={t("batchDeleteConfirmButton", "Delete")}
-        cancelText={t("cancel", "Cancel")}
+        title={providerText(t, "batchDeleteConfirmTitle", "Delete connections")}
+        message={providerText(t, "batchDeleteConfirm", "Delete {count} connections", {
+          count: selectedIds.size,
+        })}
+        confirmText={providerText(t, "batchDeleteConfirmButton", "Delete")}
+        cancelText={providerText(t, "cancel", "Cancel")}
         loading={batchDeleting}
       />
       {providerId === "codex" && applyCodexModalConnectionId && (
@@ -350,8 +352,8 @@ export default function ProviderModalsPanel({
           onClose={() => setExternalLinkModalOpen(false)}
           loading={externalLinkLoading}
           error={externalLinkError}
-          url={externalLinkUrl}
-          copied={externalLinkCopied}
+          url={externalLinkUrl || ""}
+          copied={externalLinkCopied ? "extlink" : false}
           onCopy={externalLinkCopy}
         />
       )}
@@ -396,7 +398,7 @@ export default function ProviderModalsPanel({
         <ProxyConfigModal
           isOpen={!!proxyTarget}
           onClose={() => setProxyTarget(null)}
-          level={proxyTarget.level}
+          level={proxyTarget.level as any}
           levelId={proxyTarget.id}
           levelLabel={proxyTarget.label}
           onSaved={() => {

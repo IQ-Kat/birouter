@@ -8,8 +8,8 @@ import KiroSocialOAuthModal from "./KiroSocialOAuthModal";
 type KiroOAuthWrapperProps = {
   isOpen: boolean;
   providerInfo?: { id?: string; name?: string } | null;
-  onSuccess?: () => void;
-  onClose: () => void;
+  onSuccessAction?: () => void;
+  onCloseAction: () => void;
   reauthConnection?: null | { id?: string };
 };
 
@@ -20,8 +20,8 @@ type KiroOAuthWrapperProps = {
 export default function KiroOAuthWrapper({
   isOpen,
   providerInfo,
-  onSuccess,
-  onClose,
+  onSuccessAction,
+  onCloseAction,
   reauthConnection,
 }: KiroOAuthWrapperProps) {
   const [authMethod, setAuthMethod] = useState(null); // null | "builder-id" | "idc" | "social" | "import"
@@ -43,10 +43,10 @@ export default function KiroOAuthWrapper({
         setSocialProvider(config.provider);
       } else if (method === "import") {
         // Import handled in KiroAuthModal, just close
-        onSuccess?.();
+        onSuccessAction?.();
       }
     },
-    [onSuccess]
+    [onSuccessAction]
   );
 
   const handleBack = () => {
@@ -58,13 +58,13 @@ export default function KiroOAuthWrapper({
   const handleSocialSuccess = () => {
     setAuthMethod(null);
     setSocialProvider(null);
-    onSuccess?.();
+    onSuccessAction?.();
   };
 
   const handleDeviceSuccess = () => {
     setAuthMethod(null);
     setIdcConfig(null);
-    onSuccess?.();
+    onSuccessAction?.();
   };
 
   // Show method selection first
@@ -78,7 +78,7 @@ export default function KiroOAuthWrapper({
         providerId={oauthProviderId}
         providerLabel={providerLabel}
         onMethodSelect={handleMethodSelect}
-        onClose={onClose}
+        onClose={onCloseAction}
       />
     );
   }
@@ -90,9 +90,9 @@ export default function KiroOAuthWrapper({
         isOpen={isOpen}
         provider={oauthProviderId}
         providerInfo={providerInfo}
-        onSuccess={handleDeviceSuccess}
+        onSuccessAction={handleDeviceSuccess}
         reauthConnection={reauthConnection}
-        onClose={handleBack}
+        onCloseAction={handleBack}
         idcConfig={idcConfig}
       />
     );
@@ -106,8 +106,8 @@ export default function KiroOAuthWrapper({
         provider={socialProvider}
         targetProvider={oauthProviderId}
         providerLabel={providerLabel}
-        onSuccess={handleSocialSuccess}
-        onClose={handleBack}
+        onSuccessAction={handleSocialSuccess}
+        onCloseAction={handleBack}
       />
     );
   }

@@ -86,7 +86,7 @@ export async function POST(request: Request) {
         // #3571 — translate the chat-pipeline response back to the legacy
         // text-completion shape so OpenAI Completion clients (e.g. TabbyML) work.
         // Thread `body.model` so response `body.model` echoes the caller's
-        // requested identifier, matching the `x-omniroute-model` header, and
+        // requested identifier, matching the `x-Birouter-model` header, and
         // echo the compression header on the way out.
         return withCompressionHeaderEcho(
           await asTextCompletionResponse(

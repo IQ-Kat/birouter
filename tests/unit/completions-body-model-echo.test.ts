@@ -9,7 +9,7 @@ import {
 } from "../../src/app/api/v1/completions/textCompletionTransform.ts";
 
 // Regression: `/v1/completions` response `body.model` must echo the caller's
-// requested model identifier (matching the `x-omniroute-model` response
+// requested model identifier (matching the `x-birouter-model` response
 // header). Legacy OpenAI Completions clients (e.g. TabbyML) pin cache keys
 // and observability to the requested model — an upstream-provider string like
 // `deepseek-v4.1-flash-preview` in place of the requested `ds/deepseek-v4-flash`

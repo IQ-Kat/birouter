@@ -8,8 +8,8 @@ import Input from "./Input";
 
 type CursorAuthModalProps = {
   isOpen: boolean;
-  onSuccess?: () => void;
-  onClose: () => void;
+  onSuccessAction?: () => void;
+  onCloseAction: () => void;
   reauthConnection?: unknown;
 };
 
@@ -19,8 +19,8 @@ type CursorAuthModalProps = {
  */
 export default function CursorAuthModal({
   isOpen,
-  onSuccess,
-  onClose,
+  onSuccessAction,
+  onCloseAction,
   reauthConnection: _,
 }: CursorAuthModalProps) {
   const t = useTranslations("cursorAuthModal");
@@ -87,8 +87,8 @@ export default function CursorAuthModal({
       }
 
       // Success - close modal and trigger refresh
-      onSuccess?.();
-      onClose();
+      onSuccessAction?.();
+      onCloseAction();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,7 +97,7 @@ export default function CursorAuthModal({
   };
 
   return (
-    <Modal isOpen={isOpen} title={t("title")} onClose={onClose}>
+    <Modal isOpen={isOpen} title={t("title")} onClose={onCloseAction}>
       <div className="flex flex-col gap-4">
         {/* Auto-detecting state */}
         {autoDetecting && (
@@ -186,7 +186,7 @@ export default function CursorAuthModal({
               >
                 {importing ? t("importing") : t("importToken")}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={onCloseAction} variant="ghost" fullWidth>
                 {t("cancel")}
               </Button>
             </div>

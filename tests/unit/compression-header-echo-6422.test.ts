@@ -1,8 +1,8 @@
 /**
- * #6422 — X-OmniRoute-Compression response header echo.
+ * #6422 — X-Birouter-Compression response header echo.
  *
- * Docs promise that when a request supplies `x-omniroute-compression`, the response
- * echoes `X-OmniRoute-Compression: <mode>; source=<source>`. Internal early-returns
+ * Docs promise that when a request supplies `x-birouter-compression`, the response
+ * echoes `X-Birouter-Compression: <mode>; source=<source>`. Internal early-returns
  * (idempotency-cache short-circuit, some combo/fusion assembly paths) omit that
  * header, so the outermost route layer echoes a best-effort value from the request.
  * These tests lock the helper's contract so a future refactor cannot silently drop
@@ -21,7 +21,7 @@ function makeRequest(headerValue: string | null): {
   return {
     headers: {
       get(name: string) {
-        if (name.toLowerCase() === "x-omniroute-compression") return headerValue;
+        if (name.toLowerCase() === "x-birouter-compression") return headerValue;
         return null;
       },
     },
@@ -40,22 +40,25 @@ describe("compressionHeaderEcho (#6422)", () => {
   it("echoes the request header value onto the response when missing", () => {
     const inner = new Response("body", { status: 200 });
     const wrapped = withCompressionHeaderEcho(inner, "engine:rtk");
-    assert.equal(wrapped.headers.get("X-OmniRoute-Compression"), "engine:rtk; source=request-header");
+    assert.equal(
+      wrapped.headers.get("X-Birouter-Compression"),
+      "engine:rtk; source=request-header"
+    );
     assert.equal(wrapped.status, 200);
   });
 
   it("normalizes off / default / engine:* to lowercase", () => {
     assert.equal(
-      withCompressionHeaderEcho(new Response(""), "OFF").headers.get("X-OmniRoute-Compression"),
+      withCompressionHeaderEcho(new Response(""), "OFF").headers.get("X-Birouter-Compression"),
       "off; source=request-header"
     );
     assert.equal(
-      withCompressionHeaderEcho(new Response(""), "Default").headers.get("X-OmniRoute-Compression"),
+      withCompressionHeaderEcho(new Response(""), "Default").headers.get("X-Birouter-Compression"),
       "default; source=request-header"
     );
     assert.equal(
       withCompressionHeaderEcho(new Response(""), "Engine:Rtk").headers.get(
-        "X-OmniRoute-Compression"
+        "X-Birouter-Compression"
       ),
       "engine:rtk; source=request-header"
     );
@@ -63,18 +66,18 @@ describe("compressionHeaderEcho (#6422)", () => {
 
   it("preserves operator casing on named-combo values", () => {
     const wrapped = withCompressionHeaderEcho(new Response(""), "  MyCombo  ");
-    assert.equal(wrapped.headers.get("X-OmniRoute-Compression"), "MyCombo; source=request-header");
+    assert.equal(wrapped.headers.get("X-Birouter-Compression"), "MyCombo; source=request-header");
   });
 
-  it("never overwrites an existing X-OmniRoute-Compression header set by the inner pipeline", () => {
+  it("never overwrites an existing X-Birouter-Compression header set by the inner pipeline", () => {
     const inner = new Response("", {
       headers: {
-        "X-OmniRoute-Compression": "stacked; source=routing; tokens=100->42; rules: rtk-nl x2",
+        "X-Birouter-Compression": "stacked; source=routing; tokens=100->42; rules: rtk-nl x2",
       },
     });
     const wrapped = withCompressionHeaderEcho(inner, "engine:rtk");
     assert.equal(
-      wrapped.headers.get("X-OmniRoute-Compression"),
+      wrapped.headers.get("X-Birouter-Compression"),
       "stacked; source=routing; tokens=100->42; rules: rtk-nl x2"
     );
   });
@@ -83,7 +86,7 @@ describe("compressionHeaderEcho (#6422)", () => {
     const inner = new Response("", { headers: { "X-Other": "keep" } });
     const wrapped = withCompressionHeaderEcho(inner, null);
     assert.equal(wrapped, inner);
-    assert.equal(wrapped.headers.get("X-OmniRoute-Compression"), null);
+    assert.equal(wrapped.headers.get("X-Birouter-Compression"), null);
     assert.equal(wrapped.headers.get("X-Other"), "keep");
   });
 });

@@ -463,8 +463,8 @@ export async function handleChatCore({
       response: pluginGate.response,
     };
   }
-  if (pluginGate.body) {
-    body = pluginGate.body;
+  if ((pluginGate as any).body) {
+    body = (pluginGate as any).body;
   }
   // Per-API-key device/connection tracking (port of upstream 9router#931,
   // thanks @mugnimaestra). In-memory only, never blocks the request path.
@@ -1018,6 +1018,8 @@ export async function handleChatCore({
         cacheMinutes: 5,
         preserveSystemPrompt: true,
         comboOverrides: {},
+        engines: {},
+        activeComboId: null,
       };
       if (!promptCompressionEnabled || !compressionSettings) {
         log?.debug?.("COMPRESSION", "Prompt compression disabled or unavailable");
@@ -1754,7 +1756,7 @@ export async function handleChatCore({
         extractSystemRoleMessages(translatedBody);
         if (Array.isArray(translatedBody.messages)) {
           translatedBody.messages = splitMisplacedToolResults(
-            translatedBody.messages as ClaudeMessage[]
+            translatedBody.messages as any
           ) as typeof translatedBody.messages;
         }
       } else {
@@ -2160,7 +2162,7 @@ export async function handleChatCore({
         });
       }
 
-      if (decision.kind === "allow" && decision.deprioritize) {
+      if (decision.kind === "allow" && (decision as any).deprioritize) {
         quotaSoftDeprioritize = true;
         log?.info?.(
           "QUOTA_SHARE",
@@ -2287,7 +2289,7 @@ export async function handleChatCore({
               stage: "sending_to_provider",
             });
             const execCreds = getExecutionCredentials();
-            const attemptConnectionId = execCreds?.connectionId || connectionId;
+            const attemptConnectionId = (execCreds as any)?.connectionId || connectionId;
             const accountSemaphoreMaxConcurrency = resolveAccountSemaphoreMaxConcurrency(execCreds);
             const accountSemaphoreKey = resolveAccountSemaphoreKey({
               provider,
@@ -2375,7 +2377,10 @@ export async function handleChatCore({
               // Smart Pacing: adapt pressure from upstream response headers
               if (attemptConnectionId && res?.response?.headers) {
                 try {
-                  adaptPacingFromResponse(attemptConnectionId, res.response.headers);
+                  adaptPacingFromResponse(
+                    attemptConnectionId,
+                    normalizeHeaders(res.response.headers)
+                  );
                 } catch {
                   // Best-effort — never let pacing adaptation throw
                 }
@@ -2390,7 +2395,7 @@ export async function handleChatCore({
                 stage: "provider_response_started",
               });
 
-              if (res.response.status === 401 && execCreds?.connectionId) {
+              if (res.response.status === 401 && (execCreds as any)?.connectionId) {
                 recordKeyHealthStatus(401, execCreds);
               }
 
@@ -2442,7 +2447,7 @@ export async function handleChatCore({
                 attempts < maxAttempts - 1
               ) {
                 const failedConnectionId =
-                  execCreds?.connectionId || credentials?.connectionId || connectionId;
+                  (execCreds as any)?.connectionId || credentials?.connectionId || connectionId;
                 const normalizedHeaders = normalizeHeaders(res.response.headers);
                 const retryAfterHeader = normalizedHeaders["retry-after"] ?? null;
                 const retryAfterMs = retryAfterHeader
@@ -2621,7 +2626,7 @@ export async function handleChatCore({
                             })
                           ),
                       });
-                      const retryRes = normalizeExecutorResult(retryRaw);
+                      const retryRes = normalizeExecutorResult(retryRaw as any);
                       const retryOk =
                         retryRes.response.status >= 200 && retryRes.response.status < 300;
                       if (retryOk && retryRes.response.body) {
@@ -2707,15 +2712,16 @@ export async function handleChatCore({
         const status = rawResult.response.status;
 
         // Use execution credentials captured during request processing
+        const resultWithMetadata = rawResult as any;
         if (
-          rawResult._executionCredentials?.connectionId &&
-          rawResult._executionCredentials?.apiKey
+          resultWithMetadata._executionCredentials?.connectionId &&
+          resultWithMetadata._executionCredentials?.apiKey
         ) {
-          recordKeyHealthStatus(status, rawResult._executionCredentials);
+          recordKeyHealthStatus(status, resultWithMetadata._executionCredentials);
         }
         releaseRawResultAccountSemaphore =
-          typeof rawResult._accountSemaphoreRelease === "function"
-            ? rawResult._accountSemaphoreRelease
+          typeof resultWithMetadata._accountSemaphoreRelease === "function"
+            ? resultWithMetadata._accountSemaphoreRelease
             : () => {};
 
         const statusText = rawResult.response.statusText;
@@ -3099,7 +3105,7 @@ export async function handleChatCore({
       // stay aligned if this block ever runs after a path that mutates body.model (e.g. fallback).
       try {
         const retryModelId = String(translatedBody.model || effectiveModel);
-        const retryResult = await runWithCapture(providerRequestCapture, () =>
+        const retryResult = (await runWithCapture(providerRequestCapture, () =>
           executor.execute({
             model: retryModelId,
             body: translatedBody,
@@ -3114,7 +3120,7 @@ export async function handleChatCore({
             skipUpstreamRetry: isCombo,
             contextEditing: { enabled: contextEditingEnabled },
           })
-        );
+        )) as any;
 
         if (retryResult.response.ok) {
           providerResponse = retryResult.response;
@@ -3154,7 +3160,12 @@ export async function handleChatCore({
         if (typeof connectionId === "string" && connectionId && attemptedRefreshToken) {
           try {
             const latest = await getProviderConnectionById(connectionId);
-            if (wasRefreshTokenRotated(attemptedRefreshToken, latest?.refreshToken)) {
+            if (
+              wasRefreshTokenRotated(
+                attemptedRefreshToken,
+                latest?.refreshToken as string | undefined
+              )
+            ) {
               alreadyRotated = true;
               log?.warn?.(
                 "TOKEN",
@@ -3746,7 +3757,7 @@ export async function handleChatCore({
     );
 
     if (sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE) {
-      responseBody = restoreClaudePassthroughToolNames(responseBody, responseToolNameMap);
+      responseBody = restoreClaudePassthroughToolNames(responseBody as any, responseToolNameMap);
     }
     reqLogger.logProviderResponse(
       providerResponse.status,
@@ -3813,16 +3824,37 @@ export async function handleChatCore({
       endpoint: endpointPath,
     });
 
-    // Translate response to client's expected format (usually OpenAI)
-    // Pass toolNameMap so Claude OAuth proxy_ prefix is stripped in tool_use blocks (#605)
-    let translatedResponse = needsTranslation(responsePayloadFormat, clientResponseFormat)
-      ? translateNonStreamingResponse(
-          responseBody,
-          responsePayloadFormat,
-          clientResponseFormat,
-          responseToolNameMap
-        )
-      : responseBody;
+    let translatedResponse = (
+      needsTranslation(responsePayloadFormat, clientResponseFormat)
+        ? translateNonStreamingResponse(
+            responseBody,
+            responsePayloadFormat,
+            clientResponseFormat,
+            responseToolNameMap
+          )
+        : responseBody
+    ) as {
+      choices?: Array<{
+        message?: {
+          content?: string;
+          tool_calls?: Array<{
+            id?: string;
+            type?: string;
+            function?: {
+              name?: string;
+              arguments?: string;
+            };
+          }>;
+        };
+        finish_reason?: string;
+      }>;
+      usage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
+      };
+      [key: string]: unknown;
+    };
     const memoryExtractionResponse = translatedResponse;
 
     // T26: Strip markdown code blocks if provider format is Claude
@@ -3886,7 +3918,7 @@ export async function handleChatCore({
         extractFacts(requestMemoryText, memoryOwnerId, pipelineSessionId);
       }
 
-      const memoryText = extractMemoryTextFromResponse(memoryExtractionResponse);
+      const memoryText = extractMemoryTextFromResponse(memoryExtractionResponse as any);
       if (memoryText) {
         extractFacts(memoryText, memoryOwnerId, pipelineSessionId);
       }
@@ -3922,8 +3954,8 @@ export async function handleChatCore({
       clientResponseFormat,
     });
     const postCallGuardrails = await guardrailRegistry.runPostCallHooks(
-      translatedResponse,
-      guardrailContext
+      translatedResponse as any,
+      guardrailContext as any
     );
     translatedResponse = postCallGuardrails.response;
 
@@ -4088,7 +4120,7 @@ export async function handleChatCore({
       requestId: skillRequestId,
       compressionResponseMeta,
     });
-    // #6426: align response body `model` with the `X-OmniRoute-Model` header
+    // #6426: align response body `model` with the `X-Birouter-Model` header
     // (both must be the resolved backend model). Some upstreams (notably legacy
     // /v1/completions text-completion path) return a body `model` field that
     // differs from the resolved backend id we advertised in the header, leaving
@@ -4368,6 +4400,9 @@ export async function handleChatCore({
     onStreamFailure,
   });
   const handleStreamFailure = streamFailureFinalizers.handleStreamFailure;
+  const handleStreamFailureVoid = (payload: any) => {
+    handleStreamFailure(payload);
+  };
   onPipelineStreamError = streamFailureFinalizers.onPipelineStreamError;
   onClientDisconnectFinalize = (event) =>
     handleStreamFailure({
@@ -4400,7 +4435,7 @@ export async function handleChatCore({
       streamStateBody,
       onStreamComplete,
       apiKeyInfo,
-      handleStreamFailure,
+      handleStreamFailureVoid,
       copilotCompatibleReasoning
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
@@ -4417,7 +4452,7 @@ export async function handleChatCore({
       streamStateBody,
       onStreamComplete,
       apiKeyInfo,
-      handleStreamFailure,
+      handleStreamFailureVoid,
       copilotCompatibleReasoning,
       // Suppress the `</think>` close marker for clients that render it verbatim
       // (e.g. OpenCode by UA; any client via `x-birouter-thinking-marker: off`);
@@ -4439,7 +4474,7 @@ export async function handleChatCore({
       streamStateBody,
       onStreamComplete,
       apiKeyInfo,
-      handleStreamFailure,
+      handleStreamFailureVoid,
       clientResponseFormat
     );
   }

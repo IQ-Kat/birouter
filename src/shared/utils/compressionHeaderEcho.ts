@@ -1,8 +1,8 @@
 /**
  * Compression response header echo (#6422).
  *
- * When a request carries `x-omniroute-compression`, docs promise the response echoes
- * `X-OmniRoute-Compression: <mode>; source=<source>`. Internal paths (idempotency
+ * When a request carries `x-Birouter-compression`, docs promise the response echoes
+ * `X-Birouter-Compression: <mode>; source=<source>`. Internal paths (idempotency
  * cache short-circuit, some combo/fusion assembly paths) build response headers
  * without threading `compressionResponseMeta` — so the promised echo silently
  * disappears. This helper is the outermost safety net: if the response is missing
@@ -10,10 +10,10 @@
  * directly from the request header. Existing header values from the inner pipeline
  * (which carry richer `tokens=...; rules: ...` annotations) are never overwritten.
  */
-import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import { BIROUTER_RESPONSE_HEADERS } from "@/shared/constants/headers";
 
-const COMPRESSION_REQUEST_HEADER = "x-omniroute-compression";
-const COMPRESSION_RESPONSE_HEADER = OMNIROUTE_RESPONSE_HEADERS.compression;
+const COMPRESSION_REQUEST_HEADER = "x-birouter-compression";
+const COMPRESSION_RESPONSE_HEADER = BIROUTER_RESPONSE_HEADERS.compression;
 
 function normalizeRequestValue(raw: string): string {
   const trimmed = raw.trim();
@@ -36,8 +36,8 @@ export function readCompressionRequestHeader(request: {
 }
 
 /**
- * Wrap a Response so it carries `X-OmniRoute-Compression: <mode>; source=request-header`
- * when the request supplied `x-omniroute-compression` and the inner pipeline did not
+ * Wrap a Response so it carries `X-Birouter-Compression: <mode>; source=request-header`
+ * when the request supplied `x-Birouter-compression` and the inner pipeline did not
  * already set it. Never overwrites an existing value — the inner pipeline may have
  * attached a richer annotation. A best-effort echo covers idempotency-cache,
  * fusion-envelope, and any other early-return path that dropped the meta.

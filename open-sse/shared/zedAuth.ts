@@ -4,13 +4,13 @@
  * Zed's cloud aggregator (cloud.zed.dev) authenticates native apps with a
  * self-generated RSA keypair instead of a registered OAuth client_id/secret:
  *
- *   1. The client (OmniRoute) generates an ephemeral RSA keypair.
+ *   1. The client (Birouter) generates an ephemeral RSA keypair.
  *   2. It sends the public key to zed.dev/native_app_signin (as a URL param).
  *   3. The user signs in inside their browser (Zed itself brokers GitHub/Google).
  *   4. Zed's browser flow redirects to a local "native app" callback
  *      (`http://127.0.0.1:<port>/?user_id=...&access_token=...`) with the
  *      access token RSA-encrypted against the public key we sent in step 2.
- *   5. OmniRoute decrypts the access token locally with the private key that
+ *   5. Birouter decrypts the access token locally with the private key that
  *      never left the server (or the operator's browser/paste flow).
  *
  * No client_id/client_secret/Firebase key is embedded anywhere in this file —
@@ -19,7 +19,7 @@
  * does not apply here.
  *
  * Ported from decolua/9router PR #2328 (open-sse/shared/zedAuth.js),
- * adapted to TypeScript + OmniRoute conventions. `fetch` is intentionally the
+ * adapted to TypeScript + Birouter conventions. `fetch` is intentionally the
  * global one — open-sse/utils/proxyFetch.ts monkey-patches `globalThis.fetch`
  * with the proxy-aware dispatcher at module load, so every plain `fetch()`
  * call in this codebase already goes through it.

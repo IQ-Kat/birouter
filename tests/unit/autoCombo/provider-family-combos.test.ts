@@ -24,7 +24,7 @@ import {
 // default in a cold thread; the DB-backed materialization tests below need it.
 vi.setConfig({ testTimeout: 20_000 });
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-family-combo-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-family-combo-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
@@ -87,10 +87,15 @@ describe("detectModelFamily (pure)", () => {
   });
 
   it("advertises exactly one auto/<family> catalog id per family", () => {
-    assert.deepEqual(
-      [...AUTO_FAMILY_IDS].sort(),
-      ["auto/gemini", "auto/gemma", "auto/glm", "auto/llama", "auto/mimo", "auto/minimax", "auto/zai"]
-    );
+    assert.deepEqual([...AUTO_FAMILY_IDS].sort(), [
+      "auto/gemini",
+      "auto/gemma",
+      "auto/glm",
+      "auto/llama",
+      "auto/mimo",
+      "auto/minimax",
+      "auto/zai",
+    ]);
   });
 });
 
@@ -175,7 +180,6 @@ describe("auto/<family> materialization (#6453)", () => {
       "every candidate in auto/minimax must actually be a minimax model"
     );
   });
-
 
   it("rejects auto/<unknownfamily> with the same clean error as any unknown combo", async () => {
     await assert.rejects(

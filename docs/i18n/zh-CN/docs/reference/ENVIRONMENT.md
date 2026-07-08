@@ -415,10 +415,10 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 | 变量                | 默认值     | 源文件                          | 说明                                 |
 | ------------------- | ---------- | ------------------------------- | ------------------------------------ |
 | `OMNIROUTE_SERVER`  | 自动检测   | `src/lib/oauth/config/index.ts` | CLI↔OmniRoute 认证桥接的服务器 URL。 |
-| `OMNIROUTE_TOKEN`   | _(未设置)_ | `src/lib/oauth/config/index.ts` | CLI 桥接的认证 Token。               |
+| `BIROUTER_TOKEN`    | _(未设置)_ | `src/lib/oauth/config/index.ts` | CLI 桥接的认证 Token。               |
 | `OMNIROUTE_USER_ID` | `cli`      | `src/lib/oauth/config/index.ts` | CLI 桥接会话的用户 ID。              |
 | `SERVER_URL`        | _(未设置)_ | `src/lib/oauth/config/index.ts` | `OMNIROUTE_SERVER` 的旧版别名。      |
-| `CLI_TOKEN`         | _(未设置)_ | `src/lib/oauth/config/index.ts` | `OMNIROUTE_TOKEN` 的旧版别名。       |
+| `CLI_TOKEN`         | _(未设置)_ | `src/lib/oauth/config/index.ts` | `BIROUTER_TOKEN` 的旧版别名。        |
 | `CLI_USER_ID`       | _(未设置)_ | `src/lib/oauth/config/index.ts` | `OMNIROUTE_USER_ID` 的旧版别名。     |
 
 ---

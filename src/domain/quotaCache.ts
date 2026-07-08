@@ -23,7 +23,7 @@ import {
   getLatestQuotaSnapshotsForConnection,
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
-import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import { getCodexQuotaWindowFilterForModel } from "@birouter/open-sse/config/codexQuotaScopes.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

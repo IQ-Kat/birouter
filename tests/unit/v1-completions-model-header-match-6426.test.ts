@@ -5,7 +5,7 @@ import { echoModelInObject } from "../../open-sse/services/responseModelEcho.ts"
 
 // #6426: on non-streaming success (including /v1/completions), the response body
 // `model` field must equal the resolved backend model advertised in the
-// `X-OmniRoute-Model` header. Some upstreams (notably legacy text-completions)
+// `X-Birouter-Model` header. Some upstreams (notably legacy text-completions)
 // return a body `model` that drifts from the id we advertised. chatCore now
 // rewrites body.model to the resolved `model` before the optional #1311 echo,
 // so strict clients can reconcile body ↔ header.
@@ -13,7 +13,7 @@ import { echoModelInObject } from "../../open-sse/services/responseModelEcho.ts"
 test("#6426 body.model rewritten to resolved backend model aligns with header value", () => {
   // simulate the non-streaming success path: header carries resolved model,
   // upstream body carries a drifted id.
-  const resolvedModel = "gpt-5.5"; // this is what attachOmniRouteMetaHeaders wrote to X-OmniRoute-Model
+  const resolvedModel = "gpt-5.5"; // this is what attachBirouterMetaHeaders wrote to X-Birouter-Model
   const translatedResponse: Record<string, unknown> = {
     id: "cmpl-1",
     object: "text_completion",
@@ -27,7 +27,7 @@ test("#6426 body.model rewritten to resolved backend model aligns with header va
   assert.equal(
     translatedResponse.model,
     resolvedModel,
-    "body.model must equal the resolved backend model that is in X-OmniRoute-Model header"
+    "body.model must equal the resolved backend model that is in X-Birouter-Model header"
   );
 });
 

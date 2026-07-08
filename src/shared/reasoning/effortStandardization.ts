@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Standardization layer for the canonical `effort` + `thinking` request params (#6241).
  *
- * OmniRoute already has a mature, per-provider reasoning-mapping pipeline: the translators
+ * Birouter already has a mature, per-provider reasoning-mapping pipeline: the translators
  * consume `reasoning_effort` / `reasoning.effort` / `thinking` and fan them out to the
  * Anthropic thinking blocks, Gemini `thinkingConfig`, xAI `reasoning.effort`, and the
  * Responses API. This module is a THIN normalization layer on top of that plumbing — it
@@ -95,18 +95,13 @@ export function normalizeReasoningRequest<T>(body: T): T {
 
   const reasoning = body.reasoning;
   const clientSetReasoningEffort = body.reasoning_effort !== undefined;
-  const clientSetReasoningObjEffort =
-    isPlainObject(reasoning) && reasoning.effort !== undefined;
+  const clientSetReasoningObjEffort = isPlainObject(reasoning) && reasoning.effort !== undefined;
 
   const next: Record<string, unknown> = { ...body };
 
   // Canonical effort → the fields the mappers read. Skip entirely if the client already
   // expressed a reasoning effort (either shape) so client intent is preserved.
-  if (
-    canonicalEffort !== undefined &&
-    !clientSetReasoningEffort &&
-    !clientSetReasoningObjEffort
-  ) {
+  if (canonicalEffort !== undefined && !clientSetReasoningEffort && !clientSetReasoningObjEffort) {
     next.reasoning_effort = canonicalEffort;
     next.reasoning = {
       ...(isPlainObject(reasoning) ? reasoning : {}),

@@ -79,7 +79,7 @@ test("next config declares Turbopack aliases, runtime assets and server external
   const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
 
   assert.equal(nextConfig.turbopack.root, process.cwd());
-  // #6344: the @/mitm/manager stub alias is OPT-IN (OMNIROUTE_MITM_STUB=1, Docker only).
+  // #6344: the @/mitm/manager stub alias is OPT-IN (BIROUTER_MITM_STUB=1, Docker only).
   // A default production build must NOT alias it, or the stub ships to npm/Electron/VPS
   // artifacts and breaks Agent Bridge start. See the dedicated env-matrix test below.
   assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], undefined);
@@ -117,22 +117,19 @@ test("next config declares Turbopack aliases, runtime assets and server external
   }
 });
 
-test("Turbopack aliases @/mitm/manager to the stub ONLY when OMNIROUTE_MITM_STUB=1 (#6344)", async () => {
-  const original = process.env.OMNIROUTE_MITM_STUB;
+test("Turbopack aliases @/mitm/manager to the stub ONLY when BIROUTER_MITM_STUB=1 (#6344)", async () => {
+  const original = process.env.BIROUTER_MITM_STUB;
   try {
-    delete process.env.OMNIROUTE_MITM_STUB;
+    delete process.env.BIROUTER_MITM_STUB;
     const { default: def } = await loadNextConfig("mitm-default");
     assert.equal(def.turbopack.resolveAlias["@/mitm/manager"], undefined);
 
-    process.env.OMNIROUTE_MITM_STUB = "1";
+    process.env.BIROUTER_MITM_STUB = "1";
     const { default: docker } = await loadNextConfig("mitm-docker");
-    assert.equal(
-      docker.turbopack.resolveAlias["@/mitm/manager"],
-      "./src/mitm/manager.stub.ts"
-    );
+    assert.equal(docker.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
   } finally {
-    if (original === undefined) delete process.env.OMNIROUTE_MITM_STUB;
-    else process.env.OMNIROUTE_MITM_STUB = original;
+    if (original === undefined) delete process.env.BIROUTER_MITM_STUB;
+    else process.env.BIROUTER_MITM_STUB = original;
   }
 });
 

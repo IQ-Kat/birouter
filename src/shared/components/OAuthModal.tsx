@@ -27,8 +27,8 @@ type OAuthModalProps = {
   isOpen: boolean;
   provider?: string;
   providerInfo?: { name?: string } | null;
-  onSuccess?: () => void;
-  onClose: () => void;
+  onSuccessAction?: () => void;
+  onCloseAction: () => void;
   idcConfig?: unknown;
   reauthConnection?: null | { id?: string };
 };
@@ -42,8 +42,8 @@ export default function OAuthModal({
   isOpen,
   provider,
   providerInfo,
-  onSuccess,
-  onClose,
+  onSuccessAction,
+  onCloseAction,
   idcConfig,
   reauthConnection,
 }: OAuthModalProps) {
@@ -135,9 +135,11 @@ export default function OAuthModal({
             typeof data.error === "object" && data.error !== null
               ? (data.error as Record<string, unknown>)
               : null;
-          const errMsg = errorObject
-            ? (errorObject.message as string) || JSON.stringify(errorObject)
-            : data.error || "Exchange failed";
+          const errMsg = (
+            errorObject
+              ? (errorObject.message as string) || JSON.stringify(errorObject)
+              : data.error || "Exchange failed"
+          ) as string;
           const details = Array.isArray(errorObject?.details)
             ? (errorObject.details as Array<{ field?: string; message?: string }>)
                 .map((detail) => {
@@ -151,11 +153,12 @@ export default function OAuthModal({
         }
 
         setStep("success");
-        onSuccess?.();
+        onSuccessAction?.();
       } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
         // Provide actionable guidance for redirect_uri_mismatch on Google OAuth providers
         if (
-          err.message?.toLowerCase().includes("redirect_uri_mismatch") &&
+          message.toLowerCase().includes("redirect_uri_mismatch") &&
           GOOGLE_OAUTH_PROVIDERS.has(provider)
         ) {
           setError(
@@ -165,12 +168,12 @@ export default function OAuthModal({
               ". See the README section 'OAuth on a Remote Server'."
           );
         } else {
-          setError(err.message);
+          setError(message);
         }
         setStep("error");
       }
     },
-    [authData, provider, onSuccess, reauthConnection]
+    [authData, provider, onSuccessAction, reauthConnection]
   );
 
   // Save a raw API token directly (windsurf / devin-cli import-token path)
@@ -196,14 +199,14 @@ export default function OAuthModal({
         throw new Error(errMsg);
       }
       setStep("success");
-      onSuccess?.();
+      onSuccessAction?.();
     } catch (err) {
       // Show error inline inside the paste-token form (don't flip to error step)
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSavingToken(false);
     }
-  }, [pasteToken, provider, onSuccess, reauthConnection]);
+  }, [pasteToken, provider, onSuccessAction, reauthConnection]);
 
   // Poll for device code token
   const startPolling = useCallback(
@@ -231,19 +234,19 @@ export default function OAuthModal({
           if (data.success) {
             setStep("success");
             setPolling(false);
-            onSuccess?.();
+            onSuccessAction?.();
             return;
           }
 
           if (data.error === "expired_token" || data.error === "access_denied") {
-            throw new Error(data.errorDescription || data.error);
+            throw new Error((data.errorDescription || data.error || "Polling failed") as string);
           }
 
           if (data.error === "slow_down") {
             interval = Math.min(interval + 5, 30);
           }
         } catch (err) {
-          setError(err.message);
+          setError(err instanceof Error ? err.message : String(err));
           setStep("error");
           setPolling(false);
           return;
@@ -254,7 +257,7 @@ export default function OAuthModal({
       setStep("error");
       setPolling(false);
     },
-    [provider, onSuccess, reauthConnection]
+    [provider, onSuccessAction, reauthConnection]
   );
 
   // Start OAuth flow
@@ -301,7 +304,8 @@ export default function OAuthModal({
         setDeviceData(data);
 
         // Open verification URL
-        const verifyUrl = data.verification_uri_complete || data.verification_uri;
+        const verifyUrl = (data.verification_uri_complete || data.verification_uri) as
+          string | undefined;
         if (verifyUrl) window.open(verifyUrl, "oauth_verify");
 
         // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
@@ -323,7 +327,7 @@ export default function OAuthModal({
       // show an auth code instead of redirecting back to Birouter.
       // Start directly in manual mode so users always have an input to paste code/url.
       // zed-hosted's native-app sign-in always redirects the browser to a local
-      // 127.0.0.1:<port> callback that OmniRoute never listens on (the port is
+      // 127.0.0.1:<port> callback that Birouter never listens on (the port is
       // arbitrary and unrelated to the dashboard's own port) — nothing can
       // auto-close the popup, so always show the manual paste-URL input.
       if (provider === "claude" || provider === "cline" || provider === "zed-hosted") {
@@ -344,9 +348,9 @@ export default function OAuthModal({
                 getErrorMessage(serverData, serverRes.status, "Failed to start callback server")
               );
 
-            setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
+            setAuthData({ ...serverData, redirectUri: serverData.redirectUri as string });
             setStep("waiting");
-            popupRef.current = window.open(serverData.authUrl, "oauth_auth");
+            popupRef.current = window.open(serverData.authUrl as string, "oauth_auth");
 
             // If browser blocked the popup, switch to manual input step immediately
             if (!popupRef.current) {
@@ -368,12 +372,14 @@ export default function OAuthModal({
               if (pollData.success) {
                 setStep("success");
                 setPolling(false);
-                onSuccess?.();
+                onSuccessAction?.();
                 return;
               }
 
               if (pollData.error && !pollData.pending) {
-                throw new Error(pollData.errorDescription || pollData.error);
+                throw new Error(
+                  (pollData.errorDescription || pollData.error || "Polling failed") as string
+                );
               }
             }
 
@@ -442,21 +448,22 @@ export default function OAuthModal({
 
       if (!data.authUrl) {
         throw new Error(
-          data.error ||
-            "Browser OAuth is unavailable for this provider in the current environment. Use the supported auth method instead."
+          (data.error ||
+            "Browser OAuth is unavailable for this provider in the current environment. Use the supported auth method instead.") as string
         );
       }
 
-      setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
+      setAuthData({ ...data, redirectUri: (data.redirectUri || redirectUri) as string });
 
+      const authUrl = data.authUrl as string | undefined;
       // For non-true-localhost (LAN IPs, remote) or manual fallback: use manual input mode (user pastes callback URL)
       if (!isTrueLocalhost || forceManual) {
         setStep("input");
-        window.open(data.authUrl, "oauth_auth");
+        if (authUrl) window.open(authUrl, "oauth_auth");
       } else {
         // Localhost: Open popup and wait for message
         setStep("waiting");
-        popupRef.current = window.open(data.authUrl, "oauth_popup", "width=600,height=700");
+        if (authUrl) popupRef.current = window.open(authUrl, "oauth_popup", "width=600,height=700");
 
         // Check if popup was blocked
         if (!popupRef.current) {
@@ -464,7 +471,7 @@ export default function OAuthModal({
         }
       }
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
       setStep("error");
     }
   }, [
@@ -472,7 +479,7 @@ export default function OAuthModal({
     isLocalhost,
     isTrueLocalhost,
     startPolling,
-    onSuccess,
+    onSuccessAction,
     reauthConnection,
     idcConfig,
   ]);
@@ -658,7 +665,13 @@ export default function OAuthModal({
     try {
       setError(null);
       if (isCredentialBlob(callbackUrl)) {
-        await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
+        await submitCredentialBlob(
+          provider,
+          callbackUrl,
+          reauthConnection,
+          setStep,
+          onSuccessAction
+        );
         return;
       }
 
@@ -677,7 +690,7 @@ export default function OAuthModal({
           throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
         }
         setStep("success");
-        onSuccess?.();
+        onSuccessAction?.();
         return;
       }
 
@@ -718,7 +731,7 @@ export default function OAuthModal({
 
       await exchangeTokens(code, state);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
       setStep("error");
     }
   };
@@ -729,7 +742,7 @@ export default function OAuthModal({
     <Modal
       isOpen={isOpen}
       title={t("title", { providerName: providerInfo.name })}
-      onClose={onClose}
+      onClose={onCloseAction}
       size="lg"
     >
       <div className="flex flex-col gap-4">
@@ -779,7 +792,7 @@ export default function OAuthModal({
               >
                 {savingToken ? "Saving…" : "Save Connection"}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={onCloseAction} variant="ghost" fullWidth>
                 Cancel
               </Button>
             </div>
@@ -939,7 +952,7 @@ export default function OAuthModal({
                   >
                     {t("connect")}
                   </Button>
-                  <Button onClick={onClose} variant="ghost" fullWidth>
+                  <Button onClick={onCloseAction} variant="ghost" fullWidth>
                     {t("cancel")}
                   </Button>
                 </div>
@@ -960,7 +973,7 @@ export default function OAuthModal({
             <p className="text-sm text-text-muted mb-4">
               {t("successMessage", { providerName: providerInfo.name })}
             </p>
-            <Button onClick={onClose} fullWidth>
+            <Button onClick={onCloseAction} fullWidth>
               {t("done")}
             </Button>
           </div>
@@ -980,7 +993,7 @@ export default function OAuthModal({
               <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
                 {t("tryAgain")}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={onCloseAction} variant="ghost" fullWidth>
                 {t("cancel")}
               </Button>
             </div>

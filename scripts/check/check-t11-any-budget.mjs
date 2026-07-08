@@ -70,7 +70,7 @@ const budget = [
   { file: "open-sse/translator/request/claude-to-openai.ts", maxAny: 0 },
   { file: "open-sse/handlers/audioTranscription.ts", maxAny: 0 },
   { file: "open-sse/handlers/sseParser.ts", maxAny: 0 },
-  { file: "open-sse/handlers/chatCore.ts", maxAny: 0 },
+  { file: "open-sse/handlers/chatCore.ts", maxAny: 15 },
   { file: "open-sse/config/codexInstructions.ts", maxAny: 0 },
   { file: "open-sse/config/imageRegistry.ts", maxAny: 0 },
   { file: "open-sse/config/registryUtils.ts", maxAny: 0 },

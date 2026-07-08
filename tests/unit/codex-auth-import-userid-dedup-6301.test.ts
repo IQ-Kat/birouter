@@ -8,13 +8,12 @@ import path from "node:path";
 // "already exists" when it shares the same account/workspace id but has a different
 // user identity. Dedup must key on workspace AND chatgpt_user_id.
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-userid-dedup-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-codex-userid-dedup-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { parseAndValidateCodexAuth, createConnectionFromAuthFile } = await import(
-  "../../src/lib/oauth/utils/codexAuthImport.ts"
-);
+const { parseAndValidateCodexAuth, createConnectionFromAuthFile } =
+  await import("../../src/lib/oauth/utils/codexAuthImport.ts");
 
 type JsonRecord = Record<string, unknown>;
 

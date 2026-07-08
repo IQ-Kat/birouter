@@ -888,22 +888,22 @@ export default function ProviderOnboardingWizard() {
           <KiroOAuthWrapper
             isOpen={showOAuthModal}
             providerInfo={{ id: selectedProvider.id, name: selectedProvider.name }}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ) : selectedProvider.id === "cursor" ? (
           <CursorAuthModal
             isOpen={showOAuthModal}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ) : (
           <OAuthModal
             isOpen={showOAuthModal}
             provider={selectedProvider.id}
             providerInfo={selectedProvider}
-            onSuccess={handleOAuthSuccess}
-            onClose={() => setShowOAuthModal(false)}
+            onSuccessAction={handleOAuthSuccess}
+            onCloseAction={() => setShowOAuthModal(false)}
           />
         ))}
     </div>

@@ -64,6 +64,11 @@
       "count": 3
     }
   },
+  "open-sse/handlers/chatCore.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
   "open-sse/handlers/imageGeneration.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3

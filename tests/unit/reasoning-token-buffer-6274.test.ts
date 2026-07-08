@@ -16,16 +16,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-reasoning-buffer-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-reasoning-buffer-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { saveModelsDevCapabilities, clearModelsDevCapabilities } = await import(
-  "../../src/lib/modelsDevSync.ts"
-);
-const { resolveReasoningBufferedMaxTokens, REASONING_BUFFER_MIN_TRIGGER } = await import(
-  "../../open-sse/services/reasoningTokenBuffer.ts"
-);
+const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
+  await import("../../src/lib/modelsDevSync.ts");
+const { resolveReasoningBufferedMaxTokens, REASONING_BUFFER_MIN_TRIGGER } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 
 function capabilityEntry(limitContext: unknown, overrides: Record<string, unknown> = {}) {
   return {

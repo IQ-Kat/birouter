@@ -257,7 +257,7 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     textIcon: "TF",
     website: "https://docs.tinyfish.ai/fetch-api",
     notice: {
-      text: "Fetch does not use TinyFish credits. Submit up to 10 URLs per request (OmniRoute fetches one URL per call).",
+      text: "Fetch does not use TinyFish credits. Submit up to 10 URLs per request (Birouter fetches one URL per call).",
       apiKeyUrl: "https://agent.tinyfish.ai/api-keys",
     },
     authHint: "X-API-Key from agent.tinyfish.ai/api-keys",

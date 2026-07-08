@@ -1,4 +1,4 @@
-import { GLM_TEAM_QUOTA_ALIAS_KEYS } from "@omniroute/open-sse/config/glmProvider.ts";
+import { GLM_TEAM_QUOTA_ALIAS_KEYS } from "@birouter/open-sse/config/glmProvider.ts";
 
 export type GlmTeamQuotaFieldValues = {
   glmOrganizationId: string;

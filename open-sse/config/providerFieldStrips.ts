@@ -3,7 +3,7 @@
 // fallback in base.ts, generalized to these OpenAI-compat / NIM reasoning fields.
 // `context_management` (9router#1468): Claude Code sends it top-level; strict
 // anthropic-compatible gateways 400 with "context_management: Extra inputs are not
-// permitted". The dedicated base.ts fallback only fires when OmniRoute's own
+// permitted". The dedicated base.ts fallback only fires when Birouter's own
 // contextEditing feature is enabled, so a client-sent field passed through
 // untouched when the feature is off — this generic strip covers that case.
 export const KNOWN_OFFENDING_FIELDS: readonly string[] = [

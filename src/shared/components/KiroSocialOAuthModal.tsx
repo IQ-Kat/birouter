@@ -10,8 +10,8 @@ type KiroSocialOAuthModalProps = {
   provider: "google" | "github";
   targetProvider?: string;
   providerLabel?: string;
-  onSuccess?: () => void;
-  onClose: () => void;
+  onSuccessAction?: () => void;
+  onCloseAction: () => void;
 };
 
 export default function KiroSocialOAuthModal({
@@ -19,8 +19,8 @@ export default function KiroSocialOAuthModal({
   provider,
   targetProvider,
   providerLabel = "Kiro",
-  onSuccess,
-  onClose,
+  onSuccessAction,
+  onCloseAction,
 }: KiroSocialOAuthModalProps) {
   const [step, setStep] = useState<"loading" | "polling" | "success" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export default function KiroSocialOAuthModal({
               if (pollRef.current) clearInterval(pollRef.current);
               pollRef.current = null;
               setStep("success");
-              onSuccess?.();
+              onSuccessAction?.();
             }
           } catch {
             // Network error, keep polling
@@ -88,7 +88,7 @@ export default function KiroSocialOAuthModal({
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
-    onClose();
+    onCloseAction();
   };
 
   const providerName = provider === "google" ? "Google" : "GitHub";

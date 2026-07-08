@@ -23,7 +23,7 @@ Returns the extended memory settings including 7 new fields added in plan 21 (em
 
 ```bash
 curl https://localhost:2004/api/settings/memory \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### PUT /api/settings/memory
@@ -34,7 +34,7 @@ Update any subset of the extended memory settings. All fields are optional; only
 
 ```bash
 curl -X PUT https://localhost:2004/api/settings/memory \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -47,7 +47,7 @@ Returns current Qdrant configuration. The `apiKey` field is never returned raw â
 
 ```bash
 curl https://localhost:2004/api/settings/qdrant \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### PUT /api/settings/qdrant
@@ -58,7 +58,7 @@ Update Qdrant configuration. Pass `apiKey: ""` to remove the stored key. Schema:
 
 ```bash
 curl -X PUT https://localhost:2004/api/settings/qdrant \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -71,7 +71,7 @@ Performs a liveness check against the configured Qdrant instance. Returns latenc
 
 ```bash
 curl https://localhost:2004/api/settings/qdrant/health \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### POST /api/settings/qdrant/search
@@ -82,7 +82,7 @@ Performs a test semantic search against the Qdrant collection. Useful for valida
 
 ```bash
 curl -X POST https://localhost:2004/api/settings/qdrant/search \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -95,7 +95,7 @@ Removes Qdrant points for memories that have expired or exceeded the configured 
 
 ```bash
 curl -X POST https://localhost:2004/api/settings/qdrant/cleanup \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -108,7 +108,7 @@ Returns the list of embedding models available for use with Qdrant.
 
 ```bash
 curl https://localhost:2004/api/settings/qdrant/embedding-models \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### GET /api/settings
@@ -139,7 +139,7 @@ Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact fi
 
 ```bash
 curl -X POST https://localhost:2004/api/settings/purge-request-history \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -170,7 +170,7 @@ Get the MCP tool-output accessibility (trimming) config
 
 ```bash
 curl https://localhost:2004/api/settings/compression/mcp-accessibility \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### PUT /api/settings/compression/mcp-accessibility
@@ -181,7 +181,7 @@ Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-t
 
 ```bash
 curl -X PUT https://localhost:2004/api/settings/compression/mcp-accessibility \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -354,7 +354,7 @@ Redis URL is masked in the response (shows only scheme+host).
 
 ```bash
 curl https://localhost:2004/api/settings/quota-store \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### PUT /api/settings/quota-store
@@ -363,7 +363,7 @@ Update quota store driver settings
 
 ```bash
 curl -X PUT https://localhost:2004/api/settings/quota-store \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -376,7 +376,7 @@ Dashboard-only. Purges stored usage-history records.
 
 ```bash
 curl -X POST https://localhost:2004/api/settings/purge-usage-history \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```

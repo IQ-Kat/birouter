@@ -921,7 +921,7 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
           : "";
       const bypassHint =
         ` To bypass this check (e.g. after restoring a backup where the migration ` +
-        `tracking table was wiped), set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 in your ` +
+        `tracking table was wiped), set BIROUTER_MAX_PENDING_MIGRATIONS=0 in your ` +
         `server.env or DATA_DIR/.env and restart.`;
       const msg =
         `[Migration] 🛑 ABORT: Detected ${actionablePending.length} pending migrations on an existing database ` +
@@ -937,7 +937,7 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
         console.error(
           `[Migration] 🛑 ABORT (repeat — see earlier detail): ` +
             `${actionablePending.length} pending > threshold ${maxPendingMigrations}. ` +
-            `Set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 to bypass.`
+            `Set BIROUTER_MAX_PENDING_MIGRATIONS=0 to bypass.`
         );
         throw memoizedSafetyAbort;
       }

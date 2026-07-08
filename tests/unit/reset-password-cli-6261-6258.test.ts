@@ -9,23 +9,23 @@ import bcrypt from "bcryptjs";
 import Database from "better-sqlite3";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const OMNIROUTE_BIN = path.join(ROOT, "bin", "omniroute.mjs");
+const BIROUTER_BIN = path.join(ROOT, "bin", "birouter.mjs");
 const RESET_BIN = path.join(ROOT, "bin", "reset-password.mjs");
 
 // Isolate every spawn from the development repo's .env and the machine's real
-// ~/.omniroute so DATA_DIR is the only data directory in play.
+// ~/.birouter so DATA_DIR is the only data directory in play.
 function baseEnv(dataDir: string, isolatedHome: string): NodeJS.ProcessEnv {
   const env = { ...process.env };
   return {
     ...env,
     DATA_DIR: dataDir,
     HOME: isolatedHome,
-    // Give the CLI a key so bin/omniroute.mjs never warns/provisions.
+    // Give the CLI a key so bin/birouter.mjs never warns/provisions.
     STORAGE_ENCRYPTION_KEY: "0".repeat(64),
     CI: "1",
     NO_UPDATE_NOTIFIER: "1",
-    OMNIROUTE_NO_UPDATE_NOTIFIER: "1",
-    OMNIROUTE_CLI_SKIP_REPO_ENV: "1",
+    BIROUTER_NO_UPDATE_NOTIFIER: "1",
+    BIROUTER_CLI_SKIP_REPO_ENV: "1",
   };
 }
 
@@ -67,21 +67,21 @@ function readStoredPassword(dbPath: string): string | null {
 }
 
 function mkHome(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-reset-home-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-reset-home-"));
 }
 function mkDataDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-reset-data-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "birouter-reset-data-"));
 }
 
-// #6261: `omniroute reset-password` must be a real subcommand (not "unknown
+// #6261: `birouter reset-password` must be a real subcommand (not "unknown
 // command"), routing into bin/reset-password.mjs — and #6258: under piped
 // (non-TTY) stdin it must actually apply the reset and print the success line.
-test("omniroute reset-password subcommand applies the reset over piped stdin (#6261, #6258)", async () => {
+test("birouter reset-password subcommand applies the reset over piped stdin (#6261, #6258)", async () => {
   const dataDir = mkDataDir();
   const home = mkHome();
   try {
     const dbPath = seedDb(dataDir);
-    const res = spawnSync("node", [OMNIROUTE_BIN, "reset-password"], {
+    const res = spawnSync("node", [BIROUTER_BIN, "reset-password"], {
       env: baseEnv(dataDir, home),
       input: "ChangeMe\nChangeMe\n",
       timeout: 60_000,
@@ -111,7 +111,7 @@ test("omniroute reset-password subcommand applies the reset over piped stdin (#6
 
 // #6258: the standalone bin under piped (non-TTY) two-line stdin must not hang;
 // it reads both lines, applies the reset, and flushes the success line.
-test("omniroute-reset-password applies the reset over piped two-line stdin (#6258)", async () => {
+test("birouter-reset-password applies the reset over piped two-line stdin (#6258)", async () => {
   const dataDir = mkDataDir();
   const home = mkHome();
   try {
@@ -140,7 +140,7 @@ test("omniroute-reset-password applies the reset over piped two-line stdin (#625
 
 // #6258: the --password-stdin flag reads the entire stdin as the password (no
 // confirmation prompt) — for scripted / automated resets.
-test("omniroute-reset-password --password-stdin reads the whole stdin as the password (#6258)", async () => {
+test("birouter-reset-password --password-stdin reads the whole stdin as the password (#6258)", async () => {
   const dataDir = mkDataDir();
   const home = mkHome();
   try {

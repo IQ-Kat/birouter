@@ -11,7 +11,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-6414-content-type-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-6414-content-type-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");

@@ -46,7 +46,7 @@ test("isTurbopackCacheCorruption returns false for unrelated errors", () => {
 });
 
 test("turbopackCacheDirs resolves both known cache layouts under the dist dir", () => {
-  const cwd = "/tmp/omniroute-test";
+  const cwd = "/tmp/birouter-test";
   const dirs = turbopackCacheDirs(".build/next", cwd);
   assert.deepEqual(dirs, [
     path.join(cwd, ".build/next", "cache", "turbopack"),

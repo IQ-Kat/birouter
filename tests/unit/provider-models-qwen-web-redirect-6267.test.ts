@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // #6267 regression guard — a config-driven provider whose /models endpoint 307s
-// must degrade to the local catalog OmniRoute ships, not surface a raw 503.
+// must degrade to the local catalog Birouter ships, not surface a raw 503.
 //
 // Root cause: safeOutboundFetch throws REDIRECT_BLOCKED on the 307 →
 // getSafeOutboundFetchErrorStatus maps it to 503 → buildDiscoveryErrorFallbackResponse
@@ -16,7 +17,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-qwen-web-redirect-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "birouter-qwen-web-redirect-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -84,9 +85,10 @@ test("qwen-web model import degrades to the local catalog when the /models endpo
     new Response(null, {
       status: 307,
       headers: { location: "https://chat.qwen.ai/login" },
-    })) as typeof fetch;
+    })) as any;
 
-  const response = await callRoute(connection.id);
+  assert.ok(connection, "connection must be seeded");
+  const response = await callRoute((connection as any).id);
   const body = (await response.json()) as {
     source?: string;
     models?: Array<{ id: string }>;

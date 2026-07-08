@@ -349,12 +349,12 @@ export async function GET(
       // getSafeOutboundFetchErrorStatus maps to 503, but unlike the other 503
       // cases (URL_GUARD_BLOCKED / INVALID_URL, which are genuinely
       // unrecoverable and stay hard errors) a blocked redirect should degrade to
-      // the local/cached catalog OmniRoute ships instead of surfacing a raw 503.
+      // the local/cached catalog Birouter ships instead of surfacing a raw 503.
       // General fix — covers any config-driven provider that 307s (e.g. qwen-web).
       if (error instanceof SafeOutboundFetchError && error.code === "REDIRECT_BLOCKED") {
         return buildDiscoveryFallbackResponse(warnings);
       }
-      const status = getSafeOutboundFetchErrorStatus(error);
+      const status = getSafeOutboundFetchErrorStatus(error) as number;
       if (status === 400 || status === 503 || status === 504) return null;
       return buildDiscoveryFallbackResponse(warnings);
     };
@@ -1020,7 +1020,7 @@ export async function GET(
           headers: {
             ...buildOptionalBearerHeaders(token),
             ...(projectId ? { "OpenAI-Project": projectId } : {}),
-          },
+          } as HeadersInit,
         });
       } catch (error) {
         const fallback = buildDiscoveryErrorFallbackResponse(error, {
@@ -1198,8 +1198,10 @@ export async function GET(
 
         const modelsResp = await safeOutboundFetch(
           "https://platformapi.innerai.com/api/v1/ai_models",
-          { headers: innerAiHeaders },
-          getProviderOutboundGuard(provider)
+          {
+            headers: innerAiHeaders,
+            guard: getProviderOutboundGuard(),
+          }
         );
         if (!modelsResp.ok) {
           throw new Error(`Inner.ai models API returned HTTP ${modelsResp.status}`);
@@ -1394,13 +1396,13 @@ export async function GET(
 
       const discovery = await fetchGitHubCopilotModels({
         token: copilotToken,
-        fetchImpl: (url, init) =>
+        fetchImpl: ((url, init) =>
           safeOutboundFetch(url as string, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
             guard: getProviderOutboundGuard(),
             proxyConfig: proxy,
             ...(init as Record<string, unknown>),
-          }),
+          })) as typeof fetch,
         fallbackModels: toLocalCatalogModels(),
       });
 
@@ -1455,13 +1457,13 @@ export async function GET(
       const discovery = await fetchKiroAvailableModels({
         accessToken,
         providerSpecificData: connection.providerSpecificData,
-        fetchImpl: (url, init) =>
+        fetchImpl: ((url, init) =>
           safeOutboundFetch(url as string, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
             guard: getProviderOutboundGuard(),
             proxyConfig: proxy,
             ...(init as Record<string, unknown>),
-          }),
+          })) as typeof fetch,
         fallbackModels: toLocalCatalogModels(),
       });
 

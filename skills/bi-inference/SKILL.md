@@ -36,7 +36,7 @@ OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` re
 
 ```bash
 curl https://localhost:2004/api/v1/ws \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### POST /api/v1/providers/{provider}/chat/completions
@@ -228,7 +228,7 @@ Mistral OCR–compatible document OCR endpoint. Accepts a JSON body referencing 
 
 ```bash
 curl -X POST https://localhost:2004/api/v1/ocr \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -241,7 +241,7 @@ OpenAI Whisper–compatible audio translation (multipart/form-data). Unlike `/ap
 
 ```bash
 curl -X POST https://localhost:2004/api/v1/audio/translations \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -254,7 +254,7 @@ Read-only server-side proxy to the public HuggingFace Hub models search API, use
 
 ```bash
 curl https://localhost:2004/api/v1/providers/suggested-models \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ### GET /api/v1/provider-plugin-manifest
@@ -265,7 +265,7 @@ Returns the manifest describing installed provider plugins.
 
 ```bash
 curl https://localhost:2004/api/v1/provider-plugin-manifest \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
 ```
 
 ## Payloads

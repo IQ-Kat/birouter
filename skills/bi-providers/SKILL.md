@@ -121,7 +121,7 @@ Import an Antigravity CLI (agy) token file as an `agy` connection
 
 ```bash
 curl -X POST https://localhost:2004/api/providers/agy-auth/import \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -132,7 +132,7 @@ Bulk-import multiple Antigravity CLI (agy) token files (up to 50)
 
 ```bash
 curl -X POST https://localhost:2004/api/providers/agy-auth/import-bulk \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -143,7 +143,7 @@ Extract `.json` token files from an uploaded ZIP for agy bulk import
 
 ```bash
 curl -X POST https://localhost:2004/api/providers/agy-auth/zip-extract \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -154,7 +154,7 @@ Auto-detect and import the local Antigravity CLI (agy) login from disk
 
 ```bash
 curl -X POST https://localhost:2004/api/providers/agy-auth/apply-local \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $BIROUTER_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
 ```
