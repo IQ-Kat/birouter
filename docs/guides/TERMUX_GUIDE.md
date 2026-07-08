@@ -1,7 +1,7 @@
 ---
 title: "Termux Headless Setup"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-07-08
 ---
 
 # Termux Headless Setup
@@ -24,6 +24,8 @@ If native package compilation fails, rerun the `pkg install` command above and t
 
 ## Install
 
+### Option A: Install from NPM (Global)
+
 Run the latest published package directly:
 
 ```bash
@@ -35,6 +37,22 @@ You can also install it globally:
 ```bash
 npm install -g birouter
 birouter
+```
+
+### Option B: Install from Git Clone (Local build)
+
+If you clone the repository directly to Termux (`~/birouter`), run the following steps to bypass platform checks and compile correctly:
+
+```bash
+cd ~/birouter
+# Bypasses the unsupported bun compiler platform check
+npm install --force --ignore-scripts
+# Manually run local postinstall fixes
+node scripts/build/postinstall.mjs
+# Build using Webpack (since Turbopack is not supported on Android ARM64)
+BIROUTER_USE_TURBOPACK=0 npm run build
+# Link the local build globally
+npm install -g .
 ```
 
 ## Run
@@ -141,6 +159,22 @@ Then rerun:
 
 ```bash
 npx -y birouter@latest
+```
+
+### EBADPLATFORM or Bun platform issues during npm install
+
+The project development environment uses `bun`, which does not support Android ARM64 in npm. If `npm install` crashes with platform errors, run it with:
+
+```bash
+npm install --force --ignore-scripts
+```
+
+### Turbopack not supported on Android/ARM64
+
+If `npm run build` crashes because Turbopack lacks native Android bindings, run the Webpack fallback build:
+
+```bash
+BIROUTER_USE_TURBOPACK=0 npm run build
 ```
 
 ### Port Already In Use
