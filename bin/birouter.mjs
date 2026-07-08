@@ -259,7 +259,6 @@ if (NO_ARGS && !HAS_SERVE_FLAG) {
     process.argv.push("--help");
   }
 }
-}
 
 try {
   const { createProgram } = await import(
