@@ -8,7 +8,7 @@ Birouter solves the problem of managing multiple AI provider subscriptions, quot
 
 **Key value:** One endpoint (`http://localhost:2004/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 3.8.50
+**Current version:** 3.8.51
 
 ## Tech Stack
 
