@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { matchesSearch } from "@/shared/utils/turkishText";
@@ -142,6 +142,24 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json(
       { error: sanitizeErrorMessage(err?.message) || "Failed to read logs" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
+
+  try {
+    const logPath = getLogFilePath();
+    if (existsSync(logPath)) {
+      writeFileSync(logPath, "", "utf-8");
+    }
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(err?.message) || "Failed to clear logs" },
       { status: 500 }
     );
   }

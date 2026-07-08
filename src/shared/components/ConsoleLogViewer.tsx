@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { ConfirmModal } from "@/shared/components/Modal";
 
 interface LogEntry {
   timestamp: string;
@@ -55,7 +56,27 @@ export default function ConsoleLogViewer() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [clearing, setClearing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleClearLogs = async () => {
+    setShowConfirm(false);
+    setClearing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/logs/console", { method: "DELETE" });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+      setLogs([]);
+    } catch (err: any) {
+      setError(err.message || tv("clearFailed"));
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -198,6 +219,20 @@ export default function ConsoleLogViewer() {
           <span className="material-symbols-outlined text-[16px] align-middle">refresh</span>
         </button>
 
+        {/* Clear Logs */}
+        <button
+          onClick={() => setShowConfirm(true)}
+          disabled={clearing || loading}
+          className="px-3 py-2 rounded-lg text-sm font-medium bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
+        >
+          <span
+            className={`material-symbols-outlined text-[16px] align-middle mr-1 ${clearing ? "animate-spin" : ""}`}
+          >
+            {clearing ? "progress_activity" : "delete"}
+          </span>
+          {clearing ? tv("clearing") : tv("clearLogs")}
+        </button>
+
         {/* Status */}
         <div className="flex items-center gap-2 ml-auto text-xs text-[var(--color-text-muted)]">
           <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -321,6 +356,17 @@ export default function ConsoleLogViewer() {
           )}
         </div>
       </div>
+      {/* Confirm Clear Modal */}
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleClearLogs}
+        title={tv("clearLogs")}
+        message={tv("confirmClear")}
+        confirmText={tv("clearLogs")}
+        cancelText={tv("cancel")}
+        loading={clearing}
+      />
     </div>
   );
 }

@@ -139,17 +139,37 @@ export default function Modal({
             <div className="flex items-center min-w-0">
               <div
                 className={cn(
-                  "flex items-center gap-1.5 mr-3 shrink-0",
+                  "group flex items-center gap-1.5 mr-3 shrink-0",
                   compactHeader ? "" : "gap-2 mr-4"
                 )}
-                aria-hidden="true"
               >
-                <div
-                  className={cn(
-                    "rounded-full bg-[#FF5F56]",
-                    compactHeader ? "w-2.5 h-2.5" : "w-3 h-3"
-                  )}
-                />
+                {showCloseButton ? (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    className={cn(
+                      "flex items-center justify-center rounded-full bg-[#FF5F56] transition-all relative cursor-pointer",
+                      compactHeader ? "w-2.5 h-2.5" : "w-3 h-3"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "absolute text-[8px] font-bold text-[#4c0002] opacity-0 group-hover:opacity-100 transition-opacity select-none leading-none",
+                        compactHeader ? "scale-75" : ""
+                      )}
+                    >
+                      ×
+                    </span>
+                  </button>
+                ) : (
+                  <div
+                    className={cn(
+                      "rounded-full bg-[#FF5F56]",
+                      compactHeader ? "w-2.5 h-2.5" : "w-3 h-3"
+                    )}
+                  />
+                )}
                 <div
                   className={cn(
                     "rounded-full bg-[#FFBD2E]",
@@ -175,17 +195,6 @@ export default function Modal({
                 </h2>
               )}
             </div>
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
-              >
-                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-                  close
-                </span>
-              </button>
-            )}
           </div>
         )}
 

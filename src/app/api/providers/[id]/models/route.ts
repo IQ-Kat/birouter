@@ -1382,7 +1382,7 @@ export async function GET(
       });
     }
 
-    if (provider === "kiro") {
+    if (provider === "kiro" || provider === "amazon-q") {
       // Kiro's catalog is per-account / per-tier (free vs Pro vs Power) and, for
       // IAM Identity Center orgs, an admin-curated approved list. The static
       // registry catalog can't reflect that. Discover the live list from the

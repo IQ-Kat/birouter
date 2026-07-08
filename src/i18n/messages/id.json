@@ -3551,7 +3551,12 @@
     "consoleViewer": {
       "fetchFailed": "Failed to fetch logs",
       "copyFailed": "Failed to copy log entry",
-      "copyLogEntry": "Copy log entry"
+      "copyLogEntry": "Copy log entry",
+      "clearLogs": "Hapus Log",
+      "confirmClear": "Apakah Anda yakin ingin menghapus log konsol? Ini akan mengosongkan berkas log aktif.",
+      "clearing": "Menghapus...",
+      "clearFailed": "Gagal menghapus log",
+      "cancel": "Batal"
     }
   },
   "onboarding": {

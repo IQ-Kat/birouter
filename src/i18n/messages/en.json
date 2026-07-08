@@ -3848,7 +3848,12 @@
     "consoleViewer": {
       "fetchFailed": "Failed to fetch logs",
       "copyFailed": "Failed to copy log entry",
-      "copyLogEntry": "Copy log entry"
+      "copyLogEntry": "Copy log entry",
+      "clearLogs": "Clear Logs",
+      "confirmClear": "Are you sure you want to clear the console logs? This will empty the active log file.",
+      "clearing": "Clearing...",
+      "clearFailed": "Failed to clear logs",
+      "cancel": "Cancel"
     },
     "compressionLogTitle": "Compression Log",
     "compressionLogEmpty": "No compressed requests yet. Compression stats will appear here when requests are processed with compression enabled.",
