@@ -11,6 +11,8 @@ import {
   type SidebarSectionChild,
 } from "@/shared/constants/sidebarVisibility";
 
+import BinerelSecretModal from "./BinerelSecretModal";
+
 function isSidebarGroup(
   child: SidebarSectionChild
 ): child is Extract<SidebarSectionChild, { type: "group" }> {
@@ -60,6 +62,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+  const [showSecretModal, setShowSecretModal] = useState(false);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -136,13 +139,26 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return allItems;
-    return allItems.filter(
+    const list = allItems.filter(
       (item) =>
         item.label.toLowerCase().includes(q) ||
         item.subtitle?.toLowerCase().includes(q) ||
         item.sectionLabel.toLowerCase().includes(q) ||
         item.subgroupLabel?.toLowerCase().includes(q)
     );
+    if (q.includes("binerel")) {
+      list.unshift({
+        id: "secret-binerel-mode",
+        href: "#binerel-secret",
+        icon: "verified_user",
+        label: "Binerel Identity Protocol (Secret)",
+        subtitle: "Configure BINER Model & Binerel Company Branding",
+        external: false,
+        sectionId: "secret",
+        sectionLabel: "Secret Binerel Controls",
+      });
+    }
+    return list;
   }, [allItems, query]);
 
   const grouped = useMemo<PaletteGroup[]>(() => {
@@ -173,12 +189,16 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
   }, [filtered]);
 
   const handleNavigate = useCallback(
-    (href: string, external: boolean) => {
+    (item: PaletteItem) => {
+      if (item.id === "secret-binerel-mode") {
+        setShowSecretModal(true);
+        return;
+      }
       onClose();
-      if (external) {
-        window.open(href, "_blank", "noopener,noreferrer");
+      if (item.external) {
+        window.open(item.href, "_blank", "noopener,noreferrer");
       } else {
-        router.push(href);
+        router.push(item.href);
       }
     },
     [onClose, router]
@@ -202,7 +222,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
         e.preventDefault();
         const item = filtered[selectedIndex];
         if (item) {
-          handleNavigate(item.href, item.external);
+          handleNavigate(item);
         }
       }
     };
@@ -218,158 +238,168 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
   }, [selectedIndex]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[10vh] px-4">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        className="relative w-full max-w-3xl bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Command palette"
-      >
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-black/5 dark:border-white/5">
-          <span className="material-symbols-outlined text-[20px] text-text-muted shrink-0">
-            search
-          </span>
-          <input
-            ref={inputRef}
-            type="text"
-            className="flex-1 bg-transparent text-text placeholder:text-text-muted outline-none text-base"
-            placeholder="Search pages, settings, tools..."
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelectedIndex(0);
-            }}
-            autoComplete="off"
-            spellCheck={false}
-          />
-          {query && (
-            <button
-              className="text-text-muted hover:text-text transition-colors"
-              onClick={() => {
-                setQuery("");
+    <>
+      {showSecretModal && (
+        <BinerelSecretModal
+          onClose={() => {
+            setShowSecretModal(false);
+            onClose();
+          }}
+        />
+      )}
+      <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[10vh] px-4">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        <div
+          className="relative w-full max-w-3xl bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Command palette"
+        >
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-black/5 dark:border-white/5">
+            <span className="material-symbols-outlined text-[20px] text-text-muted shrink-0">
+              search
+            </span>
+            <input
+              ref={inputRef}
+              type="text"
+              className="flex-1 bg-transparent text-text placeholder:text-text-muted outline-none text-base"
+              placeholder="Search pages, settings, tools..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
                 setSelectedIndex(0);
               }}
-              tabIndex={-1}
-              aria-label="Clear search"
-            >
-              <span className="material-symbols-outlined text-[16px]">close</span>
-            </button>
-          )}
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-black/5 dark:bg-white/5 text-text-muted border border-black/10 dark:border-white/10 shrink-0">
-            Esc
-          </kbd>
-        </div>
-
-        {grouped.length > 0 ? (
-          <ul
-            ref={listRef}
-            className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar"
-            role="listbox"
-          >
-            {grouped.map((group) => (
-              <li key={group.sectionId} role="presentation">
-                <div className="sticky top-0 z-10 bg-surface/95 backdrop-blur-sm px-6 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted border-b border-black/5 dark:border-white/5">
-                  {group.sectionLabel}
-                </div>
-                <ul role="group" aria-label={group.sectionLabel}>
-                  {group.subgroups.map((subgroup, sgIdx) => (
-                    <li
-                      key={`${group.sectionId}::${subgroup.subgroupId ?? sgIdx}`}
-                      role="presentation"
-                    >
-                      {subgroup.subgroupLabel && (
-                        <div className="px-6 pt-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted/70">
-                          {subgroup.subgroupLabel}
-                        </div>
-                      )}
-                      <ul
-                        role={subgroup.subgroupLabel ? "group" : "presentation"}
-                        aria-label={subgroup.subgroupLabel ?? undefined}
-                      >
-                        {subgroup.items.map(({ item, flatIndex }) => (
-                          <li
-                            key={item.id}
-                            role="option"
-                            aria-selected={flatIndex === selectedIndex}
-                            data-flat-index={flatIndex}
-                          >
-                            <button
-                              className={`w-full flex items-center gap-3 ${
-                                subgroup.subgroupLabel ? "pl-10 pr-6" : "px-6"
-                              } py-2.5 text-left transition-colors ${
-                                flatIndex === selectedIndex
-                                  ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
-                                  : "text-text hover:bg-black/5 dark:hover:bg-white/5"
-                              }`}
-                              onClick={() => handleNavigate(item.href, item.external)}
-                              onMouseEnter={() => setSelectedIndex(flatIndex)}
-                            >
-                              <span
-                                className={`material-symbols-outlined text-[18px] shrink-0 ${
-                                  flatIndex === selectedIndex ? "text-accent" : "text-text-muted"
-                                }`}
-                              >
-                                {item.icon}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{item.label}</p>
-                                {item.subtitle && (
-                                  <p
-                                    className={`text-xs truncate ${
-                                      flatIndex === selectedIndex
-                                        ? "text-accent/70"
-                                        : "text-text-muted"
-                                    }`}
-                                  >
-                                    {item.subtitle}
-                                  </p>
-                                )}
-                              </div>
-                              {item.external && (
-                                <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
-                                  open_in_new
-                                </span>
-                              )}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="py-10 text-center text-text-muted text-sm">No results</div>
-        )}
-
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-black/5 dark:border-white/5 text-[11px] text-text-muted">
-          <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
-              ↑↓
-            </kbd>
-            navigate
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
-              ↵
-            </kbd>
-            open
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {query && (
+              <button
+                className="text-text-muted hover:text-text transition-colors"
+                onClick={() => {
+                  setQuery("");
+                  setSelectedIndex(0);
+                }}
+                tabIndex={-1}
+                aria-label="Clear search"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            )}
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-black/5 dark:bg-white/5 text-text-muted border border-black/10 dark:border-white/10 shrink-0">
               Esc
             </kbd>
-            close
-          </span>
+          </div>
+
+          {grouped.length > 0 ? (
+            <ul
+              ref={listRef}
+              className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar"
+              role="listbox"
+            >
+              {grouped.map((group) => (
+                <li key={group.sectionId} role="presentation">
+                  <div className="sticky top-0 z-10 bg-surface/95 backdrop-blur-sm px-6 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted border-b border-black/5 dark:border-white/5">
+                    {group.sectionLabel}
+                  </div>
+                  <ul role="group" aria-label={group.sectionLabel}>
+                    {group.subgroups.map((subgroup, sgIdx) => (
+                      <li
+                        key={`${group.sectionId}::${subgroup.subgroupId ?? sgIdx}`}
+                        role="presentation"
+                      >
+                        {subgroup.subgroupLabel && (
+                          <div className="px-6 pt-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted/70">
+                            {subgroup.subgroupLabel}
+                          </div>
+                        )}
+                        <ul
+                          role={subgroup.subgroupLabel ? "group" : "presentation"}
+                          aria-label={subgroup.subgroupLabel ?? undefined}
+                        >
+                          {subgroup.items.map(({ item, flatIndex }) => (
+                            <li
+                              key={item.id}
+                              role="option"
+                              aria-selected={flatIndex === selectedIndex}
+                              data-flat-index={flatIndex}
+                            >
+                              <button
+                                className={`w-full flex items-center gap-3 ${
+                                  subgroup.subgroupLabel ? "pl-10 pr-6" : "px-6"
+                                } py-2.5 text-left transition-colors ${
+                                  flatIndex === selectedIndex
+                                    ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
+                                    : "text-text hover:bg-black/5 dark:hover:bg-white/5"
+                                }`}
+                                onClick={() => handleNavigate(item)}
+                                onMouseEnter={() => setSelectedIndex(flatIndex)}
+                              >
+                                <span
+                                  className={`material-symbols-outlined text-[18px] shrink-0 ${
+                                    flatIndex === selectedIndex ? "text-accent" : "text-text-muted"
+                                  }`}
+                                >
+                                  {item.icon}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{item.label}</p>
+                                  {item.subtitle && (
+                                    <p
+                                      className={`text-xs truncate ${
+                                        flatIndex === selectedIndex
+                                          ? "text-accent/70"
+                                          : "text-text-muted"
+                                      }`}
+                                    >
+                                      {item.subtitle}
+                                    </p>
+                                  )}
+                                </div>
+                                {item.external && (
+                                  <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
+                                    open_in_new
+                                  </span>
+                                )}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="py-10 text-center text-text-muted text-sm">No results</div>
+          )}
+
+          <div className="flex items-center gap-4 px-4 py-2 border-t border-black/5 dark:border-white/5 text-[11px] text-text-muted">
+            <span className="flex items-center gap-1">
+              <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+                ↑↓
+              </kbd>
+              navigate
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+                ↵
+              </kbd>
+              open
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+                Esc
+              </kbd>
+              close
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
