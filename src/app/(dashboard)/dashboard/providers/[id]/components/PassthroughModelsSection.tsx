@@ -339,6 +339,16 @@ export default function PassthroughModelsSection({
 
     setAdding(true);
     try {
+      await fetch("/api/provider-models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: providerId,
+          modelId,
+          modelName: modelId,
+          source: "custom",
+        }),
+      });
       await onSetAlias(modelId, defaultAlias);
       setNewModel("");
     } catch (error) {
