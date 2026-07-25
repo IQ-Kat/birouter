@@ -1,4 +1,5 @@
 // Nested combo runtime unit execution — see combo.ts for integration.
+import { randomInt } from "crypto";
 import { errorResponse } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs } from "./comboPredicates.ts";
@@ -45,7 +46,7 @@ function unitDisplayName(unit: ResolvedComboUnit): string {
 function shuffleUnits(units: ResolvedComboUnit[]): ResolvedComboUnit[] {
   const result = [...units];
   for (let index = result.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const swapIndex = randomInt(index + 1);
     [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
   return result;
@@ -54,7 +55,7 @@ function shuffleUnits(units: ResolvedComboUnit[]): ResolvedComboUnit[] {
 function selectWeightedUnit(units: ResolvedComboUnit[]): ResolvedComboUnit | null {
   const total = units.reduce((sum, unit) => sum + Math.max(0, Number(unit.weight) || 0), 0);
   if (total <= 0) return units[0] || null;
-  let draw = Math.random() * total;
+  let draw = (randomInt(1_000_000_000) / 1_000_000_000) * total;
   for (const unit of units) {
     draw -= Math.max(0, Number(unit.weight) || 0);
     if (draw <= 0) return unit;
