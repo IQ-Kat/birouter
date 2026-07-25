@@ -418,7 +418,7 @@ export default function PassthroughModelsSection({
             onSortFreeFirstChange={setSortFreeFirst}
           />
           <div className="max-h-[560px] overflow-y-auto pr-1.5 scrollbar-thin">
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {displayModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
                 <PassthroughModelRow
                   key={fullModel as string}

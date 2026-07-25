@@ -429,7 +429,7 @@ export default function CompatibleModelsSection({
             onAutoHideFailedChange={onAutoHideFailedChange}
           />
           <div className="max-h-[560px] overflow-y-auto pr-1.5 scrollbar-thin">
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {displayModels.map(({ modelId, alias, isHidden, source, isFree }) => {
                 const fullModel = `${providerDisplayAlias}/${modelId}`;
                 return (
