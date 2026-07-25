@@ -42,6 +42,7 @@ type KiroStreamState = {
   usage?: UsageSummary;
   hasReasoningContent?: boolean;
   reasoningChunkCount?: number;
+  inThinking?: boolean;
   // Inline-thinking splitter state (populated only when thinkingExpected=true).
   thinking?: KiroThinkingState;
 };
@@ -326,6 +327,7 @@ export class KiroExecutor extends BaseExecutor {
       toolArgsBuffered: new Map(),
       hasReasoningContent: false,
       reasoningChunkCount: 0,
+      inThinking: false,
       thinking: thinkingExpected ? { thinkingMode: false, pendingTag: "" } : undefined,
     };
 
@@ -503,6 +505,36 @@ export class KiroExecutor extends BaseExecutor {
                   }
                 );
               } else {
+                let contentToEmit = content;
+
+                // Kiro Claude models can leak <thinking> blocks into the content stream
+                // even when reasoning is routed via reasoningContentEvent.
+                // We strip these literal tags to prevent duplication.
+                if (state.inThinking) {
+                  if (contentToEmit.includes("</thinking>")) {
+                    state.inThinking = false;
+                    const after = contentToEmit.split("</thinking>").slice(1).join("</thinking>");
+                    contentToEmit = after.startsWith("\n") ? after.substring(1) : after;
+                  } else {
+                    contentToEmit = ""; // Drop entirely while inside thinking block
+                  }
+                } else if (contentToEmit.includes("<thinking>")) {
+                  state.inThinking = true;
+                  if (contentToEmit.includes("</thinking>")) {
+                    state.inThinking = false;
+                    const before = contentToEmit.split("<thinking>")[0];
+                    const after = contentToEmit.split("</thinking>").slice(1).join("</thinking>");
+                    contentToEmit = before + (after.startsWith("\n") ? after.substring(1) : after);
+                  } else {
+                    contentToEmit = contentToEmit.split("<thinking>")[0];
+                  }
+                }
+
+                if (!contentToEmit && state.hasReasoningContent) {
+                  // If we stripped everything, skip emitting an empty content chunk
+                  continue;
+                }
+
                 const chunk: JsonRecord = {
                   id: responseId,
                   object: "chat.completion.chunk",
@@ -511,7 +543,10 @@ export class KiroExecutor extends BaseExecutor {
                   choices: [
                     {
                       index: 0,
-                      delta: chunkIndex === 0 ? { role: "assistant", content } : { content },
+                      delta:
+                        chunkIndex === 0
+                          ? { role: "assistant", content: contentToEmit }
+                          : { content: contentToEmit },
                       finish_reason: null,
                     },
                   ],
