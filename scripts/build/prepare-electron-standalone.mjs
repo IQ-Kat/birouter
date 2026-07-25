@@ -128,6 +128,7 @@ function rebuildBetterSqlite3ForElectron(standaloneNodeModules) {
     {
       cwd: destMod,
       stdio: "inherit",
+      shell: process.platform === "win32",
       // Compile against the Electron headers (not Node's) so the .node lands in
       // build/Release with the Electron NODE_MODULE_VERSION. No shell interpolation.
       env: {
