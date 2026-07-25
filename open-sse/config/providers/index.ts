@@ -1,6 +1,7 @@
 import type { RegistryEntry } from "./shared.ts";
 
 import { openvectaProvider } from "./registry/openvecta/index.ts";
+import { xkiroProvider } from "./registry/xkiro/index.ts";
 import { aimlapiProvider } from "./registry/aimlapi/index.ts";
 import { byteplusProvider } from "./registry/byteplus/index.ts";
 import { mimocodeProvider } from "./registry/mimocode/index.ts";
@@ -192,6 +193,7 @@ import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   openvecta: openvectaProvider,
+  xkiro: xkiroProvider,
   aimlapi: aimlapiProvider,
   "ollama-cloud": ollama_cloudProvider,
   synthetic: syntheticProvider,

@@ -110,6 +110,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Create an API key at https://openvecta.com, then paste it here as a Bearer token. " +
       "OpenAI-compatible endpoint at https://api.openvecta.com/v1, with a live /v1/models catalog.",
   },
+  xkiro: {
+    id: "xkiro",
+    alias: "xkiro",
+    name: "xKiro",
+    icon: "router",
+    color: "#6366F1",
+    textIcon: "XK",
+    passthroughModels: true,
+    website: "https://xkiro.com",
+    hasFree: true,
+    freeNote: "Free and paid models available on signup - OpenAI-compatible gateway",
+    apiHint:
+      "Create an API key at https://xkiro.com/dashboard, then paste it here as a Bearer token. " +
+      "OpenAI-compatible endpoint at https://api.xkiro.com/v1.",
+  },
   dgrid: {
     id: "dgrid",
     alias: "dgrid",
