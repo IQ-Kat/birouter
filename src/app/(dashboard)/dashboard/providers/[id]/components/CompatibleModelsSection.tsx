@@ -428,43 +428,45 @@ export default function CompatibleModelsSection({
             autoHideFailed={autoHideFailed}
             onAutoHideFailedChange={onAutoHideFailedChange}
           />
-          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {displayModels.map(({ modelId, alias, isHidden, source, isFree }) => {
-              const fullModel = `${providerDisplayAlias}/${modelId}`;
-              return (
-                <PassthroughModelRow
-                  key={`${providerStorageAlias}:${modelId}`}
-                  modelId={modelId}
-                  fullModel={fullModel}
-                  alias={alias}
-                  source={source}
-                  isFree={isFree}
-                  isHidden={isHidden}
-                  copied={copied}
-                  onCopy={onCopy}
-                  onDeleteAlias={
-                    source === "custom" || source === "manual"
-                      ? () => handleDeleteModel(modelId, alias)
-                      : source === "alias" && alias
-                        ? () => onDeleteAlias(alias)
-                        : undefined
-                  }
-                  onSetAlias={(a) => onSetAlias(modelId, a, providerStorageAlias)}
-                  t={t}
-                  showDeveloperToggle={!isAnthropic}
-                  effectiveModelNormalize={effectiveModelNormalize}
-                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-                  saveModelCompatFlags={saveModelCompatFlags}
-                  compatDisabled={compatSavingModelId === modelId}
-                  onToggleHidden={onToggleHidden}
-                  togglingHidden={togglingModelId === modelId}
-                  onTestModel={onTestModel}
-                  testStatus={modelTestStatus?.[modelId] || null}
-                  testingModel={testingModelId === modelId}
-                />
-              );
-            })}
+          <div className="max-h-[560px] overflow-y-auto pr-1.5 scrollbar-thin">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+              {displayModels.map(({ modelId, alias, isHidden, source, isFree }) => {
+                const fullModel = `${providerDisplayAlias}/${modelId}`;
+                return (
+                  <PassthroughModelRow
+                    key={`${providerStorageAlias}:${modelId}`}
+                    modelId={modelId}
+                    fullModel={fullModel}
+                    alias={alias}
+                    source={source}
+                    isFree={isFree}
+                    isHidden={isHidden}
+                    copied={copied}
+                    onCopy={onCopy}
+                    onDeleteAlias={
+                      source === "custom" || source === "manual"
+                        ? () => handleDeleteModel(modelId, alias)
+                        : source === "alias" && alias
+                          ? () => onDeleteAlias(alias)
+                          : undefined
+                    }
+                    onSetAlias={(a) => onSetAlias(modelId, a, providerStorageAlias)}
+                    t={t}
+                    showDeveloperToggle={!isAnthropic}
+                    effectiveModelNormalize={effectiveModelNormalize}
+                    effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                    getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                    saveModelCompatFlags={saveModelCompatFlags}
+                    compatDisabled={compatSavingModelId === modelId}
+                    onToggleHidden={onToggleHidden}
+                    togglingHidden={togglingModelId === modelId}
+                    onTestModel={onTestModel}
+                    testStatus={modelTestStatus?.[modelId] || null}
+                    testingModel={testingModelId === modelId}
+                  />
+                );
+              })}
+            </div>
           </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">

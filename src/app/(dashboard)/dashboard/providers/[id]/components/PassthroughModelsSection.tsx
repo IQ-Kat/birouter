@@ -417,34 +417,38 @@ export default function PassthroughModelsSection({
             sortFreeFirst={sortFreeFirst}
             onSortFreeFirstChange={setSortFreeFirst}
           />
-          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {displayModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
-              <PassthroughModelRow
-                key={fullModel as string}
-                modelId={modelId}
-                fullModel={fullModel}
-                alias={alias}
-                source={source}
-                isFree={isFree}
-                isHidden={isHidden}
-                copied={copied}
-                onCopy={onCopy}
-                onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
-                onSetAlias={(a) => onSetAlias(modelId, a)}
-                t={t}
-                showDeveloperToggle
-                effectiveModelNormalize={effectiveModelNormalize}
-                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-                saveModelCompatFlags={saveModelCompatFlags}
-                compatDisabled={compatSavingModelId === modelId}
-                onToggleHidden={onToggleHidden}
-                togglingHidden={togglingModelId === modelId}
-                onTestModel={onTestModel}
-                testStatus={modelTestStatus?.[modelId] || null}
-                testingModel={testingModelId === modelId}
-              />
-            ))}
+          <div className="max-h-[560px] overflow-y-auto pr-1.5 scrollbar-thin">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+              {displayModels.map(({ modelId, fullModel, alias, isHidden, source, isFree }) => (
+                <PassthroughModelRow
+                  key={fullModel as string}
+                  modelId={modelId}
+                  fullModel={fullModel}
+                  alias={alias}
+                  source={source}
+                  isFree={isFree}
+                  isHidden={isHidden}
+                  copied={copied}
+                  onCopy={onCopy}
+                  onDeleteAlias={
+                    source === "alias" && alias ? () => onDeleteAlias(alias) : undefined
+                  }
+                  onSetAlias={(a) => onSetAlias(modelId, a)}
+                  t={t}
+                  showDeveloperToggle
+                  effectiveModelNormalize={effectiveModelNormalize}
+                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                  saveModelCompatFlags={saveModelCompatFlags}
+                  compatDisabled={compatSavingModelId === modelId}
+                  onToggleHidden={onToggleHidden}
+                  togglingHidden={togglingModelId === modelId}
+                  onTestModel={onTestModel}
+                  testStatus={modelTestStatus?.[modelId] || null}
+                  testingModel={testingModelId === modelId}
+                />
+              ))}
+            </div>
           </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">
