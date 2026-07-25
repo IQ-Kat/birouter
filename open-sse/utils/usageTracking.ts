@@ -270,6 +270,14 @@ export function normalizeUsage(usage) {
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
+  const exactCostTicks = usage?.cost_in_usd_ticks;
+  if (
+    typeof exactCostTicks === "number" &&
+    Number.isFinite(exactCostTicks) &&
+    exactCostTicks >= 0
+  ) {
+    normalized.cost_in_usd_ticks = exactCostTicks;
+  }
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;
@@ -388,6 +396,7 @@ export function extractUsage(chunk) {
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
         chunk.usage.output_tokens_details?.reasoning_tokens ??
         chunk.usage.reasoning_tokens,
+      cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
     });
   }
 

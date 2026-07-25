@@ -64,6 +64,8 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // it proxies many upstream models (DeepSeek, Claude, Kimi...) behind one key, so the
   // full catalog is discovered live from https://api.qnaigc.com/v1/models.
   "qiniu",
+  "requesty",
+  "openvecta",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {

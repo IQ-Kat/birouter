@@ -243,6 +243,14 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  openvecta: {
+    url: "https://api.openvecta.com/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
   mistral: {
     url: "https://api.mistral.ai/v1/models",
     method: "GET",

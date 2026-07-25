@@ -52,8 +52,8 @@ export function directHttpsRequest(
     body: options.body,
     timeoutMs,
     bypassProxyPatch: true,
-    allowRedirect: true,
-    guard: "none",
+    allowRedirect: false,
+    guard: "block-metadata",
     retry: false,
   }).then(async (response) => ({
     status: response.status,

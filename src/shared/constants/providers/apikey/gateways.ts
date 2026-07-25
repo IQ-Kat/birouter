@@ -95,6 +95,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Create an API key at https://app.requesty.ai, then paste it here as a Bearer token. " +
       "OpenAI-compatible endpoint at https://router.requesty.ai/v1, with a live /v1/models catalog.",
   },
+  openvecta: {
+    id: "openvecta",
+    alias: "openvecta",
+    name: "OpenVecta",
+    icon: "router",
+    color: "#0EA5E9",
+    textIcon: "OV",
+    passthroughModels: true,
+    website: "https://openvecta.com",
+    hasFree: true,
+    freeNote: "Free signup credits - OpenAI-compatible AI inference gateway",
+    apiHint:
+      "Create an API key at https://openvecta.com, then paste it here as a Bearer token. " +
+      "OpenAI-compatible endpoint at https://api.openvecta.com/v1, with a live /v1/models catalog.",
+  },
   dgrid: {
     id: "dgrid",
     alias: "dgrid",

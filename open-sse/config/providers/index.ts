@@ -1,5 +1,6 @@
 import type { RegistryEntry } from "./shared.ts";
 
+import { openvectaProvider } from "./registry/openvecta/index.ts";
 import { aimlapiProvider } from "./registry/aimlapi/index.ts";
 import { byteplusProvider } from "./registry/byteplus/index.ts";
 import { mimocodeProvider } from "./registry/mimocode/index.ts";
@@ -174,6 +175,7 @@ import { veoaifree_webProvider } from "./registry/veoaifree-web/index.ts";
 import { codexProvider } from "./registry/codex/index.ts";
 import { veniceProvider } from "./registry/venice/index.ts";
 import { kiroProvider } from "./registry/kiro/index.ts";
+import { amazonQProvider } from "./registry/amazon-q/index.ts";
 import { openadapterProvider } from "./registry/openadapter/index.ts";
 import { ditProvider } from "./registry/dit/index.ts";
 import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
@@ -189,6 +191,7 @@ import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
+  openvecta: openvectaProvider,
   aimlapi: aimlapiProvider,
   "ollama-cloud": ollama_cloudProvider,
   synthetic: syntheticProvider,
@@ -255,6 +258,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   tencent: tencentProvider,
   coze: cozeProvider,
   ai21: ai21Provider,
+  "amazon-q": amazonQProvider,
   publicai: publicaiProvider,
   "featherless-ai": featherless_aiProvider,
   antigravity: antigravityProvider,
