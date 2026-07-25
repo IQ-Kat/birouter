@@ -28,8 +28,60 @@ try {
     : `$tray.Icon = [System.Drawing.SystemIcons]::Application`;
 
   const ps1 = `
+$ErrorActionPreference = "Stop"
+
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class WinDpiAwareness {
+  public static IntPtr PerMonitorAwareV2 { get { return new IntPtr(-4); } }
+  public static IntPtr PerMonitorAware { get { return new IntPtr(-3); } }
+
+  [DllImport("user32.dll")]
+  public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
+
+  [DllImport("user32.dll")]
+  public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr value);
+
+  [DllImport("shcore.dll")]
+  public static extern int SetProcessDpiAwareness(int value);
+
+  [DllImport("user32.dll")]
+  public static extern bool SetProcessDPIAware();
+}
+"@
+
+function Enable-HighDpiAwareness {
+  $contexts = @(
+    [WinDpiAwareness]::PerMonitorAwareV2,
+    [WinDpiAwareness]::PerMonitorAware
+  )
+
+  foreach ($context in $contexts) {
+    try {
+      if ([WinDpiAwareness]::SetProcessDpiAwarenessContext($context)) { break }
+    } catch {}
+  }
+
+  try { [WinDpiAwareness]::SetProcessDpiAwareness(2) | Out-Null } catch {}
+  try { [WinDpiAwareness]::SetProcessDPIAware() | Out-Null } catch {}
+
+  foreach ($context in $contexts) {
+    try {
+      $previous = [WinDpiAwareness]::SetThreadDpiAwarenessContext($context)
+      if ($previous -ne [IntPtr]::Zero) { break }
+    } catch {}
+  }
+}
+
+Enable-HighDpiAwareness
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+
+[System.Windows.Forms.Application]::EnableVisualStyles()
+[System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
 
 $tray = New-Object System.Windows.Forms.NotifyIcon
 $tray.Text = "Birouter - Port ${port}"
