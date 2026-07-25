@@ -31,5 +31,21 @@ export function deriveConfigFromRegistryModelsUrl(provider: string):
       parseResponse: (data) => data.data || data.models || [],
     };
   }
+  if (typeof entry?.baseUrl === "string" && entry.baseUrl.length > 0) {
+    let base = entry.baseUrl.replace(/\/$/, "");
+    if (base.endsWith("/chat/completions")) {
+      base = base.slice(0, -"/chat/completions".length);
+    } else if (base.endsWith("/completions")) {
+      base = base.slice(0, -"/completions".length);
+    }
+    return {
+      url: `${base}/models`,
+      method: "GET",
+      authHeader: "Authorization",
+      authPrefix: "Bearer ",
+      headers: { "Content-Type": "application/json" },
+      parseResponse: (data) => data.data || data.models || [],
+    };
+  }
   return undefined;
 }

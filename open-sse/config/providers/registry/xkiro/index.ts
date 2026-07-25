@@ -11,6 +11,7 @@ export const xkiroProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
   alias: "xkiro",
   passthroughModels: true,
   baseUrl: "https://api.xkiro.com/v1/chat/completions",
+  modelsUrl: "https://api.xkiro.com/v1/models",
   models: [
     { id: "anthropic/claude-sonnet-4-5", name: "Claude Sonnet 4.5", contextLength: 200000 },
     { id: "openai/gpt-4o", name: "GPT-4o", contextLength: 128000 },
