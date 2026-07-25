@@ -846,30 +846,41 @@ export function buildKiroPayload(model, body, stream, credentials) {
   //      effort lever. Gated on models that advertise thinking support.
   const kiroEffort = supportsReasoning(normalizedModel) ? resolveKiroEffort(body) : "";
   if (kiroEffort) {
-    // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
-    // conventions (NOT Anthropic API params); the length is a soft hint (the hard
-    // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
-    const thinkingLength = capThinkingBudget(normalizedModel, thinkingLengthForEffort(kiroEffort));
-    const directive =
-      `<thinking_mode>enabled</thinking_mode>` +
-      `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
-    payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
+    const isGptModel = normalizedModel.toLowerCase().includes("gpt");
+    if (isGptModel) {
+      const mappedEffort = kiroEffort === "max" ? "xhigh" : kiroEffort;
+      payload.additionalModelRequestFields = {
+        reasoning: { effort: mappedEffort },
+      };
+    } else {
+      // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
+      // conventions (NOT Anthropic API params); the length is a soft hint (the hard
+      // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
+      const thinkingLength = capThinkingBudget(
+        normalizedModel,
+        thinkingLengthForEffort(kiroEffort)
+      );
+      const directive =
+        `<thinking_mode>enabled</thinking_mode>` +
+        `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
+      payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
 
-    const fields: {
-      output_config: { effort: string };
-      thinking: { type: string; display: string };
-      max_tokens?: number;
-    } = {
-      output_config: { effort: kiroEffort },
-      thinking: { type: "adaptive", display: "summarized" },
-    };
-    // Forward max_tokens only when the client set one, clamped to the model's
-    // output window (floor 1024) — matches pi-kiro and avoids an over-budget reject.
-    if (maxTokens > 0) {
-      const capped = capMaxOutputTokens(normalizedModel, maxTokens) ?? maxTokens;
-      fields.max_tokens = Math.max(Math.floor(capped), 1024);
+      const fields: {
+        output_config: { effort: string };
+        thinking: { type: string; display: string };
+        max_tokens?: number;
+      } = {
+        output_config: { effort: kiroEffort },
+        thinking: { type: "adaptive", display: "summarized" },
+      };
+      // Forward max_tokens only when the client set one, clamped to the model's
+      // output window (floor 1024) — matches pi-kiro and avoids an over-budget reject.
+      if (maxTokens > 0) {
+        const capped = capMaxOutputTokens(normalizedModel, maxTokens) ?? maxTokens;
+        fields.max_tokens = Math.max(Math.floor(capped), 1024);
+      }
+      payload.additionalModelRequestFields = fields;
     }
-    payload.additionalModelRequestFields = fields;
 
     // Adaptive-only Claude models (Opus 4.7/4.8, Sonnet 5, Fable 5) reject a
     // non-default temperature / top_p with a 400 while thinking is active, so

@@ -363,7 +363,10 @@ export function openaiToClaudeRequest(model, body, stream) {
   if (body.tools && Array.isArray(body.tools)) {
     result.tools = body.tools
       .map((tool) => {
-        const toolData = tool.type === "function" && tool.function ? tool.function : tool;
+        // Function-shaped tools arrive in two flavors from real clients:
+        //   (a) openai-spec: { type: "function", function: { name, ... } }
+        //   (b) legacy/loose: { function: { name, ... } }   (no parent `type`)
+        const toolData = tool.function ?? tool;
         const originalName = typeof toolData.name === "string" ? toolData.name.trim() : "";
 
         if (!originalName) {

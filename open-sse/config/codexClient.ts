@@ -1,4 +1,4 @@
-const DEFAULT_CODEX_CLIENT_VERSION = "0.142.0";
+const DEFAULT_CODEX_CLIENT_VERSION = "0.144.6";
 const DEFAULT_CODEX_USER_AGENT_PLATFORM = "Windows 10.0.26200";
 const DEFAULT_CODEX_USER_AGENT_ARCH = "x64";
 const CODEX_VERSION_OVERRIDE_ENV = "CODEX_CLIENT_VERSION";
@@ -39,6 +39,7 @@ export function getCodexDefaultHeaders(): Record<string, string> {
     "Openai-Beta": "responses=experimental",
     "X-Codex-Beta-Features": "responses_websockets",
     "User-Agent": getCodexUserAgent(),
+    originator: "codex_cli_rs",
   };
 }
 
