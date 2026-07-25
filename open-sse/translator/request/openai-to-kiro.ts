@@ -761,6 +761,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
     additionalModelRequestFields?: {
       thinking?: { type: string; display?: string };
       output_config?: { effort: string };
+      reasoning?: { effort: string };
       max_tokens?: number;
     };
   } = {
