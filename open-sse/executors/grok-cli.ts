@@ -241,7 +241,13 @@ export class GrokCliExecutor extends BaseExecutor {
     transformed.stream = !!stream;
 
     // Grok Build rejects unsupported parameters with 400.
-    const UNSUPPORTED = ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"];
+    const UNSUPPORTED = [
+      "presencePenalty",
+      "frequencyPenalty",
+      "logprobs",
+      "topLogprobs",
+      "reasoningEffort",
+    ];
     for (const param of UNSUPPORTED) {
       if (param in transformed) {
         delete transformed[param];
