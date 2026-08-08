@@ -8,9 +8,15 @@ Birouter is a unified AI proxy/router — route any LLM through one endpoint wit
 
 ## Latest Updates
 
-### v3.8.52 — Latest
+### v3.8.53 — Latest
 
-- **New Provider Gateways (xKiro & OpenVecta)**:
+- **Upstream Sync & Dependabot Security Overrides**: Integrated upstream security patches for `adm-zip`, `fast-uri`, `hono`, `@hono/node-server`, `body-parser`, `dompurify`, `fast-xml-parser`, `sharp`, `nanoid`, `ip-address`, `socket.io-parser`, `undici`, `js-yaml`, and `mermaid`.
+- **Local SVG Flag Icons**: Replaced regional emoji flags with local SVG assets under `docs/assets/flags/` for cross-platform rendering across 42 locales.
+- **CI & Build Pipeline Improvements**: Dynamic runner resolution, prepublish next-build artifact caching, and `.gitignore` root-anchored `/_tasks` symlink protection.
+- **Modularized Provider Model Components**: Added Amazon Q provider registry entry and refactored provider detail model sections (`FetchedModelsSection`, `CustomModelsSection`, `ProviderModelsSection`).
+
+### v3.8.52
+
   - Added **xKiro** OpenAI-compatible provider gateway (`https://api.xkiro.com/v1`) with passthrough models, free tier support, and live `/v1/models` discovery.
   - Ported **OpenVecta** provider registry (`openvectaProvider`), supporting models like GLM 4.7 Flash, Claude Sonnet 4.6, DeepSeek V4 Flash, GPT OSS 120B, Llama 4 Maverick, etc.
 - **Live Model Discovery Auto-Derivation**: Enhanced `discoveryConfig.ts` to automatically derive live `/models` discovery URLs for all OpenAI-compatible providers directly from their `baseUrl`.
