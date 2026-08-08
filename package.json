@@ -431,6 +431,5 @@
     "xmlbuilder2": {
       "js-yaml": "^4.3.1"
     }
->>>>>>> 9233a9483 (fix(deps): bump transitive deps for 6 Dependabot + remaining audit vulns on main)
   }
 }
