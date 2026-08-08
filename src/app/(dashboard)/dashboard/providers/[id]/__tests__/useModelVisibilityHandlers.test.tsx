@@ -33,6 +33,7 @@ const baseProps = {
   t,
   selectedConnection: { id: "conn-1", provider: "anthropic-compatible-cc-test" },
   providerNode: { id: "anthropic-compatible-cc-test" },
+  connections: [],
 };
 
 function renderHook(): { get: () => HookResult } {

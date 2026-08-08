@@ -857,7 +857,8 @@ async function getVertexUsage(connectionId: string, provider: string) {
       displayName: "Spend (USD)",
       quotaSource: "localUsageHistory",
       resetAt: null,
-      unlimited: false,
+      unlimited: true,
+      remainingPercentage: 100,
     };
 
     if (requests === 0) {

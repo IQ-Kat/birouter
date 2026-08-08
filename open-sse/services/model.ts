@@ -41,6 +41,11 @@ ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
 // prefix is "llamacpp". Register it so parseModel("llamacpp/<model>") resolves
 // provider = "llama-cpp" instead of the identity fallback ("llamacpp").
 ALIAS_TO_PROVIDER_ID["llamacpp"] = "llama-cpp";
+// amazon-q/ — user-visible prefix is "aq" (from PROVIDERS_OAUTH catalog), but
+// Amazon Q has no REGISTRY entry so the alias is never auto-registered.
+// Map it manually so parseModel("aq/<model>") resolves to "amazon-q" instead
+// of falling through to DefaultExecutor (which falls back to api.openai.com).
+ALIAS_TO_PROVIDER_ID["aq"] = "amazon-q";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.

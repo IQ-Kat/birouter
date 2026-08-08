@@ -68,7 +68,7 @@ test("#4469 Kiro disabled overage preserves exhausted quota signal", () => {
   ) as KiroQuotaResult;
 
   assert.equal(result.quotas.agentic_request.remaining, 0);
-  assert.equal(result.quotas.agentic_request.remainingPercentage, undefined);
+  assert.equal(result.quotas.agentic_request.remainingPercentage, 0);
   assert.equal(result.quotas.agentic_request.unlimited, false);
   assert.equal(result.quotas.agentic_request_freetrial.unlimited, false);
 });

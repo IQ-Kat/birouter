@@ -279,6 +279,7 @@ export interface ModelRowProps {
   togglingHidden?: boolean;
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   testStatus?: "ok" | "error" | null;
+  testError?: string;
   testingModel?: boolean;
 }
 
@@ -301,12 +302,15 @@ export default function ModelRow({
   togglingHidden,
   onTestModel,
   testStatus,
+  testError,
   testingModel,
 }: ModelRowProps) {
   const isHidden = Boolean(model.isHidden);
   const [editing, setEditing] = useState(false);
   const [aliasValue, setAliasValue] = useState(alias || "");
+  const [showReport, setShowReport] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -314,6 +318,17 @@ export default function ModelRow({
       inputRef.current.select();
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (!showReport) return;
+    const handler = (e: MouseEvent) => {
+      if (reportRef.current && !reportRef.current.contains(e.target as Node)) {
+        setShowReport(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showReport]);
 
   const startEditing = () => {
     setAliasValue(alias || "");
@@ -445,6 +460,7 @@ export default function ModelRow({
         )}
         <ModelCompatPopover
           t={t}
+          compact
           effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
           effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
           getUpstreamHeadersRecord={getUpstreamHeadersRecord}
@@ -454,6 +470,36 @@ export default function ModelRow({
           showDeveloperToggle={showDeveloperToggle}
           disabled={compatDisabled}
         />
+        {testStatus === "error" && testError && (
+          <div className="relative" ref={reportRef}>
+            <button
+              onClick={() => setShowReport(!showReport)}
+              className="rounded p-0.5 text-red-500 hover:bg-red-50"
+              title="View error details"
+            >
+              <span className="material-symbols-outlined text-sm">error_outline</span>
+            </button>
+            {showReport && (
+              <div
+                className="absolute right-0 top-full z-[100] mt-1 w-96 max-w-[95vw] rounded-xl border-2 border-zinc-200 bg-white p-4 shadow-2xl dark:border-zinc-600 dark:bg-zinc-950"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p className="text-xs font-semibold text-red-500 mb-2 uppercase tracking-wide">
+                  Error Details
+                </p>
+                <pre className="whitespace-pre-wrap break-words text-xs text-zinc-800 dark:text-zinc-200 max-h-60 overflow-y-auto leading-relaxed">
+                  {testError}
+                </pre>
+                <button
+                  onClick={() => setShowReport(false)}
+                  className="mt-3 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

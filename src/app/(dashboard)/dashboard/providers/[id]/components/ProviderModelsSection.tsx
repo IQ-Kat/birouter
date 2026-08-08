@@ -80,6 +80,7 @@ export interface ProviderModelsSectionProps {
   modelFilter: string;
   testingModelId: string | null;
   modelTestStatus: Record<string, "ok" | "error">;
+  modelTestErrors: Record<string, string>;
   onModelTestStatusChange: (modelId: string, status: "ok" | "error") => void;
   testingAll: boolean;
   testProgress: { done: number; total: number } | null;
@@ -108,6 +109,9 @@ export interface ProviderModelsSectionProps {
 
   // Translation
   t: ProviderMessageTranslator;
+
+  // When true, hide import-related UI (import button, auto sync, clear all)
+  hideImportUI?: boolean;
 }
 
 export default function ProviderModelsSection({
@@ -147,6 +151,7 @@ export default function ProviderModelsSection({
   modelFilter,
   testingModelId,
   modelTestStatus,
+  modelTestErrors,
   onModelTestStatusChange,
   testingAll,
   testProgress,
@@ -167,6 +172,7 @@ export default function ProviderModelsSection({
   effectiveModelHidden,
   getUpstreamHeadersRecordForModel,
   t,
+  hideImportUI = false,
 }: ProviderModelsSectionProps) {
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
@@ -220,10 +226,12 @@ export default function ProviderModelsSection({
 
     return (
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          {autoSyncToggle}
-          {clearAllButton}
-        </div>
+        {!hideImportUI && (
+          <div className="flex items-center gap-2 mb-4">
+            {autoSyncToggle}
+            {clearAllButton}
+          </div>
+        )}
         <CompatibleModelsSection
           providerStorageAlias={providerStorageAlias}
           providerDisplayAlias={providerDisplayAlias}
@@ -287,22 +295,24 @@ export default function ProviderModelsSection({
 
     return (
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Button
-            size="sm"
-            variant="secondary"
-            icon="download"
-            onClick={handleImportModels}
-            disabled={!canImportModels || importingModels}
-          >
-            {importingModels ? t("importingModels") : t("importFromModels")}
-          </Button>
-          {autoSyncToggle}
-          {clearAllButton}
-          {!canImportModels && (
-            <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
-          )}
-        </div>
+        {!hideImportUI && (
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="download"
+              onClick={handleImportModels}
+              disabled={!canImportModels || importingModels}
+            >
+              {importingModels ? t("importingModels") : t("importFromModels")}
+            </Button>
+            {autoSyncToggle}
+            {clearAllButton}
+            {!canImportModels && (
+              <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
+            )}
+          </div>
+        )}
         <PassthroughModelsSection
           providerAlias={providerAlias}
           modelAliases={modelAliases}
@@ -362,7 +372,7 @@ export default function ProviderModelsSection({
   if (models.length === 0) {
     return (
       <div>
-        {importButton}
+        {!hideImportUI && importButton}
         <p className="text-sm text-text-muted">{t("noModelsConfigured")}</p>
       </div>
     );
@@ -414,7 +424,7 @@ export default function ProviderModelsSection({
 
   return (
     <div>
-      {importButton}
+      {!hideImportUI && importButton}
       {modelsWithVisibility.length > 0 && (
         <ModelVisibilityToolbar
           t={t}
@@ -479,6 +489,7 @@ export default function ProviderModelsSection({
               togglingHidden={togglingModelId === model.id}
               onTestModel={onTestModel}
               testStatus={modelTestStatus[model.id] || null}
+              testError={modelTestErrors?.[model.id]}
               testingModel={testingModelId === model.id}
             />
           );

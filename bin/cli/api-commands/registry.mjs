@@ -32,40 +32,7 @@ import { register_agentbridge } from "./agentbridge.mjs";
 import { register_traffic_inspector } from "./traffic-inspector.mjs";
 import { register_agent_skills } from "./agent-skills.mjs";
 
-export const API_TAGS = [
-  "playground",
-  "memory",
-  "chat",
-  "messages",
-  "responses",
-  "embeddings",
-  "images",
-  "audio",
-  "moderations",
-  "rerank",
-  "system",
-  "models",
-  "providers",
-  "provider-nodes",
-  "api-keys",
-  "combos",
-  "settings",
-  "compression",
-  "usage",
-  "pricing",
-  "translator",
-  "cli-remote-mode",
-  "cli-tools",
-  "embedded-services",
-  "oauth",
-  "cloud",
-  "fallback",
-  "telemetry",
-  "quota",
-  "agentbridge",
-  "traffic-inspector",
-  "agent-skills",
-];
+export const API_TAGS = ["playground","memory","chat","messages","responses","embeddings","images","audio","moderations","rerank","system","models","providers","provider-nodes","api-keys","combos","settings","compression","usage","pricing","translator","cli-remote-mode","cli-tools","embedded-services","oauth","cloud","fallback","telemetry","quota","agentbridge","traffic-inspector","agent-skills"];
 
 export function registerApiCommands(program) {
   const api = program
@@ -74,9 +41,7 @@ export function registerApiCommands(program) {
   api
     .command("tags")
     .description("List available API tag groups")
-    .action(() => {
-      API_TAGS.forEach((t) => console.log(t));
-    });
+    .action(() => { API_TAGS.forEach((t) => console.log(t)); });
   register_playground(api);
   register_memory(api);
   register_chat(api);

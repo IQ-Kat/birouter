@@ -54,10 +54,11 @@ export default function KiroAuthModal({
         const data = await res.json();
 
         if (data.found) {
-          setRefreshToken(data.refreshToken);
-          setAutoDetected(true);
-          // Store IDC/organization credentials if present in the auto-detect response
+          // Auto-import already saved the connection to DB. If no IDC
+          // credentials returned, the connection is fully set up — close.
           if (data.clientId && data.clientSecret) {
+            setRefreshToken(data.refreshToken || "");
+            setAutoDetected(true);
             setIdcCredentials({
               clientId: data.clientId,
               clientSecret: data.clientSecret,
@@ -65,6 +66,9 @@ export default function KiroAuthModal({
               ...(data.authMethod ? { authMethod: data.authMethod } : {}),
               ...(data.profileArn ? { profileArn: data.profileArn } : {}),
             });
+          } else {
+            onClose();
+            return;
           }
         } else {
           setError(data.error || "Could not auto-detect token");
@@ -77,7 +81,7 @@ export default function KiroAuthModal({
     };
 
     autoDetect();
-  }, [providerId, selectedMethod, isOpen]);
+  }, [providerId, selectedMethod, isOpen, onClose]);
 
   const handleMethodSelect = (method) => {
     setSelectedMethod(method);
@@ -90,7 +94,7 @@ export default function KiroAuthModal({
   };
 
   const handleImportToken = async () => {
-    if (!refreshToken.trim()) {
+    if (!(refreshToken || "").trim()) {
       setError("Please enter a refresh token");
       return;
     }
@@ -105,7 +109,7 @@ export default function KiroAuthModal({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            refreshToken: refreshToken.trim(),
+            refreshToken: (refreshToken || "").trim(),
             ...(idcCredentials || {}),
           }),
         }
@@ -407,7 +411,7 @@ export default function KiroAuthModal({
                   <Button
                     onClick={handleImportToken}
                     fullWidth
-                    disabled={importing || !refreshToken.trim()}
+                    disabled={importing || !(refreshToken || "").trim()}
                   >
                     {importing ? "Importing..." : "Import Token"}
                   </Button>

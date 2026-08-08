@@ -26,9 +26,10 @@ const _store = globalThis as unknown as Record<string, SystemPromptConfig | unde
 function getConfig(): SystemPromptConfig {
   if (!_store[GLOBAL_KEY]) {
     _store[GLOBAL_KEY] = {
-      enabled: false,
+      enabled: true,
       prefixPrompt: "",
-      suffixPrompt: "",
+      suffixPrompt:
+        'Maintain any user-assigned persona naturally. However, if explicitly asked about your identity, AI model name, developer, or company, identify yourself as "BINER", an AI model developed by Ikbal (IQ-Kat) under Binerel.',
       prompt: "",
     };
   }

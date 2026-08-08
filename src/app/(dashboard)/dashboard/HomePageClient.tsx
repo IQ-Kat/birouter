@@ -6,12 +6,10 @@ import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from "rea
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
-import ProviderIcon from "@/shared/components/ProviderIcon";
+import { Card, CardSkeleton, Button } from "@/shared/components";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
-import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
@@ -40,22 +38,6 @@ type HomePageClientProps = {
   machineId?: string;
 };
 
-type ProviderSummaryItem = {
-  id: string;
-  provider: {
-    id: string;
-    name: string;
-    color?: string;
-    textIcon?: string;
-    alias?: string;
-  };
-  total: number;
-  connected: number;
-  errors: number;
-  modelCount: number;
-  authType: "free" | "oauth" | "apikey" | string;
-};
-
 type ProviderMetricSummary = {
   totalRequests?: number;
   totalSuccesses?: number;
@@ -65,12 +47,6 @@ type ProviderMetricSummary = {
   lastErrorAt?: string | null;
   lastStatus?: number | null;
   lastErrorStatus?: number | null;
-};
-
-type ProviderModelSummary = {
-  fullModel: string;
-  alias?: string;
-  model?: string;
 };
 
 const PROVIDER_ALIAS_TO_ID = new Map(
@@ -110,7 +86,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [baseUrl, setBaseUrl] = useState("/v1");
-  const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
   const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
   const [providerNodes, setProviderNodes] = useState<
@@ -158,7 +133,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       url: `https://github.com/IQ-Kat/birouter/releases/tag/v${cleanLatest}`,
       desc: `A new version of the Birouter desktop app is available. Please download the respective app format for your system to update (current: v${versionInfo?.current || ""}).`,
     };
-  }, [platform, versionInfo?.latest, versionInfo?.current]);
+  }, [platform, versionInfo]);
 
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
@@ -458,14 +433,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       };
     });
   }, [providerConnections, models]);
-
-  const selectedProviderModels = useMemo(() => {
-    if (!selectedProvider) return [];
-    const providerKeys = new Set(
-      [selectedProvider.id, selectedProvider.provider?.alias].filter(Boolean)
-    );
-    return models.filter((m) => providerKeys.has(m.provider));
-  }, [selectedProvider, models]);
 
   const topologyProviders = useMemo(() => {
     const byProvider = new Map<string, { id: string; provider: string; name?: string }>();
@@ -1166,196 +1133,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           enabled={showProviderTopologyOnHome}
         />
       )}
-
-      {/* Provider Models Modal */}
-      {selectedProvider && (
-        <ProviderModelsModal
-          provider={selectedProvider}
-          models={selectedProviderModels}
-          onClose={() => setSelectedProvider(null)}
-        />
-      )}
     </div>
   );
 }
 
-function ProviderOverviewCard({
-  item,
-  metrics,
-  onClick,
-}: {
-  item: ProviderSummaryItem;
-  metrics?: ProviderMetricSummary;
-  onClick: () => void;
-}) {
-  const t = useTranslations("home");
-  const tc = useTranslations("common");
-
-  const statusVariant =
-    item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
-
-  const authTypeConfig = {
-    "no-auth": { color: "bg-stone-500", label: "No Auth" },
-    free: { color: "bg-green-500", label: tc("free") },
-    oauth: { color: "bg-blue-500", label: t("oauthLabel") },
-    apikey: { color: "bg-amber-500", label: t("apiKeyLabel") },
-  };
-  const authInfo = authTypeConfig[item.authType] || authTypeConfig.apikey;
-
-  return (
-    <button
-      onClick={onClick}
-      className="border border-border rounded-lg p-3 hover:bg-surface/40 transition-colors text-left cursor-pointer w-full"
-    >
-      <div className="flex items-center gap-2.5">
-        <div
-          className="size-8 rounded-lg flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${item.provider.color || "#888"}15` }}
-        >
-          <ProviderIcon providerId={item.provider.id} size={26} type="color" />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-semibold truncate">{item.provider.name}</p>
-            <span
-              className={`size-2 rounded-full ${authInfo.color} shrink-0`}
-              title={authInfo.label}
-            />
-          </div>
-          <p className={`text-xs ${statusVariant}`}>
-            {item.total === 0
-              ? tc("notConfigured")
-              : t("activeError", { active: item.connected, errors: item.errors })}
-          </p>
-          {metrics && metrics.totalRequests > 0 && (
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] text-text-muted">
-                <span className="text-emerald-500">{metrics.totalSuccesses}</span>/
-                {t("requestsShort", { count: metrics.totalRequests })}
-              </span>
-              <span className="text-[10px] text-text-muted">{metrics.successRate}%</span>
-              <span className="text-[10px] text-text-muted">~{metrics.avgLatencyMs}ms</span>
-            </div>
-          )}
-        </div>
-
-        <div className="text-right shrink-0">
-          <p className="text-xs font-medium text-text-main">{item.modelCount}</p>
-          <p className="text-[10px] text-text-muted">{tc("models")}</p>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function ProviderModelsModal({
-  provider,
-  models,
-  onClose,
-}: {
-  provider: ProviderSummaryItem;
-  models: ProviderModelSummary[];
-  onClose: () => void;
-}) {
-  const [copiedModel, setCopiedModel] = useState(null);
-  const notify = useNotificationStore();
-  const router = useRouter();
-  const t = useTranslations("home");
-  const tc = useTranslations("common");
-  const ts = useTranslations("sidebar");
-
-  const navigateTo = (path) => {
-    onClose();
-    router.push(path);
-  };
-
-  const handleCopy = async (text) => {
-    await copyToClipboard(text);
-    setCopiedModel(text);
-    notify.success(t("copiedModel", { model: text }));
-    setTimeout(() => setCopiedModel(null), 2000);
-  };
-
-  return (
-    <Modal
-      isOpen={true}
-      title={t("providerModelsTitle", { provider: provider.provider.name })}
-      onClose={onClose}
-    >
-      <div className="flex flex-col gap-3">
-        {/* Summary */}
-        <div className="flex items-center gap-2 text-sm text-text-muted">
-          <span className="material-symbols-outlined text-[16px]">token</span>
-          {models.length === 1
-            ? t("modelAvailable", { count: models.length })
-            : t("modelsAvailable", { count: models.length })}
-          {provider.total > 0 && (
-            <span className="ml-auto text-xs text-green-500">
-              ●{" "}
-              {provider.connected === 1
-                ? t("connectionsActive", { count: provider.connected })
-                : t("connectionsActivePlural", { count: provider.connected })}
-            </span>
-          )}
-        </div>
-
-        {models.length === 0 ? (
-          <div className="text-center py-6">
-            <span className="material-symbols-outlined text-[32px] text-text-muted mb-2">
-              search_off
-            </span>
-            <p className="text-sm text-text-muted">{t("noModelsAvailable")}</p>
-            <p className="text-xs text-text-muted mt-1">
-              {t("configureFirst", { providers: ts("providers") })}
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
-            {models.map((m) => (
-              <div
-                key={m.fullModel}
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface/50 transition-colors group"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-mono text-sm text-text-main truncate">{m.fullModel}</p>
-                  {m.alias !== m.model && (
-                    <p className="text-[10px] text-text-muted">
-                      {t("aliasLabel")}: {m.alias}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleCopy(m.fullModel)}
-                  className="shrink-0 ml-2 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors opacity-0 group-hover:opacity-100"
-                  title={t("copyModelName")}
-                >
-                  <span className="material-symbols-outlined text-[14px]">
-                    {copiedModel === m.fullModel ? "check" : "content_copy"}
-                  </span>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-2 border-t border-border">
-          <Button
-            variant="secondary"
-            fullWidth
-            size="sm"
-            onClick={() => navigateTo(`/dashboard/providers/${provider.id}`)}
-            className="flex-1"
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1">settings</span>
-            {t("configureProvider")}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            {tc("close")}
-          </Button>
-        </div>
-      </div>
-    </Modal>
-  );
-}

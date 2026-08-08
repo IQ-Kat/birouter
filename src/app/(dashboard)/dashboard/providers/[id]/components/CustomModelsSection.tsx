@@ -37,6 +37,8 @@ export interface CustomModelsSectionProps {
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onModelsChanged?: () => void;
+  /** When true, add form is hidden behind a "+" toggle, no border/title */
+  collapsible?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -59,6 +61,7 @@ export default function CustomModelsSection({
   copied,
   onCopy,
   onModelsChanged,
+  collapsible = false,
 }: CustomModelsSectionProps) {
   const t = useTranslations("providers");
   const notify = useNotificationStore();
@@ -82,8 +85,16 @@ export default function CustomModelsSection({
   const [newTargetFormat, setNewTargetFormat] = useState("");
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
+  const [showCustomForm, setShowCustomForm] = useState(false);
 
-  const customMap = useMemo(() => buildCompatMap(customModels), [customModels]);
+  const displayCustomModels = useMemo(
+    () =>
+      collapsible
+        ? customModels.filter((m) => m.source !== "imported" && m.source !== "system")
+        : customModels,
+    [customModels, collapsible]
+  );
+  const customMap = useMemo(() => buildCompatMap(displayCustomModels), [displayCustomModels]);
   const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
 
   const fetchCustomModels = useCallback(async () => {
@@ -272,133 +283,154 @@ export default function CustomModelsSection({
   };
 
   return (
-    <div className="mt-6 pt-6 border-t border-border">
-      <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-        <span className="material-symbols-outlined text-base text-primary">tune</span>
-        {t("customModels")}
-      </h3>
-      <p className="text-xs text-text-muted mb-3">{t("customModelsHint")}</p>
+    <div className={collapsible ? "" : "mt-6 pt-6 border-t border-border"}>
+      {collapsible ? (
+        <button
+          onClick={() => setShowCustomForm(!showCustomForm)}
+          className="flex items-center gap-2 text-sm font-semibold text-text-main hover:text-primary transition-colors"
+        >
+          <span className="material-symbols-outlined text-base">
+            {showCustomForm ? "remove" : "add"}
+          </span>
+          {t("customModels")}
+        </button>
+      ) : (
+        <>
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-base text-primary">tune</span>
+            Add Custom Model
+          </h3>
+          <p className="text-xs text-text-muted mb-3">{t("customModelsHint")}</p>
+        </>
+      )}
 
       {/* Add form */}
-      <div className="flex flex-col gap-3 mb-3">
-        <div className="flex items-end gap-2">
-          <div className="flex-1">
-            <label htmlFor="custom-model-id" className="text-xs text-text-muted mb-1 block">
-              {t("modelId")}
-            </label>
-            <input
-              id="custom-model-id"
-              type="text"
-              value={newModelId}
-              onChange={(e) => setNewModelId(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder={t("customModelPlaceholder")}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            />
+      {(!collapsible || showCustomForm) && (
+        <div className="flex flex-col gap-3 mb-3">
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label htmlFor="custom-model-id" className="text-xs text-text-muted mb-1 block">
+                {t("modelId")}
+              </label>
+              <input
+                id="custom-model-id"
+                type="text"
+                value={newModelId}
+                onChange={(e) => setNewModelId(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                placeholder={t("customModelPlaceholder")}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div className="w-40">
+              <label htmlFor="custom-model-name" className="text-xs text-text-muted mb-1 block">
+                {t("displayName")}
+              </label>
+              <input
+                id="custom-model-name"
+                type="text"
+                value={newModelName}
+                onChange={(e) => setNewModelName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                placeholder={t("optional")}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+              />
+            </div>
+            <Button
+              size="sm"
+              icon="add"
+              onClick={handleAdd}
+              disabled={!newModelId.trim() || adding}
+            >
+              {adding ? t("adding") : t("add")}
+            </Button>
           </div>
-          <div className="w-40">
-            <label htmlFor="custom-model-name" className="text-xs text-text-muted mb-1 block">
-              {t("displayName")}
-            </label>
-            <input
-              id="custom-model-name"
-              type="text"
-              value={newModelName}
-              onChange={(e) => setNewModelName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder={t("optional")}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            />
-          </div>
-          <Button size="sm" icon="add" onClick={handleAdd} disabled={!newModelId.trim() || adding}>
-            {adding ? t("adding") : t("add")}
-          </Button>
-        </div>
 
-        {/* API Format + Supported Endpoints */}
-        <div className="flex items-end gap-4 flex-wrap">
-          <div className="w-48">
-            <label htmlFor="custom-api-format" className="text-xs text-text-muted mb-1 block">
-              API Format
-            </label>
-            <select
-              id="custom-api-format"
-              value={newApiFormat}
-              onChange={(e) => setNewApiFormat(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            >
-              <option value="chat-completions">{t("chatCompletions")}</option>
-              <option value="responses">{t("responsesApi")}</option>
-              <option value="embeddings">{t("embeddings")}</option>
-              <option value="rerank">Rerank</option>
-              <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
-              <option value="audio-speech">{t("audioSpeech")}</option>
-              <option value="images-generations">{t("imagesGenerations")}</option>
-            </select>
-          </div>
-          <div className="w-48">
-            <label htmlFor="custom-target-format" className="text-xs text-text-muted mb-1 block">
-              {t("targetFormatLabel")}
-            </label>
-            <select
-              id="custom-target-format"
-              value={newTargetFormat}
-              onChange={(e) => setNewTargetFormat(e.target.value)}
-              title={t("targetFormatHint")}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            >
-              <option value="">{t("targetFormatAuto")}</option>
-              <option value="openai">{t("compatProtocolOpenAI")}</option>
-              <option value="openai-responses">{t("compatProtocolOpenAIResponses")}</option>
-              <option value="claude">{t("compatProtocolClaude")}</option>
-              <option value="gemini">{t("targetFormatGemini")}</option>
-              <option value="antigravity">{t("targetFormatAntigravity")}</option>
-            </select>
-          </div>
-          <div className="flex-1">
-            <span className="text-xs text-text-muted mb-1 block">
-              {t("supportedEndpointsLabel")}
-            </span>
-            <div className="flex items-center gap-3">
-              {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
-                <label
-                  key={ep}
-                  className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={newEndpoints.includes(ep)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setNewEndpoints((prev) => [...prev, ep]);
-                      } else {
-                        setNewEndpoints((prev) => prev.filter((x) => x !== ep));
-                      }
-                    }}
-                    className="rounded border-border"
-                  />
-                  {ep === "chat"
-                    ? `💬 ${t("supportedEndpointChat")}`
-                    : ep === "embeddings"
-                      ? `📐 ${t("supportedEndpointEmbeddings")}`
-                      : ep === "rerank"
-                        ? "Rerank"
-                        : ep === "images"
-                          ? `🖼️ ${t("supportedEndpointImages")}`
-                          : `🔊 ${t("supportedEndpointAudio")}`}
-                </label>
-              ))}
+          {/* API Format + Supported Endpoints */}
+          <div className="flex items-end gap-4 flex-wrap">
+            <div className="w-48">
+              <label htmlFor="custom-api-format" className="text-xs text-text-muted mb-1 block">
+                API Format
+              </label>
+              <select
+                id="custom-api-format"
+                value={newApiFormat}
+                onChange={(e) => setNewApiFormat(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+              >
+                <option value="chat-completions">{t("chatCompletions")}</option>
+                <option value="responses">{t("responsesApi")}</option>
+                <option value="embeddings">{t("embeddings")}</option>
+                <option value="rerank">Rerank</option>
+                <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
+                <option value="audio-speech">{t("audioSpeech")}</option>
+                <option value="images-generations">{t("imagesGenerations")}</option>
+              </select>
+            </div>
+            <div className="w-48">
+              <label htmlFor="custom-target-format" className="text-xs text-text-muted mb-1 block">
+                {t("targetFormatLabel")}
+              </label>
+              <select
+                id="custom-target-format"
+                value={newTargetFormat}
+                onChange={(e) => setNewTargetFormat(e.target.value)}
+                title={t("targetFormatHint")}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+              >
+                <option value="">{t("targetFormatAuto")}</option>
+                <option value="openai">{t("compatProtocolOpenAI")}</option>
+                <option value="openai-responses">{t("compatProtocolOpenAIResponses")}</option>
+                <option value="claude">{t("compatProtocolClaude")}</option>
+                <option value="gemini">{t("targetFormatGemini")}</option>
+                <option value="antigravity">{t("targetFormatAntigravity")}</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <span className="text-xs text-text-muted mb-1 block">
+                {t("supportedEndpointsLabel")}
+              </span>
+              <div className="flex items-center gap-3">
+                {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
+                  <label
+                    key={ep}
+                    className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={newEndpoints.includes(ep)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setNewEndpoints((prev) => [...prev, ep]);
+                        } else {
+                          setNewEndpoints((prev) => prev.filter((x) => x !== ep));
+                        }
+                      }}
+                      className="rounded border-border"
+                    />
+                    {ep === "chat"
+                      ? `💬 ${t("supportedEndpointChat")}`
+                      : ep === "embeddings"
+                        ? `📐 ${t("supportedEndpointEmbeddings")}`
+                        : ep === "rerank"
+                          ? "Rerank"
+                          : ep === "images"
+                            ? `🖼️ ${t("supportedEndpointImages")}`
+                            : `🔊 ${t("supportedEndpointAudio")}`}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* List */}
       {loading ? (
         <p className="text-xs text-text-muted">{t("loading")}</p>
-      ) : customModels.length > 0 ? (
+      ) : displayCustomModels.length > 0 ? (
         <div className="flex flex-col gap-2">
-          {customModels.map((model) => {
+          {displayCustomModels.map((model) => {
             const fullModel = `${providerAlias}/${model.id}`;
             const copyKey = `custom-${model.id}`;
             return (

@@ -113,30 +113,46 @@ async function findCustomModelMetadata(providerId: string, modelId: string) {
   }
 }
 
-function buildInternalChatRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+function buildInternalChatRequest(
+  testBody: Record<string, unknown>,
+  signal: AbortSignal,
+  connectionId?: string
+) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    // Reuse the existing strict-mode internal bypass for live health checks.
+    "X-Internal-Test": "combo-health-check",
+    "X-Birouter-No-Cache": "true",
+    "X-Request-Id": `model-test-${randomUUID()}`,
+  };
+  if (connectionId) {
+    headers["X-Birouter-Connection"] = connectionId;
+  }
   return new Request(`${INTERNAL_ORIGIN}/v1/chat/completions`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      // Reuse the existing strict-mode internal bypass for live health checks.
-      "X-Internal-Test": "combo-health-check",
-      "X-Birouter-No-Cache": "true",
-      "X-Request-Id": `model-test-${randomUUID()}`,
-    },
+    headers,
     body: JSON.stringify(testBody),
     signal,
   });
 }
 
-function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+function buildInternalRerankRequest(
+  testBody: Record<string, unknown>,
+  signal: AbortSignal,
+  connectionId?: string
+) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Internal-Test": "combo-health-check",
+    "X-Birouter-No-Cache": "true",
+    "X-Request-Id": `model-test-${randomUUID()}`,
+  };
+  if (connectionId) {
+    headers["X-Birouter-Connection"] = connectionId;
+  }
   return new Request(`${INTERNAL_ORIGIN}/v1/rerank`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Internal-Test": "combo-health-check",
-      "X-Birouter-No-Cache": "true",
-      "X-Request-Id": `model-test-${randomUUID()}`,
-    },
+    headers,
     body: JSON.stringify(testBody),
     signal,
   });
@@ -257,9 +273,9 @@ export async function runSingleModelTest(
       );
     }
     if (isRerank) {
-      return postRerank(buildInternalRerankRequest(testBody, signal));
+      return postRerank(buildInternalRerankRequest(testBody, signal, connectionId));
     }
-    return postChatCompletion(buildInternalChatRequest(testBody, signal));
+    return postChatCompletion(buildInternalChatRequest(testBody, signal, connectionId));
   };
 
   let res: Response;

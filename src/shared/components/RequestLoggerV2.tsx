@@ -96,6 +96,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const { initialSelectedId } = props as any;
     const t = useTranslations("requestLogger");
     const { emailsVisible } = useEmailPrivacyStore();
+    const [copiedRowId, setCopiedRowId] = useState<string | null>(null);
 
     // Get translated status filters
     const statusFilters = useMemo(
@@ -606,6 +607,16 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         console.error("Failed to fetch log detail:", error);
       } finally {
         setDetailLoading(false);
+      }
+    };
+
+    const handleCopyRow = async (log: any, e: React.MouseEvent) => {
+      e.stopPropagation();
+      const text = JSON.stringify(log, null, 2);
+      const success = await copyToClipboard(text);
+      if (success) {
+        setCopiedRowId(log.id);
+        setTimeout(() => setCopiedRowId(null), 2000);
       }
     };
 
@@ -1270,7 +1281,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         onMouseEnter={() => log.correlationId && setHoveredCid(log.correlationId)}
                         onMouseLeave={() => setHoveredCid(null)}
                         className={
-                          `cursor-pointer transition-colors ` +
+                          `group cursor-pointer transition-colors ` +
                           `${
                             isError
                               ? "bg-red-500/5 hover:bg-red-500/15 dark:hover:bg-red-400/15"
@@ -1563,6 +1574,17 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             {formatTime(log.timestamp)}
                           </td>
                         )}
+                        <td className="px-2 py-2 w-8">
+                          <button
+                            onClick={(e) => handleCopyRow(log, e)}
+                            title="Copy log entry"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8b949e] hover:text-white p-1 rounded hover:bg-white/10"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">
+                              {copiedRowId === log.id ? "check" : "content_copy"}
+                            </span>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}

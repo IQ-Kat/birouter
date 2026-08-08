@@ -190,8 +190,10 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
     if (q && typeof q === "object") {
       result[key] = {
         remainingPercentage:
-          safePercentage(q.remainingPercentage) ??
-          (q.total > 0 ? Math.round(((q.total - (q.used || 0)) / q.total) * 100) : 0),
+          q.unlimited === true
+            ? 100
+            : (safePercentage(q.remainingPercentage) ??
+              (q.total > 0 ? Math.round(((q.total - (q.used || 0)) / q.total) * 100) : 0)),
         resetAt: q.resetAt || null,
       };
     }

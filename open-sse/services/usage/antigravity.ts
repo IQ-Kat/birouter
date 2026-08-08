@@ -146,8 +146,7 @@ function getAntigravityLocalUsageUnits(
            AND timestamp < ?`
       )
       .get(provider, connectionId, modelId, windowStart, windowEnd) as
-      | { tokens?: unknown }
-      | undefined;
+      { tokens?: unknown } | undefined;
 
     const tokens = Number(row?.tokens || 0);
     if (!Number.isFinite(tokens) || tokens <= 0) return 0;
@@ -722,6 +721,7 @@ export async function getAntigravityUsage(
             used: 0,
             total: 0,
             remaining: creditBalance,
+            remainingPercentage: (creditBalance ?? 0) > 0 ? 100 : 0,
             unlimited: false,
             resetAt: null,
           },

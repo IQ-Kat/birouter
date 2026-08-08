@@ -81,7 +81,7 @@ function cycleEndMs(acc: TencentAccount): number {
 
 function deductionEndMs(acc: TencentAccount): number {
   const v = acc.DeductionEndTime;
-  if (typeof v === "number") return (v < 1e12 ? v * 1000 : v);
+  if (typeof v === "number") return v < 1e12 ? v * 1000 : v;
   if (typeof v === "string" && /^\d+$/.test(v)) {
     const n = Number(v);
     return n < 1e12 ? n * 1000 : n;
@@ -106,6 +106,7 @@ interface CodeBuddyUsageResult {
     {
       used: number;
       total: number;
+      remainingPercentage: number;
       resetAt: string | null;
       unlimited: boolean;
     }
@@ -168,17 +169,27 @@ export async function getCodeBuddyCnUsage(
       const base = refillCadence(acc);
       seenRefill[base] = (seenRefill[base] || 0) + 1;
       const name = seenRefill[base] > 1 ? `${base} ${seenRefill[base]}` : base;
+      const t = num(acc.CycleCapacitySizePrecise, acc.CycleCapacitySize);
       quotas[name] = {
         used: num(acc.CycleCapacityUsedPrecise, acc.CycleCapacityUsed),
-        total: num(acc.CycleCapacitySizePrecise, acc.CycleCapacitySize),
+        total: t,
+        remainingPercentage:
+          t > 0
+            ? Math.round(((t - num(acc.CycleCapacityUsedPrecise, acc.CycleCapacityUsed)) / t) * 100)
+            : 100,
         resetAt: parseResetTime(acc.CycleEndTime),
         unlimited: false,
       };
     });
     bonuses.forEach((acc, i) => {
+      const t = num(acc.CapacitySizePrecise, acc.CapacitySize);
       quotas[`Bonus Pack ${i + 1}`] = {
         used: num(acc.CapacityUsedPrecise, acc.CapacityUsed),
-        total: num(acc.CapacitySizePrecise, acc.CapacitySize),
+        total: t,
+        remainingPercentage:
+          t > 0
+            ? Math.round(((t - num(acc.CapacityUsedPrecise, acc.CapacityUsed)) / t) * 100)
+            : 100,
         resetAt: parseResetTime(acc.CycleEndTime),
         unlimited: false,
       };

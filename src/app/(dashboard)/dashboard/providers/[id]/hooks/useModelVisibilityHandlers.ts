@@ -20,7 +20,7 @@
  * ProviderDetailPageClient.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   formatProviderModelsErrorResponse,
   providerText,
@@ -61,6 +61,8 @@ export interface UseModelVisibilityHandlersParams {
   selectedConnection: any;
   /** The provider node (may be null). */
   providerNode: any;
+  /** All connections for this provider — used to pick a fallback for model tests. */
+  connections: any[];
 }
 
 export interface UseModelVisibilityHandlersReturn {
@@ -71,6 +73,7 @@ export interface UseModelVisibilityHandlersReturn {
   modelFilter: string;
   testingModelId: string | null;
   modelTestStatus: Record<string, "ok" | "error">;
+  modelTestErrors: Record<string, string>;
   testingAll: boolean;
   testProgress: { done: number; total: number } | null;
   autoHideFailed: boolean;
@@ -107,6 +110,7 @@ export function useModelVisibilityHandlers({
   t,
   selectedConnection,
   providerNode,
+  connections,
 }: UseModelVisibilityHandlersParams): UseModelVisibilityHandlersReturn {
   const [compatSavingModelId, setCompatSavingModelId] = useState<string | null>(null);
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
@@ -117,6 +121,7 @@ export function useModelVisibilityHandlers({
   const [modelFilter, setModelFilter] = useState("");
   const [testingModelId, setTestingModelId] = useState<string | null>(null);
   const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
+  const [modelTestErrors, setModelTestErrors] = useState<Record<string, string>>({});
   const [testingAll, setTestingAll] = useState(false);
   const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
   const [autoHideFailed, setAutoHideFailed] = useState(false);
@@ -285,17 +290,24 @@ export function useModelVisibilityHandlers({
     }
   };
 
+  const resolveTestConnection = useCallback(() => {
+    if (selectedConnection) return selectedConnection;
+    if (connections.length > 0) return connections[0];
+    return null;
+  }, [selectedConnection, connections]);
+
   const onTestModel = async (modelId: string, fullModel: string) => {
     setTestingModelId(modelId);
     setModelTestStatus((prev) => ({ ...prev, [modelId]: undefined as any }));
+    const conn = resolveTestConnection();
     try {
       const res = await fetch("/api/models/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: selectedConnection?.provider || providerNode?.id || providerId,
+          providerId: conn?.provider || providerNode?.id || providerId,
           modelId: fullModel,
-          connectionId: selectedConnection?.id,
+          connectionId: conn?.id,
         }),
       });
       const data = await res.json();
@@ -313,15 +325,16 @@ export function useModelVisibilityHandlers({
         );
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "ok" }));
       } else {
-        // extractApiErrorMessage coerces any object-shaped `error` (e.g. a Zod
-        // format object) to a string so notify.error never hands the toast a
-        // non-string child (React #31 → frozen page).
-        notify.error(extractApiErrorMessage(data, "Model test failed"));
+        const msg = extractApiErrorMessage(data, "Model test failed");
+        notify.error(msg);
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+        setModelTestErrors((prev) => ({ ...prev, [modelId]: msg }));
       }
     } catch (err) {
-      notify.error("Network error testing model");
+      const msg = err instanceof Error ? err.message : "Network error testing model";
+      notify.error(msg);
       setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+      setModelTestErrors((prev) => ({ ...prev, [modelId]: msg }));
     } finally {
       setTestingModelId(null);
     }
@@ -342,6 +355,7 @@ export function useModelVisibilityHandlers({
     let error = 0;
     let hiddenCount = 0;
 
+    const conn = resolveTestConnection();
     const CHUNK_SIZE = 3;
     for (let i = 0; i < targets.length; i += CHUNK_SIZE) {
       const chunk = targets.slice(i, i + CHUNK_SIZE);
@@ -363,7 +377,7 @@ export function useModelVisibilityHandlers({
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 providerId: providerId,
-                connectionId: selectedConnection?.id,
+                connectionId: conn?.id,
                 modelIds: [fullModel],
               }),
             }).then((r) => r.json());
@@ -372,6 +386,9 @@ export function useModelVisibilityHandlers({
             const outcome = evaluateTestAllEntry(entry, autoHideFailed);
             // Paint the per-model icon green/red, same as the single-model ▶ test.
             setModelTestStatus((prev) => ({ ...prev, [modelId]: outcome.status }));
+            if (entry?.error) {
+              setModelTestErrors((prev) => ({ ...prev, [modelId]: entry.error! }));
+            }
             if (outcome.status === "ok") {
               ok++;
             } else {
@@ -417,6 +434,7 @@ export function useModelVisibilityHandlers({
     modelFilter,
     testingModelId,
     modelTestStatus,
+    modelTestErrors,
     testingAll,
     testProgress,
     autoHideFailed,

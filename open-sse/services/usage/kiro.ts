@@ -41,7 +41,14 @@ function buildKiroQuota(
   const remaining = total - used;
 
   if (!overageEnabled) {
-    return { used, total, remaining, resetAt, unlimited: false };
+    return {
+      used,
+      total,
+      remaining,
+      remainingPercentage: total > 0 ? Math.round(((total - used) / total) * 100) : 100,
+      resetAt,
+      unlimited: false,
+    };
   }
 
   return {

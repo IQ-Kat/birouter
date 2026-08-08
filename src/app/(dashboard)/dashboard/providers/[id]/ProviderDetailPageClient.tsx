@@ -41,7 +41,7 @@ import { useConnectionGate } from "./hooks/useConnectionGate";
 import { useProviderNodeActions } from "./hooks/useProviderNodeActions";
 import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import ProviderModelsSection from "./components/ProviderModelsSection";
-import CustomModelsSection from "./components/CustomModelsSection";
+import FetchedModelsSection from "./components/FetchedModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
 import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
@@ -256,6 +256,8 @@ export default function ProviderDetailPageClient() {
     }
     return Array.from(deduped.values());
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
+  const systemModels = useMemo(() => models.filter((m) => m.source === "system"), [models]);
+  const fetchedModels = useMemo(() => models.filter((m) => m.source !== "system"), [models]);
   const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
   // isSearchProvider declared earlier (before hooks)
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
@@ -397,6 +399,7 @@ export default function ProviderDetailPageClient() {
     modelFilter,
     testingModelId,
     modelTestStatus,
+    modelTestErrors,
     testingAll,
     testProgress,
     autoHideFailed,
@@ -423,6 +426,7 @@ export default function ProviderDetailPageClient() {
     t,
     selectedConnection,
     providerNode,
+    connections,
   });
 
   // renderModelsSection → components/ProviderModelsSection.tsx (Phase 1m)
@@ -618,78 +622,185 @@ export default function ProviderDetailPageClient() {
       )}
       {isUpstreamProxyProvider && <UpstreamProxyCard t={t} />}
 
-      {/* Models — hidden for search providers (they don't have models) */}
+      {/* Panel 2: Available Models — system/registry models only (standard providers) */}
+      {!isSearchProvider &&
+        !isUpstreamProxyProvider &&
+        !isManagedAvailableModelsProvider &&
+        !providerInfo?.passthroughModels && (
+          <Card>
+            <h2 className="text-lg font-semibold mb-4">{t("builtInModels")}</h2>
+            {systemModels.length > 0 ? (
+              <ProviderModelsSection
+                providerId={providerId}
+                providerAlias={providerAlias}
+                providerStorageAlias={providerStorageAlias}
+                providerDisplayAlias={providerDisplayAlias}
+                providerInfo={providerInfo}
+                isCcCompatible={isCcCompatible}
+                isAnthropicCompatible={isAnthropicCompatible}
+                isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+                isManagedAvailableModelsProvider={isManagedAvailableModelsProvider}
+                compatibleSupportsModelImport={compatibleSupportsModelImport}
+                models={systemModels}
+                modelMeta={modelMeta}
+                modelAliases={modelAliases}
+                syncedAvailableModels={syncedAvailableModels}
+                compatibleFallbackModels={compatibleFallbackModels}
+                copied={copied}
+                onCopy={copy}
+                onSetAlias={handleSetAlias}
+                onDeleteAlias={handleDeleteAlias}
+                fetchProviderModelMeta={fetchProviderModelMeta}
+                connections={connections}
+                selectedConnection={selectedConnection}
+                canImportModels={canImportModels}
+                importingModels={importingModels}
+                handleImportModels={handleImportModels}
+                isAutoSyncEnabled={isAutoSyncEnabled}
+                togglingAutoSync={togglingAutoSync}
+                handleToggleAutoSync={handleToggleAutoSync}
+                handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
+                compatSavingModelId={compatSavingModelId}
+                togglingModelId={togglingModelId}
+                bulkVisibilityAction={bulkVisibilityAction}
+                clearingModels={clearingModels}
+                modelFilter={modelFilter}
+                testingModelId={testingModelId}
+                modelTestStatus={modelTestStatus}
+                modelTestErrors={modelTestErrors}
+                onModelTestStatusChange={onModelTestStatusChange}
+                testingAll={testingAll}
+                testProgress={testProgress}
+                autoHideFailed={autoHideFailed}
+                visibilityFilter={visibilityFilter}
+                providerAliasEntries={providerAliasEntries}
+                setModelFilter={setModelFilter}
+                setAutoHideFailed={setAutoHideFailed}
+                setVisibilityFilter={setVisibilityFilter}
+                saveModelCompatFlags={saveModelCompatFlags}
+                handleToggleModelHidden={handleToggleModelHidden}
+                handleBulkToggleModelHidden={handleBulkToggleModelHidden}
+                handleClearAllModels={handleClearAllModels}
+                onTestModel={onTestModel}
+                handleTestAll={handleTestAll}
+                effectiveModelNormalize={effectiveModelNormalize}
+                effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                effectiveModelHidden={effectiveModelHidden}
+                getUpstreamHeadersRecordForModel={getUpstreamHeadersRecordForModel}
+                t={t}
+                hideImportUI
+              />
+            ) : (
+              <p className="text-sm text-text-muted">No built-in models for this provider.</p>
+            )}
+          </Card>
+        )}
+
+      {/* Panel 3: Fetch Model / Model Management — imported + custom models */}
       {!isSearchProvider && !isUpstreamProxyProvider && (
         <Card>
-          <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
-          {/* Phase 1m: extracted to components/ProviderModelsSection.tsx */}
-          <ProviderModelsSection
-            providerId={providerId}
-            providerAlias={providerAlias}
-            providerStorageAlias={providerStorageAlias}
-            providerDisplayAlias={providerDisplayAlias}
-            providerInfo={providerInfo}
-            isCcCompatible={isCcCompatible}
-            isAnthropicCompatible={isAnthropicCompatible}
-            isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
-            isManagedAvailableModelsProvider={isManagedAvailableModelsProvider}
-            compatibleSupportsModelImport={compatibleSupportsModelImport}
-            models={models}
-            modelMeta={modelMeta}
-            modelAliases={modelAliases}
-            syncedAvailableModels={syncedAvailableModels}
-            compatibleFallbackModels={compatibleFallbackModels}
-            copied={copied}
-            onCopy={copy}
-            onSetAlias={handleSetAlias}
-            onDeleteAlias={handleDeleteAlias}
-            fetchProviderModelMeta={fetchProviderModelMeta}
-            connections={connections}
-            selectedConnection={selectedConnection}
-            canImportModels={canImportModels}
-            importingModels={importingModels}
-            handleImportModels={handleImportModels}
-            isAutoSyncEnabled={isAutoSyncEnabled}
-            togglingAutoSync={togglingAutoSync}
-            handleToggleAutoSync={handleToggleAutoSync}
-            handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
-            compatSavingModelId={compatSavingModelId}
-            togglingModelId={togglingModelId}
-            bulkVisibilityAction={bulkVisibilityAction}
-            clearingModels={clearingModels}
-            modelFilter={modelFilter}
-            testingModelId={testingModelId}
-            modelTestStatus={modelTestStatus}
-            onModelTestStatusChange={onModelTestStatusChange}
-            testingAll={testingAll}
-            testProgress={testProgress}
-            autoHideFailed={autoHideFailed}
-            visibilityFilter={visibilityFilter}
-            providerAliasEntries={providerAliasEntries}
-            setModelFilter={setModelFilter}
-            setAutoHideFailed={setAutoHideFailed}
-            setVisibilityFilter={setVisibilityFilter}
-            saveModelCompatFlags={saveModelCompatFlags}
-            handleToggleModelHidden={handleToggleModelHidden}
-            handleBulkToggleModelHidden={handleBulkToggleModelHidden}
-            handleClearAllModels={handleClearAllModels}
-            onTestModel={onTestModel}
-            handleTestAll={handleTestAll}
-            effectiveModelNormalize={effectiveModelNormalize}
-            effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-            effectiveModelHidden={effectiveModelHidden}
-            getUpstreamHeadersRecordForModel={getUpstreamHeadersRecordForModel}
-            t={t}
-          />
-
-          {/* Custom Models — available for all providers */}
-          <CustomModelsSection
-            providerId={providerId}
-            providerAlias={providerDisplayAlias}
-            copied={copied}
-            onCopy={copy}
-            onModelsChanged={fetchProviderModelMeta}
-          />
+          <h2 className="text-lg font-semibold mb-4">
+            {providerInfo?.passthroughModels || isManagedAvailableModelsProvider
+              ? t("availableModels")
+              : "Fetched Models"}
+          </h2>
+          {isManagedAvailableModelsProvider || providerInfo?.passthroughModels ? (
+            <ProviderModelsSection
+              providerId={providerId}
+              providerAlias={providerAlias}
+              providerStorageAlias={providerStorageAlias}
+              providerDisplayAlias={providerDisplayAlias}
+              providerInfo={providerInfo}
+              isCcCompatible={isCcCompatible}
+              isAnthropicCompatible={isAnthropicCompatible}
+              isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
+              isManagedAvailableModelsProvider={isManagedAvailableModelsProvider}
+              compatibleSupportsModelImport={compatibleSupportsModelImport}
+              models={models}
+              modelMeta={modelMeta}
+              modelAliases={modelAliases}
+              syncedAvailableModels={syncedAvailableModels}
+              compatibleFallbackModels={compatibleFallbackModels}
+              copied={copied}
+              onCopy={copy}
+              onSetAlias={handleSetAlias}
+              onDeleteAlias={handleDeleteAlias}
+              fetchProviderModelMeta={fetchProviderModelMeta}
+              connections={connections}
+              selectedConnection={selectedConnection}
+              canImportModels={canImportModels}
+              importingModels={importingModels}
+              handleImportModels={handleImportModels}
+              isAutoSyncEnabled={isAutoSyncEnabled}
+              togglingAutoSync={togglingAutoSync}
+              handleToggleAutoSync={handleToggleAutoSync}
+              handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
+              compatSavingModelId={compatSavingModelId}
+              togglingModelId={togglingModelId}
+              bulkVisibilityAction={bulkVisibilityAction}
+              clearingModels={clearingModels}
+              modelFilter={modelFilter}
+              testingModelId={testingModelId}
+              modelTestStatus={modelTestStatus}
+              modelTestErrors={modelTestErrors}
+              onModelTestStatusChange={onModelTestStatusChange}
+              testingAll={testingAll}
+              testProgress={testProgress}
+              autoHideFailed={autoHideFailed}
+              visibilityFilter={visibilityFilter}
+              providerAliasEntries={providerAliasEntries}
+              setModelFilter={setModelFilter}
+              setAutoHideFailed={setAutoHideFailed}
+              setVisibilityFilter={setVisibilityFilter}
+              saveModelCompatFlags={saveModelCompatFlags}
+              handleToggleModelHidden={handleToggleModelHidden}
+              handleBulkToggleModelHidden={handleBulkToggleModelHidden}
+              handleClearAllModels={handleClearAllModels}
+              onTestModel={onTestModel}
+              handleTestAll={handleTestAll}
+              effectiveModelNormalize={effectiveModelNormalize}
+              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+              effectiveModelHidden={effectiveModelHidden}
+              getUpstreamHeadersRecordForModel={getUpstreamHeadersRecordForModel}
+              t={t}
+            />
+          ) : (
+            <FetchedModelsSection
+              providerId={providerId}
+              providerDisplayAlias={providerDisplayAlias}
+              importedModels={fetchedModels}
+              modelMeta={modelMeta}
+              syncedAvailableModels={syncedAvailableModels}
+              connections={connections}
+              copied={copied}
+              onCopy={copy}
+              onSetAlias={handleSetAlias}
+              onDeleteAlias={handleDeleteAlias}
+              onModelsChanged={fetchProviderModelMeta}
+              canImportModels={canImportModels}
+              importingModels={importingModels}
+              handleImportModels={handleImportModels}
+              isAutoSyncEnabled={isAutoSyncEnabled}
+              togglingAutoSync={togglingAutoSync}
+              handleToggleAutoSync={handleToggleAutoSync}
+              handleCompatibleImportWithProgress={handleCompatibleImportWithProgress}
+              compatSavingModelId={compatSavingModelId}
+              togglingModelId={togglingModelId}
+              handleToggleModelHidden={handleToggleModelHidden}
+              onTestModel={onTestModel}
+              testingModelId={testingModelId}
+              modelTestStatus={modelTestStatus}
+              modelTestErrors={modelTestErrors}
+              handleTestAll={handleTestAll}
+              testingAll={testingAll}
+              testProgress={testProgress}
+              effectiveModelNormalize={effectiveModelNormalize}
+              effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+              getUpstreamHeadersRecordForModel={getUpstreamHeadersRecordForModel}
+              saveModelCompatFlags={saveModelCompatFlags}
+              t={t}
+            />
+          )}
         </Card>
       )}
 

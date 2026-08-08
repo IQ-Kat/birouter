@@ -1438,11 +1438,16 @@ export async function getProviderCredentials(
     }
 
     // Quota-aware: filter out accounts with exhausted quota for the requested scope.
+    // When allowSuppressedConnections is true (model test), bypass quota exhaustion
+    // so a transient 429 that poisoned the cache doesn't block subsequent tests.
     const withQuota = policyEligibleConnections.filter(
-      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+      (c) =>
+        allowSuppressedConnections || !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
     );
     const exhaustedQuota = policyEligibleConnections.filter((c) =>
-      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+      allowSuppressedConnections
+        ? false
+        : isQuotaExhaustedForRequest(c.id, provider, requestedModel)
     );
 
     if (exhaustedQuota.length > 0) {
