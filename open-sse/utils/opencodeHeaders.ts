@@ -81,14 +81,40 @@ export function forwardOpencodeClientHeaders(
 }
 
 /**
+ * True when a User-Agent string looks like a web browser (blink/webkit/gecko).
+ * A browser UA is NOT a valid OpenCode client identity — forwarding it alongside
+ * the synthesized `x-opencode-client: cli` produces a mixed identity that
+ * Cloudflare rejects with 429 (#5997 follow-up). Playground requests always
+ * carry one, so CLI synthesis must override it.
+ */
+function isBrowserLikeUserAgent(userAgent: string): boolean {
+  const lower = String(userAgent || "").toLowerCase();
+  return (
+    lower.includes("mozilla/") ||
+    lower.includes("applewebkit") ||
+    lower.includes("chrome/") ||
+    lower.includes("safari") ||
+    lower.includes("firefox") ||
+    lower.includes("edg/")
+  );
+}
+
+/**
  * Fill the OpenCode CLI identity headers Cloudflare requires on VPS egress, but only for
  * keys the client did not already supply (client values always win). (#5997)
+ *
+ * User-Agent is special-cased: a client-supplied browser UA (the playground's
+ * Chrome UA) is not a valid OpenCode client identity and gets 429'd when paired
+ * with `x-opencode-client: cli`. Browser-like UAs are therefore replaced by the
+ * synthesized CLI UA; any non-browser client UA (a real OpenCode client or tool
+ * forwarding its own identity) is kept untouched.
  */
 function applyCliDefaults(
   headers: Record<string, string>,
   cliDefaults: { userAgent: string; client: string; project: string }
 ): void {
-  if (!headers["User-Agent"] && !headers["user-agent"]) {
+  const existingUA = headers["User-Agent"] || headers["user-agent"];
+  if (!existingUA || isBrowserLikeUserAgent(existingUA)) {
     setUserAgentHeader(headers, cliDefaults.userAgent);
   }
   headers["x-opencode-client"] ||= cliDefaults.client;

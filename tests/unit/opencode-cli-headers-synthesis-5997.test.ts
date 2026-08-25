@@ -53,6 +53,31 @@ test("forwardOpencodeClientHeaders: cliDefaults synthesize all CLI identity head
   assert.notEqual(headers["x-opencode-request"], headers["x-opencode-session"]);
 });
 
+test("forwardOpencodeClientHeaders: cliDefaults replace browser-like User-Agent (mixed identity 429s) [#5997]", () => {
+  const headers: Record<string, string> = {};
+  const clientHeaders = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "x-opencode-client": "cli",
+  };
+  forwardOpencodeClientHeaders(headers, clientHeaders, { cliDefaults: CLI_DEFAULTS });
+
+  assert.equal(headers["User-Agent"], "opencode-cli/1.0.0");
+  assert.equal(headers["x-opencode-client"], "cli");
+  assert.equal(headers["x-opencode-project"], "default");
+  assert.match(headers["x-opencode-request"] ?? "", UUID_RE);
+  assert.match(headers["x-opencode-session"] ?? "", UUID_RE);
+});
+
+test("forwardOpencodeClientHeaders: non-browser custom User-Agent is preserved by cliDefaults [#5997]", () => {
+  const headers: Record<string, string> = {};
+  const clientHeaders = { "User-Agent": "my-tool/9.9", "x-opencode-client": "cli" };
+  forwardOpencodeClientHeaders(headers, clientHeaders, { cliDefaults: CLI_DEFAULTS });
+
+  assert.equal(headers["User-Agent"], "my-tool/9.9");
+  assert.equal(headers["x-opencode-client"], "cli");
+});
+
 test("forwardOpencodeClientHeaders: client-supplied CLI headers take precedence over defaults [#5997]", () => {
   const headers: Record<string, string> = {};
   const clientHeaders = {
@@ -108,6 +133,35 @@ test("OpencodeExecutor.buildHeaders: OPENCODE_GO_USER_AGENT env overrides the de
       const executor = new OpencodeExecutor("opencode-go");
       const headers = executor.buildHeaders(null, true, null, "glm-5.2");
       assert.equal(headers["User-Agent"], "opencode-cli/2.5.0");
+    });
+  });
+});
+
+test("OpencodeExecutor.buildHeaders: global OPENCODE_CLIENT env (real OpenCode app) does NOT leak into synthesis [#5997]", () => {
+  withEnv("OPENCODE_SYNTHESIZE_CLI_HEADERS", "true", () => {
+    // A real OpenCode desktop/CLI install sets OPENCODE_CLIENT=desktop in the
+    // system/user env. Birouter must NOT read it — synthesized identity stays `cli`.
+    withEnv("OPENCODE_CLIENT", "desktop", () => {
+      const executor = new OpencodeExecutor("opencode-zen");
+      const headers = executor.buildHeaders(null, true, null, "deepseek-v4-flash-free");
+
+      assert.equal(headers["User-Agent"], "opencode-cli/1.0.0");
+      assert.equal(headers["x-opencode-client"], "cli");
+      assert.equal(headers["x-opencode-project"], "default");
+    });
+  });
+});
+
+test("OpencodeExecutor.buildHeaders: BIROUTER_OPENCODE_CLIENT env overrides the synthesized client (flag on) [#5997]", () => {
+  withEnv("OPENCODE_SYNTHESIZE_CLI_HEADERS", "true", () => {
+    withEnv("OPENCODE_CLIENT", "desktop", () => {
+      withEnv("BIROUTER_OPENCODE_CLIENT", "acp", () => {
+        const executor = new OpencodeExecutor("opencode-zen");
+        const headers = executor.buildHeaders(null, true, null, "deepseek-v4-flash-free");
+
+        assert.equal(headers["x-opencode-client"], "acp");
+        assert.equal(headers["User-Agent"], "opencode-cli/1.0.0");
+      });
     });
   });
 });

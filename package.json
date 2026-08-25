@@ -432,7 +432,6 @@
     "xmlbuilder2": {
       "js-yaml": "^4.3.1"
     },
-    "nanoid": "^3.3.17",
     "monaco-editor": {
       "dompurify": "^3.4.13"
     }

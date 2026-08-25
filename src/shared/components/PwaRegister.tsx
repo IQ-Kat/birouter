@@ -10,6 +10,14 @@ export function PwaRegister() {
 
     // Disable service worker in development to avoid chunk loading / HMR conflicts
     if (process.env.NODE_ENV !== "production") {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => {
+          for (const registration of registrations) {
+            void registration.unregister();
+          }
+        })
+        .catch(() => {});
       return;
     }
 

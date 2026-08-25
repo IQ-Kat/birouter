@@ -1,4 +1,4 @@
-const CACHE_NAME = "birouter-pwa-v2";
+const CACHE_NAME = "birouter-pwa-v3";
 const APP_SHELL = [
   "/",
   "/offline",
@@ -60,7 +60,11 @@ self.addEventListener("fetch", (event) => {
   );
   const isNextAsset = requestUrl.pathname.startsWith("/_next/");
   const destination = event.request.destination;
-  const isStaticAsset = ["style", "script", "image", "font"].includes(destination);
+  const isStaticAsset =
+    ["style", "script", "image", "font", "manifest"].includes(destination) ||
+    APP_SHELL.includes(requestUrl.pathname) ||
+    requestUrl.pathname.endsWith(".webmanifest") ||
+    requestUrl.pathname.endsWith(".json");
   const isNavigateRequest = event.request.mode === "navigate";
 
   // Never cache API/dashboard traffic with potentially auth-sensitive content.
@@ -75,7 +79,10 @@ self.addEventListener("fetch", (event) => {
           const networkResponse = await fetch(event.request);
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
-            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+            void caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, responseClone))
+              .catch(() => {});
           }
           return networkResponse;
         } catch {
@@ -84,7 +91,11 @@ self.addEventListener("fetch", (event) => {
       }
 
       if (!isStaticAsset) {
-        return fetch(event.request);
+        try {
+          return await fetch(event.request);
+        } catch {
+          return (await caches.match(event.request)) || Response.error();
+        }
       }
 
       if (isNextAsset) {
@@ -92,7 +103,10 @@ self.addEventListener("fetch", (event) => {
           const networkResponse = await fetch(event.request);
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
-            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+            void caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, responseClone))
+              .catch(() => {});
           }
           return networkResponse;
         } catch {
@@ -105,12 +119,19 @@ self.addEventListener("fetch", (event) => {
         return cachedResponse;
       }
 
-      const networkResponse = await fetch(event.request);
-      if (networkResponse && networkResponse.status === 200) {
-        const responseClone = networkResponse.clone();
-        void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+      try {
+        const networkResponse = await fetch(event.request);
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          void caches
+            .open(CACHE_NAME)
+            .then((cache) => cache.put(event.request, responseClone))
+            .catch(() => {});
+        }
+        return networkResponse;
+      } catch {
+        return (await caches.match(event.request)) || Response.error();
       }
-      return networkResponse;
     })()
   );
 });

@@ -265,10 +265,16 @@ export class OpencodeExecutor extends BaseExecutor {
           return {
             userAgent:
               process.env[envUAKey]?.trim() ||
-              process.env.OPENCODE_USER_AGENT?.trim() ||
+              process.env.BIROUTER_OPENCODE_USER_AGENT?.trim() ||
               "opencode-cli/1.0.0",
-            client: process.env.OPENCODE_CLIENT?.trim() || "cli",
-            project: process.env.OPENCODE_PROJECT?.trim() || "default",
+            // NOTE: deliberately reads BIROUTER_OPENCODE_CLIENT, NOT OPENCODE_CLIENT.
+            // The latter is consumed by the real OpenCode CLI/desktop apps for their
+            // own identity (User-Agent / telemetry); reading it here would let those
+            // installs pollute Birouter's synthesized identity. Birouter defaults to
+            // `cli` (the opencode-native value proven in #5997) with a Birouter-scoped
+            // override — portable to machines with no OpenCode app installed.
+            client: process.env.BIROUTER_OPENCODE_CLIENT?.trim() || "cli",
+            project: process.env.BIROUTER_OPENCODE_PROJECT?.trim() || "default",
           };
         })()
       : undefined;

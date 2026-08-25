@@ -2703,13 +2703,17 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", index.toString());
     // Make drag image slightly transparent
-    if (e.target) {
-      setTimeout(() => ((e.currentTarget as HTMLElement).style.opacity = "0.5"), 0);
+    const currentTarget = e.currentTarget as HTMLElement;
+    if (currentTarget) {
+      setTimeout(() => {
+        currentTarget.style.opacity = "0.5";
+      }, 0);
     }
   };
 
   const handleDragEnd = (e) => {
-    if (e.target) (e.currentTarget as HTMLElement).style.opacity = "1";
+    const currentTarget = e.currentTarget as HTMLElement;
+    if (currentTarget) currentTarget.style.opacity = "1";
     setDragIndex(null);
     setDragOverIndex(null);
   };

@@ -513,6 +513,61 @@ function patchStandalonePackageJson(resolvedOutDir) {
 }
 
 /**
+ * Resilient wrapper around fsSync.cpSync that handles Windows file locking
+ * (EBUSY / EPIPE / EACCES / errno 32) when copying directories over an existing
+ * build output where native binaries (.node) might be held open by a running process.
+ */
+function safeCpSync(src, dest, options = { recursive: true, force: true }) {
+  try {
+    fsSync.cpSync(src, dest, options);
+  } catch (err) {
+    const isLockError =
+      err?.code === "EPIPE" ||
+      err?.code === "EBUSY" ||
+      err?.code === "EACCES" ||
+      err?.code === "EPERM" ||
+      err?.errno === 32 ||
+      (typeof err?.message === "string" && err.message.includes("being used by another process"));
+
+    if (isLockError && fsSync.statSync(src).isDirectory()) {
+      copyDirResilient(src, dest);
+    } else {
+      throw err;
+    }
+  }
+}
+
+function copyDirResilient(srcDir, destDir) {
+  fsSync.mkdirSync(destDir, { recursive: true });
+  const entries = fsSync.readdirSync(srcDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(srcDir, entry.name);
+    const destPath = path.join(destDir, entry.name);
+    if (entry.isDirectory()) {
+      copyDirResilient(srcPath, destPath);
+    } else {
+      try {
+        fsSync.copyFileSync(srcPath, destPath);
+      } catch (err) {
+        const isLockError =
+          err?.code === "EPIPE" ||
+          err?.code === "EBUSY" ||
+          err?.code === "EACCES" ||
+          err?.code === "EPERM" ||
+          err?.errno === 32 ||
+          (typeof err?.message === "string" &&
+            err.message.includes("being used by another process"));
+        if (isLockError && fsSync.existsSync(destPath)) {
+          console.warn(`[assembleStandalone] Skipped locked existing file: ${entry.name}`);
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+}
+
+/**
  * Copy <distDir>/static -> outDir/<relDistDir>/static and projectRoot/public -> outDir/public.
  * The static dest mirrors the configured distDir (e.g. .build/next), which is where the
  * standalone server serves /_next/static from. See step 2 in assembleStandalone for why.
@@ -524,12 +579,12 @@ function copyStaticAndPublic({ distDir, relDistDir, projectRoot, resolvedOutDir 
   const staticDest = path.join(resolvedOutDir, relDistDir, "static");
   if (fsSync.existsSync(staticSrc)) {
     fsSync.mkdirSync(path.dirname(staticDest), { recursive: true });
-    fsSync.cpSync(staticSrc, staticDest, { recursive: true, force: true });
+    safeCpSync(staticSrc, staticDest, { recursive: true, force: true });
   }
 
   const publicSrc = path.join(projectRoot, "public");
   if (fsSync.existsSync(publicSrc)) {
-    fsSync.cpSync(publicSrc, path.join(resolvedOutDir, "public"), { recursive: true, force: true });
+    safeCpSync(publicSrc, path.join(resolvedOutDir, "public"), { recursive: true, force: true });
   }
 }
 
@@ -547,7 +602,7 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     if (!fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...asset.dest);
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
-    fsSync.cpSync(src, dest, { recursive: true, force: true });
+    safeCpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Copied native asset: ${asset.label}`);
   }
 
@@ -556,7 +611,7 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     if (!fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...mod.dest);
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
-    fsSync.cpSync(src, dest, { recursive: true, force: true });
+    safeCpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Synced module: ${mod.label}`);
   }
 }
@@ -607,7 +662,7 @@ export function assembleStandalone({
   // 1. Copy <distDir>/standalone -> outDir (skip when outDir IS the standalone dir — in-place mode)
   fsSync.mkdirSync(resolvedOutDir, { recursive: true });
   if (resolvedOutDir !== standaloneDir) {
-    fsSync.cpSync(standaloneDir, resolvedOutDir, { recursive: true });
+    safeCpSync(standaloneDir, resolvedOutDir, { recursive: true, force: true });
   }
 
   // 1.5. Standalone server.js is CJS — strip "type":"module" from the copied package.json.

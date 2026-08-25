@@ -114,7 +114,27 @@ console.log("🔨 Birouter — Building for npm publish...\n");
 // ── Step 1: Clean previous dist/ directory ─────────────────
 if (existsSync(DIST_DIR)) {
   console.log("  🧹 Cleaning previous dist/ directory...");
-  rmSync(DIST_DIR, { recursive: true, force: true });
+  try {
+    rmSync(DIST_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch (err: any) {
+    if (err.code === "EPERM" || err.code === "EBUSY") {
+      try {
+        const files = readdirSync(DIST_DIR);
+        for (const file of files) {
+          rmSync(join(DIST_DIR, file), {
+            recursive: true,
+            force: true,
+            maxRetries: 5,
+            retryDelay: 200,
+          });
+        }
+      } catch {
+        // Ignore locked folder handle fallback
+      }
+    } else {
+      throw err;
+    }
+  }
 }
 
 // ── Step 2: Assert / trigger the Next.js standalone build ──
@@ -123,13 +143,14 @@ if (existsSync(DIST_DIR)) {
 // If the artifact is absent we invoke it exactly once.
 const NEXT_DIST = process.env.NEXT_DIST_DIR || ".build/next";
 const standaloneServerJs = join(ROOT, NEXT_DIST, "standalone", "server.js");
-if (!existsSync(standaloneServerJs)) {
-  console.log("  🏗️  .build/next/standalone not found — running `npm run build` once...");
+const distServerJs = join(DIST_DIR, "server.js");
+if (!existsSync(standaloneServerJs) && !existsSync(distServerJs)) {
+  console.log("  🏗️  Standalone build artifact not found — running `npm run build` once...");
   execFileSync(process.execPath, ["scripts/build/build-next-isolated.mjs"], {
     cwd: ROOT,
     stdio: "inherit",
   });
-  if (!existsSync(standaloneServerJs)) {
+  if (!existsSync(standaloneServerJs) && !existsSync(distServerJs)) {
     console.error(
       "\n  ❌ Standalone build not found after `npm run build` at:",
       standaloneServerJs

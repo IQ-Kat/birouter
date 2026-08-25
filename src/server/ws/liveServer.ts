@@ -28,6 +28,7 @@ import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
 
+import { getSettings } from "@/lib/db/settings";
 import {
   buildAllowedOrigins,
   buildAllowedHosts,
@@ -117,7 +118,9 @@ function loadAuthModule(): Promise<typeof import("../../sse/services/auth.ts")> 
   return authModulePromise;
 }
 
-async function authorizeConnection(request: import("http").IncomingMessage): Promise<WsAuthResult> {
+export async function authorizeConnection(
+  request: import("http").IncomingMessage
+): Promise<WsAuthResult> {
   const sessionId = randomUUID().slice(0, 8);
 
   // Token MUST come from the Authorization header (or X-Live-WS-Token).
@@ -129,6 +132,15 @@ async function authorizeConnection(request: import("http").IncomingMessage): Pro
   // LiveWS is exposed same-origin through a reverse proxy, accept the existing
   // dashboard session cookie before falling back to API-key authentication. Keep
   // the check local to this sidecar so it does not import Next.js-only modules.
+  try {
+    const settings = await getSettings();
+    if (!settings.wsAuth || !settings.setupComplete || !settings.requireLogin) {
+      return { authorized: true, sessionId };
+    }
+  } catch {
+    // If DB is not yet available, fallback to standard verification
+  }
+
   if (!token) {
     if (await isDashboardCookieAuthenticated(request)) {
       return { authorized: true, sessionId };
