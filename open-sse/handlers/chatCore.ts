@@ -2365,6 +2365,7 @@ export async function handleChatCore({
                           onCredentialsRefreshed,
                           skipUpstreamRetry,
                           contextEditing: { enabled: contextEditingEnabled },
+                          targetFormat,
                         })
                       ),
                   });

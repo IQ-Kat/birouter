@@ -147,7 +147,7 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    this._requestFormat = getModelTargetFormat(this.provider, input.model) || "openai";
+    this._requestFormat = input.targetFormat || getModelTargetFormat(this.provider, input.model) || "openai";
     try {
       this.syncAccountsFromCredentials(input.credentials);
 

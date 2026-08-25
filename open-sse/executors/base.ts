@@ -165,6 +165,8 @@ export type ExecuteInput = {
    * `context_management.clear_tool_uses` strategy so the provider clears stale
    * tool-use blocks server-side. Honored only on the genuine `claude` path. */
   contextEditing?: { enabled: boolean } | null;
+  /** Optional target format override for dynamic custom models. */
+  targetFormat?: string;
 };
 
 export type CountTokensInput = {
