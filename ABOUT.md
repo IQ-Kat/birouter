@@ -8,50 +8,14 @@ Birouter is a unified AI proxy/router — route any LLM through one endpoint wit
 
 ## Latest Updates
 
-### v3.8.53 — Latest
+### v3.8.54 — Latest
 
-- **Upstream Sync & Dependabot Security Overrides**: Integrated upstream security patches for `adm-zip`, `fast-uri`, `hono`, `@hono/node-server`, `body-parser`, `dompurify`, `fast-xml-parser`, `sharp`, `nanoid`, `ip-address`, `socket.io-parser`, `undici`, `js-yaml`, and `mermaid`.
-- **Local SVG Flag Icons**: Replaced regional emoji flags with local SVG assets under `docs/assets/flags/` for cross-platform rendering across 42 locales.
-- **CI & Build Pipeline Improvements**: Dynamic runner resolution, prepublish next-build artifact caching, and `.gitignore` root-anchored `/_tasks` symlink protection.
-- **Modularized Provider Model Components**: Added Amazon Q provider registry entry and refactored provider detail model sections (`FetchedModelsSection`, `CustomModelsSection`, `ProviderModelsSection`).
-
-### v3.8.52
-
-  - Added **xKiro** OpenAI-compatible provider gateway (`https://api.xkiro.com/v1`) with passthrough models, free tier support, and live `/v1/models` discovery.
-  - Ported **OpenVecta** provider registry (`openvectaProvider`), supporting models like GLM 4.7 Flash, Claude Sonnet 4.6, DeepSeek V4 Flash, GPT OSS 120B, Llama 4 Maverick, etc.
-- **Live Model Discovery Auto-Derivation**: Enhanced `discoveryConfig.ts` to automatically derive live `/models` discovery URLs for all OpenAI-compatible providers directly from their `baseUrl`.
-- **Core AI Translators & Stream Fixes**:
-  - **Kiro Stream Filter**: Stripped leaked `<thinking>` tags from Kiro content streams.
-  - **GLM / Fireworks Tool Call Fix**: Prevented GLM & Fireworks translators from repeating `tc.id` on every tool call argument chunk.
-  - **Kiro Reasoning Field**: Added `reasoning` property to `additionalModelRequestFields` in `openai-to-kiro.ts`.
-  - **Upstream 9Router Fixes**: Ported core translator & executor fixes (#2473, #2596, Codex v0.144.6).
-- **Dashboard UI & Provider Management**:
-  - **Custom Model Persistence & Alias Fix**: Connected manual model creation (`+` button) to SQLite `customModels` persistence via `POST /api/provider-models` in `PassthroughModelsSection` and cleared stale alias collisions.
-  - **Responsive 2-Column Grid & Bounded Scrolling**: Constrained available models containers with scrollable `max-h-[560px]` and updated grid breakpoints to `md:grid-cols-2` for a clean 2-column layout on standard screens (>=768px).
-  - **Enhanced Free/Paid Model Detection**: Improved `isFree` evaluation to inspect pricing flags, `:free` tags, and free/gratis keywords across imported and custom models.
-  - **CLIProxy Provider Exposure**: Implemented `POST /api/services/cliproxy/provider-expose` endpoint to toggle CLIProxy exposure.
-- **Desktop & System Features**:
-  - **Windows Tray DPI Awareness**: Made Windows context menu DPI-aware in System Tray (`trayWindows.mjs`).
-  - **Electron Symlink Materialization**: Added `materializeSymlinks: true` in `assembleStandalone` build script.
-  - **Windows Spawn Shell & Kiro Auto-Import**: Ported Kiro auto-import `isCloudEnabled` await fix and Electron Windows spawn shell options.
-- **Cost Calculation, Security & Dependency Hardening**:
-  - **xAI Exact Cost & SSRF Guard**: Ported xAI exact cost calculation rules and provider validation SSRF guard.
-  - **Secure Random Routing**: Replaced `Math.random` with `crypto.randomInt` in combo runtime units selection.
-  - **Security Overrides**: Applied package overrides for `adm-zip` (^0.6.0), `dompurify`, `fast-xml-parser`, `sharp`, `hono`, `@hono/node-server`, `fast-uri`, and `body-parser`.
-
-### v3.8.51
-
-- **Linter & Type Alignment**: Resolved type-casting mismatch for `translatedResponse` in `chatCore.ts` using type assertion (`as typeof translatedResponse`) without introducing `any` keyword to adhere to the strict `t11` budget.
-- **ESLint Bulk Suppressions Update**: Formally registered `chatCore.ts` into `eslint-suppressions.json` to lock legacy warnings and enable seamless integration with the master branch.
-- **Next.js Client Components Props**: Fixed compilation error regarding Next.js serializable props on Client React components by renaming handlers callback `onSuccess` to server action compliant `onSuccessAction`.
-- **SQLite Auto-Recovery & WAL Safety**: Solidified WAL-recovery database handlers to prevent corruption during sudden shutdown (like Ctrl+C) on Android/Termux devices.
-
-### v3.8.50
-
-- **Console Log Clearance**: Added a manual logs truncate/clear option directly in the Console Log Viewer, backed by a dynamic confirmation modal.
-- **Amazon Q Model Listing Support**: Resolved the model listing issue for the Amazon Q provider by enabling dynamic model mapping to Kiro.
-- **Mac-Style Modal Controls**: Refactored modal header exit buttons into interactive macOS window control styles (dots) with interactive hover and proper styling.
-- **CLI & UI Layout Adjustments**: Raised z-index of the dashboard header to fix language dropdown overlap issues, and corrected backslash alignment in the CLI launch banner.
+- **OpenCode Browser User-Agent Override**: Implemented synthesis of OpenCode CLI identity headers and browser User-Agent override. When a browser User-Agent is detected (such as in playground requests), it is replaced with the CLI User-Agent (`opencode-cli/1.0.0`) to avoid mixed identities that Cloudflare rejects with 429/403.
+- **Custom Model Responses API Routing**: Fixed Responses API routing for custom models by passing the correct `targetFormat` to the executor (updating `open-sse/executors/base.ts`, `open-sse/executors/opencode.ts`, and `open-sse/handlers/chatCore.ts`), preventing routing errors. Includes new unit tests.
+- **OpenCode Model Cleanups**: Removed deprecated free models from the OpenCode provider configuration (except for `big-pickle`).
+- **Live WebSocket Server Auth Override**: Added settings check (`wsAuth`, `setupComplete`, `requireLogin`) to authorize live WebSocket connections without authentication if authorization is disabled in the settings.
+- **PWA Service Worker & Caching Refactoring**: Updated Service Worker (`public/sw.js`) to cache `.webmanifest` and `.json` assets, robustly handling network failures and caching errors without disrupting the offline/PWA experience.
+- **Standalone Build & Assembly Enhancements**: Improved standalone package bundle assembly and prepublish scripts with robust symlink materialization and caching configurations.
 
 ---
 
